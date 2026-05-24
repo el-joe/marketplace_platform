@@ -25,7 +25,7 @@
     {{-- Header row with breadcrumb + action buttons                           --}}
     {{-- ══════════════════════════════════════════════════════════════════════ --}}
     <div class="flex items-center justify-between">
-        <x-breadcrumbs :items="$breadcrumbs" />
+        <div></div>
 
         <div class="flex items-center gap-2">
             @if ($isEdit)
@@ -86,32 +86,24 @@
         </div>
     </div>
 
-    {{-- ══════════════════════════════════════════════════════════════════════ --}}
-    {{-- Session flash                                                          --}}
-    {{-- ══════════════════════════════════════════════════════════════════════ --}}
-    @if (session('success'))
-        <x-alert type="success">{{ session('success') }}</x-alert>
-    @endif
     @if ($errors->any())
-        <x-alert type="danger">
-            <ul class="list-disc list-inside text-sm">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </x-alert>
+        <div class="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700 space-y-1">
+            @foreach ($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
+        </div>
     @endif
 
     {{-- Launch prerequisite warnings (edit mode only) --}}
     @if ($isEdit && count($launchErrors ?? []) > 0 && !$country->is_launched)
-        <x-alert type="warning">
+        <div class="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">
             <strong class="block mb-1">Not ready to launch:</strong>
-            <ul class="list-disc list-inside text-sm space-y-0.5">
+            <ul class="list-disc list-inside space-y-0.5">
                 @foreach ($launchErrors as $err)
                     <li>{{ $err }}</li>
                 @endforeach
             </ul>
-        </x-alert>
+        </div>
     @endif
 
     {{-- ══════════════════════════════════════════════════════════════════════ --}}

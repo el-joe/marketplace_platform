@@ -9,7 +9,7 @@
 @section('content')
     <div class="space-y-6">
         <div class="flex items-center justify-between">
-            <x-breadcrumbs :items="$breadcrumbs" />
+            <div></div>
             <button type="button" id="btn-dispatch-rate-update" data-url="{{ route('admin.currencies.dispatch-update') }}"
                 class="btn btn-secondary">
                 <x-heroicon name="arrow-path" class="w-4 h-4" />

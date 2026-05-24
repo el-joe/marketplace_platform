@@ -9,7 +9,7 @@
 @section('content')
     <div class="space-y-6">
         <div class="flex items-center justify-between">
-            <x-breadcrumbs :items="$breadcrumbs" />
+            <div></div>
             <div class="flex gap-2">
                 <a href="{{ route('admin.currencies.index') }}" class="btn btn-ghost">
                     ← Back to Currencies
@@ -21,22 +21,17 @@
             </div>
         </div>
 
-        @if (session('success'))
-            <x-alert type="success">{{ session('success') }}</x-alert>
-        @endif
         @if ($errors->any())
-            <x-alert type="danger">
-                <ul class="list-disc list-inside text-sm">
-                    @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-                </ul>
-            </x-alert>
+            <div class="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700 space-y-1">
+                @foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+            </div>
         @endif
 
         @if ($currency->is_manually_overridden)
-            <x-alert type="warning">
+            <div class="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">
                 This currency's exchange rate is <strong>manually overridden</strong>.
                 The automatic sync job will skip it until you unset the override.
-            </x-alert>
+            </div>
         @endif
 
         <form id="currency-form" method="POST" action="{{ route('admin.currencies.update', $currency->code) }}" novalidate>

@@ -20,7 +20,7 @@ Shared City form partial.
 <div class="space-y-6">
     {{-- Header --}}
     <div class="flex items-center justify-between">
-        <x-breadcrumbs :items="$breadcrumbs" />
+        <div></div>
         <div class="flex gap-2">
             @if ($isEdit)
                 <button type="button" id="btn-delete-city" data-city-id="{{ $city->id }}"
@@ -36,22 +36,17 @@ Shared City form partial.
         </div>
     </div>
 
-    @if (session('success'))
-        <x-alert type="success">{{ session('success') }}</x-alert>
-    @endif
     @if ($errors->any())
-        <x-alert type="danger">
-            <ul class="list-disc list-inside text-sm">
-                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-            </ul>
-        </x-alert>
+        <div class="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700 space-y-1">
+            @foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+        </div>
     @endif
 
     {{-- Missing shipping zone warning --}}
     @if ($isEdit && !$city->shipping_zone_id)
-        <x-alert type="warning">
+        <div class="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">
             This city has no shipping zone assigned — it <strong>cannot receive deliveries</strong> until a zone is set.
-        </x-alert>
+        </div>
     @endif
 
     <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-5">
