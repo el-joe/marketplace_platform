@@ -1,0 +1,111 @@
+/**
+ * select2.js — Select2 integration (standard + AJAX async-select).
+ *
+ * Requires (install via yarn/npm):
+ *   yarn add select2
+ *
+ * Note: Select2 needs jQuery available globally (window.$).
+ *
+ * Standard select:   <select data-select2="true">
+ * Async select:      <select data-async-select data-config='{...}'>
+ */
+import $ from 'jquery';
+
+// Select2 is loaded as a jQuery plugin — it attaches to $.fn
+// Import it after jQuery is on window
+async function loadSelect2() {
+    if ($.fn.select2) return;
+    await import('select2');
+    // Select2 CSS must be loaded separately (add to vite input or use CDN)
+    // import 'select2/dist/css/select2.min.css'; // uncomment if not using CDN
+}
+
+/* =========================================================
+   STANDARD SELECT2
+   ========================================================= */
+async function initStandardSelect2($scope) {
+    const $els = $scope.find('[data-select2="true"]');
+    if (!$els.length) return;
+
+    await loadSelect2();
+
+    $els.each(function () {
+        const $el = $(this);
+        if ($el.data('select2')) {
+            try { $el.select2('destroy'); } catch (_) { }
+        }
+        $el.select2({
+            width: '100%',
+            placeholder: $el.find('option[value=""]').text() || 'Select…',
+            allowClear: true,
+        });
+    });
+}
+
+/* =========================================================
+   ASYNC SELECT2 (data-async-select)
+   ========================================================= */
+async function initAsyncSelect2($scope) {
+    const $els = $scope.find('[data-async-select]');
+    if (!$els.length) return;
+
+    await loadSelect2();
+
+    $els.each(function () {
+        const $el = $(this);
+        const config = (() => {
+            try { return JSON.parse($el.data('config') || '{}'); } catch { return {}; }
+        })();
+
+        if ($el.data('select2')) {
+            try { $el.select2('destroy'); } catch (_) { }
+        }
+
+        $el.select2({
+            width: '100%',
+            placeholder: $el.attr('placeholder') || config.placeholder || 'Type to search…',
+            allowClear: !$el.prop('required'),
+            minimumInputLength: config.minLength ?? 2,
+            ajax: {
+                url: config.url,
+                dataType: 'json',
+                delay: config.delay ?? 300,
+                data: function (params) {
+                    const query = {};
+                    query[config.param || 'q'] = params.term;
+                    query.page = params.page || 1;
+                    return query;
+                },
+                processResults: function (response, params) {
+                    const items = response.data ?? response.results ?? response;
+                    return {
+                        results: Array.isArray(items) ? items : [],
+                        pagination: { more: response.meta?.current_page < response.meta?.last_page },
+                    };
+                },
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                },
+            },
+        });
+    });
+}
+
+/* =========================================================
+   Public init
+   ========================================================= */
+async function initSelect2($scope) {
+    $scope = $scope || $('body');
+    await Promise.all([
+        initStandardSelect2($scope),
+        initAsyncSelect2($scope),
+    ]);
+}
+
+window.initSelect2 = initSelect2;
+
+$(function () {
+    initSelect2($('body'));
+});

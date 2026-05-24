@@ -1,0 +1,168 @@
+/* Tailwind v4: @reference makes utilities available for @apply in this file */
+@reference "tailwindcss";
+
+/* =========================================================
+   BUTTONS
+   Base styles shared across all btn variants via multi-selector.
+   Variant classes only add colour/border overrides.
+   ========================================================= */
+
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-success,
+.btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-sm {
+    @apply px-3 py-1.5 text-xs rounded-md;
+}
+
+.btn-lg {
+    @apply px-5 py-2.5 text-base;
+}
+
+.btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+}
+
+.btn-secondary {
+    @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500;
+}
+
+.btn-danger {
+    @apply bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500;
+}
+
+.btn-success {
+    @apply bg-success-600 text-white hover:bg-success-700 focus:ring-success-500;
+}
+
+.btn-ghost {
+    @apply bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-400;
+}
+
+/* =========================================================
+   FORM CONTROLS
+   ========================================================= */
+
+.form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.form-label-required::after {
+    content: ' *';
+    color: var(--color-danger-500, #ef4444);
+}
+
+/* Base field — shared by input, select, textarea via multi-selector */
+.form-input,
+.form-select,
+.form-textarea {
+    @apply block w-full rounded-lg border-gray-300 shadow-sm text-sm placeholder-gray-400 focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.form-select {
+    @apply pr-9 bg-white;
+}
+
+.form-input.is-invalid,
+.form-select.is-invalid,
+.form-textarea.is-invalid {
+    @apply border-danger-500 focus:border-danger-500 focus:ring-danger-500;
+}
+
+.form-error {
+    @apply mt-1 text-sm text-danger-600;
+}
+
+.form-hint {
+    @apply mt-1 text-xs text-gray-500;
+}
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+
+.table-base {
+    @apply min-w-full divide-y divide-gray-200 text-sm;
+}
+
+.table-base thead {
+    @apply bg-gray-50;
+}
+
+.table-base thead th {
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500;
+}
+
+.table-base tbody tr {
+    @apply hover:bg-gray-50 transition-colors;
+}
+
+.table-base tbody td {
+    @apply px-4 py-3 text-gray-700 border-b border-gray-100;
+}
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.nav-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors duration-150;
+}
+
+.nav-item.is-active {
+    @apply bg-primary-600 text-white hover:bg-primary-600;
+}
+
+.nav-item-icon {
+    @apply w-5 h-5 flex-shrink-0;
+}
+
+.sidebar-group-label {
+    @apply px-3 mt-4 mb-1 text-[11px] uppercase tracking-wider text-gray-500 font-semibold;
+}
+
+.sidebar-badge {
+    @apply ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-danger-600 text-white;
+}
+
+/* =========================================================
+   MODALS
+   ========================================================= */
+
+.modal-backdrop {
+    @apply fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 p-4;
+}
+
+.modal-panel {
+    @apply bg-white rounded-xl shadow-xl w-full max-h-[90vh] overflow-y-auto;
+    animation: fade-in 200ms ease-out;
+}
+
+.modal-sm {
+    @apply max-w-sm;
+}
+
+.modal-md {
+    @apply max-w-md;
+}
+
+.modal-lg {
+    @apply max-w-2xl;
+}
+
+.modal-xl {
+    @apply max-w-4xl;
+}
+
+/* =========================================================
+   BADGES
+   ========================================================= */
+
+.badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+}
