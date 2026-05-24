@@ -15,12 +15,13 @@
     <meta name="theme-color" content="#0284c7">
 
     <title>@hasSection('title')@yield('title')@else{{ $title ?? config('app.name', 'Marketplace Admin') }}@endif —
-        {{ config('app.name') }}</title>
+        {{ config('app.name') }}
+    </title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
-    @vite(['resources/css/app.css', 'resources/css/components.css', 'resources/js/app.js', 'resources/js/components/layout.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/components/layout.js'])
 
     @stack('styles')
 </head>
