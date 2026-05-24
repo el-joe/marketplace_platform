@@ -14,7 +14,7 @@ return new class extends Migration {
          * Table: ad_impressions Every time a sponsored product is shown. High-volume — partition by date. ColumnTypeNullDefaultDescriptionidUUID PKNOgen_random_uuid()ad_campaign_idUUID FK→ad_campaignsNOseller_listing_idUUID FK→seller_listingsNOWhich listing was shownuser_idUUID FK→usersYESNULLNULL for guestssession_idVARCHAR(100)NOplacement_codeVARCHAR(50)NOsearch_results, category_top, homepage_sponsoredsearch_queryVARCHAR(255)YESNULLWhat the customer searchedposition_shownINTNORank in results (1 = top)bid_at_impression_centsBIGINTNOCPC bid that won this impressionquality_score_at_impressionDECIMAL(3,2)NOScore at time of showingwas_clickedBOOLEANNOfalsewas_convertedBOOLEANNOfalseLed to a purchasecost_charged_centsBIGINTNO00 until clicked (CPC) or set on impression (CPM)country_idUUID FK→countriesNOdevice_typeVARCHAR(10)NOdesktop, mobile, appshown_atTIMESTAMPTZNOnow()clicked_atTIMESTAMPTZYESNULLconverted_atTIMESTAMPTZYESNULL
          */
         Schema::create('ad_impressions', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
+            $table->uuid('id')->primary();
             $table->uuid('ad_campaign_id');
             $table->uuid('vendor_listing_id');
             $table->uuid('customer_id')->nullable();

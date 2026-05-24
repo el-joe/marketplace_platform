@@ -11,14 +11,14 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('activity_log', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
+            $table->uuid('id')->primary();
             $table->string('log_name', 100);
             $table->string('description', 255);
             $table->string('subject_type', 255)->nullable();
             $table->uuid('subject_id')->nullable();
             $table->string('causer_type', 255)->nullable();
             $table->uuid('causer_id')->nullable();
-            $table->jsonb('properties')->default('{}');
+            $table->jsonb('properties');
             $table->string('event', 50)->nullable();
             $table->uuid('batch_uuid')->nullable();
             $table->string('ip_address', 45)->nullable();

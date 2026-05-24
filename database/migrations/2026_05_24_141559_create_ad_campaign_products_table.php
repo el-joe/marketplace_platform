@@ -16,7 +16,7 @@ return new class extends Migration {
         Schema::create('ad_campaign_products', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('ad_campaign_id')->index();
-            $table->uuid('vendor_listing_id')->index();
+            $table->uuid('product_variant_id')->index();
             $table->uuid('vendor_id')->index();
             $table->uuid('vendor_listing_id')->index();
             $table->boolean('is_active')->default(true);

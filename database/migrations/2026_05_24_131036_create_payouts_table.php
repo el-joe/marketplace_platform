@@ -17,7 +17,6 @@ return new class extends Migration {
             $table->id();
             $table->string('payout_number', 30)->unique();
             $table->uuid('vendor_id')->index();
-            $table->char('currency', 3);
             $table->date('period_start');
             $table->date('period_end');
             $table->bigInteger('gross_sales');

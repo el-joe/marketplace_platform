@@ -38,6 +38,7 @@ const RAW_RUNTIME_STATE =
           ["@tiptap/pm", "npm:2.27.2"],\
           ["@tiptap/starter-kit", "npm:2.27.2"],\
           ["alpinejs", "npm:3.15.12"],\
+          ["chart.js", "npm:4.5.1"],\
           ["concurrently", "npm:9.2.1"],\
           ["datatables.net", "npm:2.3.8"],\
           ["datatables.net-buttons", "npm:3.2.6"],\
@@ -151,6 +152,15 @@ const RAW_RUNTIME_STATE =
           ["@jridgewell/resolve-uri", "npm:3.1.2"],\
           ["@jridgewell/sourcemap-codec", "npm:1.5.5"],\
           ["@jridgewell/trace-mapping", "npm:0.3.31"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@kurkle/color", [\
+      ["npm:0.3.4", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/@kurkle-color-npm-0.3.4-fbd637031f-10c0.zip/node_modules/@kurkle/color/",\
+        "packageDependencies": [\
+          ["@kurkle/color", "npm:0.3.4"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1277,6 +1287,16 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["chart.js", [\
+      ["npm:4.5.1", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/chart.js-npm-4.5.1-97698d58cc-10c0.zip/node_modules/chart.js/",\
+        "packageDependencies": [\
+          ["@kurkle/color", "npm:0.3.4"],\
+          ["chart.js", "npm:4.5.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["chownr", [\
       ["npm:3.0.0", {\
         "packageLocation": "../../../home/joe/.yarn/berry/cache/chownr-npm-3.0.0-5275e85d25-10c0.zip/node_modules/chownr/",\
@@ -2321,6 +2341,7 @@ const RAW_RUNTIME_STATE =
           ["@tiptap/pm", "npm:2.27.2"],\
           ["@tiptap/starter-kit", "npm:2.27.2"],\
           ["alpinejs", "npm:3.15.12"],\
+          ["chart.js", "npm:4.5.1"],\
           ["concurrently", "npm:9.2.1"],\
           ["datatables.net", "npm:2.3.8"],\
           ["datatables.net-buttons", "npm:3.2.6"],\

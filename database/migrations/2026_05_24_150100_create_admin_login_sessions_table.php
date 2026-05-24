@@ -11,7 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('admin_login_sessions', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
+            $table->uuid('id')->primary();
             $table->uuid('admin_id');
             $table->uuid('impersonating_id')->nullable();
             $table->string('ip_address', 45);
@@ -20,7 +20,7 @@ return new class extends Migration {
             $table->timestamp('started_at');
             $table->timestamp('ended_at')->nullable();
 
-            $table->index('admin_user_id');
+            $table->index('admin_id');
             $table->index('started_at');
         });
     }

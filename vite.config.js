@@ -19,6 +19,7 @@ export default defineConfig({
                 'resources/js/components/slug-input.js',
                 'resources/js/components/datatable.js',
                 'resources/js/components/column-renderers.js',
+                'resources/js/admin/dashboard.js',
             ],
             refresh: [
                 'resources/views/**',
