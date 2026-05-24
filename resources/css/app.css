@@ -129,13 +129,7 @@ body:not(.sidebar-collapsed) #sidebar-logo-icon {
 
 #main-wrapper {
     flex: 1;
-    margin-left: 16rem;
-    transition: margin-left 200ms ease;
     min-width: 0;
-}
-
-body.sidebar-collapsed #main-wrapper {
-    margin-left: 4rem;
 }
 
 #topbar {
@@ -163,10 +157,6 @@ body.sidebar-collapsed #main-wrapper {
         transform: translateX(0);
     }
 
-    #main-wrapper {
-        margin-left: 0 !important;
-    }
-
     #sidebar-backdrop {
         display: none;
     }
@@ -180,16 +170,19 @@ body.sidebar-collapsed #main-wrapper {
     }
 }
 
-html[dir="rtl"] #main-wrapper {
-    margin-left: 0;
-    margin-right: 16rem;
-}
-
-html[dir="rtl"] body.sidebar-collapsed #main-wrapper {
-    margin-right: 4rem;
-}
-
 html[dir="rtl"] #sidebar {
     left: auto;
     right: 0;
+}
+
+@media (max-width: 768px) {
+    html[dir="rtl"] #sidebar {
+        right: 0;
+        left: auto;
+        transform: translateX(100%);
+    }
+
+    html[dir="rtl"] body.sidebar-open #sidebar {
+        transform: translateX(0);
+    }
 }

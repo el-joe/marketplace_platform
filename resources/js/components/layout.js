@@ -62,7 +62,7 @@ $(function () {
     /* ---------- Notification polling ---------- */
     function pollNotifications() {
         $.ajax({
-            url: '/admin/notifications/unread-count',
+            url: '/notifications/unread-count',
             method: 'GET',
         })
             .done(function (response) {
@@ -91,7 +91,7 @@ $(function () {
         const $list = $('#notif-list');
         if ($list.data('loaded')) return;
 
-        $.ajax({ url: '/admin/notifications/unread', method: 'GET' })
+        $.ajax({ url: '/notifications/unread', method: 'GET' })
             .done(function (response) {
                 const items = (response && response.data && response.data.items) || [];
                 if (!items.length) {
@@ -113,7 +113,7 @@ $(function () {
     /* ---------- Mark all notifications read ---------- */
     $(document).off('click.notif-mark').on('click.notif-mark', '#notif-mark-all-read', function (e) {
         e.preventDefault();
-        $.ajax({ url: '/admin/notifications/mark-all-read', method: 'POST' })
+        $.ajax({ url: '/notifications/mark-all-read', method: 'POST' })
             .done(function () {
                 $('#notif-badge').addClass('hidden');
                 $('#notif-list').html('<div class="p-6 text-center text-sm text-gray-500">No new notifications</div>');
@@ -121,11 +121,22 @@ $(function () {
             });
     });
 
+    /* ---------- Locale / direction switcher ---------- */
+    $(document).off('click.locale').on('click.locale', '.locale-switch', function () {
+        const locale = $(this).data('locale');
+        $.ajax({ url: '/set-locale', method: 'POST', data: { locale } })
+            .done(function () { window.location.reload(); })
+            .fail(function (xhr) {
+                xhr.handled = true;
+                window.Toast && window.Toast.error('Could not switch language.');
+            });
+    });
+
     /* ---------- Country switcher ---------- */
     $(document).off('click.country').on('click.country', '.country-switch', function () {
         const code = $(this).data('country');
         $.ajax({
-            url: '/admin/country',
+            url: '/country',
             method: 'POST',
             data: { country: code },
         })

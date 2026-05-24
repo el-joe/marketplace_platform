@@ -90,6 +90,33 @@
             </div>
         </div>
 
+        {{-- Language / direction switcher --}}
+        <div class="relative" x-data="{ open: false }">
+            <button type="button" @click="open = !open" class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium
+                       text-gray-700 hover:bg-gray-100 border border-gray-200">
+                <x-heroicon name="language" class="w-4 h-4" />
+                <span>{{ strtoupper(app()->getLocale()) }}</span>
+                <x-heroicon name="chevron-down" class="w-3 h-3 text-gray-400" />
+            </button>
+            <div x-show="open" @click.outside="open = false" x-cloak
+                class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                <button type="button" data-locale="en" class="locale-switch w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                           flex items-center justify-between">
+                    <span>EN — English</span>
+                    @if(app()->getLocale() === 'en')
+                        <x-heroicon name="check" class="w-3.5 h-3.5 text-primary-600" />
+                    @endif
+                </button>
+                <button type="button" data-locale="ar" class="locale-switch w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                           flex items-center justify-between">
+                    <span>AR — العربية</span>
+                    @if(app()->getLocale() === 'ar')
+                        <x-heroicon name="check" class="w-3.5 h-3.5 text-primary-600" />
+                    @endif
+                </button>
+            </div>
+        </div>
+
         {{-- User dropdown --}}
         <div class="relative" x-data="{ open: false }">
             <button type="button" @click="open = !open"

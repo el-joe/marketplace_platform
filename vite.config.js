@@ -20,6 +20,7 @@ export default defineConfig({
                 'resources/js/components/datatable.js',
                 'resources/js/components/column-renderers.js',
                 'resources/js/admin/dashboard.js',
+                'resources/js/admin/products.js',
             ],
             refresh: [
                 'resources/views/**',

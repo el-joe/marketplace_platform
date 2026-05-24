@@ -2,7 +2,9 @@
 
 namespace App\Traits;
 
+use DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -20,7 +22,7 @@ trait HasDataTable
      */
     public function dataTableResponse(
         Request $request,
-        Builder $query,
+        Builder|QueryBuilder $query,
         array $columns,
         callable $rowTransformer
     ): JsonResponse {
@@ -36,7 +38,7 @@ trait HasDataTable
             );
 
             if (!empty($searchable)) {
-                $query->where(function (Builder $q) use ($searchable, $searchValue) {
+                $query->where(function (Builder|QueryBuilder $q) use ($searchable, $searchValue) {
                     foreach ($searchable as $col) {
                         foreach ($col['searchable_columns'] as $dbCol) {
                             $q->orWhere($dbCol, 'like', '%' . $searchValue . '%');
@@ -103,7 +105,7 @@ trait HasDataTable
      *       'date_to'    => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
      *   ]);
      */
-    protected function applyFilters(Builder $query, Request $request, array $scopes): Builder
+    protected function applyFilters(Builder|QueryBuilder $query, Request $request, array $scopes): Builder|QueryBuilder
     {
         foreach ($scopes as $param => $scope) {
             $value = $request->input($param);

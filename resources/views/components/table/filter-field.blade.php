@@ -61,12 +61,12 @@ min_length: int (for 'async_select' type, default 2)
         </div>
 
     @elseif($type === 'async_select')
-        <select id="{{ $tableId }}-filter-{{ $name }}" name="{{ $name }}" data-async-select data-config='@json([
+        <select id="{{ $tableId }}-filter-{{ $name }}" name="{{ $name }}" data-async-select data-config='{{ json_encode([
             "url" => $filter["url"],
             "param" => $filter["param"] ?? "q",
             "minLength" => $filter["min_length"] ?? 2,
             "delay" => 300,
-        ])' class="form-select text-sm" placeholder="{{ $placeholder ?: 'Search…' }}">
+        ]) }}' class="form-select text-sm" placeholder="{{ $placeholder ?: 'Search…' }}">
         </select>
     @endif
 </div>
