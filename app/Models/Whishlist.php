@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-
-class Whishlist extends Model
+/**
+ * Legacy typo alias – kept to avoid breaking existing references.
+ * Use Wishlist instead.
+ */
+class Whishlist extends Wishlist
 {
-    //
+    protected $table = 'wishlists';
 }

@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
+use App\Models\File;
+use App\Models\Product;
+use App\Models\VendorListing;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -49,34 +52,40 @@ class ProductController extends Controller
     {
         $columns = $this->columnDefinitions();
 
-        $query = DB::table('products as p')
-            ->leftJoin('categories as c', 'c.id', '=', 'p.category_id')
-            ->leftJoin('brands as b', 'b.id', '=', 'p.brand_id')
-            ->whereNull('p.deleted_at')
+        $query = Product::query()
+            ->leftJoin('categories as c', 'c.id', '=', 'products.category_id')
+            ->leftJoin('brands as b', 'b.id', '=', 'products.brand_id')
+            ->whereNull('products.deleted_at')
             ->select([
-                'p.id',
-                'p.name_en',
-                'p.name_ar',
-                'p.status',
-                'p.is_featured',
-                'p.rating_avg',
-                'p.total_sold',
-                'p.created_at',
+                'products.id',
+                'products.name_en',
+                'products.name_ar',
+                'products.status',
+                'products.is_featured',
+                'products.rating_avg',
+                'products.total_sold',
+                'products.created_at',
                 'c.name_en as category_name',
-                'b.name as brand_name',
-                DB::raw("(SELECT f.path FROM product_images pi
-                          JOIN files f ON f.id = pi.file_id
-                          WHERE pi.product_id = p.id AND pi.is_primary = 1
-                          LIMIT 1) as primary_image"),
-                DB::raw("(SELECT COUNT(*) FROM seller_listings sl
-                          WHERE sl.product_id = p.id AND sl.status = 'active'
-                          AND sl.deleted_at IS NULL) as seller_count"),
+                'b.name_en as brand_name',
+            ])
+            ->addSelect([
+                'primary_image' => File::select('path')
+                    ->whereColumn('model_id', 'products.id')
+                    ->where('model_type', Product::class)
+                    ->where('is_primary', true)
+                    ->orderBy('position')
+                    ->limit(1),
+                'seller_count' => VendorListing::selectRaw('COUNT(*)')
+                    ->join('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
+                    ->whereColumn('product_variants.product_id', 'products.id')
+                    ->where('vendor_listings.status', 'active')
+                    ->whereNull('vendor_listings.deleted_at'),
             ]);
 
         $query = $this->applyFilters($query, $request, [
-            'status' => fn($q, $v) => $q->where('p.status', $v),
-            'category_id' => fn($q, $v) => $q->where('p.category_id', $v),
-            'brand_id' => fn($q, $v) => $q->where('p.brand_id', $v),
+            'status' => fn($q, $v) => $q->where('products.status', $v),
+            'category_id' => fn($q, $v) => $q->where('products.category_id', $v),
+            'brand_id' => fn($q, $v) => $q->where('products.brand_id', $v),
         ]);
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
@@ -609,14 +618,14 @@ class ProductController extends Controller
     {
         return [
             ['title' => '', 'data' => 'image', 'name' => 'image', 'orderable' => false, 'searchable' => false, 'className' => 'w-12 px-2'],
-            ['title' => 'Name', 'data' => 'name_en', 'name' => 'name_en', 'searchable_columns' => ['p.name_en', 'p.name_ar'], 'orderable_column' => 'p.name_en'],
+            ['title' => 'Name', 'data' => 'name_en', 'name' => 'name_en', 'searchable_columns' => ['products.name_en', 'products.name_ar'], 'orderable_column' => 'products.name_en'],
             ['title' => 'Category', 'data' => 'category', 'name' => 'category', 'orderable_column' => 'c.name_en', 'searchable' => false],
             ['title' => 'Brand', 'data' => 'brand', 'name' => 'brand', 'orderable_column' => 'b.name', 'searchable' => false],
-            ['title' => 'Status', 'data' => 'status', 'name' => 'status', 'orderable_column' => 'p.status', 'searchable' => false],
+            ['title' => 'Status', 'data' => 'status', 'name' => 'status', 'orderable_column' => 'products.status', 'searchable' => false],
             ['title' => 'Sellers', 'data' => 'seller_count', 'name' => 'seller_count', 'orderable' => false, 'searchable' => false, 'className' => 'text-right'],
-            ['title' => 'Rating', 'data' => 'rating_avg', 'name' => 'rating_avg', 'orderable_column' => 'p.rating_avg', 'searchable' => false, 'className' => 'text-right'],
-            ['title' => 'Sold', 'data' => 'total_sold', 'name' => 'total_sold', 'orderable_column' => 'p.total_sold', 'searchable' => false, 'className' => 'text-right'],
-            ['title' => 'Created', 'data' => 'created_at', 'name' => 'created_at', 'orderable_column' => 'p.created_at', 'searchable' => false],
+            ['title' => 'Rating', 'data' => 'rating_avg', 'name' => 'rating_avg', 'orderable_column' => 'products.rating_avg', 'searchable' => false, 'className' => 'text-right'],
+            ['title' => 'Sold', 'data' => 'total_sold', 'name' => 'total_sold', 'orderable_column' => 'products.total_sold', 'searchable' => false, 'className' => 'text-right'],
+            ['title' => 'Created', 'data' => 'created_at', 'name' => 'created_at', 'orderable_column' => 'products.created_at', 'searchable' => false],
             ['title' => '', 'data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false, 'className' => 'text-right'],
         ];
     }

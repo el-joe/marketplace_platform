@@ -3,8 +3,64 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AdCampaign extends Model
 {
-    //
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function approvedByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'approved_by_admin_id');
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(AdCampaignProduct::class, 'ad_campaign_id');
+    }
+
+    public function keywords(): HasMany
+    {
+        return $this->hasMany(AdCampaignKeyword::class, 'ad_campaign_id');
+    }
+
+    public function categoryTargets(): HasMany
+    {
+        return $this->hasMany(AdCampaignCategoryTarget::class, 'ad_campaign_id');
+    }
+
+    public function impressions(): HasMany
+    {
+        return $this->hasMany(AdImpression::class, 'ad_campaign_id');
+    }
+
+    public function clicks(): HasMany
+    {
+        return $this->hasMany(AdClick::class, 'ad_campaign_id');
+    }
+
+    public function dailyStats(): HasMany
+    {
+        return $this->hasMany(AdDailyStat::class, 'ad_campaign_id');
+    }
+
+    public function qualityScore(): HasOne
+    {
+        return $this->hasOne(AdQualityScore::class, 'ad_campaign_id');
+    }
+
+    public function fraudPatterns(): HasMany
+    {
+        return $this->hasMany(AdFraudPattern::class, 'ad_campaign_id');
+    }
 }
