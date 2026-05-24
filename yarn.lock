@@ -850,6 +850,88 @@ __metadata:
   languageName: node
   linkType: hard
 
+"datatables.net-buttons-dt@npm:^3.2.3":
+  version: 3.2.6
+  resolution: "datatables.net-buttons-dt@npm:3.2.6"
+  dependencies:
+    datatables.net-buttons: "npm:3.2.6"
+    datatables.net-dt: "npm:^2"
+    jquery: "npm:>=1.7"
+  checksum: 10c0/14057b1f4666a32a1eed24f7c7fc64d279f1c5a7da5ad28de5ca91794078e4159a664c3125d162eb4c48dc1d535b1bdb9457360765a89dbc7cb943580ce17372
+  languageName: node
+  linkType: hard
+
+"datatables.net-buttons@npm:3.2.6, datatables.net-buttons@npm:^3.2.3":
+  version: 3.2.6
+  resolution: "datatables.net-buttons@npm:3.2.6"
+  dependencies:
+    datatables.net: "npm:^2"
+    jquery: "npm:>=1.7"
+  checksum: 10c0/ac8919d7c9abb2be440327aaf982b930b1e1e15f509abd98515e6814bc36d1cbd280858aab02fc2d0da241751fba1a7721a303d3e3a97fe7f5c60a7b79d12b62
+  languageName: node
+  linkType: hard
+
+"datatables.net-dt@npm:^2, datatables.net-dt@npm:^2.3.2":
+  version: 2.3.8
+  resolution: "datatables.net-dt@npm:2.3.8"
+  dependencies:
+    datatables.net: "npm:2.3.8"
+    jquery: "npm:>=1.7"
+  checksum: 10c0/acd4e3d53b0404381eba82f3ba1db039d68d437c90a2554611d5569dbaf350748036a0c8e03f22ca1d1ea88035cb3d8b63ed2520d9e49df59767f3ba115e821a
+  languageName: node
+  linkType: hard
+
+"datatables.net-responsive-dt@npm:^3.0.4":
+  version: 3.0.8
+  resolution: "datatables.net-responsive-dt@npm:3.0.8"
+  dependencies:
+    datatables.net-dt: "npm:^2"
+    datatables.net-responsive: "npm:3.0.8"
+    jquery: "npm:>=1.7"
+  checksum: 10c0/bceb2d808ffce229d14c6fc4612679fcc0ecffbfbbb11d0980df00567576ff2db158487b2bdf72d965e4babbf2f55f57207b4754aee4bbcee9d76bbbea3c7a3f
+  languageName: node
+  linkType: hard
+
+"datatables.net-responsive@npm:3.0.8, datatables.net-responsive@npm:^3.0.4":
+  version: 3.0.8
+  resolution: "datatables.net-responsive@npm:3.0.8"
+  dependencies:
+    datatables.net: "npm:^2"
+    jquery: "npm:>=1.7"
+  checksum: 10c0/b863ce2b30a6fa76579d6535252d4eb8d914180c36d73ee147e3065a933eb7ad2cb4d5d952d05971bf9c3c84293592c3c9f6f8ddb989da7eb00b60c468b7aa4e
+  languageName: node
+  linkType: hard
+
+"datatables.net-select-dt@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "datatables.net-select-dt@npm:2.1.0"
+  dependencies:
+    datatables.net-dt: "npm:^2"
+    datatables.net-select: "npm:2.1.0"
+    jquery: "npm:>=1.7"
+  checksum: 10c0/90a871b9737ae1543725fbadaa66cb7ff36c72e3a76b76eec9ddb36c4a10486463869143bd5dbd4b89f78030913e314d11510022ad43fb9d45281b9896bd44aa
+  languageName: node
+  linkType: hard
+
+"datatables.net-select@npm:2.1.0, datatables.net-select@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "datatables.net-select@npm:2.1.0"
+  dependencies:
+    datatables.net: "npm:^2"
+    jquery: "npm:>=1.7"
+  checksum: 10c0/a6e379c49e6d14e563c91b66a67337d9ea8bcdc8c00febc9f048b7083236961dc7219c354e662954e60783a5034aaa66f85a02fb0751317f132ce15202f2378c
+  languageName: node
+  linkType: hard
+
+"datatables.net@npm:2.3.8, datatables.net@npm:^2, datatables.net@npm:^2.3.2":
+  version: 2.3.8
+  resolution: "datatables.net@npm:2.3.8"
+  dependencies:
+    jquery: "npm:>=1.7"
+  checksum: 10c0/3b82b4a47cbe053c8a8ad9eca41db4facb1e5c576e54b589102dacd0b7ab7b727c760534dcc5e4be7f34ec1b47424fed2cfd32a0bec82b728cca7732689eb748
+  languageName: node
+  linkType: hard
+
 "detect-libc@npm:^2.0.3":
   version: 2.1.2
   resolution: "detect-libc@npm:2.1.2"
@@ -1022,6 +1104,13 @@ __metadata:
   bin:
     jiti: lib/jiti-cli.mjs
   checksum: 10c0/1b1e2310a490dce1aeea3da5f5dfe18273516c20ce48be2e98eb8ea452d5f3dcc8fd0cfd6d28b4052a24c5dbab6e3089b2d7e79f0bce7915b10d750929563c42
+  languageName: node
+  linkType: hard
+
+"jquery@npm:>=1.7":
+  version: 4.0.0
+  resolution: "jquery@npm:4.0.0"
+  checksum: 10c0/06d8d0f51121af5a691f8b59c74823157bb5b60eea915b30eaa920d6c0ffd91e60ba81e9b97bd8203f331f9dd8d0ec9a4b010935ea314bdd2f15453c29bc780b
   languageName: node
   linkType: hard
 
@@ -1621,6 +1710,14 @@ __metadata:
     "@tiptap/starter-kit": "npm:^2.4.0"
     alpinejs: "npm:^3.14.1"
     concurrently: "npm:^9.0.1"
+    datatables.net: "npm:^2.3.2"
+    datatables.net-buttons: "npm:^3.2.3"
+    datatables.net-buttons-dt: "npm:^3.2.3"
+    datatables.net-dt: "npm:^2.3.2"
+    datatables.net-responsive: "npm:^3.0.4"
+    datatables.net-responsive-dt: "npm:^3.0.4"
+    datatables.net-select: "npm:^2.1.0"
+    datatables.net-select-dt: "npm:^2.1.0"
     filepond: "npm:^4.30.6"
     filepond-plugin-file-validate-size: "npm:^2.2.8"
     filepond-plugin-file-validate-type: "npm:^1.2.9"

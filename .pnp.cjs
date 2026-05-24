@@ -39,6 +39,14 @@ const RAW_RUNTIME_STATE =
           ["@tiptap/starter-kit", "npm:2.27.2"],\
           ["alpinejs", "npm:3.15.12"],\
           ["concurrently", "npm:9.2.1"],\
+          ["datatables.net", "npm:2.3.8"],\
+          ["datatables.net-buttons", "npm:3.2.6"],\
+          ["datatables.net-buttons-dt", "npm:3.2.6"],\
+          ["datatables.net-dt", "npm:2.3.8"],\
+          ["datatables.net-responsive", "npm:3.0.8"],\
+          ["datatables.net-responsive-dt", "npm:3.0.8"],\
+          ["datatables.net-select", "npm:2.1.0"],\
+          ["datatables.net-select-dt", "npm:2.1.0"],\
           ["filepond", "npm:4.32.12"],\
           ["filepond-plugin-file-validate-size", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:2.2.8"],\
           ["filepond-plugin-file-validate-type", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:1.2.9"],\
@@ -1342,6 +1350,96 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["datatables.net", [\
+      ["npm:2.3.8", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/datatables.net-npm-2.3.8-09c3134695-10c0.zip/node_modules/datatables.net/",\
+        "packageDependencies": [\
+          ["datatables.net", "npm:2.3.8"],\
+          ["jquery", "npm:4.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["datatables.net-buttons", [\
+      ["npm:3.2.6", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/datatables.net-buttons-npm-3.2.6-b50aba264f-10c0.zip/node_modules/datatables.net-buttons/",\
+        "packageDependencies": [\
+          ["datatables.net", "npm:2.3.8"],\
+          ["datatables.net-buttons", "npm:3.2.6"],\
+          ["jquery", "npm:4.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["datatables.net-buttons-dt", [\
+      ["npm:3.2.6", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/datatables.net-buttons-dt-npm-3.2.6-7006139a44-10c0.zip/node_modules/datatables.net-buttons-dt/",\
+        "packageDependencies": [\
+          ["datatables.net-buttons", "npm:3.2.6"],\
+          ["datatables.net-buttons-dt", "npm:3.2.6"],\
+          ["datatables.net-dt", "npm:2.3.8"],\
+          ["jquery", "npm:4.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["datatables.net-dt", [\
+      ["npm:2.3.8", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/datatables.net-dt-npm-2.3.8-28001db2e7-10c0.zip/node_modules/datatables.net-dt/",\
+        "packageDependencies": [\
+          ["datatables.net", "npm:2.3.8"],\
+          ["datatables.net-dt", "npm:2.3.8"],\
+          ["jquery", "npm:4.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["datatables.net-responsive", [\
+      ["npm:3.0.8", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/datatables.net-responsive-npm-3.0.8-0cdf9ef13d-10c0.zip/node_modules/datatables.net-responsive/",\
+        "packageDependencies": [\
+          ["datatables.net", "npm:2.3.8"],\
+          ["datatables.net-responsive", "npm:3.0.8"],\
+          ["jquery", "npm:4.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["datatables.net-responsive-dt", [\
+      ["npm:3.0.8", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/datatables.net-responsive-dt-npm-3.0.8-adeef65459-10c0.zip/node_modules/datatables.net-responsive-dt/",\
+        "packageDependencies": [\
+          ["datatables.net-dt", "npm:2.3.8"],\
+          ["datatables.net-responsive", "npm:3.0.8"],\
+          ["datatables.net-responsive-dt", "npm:3.0.8"],\
+          ["jquery", "npm:4.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["datatables.net-select", [\
+      ["npm:2.1.0", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/datatables.net-select-npm-2.1.0-6a253dc30f-10c0.zip/node_modules/datatables.net-select/",\
+        "packageDependencies": [\
+          ["datatables.net", "npm:2.3.8"],\
+          ["datatables.net-select", "npm:2.1.0"],\
+          ["jquery", "npm:4.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["datatables.net-select-dt", [\
+      ["npm:2.1.0", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/datatables.net-select-dt-npm-2.1.0-feec541d74-10c0.zip/node_modules/datatables.net-select-dt/",\
+        "packageDependencies": [\
+          ["datatables.net-dt", "npm:2.3.8"],\
+          ["datatables.net-select", "npm:2.1.0"],\
+          ["datatables.net-select-dt", "npm:2.1.0"],\
+          ["jquery", "npm:4.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["detect-libc", [\
       ["npm:2.1.2", {\
         "packageLocation": "../../../home/joe/.yarn/berry/cache/detect-libc-npm-2.1.2-d0c382b1e2-10c0.zip/node_modules/detect-libc/",\
@@ -1591,6 +1689,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../home/joe/.yarn/berry/cache/jquery-npm-3.7.1-eeeac0f21e-10c0.zip/node_modules/jquery/",\
         "packageDependencies": [\
           ["jquery", "npm:3.7.1"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:4.0.0", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/jquery-npm-4.0.0-a7e8df4e00-10c0.zip/node_modules/jquery/",\
+        "packageDependencies": [\
+          ["jquery", "npm:4.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -2217,6 +2322,14 @@ const RAW_RUNTIME_STATE =
           ["@tiptap/starter-kit", "npm:2.27.2"],\
           ["alpinejs", "npm:3.15.12"],\
           ["concurrently", "npm:9.2.1"],\
+          ["datatables.net", "npm:2.3.8"],\
+          ["datatables.net-buttons", "npm:3.2.6"],\
+          ["datatables.net-buttons-dt", "npm:3.2.6"],\
+          ["datatables.net-dt", "npm:2.3.8"],\
+          ["datatables.net-responsive", "npm:3.0.8"],\
+          ["datatables.net-responsive-dt", "npm:3.0.8"],\
+          ["datatables.net-select", "npm:2.1.0"],\
+          ["datatables.net-select-dt", "npm:2.1.0"],\
           ["filepond", "npm:4.32.12"],\
           ["filepond-plugin-file-validate-size", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:2.2.8"],\
           ["filepond-plugin-file-validate-type", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:1.2.9"],\

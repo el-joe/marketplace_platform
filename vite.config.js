@@ -17,6 +17,8 @@ export default defineConfig({
                 'resources/js/components/flatpickr.js',
                 'resources/js/components/select2.js',
                 'resources/js/components/slug-input.js',
+                'resources/js/components/datatable.js',
+                'resources/js/components/column-renderers.js',
             ],
             refresh: [
                 'resources/views/**',
