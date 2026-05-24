@@ -10,7 +10,7 @@ class CountryPaymentMethod extends Model
     protected $table = 'country_payment_methods';
 
     protected $keyType = 'string';
-    protected $incrementing = false;
+    public $incrementing = false;
 
     protected $fillable = [
         'id',

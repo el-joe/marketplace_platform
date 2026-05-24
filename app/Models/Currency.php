@@ -9,7 +9,7 @@ class Currency extends Model
 {
     protected $primaryKey = 'code';
     protected $keyType = 'string';
-    protected $incrementing = false;
+    public $incrementing = false;
 
     protected $fillable = [
         'code',

@@ -10,7 +10,7 @@ class CountryShippingSetting extends Model
     protected $table = 'country_shipping_settings';
 
     protected $keyType = 'string';
-    protected $incrementing = false;
+    public $incrementing = false;
 
     protected $fillable = [
         'id',

@@ -10,7 +10,7 @@ class Language extends Model
     use SoftDeletes;
 
     protected $keyType = 'string';
-    protected $incrementing = false;
+    public $incrementing = false;
 
     protected $fillable = [
         'id',
