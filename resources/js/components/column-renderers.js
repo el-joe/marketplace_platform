@@ -156,7 +156,9 @@ window.Renderers = {
             let html = '<div class="flex items-center gap-1">';
             visible.forEach(function (action) {
                 if (action.type === 'link') {
-                    const href = (action.url || '#').replace(':id', row.id || '');
+                    const href = (action.url || '#').replace(/:([a-zA-Z_]+)/g, (_, key) =>
+                        row[key] !== undefined && row[key] !== null ? row[key] : `:${key}`
+                    );
                     html += `<a href="${href}"
                                 class="btn btn-xs ${action.class || 'btn-ghost'}"
                                 title="${action.label}">
