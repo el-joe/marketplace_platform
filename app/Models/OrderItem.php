@@ -8,6 +8,34 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class OrderItem extends Model
 {
+    protected $keyType = 'string';
+    protected $incrementing = false;
+
+    protected $casts = [
+        'product_snapshot' => 'array',
+    ];
+
+    protected $fillable = [
+        'id',
+        'order_id',
+        'sub_order_id',
+        'product_variant_id',
+        'product_snapshot',
+        'vendor_id',
+        'sku',
+        'quantity',
+        'unit_price',
+        'unit_cost_price',
+        'line_subtotal',
+        'line_discount',
+        'line_tax',
+        'line_total',
+        'commission_rate_pct',
+        'commission_amount',
+        'fulfillment_status',
+        'return_eligible_until',
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

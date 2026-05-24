@@ -8,6 +8,29 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PaymentTransaction extends Model
 {
+    protected $keyType = 'string';
+    protected $incrementing = false;
+
+    protected $fillable = [
+        'id',
+        'order_id',
+        'customer_id',
+        'type',
+        'gateway',
+        'gateway_transaction_id',
+        'idempotency_key',
+        'amount',
+        'currency',
+        'gateway_fee',
+        'status',
+        'failure_code',
+        'failure_message',
+        'payment_method_id',
+        'raw_request',
+        'raw_response',
+        'processed_at',
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

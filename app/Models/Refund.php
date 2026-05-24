@@ -7,6 +7,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Refund extends Model
 {
+    protected $keyType = 'string';
+    protected $incrementing = false;
+
+    protected $fillable = [
+        'id',
+        'order_id',
+        'sub_order_id',
+        'original_transaction_id',
+        'refund_transaction_id',
+        'amount',
+        'currency',
+        'reason',
+        'reason_notes',
+        'refund_type',
+        'initiated_by_customer_id',
+        'approved_by_admin_id',
+        'vendor_charged_back',
+        'status',
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

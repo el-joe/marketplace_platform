@@ -147,5 +147,18 @@ Route::post('/country', function (Request $request) {
 })->name('country');
 
 // ─── Placeholders ─────────────────────────────────────────────────────────────
-Route::get('/orders', fn() => abort(404))->name('orders.index');
+// ─── Orders ───────────────────────────────────────────────────────────────────
+use App\Http\Controllers\Admin\OrderController;
+
+Route::prefix('orders')->name('orders.')->group(function () {
+    Route::post('/datatable', [OrderController::class, 'datatable'])->name('datatable');
+    Route::post('/update-sub-order-status', [OrderController::class, 'updateSubOrderStatus'])->name('update-sub-order-status');
+    Route::get('/', [OrderController::class, 'index'])->name('index');
+    Route::get('/{id}', [OrderController::class, 'show'])->name('show');
+    Route::post('/{id}/force-cancel', [OrderController::class, 'forceCancel'])->name('force-cancel');
+    Route::post('/{id}/refund', [OrderController::class, 'processRefund'])->name('refund');
+    Route::post('/{id}/dispute', [OrderController::class, 'escalateDispute'])->name('dispute');
+    Route::post('/{id}/flag-fraud', [OrderController::class, 'flagFraud'])->name('flag-fraud');
+});
+Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->name('sub-orders.next-statuses');
 Route::get('/vendors', fn() => abort(404))->name('vendors.index');

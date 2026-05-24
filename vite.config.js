@@ -21,6 +21,7 @@ export default defineConfig({
                 'resources/js/components/column-renderers.js',
                 'resources/js/admin/dashboard.js',
                 'resources/js/admin/products.js',
+                'resources/js/admin/orders.js',
             ],
             refresh: [
                 'resources/views/**',

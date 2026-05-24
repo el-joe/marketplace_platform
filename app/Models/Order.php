@@ -9,6 +9,42 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Order extends Model
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
+    protected $casts = [
+        'shipping_address_snapshot' => 'array',
+        'billing_address_snapshot' => 'array',
+    ];
+
+    protected $fillable = [
+        'id',
+        'order_number',
+        'customer_id',
+        'status',
+        'currency',
+        'subtotal',
+        'discount',
+        'shipping',
+        'tax',
+        'cod_fee',
+        'total',
+        'coupon_id',
+        'coupon_code_used',
+        'payment_method',
+        'payment_status',
+        'shipping_address_snapshot',
+        'billing_address_snapshot',
+        'customer_notes',
+        'ip_address',
+        'user_agent',
+        'device_fingerprint',
+        'risk_score',
+        'placed_at',
+        'completed_at',
+        'cancelled_at',
+    ];
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

@@ -89,7 +89,7 @@ function loadStats(period) {
     $('.stat-change').html('');
 
     $.ajax({
-        url: '/admin/dashboard/stats',
+        url: '/dashboard/stats',
         method: 'GET',
         data: { period },
         success(response) {
@@ -131,7 +131,7 @@ function renderChange(selector, pct) {
 // ─────────────────────────────────────────────────────────────────────────────
 function loadRevenueChart(days) {
     $.ajax({
-        url: '/admin/dashboard/revenue-chart',
+        url: '/dashboard/revenue-chart',
         method: 'GET',
         data: { range: days },
         success(response) {
@@ -210,7 +210,7 @@ function loadRevenueChart(days) {
 // ─────────────────────────────────────────────────────────────────────────────
 function loadOrdersDonut() {
     $.ajax({
-        url: '/admin/dashboard/orders-by-status',
+        url: '/dashboard/orders-by-status',
         method: 'GET',
         success(response) {
             const d = response.data;
@@ -272,7 +272,7 @@ function loadOrdersDonut() {
 // ─────────────────────────────────────────────────────────────────────────────
 function loadRecentOrders() {
     $.ajax({
-        url: '/admin/dashboard/recent-orders',
+        url: '/dashboard/recent-orders',
         method: 'GET',
         success(response) {
             const rows = response.data.map(order => {
@@ -302,7 +302,7 @@ function loadRecentOrders() {
 // ─────────────────────────────────────────────────────────────────────────────
 function loadTopSellers() {
     $.ajax({
-        url: '/admin/dashboard/top-sellers',
+        url: '/dashboard/top-sellers',
         method: 'GET',
         success(response) {
             const rows = response.data.map((seller, idx) =>
@@ -326,7 +326,7 @@ function loadTopSellers() {
 // ─────────────────────────────────────────────────────────────────────────────
 function loadPendingItems() {
     $.ajax({
-        url: '/admin/dashboard/pending-items',
+        url: '/dashboard/pending-items',
         method: 'GET',
         success(response) {
             const d = response.data;
@@ -350,7 +350,7 @@ function loadPendingItems() {
 // ─────────────────────────────────────────────────────────────────────────────
 function loadLowStock() {
     $.ajax({
-        url: '/admin/dashboard/low-stock',
+        url: '/dashboard/low-stock',
         method: 'GET',
         success(response) {
             const rows = response.data.map(p => {

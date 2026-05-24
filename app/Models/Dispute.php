@@ -9,6 +9,27 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Dispute extends Model
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
+    protected $fillable = [
+        'id',
+        'dispute_number',
+        'order_id',
+        'sub_order_id',
+        'customer_id',
+        'vendor_id',
+        'return_request_id',
+        'reason',
+        'description',
+        'status',
+        'resolution',
+        'resolution_notes',
+        'compensation_cents',
+        'assigned_to_admin_id',
+        'resolved_at',
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

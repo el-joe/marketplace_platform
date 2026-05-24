@@ -8,6 +8,34 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SubOrder extends Model
 {
+    protected $keyType = 'string';
+    protected $incrementing = false;
+
+    protected $fillable = [
+        'id',
+        'order_id',
+        'sub_order_number',
+        'vendor_id',
+        'warehouse_id',
+        'status',
+        'fulfillment_model',
+        'subtotal',
+        'shipping',
+        'tax',
+        'platform_commission',
+        'vendor_payout',
+        'shipping_method_id',
+        'carrier_id',
+        'tracking_number',
+        'estimated_delivery_date',
+        'shipped_at',
+        'delivered_at',
+        'cancelled_at',
+        'cancellation_reason',
+        'sla_ship_deadline',
+        'sla_breached',
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
