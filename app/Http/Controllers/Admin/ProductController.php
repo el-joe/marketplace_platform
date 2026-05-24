@@ -540,11 +540,11 @@ class ProductController extends Controller
 
             'brands' => DB::table('brands')
                 ->where('is_active', true)
-                ->orderBy('name')
-                ->pluck('name', 'id'),
+                ->orderBy('name_en')
+                ->pluck('name_en', 'id'),
 
             'countries' => DB::table('countries')
-                ->where('is_launched', true)
+                ->where('is_active', true)
                 ->orderBy('name_en')
                 ->get(),
 

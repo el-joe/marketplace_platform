@@ -6,7 +6,8 @@
     Parent view must wrap this in a <form> tag with proper action / @csrf / @method.
 --}}
 @php
-    $isEdit = isset($product) && $product !== null;
+    $product = $product ?? null;
+    $isEdit = $product !== null;
 
     /** Quick helper to resolve old() → product field → default. */
     $val = function (string $field, $default = '') use ($isEdit, $product) {
@@ -76,7 +77,7 @@
                 class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-5"
             >
                 <div class="grid grid-cols-2 gap-4">
-                    <x-form-input
+                    <x-form.input
                         name="name_en"
                         label="Name (English)"
                         :value="$val('name_en')"
@@ -84,7 +85,7 @@
                         maxlength="255"
                         placeholder="e.g. Apple iPhone 15 Pro"
                     />
-                    <x-form-input
+                    <x-form.input
                         name="name_ar"
                         label="الاسم بالعربي"
                         :value="$val('name_ar')"
@@ -96,7 +97,7 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
-                    <x-form-async-select
+                    <x-form.async-select
                         name="category_id"
                         label="Category"
                         required
@@ -110,7 +111,7 @@
                             ? ['id' => $product->category_id, 'text' => ($categories[$product->category_id] ?? '')]
                             : null"
                     />
-                    <x-form-async-select
+                    <x-form.async-select
                         name="brand_id"
                         label="Brand"
                         :config="[
@@ -128,7 +129,7 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <x-form-input
+                        <x-form.input
                             name="gtin"
                             id="gtin-input"
                             label="Barcode (EAN-13 / UPC)"
@@ -140,7 +141,7 @@
                         {{-- Duplicate warning injected by JS --}}
                         <div id="gtin-warning" class="hidden mt-2 rounded-lg bg-warning-50 border border-warning-200 p-3 text-sm text-warning-800"></div>
                     </div>
-                    <x-form-input
+                    <x-form.input
                         name="model_number"
                         label="Model Number"
                         :value="$val('model_number')"
@@ -157,12 +158,12 @@
                 x-show="activeTab === 'content'"
                 class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-5"
             >
-                <x-form-rich-editor
+                <x-form.rich-editor
                     name="description_en"
                     label="Description (English)"
                     :value="$val('description_en')"
                 />
-                <x-form-rich-editor
+                <x-form.rich-editor
                     name="description_ar"
                     label="وصف المنتج بالعربية"
                     :value="$val('description_ar')"
@@ -326,12 +327,15 @@
 
                 {{-- Existing images (edit mode) rendered as FilePond mock files via JS --}}
                 @if($isEdit && isset($images) && count($images) > 0)
-                <script>
-                    window.existingProductImages = @json($images->map(fn($img) => [
+                @php
+                    $imagesMap = $images->map(fn($img) => [
                         'id'   => $img->file_id,
                         'url'  => \Illuminate\Support\Facades\Storage::url($img->path),
                         'name' => basename($img->path),
-                    ])->values());
+                    ])->values()->all();
+                @endphp
+                <script>
+                    window.existingProductImages = @json($imagesMap ?? []);
                 </script>
                 @else
                 <script>window.existingProductImages = [];</script>
@@ -458,7 +462,7 @@
                     @error('seo_description') <p class="form-error">{{ $message }}</p> @enderror
                 </div>
 
-                <x-form-slug-input
+                <x-form.slug-input
                     name="slug"
                     label="URL Slug"
                     source-field="name_en"
@@ -489,7 +493,7 @@
             {{-- Status card --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
                 <h3 class="text-sm font-semibold text-gray-800">Status</h3>
-                <x-form-select
+                <x-form.select
                     name="status"
                     label=""
                     :value="$val('status', 'draft')"
@@ -534,9 +538,9 @@
                     <span class="text-sm text-gray-700 group-hover:text-gray-900">Has variants</span>
                 </label>
 
-                <x-form-toggle name="is_featured"         label="Featured on homepage" :value="$bool('is_featured')" />
-                <x-form-toggle name="requires_brand_auth" label="Requires brand auth"  :value="$bool('requires_brand_auth')" />
-                <x-form-toggle name="is_hazardous"        label="Hazardous item"       :value="$bool('is_hazardous')" />
+                <x-form.toggle name="is_featured"         label="Featured on homepage" :value="$bool('is_featured')" />
+                <x-form.toggle name="requires_brand_auth" label="Requires brand auth"  :value="$bool('requires_brand_auth')" />
+                <x-form.toggle name="is_hazardous"        label="Hazardous item"       :value="$bool('is_hazardous')" />
 
                 {{-- is_age_restricted — synced to Alpine isAgeRestricted --}}
                 <label class="flex items-center gap-3 py-2 cursor-pointer select-none w-full group">
@@ -553,7 +557,7 @@
                 </label>
 
                 <div x-show="isAgeRestricted" x-cloak class="mt-1 pl-14">
-                    <x-form-input
+                    <x-form.input
                         name="min_age"
                         label="Minimum age"
                         type="number"
