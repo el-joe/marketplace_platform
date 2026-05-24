@@ -8,6 +8,27 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PaidAdCreative extends Model
 {
+    protected $fillable = [
+        'paid_ad_booking_id',
+        'vendor_id',
+        'media_id',
+        'mobile_media_id',
+        'title_en',
+        'title_ar',
+        'cta_label_en',
+        'cta_label_ar',
+        'destination_url',
+        'destination_type',
+        'destination_reference_id',
+        'status',
+        'rejection_reason',
+        'rejection_code',
+        'is_current',
+        'reviewed_by_admin_id',
+        'reviewed_at',
+        'approved_at',
+    ];
+
     public function booking(): BelongsTo
     {
         return $this->belongsTo(PaidAdBooking::class, 'paid_ad_booking_id');

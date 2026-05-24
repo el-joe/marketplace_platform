@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CategoryAttribute extends Model
 {
+    protected $fillable = [
+        'category_id',
+        'attribute_id',
+        'is_required',
+        'sort_order',
+    ];
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

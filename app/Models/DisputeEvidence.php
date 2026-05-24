@@ -8,6 +8,14 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class DisputeEvidence extends Model
 {
+    protected $fillable = [
+        'dispute_id',
+        'uploaded_by_user_id',
+        'media_id',
+        'description',
+        'created_at',
+    ];
+
     public function dispute(): BelongsTo
     {
         return $this->belongsTo(Dispute::class);

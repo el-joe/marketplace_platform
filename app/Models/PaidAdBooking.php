@@ -8,6 +8,31 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PaidAdBooking extends Model
 {
+    protected $fillable = [
+        'booking_reference',
+        'paid_ad_slot_id',
+        'vendor_id',
+        'country_id',
+        'pricing_model',
+        'booked_from',
+        'booked_until',
+        'agreed_rate_cents',
+        'currency',
+        'status',
+        'rejection_reason',
+        'payment_status',
+        'payment_transaction_id',
+        'invoiced_at',
+        'paid_at',
+        'impressions_delivered',
+        'clicks_delivered',
+        'cpm_impressions_billed',
+        'total_charged',
+        'approved_by_admin_id',
+        'approved_at',
+        'notes',
+    ];
+
     public function slot(): BelongsTo
     {
         return $this->belongsTo(PaidAdSlot::class, 'paid_ad_slot_id');

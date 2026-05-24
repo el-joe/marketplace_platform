@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdCampaignCategoryTarget extends Model
 {
+    protected $fillable = [
+        'ad_campaign_id',
+        'category_id',
+        'bid_override',
+        'is_active',
+    ];
+
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(AdCampaign::class, 'ad_campaign_id');

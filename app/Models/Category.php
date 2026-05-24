@@ -10,6 +10,33 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Category extends Model
 {
+    protected $fillable = [
+        'parent_id',
+        'name_ar',
+        'name_en',
+        'slug',
+        'description_ar',
+        'description_en',
+        'commission_rate',
+        'lft',
+        'rgt',
+        'depth',
+        'sort_order',
+        'is_active',
+        'is_visible',
+        'is_featured',
+        'seo_title_ar',
+        'seo_title_en',
+        'seo_description_ar',
+        'seo_description_en',
+        'country_id',
+        'category_id',
+        'is_available',
+        'unavailable_reason',
+        'notes',
+        'updated_by_admin_id',
+    ];
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'parent_id');

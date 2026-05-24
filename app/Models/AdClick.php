@@ -7,6 +7,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdClick extends Model
 {
+    protected $fillable = [
+        'ad_impression_id',
+        'ad_campaign_id',
+        'vendor_listing_id',
+        'customer_id',
+        'session_id',
+        'ip_address',
+        'user_agent',
+        'is_fraud_suspect',
+        'fraud_reason',
+        'cost_cents',
+        'country_id',
+        'clicked_at',
+    ];
+
     public function impression(): BelongsTo
     {
         return $this->belongsTo(AdImpression::class, 'ad_impression_id');

@@ -8,6 +8,38 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VendorListing extends Model
 {
+    protected $fillable = [
+        'vendor_id',
+        'product_variant_id',
+        'country_id',
+        'price',
+        'compare_at_price',
+        'cost_price',
+        'currency',
+        'condition',
+        'condition_notes',
+        'fulfillment_model',
+        'vendor_sku',
+        'vendor_notes',
+        'status',
+        'rejection_reason',
+        'max_order_quantity',
+        'low_stock_threshold',
+        'buy_box_eligible',
+        'buy_box_won_at',
+        'total_sold',
+        'rating_avg',
+        'approved_by_admin_id',
+        'approved_at',
+        'score',
+        'price_score',
+        'fulfillment_score',
+        'rating_score',
+        'availability_score',
+        'calculated_at',
+        'next_recalculate_at',
+    ];
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);

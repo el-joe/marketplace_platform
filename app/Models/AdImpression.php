@@ -8,6 +8,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AdImpression extends Model
 {
+    protected $fillable = [
+        'ad_campaign_id',
+        'vendor_listing_id',
+        'customer_id',
+        'session_id',
+        'placement_code',
+        'search_query',
+        'position_shown',
+        'bid_at_impression_cents',
+        'quality_score_at_impression',
+        'was_clicked',
+        'was_converted',
+        'cost_charged_cents',
+        'country_id',
+        'device_type',
+        'shown_at',
+        'clicked_at',
+        'converted_at',
+    ];
+
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(AdCampaign::class, 'ad_campaign_id');

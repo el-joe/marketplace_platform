@@ -10,6 +10,23 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Review extends Model
 {
+    protected $fillable = [
+        'product_id',
+        'vendor_listing_id',
+        'customer_id',
+        'order_item_id',
+        'country_id',
+        'rating',
+        'title',
+        'body',
+        'is_verified_purchase',
+        'status',
+        'ai_flag_reason',
+        'moderated_by_admin_id',
+        'helpful_count',
+        'not_helpful_count',
+    ];
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

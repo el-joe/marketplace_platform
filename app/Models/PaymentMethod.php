@@ -8,6 +8,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PaymentMethod extends Model
 {
+    protected $fillable = [
+        'customer_id',
+        'type',
+        'gateway',
+        'gateway_token',
+        'card_brand',
+        'card_last4',
+        'card_exp_month',
+        'card_exp_year',
+        'billing_address_id',
+        'is_default',
+    ];
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

@@ -9,6 +9,28 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ReturnRequest extends Model
 {
+    protected $fillable = [
+        'return_number',
+        'order_id',
+        'sub_order_id',
+        'customer_id',
+        'vendor_id',
+        'reason',
+        'reason_description',
+        'return_type',
+        'status',
+        'pickup_address_id',
+        'pickup_scheduled_at',
+        'received_at_warehouse_at',
+        'inspection_result',
+        'inspection_notes',
+        'liability',
+        'refund_amount_cents',
+        'refund_id',
+        'rejection_reason',
+        'reviewed_by_admin_id',
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

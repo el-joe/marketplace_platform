@@ -7,6 +7,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Setting extends Model
 {
+    protected $fillable = [
+        'key',
+        'value',
+        'category',
+        'description',
+        'is_encrypted',
+        'is_public',
+        'updated_by_admin_id',
+    ];
+
     public function updatedByAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'updated_by_admin_id');

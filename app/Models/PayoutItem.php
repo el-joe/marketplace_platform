@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PayoutItem extends Model
 {
+    protected $fillable = [
+        'payout_id',
+        'sub_order_id',
+        'gross',
+        'commission',
+        'net',
+    ];
+
     public function payout(): BelongsTo
     {
         return $this->belongsTo(Payout::class);

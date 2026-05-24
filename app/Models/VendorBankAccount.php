@@ -8,6 +8,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VendorBankAccount extends Model
 {
+    protected $fillable = [
+        'vendor_id',
+        'account_holder_name',
+        'bank_name',
+        'branch',
+        'iban',
+        'account_number_encrypted',
+        'swift_code',
+        'currency',
+        'is_primary',
+        'verification_status',
+        'verified_by_admin_id',
+        'verified_at',
+    ];
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);

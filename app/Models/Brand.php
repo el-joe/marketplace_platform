@@ -8,6 +8,17 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Brand extends Model
 {
+    protected $fillable = [
+        'name_ar',
+        'name_en',
+        'slug',
+        'description_ar',
+        'description_en',
+        'website_url',
+        'is_verified',
+        'is_active',
+    ];
+
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);

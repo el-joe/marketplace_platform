@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class TicketAttachment extends Model
 {
+    protected $fillable = [
+        'ticket_message_id',
+    ];
+
     public function ticketMessage(): BelongsTo
     {
         return $this->belongsTo(TicketMessage::class);

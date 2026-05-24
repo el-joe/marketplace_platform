@@ -12,6 +12,39 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Product extends Model
 {
+    protected $fillable = [
+        'category_id',
+        'brand_id',
+        'name_en',
+        'name_ar',
+        'slug',
+        'model_number',
+        'gtin',
+        'description_en',
+        'description_ar',
+        'short_desc_en',
+        'short_desc_ar',
+        'status',
+        'is_featured',
+        'requires_brand_auth',
+        'is_age_restricted',
+        'min_age',
+        'is_hazardous',
+        'has_variants',
+        'ai_quality_score',
+        'seller_count',
+        'rating_avg',
+        'rating_count',
+        'total_sold',
+        'view_count',
+        'seo_title_en',
+        'seo_title_ar',
+        'seo_description_en',
+        'seo_description_ar',
+        'published_at',
+        'created_by_admin_id',
+    ];
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

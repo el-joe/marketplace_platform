@@ -221,6 +221,20 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => 'Cities',
+                        'route' => 'admin.cities.index',
+                        'icon' => 'map-pin',
+                        'permission' => 'countries.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Currencies',
+                        'route' => 'admin.currencies.index',
+                        'icon' => 'currency-dollar',
+                        'permission' => 'countries.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => 'Settings',
                         'route' => 'admin.settings.index',
                         'icon' => 'cog-6-tooth',

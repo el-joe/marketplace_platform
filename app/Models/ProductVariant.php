@@ -10,6 +10,20 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ProductVariant extends Model
 {
+    protected $fillable = [
+        'product_id',
+        'sku',
+        'barcode',
+        'variant_name',
+        'weight_grams',
+        'length_cm',
+        'width_cm',
+        'height_cm',
+        'is_default',
+        'is_active',
+        'position',
+    ];
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

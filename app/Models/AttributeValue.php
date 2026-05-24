@@ -8,6 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AttributeValue extends Model
 {
+    protected $fillable = [
+        'attribute_id',
+        'value_ar',
+        'value_en',
+        'code_hex',
+        'sort_order',
+    ];
+
     public function attribute(): BelongsTo
     {
         return $this->belongsTo(Attribute::class);

@@ -22,6 +22,9 @@ export default defineConfig({
                 'resources/js/admin/dashboard.js',
                 'resources/js/admin/products.js',
                 'resources/js/admin/orders.js',
+                'resources/js/admin/countries.js',
+                'resources/js/admin/cities.js',
+                'resources/js/admin/currencies.js',
             ],
             refresh: [
                 'resources/views/**',

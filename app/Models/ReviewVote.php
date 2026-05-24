@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReviewVote extends Model
 {
+    protected $fillable = [
+        'review_id',
+        'customer_id',
+        'vote',
+        'created_at',
+    ];
+
     public function review(): BelongsTo
     {
         return $this->belongsTo(Review::class);

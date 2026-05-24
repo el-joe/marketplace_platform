@@ -162,3 +162,51 @@ Route::prefix('orders')->name('orders.')->group(function () {
 });
 Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->name('sub-orders.next-statuses');
 Route::get('/vendors', fn() => abort(404))->name('vendors.index');
+
+// ─── Geography ───────────────────────────────────────────────────────────────
+
+use App\Http\Controllers\Admin\CountryController;
+
+Route::prefix('countries')->name('countries.')->group(function () {
+    Route::post('/datatable', [CountryController::class, 'datatable'])->name('datatable');
+    Route::get('/create', [CountryController::class, 'create'])->name('create');
+    Route::post('/', [CountryController::class, 'store'])->name('store');
+    Route::get('/', [CountryController::class, 'index'])->name('index');
+    Route::get('/{id}/edit', [CountryController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [CountryController::class, 'update'])->name('update');
+    Route::delete('/{id}', [CountryController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/launch', [CountryController::class, 'launch'])->name('launch');
+    Route::post('/{id}/deactivate', [CountryController::class, 'deactivate'])->name('deactivate');
+    Route::post('/{id}/reactivate', [CountryController::class, 'reactivate'])->name('reactivate');
+    // Payment Methods sub-resource
+    Route::post('/{id}/payment-methods', [CountryController::class, 'storePaymentMethod'])->name('payment-methods.store');
+    Route::put('/{id}/payment-methods/{pmId}', [CountryController::class, 'updatePaymentMethod'])->name('payment-methods.update');
+    Route::delete('/{id}/payment-methods/{pmId}', [CountryController::class, 'destroyPaymentMethod'])->name('payment-methods.destroy');
+    // Shipping Settings
+    Route::post('/{id}/shipping-settings', [CountryController::class, 'updateShippingSettings'])->name('shipping-settings.update');
+    // Category Overrides
+    Route::post('/{id}/categories/datatable', [CountryController::class, 'categoryOverridesDatatable'])->name('categories.datatable');
+    Route::post('/{id}/category-overrides', [CountryController::class, 'updateCategoryOverrides'])->name('category-overrides.update');
+});
+
+use App\Http\Controllers\Admin\CityController;
+
+Route::prefix('cities')->name('cities.')->group(function () {
+    Route::post('/datatable', [CityController::class, 'datatable'])->name('datatable');
+    Route::post('/bulk-import', [CityController::class, 'bulkImport'])->name('bulk-import');
+    Route::get('/create', [CityController::class, 'create'])->name('create');
+    Route::post('/', [CityController::class, 'store'])->name('store');
+    Route::get('/', [CityController::class, 'index'])->name('index');
+    Route::get('/{id}/edit', [CityController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [CityController::class, 'update'])->name('update');
+    Route::delete('/{id}', [CityController::class, 'destroy'])->name('destroy');
+});
+
+use App\Http\Controllers\Admin\CurrencyController;
+
+Route::prefix('currencies')->name('currencies.')->group(function () {
+    Route::get('/', [CurrencyController::class, 'index'])->name('index');
+    Route::get('/{code}/edit', [CurrencyController::class, 'edit'])->name('edit');
+    Route::put('/{code}', [CurrencyController::class, 'update'])->name('update');
+    Route::post('/dispatch-update', [CurrencyController::class, 'dispatchUpdate'])->name('dispatch-update');
+});

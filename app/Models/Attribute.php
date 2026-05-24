@@ -8,6 +8,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Attribute extends Model
 {
+    protected $fillable = [
+        'name_ar',
+        'name_en',
+        'code',
+        'type',
+        'unit',
+        'is_variant_attribute',
+        'is_filterable',
+        'is_required',
+        'sort_order',
+    ];
+
     public function values(): HasMany
     {
         return $this->hasMany(AttributeValue::class);

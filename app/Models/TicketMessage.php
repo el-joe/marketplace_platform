@@ -9,6 +9,15 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class TicketMessage extends Model
 {
+    protected $fillable = [
+        'ticket_id',
+        'sender',
+        'message',
+        'is_internal_note',
+        'is_ai_generated',
+        'created_at',
+    ];
+
     public function ticket(): BelongsTo
     {
         return $this->belongsTo(SupportTicket::class, 'ticket_id');

@@ -8,6 +8,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WarehouseInventory extends Model
 {
+    protected $fillable = [
+        'vendor_listing_id',
+        'warehouse_id',
+        'quantity_on_hand',
+        'quantity_reserved',
+        'quantity_available',
+        'quantity_inbound',
+        'quantity_damaged',
+        'bin_location',
+        'reorder_point',
+        'last_counted_at',
+    ];
+
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class);

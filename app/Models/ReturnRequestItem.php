@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReturnRequestItem extends Model
 {
+    protected $fillable = [
+        'return_request_id',
+        'order_item_id',
+        'quantity',
+        'condition_received',
+        'restock_decision',
+    ];
+
     public function returnRequest(): BelongsTo
     {
         return $this->belongsTo(ReturnRequest::class);

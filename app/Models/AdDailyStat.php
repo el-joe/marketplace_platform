@@ -7,6 +7,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdDailyStat extends Model
 {
+    protected $fillable = [
+        'ad_campaign_id',
+        'vendor_listing_id',
+        'country_id',
+        'date',
+        'impressions',
+        'clicks',
+        'valid_clicks',
+        'conversions',
+        'spend_cents',
+        'revenue_attributed_cents',
+        'ctr',
+        'cvr',
+        'acos',
+        'average_position',
+    ];
+
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(AdCampaign::class, 'ad_campaign_id');

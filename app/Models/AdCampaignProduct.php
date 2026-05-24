@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdCampaignProduct extends Model
 {
+    protected $fillable = [
+        'ad_campaign_id',
+        'product_variant_id',
+        'vendor_id',
+        'vendor_listing_id',
+        'is_active',
+    ];
+
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(AdCampaign::class, 'ad_campaign_id');

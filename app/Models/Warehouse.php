@@ -9,6 +9,23 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Warehouse extends Model
 {
+    protected $fillable = [
+        'country_id',
+        'name',
+        'code',
+        'type',
+        'owner_vendor_id',
+        'address_id',
+        'latitude',
+        'longitude',
+        'total_capacity_m3',
+        'used_capacity_m3',
+        'storage_rate_per_m3_price',
+        'storage_currency',
+        'manager_admin_id',
+        'is_active',
+    ];
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);

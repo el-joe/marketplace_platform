@@ -9,6 +9,17 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Admin extends Model
 {
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'password',
+        'country_id',
+        'status',
+        'last_login_at',
+        'last_login_ip',
+    ];
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);

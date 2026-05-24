@@ -9,6 +9,26 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AdCampaign extends Model
 {
+    protected $fillable = [
+        'vendor_id',
+        'country_id',
+        'name',
+        'type',
+        'status',
+        'budget_total',
+        'budget_daily',
+        'budget_spent_total',
+        'budget_spent_today',
+        'bid',
+        'targeting_type',
+        'starts_at',
+        'ends_at',
+        'quality_score',
+        'approved_by_admin_id',
+        'approved_at',
+        'rejection_reason',
+    ];
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);

@@ -8,6 +8,30 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payout extends Model
 {
+    protected $fillable = [
+        'payout_number',
+        'vendor_id',
+        'period_start',
+        'period_end',
+        'gross_sales',
+        'commission',
+        'refunds_deducted',
+        'chargebacks_deducted',
+        'storage_fees',
+        'ad_fees',
+        'other_adjustments',
+        'net_amount',
+        'currency',
+        'status',
+        'bank_account_id',
+        'payout_method',
+        'gateway_reference',
+        'approved_by_admin_id',
+        'processed_at',
+        'failed_reason',
+        'receipt_url',
+    ];
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);

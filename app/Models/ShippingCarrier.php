@@ -8,6 +8,17 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ShippingCarrier extends Model
 {
+    protected $fillable = [
+        'name',
+        'code',
+        'api_endpoint',
+        'credentials_encrypted',
+        'tracking_url_pattern',
+        'supports_cod',
+        'supports_returns',
+        'is_active',
+    ];
+
     public function rates(): HasMany
     {
         return $this->hasMany(ShippingRate::class, 'carrier_id');

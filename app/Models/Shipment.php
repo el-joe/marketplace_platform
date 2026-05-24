@@ -9,6 +9,20 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Shipment extends Model
 {
+    protected $fillable = [
+        'sub_order_id',
+        'carrier_id',
+        'tracking_number',
+        'awb_label_url',
+        'weight_grams',
+        'dimensions',
+        'shipping_cost_actual',
+        'status',
+        'picked_up_at',
+        'delivered_at',
+        'delivery_otp',
+    ];
+
     public function subOrder(): BelongsTo
     {
         return $this->belongsTo(SubOrder::class);

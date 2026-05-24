@@ -7,6 +7,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SearchLog extends Model
 {
+    protected $fillable = [
+        'customer_id',
+        'session_id',
+        'query',
+        'query_normalized',
+        'filters_json',
+        'results_count',
+        'clicked_product_id',
+        'clicked_position',
+        'converted_order_id',
+        'language',
+        'country_id',
+        'created_at',
+    ];
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'customer_id');

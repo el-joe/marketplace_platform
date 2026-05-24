@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cart extends Model
 {
+    protected $fillable = [
+        'country_id',
+        'user_id',
+        'session_token',
+        'currency',
+        'coupon_id',
+        'subtotal',
+        'discount',
+        'estimated_shipping',
+        'estimated_tax',
+        'estimated_total',
+        'expires_at',
+    ];
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);

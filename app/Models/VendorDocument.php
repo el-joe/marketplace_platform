@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class VendorDocument extends Model
 {
+    protected $fillable = [
+        'vendor_id',
+        'document_type',
+        'status',
+        'verified_by_admin_id',
+        'verified_at',
+        'rejection_reason',
+        'expires_at',
+    ];
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);

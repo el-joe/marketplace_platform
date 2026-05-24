@@ -9,6 +9,25 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Customer extends Model
 {
+    protected $fillable = [
+        'name',
+        'email',
+        'email_verified_at',
+        'phone',
+        'phone_verified_at',
+        'password',
+        'country_id',
+        'status',
+        'date_of_birth',
+        'last_login_at',
+        'last_login_ip',
+        'total_orders',
+        'total_spent',
+        'referral_code',
+        'referred_by',
+        'loyalty_points',
+    ];
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);

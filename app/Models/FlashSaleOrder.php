@@ -7,6 +7,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FlashSaleOrder extends Model
 {
+    protected $fillable = [
+        'flash_sale_submission_id',
+        'flash_sale_id',
+        'order_item_id',
+        'quantity',
+        'currency',
+        'flash_price',
+        'original_price',
+        'discount_amount',
+    ];
+
     public function flashSaleSubmission(): BelongsTo
     {
         return $this->belongsTo(FlashSaleSubmission::class);

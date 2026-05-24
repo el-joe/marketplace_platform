@@ -9,6 +9,45 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Vendor extends Model
 {
+    protected $fillable = [
+        'name',
+        'email',
+        'email_verified_at',
+        'phone',
+        'phone_verified_at',
+        'password',
+        'store_name',
+        'store_slug',
+        'store_description',
+        'business_name',
+        'business_type',
+        'business_registration_number',
+        'tax_id',
+        'contact_email',
+        'contact_phone',
+        'whatsapp_number',
+        'business_address_id',
+        'commission_rate',
+        'default_warehouse_id',
+        'payout_schedule',
+        'payout_hold_active',
+        'payout_hold_reason',
+        'store_rating_avg',
+        'store_rating_count',
+        'total_sales',
+        'total_orders',
+        'return_rate_pct',
+        'cancellation_rate_pct',
+        'sla_compliance_pct',
+        'strikes_count',
+        'country_id',
+        'status',
+        'last_login_at',
+        'last_login_ip',
+        'approved_at',
+        'approved_by_admin_id',
+    ];
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);

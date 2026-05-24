@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ShippingZone extends Model
 {
+    protected $fillable = [
+        'name',
+        'country_id',
+        'description',
+        'is_active',
+    ];
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);

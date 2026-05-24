@@ -9,6 +9,29 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Coupon extends Model
 {
+    protected $fillable = [
+        'code',
+        'name',
+        'description',
+        'type',
+        'value',
+        'currency',
+        'scope',
+        'vendor_id',
+        'category_id',
+        'min_order_amount',
+        'max_discount',
+        'usage_limit_total',
+        'usage_limit_per_customer',
+        'times_used',
+        'customer_eligibility',
+        'valid_from',
+        'valid_until',
+        'is_active',
+        'is_stackable',
+        'created_by_user_id',
+    ];
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);

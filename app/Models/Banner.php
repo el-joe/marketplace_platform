@@ -8,6 +8,33 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Banner extends Model
 {
+    protected $fillable = [
+        'country_id',
+        'name',
+        'placement_code',
+        'media_id',
+        'mobile_media_id',
+        'title_en',
+        'title_ar',
+        'subtitle_en',
+        'subtitle_ar',
+        'cta_label_en',
+        'cta_label_ar',
+        'cta_url',
+        'link_type',
+        'link_reference_id',
+        'starts_at',
+        'ends_at',
+        'status',
+        'device_target',
+        'audience',
+        'priority',
+        'impressions_count',
+        'clicks_count',
+        'created_by_admin_id',
+        'updated_by_admin_id',
+    ];
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
