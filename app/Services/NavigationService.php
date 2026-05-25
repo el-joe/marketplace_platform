@@ -144,6 +144,13 @@ class NavigationService
                         'route' => 'admin.vendors.index',
                         'icon' => 'building-storefront',
                         'permission' => 'vendors.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Applications',
+                        'route' => 'admin.vendors.applications',
+                        'icon' => 'inbox-arrow-down',
+                        'permission' => 'vendors.view',
                         'badge' => $this->cachedBadge('pending_vendors', fn() => $this->countPendingVendors()),
                     ],
                     [
@@ -347,7 +354,7 @@ class NavigationService
             return 0;
         }
         try {
-            return (int) \App\Models\Vendor::query()->where('status', 'pending')->count();
+            return (int) \App\Models\Vendor::query()->where('global_status', 'pending')->count();
         } catch (\Throwable) {
             return 0;
         }
