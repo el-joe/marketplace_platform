@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->uuid('section_id')->nullable()->index();
             $table->string('block_type', 50)->index(); // matches block_types.code
             $table->integer('position')->default(0);
-            $table->jsonb('config')->default('{}'); // block-specific settings
+            $table->json('config')->nullable(); // block-specific settings
             $table->boolean('is_visible')->default(true);
             $table->timestamp('visible_from')->nullable();
             $table->timestamp('visible_until')->nullable();

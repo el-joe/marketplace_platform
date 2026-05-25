@@ -30,8 +30,8 @@ return new class extends Migration {
             $table->timestampTz('sale_ends_at');
             $table->decimal('min_discount_pct', 5, 2);
             $table->integer('max_products_per_seller')->nullable();
-            $table->jsonb('eligible_categories')->nullable();
-            $table->jsonb('eligible_seller_tiers')->nullable();
+            $table->json('eligible_categories')->nullable();
+            $table->json('eligible_seller_tiers')->nullable();
             $table->decimal('min_seller_rating', 3, 2)->nullable();
             $table->decimal('commission_override_pct', 5, 2)->nullable();
             $table->boolean('is_featured')->default(false);

@@ -1,9 +1,9 @@
-import { Toast } from '../components/toast';
+const Toast = window.Toast || { success: console.log, error: console.warn, info: console.log };
 
 const URLS = {
-    approve:     () => `/admin/payouts/${window.PAYOUT_ID}/approve`,
-    process:     () => `/admin/payouts/${window.PAYOUT_ID}/process`,
-    hold:        () => `/admin/payouts/${window.PAYOUT_ID}/hold`,
+    approve: () => `/admin/payouts/${window.PAYOUT_ID}/approve`,
+    process: () => `/admin/payouts/${window.PAYOUT_ID}/process`,
+    hold: () => `/admin/payouts/${window.PAYOUT_ID}/hold`,
     recalculate: () => `/admin/payouts/${window.PAYOUT_ID}/recalculate`,
 };
 

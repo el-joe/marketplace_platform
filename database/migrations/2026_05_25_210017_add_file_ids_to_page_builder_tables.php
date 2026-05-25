@@ -12,8 +12,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('slider_slides', function (Blueprint $table) {
-            $table->uuid('desktop_file_id')->nullable()->after('position');
-            $table->uuid('mobile_file_id')->nullable()->after('desktop_file_id');
+            $table->unsignedBigInteger('desktop_file_id')->nullable()->after('position');
+            $table->unsignedBigInteger('mobile_file_id')->nullable()->after('desktop_file_id');
 
             $table->foreign('desktop_file_id')
                 ->references('id')->on('files')->onDelete('set null');
@@ -22,7 +22,7 @@ return new class extends Migration {
         });
 
         Schema::table('ad_image_items', function (Blueprint $table) {
-            $table->uuid('file_id')->nullable()->after('position');
+            $table->unsignedBigInteger('file_id')->nullable()->after('position');
 
             $table->foreign('file_id')
                 ->references('id')->on('files')->onDelete('set null');

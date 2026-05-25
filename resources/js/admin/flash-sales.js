@@ -1,4 +1,4 @@
-import { Toast } from '../components/toast';
+const Toast = window.Toast || { success: console.log, error: console.warn, info: console.log };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -42,19 +42,19 @@ $(function () {
             contentType: false,
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         })
-        .done(function (res) {
-            Toast.success(res.message ?? 'Flash sale created.');
-            if (res.redirect) {
-                setTimeout(() => { window.location.href = res.redirect; }, 500);
-            }
-        })
-        .fail(function (xhr) {
-            const msg = xhr.responseJSON?.message ?? 'Failed to create flash sale.';
-            const errors = xhr.responseJSON?.errors ?? {};
-            Object.values(errors).flat().forEach(e => Toast.error(e));
-            if (!Object.keys(errors).length) Toast.error(msg);
-        })
-        .always(() => $btn.prop('disabled', false).text('Create Flash Sale'));
+            .done(function (res) {
+                Toast.success(res.message ?? 'Flash sale created.');
+                if (res.redirect) {
+                    setTimeout(() => { window.location.href = res.redirect; }, 500);
+                }
+            })
+            .fail(function (xhr) {
+                const msg = xhr.responseJSON?.message ?? 'Failed to create flash sale.';
+                const errors = xhr.responseJSON?.errors ?? {};
+                Object.values(errors).flat().forEach(e => Toast.error(e));
+                if (!Object.keys(errors).length) Toast.error(msg);
+            })
+            .always(() => $btn.prop('disabled', false).text('Create Flash Sale'));
     });
 });
 
@@ -69,7 +69,7 @@ $(function () {
 
     // ── Status transitions ────────────────────────────────────────────────────
     $(document).on('click', '.flash-sale-transition', function () {
-        const action  = $(this).data('action');
+        const action = $(this).data('action');
         const confirm = $(this).data('confirm');
         if (confirm && !window.confirm(confirm)) return;
 
@@ -106,7 +106,7 @@ $(function () {
     // ── Manual invite ─────────────────────────────────────────────────────────
     $('#manual-invite-form').on('submit', function (e) {
         e.preventDefault();
-        const raw      = $(this).find('[name=vendor_ids_raw]').val().trim();
+        const raw = $(this).find('[name=vendor_ids_raw]').val().trim();
         const vendorIds = raw.split('\n').map(s => s.trim()).filter(Boolean);
 
         if (!vendorIds.length) {
@@ -115,7 +115,7 @@ $(function () {
         }
 
         const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Sending…');
-        const data  = { mode: 'manual' };
+        const data = { mode: 'manual' };
         vendorIds.forEach((id, i) => { data[`vendor_ids[${i}]`] = id; });
 
         ajaxPost(URLS.inviteVendors, data)

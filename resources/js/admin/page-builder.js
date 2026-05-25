@@ -1,793 +1,1105 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Page Builder JS
-// jQuery 3.7 + Alpine.js 3 + SortableJS (loaded via CDN in layout if needed)
+// Page Builder
+// 3-pane builder: sidebar palette · canvas · slide-out config panel
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+const $ = window.jQuery;
+const Toast = window.Toast || {
+    success: (m) => console.log('[ok]', m),
+    error: (m) => console.warn('[err]', m),
+    info: (m) => console.log('[info]', m),
+};
 
 function csrfToken() {
     return $('meta[name="csrf-token"]').attr('content');
 }
 
-function ajaxPost(url, data) {
-    return $.ajax({
+function ajax(method, url, data) {
+    const opts = {
         url,
-        method: 'POST',
-        data,
-        headers: { 'X-CSRF-TOKEN': csrfToken() },
-    });
+        method,
+        headers: { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json' },
+    };
+    if (method === 'GET') opts.data = data;
+    else {
+        opts.contentType = 'application/json';
+        opts.data = JSON.stringify(data || {});
+    }
+    return $.ajax(opts);
 }
 
-function ajaxPut(url, data) {
-    return $.ajax({
-        url,
-        method: 'POST',
-        data: Object.assign({}, data, { _method: 'PUT' }),
-        headers: { 'X-CSRF-TOKEN': csrfToken() },
-    });
+const ajaxGet = (url) => ajax('GET', url);
+const ajaxPost = (url, data) => ajax('POST', url, data);
+const ajaxPut = (url, data) => ajax('PUT', url, data);
+const ajaxDel = (url) => ajax('DELETE', url);
+
+function blockUrl(blockId, suffix = '') {
+    return `/page-builder/blocks/${blockId}${suffix}`;
 }
 
-function ajaxDelete(url) {
-    return $.ajax({
-        url,
-        method: 'POST',
-        data: { _method: 'DELETE' },
-        headers: { 'X-CSRF-TOKEN': csrfToken() },
-    });
-}
-
-function openModal(id) {
-    document.getElementById(id)?.dispatchEvent(new Event('open'));
-}
-
-function closeModal(id) {
-    document.getElementById(id)?.dispatchEvent(new Event('close'));
-}
-
-function blockUrl(path) {
-    return `/admin/page-builder/blocks/${path}`;
-}
-
-function slideUrl(path) {
-    return `/admin/page-builder/slides/${path}`;
-}
-
-function adImageUrl(path) {
-    return `/admin/page-builder/ad-images/${path}`;
-}
-
-function blockProductUrl(path) {
-    return `/admin/page-builder/products/${path}`;
+function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Create Page Form (create.blade.php)
+// BLOCKS registry — preview + config per block_type code
+// Codes mirror BlockTypeSeeder. Unknown types fall through to defaults.
 // ─────────────────────────────────────────────────────────────────────────────
 
-$(function () {
-    const $createForm = $('#create-page-form');
-    if (!$createForm.length) return;
+const BLOCKS = {
+    // ── HERO ────────────────────────────────────────────────────────────────
+    hero_slider: {
+        label: 'Hero Slider', icon: 'ti-photo',
+        preview: (c) => `
+            <div class="prev-slider">
+                <span>◀</span>
+                <div style="text-align:center">
+                    <div style="font-weight:600;font-size:13px">${escapeHtml(c.headline || 'Hero Headline')}</div>
+                    <div style="font-size:10px;opacity:.85;margin-top:2px">${escapeHtml(c.subhead || 'Slide preview')}</div>
+                </div>
+                <span>▶</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('headline', 'Default headline', c.headline)}
+            ${fieldText('subhead', 'Default subheadline', c.subhead)}
+            ${fieldNumber('autoplay_seconds', 'Autoplay (seconds)', c.autoplay_seconds ?? 6, 0, 60)}
+            ${fieldToggle('show_indicators', 'Show indicator dots', c.show_indicators ?? true)}
+            ${manageButton('slides', 'Manage slides')}
+        `,
+    },
+    countdown_deal: {
+        label: 'Countdown Deal', icon: 'ti-clock-hour-4',
+        preview: (c) => `
+            <div class="prev-countdown">
+                <span>${escapeHtml(c.label || 'Ends in')}:</span>
+                <span class="box">02</span>:<span class="box">14</span>:<span class="box">37</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('label', 'Label', c.label || 'Ends in')}
+            ${fieldText('ends_at', 'Ends at (ISO 8601)', c.ends_at, 'datetime-local')}
+            ${fieldText('cta_url', 'CTA URL', c.cta_url)}
+        `,
+    },
+    video_banner: {
+        label: 'Video Banner', icon: 'ti-player-play',
+        preview: () => `
+            <div class="prev-video">
+                <i class="ti ti-player-play-filled" style="font-size:22px"></i>
+                <span>Video banner preview</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('video_url', 'Video URL', c.video_url)}
+            ${fieldText('poster_url', 'Poster image URL', c.poster_url)}
+            ${fieldToggle('autoplay', 'Autoplay', c.autoplay ?? true)}
+            ${fieldToggle('muted', 'Muted', c.muted ?? true)}
+            ${fieldToggle('loop', 'Loop', c.loop ?? true)}
+        `,
+    },
+    occasion_banner: {
+        label: 'Occasion Banner', icon: 'ti-confetti',
+        preview: (c) => `
+            <div class="prev-banner" style="background:#fef3c7;color:#92400e">
+                <i class="ti ti-confetti" style="font-size:18px"></i>
+                <strong>${escapeHtml(c.title || 'Eid Mubarak')}</strong>
+                <span style="margin-left:auto">${escapeHtml(c.cta_label || 'Shop now')} →</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title)}
+            ${fieldText('cta_label', 'CTA label', c.cta_label)}
+            ${fieldText('cta_url', 'CTA URL', c.cta_url)}
+            ${fieldColor('background', 'Background color', c.background || '#fef3c7')}
+        `,
+    },
 
-    $createForm.on('submit', function (e) {
-        e.preventDefault();
-        const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Creating…');
+    // ── PRODUCTS ────────────────────────────────────────────────────────────
+    product_row: {
+        label: 'Product Row', icon: 'ti-shopping-bag',
+        preview: (c) => `
+            <div style="font-size:11px;font-weight:600;margin-bottom:6px;color:#111827">${escapeHtml(c.title || 'Product row')}</div>
+            <div class="prev-products">${productSkeletons(4)}</div>`,
+        config: (c) => `
+            ${fieldText('title', 'Row title', c.title)}
+            ${fieldSelect('source', 'Product source', c.source || 'curated', [
+            ['curated', 'Curated list'],
+            ['category', 'By category'],
+            ['bestsellers', 'Bestsellers'],
+            ['new_arrivals', 'New arrivals'],
+        ])}
+            ${fieldNumber('limit', 'Max products', c.limit ?? 12, 1, 50)}
+            ${manageButton('products', 'Manage products')}
+        `,
+    },
+    flash_sale: {
+        label: 'Flash Sale', icon: 'ti-bolt',
+        preview: (c) => `
+            <div class="prev-flash">
+                <span class="prev-flash-badge"><i class="ti ti-bolt"></i> FLASH SALE</span>
+                <span class="prev-flash-timer">02:14:37</span>
+                <div class="prev-flash-products">
+                    <div class="prev-flash-item"></div><div class="prev-flash-item"></div>
+                    <div class="prev-flash-item"></div><div class="prev-flash-item"></div>
+                </div>
+            </div>`,
+        config: (c) => `
+            ${fieldText('flash_sale_id', 'Flash Sale ID', c.flash_sale_id)}
+            ${fieldText('title', 'Title', c.title || 'Flash Sale')}
+            ${fieldNumber('limit', 'Max products', c.limit ?? 8, 1, 24)}
+        `,
+    },
+    deal_of_day: {
+        label: 'Deal of the Day', icon: 'ti-discount-2',
+        preview: () => `
+            <div class="prev-banner" style="background:#fef2f2;color:#991b1b">
+                <i class="ti ti-discount-2" style="font-size:18px"></i>
+                <div><strong>Deal of the Day</strong> · save up to 70%</div>
+                <span style="margin-left:auto">Shop now →</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('product_variant_id', 'Featured variant ID', c.product_variant_id)}
+            ${fieldText('headline', 'Headline', c.headline || 'Deal of the Day')}
+        `,
+    },
+    recently_viewed: {
+        label: 'Recently Viewed', icon: 'ti-history',
+        preview: () => `
+            <div style="font-size:11px;font-weight:600;margin-bottom:6px;color:#111827">Recently viewed</div>
+            <div class="prev-products">${productSkeletons(4)}</div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'Recently viewed')}
+            ${fieldNumber('limit', 'Max items', c.limit ?? 8, 1, 20)}
+        `,
+    },
+    top_rated: {
+        label: 'Top Rated', icon: 'ti-star',
+        preview: () => `
+            <div style="font-size:11px;font-weight:600;margin-bottom:6px;color:#111827">⭐ Top rated</div>
+            <div class="prev-products">${productSkeletons(4)}</div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'Top rated')}
+            ${fieldNumber('min_rating', 'Min rating', c.min_rating ?? 4, 1, 5)}
+            ${fieldNumber('limit', 'Max items', c.limit ?? 8, 1, 20)}
+        `,
+    },
+    new_arrivals: {
+        label: 'New Arrivals', icon: 'ti-sparkles',
+        preview: () => `
+            <div style="font-size:11px;font-weight:600;margin-bottom:6px;color:#111827">✨ New arrivals</div>
+            <div class="prev-products">${productSkeletons(4)}</div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'New arrivals')}
+            ${fieldNumber('days', 'Last N days', c.days ?? 14, 1, 90)}
+            ${fieldNumber('limit', 'Max items', c.limit ?? 8, 1, 20)}
+        `,
+    },
+    seller_spotlight: {
+        label: 'Seller Spotlight', icon: 'ti-building-store',
+        preview: () => `
+            <div class="prev-banner" style="background:#eff6ff;color:#1e3a8a">
+                <i class="ti ti-building-store" style="font-size:18px"></i>
+                <strong>Vendor spotlight</strong>
+                <span style="margin-left:auto">View store →</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('vendor_id', 'Vendor ID', c.vendor_id)}
+            ${fieldText('title', 'Title', c.title || 'Seller spotlight')}
+        `,
+    },
+    comparison_table: {
+        label: 'Comparison Table', icon: 'ti-table',
+        preview: () => `
+            <div class="prev-products">${productSkeletons(3)}</div>
+            <div style="font-size:10px;color:#9ca3af;margin-top:6px;text-align:center">Comparison table — 3 columns</div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'Compare')}
+            ${manageButton('products', 'Choose products to compare')}
+        `,
+    },
 
-        ajaxPost(window.location.pathname.replace(/\/$/, '') + '/store', new FormData(this))
-            .done(function (res) {
-                window.Toast?.success(res.message ?? 'Page created.');
-                if (res.redirect) setTimeout(() => { window.location.href = res.redirect; }, 400);
-            })
-            .fail(function (xhr) {
-                const errors = xhr.responseJSON?.errors ?? {};
-                Object.values(errors).flat().forEach(e => window.Toast?.error(e));
-                if (!Object.keys(errors).length) window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.');
-            })
-            .always(() => $btn.prop('disabled', false).text('Create & Open Editor'));
-    });
+    // ── ADS & BANNERS ───────────────────────────────────────────────────────
+    ad_images_2col: adGrid(2, 'Ad images · 2 columns'),
+    ad_images_3col: adGrid(3, 'Ad images · 3 columns'),
+    ad_images_4col: adGrid(4, 'Ad images · 4 columns'),
+
+    full_banner: {
+        label: 'Full Banner', icon: 'ti-rectangle',
+        preview: (c) => `
+            <div class="prev-banner" style="height:60px;background:linear-gradient(90deg,#1e40af,#7c3aed);color:#fff">
+                <strong>${escapeHtml(c.headline || 'Full-width banner')}</strong>
+                <span style="margin-left:auto;font-size:10px;opacity:.9">${escapeHtml(c.cta_label || 'Shop now')} →</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('headline', 'Headline', c.headline)}
+            ${fieldText('cta_label', 'CTA label', c.cta_label)}
+            ${fieldText('cta_url', 'CTA URL', c.cta_url)}
+            ${manageButton('ad_images', 'Manage banner image')}
+        `,
+    },
+    split_banner: {
+        label: 'Split Banner', icon: 'ti-layout-columns',
+        preview: () => `
+            <div class="prev-adgrid col2">
+                <div class="prev-ad" style="height:64px">LEFT</div>
+                <div class="prev-ad" style="height:64px">RIGHT</div>
+            </div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title)}
+            ${manageButton('ad_images', 'Manage banner images')}
+        `,
+    },
+    sponsored_products: {
+        label: 'Sponsored Products', icon: 'ti-badge-ad',
+        preview: () => `
+            <div class="prev-sponsored">
+                <i class="ti ti-badge-ad" style="font-size:18px"></i>
+                <strong>Sponsored</strong>
+                <span style="margin-left:auto">View all →</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'Sponsored')}
+            ${fieldNumber('limit', 'Slots', c.limit ?? 4, 1, 12)}
+        `,
+    },
+    paid_banner: {
+        label: 'Paid Banner', icon: 'ti-coin',
+        preview: (c) => `
+            <div class="prev-banner" style="background:#fef9c3;color:#854d0e">
+                <i class="ti ti-coin" style="font-size:18px"></i>
+                <strong>${escapeHtml(c.headline || 'Sponsored placement')}</strong>
+                <span style="margin-left:auto;font-size:10px">Ad</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('campaign_id', 'Ad campaign ID', c.campaign_id)}
+            ${fieldText('headline', 'Fallback headline', c.headline)}
+            ${manageButton('ad_images', 'Manage banner image')}
+        `,
+    },
+
+    // ── DISCOVERY ───────────────────────────────────────────────────────────
+    category_pills: {
+        label: 'Category Pills', icon: 'ti-category',
+        preview: () => `
+            <div class="prev-cats">
+                <span class="prev-cat">Electronics</span>
+                <span class="prev-cat">Fashion</span>
+                <span class="prev-cat">Home</span>
+                <span class="prev-cat">Beauty</span>
+                <span class="prev-cat">Sports</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'Shop by category')}
+            <div class="field"><label>Category IDs (comma separated)</label>
+                <input type="text" data-config-key="category_ids" value="${escapeHtml((c.category_ids || []).join(','))}"></div>
+        `,
+    },
+    brand_strip: {
+        label: 'Brand Strip', icon: 'ti-tag',
+        preview: () => `
+            <div class="prev-cats">
+                <span class="prev-cat">Apple</span><span class="prev-cat">Samsung</span>
+                <span class="prev-cat">Sony</span><span class="prev-cat">Nike</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'Top brands')}
+            <div class="field"><label>Brand IDs (comma separated)</label>
+                <input type="text" data-config-key="brand_ids" value="${escapeHtml((c.brand_ids || []).join(','))}"></div>
+        `,
+    },
+    search_trends: {
+        label: 'Search Trends', icon: 'ti-trending-up',
+        preview: () => `
+            <div class="prev-cats">
+                <span class="prev-cat">📈 iphone 15</span>
+                <span class="prev-cat">📈 ramadan deals</span>
+                <span class="prev-cat">📈 air fryer</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'Trending searches')}
+            ${fieldNumber('limit', 'Max trends', c.limit ?? 8, 1, 20)}
+        `,
+    },
+    geo_recommendations: {
+        label: 'Geo Recommendations', icon: 'ti-map-pin',
+        preview: () => `
+            <div class="prev-banner" style="background:#f0fdf4;color:#166534">
+                <i class="ti ti-map-pin" style="font-size:18px"></i>
+                <strong>Popular near you</strong>
+            </div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'Popular near you')}
+            ${fieldNumber('radius_km', 'Radius (km)', c.radius_km ?? 50, 5, 500)}
+        `,
+    },
+
+    // ── ENGAGEMENT ──────────────────────────────────────────────────────────
+    countdown_timer: {
+        label: 'Countdown Timer', icon: 'ti-clock',
+        preview: (c) => `
+            <div class="prev-countdown">
+                <span>${escapeHtml(c.label || 'Sale ends in')}:</span>
+                <span class="box">12</span>:<span class="box">34</span>:<span class="box">56</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('label', 'Label', c.label || 'Sale ends in')}
+            ${fieldText('ends_at', 'Ends at', c.ends_at, 'datetime-local')}
+        `,
+    },
+    how_it_works: {
+        label: 'How It Works', icon: 'ti-list-numbers',
+        preview: () => `
+            <div class="prev-steps">
+                <div class="prev-step"><b>1</b>Browse</div>
+                <div class="prev-step"><b>2</b>Order</div>
+                <div class="prev-step"><b>3</b>Enjoy</div>
+            </div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'How it works')}
+            <div class="field"><label>Steps (one per line, format: title|description)</label>
+                <textarea data-config-key="steps_raw" rows="4">${escapeHtml(stepsToText(c.steps))}</textarea></div>
+        `,
+    },
+    loyalty_banner: {
+        label: 'Loyalty Banner', icon: 'ti-gift',
+        preview: () => `
+            <div class="prev-banner" style="background:#fdf4ff;color:#86198f">
+                <i class="ti ti-gift" style="font-size:18px"></i>
+                <strong>Earn points · 2× this week</strong>
+            </div>`,
+        config: (c) => `
+            ${fieldText('headline', 'Headline', c.headline || 'Earn points on every order')}
+            ${fieldText('cta_url', 'CTA URL', c.cta_url)}
+        `,
+    },
+    loyalty_progress: {
+        label: 'Loyalty Progress', icon: 'ti-progress',
+        preview: () => `
+            <div class="prev-banner" style="background:#fff7ed;color:#9a3412">
+                <i class="ti ti-progress" style="font-size:18px"></i>
+                <div style="flex:1">
+                    <div style="font-size:10px">450 / 1000 points to Gold</div>
+                    <div class="prev-option-bar" style="margin-top:4px"><div class="prev-option-fill" style="width:45%"></div></div>
+                </div>
+            </div>`,
+        config: () => `<div class="prev-text">Dynamic per-user component — no extra config.</div>`,
+    },
+    poll_widget: {
+        label: 'Poll Widget', icon: 'ti-chart-bar',
+        preview: (c) => `
+            <div style="font-size:11px;font-weight:600;margin-bottom:6px">${escapeHtml(c.question || 'Quick poll')}</div>
+            <div class="prev-poll">
+                <div class="prev-option">Option A<div class="prev-option-bar"><div class="prev-option-fill" style="width:60%"></div></div></div>
+                <div class="prev-option">Option B<div class="prev-option-bar"><div class="prev-option-fill" style="width:40%"></div></div></div>
+            </div>`,
+        config: (c) => `
+            ${fieldText('question', 'Question', c.question)}
+            <div class="field"><label>Options (one per line)</label>
+                <textarea data-config-key="options_raw" rows="3">${escapeHtml((c.options || []).join('\n'))}</textarea></div>
+        `,
+    },
+    review_highlights: {
+        label: 'Review Highlights', icon: 'ti-quote',
+        preview: () => `
+            <div class="prev-banner" style="background:#f0f9ff;color:#075985">
+                <i class="ti ti-quote" style="font-size:18px"></i>
+                <em style="font-size:11px">"Fast delivery, great prices…"</em>
+            </div>`,
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title || 'What customers say')}
+            ${fieldNumber('min_rating', 'Min rating', c.min_rating ?? 4, 1, 5)}
+            ${fieldNumber('limit', 'Max reviews', c.limit ?? 6, 1, 20)}
+        `,
+    },
+    newsletter_signup: {
+        label: 'Newsletter Signup', icon: 'ti-mail',
+        preview: (c) => `
+            <div class="prev-banner" style="background:#f3f4f6;color:#111827">
+                <i class="ti ti-mail" style="font-size:18px"></i>
+                <strong>${escapeHtml(c.headline || 'Get 10% off your first order')}</strong>
+                <input type="email" placeholder="your@email.com" disabled style="margin-left:auto;padding:4px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:11px">
+            </div>`,
+        config: (c) => `
+            ${fieldText('headline', 'Headline', c.headline)}
+            ${fieldText('cta_label', 'CTA label', c.cta_label || 'Subscribe')}
+        `,
+    },
+    app_download_banner: {
+        label: 'App Download', icon: 'ti-device-mobile',
+        preview: () => `
+            <div class="prev-banner" style="background:#eef2ff;color:#3730a3">
+                <i class="ti ti-device-mobile" style="font-size:18px"></i>
+                <strong>Get the app</strong>
+                <span style="margin-left:auto">App Store · Google Play</span>
+            </div>`,
+        config: (c) => `
+            ${fieldText('ios_url', 'iOS App Store URL', c.ios_url)}
+            ${fieldText('android_url', 'Google Play URL', c.android_url)}
+        `,
+    },
+    instagram_feed: {
+        label: 'Instagram Feed', icon: 'ti-brand-instagram',
+        preview: () => `
+            <div class="prev-adgrid col4">
+                <div class="prev-ad">IG</div><div class="prev-ad">IG</div>
+                <div class="prev-ad">IG</div><div class="prev-ad">IG</div>
+            </div>`,
+        config: (c) => `
+            ${fieldText('handle', 'Instagram handle', c.handle)}
+            ${fieldNumber('limit', 'Posts', c.limit ?? 8, 1, 24)}
+        `,
+    },
+    text_block: {
+        label: 'Text Block', icon: 'ti-align-left',
+        preview: (c) => `<div class="prev-text">${escapeHtml(c.text_en || 'Add text content for this block…').slice(0, 200)}</div>`,
+        config: (c) => `
+            <div class="field"><label>Text (EN)</label>
+                <textarea data-config-key="text_en" rows="4">${escapeHtml(c.text_en || '')}</textarea></div>
+            <div class="field"><label>Text (AR)</label>
+                <textarea data-config-key="text_ar" rows="4" dir="rtl">${escapeHtml(c.text_ar || '')}</textarea></div>
+            ${fieldSelect('alignment', 'Alignment', c.alignment || 'left', [
+            ['left', 'Left'], ['center', 'Center'], ['right', 'Right'],
+        ])}
+        `,
+    },
+    divider: {
+        label: 'Divider', icon: 'ti-minus',
+        preview: () => `<div class="prev-divider"></div>`,
+        config: (c) => `
+            ${fieldSelect('style', 'Style', c.style || 'solid', [
+            ['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted'],
+        ])}
+            ${fieldColor('color', 'Color', c.color || '#e5e7eb')}
+            ${fieldNumber('spacing', 'Spacing (px)', c.spacing ?? 16, 0, 100)}
+        `,
+    },
+};
+
+// Default fallback for any block code not explicitly registered above.
+const DEFAULT_BLOCK = {
+    label: 'Block', icon: 'ti-square',
+    preview: (c) => `<div class="prev-text">${escapeHtml(c.title || c.headline || 'Block preview')}</div>`,
+    config: (c) => `
+        ${fieldText('title', 'Title', c.title)}
+        ${fieldText('subtitle', 'Subtitle', c.subtitle)}
+    `,
+};
+
+function getBlockDef(type) {
+    return BLOCKS[type] || DEFAULT_BLOCK;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tiny field-builder helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+function fieldText(key, label, value, type = 'text') {
+    return `<div class="field"><label>${escapeHtml(label)}</label>
+        <input type="${type}" data-config-key="${key}" value="${escapeHtml(value ?? '')}"></div>`;
+}
+function fieldNumber(key, label, value, min, max) {
+    return `<div class="field"><label>${escapeHtml(label)}</label>
+        <input type="number" data-config-key="${key}" value="${escapeHtml(value ?? '')}"
+            ${min != null ? `min="${min}"` : ''} ${max != null ? `max="${max}"` : ''}></div>`;
+}
+function fieldColor(key, label, value) {
+    return `<div class="field"><label>${escapeHtml(label)}</label>
+        <input type="color" data-config-key="${key}" value="${escapeHtml(value || '#000000')}"></div>`;
+}
+function fieldSelect(key, label, value, options) {
+    const opts = options.map(([v, l]) =>
+        `<option value="${escapeHtml(v)}" ${v === value ? 'selected' : ''}>${escapeHtml(l)}</option>`
+    ).join('');
+    return `<div class="field"><label>${escapeHtml(label)}</label>
+        <select data-config-key="${key}">${opts}</select></div>`;
+}
+function fieldToggle(key, label, on) {
+    return `<div class="toggle-row">
+        <span>${escapeHtml(label)}</span>
+        <div class="tog ${on ? 'on' : ''}" data-config-key="${key}" data-type="bool" role="switch" aria-checked="${!!on}"></div>
+    </div>`;
+}
+function manageButton(kind, label) {
+    return `<button type="button" class="ct-btn" data-manage="${kind}" style="width:100%;margin-top:4px">
+        <i class="ti ti-edit" style="margin-right:4px"></i>${escapeHtml(label)}
+    </button>`;
+}
+
+function adGrid(cols, label) {
+    return {
+        label, icon: cols === 2 ? 'ti-layout-grid' : cols === 3 ? 'ti-layout-columns' : 'ti-grid-dots',
+        preview: () => {
+            let cells = '';
+            for (let i = 0; i < cols; i++) cells += `<div class="prev-ad">AD</div>`;
+            return `<div class="prev-adgrid col${cols}">${cells}</div>`;
+        },
+        config: (c) => `
+            ${fieldText('title', 'Title', c.title)}
+            <div class="prev-text" style="margin-bottom:8px">Configured for <b>${cols}</b> columns. Add images below.</div>
+            ${manageButton('ad_images', 'Manage banner images')}
+        `,
+    };
+}
+
+function productSkeletons(n) {
+    let out = '';
+    for (let i = 0; i < n; i++) {
+        out += `<div class="prev-product"><div class="prev-product-img"></div>
+            <div class="prev-product-info">Product ${i + 1}<br><b style="color:#111827">$XX.XX</b></div></div>`;
+    }
+    return out;
+}
+
+function stepsToText(steps) {
+    if (!Array.isArray(steps)) return '';
+    return steps.map(s => `${s.title || ''}|${s.description || ''}`).join('\n');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Canvas state + render
+// ─────────────────────────────────────────────────────────────────────────────
+
+let blocks = [];               // current page blocks (in order)
+let selectedBlockId = null;    // id of block currently shown in config panel
+let dirty = false;             // unsaved canvas state
+
+function $canvas() { return document.getElementById('canvas'); }
+function $dropHint() { return document.getElementById('drop-hint'); }
+function $panel() { return document.getElementById('config-panel'); }
+
+function renderCanvas() {
+    const canvas = $canvas();
+    if (!canvas) return;
+    // Wipe everything except the drop-hint
+    canvas.querySelectorAll('.canvas-block').forEach(n => n.remove());
+
+    const hint = $dropHint();
+    if (blocks.length === 0) {
+        hint.style.display = '';
+        return;
+    }
+    hint.style.display = 'none';
+
+    blocks.forEach((b, idx) => canvas.appendChild(buildBlockCard(b, idx)));
+}
+
+function buildBlockCard(b, idx) {
+    const def = getBlockDef(b.block_type);
+    const card = document.createElement('div');
+    card.className = 'canvas-block' + (b.id === selectedBlockId ? ' selected' : '');
+    card.dataset.blockId = b.id;
+    card.dataset.blockType = b.block_type;
+    card.draggable = true;
+
+    const hiddenBadge = b.is_visible ? '' : '<span class="cb-status hidden">Hidden</span>';
+    const deviceBadge = (b.device_target && b.device_target !== 'all')
+        ? `<span class="cb-status">${escapeHtml(b.device_target)}</span>` : '';
+
+    card.innerHTML = `
+        <div class="cb-header">
+            <i class="ti ti-grip-vertical cb-drag" aria-hidden="true"></i>
+            <span class="cb-type">
+                <i class="ti ${def.icon}" aria-hidden="true"></i>
+                ${escapeHtml(def.label)}
+            </span>
+            ${hiddenBadge}${deviceBadge}
+            <button type="button" class="cb-act" data-action="up"     ${idx === 0 ? 'disabled' : ''} title="Move up"><i class="ti ti-chevron-up"></i></button>
+            <button type="button" class="cb-act" data-action="down"   ${idx === blocks.length - 1 ? 'disabled' : ''} title="Move down"><i class="ti ti-chevron-down"></i></button>
+            <button type="button" class="cb-act danger" data-action="delete" title="Delete"><i class="ti ti-trash"></i></button>
+        </div>
+        <div class="cb-preview">${def.preview(b.config || {})}</div>
+    `;
+    return card;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sidebar drag → drop on canvas
+// ─────────────────────────────────────────────────────────────────────────────
+
+let dragType = null;        // when dragging a sidebar pill
+let dragBlockId = null;     // when reordering an existing canvas block
+
+document.addEventListener('dragstart', (e) => {
+    const pill = e.target.closest('.block-pill');
+    if (pill) {
+        dragType = pill.dataset.blockType;
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('text/plain', dragType);
+        return;
+    }
+    const card = e.target.closest('.canvas-block');
+    if (card) {
+        dragBlockId = card.dataset.blockId;
+        card.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    }
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Page Editor (show.blade.php)
-// ─────────────────────────────────────────────────────────────────────────────
+document.addEventListener('dragend', (e) => {
+    const card = e.target.closest('.canvas-block');
+    if (card) card.classList.remove('dragging');
+    dragType = null;
+    dragBlockId = null;
+});
 
-$(function () {
-    if (typeof window.PAGE_ID === 'undefined') return;
+function initCanvasDnd() {
+    const canvas = $canvas();
+    if (!canvas) return;
 
-    const URLS = window.PAGE_URLS;
-    let activeBlockId = null;  // block being configured
-    let activeSlideId = null;  // slide being edited
-    let activeAdImageId = null;  // ad image being edited
-
-    // ── State ─────────────────────────────────────────────────────────────────
-    let blocks = window.INITIAL_BLOCKS || [];
-
-    // ── DOM helpers ───────────────────────────────────────────────────────────
-
-    function blockTypeToConfigTemplate(type) {
-        if (['ad_images_2col', 'ad_images_3col', 'ad_images_4col', 'split_banner'].includes(type)) {
-            return 'ad_images';
+    canvas.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = dragBlockId ? 'move' : 'copy';
+        const hint = $dropHint();
+        if (hint) hint.classList.add('over');
+    });
+    canvas.addEventListener('dragleave', (e) => {
+        if (e.target === canvas) {
+            const hint = $dropHint();
+            if (hint) hint.classList.remove('over');
         }
-        if (['product_grid', 'product_row'].includes(type)) {
-            return 'product_list';
-        }
-        return type;
-    }
-
-    function renderBlockCard(block) {
-        const visIcon = block.is_visible ? '👁' : '🚫';
-        const deviceLabel = block.device_target !== 'all' ? `<span class="text-[10px] bg-gray-100 rounded px-1.5">${block.device_target}</span>` : '';
-
-        let summary = '';
-        if (block.config?.title_en) summary = `<span class="text-xs font-medium text-gray-800 truncate">${block.config.title_en}</span> `;
-        if (block.slides_count) summary += `<span class="text-xs text-gray-400">${block.slides_count} slide(s)</span>`;
-        if (block.ad_images_count) summary += `<span class="text-xs text-gray-400">${block.ad_images_count} image(s)</span>`;
-        if (block.products_count) summary += `<span class="text-xs text-gray-400">${block.products_count} product(s)</span>`;
-
-        return `
-            <div class="block-card group relative bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
-                 data-block-id="${block.id}" data-block-type="${block.block_type}">
-                <div class="drag-handle absolute left-2 top-1/2 -translate-y-1/2 cursor-grab text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity">
-                    ⠿
-                </div>
-                <div class="pl-8 pr-4 py-3 flex items-center gap-3">
-                    <span class="badge badge-gray text-[10px] flex-shrink-0">${block.block_type}</span>
-                    <div class="flex-1 min-w-0">${summary}</div>
-                    <span class="text-sm" title="${block.is_visible ? 'Visible' : 'Hidden'}">${visIcon}</span>
-                    ${deviceLabel}
-                    <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                        <button type="button" class="btn-block-toggle btn btn-ghost btn-xs" data-block-id="${block.id}">Toggle</button>
-                        <button type="button" class="btn-block-configure btn btn-secondary btn-xs" data-block-id="${block.id}" data-block-type="${block.block_type}">Configure</button>
-                        <button type="button" class="btn-block-revisions btn btn-ghost btn-xs" data-block-id="${block.id}" title="History">🕒</button>
-                        <button type="button" class="btn-block-delete btn btn-danger btn-xs" data-block-id="${block.id}">✕</button>
-                    </div>
-                </div>
-            </div>`;
-    }
-
-    function appendBlockToCanvas(block) {
-        $('#empty-canvas').hide();
-        const html = renderBlockCard(block);
-        if (block.section_id) {
-            $(`.section-blocks-list[data-section-id="${block.section_id}"]`).append(html);
-        } else {
-            $('#canvas-blocks').append(html);
-        }
-    }
-
-    // ── Add block (left panel buttons) ───────────────────────────────────────
-
-    $(document).on('click', '.add-block-btn', function () {
-        const blockType = $(this).data('block-type');
-        const $btn = $(this).prop('disabled', true);
-
-        ajaxPost(URLS.blockStore, { block_type: blockType })
-            .done(function (res) {
-                blocks.push(res.block);
-                appendBlockToCanvas(res.block);
-                window.Toast?.success(`${blockType} block added.`);
-            })
-            .fail(function () { window.Toast?.error('Failed to add block.'); })
-            .always(() => $btn.prop('disabled', false));
     });
+    canvas.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        const hint = $dropHint();
+        if (hint) hint.classList.remove('over');
 
-    // ── Toggle block visibility ───────────────────────────────────────────────
-
-    $(document).on('click', '.btn-block-toggle', function () {
-        const blockId = $(this).data('block-id');
-        ajaxPost(blockUrl(`${blockId}/toggle-visibility`), {})
-            .done(function (res) {
-                const block = blocks.find(b => b.id === blockId);
-                if (block) block.is_visible = res.is_visible;
-                // Reload the card
-                $(`.block-card[data-block-id="${blockId}"]`).replaceWith(
-                    renderBlockCard(block)
-                );
-            })
-            .fail(() => window.Toast?.error('Failed to toggle visibility.'));
-    });
-
-    // ── Delete block ─────────────────────────────────────────────────────────
-
-    $(document).on('click', '.btn-block-delete', function () {
-        const blockId = $(this).data('block-id');
-        if (!window.confirm('Delete this block?')) return;
-
-        ajaxDelete(blockUrl(blockId))
-            .done(function () {
-                blocks = blocks.filter(b => b.id !== blockId);
-                $(`.block-card[data-block-id="${blockId}"]`).remove();
-                window.Toast?.success('Block deleted.');
-            })
-            .fail(() => window.Toast?.error('Delete failed.'));
-    });
-
-    // ── Block revision history ────────────────────────────────────────────────
-
-    $(document).on('click', '.btn-block-revisions', function () {
-        const blockId = $(this).data('block-id');
-        openModal('revisions-modal');
-        $('#revisions-body').html('<p class="text-center text-gray-400">Loading…</p>');
-
-        $.get(blockUrl(`${blockId}/revisions`))
-            .done(function (res) {
-                if (!res.revisions?.length) {
-                    $('#revisions-body').html('<p class="text-gray-400 italic">No revisions yet.</p>');
-                    return;
-                }
-                let html = '<div class="space-y-2">';
-                res.revisions.forEach(r => {
-                    html += `<div class="border border-gray-100 rounded p-2 text-xs">
-                        <div class="flex justify-between">
-                            <span class="font-medium">#${r.revision_number} — ${r.change_type}</span>
-                            <span class="text-gray-400">${r.changed_at?.slice(0, 10) ?? ''}</span>
-                        </div>
-                        <div class="text-gray-500">by ${r.changed_by}${r.change_reason ? ` · ${r.change_reason}` : ''}</div>
-                    </div>`;
-                });
-                html += '</div>';
-                $('#revisions-body').html(html);
-            })
-            .fail(() => $('#revisions-body').html('<p class="text-danger-600">Failed to load revisions.</p>'));
-    });
-
-    // ── Configure block (open config modal) ───────────────────────────────────
-
-    $(document).on('click', '.btn-block-configure', function () {
-        const blockId = $(this).data('block-id');
-        const blockType = $(this).data('block-type');
-        activeBlockId = blockId;
-
-        openConfigModal(blockId, blockType);
-    });
-
-    function openConfigModal(blockId, blockType) {
-        const templateKey = blockTypeToConfigTemplate(blockType);
-        const $template = $(`template[data-type="${templateKey}"]`).first();
-        const $metaFields = $('#block-meta-fields').clone().removeAttr('id');
-
-        if (!$template.length) {
-            window.Toast?.warning('No config available for this block type.');
+        // Reorder existing block
+        if (dragBlockId) {
+            const targetCard = e.target.closest('.canvas-block');
+            const fromIdx = blocks.findIndex(b => b.id === dragBlockId);
+            if (fromIdx < 0) return;
+            const moved = blocks.splice(fromIdx, 1)[0];
+            const toIdx = targetCard
+                ? blocks.findIndex(b => b.id === targetCard.dataset.blockId)
+                : blocks.length;
+            blocks.splice(toIdx < 0 ? blocks.length : toIdx, 0, moved);
+            renderCanvas();
+            await persistOrder();
             return;
         }
 
-        // Clone template content
-        const $content = $($template[0].content.cloneNode(true));
-        const $body = $('#block-config-body').empty().append($content).append($metaFields);
+        // New block from sidebar
+        if (dragType) {
+            await addBlock(dragType);
+        }
+    });
+}
 
-        // Init flatpickr on any datetime inputs in the modal
-        $body.find('.flatpickr-datetime').each(function () {
-            if (window.flatpickr) flatpickr(this, { enableTime: true, dateFormat: 'Y-m-d H:i' });
+async function addBlock(type) {
+    try {
+        const res = await ajaxPost(window.PAGE_URLS.blockStore, {
+            block_type: type,
+            position: blocks.length + 1,
+            is_visible: true,
+            device_target: 'all',
+            config: {},
         });
-
-        // Pre-fill with current block config
-        const block = blocks.find(b => b.id === blockId);
-        if (block) {
-            fillConfigForm($body, block.config, 'config');
-            fillConfigForm($body, {
-                visible_from: block.visible_from,
-                visible_until: block.visible_until,
-                device_target: block.device_target,
-                cache_ttl_seconds: block.cache_ttl_seconds,
-            }, 'meta');
-        }
-
-        // For slider blocks: load slides
-        if (blockType === 'hero_slider') {
-            loadSlides(blockId);
-        }
-
-        // For ad_images blocks: load items
-        if (['ad_images_2col', 'ad_images_3col', 'ad_images_4col', 'split_banner'].includes(blockType)) {
-            loadAdImages(blockId);
-        }
-
-        // For product blocks: load products
-        if (['product_grid', 'product_row'].includes(blockType)) {
-            loadBlockProducts(blockId);
-        }
-
-        openModal('block-config-modal');
+        const block = res.block || res.data || res;
+        blocks.push({
+            id: block.id,
+            block_type: block.block_type || type,
+            position: block.position ?? blocks.length + 1,
+            is_visible: block.is_visible ?? true,
+            section_id: block.section_id ?? null,
+            device_target: block.device_target ?? 'all',
+            config: block.config || {},
+            slides_count: 0,
+            ad_images_count: 0,
+            products_count: 0,
+        });
+        renderCanvas();
+        selectBlock(block.id);
+        Toast.success('Block added');
+    } catch (err) {
+        Toast.error(err?.responseJSON?.message || 'Failed to add block');
     }
+}
 
-    function fillConfigForm($container, data, prefix) {
-        if (!data) return;
-        Object.entries(data).forEach(([key, val]) => {
-            if (val === null || val === undefined) return;
-            const $field = $container.find(`[name="${prefix}[${key}]"]`);
-            if ($field.is('[type=checkbox]')) {
-                $field.prop('checked', !!val);
-            } else if ($field.length) {
-                $field.val(val);
-            }
+async function persistOrder() {
+    try {
+        await ajaxPost(window.PAGE_URLS.blocksReorder, {
+            ordered_ids: blocks.map(b => b.id),
         });
+    } catch (err) {
+        Toast.error('Failed to save block order');
     }
+}
 
-    // ── Save block config ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Canvas actions (move up/down, delete, select)
+// ─────────────────────────────────────────────────────────────────────────────
 
-    $('#btn-save-block-config').on('click', function () {
-        if (!activeBlockId) return;
-        const $body = $('#block-config-body');
-        const config = {};
-        const meta = {};
+function initCanvasActions() {
+    const canvas = $canvas();
+    if (!canvas) return;
 
-        $body.find('[name^="config["]').each(function () {
-            const key = $(this).attr('name').match(/config\[(.+)\]/)?.[1];
-            if (key) config[key] = $(this).is(':checkbox') ? ($(this).is(':checked') ? 1 : 0) : $(this).val();
-        });
+    canvas.addEventListener('click', async (e) => {
+        const actBtn = e.target.closest('.cb-act');
+        const card = e.target.closest('.canvas-block');
+        if (!card) return;
+        const id = card.dataset.blockId;
 
-        $body.find('[name^="meta["]').each(function () {
-            const key = $(this).attr('name').match(/meta\[(.+)\]/)?.[1];
-            if (key) meta[key] = $(this).is(':checkbox') ? ($(this).is(':checked') ? 1 : 0) : $(this).val();
-        });
-
-        const $btn = $(this).prop('disabled', true).text('Saving…');
-
-        ajaxPut(blockUrl(activeBlockId), { config, ...meta })
-            .done(function (res) {
-                const idx = blocks.findIndex(b => b.id === activeBlockId);
-                if (idx !== -1) blocks[idx] = { ...blocks[idx], ...res.block };
-                $(`.block-card[data-block-id="${activeBlockId}"]`).replaceWith(renderBlockCard(blocks[idx]));
-                closeModal('block-config-modal');
-                window.Toast?.success('Block updated.');
-            })
-            .fail(() => window.Toast?.error('Save failed.'))
-            .always(() => $btn.prop('disabled', false).text('Save Changes'));
+        if (actBtn) {
+            e.stopPropagation();
+            const action = actBtn.dataset.action;
+            if (action === 'up') return moveBlock(id, -1);
+            if (action === 'down') return moveBlock(id, 1);
+            if (action === 'delete') return deleteBlock(id);
+        }
+        selectBlock(id);
     });
+}
 
-    // ── Drag-to-reorder blocks (simple HTML5 drag) ────────────────────────────
+async function moveBlock(id, delta) {
+    const idx = blocks.findIndex(b => b.id === id);
+    if (idx < 0) return;
+    const next = idx + delta;
+    if (next < 0 || next >= blocks.length) return;
+    [blocks[idx], blocks[next]] = [blocks[next], blocks[idx]];
+    renderCanvas();
+    await persistOrder();
+}
 
-    let dragSrc = null;
+async function deleteBlock(id) {
+    if (!confirm('Delete this block?')) return;
+    try {
+        await ajaxDel(blockUrl(id));
+        blocks = blocks.filter(b => b.id !== id);
+        if (selectedBlockId === id) closePanel();
+        renderCanvas();
+        Toast.success('Block deleted');
+    } catch (err) {
+        Toast.error(err?.responseJSON?.message || 'Failed to delete');
+    }
+}
 
-    $(document).on('dragstart', '.block-card', function (e) {
-        dragSrc = this;
-        e.originalEvent.dataTransfer.effectAllowed = 'move';
-        $(this).addClass('opacity-50');
+// ─────────────────────────────────────────────────────────────────────────────
+// Config panel
+// ─────────────────────────────────────────────────────────────────────────────
+
+function selectBlock(id) {
+    selectedBlockId = id;
+    document.querySelectorAll('.canvas-block').forEach(n => {
+        n.classList.toggle('selected', n.dataset.blockId === id);
     });
+    openPanel(id);
+}
 
-    $(document).on('dragend', '.block-card', function () {
-        $(this).removeClass('opacity-50');
-        dragSrc = null;
-        saveBlockOrder();
-    });
+function openPanel(id) {
+    const block = blocks.find(b => b.id === id);
+    if (!block) return;
+    const def = getBlockDef(block.block_type);
+    const cfg = block.config || {};
 
-    $(document).on('dragover', '.block-card', function (e) {
-        e.preventDefault();
-        if (!dragSrc || dragSrc === this) return;
-        const rect = this.getBoundingClientRect();
-        const mid = rect.top + rect.height / 2;
-        if (e.originalEvent.clientY < mid) {
-            $(this).before(dragSrc);
+    document.getElementById('panel-title').innerHTML =
+        `<i class="ti ${def.icon}" aria-hidden="true" style="margin-right:6px"></i>${escapeHtml(def.label)}`;
+
+    const visibilitySection = `
+        <div class="section-label">Visibility</div>
+        ${fieldToggle('__is_visible', 'Visible on page', block.is_visible)}
+        <div class="field">
+            <label>Device target</label>
+            <select data-block-key="device_target">
+                <option value="all"     ${block.device_target === 'all' ? 'selected' : ''}>All devices</option>
+                <option value="mobile"  ${block.device_target === 'mobile' ? 'selected' : ''}>Mobile only</option>
+                <option value="desktop" ${block.device_target === 'desktop' ? 'selected' : ''}>Desktop only</option>
+            </select>
+        </div>
+        <div class="section-label">Settings</div>
+    `;
+
+    document.getElementById('panel-body').innerHTML = visibilitySection + def.config(cfg);
+    $panel().classList.remove('closed');
+}
+
+function closePanel() {
+    selectedBlockId = null;
+    $panel().classList.add('closed');
+    document.querySelectorAll('.canvas-block.selected').forEach(n => n.classList.remove('selected'));
+}
+
+function readPanelValues() {
+    const out = { config: {}, is_visible: true, device_target: 'all' };
+    const body = document.getElementById('panel-body');
+
+    body.querySelectorAll('[data-config-key]').forEach(el => {
+        const key = el.dataset.configKey;
+        if (el.classList && el.classList.contains('tog')) {
+            out.config[key] = el.classList.contains('on');
+        } else if (el.tagName === 'INPUT' && el.type === 'number') {
+            out.config[key] = el.value === '' ? null : Number(el.value);
         } else {
-            $(this).after(dragSrc);
+            out.config[key] = el.value;
         }
     });
 
-    // Make cards draggable
-    $(document).on('mouseenter', '.block-card', function () {
-        $(this).attr('draggable', true);
-    });
-
-    function saveBlockOrder() {
-        const orderedIds = [];
-        $('#canvas-blocks .block-card, .section-blocks-list .block-card').each(function () {
-            orderedIds.push($(this).data('block-id'));
-        });
-
-        ajaxPost(URLS.blocksReorder, { ordered_ids: orderedIds })
-            .fail(() => window.Toast?.warning('Could not save block order.'));
+    // Convert raw textareas
+    if ('options_raw' in out.config) {
+        out.config.options = String(out.config.options_raw || '')
+            .split('\n').map(s => s.trim()).filter(Boolean);
+        delete out.config.options_raw;
+    }
+    if ('steps_raw' in out.config) {
+        out.config.steps = String(out.config.steps_raw || '')
+            .split('\n').map(line => {
+                const [t, d] = line.split('|');
+                return { title: (t || '').trim(), description: (d || '').trim() };
+            }).filter(s => s.title);
+        delete out.config.steps_raw;
+    }
+    if ('category_ids' in out.config) {
+        out.config.category_ids = String(out.config.category_ids || '')
+            .split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if ('brand_ids' in out.config) {
+        out.config.brand_ids = String(out.config.brand_ids || '')
+            .split(',').map(s => s.trim()).filter(Boolean);
     }
 
-    // ── Sections ─────────────────────────────────────────────────────────────
+    // Toggles tagged with __is_visible
+    body.querySelectorAll('.tog[data-config-key="__is_visible"]').forEach(el => {
+        out.is_visible = el.classList.contains('on');
+    });
+    delete out.config.__is_visible;
 
-    $('#btn-add-section').on('click', function () {
-        $('[name="_section_id"]').val('');
-        $('[name="name"]', '#add-section-form').val('');
-        openModal('add-section-modal');
+    // Block-level fields
+    body.querySelectorAll('[data-block-key]').forEach(el => {
+        out[el.dataset.blockKey] = el.value;
     });
 
-    $(document).on('click', '.btn-section-edit', function () {
-        const id = $(this).data('section-id');
-        const name = $(this).data('section-name');
-        $('[name="_section_id"]').val(id);
-        $('[name="name"]', '#add-section-form').val(name);
-        openModal('add-section-modal');
-    });
+    return out;
+}
 
-    $(document).on('click', '.btn-section-delete', function () {
-        const id = $(this).data('section-id');
-        if (!window.confirm('Delete this section? Blocks will be un-sectioned.')) return;
+async function savePanel() {
+    if (!selectedBlockId) return;
+    const block = blocks.find(b => b.id === selectedBlockId);
+    if (!block) return;
+    const data = readPanelValues();
+    try {
+        const res = await ajaxPut(blockUrl(selectedBlockId), data);
+        const updated = res.block || res.data || res;
+        Object.assign(block, {
+            config: updated.config ?? data.config,
+            is_visible: updated.is_visible ?? data.is_visible,
+            device_target: updated.device_target ?? data.device_target,
+        });
+        renderCanvas();
+        // Re-highlight selected block
+        document.querySelectorAll('.canvas-block').forEach(n => {
+            if (n.dataset.blockId === selectedBlockId) n.classList.add('selected');
+        });
+        Toast.success('Block saved');
+    } catch (err) {
+        Toast.error(err?.responseJSON?.message || 'Failed to save block');
+    }
+}
 
-        ajaxDelete(`/admin/page-builder/sections/${id}`)
-            .done(function () {
-                const $section = $(`.page-section[data-section-id="${id}"]`);
-                // Move orphaned blocks to the main canvas
-                $section.find('.block-card').appendTo('#canvas-blocks');
-                $section.remove();
-                window.Toast?.success('Section deleted.');
-            })
-            .fail(() => window.Toast?.error('Delete failed.'));
-    });
+// ─────────────────────────────────────────────────────────────────────────────
+// "Manage slides / ad images / products" hooks → existing modals
+// ─────────────────────────────────────────────────────────────────────────────
 
-    $('#add-section-form').on('submit', function (e) {
-        e.preventDefault();
-        const sectionId = $('[name="_section_id"]').val();
-        const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Saving…');
+function initManageButtons() {
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-manage]');
+        if (!btn || !selectedBlockId) return;
+        const kind = btn.dataset.manage;
 
-        const data = $(this).serialize();
-
-        if (sectionId) {
-            ajaxPut(`/admin/page-builder/sections/${sectionId}`, data)
-                .done(function () {
-                    closeModal('add-section-modal');
-                    location.reload();
-                })
-                .fail(() => window.Toast?.error('Update failed.'));
-        } else {
-            ajaxPost(URLS.sectionStore, data)
-                .done(function () {
-                    closeModal('add-section-modal');
-                    location.reload();
-                })
-                .fail(() => window.Toast?.error('Failed to add section.'));
+        if (kind === 'slides') {
+            return openSlideEditModal({ _block_id: selectedBlockId });
         }
-        $btn.prop('disabled', false).text('Save Section');
+        if (kind === 'ad_images') {
+            return openAdImageEditModal({ _block_id: selectedBlockId });
+        }
+        if (kind === 'products') {
+            // Lightweight prompt-based attach until a dedicated picker is built
+            const variantId = prompt('Product variant ID to attach to this block:');
+            if (!variantId) return;
+            ajaxPost(blockUrl(selectedBlockId, '/products'), { product_variant_id: variantId })
+                .done(() => Toast.success('Product attached'))
+                .fail((err) => Toast.error(err?.responseJSON?.message || 'Failed to attach product'));
+        }
+    });
+}
+
+function openSlideEditModal(prefill = {}) {
+    const form = document.getElementById('slide-edit-form');
+    if (!form) return;
+    form.reset();
+    Object.entries(prefill).forEach(([k, v]) => {
+        const el = form.querySelector(`[name="${k}"]`);
+        if (el) el.value = v;
+    });
+    document.getElementById('slide-edit-modal').dispatchEvent(new Event('open'));
+}
+
+function openAdImageEditModal(prefill = {}) {
+    const form = document.getElementById('ad-image-edit-form');
+    if (!form) return;
+    form.reset();
+    Object.entries(prefill).forEach(([k, v]) => {
+        const el = form.querySelector(`[name="${k}"]`);
+        if (el) el.value = v;
+    });
+    document.getElementById('ad-image-edit-modal').dispatchEvent(new Event('open'));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Toolbar: clear / save layout
+// ─────────────────────────────────────────────────────────────────────────────
+
+function initToolbar() {
+    document.getElementById('btn-canvas-clear')?.addEventListener('click', async () => {
+        if (!blocks.length) return Toast.info('Canvas is already empty');
+        if (!confirm(`Delete all ${blocks.length} block(s) from this page?`)) return;
+        for (const b of [...blocks]) {
+            try { await ajaxDel(blockUrl(b.id)); } catch (_) { }
+        }
+        blocks = [];
+        closePanel();
+        renderCanvas();
+        Toast.success('Canvas cleared');
     });
 
-    // ── Publish / lifecycle ───────────────────────────────────────────────────
-
-    $('#btn-publish').on('click', () => openModal('publish-modal'));
-
-    $('#btn-unpublish').on('click', function () {
-        if (!window.confirm('Unpublish this page and return it to draft?')) return;
-        ajaxPost(URLS.publish, { action: 'unpublish' })
-            .done(() => { window.Toast?.success('Page unpublished.'); setTimeout(() => location.reload(), 500); })
-            .fail((xhr) => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.'));
+    document.getElementById('btn-canvas-save')?.addEventListener('click', async () => {
+        // Save the currently open panel (if any) and persist order
+        try {
+            if (selectedBlockId) await savePanel();
+            await persistOrder();
+            Toast.success('Layout saved');
+        } catch (err) {
+            Toast.error('Failed to save layout');
+        }
     });
 
-    $('#btn-archive').on('click', function () {
-        if (!window.confirm('Archive this page?')) return;
-        ajaxPost(URLS.publish, { action: 'archive' })
-            .done(() => { window.Toast?.success('Page archived.'); setTimeout(() => location.reload(), 500); })
-            .fail((xhr) => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.'));
+    document.getElementById('btn-panel-close')?.addEventListener('click', closePanel);
+    document.getElementById('btn-panel-cancel')?.addEventListener('click', closePanel);
+    document.getElementById('btn-panel-save')?.addEventListener('click', savePanel);
+
+    // Toggle clicks (delegate)
+    document.addEventListener('click', (e) => {
+        const tog = e.target.closest('.tog');
+        if (!tog) return;
+        tog.classList.toggle('on');
+        tog.setAttribute('aria-checked', tog.classList.contains('on'));
     });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Page-level actions: publish / unpublish / clone / archive / delete / meta
+// ─────────────────────────────────────────────────────────────────────────────
+
+function initTopBar() {
+    const openModal = (id) => document.getElementById(id)?.dispatchEvent(new Event('open'));
+
+    $('#btn-publish').on('click', () => {
+        $('#publish-form [name=action]').val('publish');
+        $('#schedule-date-wrap').addClass('hidden');
+        openModal('publish-modal');
+    });
+    $('#btn-schedule').on('click', () => {
+        $('#publish-form [name=action]').val('schedule');
+        $('#schedule-date-wrap').removeClass('hidden');
+        openModal('publish-modal');
+    });
+    $('#btn-edit-meta').on('click', () => openModal('edit-meta-modal'));
 
     $('#publish-form').on('submit', function (e) {
         e.preventDefault();
-        const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Publishing…');
-
-        ajaxPost(URLS.publish, $(this).serialize())
-            .done(function () {
-                window.Toast?.success('Page published!');
-                closeModal('publish-modal');
-                setTimeout(() => location.reload(), 500);
-            })
-            .fail((xhr) => window.Toast?.error(xhr.responseJSON?.message ?? 'Publish failed.'))
-            .always(() => $btn.prop('disabled', false).text('Publish'));
+        const data = Object.fromEntries(new FormData(this).entries());
+        ajaxPost(window.PAGE_URLS.publish, data)
+            .done(() => { Toast.success('Page published'); setTimeout(() => location.reload(), 600); })
+            .fail((err) => Toast.error(err?.responseJSON?.message || 'Publish failed'));
     });
-
-    // ── Clone ─────────────────────────────────────────────────────────────────
-
-    $('#btn-clone').on('click', function () {
-        if (!window.confirm('Clone this page as a draft copy?')) return;
-        ajaxPost(URLS.clone, {})
-            .done(function (res) {
-                window.Toast?.success(res.message ?? 'Page cloned.');
-                if (res.redirect) setTimeout(() => { window.location.href = res.redirect; }, 600);
-            })
-            .fail(() => window.Toast?.error('Clone failed.'));
-    });
-
-    // ── Delete ────────────────────────────────────────────────────────────────
-
-    $('#btn-delete').on('click', function () {
-        if (!window.confirm('Permanently delete this page? This cannot be undone.')) return;
-        ajaxDelete(URLS.destroy)
-            .done(function (res) {
-                window.Toast?.success('Page deleted.');
-                if (res.redirect) setTimeout(() => { window.location.href = res.redirect; }, 500);
-            })
-            .fail(() => window.Toast?.error('Delete failed.'));
-    });
-
-    // ── Edit meta ──────────────────────────────────────────────────────────────
-
-    $('#btn-edit-meta').on('click', () => openModal('edit-meta-modal'));
 
     $('#edit-meta-form').on('submit', function (e) {
         e.preventDefault();
-        const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Saving…');
-
-        ajaxPut(URLS.update, $(this).serialize())
-            .done(() => {
-                window.Toast?.success('Page meta updated.');
-                closeModal('edit-meta-modal');
-            })
-            .fail(() => window.Toast?.error('Update failed.'))
-            .always(() => $btn.prop('disabled', false).text('Save'));
+        const data = Object.fromEntries(new FormData(this).entries());
+        ajaxPut(window.PAGE_URLS.update, data)
+            .done(() => { Toast.success('Saved'); setTimeout(() => location.reload(), 400); })
+            .fail((err) => Toast.error(err?.responseJSON?.message || 'Update failed'));
     });
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Slide management
-    // ─────────────────────────────────────────────────────────────────────────
-
-    function loadSlides(blockId) {
-        const $list = $('#slides-list').html('<p class="text-xs text-gray-400">Loading…</p>');
-
-        $.get(blockUrl(`${blockId}/slides`))
-            .done(function (res) {
-                $list.empty();
-                if (!res.slides?.length) {
-                    $list.html('<p class="text-xs text-gray-400 italic">No slides yet.</p>');
-                    return;
-                }
-                res.slides.forEach(slide => $list.append(renderSlideRow(slide)));
-            })
-            .fail(() => $list.html('<p class="text-xs text-danger-600">Failed to load slides.</p>'));
-    }
-
-    function renderSlideRow(slide) {
-        const img = slide.desktop_image
-            ? `<img src="${slide.desktop_image}" class="w-10 h-7 object-cover rounded flex-shrink-0">`
-            : `<div class="w-10 h-7 bg-gray-200 rounded flex-shrink-0"></div>`;
-
-        return `
-            <div class="slide-row flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1.5" data-slide-id="${slide.id}">
-                ${img}
-                <span class="flex-1 text-xs truncate">${slide.title_en || 'Untitled'}</span>
-                <span class="text-[10px] ${slide.is_active ? 'text-success-600' : 'text-gray-400'}">${slide.is_active ? 'On' : 'Off'}</span>
-                <button type="button" class="btn-slide-edit btn btn-ghost btn-xs" data-slide-id="${slide.id}">Edit</button>
-                <button type="button" class="btn-slide-delete btn btn-danger btn-xs" data-slide-id="${slide.id}">✕</button>
-            </div>`;
-    }
-
-    // Add slide
-    $(document).on('click', '.btn-add-slide', function () {
-        openSlideModal(null, activeBlockId);
-    });
-
-    // Edit slide
-    $(document).on('click', '.btn-slide-edit', function () {
-        const slideId = $(this).data('slide-id');
-        openSlideModal(slideId, activeBlockId);
-    });
-
-    function openSlideModal(slideId, blockId) {
-        activeSlideId = slideId;
-        $('#slide-edit-form [name="_block_id"]').val(blockId);
-        $('#slide-edit-form [name="_slide_id"]').val(slideId || '');
-        // Reset form
-        $('#slide-edit-form')[0].reset();
-
-        if (slideId) {
-            $.get(slideUrl(slideId))
-                .done(function (res) {
-                    const s = res.slide;
-                    Object.entries(s).forEach(([k, v]) => {
-                        const $f = $(`#slide-edit-form [name="${k}"]`);
-                        if ($f.is(':checkbox')) $f.prop('checked', !!v);
-                        else if ($f.length) $f.val(v);
-                    });
-                    openModal('slide-edit-modal');
-                });
-        } else {
-            openModal('slide-edit-modal');
-        }
-    }
 
     $('#slide-edit-form').on('submit', function (e) {
         e.preventDefault();
-        const slideId = $('[name="_slide_id"]').val();
-        const blockId = $('[name="_block_id"]').val();
-        const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Saving…');
-
-        const data = $(this).serialize();
-
-        const req = slideId
-            ? ajaxPut(slideUrl(slideId), data)
-            : ajaxPost(blockUrl(`${blockId}/slides`), data);
-
-        req.done(function () {
-            window.Toast?.success(slideId ? 'Slide updated.' : 'Slide added.');
-            closeModal('slide-edit-modal');
-            loadSlides(blockId);
-            // Update block card count
-            const block = blocks.find(b => b.id === blockId);
-            if (block && !slideId) block.slides_count = (block.slides_count || 0) + 1;
-        })
-            .fail(() => window.Toast?.error('Save failed.'))
-            .always(() => $btn.prop('disabled', false).text('Save Slide'));
-    });
-
-    // Delete slide
-    $(document).on('click', '.btn-slide-delete', function () {
-        const slideId = $(this).data('slide-id');
-        if (!window.confirm('Delete this slide?')) return;
-        ajaxDelete(slideUrl(slideId))
-            .done(function () {
-                $(`.slide-row[data-slide-id="${slideId}"]`).remove();
-                window.Toast?.success('Slide deleted.');
-                const block = blocks.find(b => b.id === activeBlockId);
-                if (block) block.slides_count = Math.max(0, (block.slides_count || 1) - 1);
+        const data = Object.fromEntries(new FormData(this).entries());
+        const blockId = data._block_id; const slideId = data._slide_id;
+        delete data._block_id; delete data._slide_id;
+        const url = slideId
+            ? `/page-builder/slides/${slideId}`
+            : blockUrl(blockId, '/slides');
+        ajax(slideId ? 'PUT' : 'POST', url, data)
+            .done(() => {
+                Toast.success('Slide saved');
+                document.getElementById('slide-edit-modal').dispatchEvent(new Event('close'));
             })
-            .fail(() => window.Toast?.error('Delete failed.'));
+            .fail((err) => Toast.error(err?.responseJSON?.message || 'Save failed'));
     });
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Ad Image management
-    // ─────────────────────────────────────────────────────────────────────────
-
-    function loadAdImages(blockId) {
-        const $list = $('#ad-images-list').html('<p class="text-xs text-gray-400">Loading…</p>');
-
-        $.get(blockUrl(`${blockId}/ad-images`))
-            .done(function (res) {
-                $list.empty();
-                if (!res.items?.length) {
-                    $list.html('<p class="text-xs text-gray-400 italic">No images yet.</p>');
-                    return;
-                }
-                res.items.forEach(item => $list.append(renderAdImageRow(item)));
-            })
-            .fail(() => $list.html('<p class="text-xs text-danger-600">Failed to load images.</p>'));
-    }
-
-    function renderAdImageRow(item) {
-        const img = item.image_url
-            ? `<img src="${item.image_url}" class="w-10 h-7 object-cover rounded flex-shrink-0">`
-            : `<div class="w-10 h-7 bg-gray-200 rounded flex-shrink-0"></div>`;
-
-        return `
-            <div class="ad-image-row flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1.5" data-item-id="${item.id}">
-                ${img}
-                <span class="flex-1 text-xs truncate">${item.title_en || item.alt_text_en || 'Untitled'}</span>
-                <span class="text-[10px] text-gray-400">${item.aspect_ratio || ''}</span>
-                <button type="button" class="btn-ad-image-edit btn btn-ghost btn-xs" data-item-id="${item.id}">Edit</button>
-                <button type="button" class="btn-ad-image-delete btn btn-danger btn-xs" data-item-id="${item.id}">✕</button>
-            </div>`;
-    }
-
-    $(document).on('click', '.btn-add-ad-image', function () {
-        openAdImageModal(null, activeBlockId);
-    });
-
-    $(document).on('click', '.btn-ad-image-edit', function () {
-        openAdImageModal($(this).data('item-id'), activeBlockId);
-    });
-
-    function openAdImageModal(itemId, blockId) {
-        activeAdImageId = itemId;
-        $('#ad-image-edit-form [name="_item_id"]').val(itemId || '');
-        $('#ad-image-edit-form [name="_block_id"]').val(blockId);
-        $('#ad-image-edit-form')[0].reset();
-
-        if (itemId) {
-            $.get(adImageUrl(itemId))
-                .done(function (res) {
-                    const item = res.item;
-                    Object.entries(item).forEach(([k, v]) => {
-                        const $f = $(`#ad-image-edit-form [name="${k}"]`);
-                        if ($f.is(':checkbox')) $f.prop('checked', !!v);
-                        else if ($f.length) $f.val(v);
-                    });
-                    openModal('ad-image-edit-modal');
-                });
-        } else {
-            openModal('ad-image-edit-modal');
-        }
-    }
 
     $('#ad-image-edit-form').on('submit', function (e) {
         e.preventDefault();
-        const itemId = $('[name="_item_id"]').val();
-        const blockId = $('[name="_block_id"]').val();
-        const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Saving…');
-
-        const data = $(this).serialize();
-
-        const req = itemId
-            ? ajaxPut(adImageUrl(itemId), data)
-            : ajaxPost(blockUrl(`${blockId}/ad-images`), data);
-
-        req.done(function () {
-            window.Toast?.success(itemId ? 'Image updated.' : 'Image added.');
-            closeModal('ad-image-edit-modal');
-            loadAdImages(blockId);
-            const block = blocks.find(b => b.id === blockId);
-            if (block && !itemId) block.ad_images_count = (block.ad_images_count || 0) + 1;
-        })
-            .fail(() => window.Toast?.error('Save failed.'))
-            .always(() => $btn.prop('disabled', false).text('Save Image'));
+        const data = Object.fromEntries(new FormData(this).entries());
+        const blockId = data._block_id; const itemId = data._item_id;
+        delete data._block_id; delete data._item_id;
+        const url = itemId
+            ? `/page-builder/ad-images/${itemId}`
+            : blockUrl(blockId, '/ad-images');
+        ajax(itemId ? 'PUT' : 'POST', url, data)
+            .done(() => {
+                Toast.success('Image saved');
+                document.getElementById('ad-image-edit-modal').dispatchEvent(new Event('close'));
+            })
+            .fail((err) => Toast.error(err?.responseJSON?.message || 'Save failed'));
     });
 
-    $(document).on('click', '.btn-ad-image-delete', function () {
-        const itemId = $(this).data('item-id');
-        if (!window.confirm('Delete this ad image?')) return;
-        ajaxDelete(adImageUrl(itemId))
-            .done(function () {
-                $(`.ad-image-row[data-item-id="${itemId}"]`).remove();
-                window.Toast?.success('Image deleted.');
-            })
-            .fail(() => window.Toast?.error('Delete failed.'));
+    $('#btn-unpublish').on('click', () => {
+        if (!confirm('Unpublish this page?')) return;
+        ajaxPost(window.PAGE_URLS.publish.replace('/publish', '/unpublish'), {})
+            .done(() => location.reload())
+            .fail((err) => Toast.error(err?.responseJSON?.message || 'Failed'));
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Block Products (product_grid / product_row curated)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    function loadBlockProducts(blockId) {
-        const $list = $('#block-products-list').html('<p class="text-xs text-gray-400">Loading…</p>');
-
-        $.get(blockUrl(`${blockId}/products`))
-            .done(function (res) {
-                $list.empty();
-                if (!res.items?.length) {
-                    $list.html('<p class="text-xs text-gray-400 italic">No products yet. Search above to add.</p>');
-                    return;
-                }
-                res.items.forEach(item => $list.append(renderProductRow(item)));
+    $('#btn-clone').on('click', () => {
+        const name = prompt('Name for the cloned page:');
+        if (!name) return;
+        ajaxPost(window.PAGE_URLS.clone, { name })
+            .done((res) => {
+                Toast.success('Cloned');
+                const id = res?.page?.id || res?.id;
+                if (id) location.href = window.PAGE_URLS.indexUrl.replace(/\/?$/, '') + '/' + id;
             })
-            .fail(() => $list.html('<p class="text-xs text-danger-600">Failed to load products.</p>'));
-    }
-
-    function renderProductRow(item) {
-        return `
-            <div class="product-row flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1.5" data-item-id="${item.id}">
-                <span class="flex-1 text-xs truncate">${item.name}</span>
-                <button type="button" class="btn-block-product-remove btn btn-danger btn-xs" data-item-id="${item.id}">✕</button>
-            </div>`;
-    }
-
-    // Product search
-    $('#btn-product-search').on('click', function () {
-        const q = $('#product-search-input').val().trim();
-        if (!q) return;
-
-        const $results = $('#product-search-results').html('<p class="text-xs text-gray-400">Searching…</p>').removeClass('hidden');
-
-        $.get('/admin/products/search', { q })
-            .done(function (res) {
-                $results.empty();
-                if (!res.data?.length) {
-                    $results.html('<p class="text-xs text-gray-400 italic">No results.</p>');
-                    return;
-                }
-                res.data.forEach(variant => {
-                    $results.append(`
-                        <div class="flex items-center gap-2 bg-white rounded px-2 py-1 border border-gray-100">
-                            <span class="flex-1 text-xs truncate">${variant.name}</span>
-                            <button type="button" class="btn-add-product btn btn-secondary btn-xs"
-                                data-variant-id="${variant.id}" data-name="${variant.name}">+ Add</button>
-                        </div>`);
-                });
-            })
-            .fail(() => $results.html('<p class="text-xs text-danger-600">Search failed.</p>'));
+            .fail((err) => Toast.error(err?.responseJSON?.message || 'Clone failed'));
     });
 
-    $(document).on('click', '.btn-add-product', function () {
-        const variantId = $(this).data('variant-id');
-        const $btn = $(this).prop('disabled', true);
-
-        ajaxPost(blockUrl(`${activeBlockId}/products`), { product_variant_id: variantId })
-            .done(function (res) {
-                $('#block-products-list .text-gray-400').remove();
-                $('#block-products-list').append(renderProductRow(res.item));
-                window.Toast?.success('Product added.');
-                const block = blocks.find(b => b.id === activeBlockId);
-                if (block) block.products_count = (block.products_count || 0) + 1;
-            })
-            .fail(() => window.Toast?.error('Failed to add product.'))
-            .always(() => $btn.prop('disabled', false));
+    $('#btn-archive').on('click', () => {
+        if (!confirm('Archive this page?')) return;
+        ajaxPost(window.PAGE_URLS.publish.replace('/publish', '/archive'), {})
+            .done(() => location.reload())
+            .fail((err) => Toast.error(err?.responseJSON?.message || 'Failed'));
     });
 
-    $(document).on('click', '.btn-block-product-remove', function () {
-        const itemId = $(this).data('item-id');
-        if (!window.confirm('Remove this product?')) return;
-        ajaxDelete(blockProductUrl(itemId))
-            .done(function () {
-                $(`.product-row[data-item-id="${itemId}"]`).remove();
-                window.Toast?.success('Product removed.');
-            })
-            .fail(() => window.Toast?.error('Remove failed.'));
+    $('#btn-delete').on('click', () => {
+        if (!confirm('Permanently delete this page?')) return;
+        ajaxDel(window.PAGE_URLS.destroy)
+            .done(() => { location.href = window.PAGE_URLS.indexUrl; })
+            .fail((err) => Toast.error(err?.responseJSON?.message || 'Delete failed'));
     });
+}
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Boot
+// ─────────────────────────────────────────────────────────────────────────────
+
+$(function () {
+    if (!document.getElementById('pb')) return;
+
+    blocks = (window.INITIAL_BLOCKS || [])
+        .slice()
+        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+        .map(b => ({ ...b, config: b.config || {} }));
+
+    initCanvasDnd();
+    initCanvasActions();
+    initManageButtons();
+    initToolbar();
+    initTopBar();
+    renderCanvas();
 });

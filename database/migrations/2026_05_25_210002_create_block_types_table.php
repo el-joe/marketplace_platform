@@ -15,8 +15,8 @@ return new class extends Migration {
             $table->string('group', 50); // hero|products|ads_banners|discovery|engagement
             $table->string('icon', 50);  // Tabler icon code: ti-slideshow
             $table->text('description')->nullable();
-            $table->jsonb('config_schema')->default('{}'); // JSON Schema for admin form generation
-            $table->jsonb('default_config')->default('{}'); // Pre-filled when dragged onto canvas
+            $table->json('config_schema')->nullable(); // JSON Schema for admin form generation
+            $table->json('default_config')->nullable(); // Pre-filled when dragged onto canvas
             $table->boolean('is_active')->default(true);
             $table->string('requires_permission', 100)->nullable();
             $table->integer('max_per_page')->nullable(); // NULL = unlimited

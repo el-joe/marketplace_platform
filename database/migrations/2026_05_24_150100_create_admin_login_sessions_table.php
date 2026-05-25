@@ -16,12 +16,13 @@ return new class extends Migration {
             $table->uuid('impersonating_id')->nullable();
             $table->string('ip_address', 45);
             $table->text('user_agent');
-            $table->jsonb('device_info')->nullable();
+            $table->json('device_info')->nullable();
             $table->timestamp('started_at');
             $table->timestamp('ended_at')->nullable();
 
             $table->index('admin_id');
             $table->index('started_at');
+            $table->timestamps();
         });
     }
 

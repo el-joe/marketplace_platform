@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->uuid('order_id')->index();
             $table->uuid('sub_order_id')->index();
             $table->uuid('product_variant_id')->index();
-            $table->jsonb('product_snapshot');
+            $table->json('product_snapshot');
             $table->uuid('vendor_id')->index();
             $table->string('sku', 100);
             $table->integer('quantity');

@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->uuid('page_block_id')->index();
             $table->uuid('page_id')->index(); // denormalized for fast page-level history
             $table->integer('revision_number'); // starts at 1, increments per block
-            $table->jsonb('config_snapshot');
+            $table->json('config_snapshot');
             $table->boolean('is_visible_snapshot');
             $table->integer('position_snapshot');
             $table->uuid('changed_by_admin_id')->index();

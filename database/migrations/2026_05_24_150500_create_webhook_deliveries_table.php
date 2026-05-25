@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('webhook_deliveries', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('event_type', 100);
-            $table->jsonb('payload');
+            $table->json('payload');
             $table->string('received_from', 100);
             $table->string('signature', 500)->nullable();
             $table->enum('status', ['received', 'processed', 'failed', 'retry'])->default('received');

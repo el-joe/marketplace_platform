@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->uuid('id')->primary();
             $table->uuid('page_id')->index();
             $table->integer('version'); // matches pages.version at time of publish
-            $table->jsonb('blocks_snapshot'); // full array of all blocks with configs
+            $table->json('blocks_snapshot'); // full array of all blocks with configs
             $table->uuid('published_by_admin_id')->index();
             $table->string('publish_reason', 255)->nullable();
             $table->timestamp('created_at')->useCurrent();

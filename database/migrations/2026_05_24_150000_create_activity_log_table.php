@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->uuid('subject_id')->nullable();
             $table->string('causer_type', 255)->nullable();
             $table->uuid('causer_id')->nullable();
-            $table->jsonb('properties');
+            $table->json('properties');
             $table->string('event', 50)->nullable();
             $table->uuid('batch_uuid')->nullable();
             $table->string('ip_address', 45)->nullable();

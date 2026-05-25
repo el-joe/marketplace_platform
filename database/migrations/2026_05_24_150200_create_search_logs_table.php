@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('session_id', 100);
             $table->string('query', 255);
             $table->string('query_normalized', 255);
-            $table->jsonb('filters_json');
+            $table->json('filters_json');
             $table->integer('results_count');
             $table->uuid('clicked_product_id')->nullable();
             $table->integer('clicked_position')->nullable();

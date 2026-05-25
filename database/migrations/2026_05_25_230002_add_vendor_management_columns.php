@@ -22,14 +22,20 @@ return new class extends Migration {
                 $table->timestamp('approved_at')->nullable()->after('approved_by_admin_id');
             }
             if (!Schema::hasColumn('vendors', 'rejection_reason')) {
-                $table->text('rejection_reason')->nullable()->after('onboarding_completed_at');
+                $table->text('rejection_reason')->nullable()->after('approved_at');
             }
         });
 
-        // Ensure global_status enum includes 'rejected' value
-        DB::statement(
-            "ALTER TABLE vendors MODIFY COLUMN global_status ENUM('pending','active','suspended','rejected','blacklisted','under_review') NOT NULL DEFAULT 'pending'"
-        );
+        // Ensure status enum includes 'rejected' value (only if column exists with that name)
+        if (Schema::hasColumn('vendors', 'global_status')) {
+            DB::statement(
+                "ALTER TABLE vendors MODIFY COLUMN global_status ENUM('pending','active','suspended','rejected','blacklisted','under_review') NOT NULL DEFAULT 'pending'"
+            );
+        } elseif (Schema::hasColumn('vendors', 'status')) {
+            DB::statement(
+                "ALTER TABLE vendors MODIFY COLUMN status ENUM('active','inactive','suspended','rejected') NOT NULL DEFAULT 'active'"
+            );
+        }
 
         // ── vendor_strikes ────────────────────────────────────────────────────
         // Expand severity enum to include 'warning' (idempotent)
