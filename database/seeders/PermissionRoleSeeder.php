@@ -19,6 +19,7 @@ class PermissionRoleSeeder extends Seeder
         // ── Define all permissions (slug => display name) ─────────────────────
         $permissions = [
             // Dashboard & Analytics
+            'dashboard.view'         => 'View Dashboard',
             'analytics.view'         => 'View Analytics',
 
             // Products (Catalog)
@@ -131,6 +132,7 @@ class PermissionRoleSeeder extends Seeder
             ['name' => 'manager', 'guard_name' => $guard],
         );
         $manager->syncPermissions([
+            'dashboard.view',
             'analytics.view',
             'products.view', 'products.edit',
             'categories.view',

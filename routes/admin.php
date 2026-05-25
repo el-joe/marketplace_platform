@@ -46,14 +46,14 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // ─── Dashboard ────────────────────────────────────────────────────────────────
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
-    Route::get('/dashboard/revenue-chart', [DashboardController::class, 'revenueChart'])->name('dashboard.revenue-chart');
-    Route::get('/dashboard/orders-by-status', [DashboardController::class, 'ordersByStatus'])->name('dashboard.orders-by-status');
-    Route::get('/dashboard/recent-orders', [DashboardController::class, 'recentOrders'])->name('dashboard.recent-orders');
-    Route::get('/dashboard/top-sellers', [DashboardController::class, 'topSellers'])->name('dashboard.top-sellers');
-    Route::get('/dashboard/pending-items', [DashboardController::class, 'pendingItems'])->name('dashboard.pending-items');
-    Route::get('/dashboard/low-stock', [DashboardController::class, 'lowStock'])->name('dashboard.low-stock');
+    Route::get('/', [DashboardController::class, 'index'])->middleware('admin.permission:dashboard.view')->name('dashboard');
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->middleware('admin.permission:dashboard.view')->name('dashboard.stats');
+    Route::get('/dashboard/revenue-chart', [DashboardController::class, 'revenueChart'])->middleware('admin.permission:dashboard.view')->name('dashboard.revenue-chart');
+    Route::get('/dashboard/orders-by-status', [DashboardController::class, 'ordersByStatus'])->middleware('admin.permission:dashboard.view')->name('dashboard.orders-by-status');
+    Route::get('/dashboard/recent-orders', [DashboardController::class, 'recentOrders'])->middleware('admin.permission:dashboard.view')->name('dashboard.recent-orders');
+    Route::get('/dashboard/top-sellers', [DashboardController::class, 'topSellers'])->middleware('admin.permission:dashboard.view')->name('dashboard.top-sellers');
+    Route::get('/dashboard/pending-items', [DashboardController::class, 'pendingItems'])->middleware('admin.permission:dashboard.view')->name('dashboard.pending-items');
+    Route::get('/dashboard/low-stock', [DashboardController::class, 'lowStock'])->middleware('admin.permission:dashboard.view')->name('dashboard.low-stock');
 
     // ─── Products ─────────────────────────────────────────────────────────────────
     Route::prefix('products')->name('products.')->middleware('admin.permission:products.view')->group(function () {
@@ -79,7 +79,7 @@ Route::middleware('auth.admin')->group(function () {
     });
 
     // ─── Async-select search endpoints ────────────────────────────────────────────
-    Route::prefix('categories')->name('categories.')->group(function () {
+    Route::prefix('categories')->name('categories.')->middleware('admin.permission:categories.view')->group(function () {
         Route::get('/search', function (Request $request) {
             $term = trim($request->input('q', ''));
             $results = DB::table('categories')
@@ -217,7 +217,7 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{id}/dispute', [OrderController::class, 'escalateDispute'])->name('dispute');
         Route::post('/{id}/flag-fraud', [OrderController::class, 'flagFraud'])->name('flag-fraud');
     });
-    Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->name('sub-orders.next-statuses');
+    Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->middleware('admin.permission:orders.view')->name('sub-orders.next-statuses');
     // ─── Payouts ──────────────────────────────────────────────────────────────────
 
     Route::prefix('payouts')->name('payouts.')->middleware('admin.permission:payouts.view')->group(function () {

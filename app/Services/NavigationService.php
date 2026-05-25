@@ -28,7 +28,7 @@ class NavigationService
                         'label' => 'Dashboard',
                         'route' => 'admin.dashboard',
                         'icon' => 'home',
-                        'permission' => null,
+                        'permission' => 'dashboard.view',
                         'badge' => null,
                     ],
                     [
