@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
-use App\Models\File;
 use App\Models\Product;
+use App\Models\ProductCountrySetting;
+use App\Models\ProductImage;
 use App\Models\VendorListing;
+use App\Services\ProductService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +23,10 @@ use Illuminate\View\View;
 class ProductController extends Controller
 {
     use HasDataTable;
+
+    public function __construct(private readonly ProductService $productService)
+    {
+    }
 
     // ──────────────────────────────────────────────────────────────────────────
     // Index / Listing
@@ -69,9 +75,8 @@ class ProductController extends Controller
                 'b.name_en as brand_name',
             ])
             ->addSelect([
-                'primary_image' => File::select('path')
-                    ->whereColumn('model_id', 'products.id')
-                    ->where('model_type', Product::class)
+                'primary_image' => ProductImage::select('path')
+                    ->whereColumn('product_id', 'products.id')
                     ->where('is_primary', true)
                     ->orderBy('position')
                     ->limit(1),
@@ -527,6 +532,78 @@ class ProductController extends Controller
     }
 
     // ──────────────────────────────────────────────────────────────────────────
+    // GTIN check (spec alias, supports 8/12/13/14 digits)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function checkGtin(Request $request): JsonResponse
+    {
+        $gtin = trim($request->input('gtin', ''));
+        $exceptId = $request->input('except_id');
+
+        if (!preg_match('/^\d{8}$|^\d{12}$|^\d{13}$|^\d{14}$/', $gtin)) {
+            return response()->json(['data' => ['exists' => false]]);
+        }
+
+        $product = $this->productService->checkGtinDuplicate($gtin, $exceptId);
+
+        if (!$product) {
+            return response()->json(['data' => ['exists' => false]]);
+        }
+
+        return response()->json([
+            'data' => [
+                'exists' => true,
+                'product' => [
+                    'id' => $product->id,
+                    'name_en' => $product->name_en,
+                    'edit_url' => route('admin.products.edit', $product->id),
+                ],
+            ],
+        ]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Image reordering
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function reorderImages(Request $request, string $product): JsonResponse
+    {
+        $request->validate(['ordered_ids' => ['required', 'array'], 'ordered_ids.*' => ['string']]);
+
+        $model = Product::findOrFail($product);
+        $this->productService->reorderImages($model, $request->input('ordered_ids'));
+
+        return response()->json(['success' => true]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Country settings
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function countrySettings(string $product): JsonResponse
+    {
+        $settings = ProductCountrySetting::where('product_id', $product)
+            ->with('country:id,name_en,name_ar,iso_code')
+            ->get();
+
+        return response()->json(['data' => $settings]);
+    }
+
+    public function updateCountrySetting(Request $request, string $setting): JsonResponse
+    {
+        $row = ProductCountrySetting::findOrFail($setting);
+
+        $validated = $request->validate([
+            'field' => ['required', 'string', 'in:is_available,name_override_en,name_override_ar,requires_local_cert,seo_title'],
+            'value' => ['present'],
+        ]);
+
+        $row->update([$validated['field'] => $validated['value']]);
+
+        return response()->json(['success' => true, 'data' => $row->fresh()]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
     // Private helpers
     // ──────────────────────────────────────────────────────────────────────────
 
@@ -595,8 +672,8 @@ class ProductController extends Controller
                     ->where('country_id', $country->id)
                     ->update([
                         'is_available' => (bool) ($setting['is_available'] ?? true),
-                        'name_override' => $setting['name_override'] ?: null,
-                        'requires_cert' => (bool) ($setting['requires_cert'] ?? false),
+                        'name_override_en' => $setting['name_override_en'] ?? null ?: null,
+                        'requires_local_cert' => (bool) ($setting['requires_local_cert'] ?? false),
                         'updated_at' => now(),
                     ]);
             } elseif (!$exists) {
@@ -605,8 +682,8 @@ class ProductController extends Controller
                     'product_id' => $productId,
                     'country_id' => $country->id,
                     'is_available' => (bool) ($setting['is_available'] ?? true),
-                    'name_override' => $setting['name_override'] ?: null,
-                    'requires_cert' => (bool) ($setting['requires_cert'] ?? false),
+                    'name_override_en' => $setting['name_override_en'] ?? null ?: null,
+                    'requires_local_cert' => (bool) ($setting['requires_local_cert'] ?? false),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

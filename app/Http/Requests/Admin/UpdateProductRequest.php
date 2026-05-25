@@ -21,7 +21,7 @@ class UpdateProductRequest extends FormRequest
             'name_ar' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:categories,id'],
             'brand_id' => ['nullable', 'exists:brands,id'],
-            'gtin' => ['nullable', 'string', 'size:13', Rule::unique('products', 'gtin')->ignore($productId)],
+            'gtin' => ['nullable', 'string', 'regex:/^\d{8}$|^\d{12}$|^\d{13}$|^\d{14}$/', Rule::unique("products", "gtin")->ignore($productId)],
             'model_number' => ['nullable', 'string', 'max:100'],
             'description_en' => ['nullable', 'string'],
             'description_ar' => ['nullable', 'string'],

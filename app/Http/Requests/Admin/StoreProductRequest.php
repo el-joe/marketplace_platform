@@ -19,7 +19,7 @@ class StoreProductRequest extends FormRequest
             'name_ar' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:categories,id'],
             'brand_id' => ['nullable', 'exists:brands,id'],
-            'gtin' => ['nullable', 'string', 'size:13', 'unique:products,gtin'],
+            'gtin' => ['nullable', 'string', 'regex:/^\d{8}$|^\d{12}$|^\d{13}$|^\d{14}$/', 'unique:products,gtin'],
             'model_number' => ['nullable', 'string', 'max:100'],
             'description_en' => ['nullable', 'string'],
             'description_ar' => ['nullable', 'string'],

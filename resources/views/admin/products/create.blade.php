@@ -2,7 +2,7 @@
 
 @section('title', 'Add Product')
 
-@push('head')
+@push('styles')
 @vite([
     'resources/js/components/rich-editor.js',
     'resources/js/components/file-upload.js',

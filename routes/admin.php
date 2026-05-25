@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\AttributeController;
+use App\Http\Controllers\Admin\BrandController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -43,12 +44,16 @@ Route::prefix('products')->name('products.')->group(function () {
     Route::post('/generate-variants', [ProductController::class, 'generateVariants'])->name('generate-variants');
     Route::post('/upload-image', [ProductController::class, 'uploadImage'])->name('upload-image');
     Route::get('/check-duplicate', [ProductController::class, 'checkDuplicate'])->name('check-duplicate');
+    Route::get('/check-gtin', [ProductController::class, 'checkGtin'])->name('check-gtin');
     Route::delete('/delete-image/{mediaId}', [ProductController::class, 'deleteImage'])->name('delete-image');
+    Route::post('/country-settings/{setting}', [ProductController::class, 'updateCountrySetting'])->name('update-country-setting');
 
     // CRUD
     Route::get('/', [ProductController::class, 'index'])->name('index');
     Route::post('/', [ProductController::class, 'store'])->name('store');
     Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
+    Route::post('/{product}/reorder-images', [ProductController::class, 'reorderImages'])->name('reorder-images');
+    Route::get('/{product}/country-settings', [ProductController::class, 'countrySettings'])->name('country-settings');
     Route::put('/{product}', [ProductController::class, 'update'])->name('update');
     Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
 });
@@ -72,7 +77,7 @@ Route::prefix('categories')->name('categories.')->group(function () {
         $attrs = DB::table('category_attributes as ca')
             ->join('attributes as a', 'a.id', '=', 'ca.attribute_id')
             ->where('ca.category_id', $id)
-            ->where('a.is_variant_type', true)
+            ->where('a.is_variant_attribute', true)
             ->select('a.id', 'a.name_en')
             ->orderBy('a.sort_order')
             ->get();
@@ -80,15 +85,17 @@ Route::prefix('categories')->name('categories.')->group(function () {
     })->name('attributes');
 });
 
-Route::get('/brands/search', function (Request $request) {
-    $term = trim($request->input('q', ''));
-    $results = DB::table('brands')
-        ->where('is_active', true)
-        ->where('name', 'like', "%{$term}%")
-        ->limit(30)
-        ->get(['id', 'name as text']);
-    return response()->json(['results' => $results]);
-})->name('brands.search');
+// ─── Brands ──────────────────────────────────────────────────────────────────
+Route::prefix('brands')->name('brands.')->group(function () {
+    Route::get('/create', [BrandController::class, 'create'])->name('create');
+    Route::post('/datatable', [BrandController::class, 'datatable'])->name('datatable');
+    Route::get('/search', [BrandController::class, 'search'])->name('search');
+    Route::get('/', [BrandController::class, 'index'])->name('index');
+    Route::post('/', [BrandController::class, 'store'])->name('store');
+    Route::get('/{brand}/edit', [BrandController::class, 'edit'])->name('edit');
+    Route::put('/{brand}', [BrandController::class, 'update'])->name('update');
+    Route::delete('/{brand}', [BrandController::class, 'destroy'])->name('destroy');
+});
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 Route::prefix('notifications')->name('notifications.')->group(function () {
@@ -139,7 +146,6 @@ Route::prefix('notifications')->name('notifications.')->group(function () {
     })->name('mark-all-read');
 });
 
-// ─── Country switcher ─────────────────────────────────────────────────────────
 
 // ─── Categories (CRUD) ────────────────────────────────────────────────────────
 Route::prefix('categories')->name('categories.')->group(function () {

@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductVariant extends Model
 {
+    use HasUuids, SoftDeletes;
     protected $fillable = [
         'product_id',
         'sku',
@@ -44,13 +46,8 @@ class ProductVariant extends Model
         );
     }
 
-    public function listings(): HasMany
+    public function images(): HasMany
     {
-        return $this->hasMany(VendorListing::class);
-    }
-
-    public function files(): MorphMany
-    {
-        return $this->morphMany(File::class, 'model');
+        return $this->hasMany(ProductImage::class, 'product_variant_id')->orderBy('position');
     }
 }

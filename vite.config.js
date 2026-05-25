@@ -27,6 +27,7 @@ export default defineConfig({
                 'resources/js/admin/countries.js',
                 'resources/js/admin/cities.js',
                 'resources/js/admin/currencies.js',
+                'resources/js/admin/brands.js',
             ],
             refresh: [
                 'resources/views/**',
