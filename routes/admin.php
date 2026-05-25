@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PayoutController;
+use App\Http\Controllers\Admin\FlashSaleController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
@@ -226,6 +227,26 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{payout}/process', [PayoutController::class, 'process'])->name('process');
         Route::post('/{payout}/hold', [PayoutController::class, 'hold'])->name('hold');
         Route::post('/{payout}/recalculate', [PayoutController::class, 'recalculate'])->name('recalculate');
+    });
+
+    // ─── Flash Sales ──────────────────────────────────────────────────────────────
+
+    Route::prefix('flash-sales')->name('flash-sales.')->group(function () {
+        Route::get('/', [FlashSaleController::class, 'index'])->name('index');
+        Route::post('/datatable', [FlashSaleController::class, 'datatable'])->name('datatable');
+        Route::get('/create', [FlashSaleController::class, 'create'])->name('create');
+        Route::post('/store', [FlashSaleController::class, 'store'])->name('store');
+
+        // Submission actions (before /{flashSale} wildcard)
+        Route::post('/submissions/{submission}/approve', [FlashSaleController::class, 'approveSubmission'])->name('submissions.approve');
+        Route::post('/submissions/{submission}/reject', [FlashSaleController::class, 'rejectSubmission'])->name('submissions.reject');
+        Route::get('/submissions/{submission}/fraud-check', [FlashSaleController::class, 'checkFraud'])->name('submissions.fraud-check');
+
+        Route::get('/{flashSale}', [FlashSaleController::class, 'show'])->name('show');
+        Route::put('/{flashSale}', [FlashSaleController::class, 'update'])->name('update');
+        Route::post('/{flashSale}/transition', [FlashSaleController::class, 'transition'])->name('transition');
+        Route::post('/{flashSale}/invite-vendors', [FlashSaleController::class, 'inviteVendors'])->name('invite-vendors');
+        Route::post('/{flashSale}/submissions/datatable', [FlashSaleController::class, 'submissionsDatatable'])->name('submissions.datatable');
     });
 
     // ─── Vendors ─────────────────────────────────────────────────────────────────

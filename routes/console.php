@@ -3,6 +3,7 @@
 use App\Jobs\AutoCompleteOrdersJob;
 use App\Jobs\CheckSlaBreachJob;
 use App\Jobs\GenerateVendorPayoutsJob;
+use App\Jobs\TransitionFlashSaleStatusJob;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -14,6 +15,7 @@ Artisan::command('inspire', function () {
 
 Schedule::job(new CheckSlaBreachJob)->everyFifteenMinutes();
 Schedule::job(new AutoCompleteOrdersJob)->dailyAt('02:00');
+Schedule::job(new TransitionFlashSaleStatusJob)->everyFiveMinutes();
 
 // Generate vendor payouts every Monday at 06:00 for the previous week (Mon–Sun)
 Schedule::call(function () {

@@ -2,18 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FlashSaleSubmissionHistory extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'flash_sale_submission_id',
         'from_status',
         'to_status',
         'changed_by_user_id',
-        'changed_by_role',
-        'reason',
+        'change_reason',
     ];
 
     public function submission(): BelongsTo
