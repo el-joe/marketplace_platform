@@ -267,7 +267,7 @@ class NavigationService
      */
     protected function filterByPermissions(array $groups): array
     {
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user();
 
         $filtered = [];
         foreach ($groups as $group) {

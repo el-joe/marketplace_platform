@@ -56,7 +56,7 @@ Route::middleware('auth.admin')->group(function () {
     Route::get('/dashboard/low-stock', [DashboardController::class, 'lowStock'])->name('dashboard.low-stock');
 
     // ─── Products ─────────────────────────────────────────────────────────────────
-    Route::prefix('products')->name('products.')->group(function () {
+    Route::prefix('products')->name('products.')->middleware('admin.permission:products.view')->group(function () {
         // Specific paths BEFORE the {product} wildcard
         Route::get('/create', [ProductController::class, 'create'])->name('create');
         Route::post('/datatable', [ProductController::class, 'datatable'])->name('datatable');
@@ -106,7 +106,7 @@ Route::middleware('auth.admin')->group(function () {
     });
 
     // ─── Brands ──────────────────────────────────────────────────────────────────
-    Route::prefix('brands')->name('brands.')->group(function () {
+    Route::prefix('brands')->name('brands.')->middleware('admin.permission:brands.view')->group(function () {
         Route::get('/create', [BrandController::class, 'create'])->name('create');
         Route::post('/datatable', [BrandController::class, 'datatable'])->name('datatable');
         Route::get('/search', [BrandController::class, 'search'])->name('search');
@@ -168,7 +168,7 @@ Route::middleware('auth.admin')->group(function () {
 
 
     // ─── Categories (CRUD) ────────────────────────────────────────────────────────
-    Route::prefix('categories')->name('categories.')->group(function () {
+    Route::prefix('categories')->name('categories.')->middleware('admin.permission:categories.view')->group(function () {
         Route::get('/create', [CategoryController::class, 'create'])->name('create');
         Route::post('/reorder', [CategoryController::class, 'reorder'])->name('reorder');
         Route::post('/bulk-commission', [CategoryController::class, 'bulkCommission'])->name('bulk-commission');
@@ -182,7 +182,7 @@ Route::middleware('auth.admin')->group(function () {
     });
 
     // ─── Attributes (CRUD) ────────────────────────────────────────────────────────
-    Route::prefix('attributes')->name('attributes.')->group(function () {
+    Route::prefix('attributes')->name('attributes.')->middleware('admin.permission:attributes.view')->group(function () {
         Route::get('/create', [AttributeController::class, 'create'])->name('create');
         Route::post('/datatable', [AttributeController::class, 'datatable'])->name('datatable');
         Route::get('/', [AttributeController::class, 'index'])->name('index');
@@ -207,7 +207,7 @@ Route::middleware('auth.admin')->group(function () {
     // ─── Placeholders ─────────────────────────────────────────────────────────────
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
-    Route::prefix('orders')->name('orders.')->group(function () {
+    Route::prefix('orders')->name('orders.')->middleware('admin.permission:orders.view')->group(function () {
         Route::post('/datatable', [OrderController::class, 'datatable'])->name('datatable');
         Route::post('/update-sub-order-status', [OrderController::class, 'updateSubOrderStatus'])->name('update-sub-order-status');
         Route::get('/', [OrderController::class, 'index'])->name('index');
@@ -220,7 +220,7 @@ Route::middleware('auth.admin')->group(function () {
     Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->name('sub-orders.next-statuses');
     // ─── Payouts ──────────────────────────────────────────────────────────────────
 
-    Route::prefix('payouts')->name('payouts.')->group(function () {
+    Route::prefix('payouts')->name('payouts.')->middleware('admin.permission:payouts.view')->group(function () {
         Route::get('/', [PayoutController::class, 'index'])->name('index');
         Route::post('/datatable', [PayoutController::class, 'datatable'])->name('datatable');
         Route::get('/{payout}', [PayoutController::class, 'show'])->name('show');
@@ -232,7 +232,7 @@ Route::middleware('auth.admin')->group(function () {
 
     // ─── Flash Sales ──────────────────────────────────────────────────────────────
 
-    Route::prefix('flash-sales')->name('flash-sales.')->group(function () {
+    Route::prefix('flash-sales')->name('flash-sales.')->middleware('admin.permission:flash_sales.view')->group(function () {
         Route::get('/', [FlashSaleController::class, 'index'])->name('index');
         Route::post('/datatable', [FlashSaleController::class, 'datatable'])->name('datatable');
         Route::get('/create', [FlashSaleController::class, 'create'])->name('create');
@@ -252,7 +252,7 @@ Route::middleware('auth.admin')->group(function () {
 
     // ─── Page Builder ──────────────────────────────────────────────────────────────
 
-    Route::prefix('page-builder')->name('page-builder.')->group(function () {
+    Route::prefix('page-builder')->name('page-builder.')->middleware('admin.permission:pages.view')->group(function () {
 
         // Pages listing & CRUD
         Route::get('/', [PageBuilderController::class, 'index'])->name('index');
@@ -325,7 +325,7 @@ Route::middleware('auth.admin')->group(function () {
 
     // ─── Vendors ─────────────────────────────────────────────────────────────────
 
-    Route::prefix('vendors')->name('vendors.')->group(function () {
+    Route::prefix('vendors')->name('vendors.')->middleware('admin.permission:vendors.view')->group(function () {
         Route::get('/applications', [VendorController::class, 'applicationQueue'])->name('applications');
         Route::post('/datatable', [VendorController::class, 'datatable'])->name('datatable');
         Route::post('/bulk', [VendorController::class, 'bulkAction'])->name('bulk');
@@ -355,7 +355,7 @@ Route::middleware('auth.admin')->group(function () {
 
     // ─── Geography ───────────────────────────────────────────────────────────────
 
-    Route::prefix('countries')->name('countries.')->group(function () {
+    Route::prefix('countries')->name('countries.')->middleware('admin.permission:countries.view')->group(function () {
         Route::post('/datatable', [CountryController::class, 'datatable'])->name('datatable');
         Route::get('/create', [CountryController::class, 'create'])->name('create');
         Route::post('/', [CountryController::class, 'store'])->name('store');
@@ -378,7 +378,7 @@ Route::middleware('auth.admin')->group(function () {
     });
 
     // ─── Cities ─────────────────────────────────────────────────────────────────────────────
-    Route::prefix('cities')->name('cities.')->group(function () {
+    Route::prefix('cities')->name('cities.')->middleware('admin.permission:countries.view')->group(function () {
         Route::post('/datatable', [CityController::class, 'datatable'])->name('datatable');
         Route::post('/bulk-import', [CityController::class, 'bulkImport'])->name('bulk-import');
         Route::get('/create', [CityController::class, 'create'])->name('create');
@@ -390,7 +390,7 @@ Route::middleware('auth.admin')->group(function () {
     });
 
     // ─── Currencies ────────────────────────────────────────────────────────────────────────────
-    Route::prefix('currencies')->name('currencies.')->group(function () {
+    Route::prefix('currencies')->name('currencies.')->middleware('admin.permission:countries.view')->group(function () {
         Route::get('/', [CurrencyController::class, 'index'])->name('index');
         Route::get('/{code}/edit', [CurrencyController::class, 'edit'])->name('edit');
         Route::put('/{code}', [CurrencyController::class, 'update'])->name('update');

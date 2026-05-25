@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class Admin extends Authenticatable
 {
-    use HasUuids, Notifiable;
+    use HasUuids, Notifiable, HasRoles;
 
-    protected string $guard = 'admin';
+    protected string $guard_name = 'admin';
 
     protected $fillable = [
         'name',
