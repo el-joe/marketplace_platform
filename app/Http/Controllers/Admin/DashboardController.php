@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -62,28 +63,37 @@ class DashboardController extends Controller
     {
         $days = (int) $request->input('range', 30);
         $days = in_array($days, [7, 30, 90]) ? $days : 30;
-        $countryId = $request->input('country_id');
 
         $start = now()->subDays($days - 1)->startOfDay();
         $end = now()->endOfDay();
 
+        $orderTotalColumn = $this->orderTotalColumn();
+        $hasOrderCountry = Schema::hasColumn('orders', 'country_id');
+        $countryId = $request->input('country_id');
+
         // Build date-bucketed GMV
         $orderRows = DB::table('orders')
-            ->selectRaw('DATE(created_at) as date, SUM(total_amount) as gmv')
+            ->selectRaw("DATE(created_at) as date, SUM({$orderTotalColumn}) as gmv")
             ->whereBetween('created_at', [$start, $end])
             ->whereNotIn('status', ['cancelled', 'refunded'])
-            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
+            ->when($countryId && $hasOrderCountry, fn($q) => $q->where('country_id', $countryId))
             ->groupBy('date')
             ->get()
             ->keyBy('date');
 
-        $commRows = DB::table('commissions')
-            ->selectRaw('DATE(created_at) as date, SUM(amount) as commission')
-            ->whereBetween('created_at', [$start, $end])
-            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
-            ->groupBy('date')
-            ->get()
-            ->keyBy('date');
+        // Commission is sourced from order_items.commission_amount in this schema.
+        $commRows = collect();
+        if (Schema::hasTable('order_items') && Schema::hasColumn('order_items', 'commission_amount')) {
+            $commRows = DB::table('order_items as oi')
+                ->join('orders as o', 'o.id', '=', 'oi.order_id')
+                ->selectRaw('DATE(o.created_at) as date, SUM(oi.commission_amount) as commission')
+                ->whereBetween('o.created_at', [$start, $end])
+                ->whereNotIn('o.status', ['cancelled', 'refunded'])
+                ->when($countryId && $hasOrderCountry, fn($q) => $q->where('o.country_id', $countryId))
+                ->groupBy('date')
+                ->get()
+                ->keyBy('date');
+        }
 
         $labels = [];
         $gmvData = [];
@@ -155,10 +165,10 @@ class DashboardController extends Controller
             ->select([
                 'o.id',
                 'o.order_number',
-                'o.total_amount',
+                'o.total',
                 'o.status',
                 'o.created_at',
-                DB::raw("COALESCE(CONCAT(c.first_name, ' ', c.last_name), 'Guest') as customer_name"),
+                DB::raw("COALESCE(c.name, 'Guest') as customer_name"),
             ])
             ->leftJoin('customers as c', 'c.id', '=', 'o.customer_id')
             ->orderByDesc('o.created_at')
@@ -168,7 +178,7 @@ class DashboardController extends Controller
                 'id' => $row->id,
                 'order_number' => $row->order_number ?? '#—',
                 'customer_name' => $row->customer_name,
-                'total' => $this->formatMoney($row->total_amount),
+                'total' => $this->formatMoney($row->total),
                 'status' => $row->status,
                 'created_at' => Carbon::parse($row->created_at)->diffForHumans(),
             ]);
@@ -185,15 +195,15 @@ class DashboardController extends Controller
             ->select([
                 'v.id',
                 'v.business_name',
-                DB::raw('SUM(oi.total_price) as gmv'),
+                DB::raw('SUM(oi.line_total) as gmv'),
                 DB::raw('COUNT(DISTINCT oi.order_id) as order_count'),
-                DB::raw('AVG(v.rating) as rating'),
+                DB::raw('AVG(v.store_rating_avg) as rating'),
             ])
             ->join('vendors as v', 'v.id', '=', 'oi.vendor_id')
             ->join('orders as o', 'o.id', '=', 'oi.order_id')
             ->where('o.created_at', '>=', now()->subDays(30))
             ->whereNotIn('o.status', ['cancelled', 'refunded'])
-            ->groupBy('v.id', 'v.business_name', 'v.rating')
+            ->groupBy('v.id', 'v.business_name', 'v.store_rating_avg')
             ->orderByDesc('gmv')
             ->limit(10)
             ->get()
@@ -215,9 +225,11 @@ class DashboardController extends Controller
     {
         $counts = [
             'products' => DB::table('products')->where('status', 'pending_review')->count(),
-            'vendors' => DB::table('vendors')->where('status', 'pending_approval')->count(),
+            'vendors' => DB::table('vendors')->whereIn('status', ['pending', 'pending_approval'])->count(),
             'disputes' => DB::table('disputes')->where('status', 'open')->count(),
-            'withdrawals' => DB::table('withdrawal_requests')->where('status', 'pending')->count(),
+            'withdrawals' => Schema::hasTable('withdrawal_requests')
+                ? DB::table('withdrawal_requests')->where('status', 'pending')->count()
+                : DB::table('payouts')->whereIn('status', ['pending', 'requested'])->count(),
             'returns' => DB::table('return_requests')->where('status', 'pending')->count(),
         ];
 
@@ -231,21 +243,24 @@ class DashboardController extends Controller
      */
     public function lowStock(): JsonResponse
     {
-        $products = DB::table('products as p')
+        $products = DB::table('warehouse_inventories as wi')
             ->select([
-                'p.id',
-                'p.name',
-                'p.stock_quantity as stock',
+                'p.id as product_id',
+                'p.name_en as name',
+                'wi.quantity_available as stock',
                 'v.business_name as vendor',
             ])
-            ->leftJoin('vendors as v', 'v.id', '=', 'p.vendor_id')
-            ->where('p.stock_quantity', '<=', 5)
-            ->where('p.status', 'active')
-            ->orderBy('p.stock_quantity')
+            ->join('vendor_listings as vl', 'vl.id', '=', 'wi.vendor_listing_id')
+            ->join('product_variants as pv', 'pv.id', '=', 'vl.product_variant_id')
+            ->join('products as p', 'p.id', '=', 'pv.product_id')
+            ->join('vendors as v', 'v.id', '=', 'vl.vendor_id')
+            ->where('wi.quantity_available', '<=', 5)
+            ->whereIn('vl.status', ['active', 'approved'])
+            ->orderBy('wi.quantity_available')
             ->limit(20)
             ->get()
             ->map(fn($row) => [
-                'id' => $row->id,
+                'id' => $row->product_id,
                 'name' => $row->name,
                 'stock' => (int) $row->stock,
                 'vendor' => $row->vendor ?? '—',
@@ -275,26 +290,43 @@ class DashboardController extends Controller
     /** Fetch raw numeric stats for a time window. */
     private function fetchStats(Carbon $start, Carbon $end, ?string $countryId): array
     {
+        $orderTotalColumn = $this->orderTotalColumn();
+        $hasOrderCountry = Schema::hasColumn('orders', 'country_id');
+
         $gmv = (int) DB::table('orders')
             ->whereBetween('created_at', [$start, $end])
             ->whereNotIn('status', ['cancelled', 'refunded'])
-            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
-            ->sum('total_amount');
+            ->when($countryId && $hasOrderCountry, fn($q) => $q->where('country_id', $countryId))
+            ->sum($orderTotalColumn);
 
         $orders = (int) DB::table('orders')
             ->whereBetween('created_at', [$start, $end])
             ->whereNotIn('status', ['cancelled', 'refunded'])
-            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
+            ->when($countryId && $hasOrderCountry, fn($q) => $q->where('country_id', $countryId))
             ->count();
 
-        $revenue = (int) DB::table('commissions')
-            ->whereBetween('created_at', [$start, $end])
-            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
-            ->sum('amount');
+        $revenue = 0;
+        if (Schema::hasTable('order_items') && Schema::hasColumn('order_items', 'commission_amount')) {
+            $revenue = (int) DB::table('order_items as oi')
+                ->join('orders as o', 'o.id', '=', 'oi.order_id')
+                ->whereBetween('o.created_at', [$start, $end])
+                ->whereNotIn('o.status', ['cancelled', 'refunded'])
+                ->when($countryId && $hasOrderCountry, fn($q) => $q->where('o.country_id', $countryId))
+                ->sum('oi.commission_amount');
+        }
 
         $sellers = (int) DB::table('vendors')->where('status', 'active')->count();
 
         return compact('gmv', 'orders', 'revenue', 'sellers');
+    }
+
+    private function orderTotalColumn(): string
+    {
+        if (Schema::hasColumn('orders', 'total_amount')) {
+            return 'total_amount';
+        }
+
+        return 'total';
     }
 
     /** Format a cents integer as "EGP 1,234.56". */
