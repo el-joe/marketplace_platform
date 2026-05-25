@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Http\Requests\Admin;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateVendorRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        $vendor = $this->route('vendor');
+
+        return [
+            'store_name' => ['required', 'string', 'max:150', Rule::unique('vendors', 'store_name')->ignore($vendor)],
+            'store_slug' => ['required', 'string', 'max:150', 'regex:/^[a-z0-9-]+$/', Rule::unique('vendors', 'store_slug')->ignore($vendor)],
+            'store_description' => ['nullable', 'string', 'max:2000'],
+            'business_name' => ['nullable', 'string', 'max:200'],
+            'business_type' => ['nullable', Rule::in(['individual', 'sole_prop', 'llc', 'corp'])],
+            'business_registration_number' => ['nullable', 'string', 'max:100'],
+            'tax_id' => ['nullable', 'string', 'max:100'],
+            'contact_email' => ['nullable', 'email', 'max:150'],
+            'contact_phone' => ['nullable', 'string', 'max:50'],
+            'commission_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'payout_schedule' => ['nullable', Rule::in(['weekly', 'biweekly', 'monthly'])],
+            'global_status' => ['nullable', Rule::in(['pending', 'active', 'suspended', 'rejected', 'blacklisted', 'under_review'])],
+            'account_manager_admin_id' => ['nullable', 'uuid', 'exists:admins,id'],
+        ];
+    }
+}

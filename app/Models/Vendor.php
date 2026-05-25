@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vendor extends Model
 {
+    use HasUuids, SoftDeletes;
     protected $fillable = [
         'name',
         'email',
@@ -46,7 +49,27 @@ class Vendor extends Model
         'last_login_ip',
         'approved_at',
         'approved_by_admin_id',
+        'avatar',
+        'global_status',
+        'onboarding_completed_at',
+        'rejection_reason',
+        'account_manager_admin_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'approved_at' => 'datetime',
+            'onboarding_completed_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'payout_hold_active' => 'boolean',
+            'store_rating_avg' => 'float',
+            'total_sales' => 'float',
+            'return_rate_pct' => 'float',
+            'cancellation_rate_pct' => 'float',
+            'strikes_count' => 'integer',
+        ];
+    }
 
     public function country(): BelongsTo
     {
@@ -76,6 +99,26 @@ class Vendor extends Model
     public function strikes(): HasMany
     {
         return $this->hasMany(VendorStrike::class);
+    }
+
+    public function activeStrikes(): HasMany
+    {
+        return $this->hasMany(VendorStrike::class)->where('is_active', true);
+    }
+
+    public function vendorAdmins(): HasMany
+    {
+        return $this->hasMany(VendorAdmin::class);
+    }
+
+    public function accountManagerAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'account_manager_admin_id');
+    }
+
+    public function subOrders(): HasMany
+    {
+        return $this->hasMany(\App\Models\SubOrder::class);
     }
 
     public function warehouses(): HasMany

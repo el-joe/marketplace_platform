@@ -199,7 +199,37 @@ Route::prefix('orders')->name('orders.')->group(function () {
     Route::post('/{id}/flag-fraud', [OrderController::class, 'flagFraud'])->name('flag-fraud');
 });
 Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->name('sub-orders.next-statuses');
-Route::get('/vendors', fn() => abort(404))->name('vendors.index');
+// ─── Vendors ─────────────────────────────────────────────────────────────────
+
+use App\Http\Controllers\Admin\VendorController;
+
+Route::prefix('vendors')->name('vendors.')->group(function () {
+    Route::get('/applications', [VendorController::class, 'applicationQueue'])->name('applications');
+    Route::post('/datatable', [VendorController::class, 'datatable'])->name('datatable');
+    Route::post('/bulk', [VendorController::class, 'bulkAction'])->name('bulk');
+
+    Route::post('/documents/{document}/verify', [VendorController::class, 'verifyDocument'])->name('documents.verify');
+    Route::post('/documents/{document}/reject', [VendorController::class, 'rejectDocument'])->name('documents.reject');
+
+    Route::get('/', [VendorController::class, 'index'])->name('index');
+    Route::get('/{vendor}', [VendorController::class, 'show'])->name('show');
+    Route::put('/{vendor}', [VendorController::class, 'update'])->name('update');
+
+    Route::post('/{vendor}/approve', [VendorController::class, 'approve'])->name('approve');
+    Route::post('/{vendor}/reject', [VendorController::class, 'reject'])->name('reject');
+    Route::post('/{vendor}/request-info', [VendorController::class, 'requestInfo'])->name('request-info');
+    Route::post('/{vendor}/suspend', [VendorController::class, 'suspend'])->name('suspend');
+    Route::post('/{vendor}/reactivate', [VendorController::class, 'reactivate'])->name('reactivate');
+    Route::post('/{vendor}/blacklist', [VendorController::class, 'blacklist'])->name('blacklist');
+    Route::post('/{vendor}/strikes', [VendorController::class, 'issueStrike'])->name('strikes.store');
+    Route::post('/{vendor}/hold', [VendorController::class, 'placeHold'])->name('hold.place');
+    Route::post('/{vendor}/release-hold', [VendorController::class, 'releaseHold'])->name('hold.release');
+    Route::post('/{vendor}/assign-manager', [VendorController::class, 'assignManager'])->name('assign-manager');
+    Route::get('/{vendor}/documents', [VendorController::class, 'documents'])->name('documents.index');
+    Route::post('/{vendor}/bank-accounts/{accountId}/verify', [VendorController::class, 'verifyBankAccount'])->name('bank-accounts.verify');
+    Route::get('/{vendor}/performance-data', [VendorController::class, 'performanceData'])->name('performance-data');
+    Route::post('/{vendor}/notify', [VendorController::class, 'sendNotification'])->name('notify');
+});
 
 // ─── Geography ───────────────────────────────────────────────────────────────
 

@@ -2,21 +2,51 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class VendorDocument extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'vendor_id',
         'document_type',
+        'file_path',
         'status',
         'verified_by_admin_id',
         'verified_at',
         'rejection_reason',
+        'notes',
         'expires_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'verified_at' => 'datetime',
+            'expires_at' => 'datetime',
+        ];
+    }
+
+    public function isVerified(): bool
+    {
+        return in_array($this->status, ['approved', 'verified']);
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->status === 'expired'
+            || ($this->expires_at !== null && $this->expires_at->isPast());
+    }
+
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('status', 'pending');
+    }
 
     public function vendor(): BelongsTo
     {

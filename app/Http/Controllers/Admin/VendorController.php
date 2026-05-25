@@ -1,0 +1,406 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ApproveVendorRequest;
+use App\Http\Requests\Admin\AssignVendorManagerRequest;
+use App\Http\Requests\Admin\IssueVendorStrikeRequest;
+use App\Http\Requests\Admin\RejectVendorRequest;
+use App\Http\Requests\Admin\UpdateVendorRequest;
+use App\Http\Requests\Admin\VerifyVendorDocumentRequest;
+use App\Models\Admin;
+use App\Models\Country;
+use App\Models\Vendor;
+use App\Models\VendorBankAccount;
+use App\Models\VendorDocument;
+use App\Services\VendorApprovalService;
+use App\Traits\HasDataTable;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class VendorController extends Controller
+{
+    use HasDataTable;
+
+    public function __construct(private VendorApprovalService $approvalService)
+    {
+    }
+
+    // ── Index ─────────────────────────────────────────────────────────────────
+
+    public function index()
+    {
+        $pendingCount = Vendor::where('global_status', 'pending')->count();
+        $admins = Admin::orderBy('name')->get(['id', 'name']);
+        $countries = Country::orderBy('name_en')->get(['id', 'name_en']);
+
+        return view('admin.vendors.index', compact('pendingCount', 'admins', 'countries'));
+    }
+
+    // ── DataTable ─────────────────────────────────────────────────────────────
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $query = Vendor::query()
+            ->with(['country', 'accountManagerAdmin'])
+            ->select('vendors.*');
+
+        $query = $this->applyFilters($query, $request, [
+            'global_status' => fn($q, $v) => $q->where('global_status', $v),
+            'country_id' => fn($q, $v) => $q->where('country_id', $v),
+            'account_manager_admin_id' => fn($q, $v) => $q->where('account_manager_admin_id', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+        ]);
+
+        $columns = [
+            ['searchable_columns' => ['vendors.store_name', 'vendors.business_name'], 'orderable_column' => 'vendors.store_name'],
+            ['searchable_columns' => ['vendors.name'], 'orderable_column' => 'vendors.name'],
+            ['searchable_columns' => ['vendors.email'], 'orderable_column' => 'vendors.email'],
+            ['orderable_column' => 'vendors.total_sales'],
+            ['orderable_column' => 'vendors.total_orders'],
+            ['orderable_column' => 'vendors.store_rating_avg'],
+            ['orderable_column' => 'vendors.global_status'],
+            [],
+            ['orderable_column' => 'vendors.created_at'],
+        ];
+
+        return $this->dataTableResponse($request, $query, $columns, function (Vendor $vendor) {
+            return [
+                'store' => [
+                    'id' => $vendor->id,
+                    'store_name' => $vendor->store_name,
+                    'avatar' => $vendor->avatar,
+                    'strikes' => $vendor->strikes_count,
+                    'payout_hold' => $vendor->payout_hold_active,
+                ],
+                'owner_name' => $vendor->name,
+                'email' => $vendor->email,
+                'gmv' => '$' . number_format($vendor->total_sales, 2),
+                'orders' => number_format($vendor->total_orders),
+                'rating' => number_format($vendor->store_rating_avg, 1),
+                'global_status' => $vendor->global_status,
+                'manager' => $vendor->accountManagerAdmin?->name ?? '—',
+                'created_at' => $vendor->created_at->format('d M Y'),
+                'actions' => $vendor->id,
+            ];
+        });
+    }
+
+    // ── Application queue ─────────────────────────────────────────────────────
+
+    public function applicationQueue()
+    {
+        $vendors = Vendor::where('global_status', 'pending')
+            ->with(['country', 'documents'])
+            ->orderBy('created_at', 'asc')
+            ->paginate(24);
+
+        return view('admin.vendors.applications', compact('vendors'));
+    }
+
+    // ── Show ──────────────────────────────────────────────────────────────────
+
+    public function show(Vendor $vendor)
+    {
+        $vendor->load([
+            'country',
+            'approvedByAdmin',
+            'accountManagerAdmin',
+            'documents',
+            'strikes.issuedByAdmin',
+            'bankAccounts',
+        ]);
+
+        $subOrders = $vendor->subOrders()->latest()->limit(50)->get();
+        $payouts = $vendor->payouts()->latest()->limit(50)->get();
+        $activityLog = \DB::table('activity_log')
+            ->where('subject_type', Vendor::class)
+            ->where('subject_id', $vendor->id)
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get();
+
+        $admins = Admin::orderBy('name')->get(['id', 'name']);
+
+        return view('admin.vendors.show', compact('vendor', 'subOrders', 'payouts', 'activityLog', 'admins'));
+    }
+
+    // ── Update ────────────────────────────────────────────────────────────────
+
+    public function update(UpdateVendorRequest $request, Vendor $vendor): JsonResponse
+    {
+        $vendor->update($request->validated());
+
+        return response()->json(['message' => 'Vendor profile updated successfully.']);
+    }
+
+    // ── Approval actions ──────────────────────────────────────────────────────
+
+    public function approve(ApproveVendorRequest $request, Vendor $vendor): JsonResponse
+    {
+        // Verify all critical documents are verified before approval
+        $unverified = $vendor->documents()
+            ->whereNotIn('status', ['approved', 'verified'])
+            ->count();
+
+        if ($unverified > 0) {
+            return response()->json([
+                'message' => 'All required documents must be verified before approval. ' . $unverified . ' document(s) pending.',
+            ], 422);
+        }
+
+        $this->approvalService->approve($vendor, auth('admin')->user());
+
+        return response()->json(['message' => 'Vendor approved successfully.']);
+    }
+
+    public function reject(RejectVendorRequest $request, Vendor $vendor): JsonResponse
+    {
+        $this->approvalService->reject($vendor, $request->input('reason'), auth('admin')->user());
+
+        return response()->json(['message' => 'Vendor application rejected.']);
+    }
+
+    public function requestInfo(Request $request, Vendor $vendor): JsonResponse
+    {
+        $request->validate([
+            'document_types' => ['required', 'array', 'min:1'],
+            'document_types.*' => ['string'],
+        ]);
+
+        $this->approvalService->requestMoreInfo($vendor, $request->input('document_types'), auth('admin')->user());
+
+        return response()->json(['message' => 'Additional information requested.']);
+    }
+
+    // ── Status transitions ────────────────────────────────────────────────────
+
+    public function suspend(Request $request, Vendor $vendor): JsonResponse
+    {
+        $request->validate(['reason' => ['required', 'string', 'min:5', 'max:500']]);
+
+        $this->approvalService->suspend($vendor, $request->input('reason'), auth('admin')->user());
+
+        return response()->json(['message' => 'Vendor suspended.']);
+    }
+
+    public function reactivate(Request $request, Vendor $vendor): JsonResponse
+    {
+        $this->approvalService->reactivate($vendor, auth('admin')->user());
+
+        return response()->json(['message' => 'Vendor reactivated.']);
+    }
+
+    public function blacklist(Request $request, Vendor $vendor): JsonResponse
+    {
+        $request->validate(['reason' => ['required', 'string', 'min:5', 'max:1000']]);
+
+        $this->approvalService->blacklist($vendor, $request->input('reason'), auth('admin')->user());
+
+        return response()->json(['message' => 'Vendor has been blacklisted.']);
+    }
+
+    // ── Strikes ───────────────────────────────────────────────────────────────
+
+    public function issueStrike(IssueVendorStrikeRequest $request, Vendor $vendor): JsonResponse
+    {
+        $strike = $this->approvalService->issueStrike($vendor, $request->validated(), auth('admin')->user());
+
+        return response()->json([
+            'message' => 'Strike issued successfully.',
+            'data' => [
+                'active_count' => $strike->active_count,
+                'auto_suspended' => $strike->auto_suspended,
+            ],
+        ]);
+    }
+
+    // ── Payout hold ───────────────────────────────────────────────────────────
+
+    public function placeHold(Request $request, Vendor $vendor): JsonResponse
+    {
+        $request->validate(['reason' => ['required', 'string', 'min:5', 'max:500']]);
+
+        $this->approvalService->placePayoutHold($vendor, $request->input('reason'));
+
+        return response()->json(['message' => 'Payout hold placed.']);
+    }
+
+    public function releaseHold(Request $request, Vendor $vendor): JsonResponse
+    {
+        $this->approvalService->releasePayoutHold($vendor);
+
+        return response()->json(['message' => 'Payout hold released.']);
+    }
+
+    // ── Manager assignment ────────────────────────────────────────────────────
+
+    public function assignManager(AssignVendorManagerRequest $request, Vendor $vendor): JsonResponse
+    {
+        $vendor->update(['account_manager_admin_id' => $request->input('admin_id')]);
+
+        return response()->json(['message' => 'Account manager assigned.']);
+    }
+
+    // ── Documents ─────────────────────────────────────────────────────────────
+
+    public function documents(Vendor $vendor): JsonResponse
+    {
+        return response()->json([
+            'data' => $vendor->documents->map(fn($d) => [
+                'id' => $d->id,
+                'document_type' => $d->document_type,
+                'status' => $d->status,
+                'expires_at' => $d->expires_at?->toDateString(),
+                'file_path' => $d->file_path,
+            ]),
+        ]);
+    }
+
+    public function verifyDocument(VerifyVendorDocumentRequest $request, VendorDocument $document): JsonResponse
+    {
+        $document->update([
+            'status' => 'verified',
+            'verified_by_admin_id' => auth('admin')->id(),
+            'verified_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Document verified.']);
+    }
+
+    public function rejectDocument(Request $request, VendorDocument $document): JsonResponse
+    {
+        $request->validate([
+            'rejection_reason' => ['required', 'string'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $document->update([
+            'status' => 'rejected',
+            'rejection_reason' => $request->input('rejection_reason'),
+            'notes' => $request->input('notes'),
+        ]);
+
+        return response()->json(['message' => 'Document rejected.']);
+    }
+
+    // ── Bank accounts ─────────────────────────────────────────────────────────
+
+    public function verifyBankAccount(Request $request, Vendor $vendor, string $accountId): JsonResponse
+    {
+        $account = $vendor->bankAccounts()->findOrFail($accountId);
+
+        $account->update([
+            'verification_status' => 'verified',
+            'verified_by_admin_id' => auth('admin')->id(),
+            'verified_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Bank account verified.']);
+    }
+
+    // ── Performance data ──────────────────────────────────────────────────────
+
+    public function performanceData(Vendor $vendor): JsonResponse
+    {
+        $days = 30;
+        $from = now()->subDays($days - 1)->startOfDay();
+        $gmvRaw = \DB::table('sub_orders')
+            ->where('vendor_id', $vendor->id)
+            ->whereIn('status', ['completed', 'delivered'])
+            ->where('created_at', '>=', $from)
+            ->selectRaw('DATE(created_at) as date, COALESCE(SUM(vendor_payout),0) as gmv')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('gmv', 'date');
+
+        $labels = [];
+        $gmvArr = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $d = now()->subDays($i)->toDateString();
+            $labels[] = now()->subDays($i)->format('d M');
+            $gmvArr[] = (float) ($gmvRaw[$d] ?? 0) / 100;
+        }
+
+        // Orders by status
+        $ordersByStatus = \DB::table('sub_orders')
+            ->where('vendor_id', $vendor->id)
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+
+        // Platform averages
+        $platformAvg = \DB::table('vendors')
+            ->whereIn('global_status', ['active', 'suspended'])
+            ->selectRaw('AVG(total_sales) as gmv, AVG(total_orders) as orders, AVG(store_rating_avg) as rating')
+            ->first();
+
+        return response()->json([
+            'data' => [
+                'labels' => $labels,
+                'gmv' => $gmvArr,
+                'orders_by_status' => $ordersByStatus,
+                'platform_avg' => [
+                    'gmv' => round((float) $platformAvg->gmv, 2),
+                    'orders' => round((float) $platformAvg->orders, 0),
+                    'rating' => round((float) $platformAvg->rating, 1),
+                ],
+            ],
+        ]);
+    }
+
+    // ── Bulk actions ──────────────────────────────────────────────────────────
+
+    public function bulkAction(Request $request): JsonResponse
+    {
+        $request->validate([
+            'action' => ['required', 'in:suspend,reactivate,assign_manager,place_hold,export'],
+            'vendor_ids' => ['required', 'array', 'min:1'],
+        ]);
+
+        $vendors = Vendor::whereIn('id', $request->input('vendor_ids'))->get();
+        $admin = auth('admin')->user();
+        $count = 0;
+
+        foreach ($vendors as $vendor) {
+            match ($request->input('action')) {
+                'suspend' => $this->approvalService->suspend($vendor, $request->input('reason', 'Bulk suspension'), $admin),
+                'reactivate' => $this->approvalService->reactivate($vendor, $admin),
+                'assign_manager' => $vendor->update(['account_manager_admin_id' => $request->input('admin_id')]),
+                'place_hold' => $this->approvalService->placePayoutHold($vendor, $request->input('reason', 'Bulk hold')),
+                default => null,
+            };
+            $count++;
+        }
+
+        return response()->json(['message' => "Bulk action applied to {$count} vendor(s)."]);
+    }
+
+    // ── Notifications ─────────────────────────────────────────────────────────
+
+    public function sendNotification(Request $request, Vendor $vendor): JsonResponse
+    {
+        $request->validate([
+            'subject' => ['required', 'string', 'max:255'],
+            'message' => ['required', 'string', 'max:5000'],
+        ]);
+
+        \DB::table('notifications')->insert([
+            'id' => \Illuminate\Support\Str::uuid(),
+            'type' => 'App\\Notifications\\Vendor\\AdminMessage',
+            'notifiable_type' => Vendor::class,
+            'notifiable_id' => $vendor->id,
+            'data' => json_encode([
+                'subject' => $request->input('subject'),
+                'message' => $request->input('message'),
+                'from' => auth('admin')->user()->name,
+            ]),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Notification sent.']);
+    }
+}
