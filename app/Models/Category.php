@@ -7,10 +7,32 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Kalnoy\Nestedset\NodeTrait;
 
 class Category extends Model
 {
+    use NodeTrait, SoftDeletes;
+
+    // Override kalnoy/nestedset defaults (_lft/_rgt) to match actual DB columns
+    public function getLftName(): string
+    {
+        return 'lft';
+    }
+    public function getRgtName(): string
+    {
+        return 'rgt';
+    }
+    public function getDepthName(): string
+    {
+        return 'depth';
+    }
+
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
+        'id',
         'parent_id',
         'name_ar',
         'name_en',
@@ -18,10 +40,8 @@ class Category extends Model
         'description_ar',
         'description_en',
         'commission_rate',
-        'lft',
-        'rgt',
-        'depth',
         'sort_order',
+        'product_count',
         'is_active',
         'is_visible',
         'is_featured',
@@ -29,13 +49,26 @@ class Category extends Model
         'seo_title_en',
         'seo_description_ar',
         'seo_description_en',
-        'country_id',
-        'category_id',
-        'is_available',
-        'unavailable_reason',
-        'notes',
-        'updated_by_admin_id',
     ];
+
+    protected $casts = [
+        'commission_rate' => 'decimal:2',
+        'sort_order' => 'integer',
+        'product_count' => 'integer',
+        'is_active' => 'boolean',
+        'is_visible' => 'boolean',
+        'is_featured' => 'boolean',
+    ];
+
+    // ── Accessors ────────────────────────────────────────────────────────────
+
+    public function getNameAttribute(): string
+    {
+        $locale = app()->getLocale();
+        return $this->{'name_' . $locale} ?? $this->name_en ?? '';
+    }
+
+    // ── Relations ────────────────────────────────────────────────────────────
 
     public function parent(): BelongsTo
     {
@@ -54,7 +87,9 @@ class Category extends Model
 
     public function attributes(): BelongsToMany
     {
-        return $this->belongsToMany(Attribute::class, 'category_attributes');
+        return $this->belongsToMany(Attribute::class, 'category_attributes')
+            ->withPivot(['is_required', 'sort_order'])
+            ->orderByPivot('sort_order');
     }
 
     public function categoryAttributes(): HasMany
@@ -70,5 +105,17 @@ class Category extends Model
     public function files(): MorphMany
     {
         return $this->morphMany(File::class, 'model');
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    public function breadcrumbPath(): array
+    {
+        $path = [];
+        foreach ($this->ancestors()->get() as $ancestor) {
+            $path[] = ['id' => $ancestor->id, 'name' => $ancestor->name_en];
+        }
+        $path[] = ['id' => $this->id, 'name' => $this->name_en];
+        return $path;
     }
 }

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\AttributeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -138,6 +140,36 @@ Route::prefix('notifications')->name('notifications.')->group(function () {
 });
 
 // ─── Country switcher ─────────────────────────────────────────────────────────
+
+// ─── Categories (CRUD) ────────────────────────────────────────────────────────
+Route::prefix('categories')->name('categories.')->group(function () {
+    Route::get('/create', [CategoryController::class, 'create'])->name('create');
+    Route::post('/reorder', [CategoryController::class, 'reorder'])->name('reorder');
+    Route::post('/bulk-commission', [CategoryController::class, 'bulkCommission'])->name('bulk-commission');
+    Route::get('/', [CategoryController::class, 'index'])->name('index');
+    Route::post('/', [CategoryController::class, 'store'])->name('store');
+    Route::get('/{category}/edit', [CategoryController::class, 'edit'])->name('edit');
+    Route::put('/{category}', [CategoryController::class, 'update'])->name('update');
+    Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
+    Route::post('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggle-featured');
+    Route::post('/{category}/sync-attributes', [CategoryController::class, 'syncAttributes'])->name('sync-attributes');
+});
+
+// ─── Attributes (CRUD) ────────────────────────────────────────────────────────
+Route::prefix('attributes')->name('attributes.')->group(function () {
+    Route::get('/create', [AttributeController::class, 'create'])->name('create');
+    Route::post('/datatable', [AttributeController::class, 'datatable'])->name('datatable');
+    Route::get('/', [AttributeController::class, 'index'])->name('index');
+    Route::post('/', [AttributeController::class, 'store'])->name('store');
+    Route::get('/{attribute}/edit', [AttributeController::class, 'edit'])->name('edit');
+    Route::put('/{attribute}', [AttributeController::class, 'update'])->name('update');
+    Route::delete('/{attribute}', [AttributeController::class, 'destroy'])->name('destroy');
+    Route::post('/{attribute}/values', [AttributeController::class, 'storeValue'])->name('values.store');
+    Route::put('/{attribute}/values/{value}', [AttributeController::class, 'updateValue'])->name('values.update');
+    Route::delete('/{attribute}/values/{value}', [AttributeController::class, 'destroyValue'])->name('values.destroy');
+    Route::post('/{attribute}/values/reorder', [AttributeController::class, 'reorderValues'])->name('values.reorder');
+});
+
 Route::post('/country', function (Request $request) {
     $code = strtoupper(trim($request->input('country', '')));
     if ($code && preg_match('/^[A-Z]{2,3}$/', $code)) {

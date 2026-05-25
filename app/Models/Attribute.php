@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Attribute extends Model
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
         'name_ar',
         'name_en',
@@ -20,14 +23,27 @@ class Attribute extends Model
         'sort_order',
     ];
 
+    protected $casts = [
+        'is_variant_attribute' => 'boolean',
+        'is_filterable' => 'boolean',
+        'is_required' => 'boolean',
+        'sort_order' => 'integer',
+    ];
+
+    public function requiresValues(): bool
+    {
+        return in_array($this->type, ['select', 'multi_select', 'color'], true);
+    }
+
     public function values(): HasMany
     {
-        return $this->hasMany(AttributeValue::class);
+        return $this->hasMany(AttributeValue::class)->orderBy('sort_order');
     }
 
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class, 'category_attributes');
+        return $this->belongsToMany(Category::class, 'category_attributes')
+            ->withPivot(['is_required', 'sort_order']);
     }
 
     public function categoryAttributes(): HasMany

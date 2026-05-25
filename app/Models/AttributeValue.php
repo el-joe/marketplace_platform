@@ -8,12 +8,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AttributeValue extends Model
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
         'attribute_id',
         'value_ar',
         'value_en',
-        'code_hex',
+        'color_hex',
         'sort_order',
+    ];
+
+    protected $casts = [
+        'sort_order' => 'integer',
     ];
 
     public function attribute(): BelongsTo
