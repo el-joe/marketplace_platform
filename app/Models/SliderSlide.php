@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\File;
 
 class SliderSlide extends Model
 {
@@ -13,6 +14,8 @@ class SliderSlide extends Model
     protected $fillable = [
         'page_block_id',
         'position',
+        'desktop_file_id',
+        'mobile_file_id',
         'title_en',
         'title_ar',
         'subtitle_en',
@@ -43,5 +46,15 @@ class SliderSlide extends Model
     public function pageBlock(): BelongsTo
     {
         return $this->belongsTo(PageBlock::class);
+    }
+
+    public function desktopFile(): BelongsTo
+    {
+        return $this->belongsTo(File::class, 'desktop_file_id');
+    }
+
+    public function mobileFile(): BelongsTo
+    {
+        return $this->belongsTo(File::class, 'mobile_file_id');
     }
 }

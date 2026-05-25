@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\FlashSaleController;
+use App\Http\Controllers\Admin\PageBuilderController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
@@ -247,6 +248,79 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{flashSale}/transition', [FlashSaleController::class, 'transition'])->name('transition');
         Route::post('/{flashSale}/invite-vendors', [FlashSaleController::class, 'inviteVendors'])->name('invite-vendors');
         Route::post('/{flashSale}/submissions/datatable', [FlashSaleController::class, 'submissionsDatatable'])->name('submissions.datatable');
+    });
+
+    // ─── Page Builder ──────────────────────────────────────────────────────────────
+
+    Route::prefix('page-builder')->name('page-builder.')->group(function () {
+
+        // Pages listing & CRUD
+        Route::get('/', [PageBuilderController::class, 'index'])->name('index');
+        Route::post('/datatable', [PageBuilderController::class, 'datatable'])->name('datatable');
+        Route::get('/create', [PageBuilderController::class, 'create'])->name('create');
+        Route::post('/store', [PageBuilderController::class, 'store'])->name('store');
+
+        // Block-level routes (before /{page} wildcard)
+        Route::post('/blocks/{block}/toggle-visibility', [PageBuilderController::class, 'blockToggleVisibility'])->name('blocks.toggle');
+        Route::put('/blocks/{block}', [PageBuilderController::class, 'blockUpdate'])->name('blocks.update');
+        Route::delete('/blocks/{block}', [PageBuilderController::class, 'blockDestroy'])->name('blocks.destroy');
+        Route::get('/blocks/{block}/revisions', [PageBuilderController::class, 'blockRevisions'])->name('blocks.revisions');
+
+        // Slides
+        Route::get(
+            '/blocks/{block}/slides',
+            fn(\App\Models\PageBlock $block) =>
+            response()->json(['slides' => $block->slides()->with(['desktopFile', 'mobileFile'])->orderBy('position')->get()->map(fn($s) => app(PageBuilderController::class)->serializeSlidePublic($s))])
+        )->name('blocks.slides.index');
+        Route::post('/blocks/{block}/slides', [PageBuilderController::class, 'slideStore'])->name('blocks.slides.store');
+        Route::post('/blocks/{block}/slides/reorder', [PageBuilderController::class, 'slidesReorder'])->name('blocks.slides.reorder');
+        Route::get(
+            '/slides/{slide}',
+            fn(\App\Models\SliderSlide $slide) =>
+            response()->json(['slide' => $slide->load(['desktopFile', 'mobileFile'])->toArray()])
+        )->name('slides.show');
+        Route::put('/slides/{slide}', [PageBuilderController::class, 'slideUpdate'])->name('slides.update');
+        Route::delete('/slides/{slide}', [PageBuilderController::class, 'slideDestroy'])->name('slides.destroy');
+
+        // Ad Images
+        Route::get(
+            '/blocks/{block}/ad-images',
+            fn(\App\Models\PageBlock $block) =>
+            response()->json(['items' => $block->adImageItems()->with('file')->orderBy('position')->get()->map(fn($i) => app(PageBuilderController::class)->serializeAdImagePublic($i))])
+        )->name('blocks.ad-images.index');
+        Route::post('/blocks/{block}/ad-images', [PageBuilderController::class, 'adImageStore'])->name('blocks.ad-images.store');
+        Route::post('/blocks/{block}/ad-images/reorder', [PageBuilderController::class, 'adImagesReorder'])->name('blocks.ad-images.reorder');
+        Route::get(
+            '/ad-images/{item}',
+            fn(\App\Models\AdImageItem $item) =>
+            response()->json(['item' => $item->load('file')->toArray()])
+        )->name('ad-images.show');
+        Route::put('/ad-images/{item}', [PageBuilderController::class, 'adImageUpdate'])->name('ad-images.update');
+        Route::delete('/ad-images/{item}', [PageBuilderController::class, 'adImageDestroy'])->name('ad-images.destroy');
+
+        // Block Products
+        Route::get(
+            '/blocks/{block}/products',
+            fn(\App\Models\PageBlock $block) =>
+            response()->json(['items' => $block->blockProducts()->with('productVariant.product')->orderBy('position')->get()->map(fn($p) => ['id' => $p->id, 'variant_id' => $p->product_variant_id, 'name' => $p->productVariant?->product?->name_en ?? '—', 'position' => $p->position])])
+        )->name('blocks.products.index');
+        Route::post('/blocks/{block}/products', [PageBuilderController::class, 'blockProductStore'])->name('blocks.products.store');
+        Route::post('/blocks/{block}/products/reorder', [PageBuilderController::class, 'blockProductsReorder'])->name('blocks.products.reorder');
+        Route::delete('/products/{blockProduct}', [PageBuilderController::class, 'blockProductDestroy'])->name('products.destroy');
+
+        // Sections
+        Route::post('/sections/{section}', [PageBuilderController::class, 'sectionUpdate'])->name('sections.update');   // POST + _method=PUT
+        Route::delete('/sections/{section}', [PageBuilderController::class, 'sectionDestroy'])->name('sections.destroy');
+
+        // Pages (wildcard last)
+        Route::get('/{page}/edit', [PageBuilderController::class, 'edit'])->name('edit');
+        Route::put('/{page}', [PageBuilderController::class, 'update'])->name('update');
+        Route::post('/{page}/publish', [PageBuilderController::class, 'publish'])->name('publish');
+        Route::post('/{page}/clone', [PageBuilderController::class, 'clone'])->name('clone');
+        Route::delete('/{page}', [PageBuilderController::class, 'destroy'])->name('destroy');
+        Route::post('/{page}/blocks', [PageBuilderController::class, 'blockStore'])->name('blocks.store');
+        Route::post('/{page}/blocks/reorder', [PageBuilderController::class, 'blocksReorder'])->name('blocks.reorder');
+        Route::post('/{page}/sections', [PageBuilderController::class, 'sectionStore'])->name('sections.store');
     });
 
     // ─── Vendors ─────────────────────────────────────────────────────────────────

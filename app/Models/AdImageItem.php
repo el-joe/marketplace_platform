@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\File;
 
 class AdImageItem extends Model
 {
@@ -13,6 +14,7 @@ class AdImageItem extends Model
     protected $fillable = [
         'page_block_id',
         'position',
+        'file_id',
         'title_en',
         'title_ar',
         'link_url',
@@ -34,5 +36,10 @@ class AdImageItem extends Model
     public function pageBlock(): BelongsTo
     {
         return $this->belongsTo(PageBlock::class);
+    }
+
+    public function file(): BelongsTo
+    {
+        return $this->belongsTo(File::class, 'file_id');
     }
 }
