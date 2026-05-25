@@ -1,10 +1,16 @@
 <?php
 
+use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Admin\CountryController;
+use App\Http\Controllers\Admin\CityController;
+use App\Http\Controllers\Admin\CurrencyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -16,7 +22,13 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// ─── Locale switcher ──────────────────────────────────────────────────────────
+// ─── Auth: Guest routes (login) ─────────────────────────────────────────────────────
+Route::middleware('guest:admin')->group(function () {
+    Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+});
+
+// ─── Locale switcher (public) ───────────────────────────────────────────────────
 Route::post('/set-locale', function (Request $request) {
     $locale = $request->input('locale', 'en');
     if (in_array($locale, config('app.supported_locales', ['en', 'ar']), true)) {
@@ -25,256 +37,257 @@ Route::post('/set-locale', function (Request $request) {
     return response()->json(['success' => true]);
 })->name('set-locale');
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
-Route::get('/dashboard/revenue-chart', [DashboardController::class, 'revenueChart'])->name('dashboard.revenue-chart');
-Route::get('/dashboard/orders-by-status', [DashboardController::class, 'ordersByStatus'])->name('dashboard.orders-by-status');
-Route::get('/dashboard/recent-orders', [DashboardController::class, 'recentOrders'])->name('dashboard.recent-orders');
-Route::get('/dashboard/top-sellers', [DashboardController::class, 'topSellers'])->name('dashboard.top-sellers');
-Route::get('/dashboard/pending-items', [DashboardController::class, 'pendingItems'])->name('dashboard.pending-items');
-Route::get('/dashboard/low-stock', [DashboardController::class, 'lowStock'])->name('dashboard.low-stock');
+// ─── All protected admin routes ───────────────────────────────────────────────────
+Route::middleware('auth.admin')->group(function () {
 
-// ─── Products ─────────────────────────────────────────────────────────────────
-Route::prefix('products')->name('products.')->group(function () {
-    // Specific paths BEFORE the {product} wildcard
-    Route::get('/create', [ProductController::class, 'create'])->name('create');
-    Route::post('/datatable', [ProductController::class, 'datatable'])->name('datatable');
-    Route::post('/bulk', [ProductController::class, 'bulkAction'])->name('bulk');
-    Route::post('/generate-variants', [ProductController::class, 'generateVariants'])->name('generate-variants');
-    Route::post('/upload-image', [ProductController::class, 'uploadImage'])->name('upload-image');
-    Route::get('/check-duplicate', [ProductController::class, 'checkDuplicate'])->name('check-duplicate');
-    Route::get('/check-gtin', [ProductController::class, 'checkGtin'])->name('check-gtin');
-    Route::delete('/delete-image/{mediaId}', [ProductController::class, 'deleteImage'])->name('delete-image');
-    Route::post('/country-settings/{setting}', [ProductController::class, 'updateCountrySetting'])->name('update-country-setting');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // CRUD
-    Route::get('/', [ProductController::class, 'index'])->name('index');
-    Route::post('/', [ProductController::class, 'store'])->name('store');
-    Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
-    Route::post('/{product}/reorder-images', [ProductController::class, 'reorderImages'])->name('reorder-images');
-    Route::get('/{product}/country-settings', [ProductController::class, 'countrySettings'])->name('country-settings');
-    Route::put('/{product}', [ProductController::class, 'update'])->name('update');
-    Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
-});
+    // ─── Dashboard ────────────────────────────────────────────────────────────────
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
+    Route::get('/dashboard/revenue-chart', [DashboardController::class, 'revenueChart'])->name('dashboard.revenue-chart');
+    Route::get('/dashboard/orders-by-status', [DashboardController::class, 'ordersByStatus'])->name('dashboard.orders-by-status');
+    Route::get('/dashboard/recent-orders', [DashboardController::class, 'recentOrders'])->name('dashboard.recent-orders');
+    Route::get('/dashboard/top-sellers', [DashboardController::class, 'topSellers'])->name('dashboard.top-sellers');
+    Route::get('/dashboard/pending-items', [DashboardController::class, 'pendingItems'])->name('dashboard.pending-items');
+    Route::get('/dashboard/low-stock', [DashboardController::class, 'lowStock'])->name('dashboard.low-stock');
 
-// ─── Async-select search endpoints ────────────────────────────────────────────
-Route::prefix('categories')->name('categories.')->group(function () {
-    Route::get('/search', function (Request $request) {
-        $term = trim($request->input('q', ''));
-        $results = DB::table('categories')
-            ->where('is_active', true)
-            ->where(function ($q) use ($term) {
-                $q->where('name_en', 'like', "%{$term}%")
-                    ->orWhere('name_ar', 'like', "%{$term}%");
-            })
-            ->limit(30)
-            ->get(['id', 'name_en as text']);
-        return response()->json(['results' => $results]);
-    })->name('search');
+    // ─── Products ─────────────────────────────────────────────────────────────────
+    Route::prefix('products')->name('products.')->group(function () {
+        // Specific paths BEFORE the {product} wildcard
+        Route::get('/create', [ProductController::class, 'create'])->name('create');
+        Route::post('/datatable', [ProductController::class, 'datatable'])->name('datatable');
+        Route::post('/bulk', [ProductController::class, 'bulkAction'])->name('bulk');
+        Route::post('/generate-variants', [ProductController::class, 'generateVariants'])->name('generate-variants');
+        Route::post('/upload-image', [ProductController::class, 'uploadImage'])->name('upload-image');
+        Route::get('/check-duplicate', [ProductController::class, 'checkDuplicate'])->name('check-duplicate');
+        Route::get('/check-gtin', [ProductController::class, 'checkGtin'])->name('check-gtin');
+        Route::delete('/delete-image/{mediaId}', [ProductController::class, 'deleteImage'])->name('delete-image');
+        Route::post('/country-settings/{setting}', [ProductController::class, 'updateCountrySetting'])->name('update-country-setting');
 
-    Route::get('/{id}/attributes', function (string $id) {
-        $attrs = DB::table('category_attributes as ca')
-            ->join('attributes as a', 'a.id', '=', 'ca.attribute_id')
-            ->where('ca.category_id', $id)
-            ->where('a.is_variant_attribute', true)
-            ->select('a.id', 'a.name_en')
-            ->orderBy('a.sort_order')
-            ->get();
-        return response()->json(['data' => $attrs]);
-    })->name('attributes');
-});
+        // CRUD
+        Route::get('/', [ProductController::class, 'index'])->name('index');
+        Route::post('/', [ProductController::class, 'store'])->name('store');
+        Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
+        Route::post('/{product}/reorder-images', [ProductController::class, 'reorderImages'])->name('reorder-images');
+        Route::get('/{product}/country-settings', [ProductController::class, 'countrySettings'])->name('country-settings');
+        Route::put('/{product}', [ProductController::class, 'update'])->name('update');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+    });
 
-// ─── Brands ──────────────────────────────────────────────────────────────────
-Route::prefix('brands')->name('brands.')->group(function () {
-    Route::get('/create', [BrandController::class, 'create'])->name('create');
-    Route::post('/datatable', [BrandController::class, 'datatable'])->name('datatable');
-    Route::get('/search', [BrandController::class, 'search'])->name('search');
-    Route::get('/', [BrandController::class, 'index'])->name('index');
-    Route::post('/', [BrandController::class, 'store'])->name('store');
-    Route::get('/{brand}/edit', [BrandController::class, 'edit'])->name('edit');
-    Route::put('/{brand}', [BrandController::class, 'update'])->name('update');
-    Route::delete('/{brand}', [BrandController::class, 'destroy'])->name('destroy');
-});
+    // ─── Async-select search endpoints ────────────────────────────────────────────
+    Route::prefix('categories')->name('categories.')->group(function () {
+        Route::get('/search', function (Request $request) {
+            $term = trim($request->input('q', ''));
+            $results = DB::table('categories')
+                ->where('is_active', true)
+                ->where(function ($q) use ($term) {
+                    $q->where('name_en', 'like', "%{$term}%")
+                        ->orWhere('name_ar', 'like', "%{$term}%");
+                })
+                ->limit(30)
+                ->get(['id', 'name_en as text']);
+            return response()->json(['results' => $results]);
+        })->name('search');
 
-// ─── Notifications ────────────────────────────────────────────────────────────
-Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/{id}/attributes', function (string $id) {
+            $attrs = DB::table('category_attributes as ca')
+                ->join('attributes as a', 'a.id', '=', 'ca.attribute_id')
+                ->where('ca.category_id', $id)
+                ->where('a.is_variant_attribute', true)
+                ->select('a.id', 'a.name_en')
+                ->orderBy('a.sort_order')
+                ->get();
+            return response()->json(['data' => $attrs]);
+        })->name('attributes');
+    });
 
-    Route::get('/unread-count', function () {
-        $adminId = auth('admin')->id();
-        if (!$adminId) {
-            return response()->json(['data' => ['count' => 0]]);
+    // ─── Brands ──────────────────────────────────────────────────────────────────
+    Route::prefix('brands')->name('brands.')->group(function () {
+        Route::get('/create', [BrandController::class, 'create'])->name('create');
+        Route::post('/datatable', [BrandController::class, 'datatable'])->name('datatable');
+        Route::get('/search', [BrandController::class, 'search'])->name('search');
+        Route::get('/', [BrandController::class, 'index'])->name('index');
+        Route::post('/', [BrandController::class, 'store'])->name('store');
+        Route::get('/{brand}/edit', [BrandController::class, 'edit'])->name('edit');
+        Route::put('/{brand}', [BrandController::class, 'update'])->name('update');
+        Route::delete('/{brand}', [BrandController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Notifications ────────────────────────────────────────────────────────────
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+
+        Route::get('/unread-count', function () {
+            $adminId = auth('admin')->id();
+            if (!$adminId) {
+                return response()->json(['data' => ['count' => 0]]);
+            }
+            $count = DB::table('notifications')
+                ->where('notifiable_type', \App\Models\Admin::class)
+                ->where('notifiable_id', $adminId)
+                ->whereNull('read_at')
+                ->count();
+            return response()->json(['data' => ['count' => $count]]);
+        })->name('unread-count');
+
+        Route::get('/unread', function () {
+            $adminId = auth('admin')->id();
+            $items = DB::table('notifications')
+                ->where('notifiable_type', \App\Models\Admin::class)
+                ->where('notifiable_id', $adminId)
+                ->whereNull('read_at')
+                ->orderByDesc('created_at')
+                ->limit(20)
+                ->get()
+                ->map(function ($n) {
+                    $data = is_string($n->data) ? json_decode($n->data, true) : (array) $n->data;
+                    return [
+                        'id' => $n->id,
+                        'title' => $data['title'] ?? 'Notification',
+                        'message' => $data['message'] ?? '',
+                        'url' => $data['url'] ?? '#',
+                        'created_at' => $n->created_at,
+                    ];
+                });
+            return response()->json(['data' => ['items' => $items]]);
+        })->name('unread');
+
+        Route::post('/mark-all-read', function () {
+            $adminId = auth('admin')->id();
+            DB::table('notifications')
+                ->where('notifiable_type', \App\Models\Admin::class)
+                ->where('notifiable_id', $adminId)
+                ->whereNull('read_at')
+                ->update(['read_at' => now()]);
+            return response()->json(['success' => true]);
+        })->name('mark-all-read');
+    });
+
+
+    // ─── Categories (CRUD) ────────────────────────────────────────────────────────
+    Route::prefix('categories')->name('categories.')->group(function () {
+        Route::get('/create', [CategoryController::class, 'create'])->name('create');
+        Route::post('/reorder', [CategoryController::class, 'reorder'])->name('reorder');
+        Route::post('/bulk-commission', [CategoryController::class, 'bulkCommission'])->name('bulk-commission');
+        Route::get('/', [CategoryController::class, 'index'])->name('index');
+        Route::post('/', [CategoryController::class, 'store'])->name('store');
+        Route::get('/{category}/edit', [CategoryController::class, 'edit'])->name('edit');
+        Route::put('/{category}', [CategoryController::class, 'update'])->name('update');
+        Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
+        Route::post('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggle-featured');
+        Route::post('/{category}/sync-attributes', [CategoryController::class, 'syncAttributes'])->name('sync-attributes');
+    });
+
+    // ─── Attributes (CRUD) ────────────────────────────────────────────────────────
+    Route::prefix('attributes')->name('attributes.')->group(function () {
+        Route::get('/create', [AttributeController::class, 'create'])->name('create');
+        Route::post('/datatable', [AttributeController::class, 'datatable'])->name('datatable');
+        Route::get('/', [AttributeController::class, 'index'])->name('index');
+        Route::post('/', [AttributeController::class, 'store'])->name('store');
+        Route::get('/{attribute}/edit', [AttributeController::class, 'edit'])->name('edit');
+        Route::put('/{attribute}', [AttributeController::class, 'update'])->name('update');
+        Route::delete('/{attribute}', [AttributeController::class, 'destroy'])->name('destroy');
+        Route::post('/{attribute}/values', [AttributeController::class, 'storeValue'])->name('values.store');
+        Route::put('/{attribute}/values/{value}', [AttributeController::class, 'updateValue'])->name('values.update');
+        Route::delete('/{attribute}/values/{value}', [AttributeController::class, 'destroyValue'])->name('values.destroy');
+        Route::post('/{attribute}/values/reorder', [AttributeController::class, 'reorderValues'])->name('values.reorder');
+    });
+
+    Route::post('/country', function (Request $request) {
+        $code = strtoupper(trim($request->input('country', '')));
+        if ($code && preg_match('/^[A-Z]{2,3}$/', $code)) {
+            session(['admin_country' => $code]);
         }
-        $count = DB::table('notifications')
-            ->where('notifiable_type', \App\Models\Admin::class)
-            ->where('notifiable_id', $adminId)
-            ->whereNull('read_at')
-            ->count();
-        return response()->json(['data' => ['count' => $count]]);
-    })->name('unread-count');
-
-    Route::get('/unread', function () {
-        $adminId = auth('admin')->id();
-        $items = DB::table('notifications')
-            ->where('notifiable_type', \App\Models\Admin::class)
-            ->where('notifiable_id', $adminId)
-            ->whereNull('read_at')
-            ->orderByDesc('created_at')
-            ->limit(20)
-            ->get()
-            ->map(function ($n) {
-                $data = is_string($n->data) ? json_decode($n->data, true) : (array) $n->data;
-                return [
-                    'id' => $n->id,
-                    'title' => $data['title'] ?? 'Notification',
-                    'message' => $data['message'] ?? '',
-                    'url' => $data['url'] ?? '#',
-                    'created_at' => $n->created_at,
-                ];
-            });
-        return response()->json(['data' => ['items' => $items]]);
-    })->name('unread');
-
-    Route::post('/mark-all-read', function () {
-        $adminId = auth('admin')->id();
-        DB::table('notifications')
-            ->where('notifiable_type', \App\Models\Admin::class)
-            ->where('notifiable_id', $adminId)
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
         return response()->json(['success' => true]);
-    })->name('mark-all-read');
-});
+    })->name('country');
 
-
-// ─── Categories (CRUD) ────────────────────────────────────────────────────────
-Route::prefix('categories')->name('categories.')->group(function () {
-    Route::get('/create', [CategoryController::class, 'create'])->name('create');
-    Route::post('/reorder', [CategoryController::class, 'reorder'])->name('reorder');
-    Route::post('/bulk-commission', [CategoryController::class, 'bulkCommission'])->name('bulk-commission');
-    Route::get('/', [CategoryController::class, 'index'])->name('index');
-    Route::post('/', [CategoryController::class, 'store'])->name('store');
-    Route::get('/{category}/edit', [CategoryController::class, 'edit'])->name('edit');
-    Route::put('/{category}', [CategoryController::class, 'update'])->name('update');
-    Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
-    Route::post('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggle-featured');
-    Route::post('/{category}/sync-attributes', [CategoryController::class, 'syncAttributes'])->name('sync-attributes');
-});
-
-// ─── Attributes (CRUD) ────────────────────────────────────────────────────────
-Route::prefix('attributes')->name('attributes.')->group(function () {
-    Route::get('/create', [AttributeController::class, 'create'])->name('create');
-    Route::post('/datatable', [AttributeController::class, 'datatable'])->name('datatable');
-    Route::get('/', [AttributeController::class, 'index'])->name('index');
-    Route::post('/', [AttributeController::class, 'store'])->name('store');
-    Route::get('/{attribute}/edit', [AttributeController::class, 'edit'])->name('edit');
-    Route::put('/{attribute}', [AttributeController::class, 'update'])->name('update');
-    Route::delete('/{attribute}', [AttributeController::class, 'destroy'])->name('destroy');
-    Route::post('/{attribute}/values', [AttributeController::class, 'storeValue'])->name('values.store');
-    Route::put('/{attribute}/values/{value}', [AttributeController::class, 'updateValue'])->name('values.update');
-    Route::delete('/{attribute}/values/{value}', [AttributeController::class, 'destroyValue'])->name('values.destroy');
-    Route::post('/{attribute}/values/reorder', [AttributeController::class, 'reorderValues'])->name('values.reorder');
-});
-
-Route::post('/country', function (Request $request) {
-    $code = strtoupper(trim($request->input('country', '')));
-    if ($code && preg_match('/^[A-Z]{2,3}$/', $code)) {
-        session(['admin_country' => $code]);
-    }
-    return response()->json(['success' => true]);
-})->name('country');
-
-// ─── Placeholders ─────────────────────────────────────────────────────────────
+    // ─── Placeholders ─────────────────────────────────────────────────────────────
 // ─── Orders ───────────────────────────────────────────────────────────────────
-use App\Http\Controllers\Admin\OrderController;
 
-Route::prefix('orders')->name('orders.')->group(function () {
-    Route::post('/datatable', [OrderController::class, 'datatable'])->name('datatable');
-    Route::post('/update-sub-order-status', [OrderController::class, 'updateSubOrderStatus'])->name('update-sub-order-status');
-    Route::get('/', [OrderController::class, 'index'])->name('index');
-    Route::get('/{id}', [OrderController::class, 'show'])->name('show');
-    Route::post('/{id}/force-cancel', [OrderController::class, 'forceCancel'])->name('force-cancel');
-    Route::post('/{id}/refund', [OrderController::class, 'processRefund'])->name('refund');
-    Route::post('/{id}/dispute', [OrderController::class, 'escalateDispute'])->name('dispute');
-    Route::post('/{id}/flag-fraud', [OrderController::class, 'flagFraud'])->name('flag-fraud');
-});
-Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->name('sub-orders.next-statuses');
-// ─── Vendors ─────────────────────────────────────────────────────────────────
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::post('/datatable', [OrderController::class, 'datatable'])->name('datatable');
+        Route::post('/update-sub-order-status', [OrderController::class, 'updateSubOrderStatus'])->name('update-sub-order-status');
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/{id}', [OrderController::class, 'show'])->name('show');
+        Route::post('/{id}/force-cancel', [OrderController::class, 'forceCancel'])->name('force-cancel');
+        Route::post('/{id}/refund', [OrderController::class, 'processRefund'])->name('refund');
+        Route::post('/{id}/dispute', [OrderController::class, 'escalateDispute'])->name('dispute');
+        Route::post('/{id}/flag-fraud', [OrderController::class, 'flagFraud'])->name('flag-fraud');
+    });
+    Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->name('sub-orders.next-statuses');
+    // ─── Vendors ─────────────────────────────────────────────────────────────────
 
-use App\Http\Controllers\Admin\VendorController;
+    Route::prefix('vendors')->name('vendors.')->group(function () {
+        Route::get('/applications', [VendorController::class, 'applicationQueue'])->name('applications');
+        Route::post('/datatable', [VendorController::class, 'datatable'])->name('datatable');
+        Route::post('/bulk', [VendorController::class, 'bulkAction'])->name('bulk');
 
-Route::prefix('vendors')->name('vendors.')->group(function () {
-    Route::get('/applications', [VendorController::class, 'applicationQueue'])->name('applications');
-    Route::post('/datatable', [VendorController::class, 'datatable'])->name('datatable');
-    Route::post('/bulk', [VendorController::class, 'bulkAction'])->name('bulk');
+        Route::post('/documents/{document}/verify', [VendorController::class, 'verifyDocument'])->name('documents.verify');
+        Route::post('/documents/{document}/reject', [VendorController::class, 'rejectDocument'])->name('documents.reject');
 
-    Route::post('/documents/{document}/verify', [VendorController::class, 'verifyDocument'])->name('documents.verify');
-    Route::post('/documents/{document}/reject', [VendorController::class, 'rejectDocument'])->name('documents.reject');
+        Route::get('/', [VendorController::class, 'index'])->name('index');
+        Route::get('/{vendor}', [VendorController::class, 'show'])->name('show');
+        Route::put('/{vendor}', [VendorController::class, 'update'])->name('update');
 
-    Route::get('/', [VendorController::class, 'index'])->name('index');
-    Route::get('/{vendor}', [VendorController::class, 'show'])->name('show');
-    Route::put('/{vendor}', [VendorController::class, 'update'])->name('update');
+        Route::post('/{vendor}/approve', [VendorController::class, 'approve'])->name('approve');
+        Route::post('/{vendor}/reject', [VendorController::class, 'reject'])->name('reject');
+        Route::post('/{vendor}/request-info', [VendorController::class, 'requestInfo'])->name('request-info');
+        Route::post('/{vendor}/suspend', [VendorController::class, 'suspend'])->name('suspend');
+        Route::post('/{vendor}/reactivate', [VendorController::class, 'reactivate'])->name('reactivate');
+        Route::post('/{vendor}/blacklist', [VendorController::class, 'blacklist'])->name('blacklist');
+        Route::post('/{vendor}/strikes', [VendorController::class, 'issueStrike'])->name('strikes.store');
+        Route::post('/{vendor}/hold', [VendorController::class, 'placeHold'])->name('hold.place');
+        Route::post('/{vendor}/release-hold', [VendorController::class, 'releaseHold'])->name('hold.release');
+        Route::post('/{vendor}/assign-manager', [VendorController::class, 'assignManager'])->name('assign-manager');
+        Route::get('/{vendor}/documents', [VendorController::class, 'documents'])->name('documents.index');
+        Route::post('/{vendor}/bank-accounts/{accountId}/verify', [VendorController::class, 'verifyBankAccount'])->name('bank-accounts.verify');
+        Route::get('/{vendor}/performance-data', [VendorController::class, 'performanceData'])->name('performance-data');
+        Route::post('/{vendor}/notify', [VendorController::class, 'sendNotification'])->name('notify');
+    });
 
-    Route::post('/{vendor}/approve', [VendorController::class, 'approve'])->name('approve');
-    Route::post('/{vendor}/reject', [VendorController::class, 'reject'])->name('reject');
-    Route::post('/{vendor}/request-info', [VendorController::class, 'requestInfo'])->name('request-info');
-    Route::post('/{vendor}/suspend', [VendorController::class, 'suspend'])->name('suspend');
-    Route::post('/{vendor}/reactivate', [VendorController::class, 'reactivate'])->name('reactivate');
-    Route::post('/{vendor}/blacklist', [VendorController::class, 'blacklist'])->name('blacklist');
-    Route::post('/{vendor}/strikes', [VendorController::class, 'issueStrike'])->name('strikes.store');
-    Route::post('/{vendor}/hold', [VendorController::class, 'placeHold'])->name('hold.place');
-    Route::post('/{vendor}/release-hold', [VendorController::class, 'releaseHold'])->name('hold.release');
-    Route::post('/{vendor}/assign-manager', [VendorController::class, 'assignManager'])->name('assign-manager');
-    Route::get('/{vendor}/documents', [VendorController::class, 'documents'])->name('documents.index');
-    Route::post('/{vendor}/bank-accounts/{accountId}/verify', [VendorController::class, 'verifyBankAccount'])->name('bank-accounts.verify');
-    Route::get('/{vendor}/performance-data', [VendorController::class, 'performanceData'])->name('performance-data');
-    Route::post('/{vendor}/notify', [VendorController::class, 'sendNotification'])->name('notify');
-});
+    // ─── Geography ───────────────────────────────────────────────────────────────
 
-// ─── Geography ───────────────────────────────────────────────────────────────
+    Route::prefix('countries')->name('countries.')->group(function () {
+        Route::post('/datatable', [CountryController::class, 'datatable'])->name('datatable');
+        Route::get('/create', [CountryController::class, 'create'])->name('create');
+        Route::post('/', [CountryController::class, 'store'])->name('store');
+        Route::get('/', [CountryController::class, 'index'])->name('index');
+        Route::get('/{id}/edit', [CountryController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [CountryController::class, 'update'])->name('update');
+        Route::delete('/{id}', [CountryController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/launch', [CountryController::class, 'launch'])->name('launch');
+        Route::post('/{id}/deactivate', [CountryController::class, 'deactivate'])->name('deactivate');
+        Route::post('/{id}/reactivate', [CountryController::class, 'reactivate'])->name('reactivate');
+        // Payment Methods sub-resource
+        Route::post('/{id}/payment-methods', [CountryController::class, 'storePaymentMethod'])->name('payment-methods.store');
+        Route::put('/{id}/payment-methods/{pmId}', [CountryController::class, 'updatePaymentMethod'])->name('payment-methods.update');
+        Route::delete('/{id}/payment-methods/{pmId}', [CountryController::class, 'destroyPaymentMethod'])->name('payment-methods.destroy');
+        // Shipping Settings
+        Route::post('/{id}/shipping-settings', [CountryController::class, 'updateShippingSettings'])->name('shipping-settings.update');
+        // Category Overrides
+        Route::post('/{id}/categories/datatable', [CountryController::class, 'categoryOverridesDatatable'])->name('categories.datatable');
+        Route::post('/{id}/category-overrides', [CountryController::class, 'updateCategoryOverrides'])->name('category-overrides.update');
+    });
 
-use App\Http\Controllers\Admin\CountryController;
+    // ─── Cities ─────────────────────────────────────────────────────────────────────────────
+    Route::prefix('cities')->name('cities.')->group(function () {
+        Route::post('/datatable', [CityController::class, 'datatable'])->name('datatable');
+        Route::post('/bulk-import', [CityController::class, 'bulkImport'])->name('bulk-import');
+        Route::get('/create', [CityController::class, 'create'])->name('create');
+        Route::post('/', [CityController::class, 'store'])->name('store');
+        Route::get('/', [CityController::class, 'index'])->name('index');
+        Route::get('/{id}/edit', [CityController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [CityController::class, 'update'])->name('update');
+        Route::delete('/{id}', [CityController::class, 'destroy'])->name('destroy');
+    });
 
-Route::prefix('countries')->name('countries.')->group(function () {
-    Route::post('/datatable', [CountryController::class, 'datatable'])->name('datatable');
-    Route::get('/create', [CountryController::class, 'create'])->name('create');
-    Route::post('/', [CountryController::class, 'store'])->name('store');
-    Route::get('/', [CountryController::class, 'index'])->name('index');
-    Route::get('/{id}/edit', [CountryController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [CountryController::class, 'update'])->name('update');
-    Route::delete('/{id}', [CountryController::class, 'destroy'])->name('destroy');
-    Route::post('/{id}/launch', [CountryController::class, 'launch'])->name('launch');
-    Route::post('/{id}/deactivate', [CountryController::class, 'deactivate'])->name('deactivate');
-    Route::post('/{id}/reactivate', [CountryController::class, 'reactivate'])->name('reactivate');
-    // Payment Methods sub-resource
-    Route::post('/{id}/payment-methods', [CountryController::class, 'storePaymentMethod'])->name('payment-methods.store');
-    Route::put('/{id}/payment-methods/{pmId}', [CountryController::class, 'updatePaymentMethod'])->name('payment-methods.update');
-    Route::delete('/{id}/payment-methods/{pmId}', [CountryController::class, 'destroyPaymentMethod'])->name('payment-methods.destroy');
-    // Shipping Settings
-    Route::post('/{id}/shipping-settings', [CountryController::class, 'updateShippingSettings'])->name('shipping-settings.update');
-    // Category Overrides
-    Route::post('/{id}/categories/datatable', [CountryController::class, 'categoryOverridesDatatable'])->name('categories.datatable');
-    Route::post('/{id}/category-overrides', [CountryController::class, 'updateCategoryOverrides'])->name('category-overrides.update');
-});
+    // ─── Currencies ────────────────────────────────────────────────────────────────────────────
+    Route::prefix('currencies')->name('currencies.')->group(function () {
+        Route::get('/', [CurrencyController::class, 'index'])->name('index');
+        Route::get('/{code}/edit', [CurrencyController::class, 'edit'])->name('edit');
+        Route::put('/{code}', [CurrencyController::class, 'update'])->name('update');
+        Route::post('/dispatch-update', [CurrencyController::class, 'dispatchUpdate'])->name('dispatch-update');
+    });
 
-use App\Http\Controllers\Admin\CityController;
+}); // end auth.admin middleware group
 
-Route::prefix('cities')->name('cities.')->group(function () {
-    Route::post('/datatable', [CityController::class, 'datatable'])->name('datatable');
-    Route::post('/bulk-import', [CityController::class, 'bulkImport'])->name('bulk-import');
-    Route::get('/create', [CityController::class, 'create'])->name('create');
-    Route::post('/', [CityController::class, 'store'])->name('store');
-    Route::get('/', [CityController::class, 'index'])->name('index');
-    Route::get('/{id}/edit', [CityController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [CityController::class, 'update'])->name('update');
-    Route::delete('/{id}', [CityController::class, 'destroy'])->name('destroy');
-});
-
-use App\Http\Controllers\Admin\CurrencyController;
-
-Route::prefix('currencies')->name('currencies.')->group(function () {
-    Route::get('/', [CurrencyController::class, 'index'])->name('index');
-    Route::get('/{code}/edit', [CurrencyController::class, 'edit'])->name('edit');
-    Route::put('/{code}', [CurrencyController::class, 'update'])->name('update');
-    Route::post('/dispatch-update', [CurrencyController::class, 'dispatchUpdate'])->name('dispatch-update');
-});

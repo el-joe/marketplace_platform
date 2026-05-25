@@ -40,13 +40,13 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'customers',
         ],
         'admin' => [
             'driver' => 'session',
             'provider' => 'admins',
         ],
-        'vendor_admin' => [
+        'vendor' => [
             'driver' => 'session',
             'provider' => 'vendor_admins',
         ],
@@ -70,13 +70,13 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'customers' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'model' => \App\Models\Customer::class,
         ],
         'admins' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_ADMIN_MODEL', \App\Models\Admin::class),
+            'model' => \App\Models\Admin::class,
         ],
         'vendor_admins' => [
             'driver' => 'eloquent',

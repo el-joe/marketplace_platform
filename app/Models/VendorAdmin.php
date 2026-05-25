@@ -12,6 +12,8 @@ class VendorAdmin extends Authenticatable
 {
     use HasUuids, SoftDeletes, Notifiable;
 
+    protected string $guard = 'vendor';
+
     protected $fillable = [
         'vendor_id',
         'name',

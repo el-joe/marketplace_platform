@@ -2,13 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Admin extends Model
+class Admin extends Authenticatable
 {
+    use HasUuids, Notifiable;
+
+    protected string $guard = 'admin';
+
     protected $fillable = [
         'name',
         'email',
@@ -19,6 +25,21 @@ class Admin extends Model
         'last_login_at',
         'last_login_ip',
     ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'last_login_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    // ── Relationships ──────────────────────────────────────────────────────────
 
     public function country(): BelongsTo
     {
@@ -43,5 +64,12 @@ class Admin extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(Activity::class, 'causer_id');
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    public function isAdmin(): bool
+    {
+        return true;
     }
 }
