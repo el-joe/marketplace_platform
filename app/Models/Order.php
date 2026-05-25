@@ -2,20 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids, SoftDeletes;
 
-    protected $casts = [
-        'shipping_address_snapshot' => 'array',
-        'billing_address_snapshot' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'shipping_address_snapshot' => 'array',
+            'billing_address_snapshot' => 'array',
+            'placed_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+        ];
+    }
 
     protected $fillable = [
         'id',

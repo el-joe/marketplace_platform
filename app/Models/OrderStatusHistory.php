@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderStatusHistory extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids;
 
-    protected $casts = [
-        'metadata' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+        ];
+    }
 
     protected $fillable = [
         'id',

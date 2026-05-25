@@ -2,14 +2,23 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PaymentTransaction extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids;
+
+    protected function casts(): array
+    {
+        return [
+            'raw_request' => 'array',
+            'raw_response' => 'array',
+            'processed_at' => 'datetime',
+        ];
+    }
 
     protected $fillable = [
         'id',

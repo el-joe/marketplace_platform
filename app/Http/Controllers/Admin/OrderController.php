@@ -3,62 +3,24 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Dispute;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\OrderStatusHistory;
-use App\Models\Refund;
 use App\Models\SubOrder;
+use App\Services\OrderInterventionService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class OrderController extends Controller
 {
     use HasDataTable;
 
-    // ── Sub-order status state machine ────────────────────────────────────────
-    private const STATUS_TRANSITIONS = [
-        'placed' => ['confirmed', 'cancelled'],
-        'confirmed' => ['processing', 'cancelled'],
-        'processing' => ['packed', 'cancelled'],
-        'packed' => ['shipped', 'cancelled'],
-        'shipped' => ['out_for_delivery', 'delivered'],
-        'out_for_delivery' => ['delivered'],
-        'delivered' => ['completed', 'returned'],
-        'completed' => [],
-        'cancelled' => [],
-        'returned' => ['refunded'],
-        'refunded' => [],
-    ];
-
-    private const STATUS_LABELS = [
-        'placed' => 'Placed',
-        'confirmed' => 'Confirmed',
-        'processing' => 'Processing',
-        'packed' => 'Packed',
-        'shipped' => 'Shipped',
-        'out_for_delivery' => 'Out for Delivery',
-        'delivered' => 'Delivered',
-        'completed' => 'Completed',
-        'cancelled' => 'Cancelled',
-        'returned' => 'Returned',
-        'refunded' => 'Refunded',
-    ];
-
-    // Sub-orders in these statuses block force-cancel unless overridden
-    private const BLOCK_CANCEL_STATUSES = [
-        'shipped',
-        'out_for_delivery',
-        'delivered',
-        'completed',
-        'returned',
-        'refunded',
-    ];
+    public function __construct(private readonly OrderInterventionService $interventionService)
+    {
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Index / Listing
@@ -179,7 +141,7 @@ class OrderController extends Controller
     {
         $subOrder = SubOrder::findOrFail($request->input('sub_order_id'));
 
-        $validTransitions = self::STATUS_TRANSITIONS[$subOrder->status] ?? [];
+        $validTransitions = OrderInterventionService::STATUS_TRANSITIONS[$subOrder->status] ?? [];
 
         $request->validate([
             'sub_order_id' => 'required|string',
@@ -187,30 +149,20 @@ class OrderController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
-        DB::beginTransaction();
         try {
-            $old = $subOrder->status;
-            $subOrder->update(['status' => $request->new_status]);
-
-            OrderStatusHistory::create([
-                'id' => (string) Str::uuid(),
-                'order_id' => $subOrder->order_id,
-                'sub_order_id' => $subOrder->id,
-                'from_status' => $old,
-                'to_status' => $request->new_status,
-                'changed_by_admin_id' => auth('admin')->id(),
-                'reason' => $request->reason,
-            ]);
-
-            DB::commit();
+            $this->interventionService->updateSubOrderStatus(
+                $subOrder,
+                $request->new_status,
+                $request->reason,
+                auth('admin')->id()
+            );
 
             return response()->json([
                 'success' => true,
-                'message' => 'Status updated to ' . (self::STATUS_LABELS[$request->new_status] ?? $request->new_status),
+                'message' => 'Status updated to ' . (OrderInterventionService::STATUS_LABELS[$request->new_status] ?? $request->new_status),
                 'new_status' => $request->new_status,
             ]);
         } catch (\Throwable $e) {
-            DB::rollBack();
             Log::error('SubOrder status update failed', ['error' => $e->getMessage()]);
             return response()->json(['message' => 'Update failed.'], 500);
         }
@@ -220,13 +172,9 @@ class OrderController extends Controller
     public function nextStatuses(string $id): JsonResponse
     {
         $subOrder = SubOrder::findOrFail($id);
-        $transitions = self::STATUS_TRANSITIONS[$subOrder->status] ?? [];
 
         return response()->json([
-            'data' => collect($transitions)->map(fn($s) => [
-                'value' => $s,
-                'label' => self::STATUS_LABELS[$s] ?? $s,
-            ])->values(),
+            'data' => $this->interventionService->getNextStatuses($subOrder),
         ]);
     }
 
@@ -236,65 +184,32 @@ class OrderController extends Controller
 
     public function forceCancel(Request $request, string $id): JsonResponse
     {
-        $order = Order::with('subOrders')->whereNull('deleted_at')->findOrFail($id);
+        $order = Order::with('subOrders')->findOrFail($id);
 
         $request->validate([
             'reason' => 'required|string|max:500',
             'force' => 'boolean',
         ]);
 
-        $force = $request->boolean('force', false);
-
-        $blocked = $order->subOrders->filter(
-            fn($so) => in_array($so->status, self::BLOCK_CANCEL_STATUSES)
-        );
-
-        if ($blocked->isNotEmpty() && !$force) {
-            return response()->json([
-                'message' => 'One or more sub-orders are already shipped/delivered. Set force=true to override.',
-                'blocked' => $blocked->pluck('sub_order_number')->values(),
-            ], 422);
-        }
-
-        DB::beginTransaction();
         try {
-            foreach ($order->subOrders as $subOrder) {
-                if (in_array($subOrder->status, ['cancelled', 'refunded'])) {
-                    continue;
-                }
-                $old = $subOrder->status;
-                $subOrder->update([
-                    'status' => 'cancelled',
-                    'cancelled_at' => now(),
-                    'cancellation_reason' => $request->reason,
-                ]);
-                OrderStatusHistory::create([
-                    'id' => (string) Str::uuid(),
-                    'order_id' => $order->id,
-                    'sub_order_id' => $subOrder->id,
-                    'from_status' => $old,
-                    'to_status' => 'cancelled',
-                    'changed_by_admin_id' => auth('admin')->id(),
-                    'reason' => '[Force Cancel] ' . $request->reason,
-                ]);
-            }
+            $this->interventionService->forceCancel(
+                $order,
+                $request->reason,
+                $request->boolean('force', false),
+                auth('admin')->id()
+            );
 
-            $originalOrderStatus = $order->status;
-            $order->update(['status' => 'cancelled', 'cancelled_at' => now()]);
-            OrderStatusHistory::create([
-                'id' => (string) Str::uuid(),
-                'order_id' => $order->id,
-                'sub_order_id' => null,
-                'from_status' => $originalOrderStatus,
-                'to_status' => 'cancelled',
-                'changed_by_admin_id' => auth('admin')->id(),
-                'reason' => '[Force Cancel] ' . $request->reason,
-            ]);
-
-            DB::commit();
             return response()->json(['success' => true, 'message' => 'Order force-cancelled successfully.']);
+        } catch (\RuntimeException $e) {
+            if (str_starts_with($e->getMessage(), 'blocked:')) {
+                return response()->json([
+                    'message' => 'One or more sub-orders are already shipped/delivered. Set force=true to override.',
+                    'blocked' => explode(',', substr($e->getMessage(), 8)),
+                ], 422);
+            }
+            Log::error('Force cancel failed', ['order' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['message' => 'Cancel failed.'], 500);
         } catch (\Throwable $e) {
-            DB::rollBack();
             Log::error('Force cancel failed', ['order' => $id, 'error' => $e->getMessage()]);
             return response()->json(['message' => 'Cancel failed.'], 500);
         }
@@ -306,7 +221,7 @@ class OrderController extends Controller
 
     public function processRefund(Request $request, string $id): JsonResponse
     {
-        $order = Order::with('transactions')->whereNull('deleted_at')->findOrFail($id);
+        $order = Order::with('transactions')->findOrFail($id);
 
         $request->validate([
             'refund_type' => 'required|in:full,partial,shipping_only',
@@ -317,38 +232,21 @@ class OrderController extends Controller
             'vendor_charged_back' => 'boolean',
         ]);
 
-        $capturedTx = $order->transactions->firstWhere('type', 'capture')
-            ?? $order->transactions->firstWhere('type', 'sale');
-
-        if (!$capturedTx) {
-            return response()->json(['message' => 'No captured transaction found to refund against.'], 422);
-        }
-
-        $amountCents = match ($request->refund_type) {
-            'full' => $order->total,
-            'shipping_only' => $order->shipping,
-            default => (int) round((float) $request->amount * 100),
-        };
-
         try {
-            Refund::create([
-                'id' => (string) Str::uuid(),
-                'order_id' => $order->id,
-                'sub_order_id' => $request->sub_order_id,
-                'original_transaction_id' => $capturedTx->id,
-                'refund_transaction_id' => null,
-                'amount' => $amountCents,
-                'currency' => $order->currency,
-                'reason' => $request->reason,
-                'reason_notes' => $request->reason_notes,
-                'refund_type' => $request->refund_type,
-                'initiated_by_customer_id' => $order->customer_id,
-                'approved_by_admin_id' => auth('admin')->id(),
-                'vendor_charged_back' => $request->boolean('vendor_charged_back'),
-                'status' => 'approved',
-            ]);
+            $this->interventionService->processRefund(
+                $order,
+                $request->refund_type,
+                $request->filled('amount') ? (float) $request->amount : null,
+                $request->reason,
+                $request->reason_notes,
+                $request->sub_order_id,
+                $request->boolean('vendor_charged_back'),
+                auth('admin')->id()
+            );
 
             return response()->json(['success' => true, 'message' => 'Refund queued for processing.']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => $e->errors()], 422);
         } catch (\Throwable $e) {
             Log::error('Refund creation failed', ['order' => $id, 'error' => $e->getMessage()]);
             return response()->json(['message' => 'Refund creation failed.'], 500);
@@ -361,7 +259,7 @@ class OrderController extends Controller
 
     public function escalateDispute(Request $request, string $id): JsonResponse
     {
-        $order = Order::whereNull('deleted_at')->findOrFail($id);
+        $order = Order::findOrFail($id);
 
         $request->validate([
             'sub_order_id' => 'required|string|exists:sub_orders,id',
@@ -369,21 +267,14 @@ class OrderController extends Controller
             'description' => 'required|string|max:2000',
         ]);
 
-        $subOrder = SubOrder::findOrFail($request->sub_order_id);
-
         try {
-            $dispute = Dispute::create([
-                'id' => (string) Str::uuid(),
-                'dispute_number' => 'DSP-' . strtoupper(Str::random(10)),
-                'order_id' => $order->id,
-                'sub_order_id' => $subOrder->id,
-                'customer_id' => $order->customer_id,
-                'vendor_id' => $subOrder->vendor_id,
-                'reason' => $request->reason,
-                'description' => $request->description,
-                'status' => 'escalated',
-                'assigned_to_admin_id' => auth('admin')->id(),
-            ]);
+            $dispute = $this->interventionService->escalateDispute(
+                $order,
+                $request->sub_order_id,
+                $request->reason,
+                $request->description,
+                auth('admin')->id()
+            );
 
             return response()->json([
                 'success' => true,
@@ -401,26 +292,12 @@ class OrderController extends Controller
 
     public function flagFraud(Request $request, string $id): JsonResponse
     {
-        $order = Order::whereNull('deleted_at')->findOrFail($id);
+        $order = Order::findOrFail($id);
 
         $request->validate(['reason' => 'required|string|max:500']);
 
         try {
-            DB::table('orders')->where('id', $id)->update([
-                'risk_score' => 100,
-                'updated_at' => now(),
-            ]);
-
-            OrderStatusHistory::create([
-                'id' => (string) Str::uuid(),
-                'order_id' => $order->id,
-                'sub_order_id' => null,
-                'from_status' => $order->status,
-                'to_status' => $order->status,
-                'changed_by_admin_id' => auth('admin')->id(),
-                'reason' => '[Fraud Flagged] ' . $request->reason,
-                'metadata' => ['action' => 'fraud_flagged'],
-            ]);
+            $this->interventionService->flagFraud($order, $request->reason, auth('admin')->id());
 
             return response()->json(['success' => true, 'message' => 'Order flagged as potential fraud.']);
         } catch (\Throwable $e) {

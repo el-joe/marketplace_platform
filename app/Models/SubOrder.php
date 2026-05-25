@@ -2,14 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SubOrder extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids;
+
+    protected function casts(): array
+    {
+        return [
+            'shipped_at' => 'datetime',
+            'delivered_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'estimated_delivery_date' => 'date',
+            'sla_ship_deadline' => 'datetime',
+            'sla_breached' => 'boolean',
+        ];
+    }
 
     protected $fillable = [
         'id',

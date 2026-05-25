@@ -2,18 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class OrderItem extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids;
 
-    protected $casts = [
-        'product_snapshot' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'product_snapshot' => 'array',
+            'return_eligible_until' => 'date',
+        ];
+    }
 
     protected $fillable = [
         'id',

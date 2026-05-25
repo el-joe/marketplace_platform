@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,8 +10,14 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Dispute extends Model
 {
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids;
+
+    protected function casts(): array
+    {
+        return [
+            'resolved_at' => 'datetime',
+        ];
+    }
 
     protected $fillable = [
         'id',
