@@ -141,12 +141,12 @@ class OrderController extends Controller
     {
         $subOrder = SubOrder::findOrFail($request->input('sub_order_id'));
 
-        $validTransitions = OrderInterventionService::STATUS_TRANSITIONS[$subOrder->status] ?? [];
+        $validTransitions = SubOrder::STATUS_TRANSITIONS[$subOrder->status] ?? [];
 
         $request->validate([
             'sub_order_id' => 'required|string',
-            'new_status' => ['required', 'in:' . implode(',', $validTransitions ?: ['__none__'])],
-            'reason' => 'required|string|max:500',
+            'new_status'   => ['required', 'in:' . implode(',', $validTransitions ?: ['__none__'])],
+            'reason'       => 'required|string|max:500',
         ]);
 
         try {
@@ -158,8 +158,8 @@ class OrderController extends Controller
             );
 
             return response()->json([
-                'success' => true,
-                'message' => 'Status updated to ' . (OrderInterventionService::STATUS_LABELS[$request->new_status] ?? $request->new_status),
+                'success'    => true,
+                'message'    => 'Status updated to ' . (SubOrder::STATUS_LABELS[$request->new_status] ?? $request->new_status),
                 'new_status' => $request->new_status,
             ]);
         } catch (\Throwable $e) {

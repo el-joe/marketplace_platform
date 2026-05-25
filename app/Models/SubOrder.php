@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasStateMachine;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,47 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SubOrder extends Model
 {
-    use HasUuids;
+    use HasUuids, HasStateMachine;
+
+    // ── State machine ─────────────────────────────────────────────────────────
+
+    public const STATUS_TRANSITIONS = [
+        'placed'           => ['confirmed', 'cancelled'],
+        'confirmed'        => ['processing', 'cancelled'],
+        'processing'       => ['packed', 'cancelled'],
+        'packed'           => ['shipped', 'cancelled'],
+        'shipped'          => ['out_for_delivery', 'delivered'],
+        'out_for_delivery' => ['delivered'],
+        'delivered'        => ['completed', 'returned'],
+        'completed'        => [],
+        'cancelled'        => [],
+        'returned'         => ['refunded'],
+        'refunded'         => [],
+    ];
+
+    public const STATUS_LABELS = [
+        'placed'           => 'Placed',
+        'confirmed'        => 'Confirmed',
+        'processing'       => 'Processing',
+        'packed'           => 'Packed',
+        'shipped'          => 'Shipped',
+        'out_for_delivery' => 'Out for Delivery',
+        'delivered'        => 'Delivered',
+        'completed'        => 'Completed',
+        'cancelled'        => 'Cancelled',
+        'returned'         => 'Returned',
+        'refunded'         => 'Refunded',
+    ];
+
+    /** Sub-orders in these statuses block force-cancel unless overridden. */
+    public const BLOCK_CANCEL_STATUSES = [
+        'shipped',
+        'out_for_delivery',
+        'delivered',
+        'completed',
+        'returned',
+        'refunded',
+    ];
 
     protected function casts(): array
     {

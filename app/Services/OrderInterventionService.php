@@ -14,45 +14,12 @@ use Illuminate\Validation\ValidationException;
 
 class OrderInterventionService
 {
-    // ── Sub-order status state machine ────────────────────────────────────────
-
-    public const STATUS_TRANSITIONS = [
-        'placed' => ['confirmed', 'cancelled'],
-        'confirmed' => ['processing', 'cancelled'],
-        'processing' => ['packed', 'cancelled'],
-        'packed' => ['shipped', 'cancelled'],
-        'shipped' => ['out_for_delivery', 'delivered'],
-        'out_for_delivery' => ['delivered'],
-        'delivered' => ['completed', 'returned'],
-        'completed' => [],
-        'cancelled' => [],
-        'returned' => ['refunded'],
-        'refunded' => [],
-    ];
-
-    public const STATUS_LABELS = [
-        'placed' => 'Placed',
-        'confirmed' => 'Confirmed',
-        'processing' => 'Processing',
-        'packed' => 'Packed',
-        'shipped' => 'Shipped',
-        'out_for_delivery' => 'Out for Delivery',
-        'delivered' => 'Delivered',
-        'completed' => 'Completed',
-        'cancelled' => 'Cancelled',
-        'returned' => 'Returned',
-        'refunded' => 'Refunded',
-    ];
-
-    // Sub-orders in these statuses block force-cancel unless overridden
-    public const BLOCK_CANCEL_STATUSES = [
-        'shipped',
-        'out_for_delivery',
-        'delivered',
-        'completed',
-        'returned',
-        'refunded',
-    ];
+    // State machine constants are canonical on SubOrder (via HasStateMachine).
+    // These aliases allow the service to be used as an authoritative reference
+    // by controllers that already type-hint this class.
+    public const STATUS_TRANSITIONS    = SubOrder::STATUS_TRANSITIONS;
+    public const STATUS_LABELS         = SubOrder::STATUS_LABELS;
+    public const BLOCK_CANCEL_STATUSES = SubOrder::BLOCK_CANCEL_STATUSES;
 
     // ─────────────────────────────────────────────────────────────────────────
     // State machine helpers
@@ -65,12 +32,7 @@ class OrderInterventionService
      */
     public function getNextStatuses(SubOrder $subOrder): Collection
     {
-        $transitions = self::STATUS_TRANSITIONS[$subOrder->status] ?? [];
-
-        return collect($transitions)->map(fn($s) => [
-            'value' => $s,
-            'label' => self::STATUS_LABELS[$s] ?? $s,
-        ])->values();
+        return $subOrder->getNextStatuses();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -88,9 +50,7 @@ class OrderInterventionService
         string $reason,
         string $adminId
     ): void {
-        $validTransitions = self::STATUS_TRANSITIONS[$subOrder->status] ?? [];
-
-        if (!in_array($newStatus, $validTransitions, true)) {
+        if (!$subOrder->canTransitionTo($newStatus)) {
             throw ValidationException::withMessages([
                 'new_status' => ["Status transition from '{$subOrder->status}' to '{$newStatus}' is not allowed."],
             ]);
@@ -144,9 +104,7 @@ class OrderInterventionService
     ): void {
         $order->loadMissing('subOrders');
 
-        $blocked = $order->subOrders->filter(
-            fn($so) => in_array($so->status, self::BLOCK_CANCEL_STATUSES, true)
-        );
+        $blocked = $order->subOrders->filter(fn ($so) => $so->blocksCancellation());
 
         if ($blocked->isNotEmpty() && !$force) {
             throw new \RuntimeException(
