@@ -2,11 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class LedgerEntry extends Model
 {
+    use HasUuids;
+
+    public static function boot(): void
+    {
+        parent::boot();
+        static::updating(static fn () => throw new \Exception('Ledger entries cannot be modified.'));
+        static::deleting(static fn () => throw new \Exception('Ledger entries cannot be deleted.'));
+    }
+
     protected $fillable = [
         'transaction_group_id',
         'account_type',

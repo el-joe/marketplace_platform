@@ -8,6 +8,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payout extends Model
 {
+    // bigint AUTO_INCREMENT — no HasUuids
+
+    protected function casts(): array
+    {
+        return [
+            'period_start' => 'date',
+            'period_end'   => 'date',
+            'processed_at' => 'datetime',
+        ];
+    }
+
     protected $fillable = [
         'payout_number',
         'vendor_id',

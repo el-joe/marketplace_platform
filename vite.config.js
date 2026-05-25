@@ -29,6 +29,7 @@ export default defineConfig({
                 'resources/js/admin/currencies.js',
                 'resources/js/admin/brands.js',
                 'resources/js/admin/vendors.js',
+                'resources/js/admin/payouts.js',
             ],
             refresh: [
                 'resources/views/**',

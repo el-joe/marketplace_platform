@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
@@ -215,6 +216,18 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{id}/flag-fraud', [OrderController::class, 'flagFraud'])->name('flag-fraud');
     });
     Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->name('sub-orders.next-statuses');
+    // ─── Payouts ──────────────────────────────────────────────────────────────────
+
+    Route::prefix('payouts')->name('payouts.')->group(function () {
+        Route::get('/', [PayoutController::class, 'index'])->name('index');
+        Route::post('/datatable', [PayoutController::class, 'datatable'])->name('datatable');
+        Route::get('/{payout}', [PayoutController::class, 'show'])->name('show');
+        Route::post('/{payout}/approve', [PayoutController::class, 'approve'])->name('approve');
+        Route::post('/{payout}/process', [PayoutController::class, 'process'])->name('process');
+        Route::post('/{payout}/hold', [PayoutController::class, 'hold'])->name('hold');
+        Route::post('/{payout}/recalculate', [PayoutController::class, 'recalculate'])->name('recalculate');
+    });
+
     // ─── Vendors ─────────────────────────────────────────────────────────────────
 
     Route::prefix('vendors')->name('vendors.')->group(function () {
