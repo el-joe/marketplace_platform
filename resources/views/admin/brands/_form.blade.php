@@ -28,9 +28,6 @@
             <h1 class="text-xl font-semibold text-gray-900">
                 {{ $isEdit ? 'Edit Brand: ' . e($brand->name_en) : 'New Brand' }}
             </h1>
-            @if(isset($breadcrumbs))
-                <x-breadcrumbs :items="$breadcrumbs" class="mt-1" />
-            @endif
         </div>
     </div>
 

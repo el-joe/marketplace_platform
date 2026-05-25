@@ -41,11 +41,11 @@
 
     <td class="px-4 py-2">
         @if($category->is_active && $category->is_visible)
-            <x-badge color="success" label="Active" />
+            <x-badge color="success">Active</x-badge>
         @elseif($category->is_active && !$category->is_visible)
-            <x-badge color="warning" label="Hidden" />
+            <x-badge color="warning">Hidden</x-badge>
         @else
-            <x-badge color="gray" label="Inactive" />
+            <x-badge color="gray">Inactive</x-badge>
         @endif
     </td>
 
