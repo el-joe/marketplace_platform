@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\PageBuilderController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CurrencyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -394,6 +395,18 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{code}/edit', [CurrencyController::class, 'edit'])->name('edit');
         Route::put('/{code}', [CurrencyController::class, 'update'])->name('update');
         Route::post('/dispatch-update', [CurrencyController::class, 'dispatchUpdate'])->name('dispatch-update');
+    });
+
+    // ─── Coupons ─────────────────────────────────────────────────────────────────
+    Route::prefix('coupons')->name('coupons.')->middleware('admin.permission:coupons.view')->group(function () {
+        Route::get('/create', [CouponController::class, 'create'])->name('create');
+        Route::post('/datatable', [CouponController::class, 'datatable'])->name('datatable');
+        Route::post('/bulk', [CouponController::class, 'bulkAction'])->name('bulk');
+        Route::get('/', [CouponController::class, 'index'])->name('index');
+        Route::post('/', [CouponController::class, 'store'])->name('store');
+        Route::get('/{coupon}/edit', [CouponController::class, 'edit'])->name('edit');
+        Route::put('/{coupon}', [CouponController::class, 'update'])->name('update');
+        Route::delete('/{coupon}', [CouponController::class, 'destroy'])->name('destroy');
     });
 
 }); // end auth.admin middleware group

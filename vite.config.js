@@ -32,6 +32,7 @@ export default defineConfig({
                 'resources/js/admin/payouts.js',
                 'resources/js/admin/flash-sales.js',
                 'resources/js/admin/page-builder.js',
+                'resources/js/admin/coupons.js',
             ],
             refresh: [
                 'resources/views/**',
