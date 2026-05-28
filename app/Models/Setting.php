@@ -27,7 +27,7 @@ class Setting extends Model
     {
         return [
             'is_encrypted' => 'boolean',
-            'is_public'    => 'boolean',
+            'is_public' => 'boolean',
         ];
     }
 
@@ -48,9 +48,12 @@ class Setting extends Model
     public function getValueType(): string
     {
         $v = json_decode($this->value);
-        if (is_bool($v))  return 'bool';
-        if (is_int($v) || is_float($v)) return 'number';
-        if (is_array($v) || is_object($v)) return 'array';
+        if (is_bool($v))
+            return 'bool';
+        if (is_int($v) || is_float($v))
+            return 'number';
+        if (is_array($v) || is_object($v))
+            return 'array';
         return 'string';
     }
 

@@ -26,11 +26,9 @@
         <div class="border-b border-gray-200 mb-6">
             <nav class="-mb-px flex gap-0 overflow-x-auto">
                 @foreach($settings->keys() as $category)
-                    <button
-                        @click="activeTab = '{{ $category }}'"
-                        :class="activeTab === '{{ $category }}'
-                            ? 'border-primary-600 text-primary-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    <button @click="activeTab = '{{ $category }}'" :class="activeTab === '{{ $category }}'
+                                    ? 'border-primary-600 text-primary-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                         class="shrink-0 border-b-2 px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap">
                         {{ ucfirst($category) }}
                     </button>
@@ -42,9 +40,7 @@
         @foreach($settings as $category => $categorySettings)
             <div x-show="activeTab === '{{ $category }}'" x-cloak>
 
-                <form class="js-settings-form"
-                      data-save-url="{{ route('admin.settings.update-group', $category) }}"
-                      novalidate>
+                <form class="js-settings-form" data-save-url="{{ route('admin.settings.update-group', $category) }}" novalidate>
                     @csrf
 
                     <x-card>
@@ -52,11 +48,11 @@
 
                             @foreach($categorySettings as $setting)
                                 @php
-                                    $valueType    = $setting->getValueType();
-                                    $typedValue   = $setting->getTypedValue();
-                                    $inputName    = "settings[{$setting->key}]";
-                                    $inputId      = "setting-{$setting->key}";
-                                    $labelText    = ucwords(str_replace('_', ' ', $setting->key));
+                                    $valueType = $setting->getValueType();
+                                    $typedValue = $setting->getTypedValue();
+                                    $inputName = "settings[{$setting->key}]";
+                                    $inputId = "setting-{$setting->key}";
+                                    $labelText = ucwords(str_replace('_', ' ', $setting->key));
                                 @endphp
 
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 py-5 first:pt-0 last:pb-0">
@@ -66,7 +62,8 @@
                                         <label for="{{ $inputId }}" class="block text-sm font-medium text-gray-800">
                                             {{ $labelText }}
                                             @if($setting->is_encrypted)
-                                                <span class="ml-1 inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">encrypted</span>
+                                                <span
+                                                    class="ml-1 inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">encrypted</span>
                                             @endif
                                         </label>
                                         @if($setting->description)
@@ -83,53 +80,36 @@
                                             <div class="w-full" x-data="{ reveal: false }">
                                                 <div x-show="!reveal" class="flex items-center gap-3">
                                                     <span class="text-sm text-gray-400 tracking-widest">●●●●●●●●</span>
-                                                    <button type="button"
-                                                            @click="reveal = true"
-                                                            class="text-xs text-primary-600 hover:underline">Update</button>
+                                                    <button type="button" @click="reveal = true"
+                                                        class="text-xs text-primary-600 hover:underline">Update</button>
                                                 </div>
                                                 <div x-show="reveal" x-cloak class="flex items-center gap-2">
-                                                    <input type="password"
-                                                           id="{{ $inputId }}"
-                                                           name="{{ $inputName }}"
-                                                           placeholder="Enter new value…"
-                                                           autocomplete="off"
-                                                           class="form-input w-full text-sm">
-                                                    <button type="button"
-                                                            @click="reveal = false"
-                                                            class="text-xs text-gray-500 hover:text-gray-700 shrink-0">Cancel</button>
+                                                    <input type="password" id="{{ $inputId }}" name="{{ $inputName }}"
+                                                        placeholder="Enter new value…" autocomplete="off"
+                                                        class="form-input w-full text-sm">
+                                                    <button type="button" @click="reveal = false"
+                                                        class="text-xs text-gray-500 hover:text-gray-700 shrink-0">Cancel</button>
                                                 </div>
                                             </div>
 
                                         @elseif($valueType === 'bool')
                                             {{-- Boolean toggle --}}
-                                            <x-form-toggle
-                                                :id="$inputId"
-                                                :name="$inputName"
-                                                :checked="(bool) $typedValue"
-                                                trueValue="1"
+                                            <x-form-toggle :id="$inputId" :name="$inputName" :checked="(bool) $typedValue" trueValue="1"
                                                 falseValue="0" />
 
                                         @elseif($valueType === 'number')
-                                            <input type="number"
-                                                   id="{{ $inputId }}"
-                                                   name="{{ $inputName }}"
-                                                   value="{{ $typedValue }}"
-                                                   step="{{ is_float($typedValue) ? '0.01' : '1' }}"
-                                                   class="form-input w-full sm:max-w-[16rem] text-sm">
+                                            <input type="number" id="{{ $inputId }}" name="{{ $inputName }}" value="{{ $typedValue }}"
+                                                step="{{ is_float($typedValue) ? '0.01' : '1' }}"
+                                                class="form-input w-full sm:max-w-[16rem] text-sm">
 
                                         @elseif($valueType === 'array')
-                                            <textarea id="{{ $inputId }}"
-                                                      name="{{ $inputName }}"
-                                                      rows="3"
-                                                      class="form-input w-full font-mono text-xs"
-                                                      placeholder="JSON array or object…">{{ json_encode($typedValue, JSON_PRETTY_PRINT) }}</textarea>
+                                            <textarea id="{{ $inputId }}" name="{{ $inputName }}" rows="3"
+                                                class="form-input w-full font-mono text-xs"
+                                                placeholder="JSON array or object…">{{ json_encode($typedValue, JSON_PRETTY_PRINT) }}</textarea>
 
                                         @else
-                                            <input type="text"
-                                                   id="{{ $inputId }}"
-                                                   name="{{ $inputName }}"
-                                                   value="{{ $typedValue }}"
-                                                   class="form-input w-full sm:max-w-sm text-sm">
+                                            <input type="text" id="{{ $inputId }}" name="{{ $inputName }}" value="{{ $typedValue }}"
+                                                class="form-input w-full sm:max-w-sm text-sm">
                                         @endif
 
                                     </div>
@@ -140,7 +120,8 @@
 
                         <div class="mt-6 pt-5 border-t border-gray-100 flex items-center justify-between gap-3">
                             <span class="text-xs text-gray-400">
-                                {{ $categorySettings->count() }} setting{{ $categorySettings->count() !== 1 ? 's' : '' }} in <strong>{{ $category }}</strong>
+                                {{ $categorySettings->count() }} setting{{ $categorySettings->count() !== 1 ? 's' : '' }} in
+                                <strong>{{ $category }}</strong>
                             </span>
                             <button type="submit" class="btn btn-primary btn-sm js-save-btn">
                                 Save {{ ucfirst($category) }} Settings

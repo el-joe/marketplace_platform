@@ -15,7 +15,8 @@ class CityImportJob implements ShouldQueue
     public function __construct(
         public readonly string $filePath,
         public readonly string $adminId,
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {

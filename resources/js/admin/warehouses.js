@@ -19,8 +19,8 @@ function initWarehousesTable() {
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
-                d.type       = document.getElementById('filter-type')?.value ?? '';
-                d.is_active  = document.getElementById('filter-status')?.value ?? '';
+                d.type = document.getElementById('filter-type')?.value ?? '';
+                d.is_active = document.getElementById('filter-status')?.value ?? '';
                 d.search.value = document.getElementById('search-input')?.value ?? '';
             },
         },

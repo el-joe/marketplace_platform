@@ -29,10 +29,10 @@ function initSettingsForms() {
             e.preventDefault();
 
             const saveBtn = form.querySelector('.js-save-btn');
-            const url     = form.dataset.saveUrl;
+            const url = form.dataset.saveUrl;
             if (!url) return;
 
-            const data    = {};
+            const data = {};
             const formData = new FormData(form);
 
             formData.forEach((value, key) => {
@@ -51,7 +51,7 @@ function initSettingsForms() {
             });
 
             const originalText = saveBtn.textContent;
-            saveBtn.disabled   = true;
+            saveBtn.disabled = true;
             saveBtn.textContent = 'Saving…';
 
             try {
@@ -61,7 +61,7 @@ function initSettingsForms() {
                 const msg = err?.message ?? err?.error ?? 'Failed to save settings.';
                 window.Toast?.error(msg);
             } finally {
-                saveBtn.disabled    = false;
+                saveBtn.disabled = false;
                 saveBtn.textContent = originalText;
             }
         });
@@ -83,22 +83,22 @@ function initActivityLogTable() {
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
-                d.log_name    = document.getElementById('filter-log-name')?.value ?? '';
-                d.event       = document.getElementById('filter-event')?.value ?? '';
+                d.log_name = document.getElementById('filter-log-name')?.value ?? '';
+                d.event = document.getElementById('filter-event')?.value ?? '';
                 d.causer_type = document.getElementById('filter-causer-type')?.value ?? '';
-                d.date_from   = document.getElementById('filter-date-from')?.value ?? '';
-                d.date_to     = document.getElementById('filter-date-to')?.value ?? '';
+                d.date_from = document.getElementById('filter-date-from')?.value ?? '';
+                d.date_to = document.getElementById('filter-date-to')?.value ?? '';
             },
         },
         columns: [
             { data: 'created_at', title: 'Time' },
-            { data: 'causer',     title: 'By', orderable: false },
-            { data: 'event',      title: 'Event' },
-            { data: 'subject',    title: 'Subject', orderable: false },
+            { data: 'causer', title: 'By', orderable: false },
+            { data: 'event', title: 'Event' },
+            { data: 'subject', title: 'Subject', orderable: false },
             { data: 'description', title: 'Description', orderable: false },
-            { data: 'log_name',   title: 'Log' },
+            { data: 'log_name', title: 'Log' },
             { data: 'ip_address', title: 'IP', orderable: false },
-            { data: 'actions',    title: '', orderable: false },
+            { data: 'actions', title: '', orderable: false },
         ],
         columnDefs: [{ targets: [1, 2, 3, 5, 7], searchable: false }],
         pageLength: 25,

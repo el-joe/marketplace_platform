@@ -45,9 +45,8 @@
     {{-- ─── Table ───────────────────────────────────────────────────────────── --}}
     <x-card>
         <div class="overflow-x-auto">
-            <table id="shipping-zones-table"
-                   data-url="{{ route('admin.shipping-zones.datatable') }}"
-                   class="w-full text-sm">
+            <table id="shipping-zones-table" data-url="{{ route('admin.shipping-zones.datatable') }}"
+                class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
                         <th class="pb-3 pr-4">Name</th>
@@ -70,14 +69,11 @@
             <input type="hidden" id="zone-method" value="POST">
 
             <div class="space-y-4">
-                <x-form-input
-                    id="zone-name"
-                    name="zone-name"
-                    label="Zone Name"
-                    required />
+                <x-form-input id="zone-name" name="zone-name" label="Zone Name" required />
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Country <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Country <span
+                            class="text-red-500">*</span></label>
                     <select id="zone-country" class="form-input w-full text-sm" required>
                         <option value="">Select country…</option>
                         @foreach($countries as $country)
@@ -86,10 +82,7 @@
                     </select>
                 </div>
 
-                <x-form-input
-                    id="zone-description"
-                    name="zone-description"
-                    label="Description" />
+                <x-form-input id="zone-description" name="zone-description" label="Description" />
 
                 <div class="flex items-center justify-between">
                     <label class="block text-sm font-medium text-gray-700">Active</label>
@@ -98,9 +91,8 @@
             </div>
 
             <div class="mt-6 flex justify-end gap-3">
-                <button type="button"
-                        onclick="document.getElementById('zone-modal').modal?.close()"
-                        class="btn btn-secondary">Cancel</button>
+                <button type="button" onclick="document.getElementById('zone-modal').modal?.close()"
+                    class="btn btn-secondary">Cancel</button>
                 <button type="submit" class="btn btn-primary" id="zone-submit-btn">Save Zone</button>
             </div>
         </form>
@@ -109,16 +101,17 @@
     {{-- ─── Assign Cities Modal ─────────────────────────────────────────────── --}}
     <x-modal id="assign-cities-modal" title="Assign Cities to Zone" size="lg">
         <div class="mb-4">
-            <p class="text-sm text-gray-600 mb-2">Assigning cities to: <strong id="assign-zone-name" class="text-gray-900"></strong></p>
+            <p class="text-sm text-gray-600 mb-2">Assigning cities to: <strong id="assign-zone-name"
+                    class="text-gray-900"></strong></p>
             <input type="text" id="assign-city-search" class="form-input w-full text-sm" placeholder="Search cities…">
         </div>
-        <div id="assign-cities-list" class="max-h-80 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+        <div id="assign-cities-list"
+            class="max-h-80 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
             <div class="p-4 text-sm text-gray-400 text-center">Select a zone first…</div>
         </div>
         <div class="mt-4 flex justify-end gap-3">
-            <button type="button"
-                    onclick="document.getElementById('assign-cities-modal').modal?.close()"
-                    class="btn btn-secondary">Cancel</button>
+            <button type="button" onclick="document.getElementById('assign-cities-modal').modal?.close()"
+                class="btn btn-secondary">Cancel</button>
             <button type="button" id="btn-confirm-assign" class="btn btn-primary">Assign Selected</button>
         </div>
     </x-modal>

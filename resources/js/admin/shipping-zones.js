@@ -35,7 +35,7 @@ function initShippingZonesTable() {
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
                 d.country_id = document.getElementById('filter-country')?.value ?? '';
-                d.is_active  = document.getElementById('filter-status')?.value ?? '';
+                d.is_active = document.getElementById('filter-status')?.value ?? '';
             },
         },
         columns: [
@@ -69,8 +69,8 @@ function initShippingZonesTable() {
 
 function openZoneModal(zone = null) {
     const modal = document.getElementById('zone-modal');
-    const form  = document.getElementById('zone-form');
-    const idEl  = document.getElementById('zone-id');
+    const form = document.getElementById('zone-form');
+    const idEl = document.getElementById('zone-id');
     const methodEl = document.getElementById('zone-method');
 
     // Reset
@@ -82,8 +82,8 @@ function openZoneModal(zone = null) {
     if (zone) {
         idEl.value = zone.id;
         methodEl.value = 'PUT';
-        document.getElementById('zone-name').value        = zone.name ?? '';
-        document.getElementById('zone-country').value     = zone.country_id ?? '';
+        document.getElementById('zone-name').value = zone.name ?? '';
+        document.getElementById('zone-country').value = zone.country_id ?? '';
         document.getElementById('zone-description').value = zone.description ?? '';
 
         // Toggle active state
@@ -103,11 +103,11 @@ function initZoneModal(dt) {
         const btn = e.target.closest('.js-edit-zone');
         if (!btn) return;
         openZoneModal({
-            id:          btn.dataset.id,
-            name:        btn.dataset.name,
+            id: btn.dataset.id,
+            name: btn.dataset.name,
             description: btn.dataset.description,
-            country_id:  btn.dataset.countryId,
-            isActive:    btn.dataset.isActive,
+            country_id: btn.dataset.countryId,
+            isActive: btn.dataset.isActive,
         });
     });
 
@@ -124,19 +124,19 @@ function initZoneModal(dt) {
     // Submit
     document.getElementById('zone-form')?.addEventListener('submit', async e => {
         e.preventDefault();
-        const id     = document.getElementById('zone-id').value;
+        const id = document.getElementById('zone-id').value;
         const method = document.getElementById('zone-method').value;
         const isActive = document.getElementById('zone-is-active');
 
         const payload = {
-            name:        document.getElementById('zone-name').value,
-            country_id:  document.getElementById('zone-country').value,
+            name: document.getElementById('zone-name').value,
+            country_id: document.getElementById('zone-country').value,
             description: document.getElementById('zone-description').value,
-            is_active:   isActive?.checked ? 1 : 0,
+            is_active: isActive?.checked ? 1 : 0,
         };
 
         const baseUrl = '/admin/shipping-zones';
-        const url     = id ? `${baseUrl}/${id}` : baseUrl;
+        const url = id ? `${baseUrl}/${id}` : baseUrl;
 
         const submitBtn = document.getElementById('zone-submit-btn');
         submitBtn.disabled = true;

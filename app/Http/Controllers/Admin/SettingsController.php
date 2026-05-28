@@ -46,7 +46,7 @@ class SettingsController extends Controller
 
         $filtered = array_filter(
             $request->input('settings', []),
-            fn ($key) => in_array($key, $validKeys, true),
+            fn($key) => in_array($key, $validKeys, true),
             ARRAY_FILTER_USE_KEY
         );
 
@@ -57,7 +57,7 @@ class SettingsController extends Controller
 
     private function persistSettings(array $incoming, string $adminId, ?string $category = null): JsonResponse
     {
-        $keys     = array_keys($incoming);
+        $keys = array_keys($incoming);
         $existing = Setting::whereIn('key', $keys)->get()->keyBy('key');
 
         $errors = [];
@@ -73,11 +73,11 @@ class SettingsController extends Controller
             // Coerce to the original PHP type so JSON storage stays consistent
             $originalDecoded = json_decode($setting->value);
             $typed = match (true) {
-                is_bool($originalDecoded)  => filter_var($rawValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $rawValue,
-                is_int($originalDecoded)   => (int) $rawValue,
+                is_bool($originalDecoded) => filter_var($rawValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $rawValue,
+                is_int($originalDecoded) => (int) $rawValue,
                 is_float($originalDecoded) => (float) $rawValue,
                 is_array($originalDecoded) || is_object($originalDecoded) => is_string($rawValue) ? json_decode($rawValue, true) ?? $rawValue : $rawValue,
-                default                    => (string) ($rawValue ?? ''),
+                default => (string) ($rawValue ?? ''),
             };
 
             // Encrypted: store Laravel-encrypted string inside JSON
@@ -86,9 +86,9 @@ class SettingsController extends Controller
                 : json_encode($typed);
 
             DB::table('settings')->where('key', $key)->update([
-                'value'               => $encoded,
+                'value' => $encoded,
                 'updated_by_admin_id' => $adminId,
-                'updated_at'          => now(),
+                'updated_at' => now(),
             ]);
         }
 

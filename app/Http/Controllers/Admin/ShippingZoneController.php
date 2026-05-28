@@ -35,8 +35,8 @@ class ShippingZoneController extends Controller
             ->select('shipping_zones.*', 'countries.name_en as country_name');
 
         $query = $this->applyFilters($query, $request, [
-            'country_id' => fn ($q, $v) => $q->where('shipping_zones.country_id', $v),
-            'is_active'  => fn ($q, $v) => $q->where('shipping_zones.is_active', (bool) $v),
+            'country_id' => fn($q, $v) => $q->where('shipping_zones.country_id', $v),
+            'is_active' => fn($q, $v) => $q->where('shipping_zones.is_active', (bool) $v),
         ]);
 
         $columns = [
@@ -49,20 +49,20 @@ class ShippingZoneController extends Controller
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function ($zone) {
-            $editUrl   = '#';
+            $editUrl = '#';
             $deleteUrl = route('admin.shipping-zones.destroy', $zone->id);
 
             return [
-                'DT_RowId'    => 'sz-' . $zone->id,
-                'DT_RowData'  => ['id' => $zone->id, 'name' => $zone->name, 'description' => $zone->description, 'country_id' => $zone->country_id, 'is_active' => (bool) $zone->is_active],
-                'name'        => '<span class="font-medium text-gray-900">' . e($zone->name) . '</span>',
-                'country'     => '<span class="text-sm text-gray-700">' . e($zone->country_name ?? '—') . '</span>',
+                'DT_RowId' => 'sz-' . $zone->id,
+                'DT_RowData' => ['id' => $zone->id, 'name' => $zone->name, 'description' => $zone->description, 'country_id' => $zone->country_id, 'is_active' => (bool) $zone->is_active],
+                'name' => '<span class="font-medium text-gray-900">' . e($zone->name) . '</span>',
+                'country' => '<span class="text-sm text-gray-700">' . e($zone->country_name ?? '—') . '</span>',
                 'description' => '<span class="text-sm text-gray-500">' . e(\Illuminate\Support\Str::limit($zone->description, 60)) . '</span>',
-                'cities_count'=> '<span class="tabular-nums">' . $zone->cities_count . '</span>',
-                'is_active'   => $zone->is_active
+                'cities_count' => '<span class="tabular-nums">' . $zone->cities_count . '</span>',
+                'is_active' => $zone->is_active
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Active</span>'
                     : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">Inactive</span>',
-                'actions'     => '<div class="flex items-center gap-1">'
+                'actions' => '<div class="flex items-center gap-1">'
                     . '<button class="btn btn-xs btn-secondary js-edit-zone"'
                     . ' data-id="' . e($zone->id) . '"'
                     . ' data-name="' . e($zone->name) . '"'
@@ -82,10 +82,10 @@ class ShippingZoneController extends Controller
         abort_unless($admin->hasPermissionTo('countries.view'), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:150',
-            'country_id'  => 'required|uuid|exists:countries,id',
+            'name' => 'required|string|max:150',
+            'country_id' => 'required|uuid|exists:countries,id',
             'description' => 'nullable|string|max:500',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         $zone = ShippingZone::create($data);
@@ -99,10 +99,10 @@ class ShippingZoneController extends Controller
         abort_unless($admin->hasPermissionTo('countries.view'), 403);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:150',
-            'country_id'  => 'required|uuid|exists:countries,id',
+            'name' => 'required|string|max:150',
+            'country_id' => 'required|uuid|exists:countries,id',
             'description' => 'nullable|string|max:500',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ]);
 
         $zone->update($data);
@@ -129,7 +129,7 @@ class ShippingZoneController extends Controller
         abort_unless($admin->hasPermissionTo('countries.view'), 403);
 
         $request->validate([
-            'city_ids'   => 'required|array|max:500',
+            'city_ids' => 'required|array|max:500',
             'city_ids.*' => 'uuid',
         ]);
 

@@ -21,11 +21,11 @@ class WarehouseController extends Controller
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
 
         $stats = [
-            'platform'       => Warehouse::where('type', 'platform_fbn')->count(),
-            'seller_owned'   => Warehouse::where('type', 'seller_owned')->count(),
-            'third_party'    => Warehouse::where('type', 'third_party')->count(),
+            'platform' => Warehouse::where('type', 'platform_fbn')->count(),
+            'seller_owned' => Warehouse::where('type', 'seller_owned')->count(),
+            'third_party' => Warehouse::where('type', 'third_party')->count(),
             'total_capacity' => Warehouse::sum('total_capacity_m3'),
-            'used_capacity'  => Warehouse::sum('used_capacity_m3'),
+            'used_capacity' => Warehouse::sum('used_capacity_m3'),
         ];
 
         return view('admin.warehouses.index', compact('stats'));
@@ -48,9 +48,9 @@ class WarehouseController extends Controller
             );
 
         $query = $this->applyFilters($query, $request, [
-            'type'       => fn ($q, $v) => $q->where('warehouses.type', $v),
-            'country_id' => fn ($q, $v) => $q->where('warehouses.country_id', $v),
-            'is_active'  => fn ($q, $v) => $q->where('warehouses.is_active', (bool) $v),
+            'type' => fn($q, $v) => $q->where('warehouses.type', $v),
+            'country_id' => fn($q, $v) => $q->where('warehouses.country_id', $v),
+            'is_active' => fn($q, $v) => $q->where('warehouses.is_active', (bool) $v),
         ]);
 
         $columns = [
@@ -69,11 +69,11 @@ class WarehouseController extends Controller
             $typeBadge = match ($wh->type) {
                 'platform_fbn' => 'bg-indigo-100 text-indigo-700',
                 'seller_owned' => 'bg-orange-100 text-orange-700',
-                'third_party'  => 'bg-gray-100 text-gray-600',
-                default        => 'bg-gray-100 text-gray-700',
+                'third_party' => 'bg-gray-100 text-gray-600',
+                default => 'bg-gray-100 text-gray-700',
             };
 
-            $usedPct  = $wh->total_capacity_m3 > 0 ? round($wh->used_capacity_m3 / $wh->total_capacity_m3 * 100) : 0;
+            $usedPct = $wh->total_capacity_m3 > 0 ? round($wh->used_capacity_m3 / $wh->total_capacity_m3 * 100) : 0;
             $barColor = $usedPct >= 90 ? 'bg-red-500' : ($usedPct >= 70 ? 'bg-warning-500' : 'bg-green-500');
 
             $showUrl = route('admin.warehouses.show', $wh->id);
@@ -81,18 +81,18 @@ class WarehouseController extends Controller
             $toggleUrl = route('admin.warehouses.toggle-active', $wh->id);
 
             return [
-                'DT_RowId'    => 'wh-' . $wh->id,
-                'name'        => '<a href="' . $showUrl . '" class="font-medium text-primary-600 hover:underline">' . e($wh->name) . '</a>',
-                'code'        => '<span class="font-mono text-xs text-gray-600">' . e($wh->code) . '</span>',
-                'type'        => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $typeBadge . '">' . e(str_replace('_', ' ', $wh->type)) . '</span>',
-                'country'     => '<span class="text-sm">' . e($wh->country_name ?? '—') . '</span>',
-                'vendor'      => $wh->owner_vendor_id ? '<span class="text-sm text-gray-700">' . e($wh->vendor_name) . '</span>' : '<span class="text-gray-300">—</span>',
-                'manager'     => $wh->manager_admin_id ? '<span class="text-sm text-gray-700">' . e($wh->manager_name) . '</span>' : '<span class="text-gray-300">—</span>',
-                'capacity'    => '<div class="flex items-center gap-2"><div class="flex-1 bg-gray-100 rounded-full h-2"><div class="h-2 rounded-full ' . $barColor . '" style="width:' . $usedPct . '%"></div></div><span class="text-xs tabular-nums text-gray-500 whitespace-nowrap">' . $usedPct . '%</span></div>',
-                'is_active'   => $wh->is_active
+                'DT_RowId' => 'wh-' . $wh->id,
+                'name' => '<a href="' . $showUrl . '" class="font-medium text-primary-600 hover:underline">' . e($wh->name) . '</a>',
+                'code' => '<span class="font-mono text-xs text-gray-600">' . e($wh->code) . '</span>',
+                'type' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $typeBadge . '">' . e(str_replace('_', ' ', $wh->type)) . '</span>',
+                'country' => '<span class="text-sm">' . e($wh->country_name ?? '—') . '</span>',
+                'vendor' => $wh->owner_vendor_id ? '<span class="text-sm text-gray-700">' . e($wh->vendor_name) . '</span>' : '<span class="text-gray-300">—</span>',
+                'manager' => $wh->manager_admin_id ? '<span class="text-sm text-gray-700">' . e($wh->manager_name) . '</span>' : '<span class="text-gray-300">—</span>',
+                'capacity' => '<div class="flex items-center gap-2"><div class="flex-1 bg-gray-100 rounded-full h-2"><div class="h-2 rounded-full ' . $barColor . '" style="width:' . $usedPct . '%"></div></div><span class="text-xs tabular-nums text-gray-500 whitespace-nowrap">' . $usedPct . '%</span></div>',
+                'is_active' => $wh->is_active
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Active</span>'
                     : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">Inactive</span>',
-                'actions'     => '<div class="flex items-center gap-1">'
+                'actions' => '<div class="flex items-center gap-1">'
                     . '<a href="' . $editUrl . '" class="btn btn-xs btn-secondary">Edit</a>'
                     . '<button class="btn btn-xs btn-ghost js-toggle-active" data-url="' . $toggleUrl . '" data-active="' . (int) $wh->is_active . '">' . ($wh->is_active ? 'Disable' : 'Enable') . '</button>'
                     . '</div>',
@@ -108,13 +108,13 @@ class WarehouseController extends Controller
         $warehouse->load(['country', 'ownerVendor', 'managerAdmin']);
 
         $inventoryStats = [
-            'total_skus'    => WarehouseInventory::where('warehouse_id', $warehouse->id)->count(),
-            'total_items'   => WarehouseInventory::where('warehouse_id', $warehouse->id)->sum('quantity_on_hand'),
-            'low_stock'     => WarehouseInventory::where('warehouse_id', $warehouse->id)
+            'total_skus' => WarehouseInventory::where('warehouse_id', $warehouse->id)->count(),
+            'total_items' => WarehouseInventory::where('warehouse_id', $warehouse->id)->sum('quantity_on_hand'),
+            'low_stock' => WarehouseInventory::where('warehouse_id', $warehouse->id)
                 ->whereColumn('quantity_available', '<=', 'reorder_point')
                 ->where('quantity_available', '>', 0)
                 ->count(),
-            'out_of_stock'  => WarehouseInventory::where('warehouse_id', $warehouse->id)
+            'out_of_stock' => WarehouseInventory::where('warehouse_id', $warehouse->id)
                 ->where('quantity_available', '<=', 0)
                 ->count(),
         ];
@@ -137,7 +137,7 @@ class WarehouseController extends Controller
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
 
         $countries = Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id');
-        $vendors   = Vendor::where('status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
+        $vendors = Vendor::where('status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
 
         return view('admin.warehouses.create', compact('countries', 'vendors'));
     }
@@ -160,7 +160,7 @@ class WarehouseController extends Controller
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
 
         $countries = Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id');
-        $vendors   = Vendor::where('status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
+        $vendors = Vendor::where('status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
 
         return view('admin.warehouses.edit', compact('warehouse', 'countries', 'vendors'));
     }
@@ -192,19 +192,19 @@ class WarehouseController extends Controller
     private function validateWarehouse(Request $request): array
     {
         return $request->validate([
-            'name'                      => 'required|string|max:150',
-            'code'                      => 'required|string|max:20',
-            'type'                      => 'required|in:platform_fbn,seller_owned,third_party',
-            'country_id'                => 'required|uuid|exists:countries,id',
-            'owner_vendor_id'           => 'nullable|uuid|exists:vendors,id',
-            'manager_admin_id'          => 'nullable|uuid|exists:admins,id',
-            'latitude'                  => 'nullable|numeric',
-            'longitude'                 => 'nullable|numeric',
-            'total_capacity_m3'         => 'nullable|numeric|min:0',
-            'used_capacity_m3'          => 'nullable|numeric|min:0',
+            'name' => 'required|string|max:150',
+            'code' => 'required|string|max:20',
+            'type' => 'required|in:platform_fbn,seller_owned,third_party',
+            'country_id' => 'required|uuid|exists:countries,id',
+            'owner_vendor_id' => 'nullable|uuid|exists:vendors,id',
+            'manager_admin_id' => 'nullable|uuid|exists:admins,id',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'total_capacity_m3' => 'nullable|numeric|min:0',
+            'used_capacity_m3' => 'nullable|numeric|min:0',
             'storage_rate_per_m3_price' => 'nullable|integer|min:0',
-            'storage_currency'          => 'nullable|string|size:3',
-            'is_active'                 => 'boolean',
+            'storage_currency' => 'nullable|string|size:3',
+            'is_active' => 'boolean',
         ]);
     }
 }

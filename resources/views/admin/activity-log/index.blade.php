@@ -67,9 +67,7 @@
     {{-- ─── Table ───────────────────────────────────────────────────────────── --}}
     <x-card>
         <div class="overflow-x-auto">
-            <table id="activity-log-table"
-                   data-url="{{ route('admin.activity-log.datatable') }}"
-                   class="w-full text-sm">
+            <table id="activity-log-table" data-url="{{ route('admin.activity-log.datatable') }}" class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
                         <th class="pb-3 pr-4 whitespace-nowrap">Time</th>

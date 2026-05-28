@@ -29,11 +29,9 @@
             iconBg="bg-indigo-100 text-indigo-600" />
         <x-stat-card title="Seller-Owned" :value="number_format($stats['seller_owned'])"
             iconBg="bg-orange-100 text-orange-600" />
-        <x-stat-card title="Third-Party" :value="number_format($stats['third_party'])"
-            iconBg="bg-gray-100 text-gray-500" />
+        <x-stat-card title="Third-Party" :value="number_format($stats['third_party'])" iconBg="bg-gray-100 text-gray-500" />
         <x-stat-card title="Total Capacity" :value="number_format($stats['total_capacity'], 1) . ' m³'"
-            iconBg="bg-teal-100 text-teal-600"
-            :subtitle="$totalPct . '% used'" />
+            iconBg="bg-teal-100 text-teal-600" :subtitle="$totalPct . '% used'" />
     </div>
 
     {{-- ─── Filter bar ──────────────────────────────────────────────────────── --}}
@@ -41,7 +39,8 @@
         <div class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[160px]">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Search name / code</label>
-                <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="Warehouse name or code…">
+                <input type="text" id="search-input" class="form-input w-full text-sm"
+                    placeholder="Warehouse name or code…">
             </div>
             <div class="w-44">
                 <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
@@ -67,9 +66,7 @@
     {{-- ─── Table ───────────────────────────────────────────────────────────── --}}
     <x-card>
         <div class="overflow-x-auto">
-            <table id="warehouses-table"
-                   data-url="{{ route('admin.warehouses.datatable') }}"
-                   class="w-full text-sm">
+            <table id="warehouses-table" data-url="{{ route('admin.warehouses.datatable') }}" class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
                         <th class="pb-3 pr-4">Name</th>

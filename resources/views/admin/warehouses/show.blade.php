@@ -18,9 +18,10 @@
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.warehouses.edit', $warehouse->id) }}" class="btn btn-secondary btn-sm">Edit</a>
-            <button class="btn btn-sm js-toggle-active {{ $warehouse->is_active ? 'btn-ghost text-red-500' : 'btn-primary' }}"
-                    data-url="{{ route('admin.warehouses.toggle-active', $warehouse->id) }}"
-                    data-active="{{ (int) $warehouse->is_active }}">
+            <button
+                class="btn btn-sm js-toggle-active {{ $warehouse->is_active ? 'btn-ghost text-red-500' : 'btn-primary' }}"
+                data-url="{{ route('admin.warehouses.toggle-active', $warehouse->id) }}"
+                data-active="{{ (int) $warehouse->is_active }}">
                 {{ $warehouse->is_active ? 'Deactivate' : 'Activate' }}
             </button>
         </div>
@@ -39,7 +40,7 @@
                             $typeBadge = match ($warehouse->type) {
                                 'platform_fbn' => 'bg-indigo-100 text-indigo-700',
                                 'seller_owned' => 'bg-orange-100 text-orange-700',
-                                default        => 'bg-gray-100 text-gray-600',
+                                default => 'bg-gray-100 text-gray-600',
                             };
                         @endphp
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $typeBadge }}">
@@ -56,7 +57,7 @@
                     <dd class="mt-0.5">
                         @if($warehouse->ownerVendor)
                             <a href="{{ route('admin.vendors.show', $warehouse->owner_vendor_id) }}"
-                               class="text-primary-600 hover:underline">
+                                class="text-primary-600 hover:underline">
                                 {{ $warehouse->ownerVendor->store_name }}
                             </a>
                         @else
@@ -87,9 +88,11 @@
                     <dt class="text-xs text-gray-500">Status</dt>
                     <dd class="mt-0.5">
                         @if($warehouse->is_active)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Active</span>
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Active</span>
                         @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">Inactive</span>
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">Inactive</span>
                         @endif
                     </dd>
                 </div>
@@ -166,9 +169,9 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($inventory as $item)
                         @php
-                            $isLow     = $item->quantity_available <= $item->reorder_point && $item->quantity_available > 0;
-                            $isOut     = $item->quantity_available <= 0;
-                            $rowClass  = $isOut ? 'bg-red-50' : ($isLow ? 'bg-yellow-50' : '');
+                            $isLow = $item->quantity_available <= $item->reorder_point && $item->quantity_available > 0;
+                            $isOut = $item->quantity_available <= 0;
+                            $rowClass = $isOut ? 'bg-red-50' : ($isLow ? 'bg-yellow-50' : '');
                         @endphp
                         <tr class="{{ $rowClass }}">
                             <td class="py-2.5 pr-4">
@@ -188,13 +191,15 @@
                             <td class="py-2.5 pr-4 text-right tabular-nums text-gray-500">
                                 {{ number_format($item->quantity_reserved) }}
                             </td>
-                            <td class="py-2.5 pr-4 text-right tabular-nums font-medium {{ $isOut ? 'text-red-600' : ($isLow ? 'text-yellow-700' : 'text-gray-900') }}">
+                            <td
+                                class="py-2.5 pr-4 text-right tabular-nums font-medium {{ $isOut ? 'text-red-600' : ($isLow ? 'text-yellow-700' : 'text-gray-900') }}">
                                 {{ number_format($item->quantity_available) }}
                             </td>
                             <td class="py-2.5 pr-4 text-right tabular-nums text-teal-600">
                                 {{ $item->quantity_inbound > 0 ? number_format($item->quantity_inbound) : '—' }}
                             </td>
-                            <td class="py-2.5 pr-4 text-right tabular-nums {{ $item->quantity_damaged > 0 ? 'text-red-500' : 'text-gray-400' }}">
+                            <td
+                                class="py-2.5 pr-4 text-right tabular-nums {{ $item->quantity_damaged > 0 ? 'text-red-500' : 'text-gray-400' }}">
                                 {{ $item->quantity_damaged > 0 ? number_format($item->quantity_damaged) : '—' }}
                             </td>
                             <td class="py-2.5 text-right tabular-nums text-xs text-gray-400">
@@ -222,32 +227,32 @@
 @endsection
 
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Toggle active button on show page
-    document.querySelector('.js-toggle-active')?.addEventListener('click', async function () {
-        const btn = this;
-        const isActive = parseInt(btn.dataset.active, 10);
-        if (!confirm(isActive ? 'Deactivate this warehouse?' : 'Activate this warehouse?')) return;
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Toggle active button on show page
+            document.querySelector('.js-toggle-active')?.addEventListener('click', async function () {
+                const btn = this;
+                const isActive = parseInt(btn.dataset.active, 10);
+                if (!confirm(isActive ? 'Deactivate this warehouse?' : 'Activate this warehouse?')) return;
 
-        try {
-            const res = await fetch(btn.dataset.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                },
-                body: JSON.stringify({}),
+                try {
+                    const res = await fetch(btn.dataset.url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        },
+                        body: JSON.stringify({}),
+                    });
+                    const json = await res.json();
+                    if (!res.ok) throw json;
+                    window.Toast?.success(json.message);
+                    setTimeout(() => location.reload(), 800);
+                } catch (e) {
+                    window.Toast?.error(e.message ?? 'Request failed.');
+                }
             });
-            const json = await res.json();
-            if (!res.ok) throw json;
-            window.Toast?.success(json.message);
-            setTimeout(() => location.reload(), 800);
-        } catch (e) {
-            window.Toast?.error(e.message ?? 'Request failed.');
-        }
-    });
-});
-</script>
+        });
+    </script>
 @endpush
