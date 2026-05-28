@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\SupportTicketController;
+use App\Http\Controllers\Admin\DisputeController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\CustomerController;
@@ -271,73 +272,51 @@ Route::middleware('auth.admin')->group(function () {
 
     Route::prefix('page-builder')->name('page-builder.')->middleware('admin.permission:pages.view')->group(function () {
 
-        // Pages listing & CRUD
+        // Builder UI
         Route::get('/', [PageBuilderController::class, 'index'])->name('index');
-        Route::post('/datatable', [PageBuilderController::class, 'datatable'])->name('datatable');
-        Route::get('/create', [PageBuilderController::class, 'create'])->name('create');
-        Route::post('/store', [PageBuilderController::class, 'store'])->name('store');
+        Route::get('/load', [PageBuilderController::class, 'loadPage'])->name('load');
 
-        // Block-level routes (before /{page} wildcard)
-        Route::post('/blocks/{block}/toggle-visibility', [PageBuilderController::class, 'blockToggleVisibility'])->name('blocks.toggle');
-        Route::put('/blocks/{block}', [PageBuilderController::class, 'blockUpdate'])->name('blocks.update');
-        Route::delete('/blocks/{block}', [PageBuilderController::class, 'blockDestroy'])->name('blocks.destroy');
-        Route::get('/blocks/{block}/revisions', [PageBuilderController::class, 'blockRevisions'])->name('blocks.revisions');
+        // Pages
+        Route::post('/pages', [PageBuilderController::class, 'createPage'])->name('pages.create');
+        Route::post('/publish', [PageBuilderController::class, 'publishPage'])->name('publish');
+        Route::get('/pages/{page}/revisions', [PageBuilderController::class, 'getPageRevisions'])->name('pages.revisions');
+        Route::post('/page-revisions/{revision}/restore', [PageBuilderController::class, 'restorePageRevision'])->name('page-revisions.restore');
+
+        // Blocks
+        Route::post('/blocks', [PageBuilderController::class, 'addBlock'])->name('blocks.add');
+        Route::get('/blocks/{block}/config', [PageBuilderController::class, 'getBlockConfig'])->name('blocks.get-config');
+        Route::post('/blocks/{block}/config', [PageBuilderController::class, 'updateBlockConfig'])->name('blocks.config');
+        Route::post('/blocks/{block}/visibility', [PageBuilderController::class, 'updateBlockVisibility'])->name('blocks.visibility');
+        Route::delete('/blocks/{block}', [PageBuilderController::class, 'removeBlock'])->name('blocks.remove');
+        Route::post('/reorder', [PageBuilderController::class, 'reorderBlocks'])->name('reorder');
+
+        // Block revisions
+        Route::get('/blocks/{block}/revisions', [PageBuilderController::class, 'getRevisions'])->name('blocks.revisions');
+        Route::post('/revisions/{revision}/restore', [PageBuilderController::class, 'restoreBlockRevision'])->name('revisions.restore');
+
+        // Config form partials
+        Route::get('/config-form', [PageBuilderController::class, 'configFormPartial'])->name('config-form');
 
         // Slides
-        Route::get(
-            '/blocks/{block}/slides',
-            fn(\App\Models\PageBlock $block) =>
-            response()->json(['slides' => $block->slides()->with(['desktopFile', 'mobileFile'])->orderBy('position')->get()->map(fn($s) => app(PageBuilderController::class)->serializeSlidePublic($s))])
-        )->name('blocks.slides.index');
-        Route::post('/blocks/{block}/slides', [PageBuilderController::class, 'slideStore'])->name('blocks.slides.store');
-        Route::post('/blocks/{block}/slides/reorder', [PageBuilderController::class, 'slidesReorder'])->name('blocks.slides.reorder');
-        Route::get(
-            '/slides/{slide}',
-            fn(\App\Models\SliderSlide $slide) =>
-            response()->json(['slide' => $slide->load(['desktopFile', 'mobileFile'])->toArray()])
-        )->name('slides.show');
-        Route::put('/slides/{slide}', [PageBuilderController::class, 'slideUpdate'])->name('slides.update');
-        Route::delete('/slides/{slide}', [PageBuilderController::class, 'slideDestroy'])->name('slides.destroy');
+        Route::get('/blocks/{block}/slides', [PageBuilderController::class, 'getSlides'])->name('slides.list');
+        Route::post('/blocks/{block}/slides', [PageBuilderController::class, 'saveSlide'])->name('slides.save');
+        Route::delete('/slides/{slide}', [PageBuilderController::class, 'deleteSlide'])->name('slides.delete');
+        Route::post('/blocks/{block}/slides/reorder', [PageBuilderController::class, 'reorderSlides'])->name('slides.reorder');
 
-        // Ad Images
-        Route::get(
-            '/blocks/{block}/ad-images',
-            fn(\App\Models\PageBlock $block) =>
-            response()->json(['items' => $block->adImageItems()->with('file')->orderBy('position')->get()->map(fn($i) => app(PageBuilderController::class)->serializeAdImagePublic($i))])
-        )->name('blocks.ad-images.index');
-        Route::post('/blocks/{block}/ad-images', [PageBuilderController::class, 'adImageStore'])->name('blocks.ad-images.store');
-        Route::post('/blocks/{block}/ad-images/reorder', [PageBuilderController::class, 'adImagesReorder'])->name('blocks.ad-images.reorder');
-        Route::get(
-            '/ad-images/{item}',
-            fn(\App\Models\AdImageItem $item) =>
-            response()->json(['item' => $item->load('file')->toArray()])
-        )->name('ad-images.show');
-        Route::put('/ad-images/{item}', [PageBuilderController::class, 'adImageUpdate'])->name('ad-images.update');
-        Route::delete('/ad-images/{item}', [PageBuilderController::class, 'adImageDestroy'])->name('ad-images.destroy');
+        // Ad images
+        Route::get('/blocks/{block}/ad-images', [PageBuilderController::class, 'getAdImages'])->name('ad-images.list');
+        Route::post('/blocks/{block}/ad-images', [PageBuilderController::class, 'saveAdImage'])->name('ad-images.save');
+        Route::delete('/ad-images/{adImage}', [PageBuilderController::class, 'deleteAdImage'])->name('ad-images.delete');
 
-        // Block Products
-        Route::get(
-            '/blocks/{block}/products',
-            fn(\App\Models\PageBlock $block) =>
-            response()->json(['items' => $block->blockProducts()->with('productVariant.product')->orderBy('position')->get()->map(fn($p) => ['id' => $p->id, 'variant_id' => $p->product_variant_id, 'name' => $p->productVariant?->product?->name_en ?? '—', 'position' => $p->position])])
-        )->name('blocks.products.index');
-        Route::post('/blocks/{block}/products', [PageBuilderController::class, 'blockProductStore'])->name('blocks.products.store');
-        Route::post('/blocks/{block}/products/reorder', [PageBuilderController::class, 'blockProductsReorder'])->name('blocks.products.reorder');
-        Route::delete('/products/{blockProduct}', [PageBuilderController::class, 'blockProductDestroy'])->name('products.destroy');
+        // Search (for manual selectors)
+        Route::get('/search/products', [PageBuilderController::class, 'searchProducts'])->name('search.products');
+        Route::get('/search/categories', [PageBuilderController::class, 'searchCategories'])->name('search.categories');
+        Route::get('/search/brands', [PageBuilderController::class, 'searchBrands'])->name('search.brands');
 
-        // Sections
-        Route::post('/sections/{section}', [PageBuilderController::class, 'sectionUpdate'])->name('sections.update');   // POST + _method=PUT
-        Route::delete('/sections/{section}', [PageBuilderController::class, 'sectionDestroy'])->name('sections.destroy');
-
-        // Pages (wildcard last)
-        Route::get('/{page}/edit', [PageBuilderController::class, 'edit'])->name('edit');
-        Route::put('/{page}', [PageBuilderController::class, 'update'])->name('update');
-        Route::post('/{page}/publish', [PageBuilderController::class, 'publish'])->name('publish');
-        Route::post('/{page}/clone', [PageBuilderController::class, 'clone'])->name('clone');
-        Route::delete('/{page}', [PageBuilderController::class, 'destroy'])->name('destroy');
-        Route::post('/{page}/blocks', [PageBuilderController::class, 'blockStore'])->name('blocks.store');
-        Route::post('/{page}/blocks/reorder', [PageBuilderController::class, 'blocksReorder'])->name('blocks.reorder');
-        Route::post('/{page}/sections', [PageBuilderController::class, 'sectionStore'])->name('sections.store');
+        // Block product pickers
+        Route::post('/blocks/{block}/products', [PageBuilderController::class, 'addBlockProduct'])->name('products.add');
+        Route::delete('/block-products/{blockProduct}', [PageBuilderController::class, 'removeBlockProduct'])->name('products.remove');
+        Route::post('/blocks/{block}/products/reorder', [PageBuilderController::class, 'reorderBlockProducts'])->name('products.reorder');
     });
 
     // ─── Vendors ─────────────────────────────────────────────────────────────────
@@ -438,6 +417,18 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{ticket}/assign-me', [SupportTicketController::class, 'assignMe'])->name('assign-me');
         Route::post('/{ticket}/update-status', [SupportTicketController::class, 'updateStatus'])->name('update-status');
         Route::post('/{ticket}/update-priority', [SupportTicketController::class, 'updatePriority'])->name('update-priority');
+    });
+
+    // ─── Disputes ─────────────────────────────────────────────────────────────────
+    Route::prefix('disputes')->name('disputes.')->middleware('admin.permission:disputes.view')->group(function () {
+        Route::post('/datatable', [DisputeController::class, 'datatable'])->name('datatable');
+        Route::get('/', [DisputeController::class, 'index'])->name('index');
+        Route::get('/{dispute}', [DisputeController::class, 'show'])->name('show');
+        Route::post('/{dispute}/reply', [DisputeController::class, 'reply'])->name('reply');
+        Route::post('/{dispute}/assign', [DisputeController::class, 'assign'])->name('assign');
+        Route::post('/{dispute}/assign-me', [DisputeController::class, 'assignMe'])->name('assign-me');
+        Route::post('/{dispute}/update-status', [DisputeController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{dispute}/resolve', [DisputeController::class, 'resolve'])->name('resolve');
     });
 
     // ─── Stop Impersonating (no extra permission required, just auth) ─────────────
@@ -594,6 +585,7 @@ Route::middleware('auth.admin')->group(function () {
     // ─── Activity Log ─────────────────────────────────────────────────────────
     Route::prefix('activity-log')->name('activity-log.')->middleware('admin.permission:activity-log.view')->group(function () {
         Route::post('/datatable', [ActivityLogController::class, 'datatable'])->name('datatable');
+        Route::get('/causer-search', [ActivityLogController::class, 'causerSearch'])->name('causer-search');
         Route::get('/', [ActivityLogController::class, 'index'])->name('index');
         Route::get('/{id}', [ActivityLogController::class, 'show'])->name('show');
     });

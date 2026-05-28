@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class Customer extends Authenticatable implements MustVerifyEmail
 {
-    use HasUuids, Notifiable;
+    use HasUuids, Notifiable, HasApiTokens;
 
     protected string $guard = 'web';
 

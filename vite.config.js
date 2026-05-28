@@ -46,6 +46,7 @@ export default defineConfig({
                 'resources/js/admin/warehouses.js',
                 'resources/js/admin/support-tickets.js',
                 'resources/js/admin/analytics.js',
+                'resources/js/admin/activity-log.js',
             ],
             refresh: [
                 'resources/views/**',

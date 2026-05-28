@@ -5,370 +5,285 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AdImageItem;
 use App\Models\BlockType;
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Country;
 use App\Models\Page;
 use App\Models\PageBlock;
 use App\Models\PageBlockProduct;
-use App\Models\PageSection;
+use App\Models\PageBlockRevision;
+use App\Models\PageRevision;
+use App\Models\ProductVariant;
 use App\Models\SliderSlide;
 use App\Services\PageBuilderService;
-use App\Traits\HasDataTable;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\View;
 
 class PageBuilderController extends Controller
 {
-    use HasDataTable;
-
-    public function __construct(
-        private readonly PageBuilderService $pageBuilder
-    ) {
+    public function __construct(private PageBuilderService $service)
+    {
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Pages: index / datatable
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // UI
+    // ─────────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index()
     {
-        return view('admin.page-builder.index', [
-            'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Page Builder'],
-            ],
-        ]);
-    }
+        $pages = Page::orderByDesc('updated_at')
+            ->get(['id', 'name', 'slug', 'page_type', 'country_id', 'status', 'version']);
 
-    public function datatable(Request $request): JsonResponse
-    {
-        $columns = [
-            ['searchable_columns' => ['pages.name']],
-            ['searchable_columns' => ['pages.page_type']],
-            ['searchable_columns' => ['pages.slug']],
-            [],
-            [],
-            ['orderable_column' => 'pages.status'],
-            ['orderable_column' => 'pages.updated_at'],
-        ];
-
-        $query = Page::query()
-            ->leftJoin('countries as c', 'c.id', '=', 'pages.country_id')
-            ->leftJoin('admins as a', 'a.id', '=', 'pages.last_edited_by_admin_id')
-            ->select([
-                'pages.id',
-                'pages.name',
-                'pages.page_type',
-                'pages.slug',
-                'pages.status',
-                'pages.version',
-                'pages.is_default',
-                'pages.publish_at',
-                'pages.published_at',
-                'pages.updated_at',
-                'c.name_en as country_name',
-                'a.name as editor_name',
-            ]);
-
-        $query = $this->applyFilters($query, $request, [
-            'status' => fn($q, $v) => $q->where('pages.status', $v),
-            'page_type' => fn($q, $v) => $q->where('pages.page_type', $v),
-            'country_id' => fn($q, $v) => $q->where('pages.country_id', $v),
-        ]);
-
-        return $this->dataTableResponse($request, $query, $columns, function ($row) {
-            return [
-                'id' => $row->id,
-                'name' => e($row->name),
-                'page_type' => $row->page_type,
-                'slug' => e($row->slug),
-                'status' => $row->status,
-                'version' => $row->version,
-                'country_name' => e($row->country_name ?? 'All'),
-                'editor_name' => e($row->editor_name ?? '—'),
-                'published_at' => $row->published_at,
-                'updated_at' => $row->updated_at,
-                'show_url' => route('admin.page-builder.edit', $row->id),
-            ];
-        });
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Pages: create / store
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function create(): View
-    {
-        return view('admin.page-builder.create', [
-            'countries' => Country::orderBy('name_en')->get(),
-            'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Page Builder', 'url' => route('admin.page-builder.index')],
-                ['label' => 'New Page'],
-            ],
-        ]);
-    }
-
-    public function store(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:150',
-            'slug' => 'required|string|max:255',
-            'page_type' => 'required|string|in:home,category,brand,landing,campaign,custom',
-            'country_id' => 'required|uuid|exists:countries,id',
-            'reference_id' => 'nullable|uuid',
-            'is_default' => 'boolean',
-            'seo_title' => 'nullable|string|max:255',
-            'seo_description' => 'nullable|string|max:500',
-        ]);
-
-        $admin = auth('admin')->user();
-        $page = $this->pageBuilder->createPage($validated, $admin);
-
-        return response()->json([
-            'message' => 'Page created.',
-            'redirect' => route('admin.page-builder.edit', $page->id),
-        ]);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Pages: edit (visual editor)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function edit(Page $page): View
-    {
-        $page->load([
-            'country',
-            'sections',
-            'blocks.slides.desktopFile',
-            'blocks.slides.mobileFile',
-            'blocks.adImageItems.file',
-            'blocks.blockProducts.productVariant.product',
-            'blocks.blockCategories.category',
-            'publishedByAdmin',
-            'lastEditedByAdmin',
-        ]);
+        $countries = Country::orderBy('name_en')->get(['id', 'name_en', 'site_code']);
 
         $blockTypes = BlockType::where('is_active', true)
             ->orderBy('sort_order')
             ->get()
             ->groupBy('group');
 
-        $categories = Category::where('depth', '<=', 1)
-            ->orderBy('name_en')
-            ->get(['id', 'name_en']);
-
-        return view('admin.page-builder.show', [
-            'page' => $page,
-            'blockTypes' => $blockTypes,
-            'categories' => $categories,
-            'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Page Builder', 'url' => route('admin.page-builder.index')],
-                ['label' => $page->name],
-            ],
-        ]);
+        return view('admin.page-builder.index', compact('pages', 'countries', 'blockTypes'));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Pages: update meta
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function update(Request $request, Page $page): JsonResponse
+    public function loadPage(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:150',
-            'slug' => 'sometimes|string|max:255',
-            'seo_title' => 'nullable|string|max:255',
-            'seo_description' => 'nullable|string|max:500',
-            'og_image_url' => 'nullable|url|max:500',
-            'is_default' => 'boolean',
+        $request->validate(['page_id' => 'required|uuid']);
+        return response()->json($this->service->getPageWithBlocks($request->string('page_id')));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Pages
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function createPage(Request $request)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'name' => 'required|string|max:150',
+            'page_type' => 'required|string|max:30',
+            'country_id' => 'required|uuid|exists:countries,id',
+            'slug' => 'required|string|max:255',
+            'reference_id' => 'nullable|uuid',
         ]);
 
-        $admin = auth('admin')->user();
-        $this->pageBuilder->updatePage($page, $validated, $admin);
+        $page = $this->service->createPage($data, $this->admin());
 
-        return response()->json(['message' => 'Page updated.']);
+        return response()->json(['page' => $page]);
     }
 
-    public function destroy(Page $page): JsonResponse
+    public function publishPage(Request $request)
     {
-        $page->delete();
-        return response()->json([
-            'message' => 'Page deleted.',
-            'redirect' => route('admin.page-builder.index'),
-        ]);
-    }
+        $this->authorizeManage();
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Pages: lifecycle actions
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function publish(Request $request, Page $page): JsonResponse
-    {
-        $request->validate([
-            'reason' => 'nullable|string|max:500',
-            'publish_at' => 'nullable|date',
+        $data = $request->validate([
+            'page_id' => 'required|uuid|exists:pages,id',
+            'reason' => 'nullable|string|max:255',
         ]);
 
-        $admin = auth('admin')->user();
-        $action = $request->input('action', 'publish');
+        $page = Page::findOrFail($data['page_id']);
+        $this->service->publishPage($page, $this->admin(), $data['reason'] ?? '');
 
-        try {
-            match ($action) {
-                'publish' => $this->pageBuilder->publishPage($page, $admin, $request->input('reason')),
-                'schedule' => $this->pageBuilder->schedulePage($page, $admin, $request->input('publish_at')),
-                'unpublish' => $this->pageBuilder->unpublishPage($page, $admin),
-                'archive' => $this->pageBuilder->archivePage($page, $admin),
-                default => throw new \InvalidArgumentException("Unknown action: $action"),
-            };
-        } catch (\Exception $e) {
-            Log::error('PageBuilder publish error: ' . $e->getMessage());
-            return response()->json(['message' => $e->getMessage()], 422);
-        }
-
-        return response()->json(['message' => 'Page status updated.', 'status' => $page->fresh()->status]);
+        return response()->json(['success' => true, 'page' => $page->fresh()]);
     }
 
-    public function clone(Page $page): JsonResponse
+    public function getPageRevisions(string $pageId)
     {
-        $admin = auth('admin')->user();
-        $clone = $this->pageBuilder->clonePage($page, $admin);
-
-        return response()->json([
-            'message' => "Page cloned as \"{$clone->name}\".",
-            'redirect' => route('admin.page-builder.edit', $clone->id),
-        ]);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Sections
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function sectionStore(Request $request, Page $page): JsonResponse
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'background_color' => 'nullable|string|max:20',
-            'padding_top' => 'nullable|integer|min:0',
-            'padding_bottom' => 'nullable|integer|min:0',
-            'max_width' => 'nullable|string|max:20',
-        ]);
-
-        $section = $this->pageBuilder->addSection($page, $validated);
-
-        return response()->json(['message' => 'Section added.', 'section' => $section]);
-    }
-
-    public function sectionUpdate(Request $request, PageSection $section): JsonResponse
-    {
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:100',
-            'background_color' => 'nullable|string|max:20',
-            'padding_top' => 'nullable|integer|min:0',
-            'padding_bottom' => 'nullable|integer|min:0',
-            'max_width' => 'nullable|string|max:20',
-            'is_visible' => 'boolean',
-        ]);
-
-        $this->pageBuilder->updateSection($section, $validated);
-
-        return response()->json(['message' => 'Section updated.']);
-    }
-
-    public function sectionDestroy(PageSection $section): JsonResponse
-    {
-        $this->pageBuilder->deleteSection($section);
-        return response()->json(['message' => 'Section deleted.']);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Blocks
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function blockStore(Request $request, Page $page): JsonResponse
-    {
-        $request->validate([
-            'block_type' => 'required|string|max:50',
-            'section_id' => 'nullable|uuid|exists:page_sections,id',
-        ]);
-
-        $admin = auth('admin')->user();
-        $block = $this->pageBuilder->addBlock(
-            $page,
-            $request->input('block_type'),
-            $admin,
-            $request->input('section_id')
-        );
-
-        $block->load('blockType');
-
-        return response()->json([
-            'message' => 'Block added.',
-            'block' => $this->serializeBlock($block),
-        ]);
-    }
-
-    public function blockUpdate(Request $request, PageBlock $block): JsonResponse
-    {
-        $admin = auth('admin')->user();
-
-        $config = $request->input('config', []);
-        $meta = $request->only(['is_visible', 'visible_from', 'visible_until', 'device_target', 'audience', 'cache_ttl_seconds']);
-
-        $this->pageBuilder->updateBlock($block, $config, $meta, $admin);
-
-        return response()->json(['message' => 'Block updated.', 'block' => $this->serializeBlock($block->refresh())]);
-    }
-
-    public function blockDestroy(PageBlock $block): JsonResponse
-    {
-        $this->pageBuilder->deleteBlock($block);
-        return response()->json(['message' => 'Block deleted.']);
-    }
-
-    public function blocksReorder(Request $request, Page $page): JsonResponse
-    {
-        $request->validate(['ordered_ids' => 'required|array', 'ordered_ids.*' => 'uuid']);
-        $this->pageBuilder->reorderBlocks($page, $request->input('ordered_ids'));
-        return response()->json(['message' => 'Order saved.']);
-    }
-
-    public function blockToggleVisibility(PageBlock $block): JsonResponse
-    {
-        $admin = auth('admin')->user();
-        $this->pageBuilder->toggleBlockVisibility($block, $admin);
-        return response()->json(['message' => 'Visibility toggled.', 'is_visible' => $block->fresh()->is_visible]);
-    }
-
-    public function blockRevisions(PageBlock $block): JsonResponse
-    {
-        $revisions = $block->revisions()
-            ->with('changedByAdmin')
-            ->limit(20)
-            ->get()
-            ->map(fn($r) => [
-                'revision_number' => $r->revision_number,
-                'change_type' => $r->change_type,
-                'change_reason' => $r->change_reason,
-                'changed_by' => $r->changedByAdmin?->name ?? '—',
-                'changed_at' => $r->created_at?->toISOString(),
-            ]);
+        $revisions = PageRevision::where('page_id', $pageId)
+            ->with('publishedByAdmin:id,name')
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get(['id', 'version', 'published_by_admin_id', 'publish_reason', 'created_at']);
 
         return response()->json(['revisions' => $revisions]);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Slides (hero_slider)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function slideStore(Request $request, PageBlock $block): JsonResponse
+    public function restorePageRevision(string $revisionId)
     {
-        $validated = $request->validate([
-            'desktop_file_id' => 'nullable|uuid|exists:files,id',
-            'mobile_file_id' => 'nullable|uuid|exists:files,id',
+        $this->authorizeManage();
+
+        $revision = PageRevision::findOrFail($revisionId);
+        $this->service->restoreRevision($revision, $this->admin());
+
+        return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Blocks
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function addBlock(Request $request)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'page_id' => 'required|uuid|exists:pages,id',
+            'block_type_code' => 'required|string',
+            'position' => 'required|integer|min:0',
+        ]);
+
+        $page = Page::findOrFail($data['page_id']);
+        $block = $this->service->addBlock($page, $data['block_type_code'], (int) $data['position'], $this->admin());
+
+        return response()->json([
+            'block_id' => $block->id,
+            'block_type' => $block->block_type,
+            'default_config' => $block->config,
+            'label_en' => optional($block->blockType)->label_en,
+            'icon' => optional($block->blockType)->icon,
+            'preview_text' => $block->getPreviewText(),
+        ]);
+    }
+
+    public function getBlockConfig(PageBlock $block)
+    {
+        return response()->json([
+            'id' => $block->id,
+            'block_type' => $block->block_type,
+            'config' => $block->config ?? [],
+            'is_visible' => (bool) $block->is_visible,
+            'visible_from' => optional($block->visible_from)->format('Y-m-d H:i'),
+            'visible_until' => optional($block->visible_until)->format('Y-m-d H:i'),
+            'device_target' => $block->device_target,
+            'audience' => $block->audience,
+        ]);
+    }
+
+    public function updateBlockConfig(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'config' => 'required|array',
+            'change_type' => 'nullable|string|in:created,config_updated,moved,visibility_changed,deleted',
+        ]);
+
+        $revisionNumber = $this->service->updateBlockConfig(
+            $block,
+            $data['config'],
+            $data['change_type'] ?? 'config_updated',
+            $this->admin()
+        );
+
+        return response()->json([
+            'success' => true,
+            'revision_number' => $revisionNumber,
+            'preview_text' => $block->fresh()->getPreviewText(),
+        ]);
+    }
+
+    public function updateBlockVisibility(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'is_visible' => 'required|boolean',
+            'visible_from' => 'nullable|date',
+            'visible_until' => 'nullable|date|after_or_equal:visible_from',
+            'device_target' => 'nullable|in:all,desktop,mobile,app',
+            'audience' => 'nullable|in:all,guest,logged_in,vip',
+        ]);
+
+        $revisionNumber = $this->service->updateBlockVisibility($block, $data, $this->admin());
+
+        return response()->json(['success' => true, 'revision_number' => $revisionNumber]);
+    }
+
+    public function removeBlock(PageBlock $block)
+    {
+        $this->authorizeManage();
+        $this->service->removeBlock($block);
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderBlocks(Request $request)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'blocks' => 'required|array|min:1',
+            'blocks.*.id' => 'required|uuid',
+            'blocks.*.position' => 'required|integer|min:0',
+        ]);
+
+        $this->service->reorderBlocks($data['blocks']);
+        return response()->json(['success' => true]);
+    }
+
+    public function getRevisions(PageBlock $block)
+    {
+        $revisions = $block->revisions()
+            ->with('changedByAdmin:id,name')
+            ->limit(50)
+            ->get(['id', 'page_block_id', 'revision_number', 'change_type', 'change_reason', 'changed_by_admin_id', 'created_at']);
+
+        return response()->json(['revisions' => $revisions]);
+    }
+
+    public function restoreBlockRevision(string $revisionId)
+    {
+        $this->authorizeManage();
+        $revision = PageBlockRevision::findOrFail($revisionId);
+        $this->service->restoreBlockRevision($revision, $this->admin());
+        return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Config form partial
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function configFormPartial(Request $request)
+    {
+        $request->validate([
+            'block_type_code' => 'required|string',
+            'block_id' => 'nullable|uuid',
+        ]);
+
+        $blockType = BlockType::where('code', $request->string('block_type_code'))->firstOrFail();
+        $block = null;
+        $config = (array) ($blockType->default_config ?? []);
+
+        if ($id = $request->string('block_id')->toString()) {
+            $block = PageBlock::find($id);
+            if ($block) {
+                $config = $block->config ?? $config;
+            }
+        }
+
+        $view = 'admin.page-builder.config-forms.' . str_replace('_', '-', $blockType->code);
+
+        if (! View::exists($view)) {
+            $view = 'admin.page-builder.config-forms.generic';
+        }
+
+        return response()->view($view, [
+            'blockType' => $blockType,
+            'block' => $block,
+            'config' => $config,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Slides
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function getSlides(PageBlock $block)
+    {
+        $slides = $block->slides()
+            ->orderBy('position')
+            ->get();
+
+        return response()->json(['slides' => $slides]);
+    }
+
+    public function saveSlide(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'id' => 'nullable|uuid',
+            'position' => 'nullable|integer|min:0',
+            'desktop_file_id' => 'nullable|integer|exists:files,id',
+            'mobile_file_id' => 'nullable|integer|exists:files,id',
             'title_en' => 'nullable|string|max:255',
             'title_ar' => 'nullable|string|max:255',
             'subtitle_en' => 'nullable|string|max:500',
@@ -376,222 +291,184 @@ class PageBuilderController extends Controller
             'cta_label_en' => 'nullable|string|max:100',
             'cta_label_ar' => 'nullable|string|max:100',
             'cta_url' => 'nullable|string|max:500',
-            'cta_open_new_tab' => 'boolean',
+            'cta_open_new_tab' => 'nullable|boolean',
             'text_color' => 'nullable|string|max:7',
             'text_position' => 'nullable|in:left,center,right',
-            'overlay_opacity' => 'nullable|numeric|min:0|max:1',
-            'link_type' => 'nullable|in:product,category,flash_sale,url',
+            'overlay_opacity' => 'nullable|numeric|between:0,1',
+            'link_type' => 'nullable|string|max:20',
             'link_reference_id' => 'nullable|uuid',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
             'visible_from' => 'nullable|date',
             'visible_until' => 'nullable|date',
         ]);
 
-        $slide = $this->pageBuilder->addSlide($block, $validated);
-        $slide->load(['desktopFile', 'mobileFile']);
-
-        return response()->json(['message' => 'Slide added.', 'slide' => $this->serializeSlide($slide)]);
+        $slide = $this->service->saveSlide($block, $data['id'] ?? null, $data);
+        return response()->json(['slide' => $slide]);
     }
 
-    public function slideUpdate(Request $request, SliderSlide $slide): JsonResponse
+    public function deleteSlide(SliderSlide $slide)
     {
-        $validated = $request->validate([
-            'desktop_file_id' => 'nullable|uuid|exists:files,id',
-            'mobile_file_id' => 'nullable|uuid|exists:files,id',
-            'title_en' => 'nullable|string|max:255',
-            'title_ar' => 'nullable|string|max:255',
-            'subtitle_en' => 'nullable|string|max:500',
-            'subtitle_ar' => 'nullable|string|max:500',
-            'cta_label_en' => 'nullable|string|max:100',
-            'cta_label_ar' => 'nullable|string|max:100',
-            'cta_url' => 'nullable|string|max:500',
-            'cta_open_new_tab' => 'boolean',
-            'text_color' => 'nullable|string|max:7',
-            'text_position' => 'nullable|in:left,center,right',
-            'overlay_opacity' => 'nullable|numeric|min:0|max:1',
-            'link_type' => 'nullable|in:product,category,flash_sale,url',
-            'link_reference_id' => 'nullable|uuid',
-            'is_active' => 'boolean',
+        $this->authorizeManage();
+        $slide->delete();
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderSlides(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'slides' => 'required|array',
+            'slides.*.id' => 'required|uuid',
+            'slides.*.position' => 'required|integer|min:0',
         ]);
 
-        $this->pageBuilder->updateSlide($slide, $validated);
-        $slide->load(['desktopFile', 'mobileFile']);
-
-        return response()->json(['message' => 'Slide updated.', 'slide' => $this->serializeSlide($slide->refresh())]);
+        $this->service->reorderSlides($data['slides']);
+        return response()->json(['success' => true]);
     }
 
-    public function slideDestroy(SliderSlide $slide): JsonResponse
+    // ─────────────────────────────────────────────────────────────────────
+    // Ad images
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function getAdImages(PageBlock $block)
     {
-        $this->pageBuilder->deleteSlide($slide);
-        return response()->json(['message' => 'Slide deleted.']);
+        $items = $block->adImageItems()->orderBy('position')->get();
+        return response()->json(['items' => $items]);
     }
 
-    public function slidesReorder(Request $request, PageBlock $block): JsonResponse
+    public function saveAdImage(Request $request, PageBlock $block)
     {
-        $request->validate(['ordered_ids' => 'required|array', 'ordered_ids.*' => 'uuid']);
-        $this->pageBuilder->reorderSlides($block, $request->input('ordered_ids'));
-        return response()->json(['message' => 'Slides reordered.']);
-    }
+        $this->authorizeManage();
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Ad Image Items
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function adImageStore(Request $request, PageBlock $block): JsonResponse
-    {
-        $validated = $request->validate([
-            'file_id' => 'nullable|uuid|exists:files,id',
+        $data = $request->validate([
+            'id' => 'nullable|uuid',
+            'position' => 'nullable|integer|min:0',
+            'file_id' => 'nullable|integer|exists:files,id',
             'title_en' => 'nullable|string|max:255',
             'title_ar' => 'nullable|string|max:255',
-            'link_url' => 'nullable|url|max:500',
-            'link_open_new_tab' => 'boolean',
+            'link_url' => 'nullable|string|max:500',
+            'link_open_new_tab' => 'nullable|boolean',
             'alt_text_en' => 'nullable|string|max:255',
             'alt_text_ar' => 'nullable|string|max:255',
-            'show_title_overlay' => 'boolean',
-            'aspect_ratio' => 'nullable|in:1:1,4:3,16:9,2:1,3:4',
-            'is_active' => 'boolean',
+            'show_title_overlay' => 'nullable|boolean',
+            'aspect_ratio' => 'nullable|string|max:10',
+            'is_active' => 'nullable|boolean',
         ]);
 
-        $item = $this->pageBuilder->addAdImage($block, $validated);
-        $item->load('file');
-
-        return response()->json(['message' => 'Ad image added.', 'item' => $this->serializeAdImage($item)]);
+        $item = $this->service->saveAdImage($block, $data['id'] ?? null, $data);
+        return response()->json(['item' => $item]);
     }
 
-    public function adImageUpdate(Request $request, AdImageItem $item): JsonResponse
+    public function deleteAdImage(AdImageItem $adImage)
     {
-        $validated = $request->validate([
-            'file_id' => 'nullable|uuid|exists:files,id',
-            'title_en' => 'nullable|string|max:255',
-            'title_ar' => 'nullable|string|max:255',
-            'link_url' => 'nullable|url|max:500',
-            'link_open_new_tab' => 'boolean',
-            'alt_text_en' => 'nullable|string|max:255',
-            'alt_text_ar' => 'nullable|string|max:255',
-            'show_title_overlay' => 'boolean',
-            'aspect_ratio' => 'nullable|in:1:1,4:3,16:9,2:1,3:4',
-            'is_active' => 'boolean',
+        $this->authorizeManage();
+        $adImage->delete();
+        return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Search (for picker selects)
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function searchProducts(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $rows = ProductVariant::query()
+            ->with('product:id,name_en')
+            ->when($q !== '', function ($query) use ($q) {
+                $query->whereHas('product', fn ($p) => $p->where('name_en', 'like', "%{$q}%"))
+                    ->orWhere('sku', 'like', "%{$q}%");
+            })
+            ->limit(20)
+            ->get(['id', 'product_id', 'sku']);
+
+        return response()->json([
+            'results' => $rows->map(fn ($v) => [
+                'id' => $v->id,
+                'text' => trim(optional($v->product)->name_en . ' — ' . $v->sku, ' —'),
+            ])->values(),
         ]);
-
-        $this->pageBuilder->updateAdImage($item, $validated);
-        $item->load('file');
-
-        return response()->json(['message' => 'Ad image updated.', 'item' => $this->serializeAdImage($item->refresh())]);
     }
 
-    public function adImageDestroy(AdImageItem $item): JsonResponse
+    public function searchCategories(Request $request)
     {
-        $this->pageBuilder->deleteAdImage($item);
-        return response()->json(['message' => 'Ad image deleted.']);
+        $q = trim((string) $request->query('q', ''));
+
+        $rows = Category::query()
+            ->when($q !== '', fn ($query) => $query->where('name_en', 'like', "%{$q}%"))
+            ->limit(20)
+            ->get(['id', 'name_en']);
+
+        return response()->json([
+            'results' => $rows->map(fn ($c) => ['id' => $c->id, 'text' => $c->name_en])->values(),
+        ]);
     }
 
-    public function adImagesReorder(Request $request, PageBlock $block): JsonResponse
+    public function searchBrands(Request $request)
     {
-        $request->validate(['ordered_ids' => 'required|array', 'ordered_ids.*' => 'uuid']);
-        $this->pageBuilder->reorderAdImages($block, $request->input('ordered_ids'));
-        return response()->json(['message' => 'Ad images reordered.']);
+        $q = trim((string) $request->query('q', ''));
+
+        $rows = Brand::query()
+            ->when($q !== '', fn ($query) => $query->where('name_en', 'like', "%{$q}%"))
+            ->limit(20)
+            ->get(['id', 'name_en']);
+
+        return response()->json([
+            'results' => $rows->map(fn ($b) => ['id' => $b->id, 'text' => $b->name_en])->values(),
+        ]);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Block Products
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // Block products
+    // ─────────────────────────────────────────────────────────────────────
 
-    public function blockProductStore(Request $request, PageBlock $block): JsonResponse
+    public function addBlockProduct(Request $request, PageBlock $block)
     {
-        $request->validate([
+        $this->authorizeManage();
+
+        $data = $request->validate([
             'product_variant_id' => 'required|uuid|exists:product_variants,id',
         ]);
 
-        $admin = auth('admin')->user();
-        $bp = $this->pageBuilder->addBlockProduct($block, $request->input('product_variant_id'), $admin);
-        $bp->load('productVariant.product');
+        $item = $this->service->addBlockProduct($block, $data['product_variant_id'], $this->admin());
+        return response()->json(['item' => $item]);
+    }
 
-        return response()->json([
-            'message' => 'Product added.',
-            'item' => [
-                'id' => $bp->id,
-                'variant_id' => $bp->product_variant_id,
-                'name' => $bp->productVariant?->product?->name_en ?? '—',
-                'position' => $bp->position,
-            ]
+    public function removeBlockProduct(PageBlockProduct $blockProduct)
+    {
+        $this->authorizeManage();
+        $blockProduct->delete();
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderBlockProducts(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'products' => 'required|array',
+            'products.*.id' => 'required|uuid',
+            'products.*.position' => 'required|integer|min:0',
         ]);
+
+        $this->service->reorderBlockProducts($data['products']);
+        return response()->json(['success' => true]);
     }
 
-    public function blockProductDestroy(PageBlockProduct $blockProduct): JsonResponse
+    // ─────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────
+
+    private function admin()
     {
-        $this->pageBuilder->removeBlockProduct($blockProduct);
-        return response()->json(['message' => 'Product removed.']);
+        return auth('admin')->user();
     }
 
-    public function blockProductsReorder(Request $request, PageBlock $block): JsonResponse
+    private function authorizeManage(): void
     {
-        $request->validate(['ordered_ids' => 'required|array', 'ordered_ids.*' => 'uuid']);
-        $this->pageBuilder->reorderBlockProducts($block, $request->input('ordered_ids'));
-        return response()->json(['message' => 'Products reordered.']);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Serializers
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private function serializeBlock(PageBlock $block): array
-    {
-        return [
-            'id' => $block->id,
-            'block_type' => $block->block_type,
-            'block_type_label' => $block->blockType?->label_en ?? $block->block_type,
-            'position' => $block->position,
-            'is_visible' => $block->is_visible,
-            'device_target' => $block->device_target,
-            'config' => $block->config,
-            'slides_count' => $block->slides()->count(),
-            'ad_images_count' => $block->adImageItems()->count(),
-            'products_count' => $block->blockProducts()->count(),
-        ];
-    }
-
-    public function serializeSlidePublic(SliderSlide $slide): array
-    {
-        return $this->serializeSlide($slide);
-    }
-    public function serializeAdImagePublic(AdImageItem $item): array
-    {
-        return $this->serializeAdImage($item);
-    }
-
-    private function serializeSlide(SliderSlide $slide): array
-    {
-        return [
-            'id' => $slide->id,
-            'position' => $slide->position,
-            'title_en' => $slide->title_en,
-            'title_ar' => $slide->title_ar,
-            'cta_label_en' => $slide->cta_label_en,
-            'cta_url' => $slide->cta_url,
-            'is_active' => $slide->is_active,
-            'desktop_image' => $slide->desktopFile?->full_path,
-            'mobile_image' => $slide->mobileFile?->full_path,
-            'desktop_file_id' => $slide->desktop_file_id,
-            'mobile_file_id' => $slide->mobile_file_id,
-            'text_color' => $slide->text_color,
-            'text_position' => $slide->text_position,
-            'overlay_opacity' => $slide->overlay_opacity,
-        ];
-    }
-
-    private function serializeAdImage(AdImageItem $item): array
-    {
-        return [
-            'id' => $item->id,
-            'position' => $item->position,
-            'title_en' => $item->title_en,
-            'title_ar' => $item->title_ar,
-            'link_url' => $item->link_url,
-            'alt_text_en' => $item->alt_text_en,
-            'is_active' => $item->is_active,
-            'aspect_ratio' => $item->aspect_ratio,
-            'image_url' => $item->file?->full_path,
-            'file_id' => $item->file_id,
-        ];
+        $admin = $this->admin();
+        abort_unless($admin && $admin->hasPermissionTo('pages.manage'), 403, 'You do not have permission to manage pages.');
     }
 }

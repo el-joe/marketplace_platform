@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class PageBlock extends Model
 {
@@ -113,5 +114,58 @@ class PageBlock extends Model
     public function blockType(): BelongsTo
     {
         return $this->belongsTo(BlockType::class, 'block_type', 'code');
+    }
+
+    /**
+     * Human-readable preview text for the block card in the builder.
+     */
+    public function getPreviewText(): string
+    {
+        $cfg = $this->config ?? [];
+
+        switch ($this->block_type) {
+            case 'hero_slider':
+                $count = $this->slides()->count();
+                return 'Slider — ' . $count . ' slide' . ($count === 1 ? '' : 's');
+
+            case 'product_row':
+                $source = $cfg['source'] ?? 'best_sellers';
+                return 'Products — source: ' . $source;
+
+            case 'flash_sale':
+                return 'Flash sale block';
+
+            case 'text_block':
+                $text = strip_tags((string) ($cfg['content_html_en'] ?? ''));
+                return $text === '' ? 'Text block' : Str::limit($text, 50);
+
+            case 'ad_images_2col':
+            case 'ad_images_4col':
+                $count = $this->adImageItems()->count();
+                return 'Ad images — ' . $count . ' image' . ($count === 1 ? '' : 's');
+
+            case 'full_banner':
+                $count = $this->adImageItems()->count();
+                return $count ? 'Banner — 1 image' : 'Banner — no image yet';
+
+            case 'category_pills':
+                return $cfg['title_en'] ?? 'Category pills';
+
+            case 'brand_strip':
+                return $cfg['title_en'] ?? 'Brand strip';
+
+            case 'countdown_deal':
+            case 'countdown_timer':
+                return $cfg['title_en'] ?? 'Countdown';
+
+            case 'newsletter_signup':
+                return $cfg['title_en'] ?? 'Newsletter signup';
+
+            case 'divider':
+                return 'Divider';
+
+            default:
+                return optional($this->blockType)->label_en ?? $this->block_type;
+        }
     }
 }

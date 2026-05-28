@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Activity extends Model
 {
+    use HasUuids;
+
     // activity_log has only created_at, never updated
     const UPDATED_AT = null;
 

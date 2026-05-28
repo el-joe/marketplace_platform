@@ -2,12 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class DisputeMessage extends Model
 {
+    use HasUuids;
+
+    public $timestamps = false;
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'is_internal_note' => 'boolean',
+    ];
+
     protected $fillable = [
         'dispute_id',
         'sender_user_id',

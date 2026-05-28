@@ -18,6 +18,7 @@ Schedule::job(new CheckSlaBreachJob)->everyFifteenMinutes();
 Schedule::job(new AutoCompleteOrdersJob)->dailyAt('02:00');
 Schedule::job(new TransitionFlashSaleStatusJob)->everyFiveMinutes();
 Schedule::job(new BannerSchedulerJob)->everyFiveMinutes();
+Schedule::job(new \App\Jobs\PageSchedulerJob)->everyFiveMinutes()->name('page-scheduler');
 
 // Generate vendor payouts every Monday at 06:00 for the previous week (Mon–Sun)
 Schedule::call(function () {

@@ -57,6 +57,7 @@ const RAW_RUNTIME_STATE =
           ["laravel-vite-plugin", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:3.1.0"],\
           ["root-workspace-0b6124", "workspace:."],\
           ["select2", "npm:4.1.0-rc.0"],\
+          ["sortablejs", "npm:1.15.7"],\
           ["summernote", "npm:0.9.1"],\
           ["sweetalert2", "npm:11.26.25"],\
           ["tailwindcss", "npm:4.3.0"],\
@@ -2362,6 +2363,7 @@ const RAW_RUNTIME_STATE =
           ["laravel-vite-plugin", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:3.1.0"],\
           ["root-workspace-0b6124", "workspace:."],\
           ["select2", "npm:4.1.0-rc.0"],\
+          ["sortablejs", "npm:1.15.7"],\
           ["summernote", "npm:0.9.1"],\
           ["sweetalert2", "npm:11.26.25"],\
           ["tailwindcss", "npm:4.3.0"],\
@@ -2413,6 +2415,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../home/joe/.yarn/berry/cache/shell-quote-npm-1.8.3-b29f851134-10c0.zip/node_modules/shell-quote/",\
         "packageDependencies": [\
           ["shell-quote", "npm:1.8.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["sortablejs", [\
+      ["npm:1.15.7", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/sortablejs-npm-1.15.7-f610431e96-10c0.zip/node_modules/sortablejs/",\
+        "packageDependencies": [\
+          ["sortablejs", "npm:1.15.7"]\
         ],\
         "linkType": "HARD"\
       }]\

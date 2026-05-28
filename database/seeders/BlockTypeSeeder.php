@@ -13,50 +13,141 @@ class BlockTypeSeeder extends Seeder
         $now = now();
 
         $types = [
-            // hero
-            ['code' => 'hero_slider', 'group' => 'hero', 'label_en' => 'Hero Slider', 'label_ar' => 'عارض الشرائح البطولي', 'icon' => 'ti-slideshow', 'description' => 'Full-width image/text slider'],
-            ['code' => 'countdown_deal', 'group' => 'hero', 'label_en' => 'Countdown Deal', 'label_ar' => 'عرض العد التنازلي', 'icon' => 'ti-clock-countdown', 'description' => 'Countdown + product strip', 'max_per_page' => 1],
-            ['code' => 'video_banner', 'group' => 'hero', 'label_en' => 'Video Banner', 'label_ar' => 'بانر فيديو', 'icon' => 'ti-video', 'description' => 'Autoplay video with CTA overlay'],
-            ['code' => 'occasion_banner', 'group' => 'hero', 'label_en' => 'Occasion Banner', 'label_ar' => 'بانر المناسبة', 'icon' => 'ti-calendar-event', 'description' => 'Seasonal/event themed hero'],
+            // ── Hero ────────────────────────────────────────────────────────
+            [
+                'code' => 'hero_slider', 'group' => 'hero',
+                'label_en' => 'Hero Slider', 'label_ar' => 'عارض الشرائح',
+                'icon' => 'squares-2x2', 'max_per_page' => 1,
+                'config_schema' => ['height_desktop', 'autoplay_seconds', 'show_dots', 'show_arrows', 'loop', 'transition'],
+                'default_config' => ['height_desktop' => '480px', 'autoplay_seconds' => 4, 'show_dots' => true, 'show_arrows' => true, 'loop' => true],
+            ],
+            [
+                'code' => 'countdown_deal', 'group' => 'hero',
+                'label_en' => 'Countdown Deal', 'label_ar' => 'صفقة العد التنازلي',
+                'icon' => 'clock', 'max_per_page' => 2,
+                'config_schema' => ['title_en', 'title_ar', 'ends_at', 'background_color', 'text_color'],
+                'default_config' => [],
+            ],
+            [
+                'code' => 'video_banner', 'group' => 'hero',
+                'label_en' => 'Video Banner', 'label_ar' => 'بانر فيديو',
+                'icon' => 'play-circle', 'max_per_page' => 3,
+                'config_schema' => ['video_url', 'poster_url', 'autoplay', 'muted'],
+                'default_config' => ['autoplay' => true, 'muted' => true],
+            ],
 
-            // products
-            ['code' => 'product_row', 'group' => 'products', 'label_en' => 'Product Row', 'label_ar' => 'صف المنتجات', 'icon' => 'ti-layout-columns', 'description' => 'Horizontal product grid with title'],
-            ['code' => 'flash_sale', 'group' => 'products', 'label_en' => 'Flash Sale', 'label_ar' => 'تخفيضات سريعة', 'icon' => 'ti-bolt', 'description' => 'Flash sale strip with countdown'],
-            ['code' => 'deal_of_day', 'group' => 'products', 'label_en' => 'Deal of the Day', 'label_ar' => 'عرض اليوم', 'icon' => 'ti-star', 'description' => 'Single featured deal with timer', 'max_per_page' => 1],
-            ['code' => 'recently_viewed', 'group' => 'products', 'label_en' => 'Recently Viewed', 'label_ar' => 'شوهد مؤخراً', 'icon' => 'ti-history', 'description' => 'Personalized viewed history'],
-            ['code' => 'top_rated', 'group' => 'products', 'label_en' => 'Top Rated', 'label_ar' => 'الأعلى تقييماً', 'icon' => 'ti-award', 'description' => 'High-rated products'],
-            ['code' => 'new_arrivals', 'group' => 'products', 'label_en' => 'New Arrivals', 'label_ar' => 'وصل حديثاً', 'icon' => 'ti-sparkles', 'description' => 'Freshly listed products'],
-            ['code' => 'seller_spotlight', 'group' => 'products', 'label_en' => 'Seller Spotlight', 'label_ar' => 'تسليط الضوء على البائع', 'icon' => 'ti-user-star', 'description' => 'Featured vendor with their products'],
-            ['code' => 'comparison_table', 'group' => 'products', 'label_en' => 'Comparison Table', 'label_ar' => 'جدول المقارنة', 'icon' => 'ti-table', 'description' => 'Side-by-side product comparison'],
+            // ── Products ────────────────────────────────────────────────────
+            [
+                'code' => 'product_row', 'group' => 'products',
+                'label_en' => 'Product Row', 'label_ar' => 'صف المنتجات',
+                'icon' => 'squares-plus', 'max_per_page' => null,
+                'config_schema' => ['title_en', 'title_ar', 'source', 'category_id', 'flash_sale_id', 'items_per_row', 'max_products', 'show_view_all', 'scrollable_row', 'show_ratings', 'show_discount_badge'],
+                'default_config' => ['source' => 'best_sellers', 'items_per_row' => 4, 'max_products' => 12, 'show_view_all' => true],
+            ],
+            [
+                'code' => 'flash_sale', 'group' => 'products',
+                'label_en' => 'Flash Sale', 'label_ar' => 'تخفيضات سريعة',
+                'icon' => 'bolt', 'max_per_page' => 3,
+                'config_schema' => ['flash_sale_id', 'max_items_shown', 'items_per_row', 'show_countdown', 'show_stock_bar', 'background_color', 'badge_label_en', 'badge_label_ar'],
+                'default_config' => ['max_items_shown' => 8, 'items_per_row' => 4, 'show_countdown' => true, 'show_stock_bar' => true],
+            ],
+            [
+                'code' => 'deal_of_day', 'group' => 'products',
+                'label_en' => 'Deal of the Day', 'label_ar' => 'صفقة اليوم',
+                'icon' => 'star', 'max_per_page' => 2,
+                'config_schema' => ['title_en', 'title_ar', 'vendor_listing_id', 'ends_at'],
+                'default_config' => [],
+            ],
 
-            // ads_banners
-            ['code' => 'ad_images_2col', 'group' => 'ads_banners', 'label_en' => 'Ad Images 2-Column', 'label_ar' => 'صور إعلانية عمودان', 'icon' => 'ti-layout-2-columns', 'description' => 'Two ad images side by side'],
-            ['code' => 'ad_images_3col', 'group' => 'ads_banners', 'label_en' => 'Ad Images 3-Column', 'label_ar' => 'صور إعلانية ثلاثة أعمدة', 'icon' => 'ti-layout-columns-3', 'description' => 'Three ad images in a row'],
-            ['code' => 'ad_images_4col', 'group' => 'ads_banners', 'label_en' => 'Ad Images 4-Column', 'label_ar' => 'صور إعلانية أربعة أعمدة', 'icon' => 'ti-layout-grid', 'description' => 'Four ad images in a row'],
-            ['code' => 'full_banner', 'group' => 'ads_banners', 'label_en' => 'Full Banner', 'label_ar' => 'بانر كامل العرض', 'icon' => 'ti-photo', 'description' => 'Single full-width banner image'],
-            ['code' => 'split_banner', 'group' => 'ads_banners', 'label_en' => 'Split Banner', 'label_ar' => 'بانر مقسم', 'icon' => 'ti-layout-sidebar', 'description' => 'One large left + stacked small right'],
-            ['code' => 'sponsored_products', 'group' => 'ads_banners', 'label_en' => 'Sponsored Products', 'label_ar' => 'منتجات مدفوعة', 'icon' => 'ti-ad', 'description' => 'CPC/CPM auto-filled sponsored slots'],
-            ['code' => 'paid_banner', 'group' => 'ads_banners', 'label_en' => 'Paid Banner Slot', 'label_ar' => 'بانر مدفوع', 'icon' => 'ti-currency-dollar', 'description' => 'Sold banner slot (booking-based)', 'requires_permission' => 'manage_paid_banners'],
+            // ── Ads & Banners ───────────────────────────────────────────────
+            [
+                'code' => 'ad_images_2col', 'group' => 'ads_banners',
+                'label_en' => 'Ad Images (2-col)', 'label_ar' => 'صور إعلانية عمودان',
+                'icon' => 'view-columns', 'max_per_page' => null,
+                'config_schema' => ['title_en', 'title_ar', 'aspect_ratio'],
+                'default_config' => ['aspect_ratio' => '4:3'],
+            ],
+            [
+                'code' => 'ad_images_4col', 'group' => 'ads_banners',
+                'label_en' => 'Ad Images (4-col)', 'label_ar' => 'صور إعلانية أربعة أعمدة',
+                'icon' => 'squares-2x2', 'max_per_page' => null,
+                'config_schema' => ['title_en', 'title_ar', 'aspect_ratio'],
+                'default_config' => ['aspect_ratio' => '1:1'],
+            ],
+            [
+                'code' => 'full_banner', 'group' => 'ads_banners',
+                'label_en' => 'Full Banner', 'label_ar' => 'بانر كامل العرض',
+                'icon' => 'photo', 'max_per_page' => null,
+                'config_schema' => ['link_url', 'link_type', 'aspect_ratio', 'mobile_aspect_ratio'],
+                'default_config' => ['aspect_ratio' => '4:1', 'mobile_aspect_ratio' => '2:1'],
+            ],
+            [
+                'code' => 'sponsored_products', 'group' => 'ads_banners',
+                'label_en' => 'Sponsored Products', 'label_ar' => 'منتجات مدفوعة',
+                'icon' => 'sparkles', 'max_per_page' => null,
+                'requires_permission' => 'banners.create',
+                'config_schema' => ['placement_code', 'max_items'],
+                'default_config' => ['max_items' => 8],
+            ],
 
-            // discovery
-            ['code' => 'category_pills', 'group' => 'discovery', 'label_en' => 'Category Pills', 'label_ar' => 'فقاعات الفئات', 'icon' => 'ti-category', 'description' => 'Scrollable category bubbles'],
-            ['code' => 'brand_strip', 'group' => 'discovery', 'label_en' => 'Brand Strip', 'label_ar' => 'شريط العلامات التجارية', 'icon' => 'ti-brand-chrome', 'description' => 'Brand logo carousel'],
-            ['code' => 'search_trends', 'group' => 'discovery', 'label_en' => 'Search Trends', 'label_ar' => 'توجهات البحث', 'icon' => 'ti-trending-up', 'description' => 'Trending search keywords'],
-            ['code' => 'geo_recommendations', 'group' => 'discovery', 'label_en' => 'Geo Recommendations', 'label_ar' => 'توصيات جغرافية', 'icon' => 'ti-map-pin', 'description' => 'Popular in your city'],
+            // ── Discovery ───────────────────────────────────────────────────
+            [
+                'code' => 'category_pills', 'group' => 'discovery',
+                'label_en' => 'Category Pills', 'label_ar' => 'أزرار الفئات',
+                'icon' => 'tag', 'max_per_page' => null,
+                'config_schema' => ['title_en', 'title_ar', 'show_product_count', 'max_items'],
+                'default_config' => ['max_items' => 12, 'show_product_count' => true],
+            ],
+            [
+                'code' => 'brand_strip', 'group' => 'discovery',
+                'label_en' => 'Brand Strip', 'label_ar' => 'شريط العلامات التجارية',
+                'icon' => 'building-storefront', 'max_per_page' => null,
+                'config_schema' => ['title_en', 'title_ar', 'max_items', 'show_logo_only'],
+                'default_config' => ['max_items' => 10, 'show_logo_only' => true],
+            ],
+            [
+                'code' => 'search_trends', 'group' => 'discovery',
+                'label_en' => 'Search Trends', 'label_ar' => 'توجهات البحث',
+                'icon' => 'magnifying-glass', 'max_per_page' => null,
+                'config_schema' => ['title_en', 'title_ar', 'max_terms'],
+                'default_config' => ['max_terms' => 8],
+            ],
 
-            // engagement
-            ['code' => 'countdown_timer', 'group' => 'engagement', 'label_en' => 'Countdown Timer', 'label_ar' => 'مؤقت العد التنازلي', 'icon' => 'ti-clock', 'description' => 'Standalone timer bar'],
-            ['code' => 'how_it_works', 'group' => 'engagement', 'label_en' => 'How It Works', 'label_ar' => 'كيف يعمل', 'icon' => 'ti-list-numbers', 'description' => 'Step-by-step numbered guide'],
-            ['code' => 'loyalty_banner', 'group' => 'engagement', 'label_en' => 'Loyalty Banner', 'label_ar' => 'بانر الولاء', 'icon' => 'ti-crown', 'description' => 'VIP/loyalty program upsell'],
-            ['code' => 'loyalty_progress', 'group' => 'engagement', 'label_en' => 'Loyalty Progress', 'label_ar' => 'تقدم الولاء', 'icon' => 'ti-progress', 'description' => 'Personalized VIP tier progress'],
-            ['code' => 'poll_widget', 'group' => 'engagement', 'label_en' => 'Poll Widget', 'label_ar' => 'عنصر التصويت', 'icon' => 'ti-chart-bar', 'description' => 'Voting poll with results'],
-            ['code' => 'review_highlights', 'group' => 'engagement', 'label_en' => 'Review Highlights', 'label_ar' => 'أبرز التقييمات', 'icon' => 'ti-star-half', 'description' => 'Featured customer reviews'],
-            ['code' => 'newsletter_signup', 'group' => 'engagement', 'label_en' => 'Newsletter Signup', 'label_ar' => 'الاشتراك في النشرة', 'icon' => 'ti-mail', 'description' => 'Email capture form'],
-            ['code' => 'app_download_banner', 'group' => 'engagement', 'label_en' => 'App Download Banner', 'label_ar' => 'بانر تحميل التطبيق', 'icon' => 'ti-device-mobile', 'description' => 'iOS/Android app install nudge'],
-            ['code' => 'instagram_feed', 'group' => 'engagement', 'label_en' => 'Instagram Feed', 'label_ar' => 'خلاصة إنستجرام', 'icon' => 'ti-brand-instagram', 'description' => 'UGC social feed embed'],
-            ['code' => 'text_block', 'group' => 'engagement', 'label_en' => 'Text Block', 'label_ar' => 'كتلة نصية', 'icon' => 'ti-file-text', 'description' => 'Free HTML/text content'],
-            ['code' => 'divider', 'group' => 'engagement', 'label_en' => 'Divider / Spacer', 'label_ar' => 'فاصل / مسافة', 'icon' => 'ti-separator', 'description' => 'Visual separator or spacer'],
+            // ── Engagement ──────────────────────────────────────────────────
+            [
+                'code' => 'countdown_timer', 'group' => 'engagement',
+                'label_en' => 'Countdown Timer', 'label_ar' => 'مؤقت العد التنازلي',
+                'icon' => 'clock', 'max_per_page' => null,
+                'config_schema' => ['title_en', 'title_ar', 'ends_at', 'background_color', 'text_color'],
+                'default_config' => [],
+            ],
+            [
+                'code' => 'text_block', 'group' => 'engagement',
+                'label_en' => 'Text Block', 'label_ar' => 'كتلة نصية',
+                'icon' => 'document-text', 'max_per_page' => 10,
+                'config_schema' => ['content_html_en', 'content_html_ar', 'text_align', 'max_width'],
+                'default_config' => ['text_align' => 'left', 'max_width' => '1200px'],
+            ],
+            [
+                'code' => 'divider', 'group' => 'engagement',
+                'label_en' => 'Divider / Spacer', 'label_ar' => 'فاصل',
+                'icon' => 'minus', 'max_per_page' => 20,
+                'config_schema' => ['style', 'color', 'margin_top', 'margin_bottom'],
+                'default_config' => ['style' => 'solid', 'color' => '#e5e7eb', 'margin_top' => 16, 'margin_bottom' => 16],
+            ],
+            [
+                'code' => 'newsletter_signup', 'group' => 'engagement',
+                'label_en' => 'Newsletter Signup', 'label_ar' => 'الاشتراك بالنشرة',
+                'icon' => 'envelope', 'max_per_page' => 2,
+                'config_schema' => ['title_en', 'title_ar', 'subtitle_en', 'subtitle_ar'],
+                'default_config' => [],
+            ],
         ];
+
+        // Truncate to reseed exactly the spec set (existing referencing
+        // page_blocks.block_type rows aren't FK-constrained against this table
+        // because page_blocks.block_type stores the code as a string).
+        DB::table('block_types')->delete();
 
         $sortOrder = 0;
         $rows = [];
@@ -68,9 +159,9 @@ class BlockTypeSeeder extends Seeder
                 'label_ar' => $type['label_ar'],
                 'group' => $type['group'],
                 'icon' => $type['icon'],
-                'description' => $type['description'] ?? null,
-                'config_schema' => '{}',
-                'default_config' => '{}',
+                'description' => null,
+                'config_schema' => json_encode($type['config_schema']),
+                'default_config' => json_encode((object) $type['default_config']),
                 'is_active' => true,
                 'requires_permission' => $type['requires_permission'] ?? null,
                 'max_per_page' => $type['max_per_page'] ?? null,
@@ -80,16 +171,6 @@ class BlockTypeSeeder extends Seeder
             ];
         }
 
-        DB::table('block_types')->upsert($rows, ['code'], [
-            'label_en',
-            'label_ar',
-            'group',
-            'icon',
-            'description',
-            'requires_permission',
-            'max_per_page',
-            'sort_order',
-            'updated_at',
-        ]);
+        DB::table('block_types')->insert($rows);
     }
 }
