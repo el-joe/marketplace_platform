@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Activity extends Model
 {
+    // activity_log has only created_at, never updated
+    const UPDATED_AT = null;
+
+    protected $keyType = 'string';
+    public $incrementing = false;
+
+    protected $table = 'activity_log';
+
     protected $fillable = [
         'log_name',
         'description',
@@ -19,10 +27,15 @@ class Activity extends Model
         'batch_uuid',
         'ip_address',
         'user_agent',
-        'created_at',
     ];
 
-    protected $table = 'activity_log';
+    protected function casts(): array
+    {
+        return [
+            'properties' => 'array',
+            'created_at' => 'datetime',
+        ];
+    }
 
     /** The entity that was acted upon. */
     public function subject(): MorphTo

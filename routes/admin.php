@@ -26,6 +26,10 @@ use App\Http\Controllers\Admin\VendorApplicationController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\LedgerController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\ShippingZoneController;
+use App\Http\Controllers\Admin\WarehouseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -563,6 +567,41 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/datatable', [LedgerController::class, 'datatable'])->name('datatable');
         Route::get('/transaction-group/{groupId}', [LedgerController::class, 'transactionGroup'])->name('transaction-group');
         Route::get('/', [LedgerController::class, 'index'])->name('index');
+    });
+
+    // ─── Settings ─────────────────────────────────────────────────────────────
+    Route::prefix('settings')->name('settings.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [SettingsController::class, 'index'])->name('index');
+        Route::post('/group/{category}', [SettingsController::class, 'updateGroup'])->name('update-group');
+    });
+
+    // ─── Activity Log ─────────────────────────────────────────────────────────
+    Route::prefix('activity-log')->name('activity-log.')->middleware('admin.permission:activity-log.view')->group(function () {
+        Route::post('/datatable', [ActivityLogController::class, 'datatable'])->name('datatable');
+        Route::get('/', [ActivityLogController::class, 'index'])->name('index');
+        Route::get('/{id}', [ActivityLogController::class, 'show'])->name('show');
+    });
+
+    // ─── Shipping Zones ───────────────────────────────────────────────────────
+    Route::prefix('shipping-zones')->name('shipping-zones.')->middleware('admin.permission:countries.view')->group(function () {
+        Route::post('/datatable', [ShippingZoneController::class, 'datatable'])->name('datatable');
+        Route::get('/', [ShippingZoneController::class, 'index'])->name('index');
+        Route::post('/', [ShippingZoneController::class, 'store'])->name('store');
+        Route::put('/{zone}', [ShippingZoneController::class, 'update'])->name('update');
+        Route::delete('/{zone}', [ShippingZoneController::class, 'destroy'])->name('destroy');
+        Route::post('/{zone}/assign-cities', [ShippingZoneController::class, 'assignCities'])->name('assign-cities');
+    });
+
+    // ─── Warehouses ───────────────────────────────────────────────────────────
+    Route::prefix('warehouses')->name('warehouses.')->middleware('admin.permission:warehouses.view')->group(function () {
+        Route::post('/datatable', [WarehouseController::class, 'datatable'])->name('datatable');
+        Route::get('/create', [WarehouseController::class, 'create'])->name('create');
+        Route::post('/', [WarehouseController::class, 'store'])->name('store');
+        Route::get('/', [WarehouseController::class, 'index'])->name('index');
+        Route::get('/{warehouse}', [WarehouseController::class, 'show'])->name('show');
+        Route::get('/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('edit');
+        Route::put('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
+        Route::post('/{warehouse}/toggle-active', [WarehouseController::class, 'toggleActive'])->name('toggle-active');
     });
 
 }); // end auth.admin middleware group

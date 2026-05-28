@@ -41,6 +41,9 @@ export default defineConfig({
                 'resources/js/admin/reviews.js',
                 'resources/js/admin/transactions.js',
                 'resources/js/admin/ledger.js',
+                'resources/js/admin/settings.js',
+                'resources/js/admin/shipping-zones.js',
+                'resources/js/admin/warehouses.js',
             ],
             refresh: [
                 'resources/views/**',
