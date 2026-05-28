@@ -34,6 +34,7 @@ export default defineConfig({
                 'resources/js/admin/page-builder.js',
                 'resources/js/admin/coupons.js',
                 'resources/js/admin/admins.js',
+                'resources/js/admin/customers.js',
             ],
             refresh: [
                 'resources/views/**',

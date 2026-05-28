@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\CustomerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -440,6 +441,22 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit');
         Route::put('/{role}', [RoleController::class, 'update'])->name('update');
         Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
+    });
+
+
+    // ─── Customers ───────────────────────────────────────────────────────────────
+    Route::prefix('customers')->name('customers.')->middleware('admin.permission:customers.view')->group(function () {
+        Route::post('/datatable', [CustomerController::class, 'datatable'])->name('datatable');
+        Route::get('/', [CustomerController::class, 'index'])->name('index');
+        Route::get('/{customer}/export', [CustomerController::class, 'exportData'])->name('export');
+        Route::get('/{customer}', [CustomerController::class, 'show'])->name('show');
+        Route::put('/{customer}', [CustomerController::class, 'update'])->name('update');
+        Route::post('/{customer}/suspend', [CustomerController::class, 'suspend'])->name('suspend');
+        Route::post('/{customer}/ban', [CustomerController::class, 'ban'])->name('ban');
+        Route::post('/{customer}/reactivate', [CustomerController::class, 'reactivate'])->name('reactivate');
+        Route::post('/{customer}/adjust-loyalty', [CustomerController::class, 'adjustLoyaltyPoints'])->name('adjust-loyalty');
+        Route::post('/{customer}/orders/datatable', [CustomerController::class, 'orders'])->name('orders.datatable');
+        Route::post('/{customer}/send-notification', [CustomerController::class, 'sendNotification'])->name('send-notification');
     });
 
 }); // end auth.admin middleware group
