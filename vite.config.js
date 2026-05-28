@@ -33,6 +33,7 @@ export default defineConfig({
                 'resources/js/admin/flash-sales.js',
                 'resources/js/admin/page-builder.js',
                 'resources/js/admin/coupons.js',
+                'resources/js/admin/admins.js',
             ],
             refresh: [
                 'resources/views/**',

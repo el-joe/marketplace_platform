@@ -13,8 +13,10 @@ use App\Http\Controllers\Admin\PageBuilderController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CurrencyController;
+use App\Http\Controllers\Admin\RoleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -407,6 +409,37 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{coupon}/edit', [CouponController::class, 'edit'])->name('edit');
         Route::put('/{coupon}', [CouponController::class, 'update'])->name('update');
         Route::delete('/{coupon}', [CouponController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Stop Impersonating (no extra permission required, just auth) ─────────────
+    Route::post('/admins/stop-impersonating', [AdminController::class, 'stopImpersonating'])
+        ->name('admins.stop-impersonating');
+
+    // ─── Admins ───────────────────────────────────────────────────────────────────
+    Route::prefix('admins')->name('admins.')->middleware('admin.permission:admins.view')->group(function () {
+        Route::get('/create', [AdminController::class, 'create'])->name('create');
+        Route::post('/datatable', [AdminController::class, 'datatable'])->name('datatable');
+        Route::get('/', [AdminController::class, 'index'])->name('index');
+        Route::post('/', [AdminController::class, 'store'])->name('store');
+        Route::get('/{admin}/edit', [AdminController::class, 'edit'])->name('edit');
+        Route::get('/{admin}/login-sessions', [AdminController::class, 'loginSessions'])->name('login-sessions');
+        Route::post('/{admin}/reset-password', [AdminController::class, 'resetPassword'])->name('reset-password');
+        Route::post('/{admin}/impersonate', [AdminController::class, 'impersonate'])->name('impersonate');
+        Route::post('/{admin}/toggle-status', [AdminController::class, 'toggleStatus'])->name('toggle-status');
+        Route::put('/{admin}', [AdminController::class, 'update'])->name('update');
+        Route::delete('/{admin}', [AdminController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Roles ────────────────────────────────────────────────────────────────────
+    Route::prefix('roles')->name('roles.')->middleware('admin.permission:roles.view')->group(function () {
+        Route::get('/permissions', [RoleController::class, 'permissions'])->name('permissions');
+        Route::get('/create', [RoleController::class, 'create'])->name('create');
+        Route::post('/datatable', [RoleController::class, 'datatable'])->name('datatable');
+        Route::get('/', [RoleController::class, 'index'])->name('index');
+        Route::post('/', [RoleController::class, 'store'])->name('store');
+        Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit');
+        Route::put('/{role}', [RoleController::class, 'update'])->name('update');
+        Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
     });
 
 }); // end auth.admin middleware group

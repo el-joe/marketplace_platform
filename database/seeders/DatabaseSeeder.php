@@ -17,7 +17,8 @@ class DatabaseSeeder extends Seeder
             BrandShippingSeeder::class,  // brands + carriers + methods + zones + rates; sets seeder_brand_ids
             VendorCustomerSeeder::class, // vendors + customers; sets seeder_vendor_ids
             ProductSeeder::class,        // products + variants + listings; reads all above cache keys
-            PermissionRoleSeeder::class, // spatie roles & permissions; assigns super_admin to admin@admin.com
+            PermissionSeeder::class,     // spatie permissions (all 47)
+            RoleSeeder::class,           // spatie roles (8) + assigns super_admin to admin@admin.com
         ]);
     }
 }
