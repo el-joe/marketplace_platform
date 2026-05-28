@@ -45,6 +45,7 @@ export default defineConfig({
                 'resources/js/admin/shipping-zones.js',
                 'resources/js/admin/warehouses.js',
                 'resources/js/admin/support-tickets.js',
+                'resources/js/admin/analytics.js',
             ],
             refresh: [
                 'resources/views/**',

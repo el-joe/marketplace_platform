@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ShippingZoneController;
 use App\Http\Controllers\Admin\WarehouseController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -617,6 +618,26 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('edit');
         Route::put('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
         Route::post('/{warehouse}/toggle-active', [WarehouseController::class, 'toggleActive'])->name('toggle-active');
+    });
+
+    // ─── Analytics ───────────────────────────────────────────────────────────────
+    Route::prefix('analytics')->name('analytics.')->middleware('admin.permission:analytics.view')->group(function () {
+        Route::get('/', [AnalyticsController::class, 'index'])->name('index');
+        Route::get('/overview', [AnalyticsController::class, 'overview'])->name('overview');
+        Route::get('/revenue-chart', [AnalyticsController::class, 'revenueChart'])->name('revenue-chart');
+        Route::get('/orders-by-status', [AnalyticsController::class, 'ordersByStatus'])->name('orders-by-status');
+        Route::get('/orders-by-payment', [AnalyticsController::class, 'ordersByPaymentMethod'])->name('orders-by-payment');
+        Route::get('/top-products', [AnalyticsController::class, 'topProducts'])->name('top-products');
+        Route::get('/top-vendors', [AnalyticsController::class, 'topVendors'])->name('top-vendors');
+        Route::get('/top-categories', [AnalyticsController::class, 'topCategories'])->name('top-categories');
+        Route::get('/customers', [AnalyticsController::class, 'customerStats'])->name('customers');
+        Route::get('/search', [AnalyticsController::class, 'searchAnalytics'])->name('search');
+        Route::get('/products', [AnalyticsController::class, 'productAnalytics'])->name('products');
+        Route::get('/sla', [AnalyticsController::class, 'slaMetrics'])->name('sla');
+        Route::get('/ads', [AnalyticsController::class, 'adPerformance'])->name('ads');
+        Route::get('/flash-sales', [AnalyticsController::class, 'flashSaleAnalytics'])->name('flash-sales');
+        Route::get('/returns', [AnalyticsController::class, 'returnAnalytics'])->name('returns');
+        Route::get('/support', [AnalyticsController::class, 'supportMetrics'])->name('support');
     });
 
 }); // end auth.admin middleware group

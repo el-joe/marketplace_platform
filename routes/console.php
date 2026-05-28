@@ -25,3 +25,5 @@ Schedule::call(function () {
     $periodStart = $periodEnd->copy()->startOfWeek(Carbon::MONDAY)->subWeek();        // Monday before last
     GenerateVendorPayoutsJob::dispatch($periodStart->startOfDay(), $periodEnd);
 })->weeklyOn(Carbon::MONDAY, '06:00');
+
+Schedule::job(new \App\Jobs\AggregateAnalyticsCacheJob)->hourly()->name('aggregate-analytics-cache');
