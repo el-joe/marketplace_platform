@@ -106,6 +106,13 @@ class NavigationService
                         'permission' => 'flash_sales.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => 'Support Tickets',
+                        'route' => 'admin.support-tickets.index',
+                        'icon' => 'chat-bubble-left-right',
+                        'permission' => 'support.view',
+                        'badge' => $this->cachedBadge('open_tickets', fn() => $this->countOpenTickets()),
+                    ],
                 ],
             ],
             [
@@ -123,7 +130,7 @@ class NavigationService
                         'label' => 'Ad Campaigns',
                         'route' => 'admin.ad-campaigns.index',
                         'icon' => 'megaphone',
-                        'permission' => 'ads.view',
+                        'permission' => 'ad_campaigns.view',
                         'badge' => null,
                     ],
                 ],
@@ -202,7 +209,7 @@ class NavigationService
                 'items' => [
                     [
                         'label' => 'Pages',
-                        'route' => 'admin.pages.index',
+                        'route' => 'admin.page-builder.index',
                         'icon' => 'document-text',
                         'permission' => 'pages.view',
                         'badge' => null,
@@ -242,6 +249,20 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => 'Shipping Zones',
+                        'route' => 'admin.shipping-zones.index',
+                        'icon' => 'truck',
+                        'permission' => 'countries.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Warehouses',
+                        'route' => 'admin.warehouses.index',
+                        'icon' => 'building-office-2',
+                        'permission' => 'warehouses.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => 'Settings',
                         'route' => 'admin.settings.index',
                         'icon' => 'cog-6-tooth',
@@ -250,9 +271,9 @@ class NavigationService
                     ],
                     [
                         'label' => 'Activity Log',
-                        'route' => 'admin.activity.index',
+                        'route' => 'admin.activity-log.index',
                         'icon' => 'clipboard-document-list',
-                        'permission' => 'activity.view',
+                        'permission' => 'activity-log.view',
                         'badge' => null,
                     ],
                 ],
@@ -355,6 +376,15 @@ class NavigationService
         }
         try {
             return (int) \App\Models\Vendor::query()->where('global_status', 'pending')->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countOpenTickets(): int
+    {
+        try {
+            return (int) \App\Models\SupportTicket::query()->where('status', 'open')->count();
         } catch (\Throwable) {
             return 0;
         }

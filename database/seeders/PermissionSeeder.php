@@ -72,28 +72,31 @@ class PermissionSeeder extends Seeder
             'coupons.edit',
             'coupons.delete',
             'ad_campaigns.view',
-            'ad_campaigns.approve',
-            'ad_campaigns.reject',
-            'page_builder.view',
-            'page_builder.publish',
+            'ad_campaigns.manage',
+            'pages.view',
+            'pages.manage',
             // Customers
             'customers.view',
             'customers.edit',
             'customers.suspend',
-            // Support
-            'tickets.view',
-            'tickets.respond',
-            'tickets.close',
+            // Reviews
             'reviews.view',
             'reviews.approve',
             'reviews.reject',
             'reviews.delete',
+            // Disputes
             'disputes.view',
             'disputes.resolve',
+            // Support
+            'support.view',
+            'support.reply',
+            'support.assign',
             // System
             'countries.view',
             'countries.edit',
             'countries.launch',
+            'warehouses.view',
+            'warehouses.manage',
             'settings.view',
             'settings.edit',
             'admins.view',
@@ -105,7 +108,7 @@ class PermissionSeeder extends Seeder
             'roles.create',
             'roles.edit',
             'roles.delete',
-            'activity_log.view',
+            'activity-log.view',
         ];
 
         foreach ($permissions as $name) {
