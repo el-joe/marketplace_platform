@@ -52,16 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken },
                 data(d) {
-                    d.status        = document.getElementById('filter-status')?.value || '';
-                    d.country_id    = document.getElementById('filter-country')?.value || '';
-                    d.date_from     = document.getElementById('filter-date-from')?.value || '';
-                    d.date_to       = document.getElementById('filter-date-to')?.value || '';
-                    d.min_orders    = document.getElementById('filter-min-orders')?.value || '';
+                    d.status = document.getElementById('filter-status')?.value || '';
+                    d.country_id = document.getElementById('filter-country')?.value || '';
+                    d.date_from = document.getElementById('filter-date-from')?.value || '';
+                    d.date_to = document.getElementById('filter-date-to')?.value || '';
+                    d.min_orders = document.getElementById('filter-min-orders')?.value || '';
                     d.verified_only = document.getElementById('filter-verified')?.checked ? '1' : '';
                 },
             },
             columns: [
-                { data: null, orderable: false, searchable: false,
+                {
+                    data: null, orderable: false, searchable: false,
                     render(data, type, row) {
                         return `<input type="checkbox" class="row-select rounded border-gray-300" value="${row.DT_RowData?.id || ''}">`;
                     }
@@ -398,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!url) return;
 
         const channel = document.getElementById('notif-channel')?.value;
-        const title   = document.getElementById('notif-title')?.value?.trim();
+        const title = document.getElementById('notif-title')?.value?.trim();
         const message = document.getElementById('notif-message')?.value?.trim();
 
         if (!title || !message) {
