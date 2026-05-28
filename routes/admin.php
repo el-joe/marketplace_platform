@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\AdCampaignController;
 use App\Http\Controllers\Admin\AdSlotController;
 use App\Http\Controllers\Admin\PaidAdBookingController;
 use App\Http\Controllers\Admin\VendorApplicationController;
+use App\Http\Controllers\Admin\ReviewController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -528,6 +529,19 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{vendor}/approve', [VendorApplicationController::class, 'approve'])->name('approve');
         Route::post('/{vendor}/reject', [VendorApplicationController::class, 'reject'])->name('reject');
         Route::post('/{vendor}/request-info', [VendorApplicationController::class, 'requestMoreInfo'])->name('request-info');
+    });
+
+    // ─── Reviews ──────────────────────────────────────────────────────────────────
+    Route::prefix('reviews')->name('reviews.')->middleware('admin.permission:reviews.view')->group(function () {
+        Route::post('/datatable', [ReviewController::class, 'datatable'])->name('datatable');
+        Route::post('/bulk-action', [ReviewController::class, 'bulkAction'])->name('bulk-action');
+        Route::post('/vendor-replies/{reply}/hide', [ReviewController::class, 'hideVendorReply'])->name('vendor-replies.hide');
+        Route::post('/vendor-replies/{reply}/show', [ReviewController::class, 'showVendorReply'])->name('vendor-replies.show');
+        Route::get('/', [ReviewController::class, 'index'])->name('index');
+        Route::get('/{review}', [ReviewController::class, 'show'])->name('show');
+        Route::post('/{review}/approve', [ReviewController::class, 'approve'])->name('approve');
+        Route::post('/{review}/reject', [ReviewController::class, 'reject'])->name('reject');
+        Route::delete('/{review}', [ReviewController::class, 'delete'])->name('delete');
     });
 
 }); // end auth.admin middleware group
