@@ -24,6 +24,8 @@ use App\Http\Controllers\Admin\AdSlotController;
 use App\Http\Controllers\Admin\PaidAdBookingController;
 use App\Http\Controllers\Admin\VendorApplicationController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\Admin\LedgerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -542,6 +544,25 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{review}/approve', [ReviewController::class, 'approve'])->name('approve');
         Route::post('/{review}/reject', [ReviewController::class, 'reject'])->name('reject');
         Route::delete('/{review}', [ReviewController::class, 'delete'])->name('delete');
+    });
+
+    // ─── Transactions & Finance ───────────────────────────────────────────────────
+    Route::prefix('transactions')->name('transactions.')->middleware('admin.permission:transactions.view')->group(function () {
+        Route::post('/datatable', [TransactionController::class, 'datatable'])->name('datatable');
+        // Refund sub-routes BEFORE the /{transaction} wildcard
+        Route::get('/refunds', [TransactionController::class, 'refundIndex'])->name('refunds.index');
+        Route::post('/refunds/datatable', [TransactionController::class, 'refundDatatable'])->name('refunds.datatable');
+        Route::post('/refunds/{refund}/approve', [TransactionController::class, 'approveRefund'])->name('refunds.approve');
+        Route::post('/refunds/{refund}/reject', [TransactionController::class, 'rejectRefund'])->name('refunds.reject');
+        Route::get('/', [TransactionController::class, 'index'])->name('index');
+        Route::get('/{transaction}', [TransactionController::class, 'show'])->name('show');
+    });
+
+    // ─── Ledger ───────────────────────────────────────────────────────────────────
+    Route::prefix('ledger')->name('ledger.')->middleware('admin.permission:ledger.view')->group(function () {
+        Route::post('/datatable', [LedgerController::class, 'datatable'])->name('datatable');
+        Route::get('/transaction-group/{groupId}', [LedgerController::class, 'transactionGroup'])->name('transaction-group');
+        Route::get('/', [LedgerController::class, 'index'])->name('index');
     });
 
 }); // end auth.admin middleware group

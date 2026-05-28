@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PaymentTransaction extends Model
 {
-    use HasUuids;
+    // UUID is supplied by the payment gateway — do NOT auto-generate.
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected function casts(): array
     {

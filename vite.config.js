@@ -39,6 +39,8 @@ export default defineConfig({
                 'resources/js/admin/ad-campaigns.js',
                 'resources/js/admin/vendor-applications.js',
                 'resources/js/admin/reviews.js',
+                'resources/js/admin/transactions.js',
+                'resources/js/admin/ledger.js',
             ],
             refresh: [
                 'resources/views/**',
