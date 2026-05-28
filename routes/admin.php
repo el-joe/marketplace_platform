@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\BannerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -457,6 +458,22 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{customer}/adjust-loyalty', [CustomerController::class, 'adjustLoyaltyPoints'])->name('adjust-loyalty');
         Route::post('/{customer}/orders/datatable', [CustomerController::class, 'orders'])->name('orders.datatable');
         Route::post('/{customer}/send-notification', [CustomerController::class, 'sendNotification'])->name('send-notification');
+    });
+
+    // ─── Banners ──────────────────────────────────────────────────────────────────
+    Route::prefix('banners')->name('banners.')->middleware('admin.permission:banners.view')->group(function () {
+        Route::post('/datatable', [BannerController::class, 'datatable'])->name('datatable');
+        Route::get('/placements', [BannerController::class, 'placements'])->name('placements');
+        Route::get('/create', [BannerController::class, 'create'])->name('create');
+        Route::post('/', [BannerController::class, 'store'])->name('store');
+        Route::get('/', [BannerController::class, 'index'])->name('index');
+        Route::get('/{banner}/edit', [BannerController::class, 'edit'])->name('edit');
+        Route::put('/{banner}', [BannerController::class, 'update'])->name('update');
+        Route::delete('/{banner}', [BannerController::class, 'destroy'])->name('destroy');
+        Route::post('/{banner}/duplicate', [BannerController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{banner}/upload-image', [BannerController::class, 'uploadImage'])->name('upload-image');
+        Route::delete('/image', [BannerController::class, 'deleteImage'])->name('delete-image');
+        Route::post('/bulk', [BannerController::class, 'bulk'])->name('bulk');
     });
 
 }); // end auth.admin middleware group
