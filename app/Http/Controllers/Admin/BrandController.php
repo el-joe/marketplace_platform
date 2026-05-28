@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBrandRequest;
 use App\Http\Requests\Admin\UpdateBrandRequest;
 use App\Models\Brand;
+use App\Models\Product;
 use App\Services\BrandService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
@@ -45,7 +46,7 @@ class BrandController extends Controller
     {
         $columns = $this->columnDefinitions();
 
-        $query = DB::table('brands')
+        $query = Brand::query()
             ->select([
                 'brands.id',
                 'brands.name_en',
@@ -57,7 +58,7 @@ class BrandController extends Controller
                 'brands.created_at',
             ])
             ->selectSub(
-                DB::table('products')
+                Product::query()
                     ->selectRaw('COUNT(*)')
                     ->whereColumn('products.brand_id', 'brands.id')
                     ->whereNull('products.deleted_at'),
@@ -172,7 +173,7 @@ class BrandController extends Controller
     {
         $model = Brand::findOrFail($brand);
 
-        $productCount = DB::table('products')
+        $productCount = Product::query()
             ->where('brand_id', $model->id)
             ->whereNull('deleted_at')
             ->count();
@@ -196,7 +197,7 @@ class BrandController extends Controller
     {
         $term = $request->input('q', '');
 
-        $brands = DB::table('brands')
+        $brands = Brand::query()
             ->where('is_active', true)
             ->whereNull('deleted_at')
             ->where(function ($q) use ($term) {

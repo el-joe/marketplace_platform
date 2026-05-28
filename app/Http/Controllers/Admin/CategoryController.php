@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
+use App\Models\Activity;
+use App\Models\Attribute;
 use App\Models\Category;
 use App\Services\CategoryService;
 use App\Traits\HasDataTable;
@@ -65,7 +67,7 @@ class CategoryController extends Controller
         // Ensure slug uniqueness
         $i = 1;
         $baseSlug = $slug;
-        while (DB::table('categories')->where('slug', $slug)->exists()) {
+        while (Category::query()->where('slug', $slug)->exists()) {
             $slug = $baseSlug . '-' . $i++;
         }
 
@@ -165,72 +167,74 @@ class CategoryController extends Controller
 
 
         DB::beginTransaction();
-        try {
-            $data = [
-                'name_en' => $request->name_en,
-                'name_ar' => $request->name_ar,
-                'description_en' => $request->description_en ?: null,
-                'description_ar' => $request->description_ar ?: null,
-                'commission_rate' => $request->commission_rate ?? $categoryModel->commission_rate,
-                'sort_order' => (int) ($request->sort_order ?? 0),
-                'is_active' => $request->boolean('is_active'),
-                'is_visible' => $request->boolean('is_visible'),
-                'is_featured' => $request->boolean('is_featured'),
-                'seo_title_en' => $request->seo_title_en ?: null,
-                'seo_title_ar' => $request->seo_title_ar ?: null,
-                'seo_description_en' => $request->seo_description_en ?: null,
-                'seo_description_ar' => $request->seo_description_ar ?: null,
-                'updated_at' => now(),
-            ];
+        // try {
+        $data = [
+            'name_en' => $request->name_en,
+            'name_ar' => $request->name_ar,
+            'description_en' => $request->description_en ?: null,
+            'description_ar' => $request->description_ar ?: null,
+            'commission_rate' => $request->commission_rate ?? $categoryModel->commission_rate,
+            'sort_order' => (int) ($request->sort_order ?? 0),
+            'is_active' => $request->boolean('is_active'),
+            'is_visible' => $request->boolean('is_visible'),
+            'is_featured' => $request->boolean('is_featured'),
+            'seo_title_en' => $request->seo_title_en ?: null,
+            'seo_title_ar' => $request->seo_title_ar ?: null,
+            'seo_description_en' => $request->seo_description_en ?: null,
+            'seo_description_ar' => $request->seo_description_ar ?: null,
+            'updated_at' => now(),
+        ];
 
-            if ($request->filled('slug')) {
-                $data['slug'] = $request->slug;
-            }
-
-            // Handle parent change via NestedSet
-            if ($request->filled('parent_id') && $request->parent_id !== $categoryModel->parent_id) {
-                $parent = Category::findOrFail($request->parent_id);
-                $categoryModel->appendToNode($parent);
-            } elseif (!$request->filled('parent_id') && $categoryModel->parent_id) {
-                $categoryModel->makeRoot();
-            }
-
-            $categoryModel->update($data);
-
-            // Commission rate logging via service
-            if ($request->filled('commission_rate')) {
-                $oldRate = (float) $categoryModel->getOriginal('commission_rate');
-                $newRate = (float) $request->commission_rate;
-                if (abs($oldRate - $newRate) > 0.001) {
-                    DB::table('activity_log')->insert([
-                        'id' => (string) Str::uuid(),
-                        'log_name' => 'categories',
-                        'description' => 'commission_changed',
-                        'subject_type' => Category::class,
-                        'subject_id' => $categoryModel->id,
-                        'causer_type' => \App\Models\Admin::class,
-                        'causer_id' => auth('admin')->id(),
-                        'properties' => json_encode(['old' => $oldRate, 'new' => $newRate]),
-                        'event' => 'commission_changed',
-                        'created_at' => now(),
-                    ]);
-                }
-            }
-
-            // Sync attribute assignments if provided
-            if ($request->has('attributes')) {
-                $this->service->syncAttributes($categoryModel, $request->input('attributes', []));
-            }
-
-            DB::commit();
-
-            return response()->json(['success' => true, 'message' => 'Category updated successfully.']);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Category update failed', ['id' => $category, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to update category.'], 500);
+        if ($request->filled('slug')) {
+            $data['slug'] = $request->slug;
         }
+
+        // Handle parent change via NestedSet
+        if ($request->filled('parent_id') && $request->parent_id !== $categoryModel->parent_id) {
+            $parent = Category::findOrFail($request->parent_id);
+            $categoryModel->appendToNode($parent);
+        } elseif (!$request->filled('parent_id') && $categoryModel->parent_id) {
+            $categoryModel->makeRoot();
+        }
+
+        $categoryModel->update($data);
+
+        // Commission rate logging via service
+        if ($request->filled('commission_rate')) {
+            $oldRate = (float) $categoryModel->getOriginal('commission_rate');
+            $newRate = (float) $request->commission_rate;
+            if (abs($oldRate - $newRate) > 0.001) {
+                Activity::query()->insert([
+                    'id' => (string) Str::uuid(),
+                    'log_name' => 'categories',
+                    'description' => 'commission_changed',
+                    'subject_type' => Category::class,
+                    'subject_id' => $categoryModel->id,
+                    'causer_type' => \App\Models\Admin::class,
+                    'causer_id' => auth('admin')->id(),
+                    'properties' => json_encode(['old' => $oldRate, 'new' => $newRate]),
+                    'event' => 'commission_changed',
+                    'created_at' => now(),
+                ]);
+            }
+        }
+
+        // Sync attribute assignments if provided
+        if ($request->has('attributes')) {
+            // get attributes which have attribute_id
+            $attributes = array_filter($request->input('attributes', []), fn($a) => isset($a['attribute_id']));
+            $this->service->syncAttributes($categoryModel, $attributes);
+        }
+
+        DB::commit();
+
+        return response()->json(['success' => true, 'message' => 'Category updated successfully.']);
+
+        // } catch (\Throwable $e) {
+        //     DB::rollBack();
+        //     Log::error('Category update failed', ['id' => $category, 'error' => $e->getMessage()]);
+        //     return response()->json(['message' => 'Failed to update category.'], 500);
+        // }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -337,7 +341,7 @@ class CategoryController extends Controller
                 'name' => str_repeat('— ', $c->depth ?? 0) . $c->name_en,
             ]);
 
-        $allAttributes = DB::table('attributes')
+        $allAttributes = Attribute::query()
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'code', 'type']);
 

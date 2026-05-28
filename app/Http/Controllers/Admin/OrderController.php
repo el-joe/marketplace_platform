@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Country;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\SubOrder;
@@ -28,7 +29,7 @@ class OrderController extends Controller
 
     public function index(): View
     {
-        $countries = DB::table('countries')
+        $countries = Country::query()
             ->where('is_active', true)
             ->orderBy('name_en')
             ->pluck('name_en', 'id');
@@ -145,8 +146,8 @@ class OrderController extends Controller
 
         $request->validate([
             'sub_order_id' => 'required|string',
-            'new_status'   => ['required', 'in:' . implode(',', $validTransitions ?: ['__none__'])],
-            'reason'       => 'required|string|max:500',
+            'new_status' => ['required', 'in:' . implode(',', $validTransitions ?: ['__none__'])],
+            'reason' => 'required|string|max:500',
         ]);
 
         try {
@@ -158,8 +159,8 @@ class OrderController extends Controller
             );
 
             return response()->json([
-                'success'    => true,
-                'message'    => 'Status updated to ' . (SubOrder::STATUS_LABELS[$request->new_status] ?? $request->new_status),
+                'success' => true,
+                'message' => 'Status updated to ' . (SubOrder::STATUS_LABELS[$request->new_status] ?? $request->new_status),
                 'new_status' => $request->new_status,
             ]);
         } catch (\Throwable $e) {

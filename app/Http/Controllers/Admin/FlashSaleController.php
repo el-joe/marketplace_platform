@@ -24,7 +24,8 @@ class FlashSaleController extends Controller
     public function __construct(
         private readonly FlashSaleService $flashSaleService,
         private readonly FakeDiscountDetectionService $fakeDiscountService
-    ) {}
+    ) {
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Index / Listing
@@ -60,26 +61,26 @@ class FlashSaleController extends Controller
             ]);
 
         $query = $this->applyFilters($query, $request, [
-            'status'     => fn ($q, $v) => $q->where('flash_sales.status', $v),
-            'country_id' => fn ($q, $v) => $q->where('flash_sales.country_id', $v),
-            'date_from'  => fn ($q, $v) => $q->whereDate('flash_sales.sale_starts_at', '>=', $v),
-            'date_to'    => fn ($q, $v) => $q->whereDate('flash_sales.sale_ends_at', '<=', $v),
+            'status' => fn($q, $v) => $q->where('flash_sales.status', $v),
+            'country_id' => fn($q, $v) => $q->where('flash_sales.country_id', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('flash_sales.sale_starts_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('flash_sales.sale_ends_at', '<=', $v),
         ]);
 
         return $this->dataTableResponse($request, $query, $this->indexColumns(), function ($row) {
             return [
-                'id'                   => $row->id,
-                'name_en'              => e($row->name_en),
-                'name_ar'              => e($row->name_ar),
-                'status'               => $row->status,
-                'country_name'         => e($row->country_name ?? '—'),
-                'sale_starts_at'       => $row->sale_starts_at,
-                'sale_ends_at'         => $row->sale_ends_at,
-                'submission_opens_at'  => $row->submission_opens_at,
-                'is_featured'          => (bool) $row->is_featured,
+                'id' => $row->id,
+                'name_en' => e($row->name_en),
+                'name_ar' => e($row->name_ar),
+                'status' => $row->status,
+                'country_name' => e($row->country_name ?? '—'),
+                'sale_starts_at' => $row->sale_starts_at,
+                'sale_ends_at' => $row->sale_ends_at,
+                'submission_opens_at' => $row->submission_opens_at,
+                'is_featured' => (bool) $row->is_featured,
                 'approved_slots_count' => $row->approved_slots_count,
-                'max_total_slots'      => $row->max_total_slots,
-                'show_url'             => route('admin.flash-sales.show', $row->id),
+                'max_total_slots' => $row->max_total_slots,
+                'show_url' => route('admin.flash-sales.show', $row->id),
             ];
         });
     }
@@ -91,7 +92,7 @@ class FlashSaleController extends Controller
     public function create(): View
     {
         return view('admin.flash-sales.create', [
-            'countries'  => Country::orderBy('name_en')->get(),
+            'countries' => Country::orderBy('name_en')->get(),
             'categories' => Category::orderBy('name_en')->get(),
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
@@ -104,41 +105,41 @@ class FlashSaleController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name_en'                 => 'required|string|max:255',
-            'name_ar'                 => 'required|string|max:255',
-            'description_en'          => 'nullable|string',
-            'description_ar'          => 'nullable|string',
-            'country_id'              => 'nullable|exists:countries,id',
-            'banner_file_id'          => 'nullable|exists:files,id',
-            'submission_opens_at'     => 'required|date',
-            'submission_closes_at'    => 'required|date|after:submission_opens_at',
-            'review_deadline_at'      => 'nullable|date|after:submission_closes_at',
-            'sale_starts_at'          => 'required|date|after:submission_closes_at',
-            'sale_ends_at'            => 'required|date|after:sale_starts_at',
-            'min_discount_pct'        => 'required|numeric|min:1|max:100',
+            'name_en' => 'required|string|max:255',
+            'name_ar' => 'required|string|max:255',
+            'description_en' => 'nullable|string',
+            'description_ar' => 'nullable|string',
+            'country_id' => 'nullable|exists:countries,id',
+            'banner_file_id' => 'nullable|exists:files,id',
+            'submission_opens_at' => 'required|date',
+            'submission_closes_at' => 'required|date|after:submission_opens_at',
+            'review_deadline_at' => 'nullable|date|after:submission_closes_at',
+            'sale_starts_at' => 'required|date|after:submission_closes_at',
+            'sale_ends_at' => 'required|date|after:sale_starts_at',
+            'min_discount_pct' => 'required|numeric|min:1|max:100',
             'max_products_per_vendor' => 'required|integer|min:1',
-            'max_total_slots'         => 'nullable|integer|min:1',
-            'eligible_categories'     => 'nullable|array',
-            'eligible_categories.*'   => 'exists:categories,id',
-            'eligible_vendor_tiers'   => 'nullable|array',
-            'min_vendor_rating'       => 'nullable|numeric|min:0|max:5',
+            'max_total_slots' => 'nullable|integer|min:1',
+            'eligible_categories' => 'nullable|array',
+            'eligible_categories.*' => 'exists:categories,id',
+            'eligible_vendor_tiers' => 'nullable|array',
+            'min_vendor_rating' => 'nullable|numeric|min:0|max:5',
             'commission_override_pct' => 'nullable|numeric|min:0|max:100',
-            'is_featured'             => 'boolean',
-            'is_exclusive'            => 'boolean',
-            'price_drop_required'     => 'boolean',
+            'is_featured' => 'boolean',
+            'is_exclusive' => 'boolean',
+            'price_drop_required' => 'boolean',
         ]);
 
         $sale = FlashSale::create([
             ...$validated,
-            'status'               => 'draft',
+            'status' => 'draft',
             'approved_slots_count' => 0,
-            'created_by_admin_id'  => auth('admin')->id(),
-            'updated_by_admin_id'  => auth('admin')->id(),
+            'created_by_admin_id' => auth('admin')->id(),
+            'updated_by_admin_id' => auth('admin')->id(),
         ]);
 
         return response()->json([
-            'success'  => true,
-            'message'  => 'Flash sale created.',
+            'success' => true,
+            'message' => 'Flash sale created.',
             'redirect' => route('admin.flash-sales.show', $sale->id),
         ], 201);
     }
@@ -151,7 +152,7 @@ class FlashSaleController extends Controller
     {
         $flashSale->load(['country', 'bannerFile', 'createdByAdmin']);
 
-        $submissionStats = DB::table('flash_sale_submissions')
+        $submissionStats = FlashSaleSubmission::query()
             ->where('flash_sale_id', $flashSale->id)
             ->selectRaw('status, count(*) as cnt')
             ->groupBy('status')
@@ -160,11 +161,11 @@ class FlashSaleController extends Controller
         $invitationCount = $flashSale->vendorInvitations()->count();
 
         return view('admin.flash-sales.show', [
-            'sale'             => $flashSale,
-            'submissionStats'  => $submissionStats,
-            'invitationCount'  => $invitationCount,
-            'nextStatuses'     => $flashSale->getNextStatuses(),
-            'breadcrumbs'      => [
+            'sale' => $flashSale,
+            'submissionStats' => $submissionStats,
+            'invitationCount' => $invitationCount,
+            'nextStatuses' => $flashSale->getNextStatuses(),
+            'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
                 ['label' => 'Flash Sales', 'url' => route('admin.flash-sales.index')],
                 ['label' => $flashSale->name_en],
@@ -183,28 +184,28 @@ class FlashSaleController extends Controller
         }
 
         $validated = $request->validate([
-            'name_en'                 => 'required|string|max:255',
-            'name_ar'                 => 'required|string|max:255',
-            'description_en'          => 'nullable|string',
-            'description_ar'          => 'nullable|string',
-            'country_id'              => 'nullable|exists:countries,id',
-            'banner_file_id'          => 'nullable|exists:files,id',
-            'submission_opens_at'     => 'required|date',
-            'submission_closes_at'    => 'required|date|after:submission_opens_at',
-            'review_deadline_at'      => 'nullable|date|after:submission_closes_at',
-            'sale_starts_at'          => 'required|date|after:submission_closes_at',
-            'sale_ends_at'            => 'required|date|after:sale_starts_at',
-            'min_discount_pct'        => 'required|numeric|min:1|max:100',
+            'name_en' => 'required|string|max:255',
+            'name_ar' => 'required|string|max:255',
+            'description_en' => 'nullable|string',
+            'description_ar' => 'nullable|string',
+            'country_id' => 'nullable|exists:countries,id',
+            'banner_file_id' => 'nullable|exists:files,id',
+            'submission_opens_at' => 'required|date',
+            'submission_closes_at' => 'required|date|after:submission_opens_at',
+            'review_deadline_at' => 'nullable|date|after:submission_closes_at',
+            'sale_starts_at' => 'required|date|after:submission_closes_at',
+            'sale_ends_at' => 'required|date|after:sale_starts_at',
+            'min_discount_pct' => 'required|numeric|min:1|max:100',
             'max_products_per_vendor' => 'required|integer|min:1',
-            'max_total_slots'         => 'nullable|integer|min:1',
-            'eligible_categories'     => 'nullable|array',
-            'eligible_categories.*'   => 'exists:categories,id',
-            'eligible_vendor_tiers'   => 'nullable|array',
-            'min_vendor_rating'       => 'nullable|numeric|min:0|max:5',
+            'max_total_slots' => 'nullable|integer|min:1',
+            'eligible_categories' => 'nullable|array',
+            'eligible_categories.*' => 'exists:categories,id',
+            'eligible_vendor_tiers' => 'nullable|array',
+            'min_vendor_rating' => 'nullable|numeric|min:0|max:5',
             'commission_override_pct' => 'nullable|numeric|min:0|max:100',
-            'is_featured'             => 'boolean',
-            'is_exclusive'            => 'boolean',
-            'price_drop_required'     => 'boolean',
+            'is_featured' => 'boolean',
+            'is_exclusive' => 'boolean',
+            'price_drop_required' => 'boolean',
         ]);
 
         $flashSale->update([
@@ -227,17 +228,17 @@ class FlashSaleController extends Controller
 
         try {
             match ($request->action) {
-                'open'               => $this->flashSaleService->openSubmissions($flashSale, $admin),
-                'close-submissions'  => $this->flashSaleService->closeSubmissions($flashSale, $admin),
-                'schedule'           => $this->flashSaleService->scheduleSale($flashSale, $admin),
-                'launch'             => $this->flashSaleService->launchSale($flashSale, $admin),
-                'end'                => $this->flashSaleService->endSale($flashSale, $admin),
-                'cancel'             => $this->flashSaleService->cancelSale($flashSale, $admin, $request->reason ?? ''),
+                'open' => $this->flashSaleService->openSubmissions($flashSale, $admin),
+                'close-submissions' => $this->flashSaleService->closeSubmissions($flashSale, $admin),
+                'schedule' => $this->flashSaleService->scheduleSale($flashSale, $admin),
+                'launch' => $this->flashSaleService->launchSale($flashSale, $admin),
+                'end' => $this->flashSaleService->endSale($flashSale, $admin),
+                'cancel' => $this->flashSaleService->cancelSale($flashSale, $admin, $request->reason ?? ''),
             };
 
             return response()->json([
-                'success'    => true,
-                'message'    => 'Flash sale status updated.',
+                'success' => true,
+                'message' => 'Flash sale status updated.',
                 'new_status' => $flashSale->fresh()->status,
             ]);
         } catch (\LogicException $e) {
@@ -255,7 +256,7 @@ class FlashSaleController extends Controller
     public function inviteVendors(Request $request, FlashSale $flashSale): JsonResponse
     {
         $request->validate([
-            'mode'       => 'required|in:auto,manual',
+            'mode' => 'required|in:auto,manual',
             'vendor_ids' => 'required_if:mode,manual|array',
             'vendor_ids.*' => 'exists:vendors,id',
         ]);
@@ -278,7 +279,7 @@ class FlashSaleController extends Controller
         return response()->json([
             'success' => true,
             'message' => "{$count} vendor(s) invited.",
-            'count'   => $count,
+            'count' => $count,
         ]);
     }
 
@@ -307,26 +308,26 @@ class FlashSaleController extends Controller
             ]);
 
         $query = $this->applyFilters($query, $request, [
-            'status'    => fn ($q, $v) => $q->where('flash_sale_submissions.status', $v),
-            'vendor_id' => fn ($q, $v) => $q->where('flash_sale_submissions.vendor_id', $v),
+            'status' => fn($q, $v) => $q->where('flash_sale_submissions.status', $v),
+            'vendor_id' => fn($q, $v) => $q->where('flash_sale_submissions.vendor_id', $v),
         ]);
 
         return $this->dataTableResponse($request, $query, $this->submissionColumns(), function ($row) {
             return [
-                'id'                    => $row->id,
-                'vendor_name'           => e($row->vendor_name ?? '—'),
-                'listing_name'          => e($row->listing_name ?? '—'),
-                'flash_price'           => $row->flash_price,
-                'original_price'        => $row->original_price,
+                'id' => $row->id,
+                'vendor_name' => e($row->vendor_name ?? '—'),
+                'listing_name' => e($row->listing_name ?? '—'),
+                'flash_price' => $row->flash_price,
+                'original_price' => $row->original_price,
                 'flash_price_formatted' => number_format($row->flash_price / 100, 2),
                 'original_price_formatted' => number_format($row->original_price / 100, 2),
-                'discount_pct'          => number_format($row->calculated_discount_pct ?? 0, 1) . '%',
-                'quantity_sold'         => $row->quantity_sold,
-                'max_quantity_total'    => $row->max_quantity_total,
-                'status'                => $row->status,
-                'submitted_at'          => $row->submitted_at,
-                'approve_url'           => route('admin.flash-sales.submissions.approve', $row->id),
-                'reject_url'            => route('admin.flash-sales.submissions.reject', $row->id),
+                'discount_pct' => number_format($row->calculated_discount_pct ?? 0, 1) . '%',
+                'quantity_sold' => $row->quantity_sold,
+                'max_quantity_total' => $row->max_quantity_total,
+                'status' => $row->status,
+                'submitted_at' => $row->submitted_at,
+                'approve_url' => route('admin.flash-sales.submissions.approve', $row->id),
+                'reject_url' => route('admin.flash-sales.submissions.reject', $row->id),
             ];
         });
     }
@@ -339,7 +340,7 @@ class FlashSaleController extends Controller
 
         if ($fraudCheck['risk_level'] === 'high' && !$request->boolean('override_fraud_check')) {
             return response()->json([
-                'message'     => 'High fraud risk detected. Review the pricing history before approving.',
+                'message' => 'High fraud risk detected. Review the pricing history before approving.',
                 'fraud_check' => $fraudCheck,
                 'requires_override' => true,
             ], 422);
@@ -349,8 +350,8 @@ class FlashSaleController extends Controller
             $this->flashSaleService->approveSubmission($submission, auth('admin')->user(), $request->notes);
 
             return response()->json([
-                'success'     => true,
-                'message'     => 'Submission approved.',
+                'success' => true,
+                'message' => 'Submission approved.',
                 'fraud_check' => $fraudCheck,
             ]);
         } catch (\LogicException $e) {
@@ -361,7 +362,7 @@ class FlashSaleController extends Controller
     public function rejectSubmission(Request $request, FlashSaleSubmission $submission): JsonResponse
     {
         $request->validate([
-            'reason'         => 'required|string|max:500',
+            'reason' => 'required|string|max:500',
             'rejection_code' => 'nullable|string|max:50',
         ]);
 
@@ -393,51 +394,51 @@ class FlashSaleController extends Controller
     {
         return [
             [
-                'title'              => 'Name',
-                'data'               => 'name_en',
-                'name'               => 'name_en',
-                'orderable_column'   => 'flash_sales.name_en',
+                'title' => 'Name',
+                'data' => 'name_en',
+                'name' => 'name_en',
+                'orderable_column' => 'flash_sales.name_en',
                 'searchable_columns' => ['flash_sales.name_en', 'flash_sales.name_ar'],
-                'render'             => 'function(data,t,row){return "<a href=\""+row.show_url+"\" class=\"font-medium text-primary-600 hover:underline\">"+data+"</a>";}',
+                'render' => 'function(data,t,row){return "<a href=\""+row.show_url+"\" class=\"font-medium text-primary-600 hover:underline\">"+data+"</a>";}',
             ],
             [
-                'title'           => 'Country',
-                'data'            => 'country_name',
-                'name'            => 'country_name',
+                'title' => 'Country',
+                'data' => 'country_name',
+                'name' => 'country_name',
                 'orderable_column' => 'c.name_en',
-                'searchable'      => false,
+                'searchable' => false,
             ],
             [
-                'title'           => 'Starts',
-                'data'            => 'sale_starts_at',
-                'name'            => 'sale_starts_at',
+                'title' => 'Starts',
+                'data' => 'sale_starts_at',
+                'name' => 'sale_starts_at',
                 'orderable_column' => 'flash_sales.sale_starts_at',
-                'searchable'      => false,
-                'render'          => 'function(data){return data ? Renderers.date(data) : "—";}',
+                'searchable' => false,
+                'render' => 'function(data){return data ? Renderers.date(data) : "—";}',
             ],
             [
-                'title'           => 'Ends',
-                'data'            => 'sale_ends_at',
-                'name'            => 'sale_ends_at',
+                'title' => 'Ends',
+                'data' => 'sale_ends_at',
+                'name' => 'sale_ends_at',
                 'orderable_column' => 'flash_sales.sale_ends_at',
-                'searchable'      => false,
-                'render'          => 'function(data){return data ? Renderers.date(data) : "—";}',
+                'searchable' => false,
+                'render' => 'function(data){return data ? Renderers.date(data) : "—";}',
             ],
             [
-                'title'           => 'Slots',
-                'data'            => 'slots',
-                'name'            => 'slots',
-                'searchable'      => false,
-                'orderable'       => false,
-                'render'          => 'function(d,t,row){return row.approved_slots_count+"/"+(row.max_total_slots||"∞");}',
+                'title' => 'Slots',
+                'data' => 'slots',
+                'name' => 'slots',
+                'searchable' => false,
+                'orderable' => false,
+                'render' => 'function(d,t,row){return row.approved_slots_count+"/"+(row.max_total_slots||"∞");}',
             ],
             [
-                'title'           => 'Status',
-                'data'            => 'status',
-                'name'            => 'status',
+                'title' => 'Status',
+                'data' => 'status',
+                'name' => 'status',
                 'orderable_column' => 'flash_sales.status',
-                'searchable'      => false,
-                'render'          => 'Renderers.badge({
+                'searchable' => false,
+                'render' => 'Renderers.badge({
                     draft:     { label: "Draft",            color: "gray"    },
                     open:      { label: "Submissions Open", color: "primary" },
                     review:    { label: "Under Review",     color: "warning" },
@@ -448,13 +449,13 @@ class FlashSaleController extends Controller
                 })',
             ],
             [
-                'title'      => '',
-                'data'       => 'actions',
-                'name'       => 'actions',
-                'orderable'  => false,
+                'title' => '',
+                'data' => 'actions',
+                'name' => 'actions',
+                'orderable' => false,
                 'searchable' => false,
-                'className'  => 'text-right',
-                'render'     => 'Renderers.actions([
+                'className' => 'text-right',
+                'render' => 'Renderers.actions([
                     { type: "link", label: "View", url: ":show_url", class: "btn-primary btn-sm" }
                 ])',
             ],
@@ -465,58 +466,58 @@ class FlashSaleController extends Controller
     {
         return [
             [
-                'title'              => 'Vendor',
-                'data'               => 'vendor_name',
-                'name'               => 'vendor_name',
-                'orderable_column'   => 'v.store_name',
+                'title' => 'Vendor',
+                'data' => 'vendor_name',
+                'name' => 'vendor_name',
+                'orderable_column' => 'v.store_name',
                 'searchable_columns' => ['v.store_name'],
             ],
             [
-                'title'    => 'Listing',
-                'data'     => 'listing_name',
-                'name'     => 'listing_name',
+                'title' => 'Listing',
+                'data' => 'listing_name',
+                'name' => 'listing_name',
                 'orderable_column' => 'vl.name_en',
                 'searchable' => false,
             ],
             [
-                'title'           => 'Flash Price',
-                'data'            => 'flash_price_formatted',
-                'name'            => 'flash_price_formatted',
+                'title' => 'Flash Price',
+                'data' => 'flash_price_formatted',
+                'name' => 'flash_price_formatted',
                 'orderable_column' => 'flash_sale_submissions.flash_price',
-                'searchable'      => false,
-                'className'       => 'text-right font-semibold',
+                'searchable' => false,
+                'className' => 'text-right font-semibold',
             ],
             [
-                'title'           => 'Original',
-                'data'            => 'original_price_formatted',
-                'name'            => 'original_price_formatted',
+                'title' => 'Original',
+                'data' => 'original_price_formatted',
+                'name' => 'original_price_formatted',
                 'orderable_column' => 'flash_sale_submissions.original_price',
-                'searchable'      => false,
-                'className'       => 'text-right',
+                'searchable' => false,
+                'className' => 'text-right',
             ],
             [
-                'title'           => 'Discount',
-                'data'            => 'discount_pct',
-                'name'            => 'discount_pct',
+                'title' => 'Discount',
+                'data' => 'discount_pct',
+                'name' => 'discount_pct',
                 'orderable_column' => 'flash_sale_submissions.calculated_discount_pct',
-                'searchable'      => false,
-                'className'       => 'text-right',
+                'searchable' => false,
+                'className' => 'text-right',
             ],
             [
-                'title'           => 'Qty Sold / Max',
-                'data'            => 'qty',
-                'name'            => 'qty',
-                'searchable'      => false,
-                'orderable'       => false,
-                'render'          => 'function(d,t,row){return row.quantity_sold+"/"+(row.max_quantity_total||"∞");}',
+                'title' => 'Qty Sold / Max',
+                'data' => 'qty',
+                'name' => 'qty',
+                'searchable' => false,
+                'orderable' => false,
+                'render' => 'function(d,t,row){return row.quantity_sold+"/"+(row.max_quantity_total||"∞");}',
             ],
             [
-                'title'    => 'Status',
-                'data'     => 'status',
-                'name'     => 'status',
+                'title' => 'Status',
+                'data' => 'status',
+                'name' => 'status',
                 'orderable_column' => 'flash_sale_submissions.status',
                 'searchable' => false,
-                'render'   => 'Renderers.badge({
+                'render' => 'Renderers.badge({
                     submitted:    { label: "Submitted",    color: "gray"    },
                     under_review: { label: "Under Review", color: "warning" },
                     approved:     { label: "Approved",     color: "primary" },
@@ -527,21 +528,21 @@ class FlashSaleController extends Controller
                 })',
             ],
             [
-                'title'    => 'Submitted',
-                'data'     => 'submitted_at',
-                'name'     => 'submitted_at',
+                'title' => 'Submitted',
+                'data' => 'submitted_at',
+                'name' => 'submitted_at',
                 'orderable_column' => 'flash_sale_submissions.submitted_at',
                 'searchable' => false,
-                'render'   => 'function(data){return data ? Renderers.dateAgo(data) : "—";}',
+                'render' => 'function(data){return data ? Renderers.dateAgo(data) : "—";}',
             ],
             [
-                'title'      => '',
-                'data'       => 'row_actions',
-                'name'       => 'row_actions',
-                'orderable'  => false,
+                'title' => '',
+                'data' => 'row_actions',
+                'name' => 'row_actions',
+                'orderable' => false,
                 'searchable' => false,
-                'className'  => 'text-right',
-                'render'     => 'function(d,t,row){
+                'className' => 'text-right',
+                'render' => 'function(d,t,row){
                     var html = "";
                     if(["submitted","under_review","approved"].includes(row.status)){
                         html += "<button class=\"btn btn-success btn-xs mr-1\" onclick=\"approveSubmission(\""+row.id+"\",\""+row.approve_url+"\")\">Approve</button>";

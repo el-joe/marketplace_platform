@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\City;
 use App\Models\Country;
 use App\Models\CountryCategory;
 use App\Models\CountryPaymentMethod;
@@ -62,11 +63,11 @@ class CountryController extends Controller
                 'countries.deleted_at',
             ])
             ->addSelect([
-                'cities_count' => DB::table('cities')
+                'cities_count' => City::query()
                     ->selectRaw('COUNT(*)')
                     ->whereColumn('country_id', 'countries.id')
                     ->whereNull('deleted_at'),
-                'active_payment_methods' => DB::table('country_payment_methods')
+                'active_payment_methods' => CountryPaymentMethod::query()
                     ->selectRaw('COUNT(*)')
                     ->whereColumn('country_id', 'countries.id')
                     ->where('is_active', true),
@@ -391,7 +392,7 @@ class CountryController extends Controller
             ],
         ];
 
-        $query = DB::table('categories as c')
+        $query = Category::query()->from('categories as c')
             ->leftJoin('country_categories as cc', function ($join) use ($country) {
                 $join->on('cc.category_id', '=', 'c.id')
                     ->where('cc.country_id', '=', $country->id);

@@ -7,6 +7,8 @@ use App\Http\Requests\Admin\StoreAttributeRequest;
 use App\Http\Requests\Admin\UpdateAttributeRequest;
 use App\Models\Attribute;
 use App\Models\AttributeValue;
+use App\Models\CategoryAttribute;
+use App\Models\ProductVariantAttribute;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -93,7 +95,7 @@ class AttributeController extends Controller
         try {
             $id = (string) Str::uuid();
 
-            DB::table('attributes')->insert([
+            Attribute::query()->insert([
                 'id' => $id,
                 'name_en' => $request->name_en,
                 'name_ar' => $request->name_ar,
@@ -113,7 +115,7 @@ class AttributeController extends Controller
                 foreach ($request->input('values', []) as $value) {
                     if (empty($value['value_en']))
                         continue;
-                    DB::table('attribute_values')->insert([
+                    AttributeValue::query()->insert([
                         'id' => (string) Str::uuid(),
                         'attribute_id' => $id,
                         'value_en' => $value['value_en'],
@@ -170,11 +172,11 @@ class AttributeController extends Controller
 
     public function update(UpdateAttributeRequest $request, string $attribute): JsonResponse
     {
-        DB::table('attributes')->where('id', $attribute)->firstOrFail();
+        Attribute::query()->where('id', $attribute)->firstOrFail();
 
         DB::beginTransaction();
         try {
-            DB::table('attributes')->where('id', $attribute)->update([
+            Attribute::query()->where('id', $attribute)->update([
                 'name_en' => $request->name_en,
                 'name_ar' => $request->name_ar,
                 'unit' => $request->unit ?: null,
@@ -202,7 +204,8 @@ class AttributeController extends Controller
 
     public function destroy(string $attribute): JsonResponse
     {
-        $inUse = DB::table('product_variant_attributes as pva')
+        $inUse = ProductVariantAttribute::query()
+            ->from('product_variant_attributes as pva')
             ->join('attribute_values as av', 'av.id', '=', 'pva.attribute_value_id')
             ->where('av.attribute_id', $attribute)
             ->count();
@@ -213,9 +216,9 @@ class AttributeController extends Controller
             ], 422);
         }
 
-        DB::table('attribute_values')->where('attribute_id', $attribute)->delete();
-        DB::table('category_attributes')->where('attribute_id', $attribute)->delete();
-        DB::table('attributes')->where('id', $attribute)->delete();
+        AttributeValue::query()->where('attribute_id', $attribute)->delete();
+        CategoryAttribute::query()->where('attribute_id', $attribute)->delete();
+        Attribute::query()->where('id', $attribute)->delete();
 
         return response()->json(['success' => true, 'message' => 'Attribute deleted.']);
     }
@@ -233,11 +236,11 @@ class AttributeController extends Controller
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
-        DB::table('attributes')->where('id', $attribute)->firstOrFail();
+        Attribute::query()->where('id', $attribute)->firstOrFail();
 
         $id = (string) Str::uuid();
 
-        DB::table('attribute_values')->insert([
+        AttributeValue::query()->insert([
             'id' => $id,
             'attribute_id' => $attribute,
             'value_en' => $request->value_en,
@@ -269,7 +272,7 @@ class AttributeController extends Controller
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
-        DB::table('attribute_values')
+        AttributeValue::query()
             ->where('id', $value)
             ->where('attribute_id', $attribute)
             ->update([
@@ -285,7 +288,7 @@ class AttributeController extends Controller
 
     public function destroyValue(string $attribute, string $value): JsonResponse
     {
-        $inUse = DB::table('product_variant_attributes')
+        $inUse = ProductVariantAttribute::query()
             ->where('attribute_value_id', $value)
             ->count();
 
@@ -293,7 +296,7 @@ class AttributeController extends Controller
             return response()->json(['message' => "Cannot delete: value is used by {$inUse} variant(s)."], 422);
         }
 
-        DB::table('attribute_values')
+        AttributeValue::query()
             ->where('id', $value)
             ->where('attribute_id', $attribute)
             ->delete();
@@ -311,7 +314,7 @@ class AttributeController extends Controller
 
         DB::transaction(function () use ($request, $attribute) {
             foreach ($request->input('items') as $item) {
-                DB::table('attribute_values')
+                AttributeValue::query()
                     ->where('id', $item['id'])
                     ->where('attribute_id', $attribute)
                     ->update(['sort_order' => $item['sort_order'], 'updated_at' => now()]);

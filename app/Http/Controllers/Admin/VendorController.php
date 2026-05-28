@@ -9,8 +9,11 @@ use App\Http\Requests\Admin\IssueVendorStrikeRequest;
 use App\Http\Requests\Admin\RejectVendorRequest;
 use App\Http\Requests\Admin\UpdateVendorRequest;
 use App\Http\Requests\Admin\VerifyVendorDocumentRequest;
+use App\Models\Activity;
 use App\Models\Admin;
 use App\Models\Country;
+use App\Models\Notification;
+use App\Models\SubOrder;
 use App\Models\Vendor;
 use App\Models\VendorBankAccount;
 use App\Models\VendorDocument;
@@ -115,7 +118,7 @@ class VendorController extends Controller
 
         $subOrders = $vendor->subOrders()->latest()->limit(50)->get();
         $payouts = $vendor->payouts()->latest()->limit(50)->get();
-        $activityLog = \DB::table('activity_log')
+        $activityLog = Activity::query()
             ->where('subject_type', Vendor::class)
             ->where('subject_id', $vendor->id)
             ->orderByDesc('created_at')
@@ -307,7 +310,7 @@ class VendorController extends Controller
     {
         $days = 30;
         $from = now()->subDays($days - 1)->startOfDay();
-        $gmvRaw = \DB::table('sub_orders')
+        $gmvRaw = SubOrder::query()
             ->where('vendor_id', $vendor->id)
             ->whereIn('status', ['completed', 'delivered'])
             ->where('created_at', '>=', $from)
@@ -325,14 +328,14 @@ class VendorController extends Controller
         }
 
         // Orders by status
-        $ordersByStatus = \DB::table('sub_orders')
+        $ordersByStatus = SubOrder::query()
             ->where('vendor_id', $vendor->id)
             ->selectRaw('status, COUNT(*) as cnt')
             ->groupBy('status')
             ->pluck('cnt', 'status');
 
         // Platform averages
-        $platformAvg = \DB::table('vendors')
+        $platformAvg = Vendor::query()
             ->whereIn('global_status', ['active', 'suspended'])
             ->selectRaw('AVG(total_sales) as gmv, AVG(total_orders) as orders, AVG(store_rating_avg) as rating')
             ->first();
@@ -387,7 +390,7 @@ class VendorController extends Controller
             'message' => ['required', 'string', 'max:5000'],
         ]);
 
-        \DB::table('notifications')->insert([
+        Notification::query()->insert([
             'id' => \Illuminate\Support\Str::uuid(),
             'type' => 'App\\Notifications\\Vendor\\AdminMessage',
             'notifiable_type' => Vendor::class,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\ShippingZone;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -136,7 +137,7 @@ class CityController extends Controller
     {
         return view('admin.cities.create', [
             'countries' => Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id'),
-            'shippingZones' => DB::table('shipping_zones')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id'),
+            'shippingZones' => ShippingZone::query()->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id'),
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
                 ['label' => 'Cities', 'url' => route('admin.cities.index')],
@@ -166,7 +167,7 @@ class CityController extends Controller
         return view('admin.cities.edit', [
             'city' => $city,
             'countries' => Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id'),
-            'shippingZones' => DB::table('shipping_zones')->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id'),
+            'shippingZones' => ShippingZone::query()->whereNull('deleted_at')->orderBy('name')->pluck('name', 'id'),
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
                 ['label' => 'Cities', 'url' => route('admin.cities.index')],
@@ -262,7 +263,7 @@ class CityController extends Controller
                     continue;
                 }
 
-                DB::table('cities')->insert([
+                City::query()->insert([
                     'id' => (string) Str::uuid(),
                     'country_id' => $countryId,
                     'name_en' => trim($nameEn),

@@ -5,9 +5,16 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
+use App\Models\Attribute;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\CategoryAttribute;
+use App\Models\Country;
 use App\Models\Product;
 use App\Models\ProductCountrySetting;
 use App\Models\ProductImage;
+use App\Models\ProductVariant;
+use App\Models\ProductVariantAttribute;
 use App\Models\VendorListing;
 use App\Services\ProductService;
 use App\Traits\HasDataTable;
@@ -34,12 +41,12 @@ class ProductController extends Controller
 
     public function index(): View
     {
-        $categories = DB::table('categories')
+        $categories = Category::query()
             ->where('is_active', true)
             ->orderBy('name_en')
             ->pluck('name_en', 'id');
 
-        $brands = DB::table('brands')
+        $brands = Brand::query()
             ->where('is_active', true)
             ->orderBy('name_en')
             ->pluck('name_en', 'id');
@@ -129,7 +136,7 @@ class ProductController extends Controller
         $id = (string) Str::uuid();
         $slug = $request->slug ?: Str::slug($request->name_en) . '-' . Str::lower(Str::random(5));
 
-        DB::table('products')->insert([
+        Product::query()->insert([
             'id' => $id,
             'name_en' => $request->name_en,
             'name_ar' => $request->name_ar,
@@ -158,7 +165,7 @@ class ProductController extends Controller
 
         // Default variant when product has no variants
         if (!$request->boolean('has_variants')) {
-            DB::table('product_variants')->insert([
+            ProductVariant::query()->insert([
                 'id' => (string) Str::uuid(),
                 'product_id' => $id,
                 'sku' => 'SKU-' . strtoupper(Str::random(8)),
@@ -208,32 +215,32 @@ class ProductController extends Controller
 
     public function edit(string $product): View
     {
-        $productData = DB::table('products')->where('id', $product)->whereNull('deleted_at')->firstOrFail();
+        $productData = Product::query()->where('id', $product)->whereNull('deleted_at')->firstOrFail();
 
         // Alias bilingual SEO columns to the names the form expects
         $productData->seo_title = $productData->seo_title_en ?? null;
         $productData->seo_description = $productData->seo_description_en ?? null;
 
-        $variants = DB::table('product_variants')
+        $variants = ProductVariant::query()
             ->where('product_id', $product)
             ->whereNull('deleted_at')
             ->orderBy('position')
             ->get();
 
-        $images = DB::table('product_images as pi')
+        $images = ProductImage::query()->from('product_images as pi')
             ->where('pi.product_id', $product)
             ->orderBy('pi.position')
             ->select('pi.id', 'pi.path', 'pi.is_primary', 'pi.alt_text_en', 'pi.size_bytes', 'pi.mime_type')
             ->get();
 
-        $countrySettings = DB::table('product_country_settings')
+        $countrySettings = ProductCountrySetting::query()
             ->where('product_id', $product)
             ->get()
             ->keyBy('country_id');
 
         $categoryAttributes = [];
         if ($productData->category_id) {
-            $categoryAttributes = DB::table('category_attributes as ca')
+            $categoryAttributes = CategoryAttribute::query()->from('category_attributes as ca')
                 ->join('attributes as a', 'a.id', '=', 'ca.attribute_id')
                 ->where('ca.category_id', $productData->category_id)
                 ->where('a.is_variant_attribute', true)
@@ -242,7 +249,7 @@ class ProductController extends Controller
                 ->get();
         }
 
-        $existingAttrValueIds = DB::table('product_variant_attributes')
+        $existingAttrValueIds = ProductVariantAttribute::query()
             ->whereIn('product_variant_id', $variants->pluck('id'))
             ->pluck('attribute_value_id')
             ->unique()
@@ -266,7 +273,7 @@ class ProductController extends Controller
 
     public function update(UpdateProductRequest $request, string $product): JsonResponse
     {
-        DB::table('products')->where('id', $product)->whereNull('deleted_at')->firstOrFail();
+        Product::query()->where('id', $product)->whereNull('deleted_at')->firstOrFail();
 
         DB::beginTransaction();
         // try {
@@ -297,7 +304,7 @@ class ProductController extends Controller
             $data['slug'] = $request->slug;
         }
 
-        DB::table('products')->where('id', $product)->update($data);
+        Product::query()->where('id', $product)->update($data);
 
         if ($request->boolean('has_variants') && $request->has('variants')) {
             $this->syncVariants($product, $request->input('variants', []), update: true);
@@ -327,7 +334,7 @@ class ProductController extends Controller
     public function destroy(string $product): JsonResponse
     {
         $productData = Product::where('id', $product)->whereNull('deleted_at')->firstOrFail();
-        $activeSellers = DB::table('vendor_listings')
+        $activeSellers = VendorListing::query()
             ->whereIn('product_variant_id', $productData->variants->pluck('id'))
             ->where('status', 'active')
             ->whereNull('deleted_at')
@@ -339,7 +346,7 @@ class ProductController extends Controller
             ], 422);
         }
 
-        DB::table('products')
+        Product::query()
             ->where('id', $product)
             ->update(['deleted_at' => now(), 'updated_at' => now()]);
 
@@ -359,19 +366,19 @@ class ProductController extends Controller
 
         switch ($action) {
             case 'delete':
-                DB::table('products')->whereIn('id', $ids)->update(['deleted_at' => now(), 'updated_at' => now()]);
+                Product::query()->whereIn('id', $ids)->update(['deleted_at' => now(), 'updated_at' => now()]);
                 $message = count($ids) . ' product(s) deleted.';
                 break;
             case 'publish':
-                DB::table('products')->whereIn('id', $ids)->update(['status' => 'active', 'updated_at' => now()]);
+                Product::query()->whereIn('id', $ids)->update(['status' => 'active', 'updated_at' => now()]);
                 $message = count($ids) . ' product(s) published.';
                 break;
             case 'archive':
-                DB::table('products')->whereIn('id', $ids)->update(['status' => 'discontinued', 'updated_at' => now()]);
+                Product::query()->whereIn('id', $ids)->update(['status' => 'discontinued', 'updated_at' => now()]);
                 $message = count($ids) . ' product(s) archived.';
                 break;
             case 'feature':
-                DB::table('products')->whereIn('id', $ids)->update(['is_featured' => true, 'updated_at' => now()]);
+                Product::query()->whereIn('id', $ids)->update(['is_featured' => true, 'updated_at' => now()]);
                 $message = count($ids) . ' product(s) featured.';
                 break;
             default:
@@ -389,7 +396,7 @@ class ProductController extends Controller
     {
         $request->validate(['attribute_ids' => 'required|array|min:1']);
 
-        $grouped = DB::table('attributes as a')
+        $grouped = Attribute::query()->from('attributes as a')
             ->join('attribute_values as av', 'av.attribute_id', '=', 'a.id')
             ->whereIn('a.id', $request->input('attribute_ids'))
             ->select('a.id as attr_id', 'a.name_en as attr_name', 'av.id as value_id', 'av.value_en as value_name')
@@ -457,7 +464,7 @@ class ProductController extends Controller
 
             $imageId = (string) Str::uuid();
 
-            DB::table('product_images')->insert([
+            ProductImage::query()->insert([
                 'id' => $imageId,
                 'product_id' => null, // assigned when the product form is saved
                 'path' => $path,
@@ -476,14 +483,14 @@ class ProductController extends Controller
 
         return response()->json([
             'ids' => $ids,
-            'urls' => array_map(fn($id) => Storage::url(DB::table('product_images')->where('id', $id)->value('path')), $ids),
-            'filenames' => array_map(fn($id) => DB::table('product_images')->where('id', $id)->value('path'), $ids),
+            'urls' => array_map(fn($id) => Storage::url(ProductImage::query()->where('id', $id)->value('path')), $ids),
+            'filenames' => array_map(fn($id) => ProductImage::query()->where('id', $id)->value('path'), $ids),
         ]);
     }
 
     public function deleteImage(string $mediaId): JsonResponse
     {
-        $image = DB::table('product_images')->where('id', $mediaId)->first();
+        $image = ProductImage::query()->where('id', $mediaId)->first();
 
         if (!$image) {
             return response()->json(['message' => 'Image not found.'], 404);
@@ -491,7 +498,7 @@ class ProductController extends Controller
 
         Storage::disk($image->disk ?? 'public')->delete($image->path);
 
-        DB::table('product_images')->where('id', $mediaId)->delete();
+        ProductImage::query()->where('id', $mediaId)->delete();
 
         return response()->json(['success' => true]);
     }
@@ -508,7 +515,7 @@ class ProductController extends Controller
             return response()->json(['data' => ['exists' => false]]);
         }
 
-        $product = DB::table('products')
+        $product = Product::query()
             ->where('gtin', $gtin)
             ->whereNull('deleted_at')
             ->select('id', 'name_en', 'status')
@@ -610,17 +617,17 @@ class ProductController extends Controller
     private function formData(): array
     {
         $data = [
-            'categories' => DB::table('categories')
+            'categories' => Category::query()
                 ->where('is_active', true)
                 ->orderBy('name_en')
                 ->pluck('name_en', 'id'),
 
-            'brands' => DB::table('brands')
+            'brands' => Brand::query()
                 ->where('is_active', true)
                 ->orderBy('name_en')
                 ->pluck('name_en', 'id'),
 
-            'countries' => DB::table('countries')
+            'countries' => Country::query()
                 ->where('is_active', true)
                 ->where('is_launched', true)
                 ->orderBy('name_en')
@@ -636,13 +643,13 @@ class ProductController extends Controller
     {
         if ($update) {
             // Soft-delete existing variants not in the new list
-            DB::table('product_variants')
+            ProductVariant::query()
                 ->where('product_id', $productId)
                 ->update(['deleted_at' => now(), 'updated_at' => now()]);
         }
 
         foreach ($variants as $i => $v) {
-            DB::table('product_variants')->insert([
+            ProductVariant::query()->insert([
                 'id' => (string) Str::uuid(),
                 'product_id' => $productId,
                 'sku' => $v['sku'] ?: 'SKU-' . strtoupper(Str::random(8)),
@@ -659,18 +666,18 @@ class ProductController extends Controller
 
     private function syncCountrySettings(string $productId, array $countriesInput, bool $update = false): void
     {
-        $countries = DB::table('countries')->where('is_launched', true)->get('id');
+        $countries = Country::query()->where('is_launched', true)->get('id');
 
         foreach ($countries as $country) {
             $setting = $countriesInput[$country->id] ?? [];
 
-            $exists = DB::table('product_country_settings')
+            $exists = ProductCountrySetting::query()
                 ->where('product_id', $productId)
                 ->where('country_id', $country->id)
                 ->exists();
 
             if ($exists && $update) {
-                DB::table('product_country_settings')
+                ProductCountrySetting::query()
                     ->where('product_id', $productId)
                     ->where('country_id', $country->id)
                     ->update([
@@ -680,7 +687,7 @@ class ProductController extends Controller
                         'updated_at' => now(),
                     ]);
             } elseif (!$exists) {
-                DB::table('product_country_settings')->insert([
+                ProductCountrySetting::query()->insert([
                     'id' => (string) Str::uuid(),
                     'product_id' => $productId,
                     'country_id' => $country->id,
@@ -697,20 +704,20 @@ class ProductController extends Controller
     private function syncImages(string $productId, array $imageIds): void
     {
         // Remove images belonging to this product that the user deleted from FilePond
-        $removed = DB::table('product_images')
+        $removed = ProductImage::query()
             ->where('product_id', $productId)
             ->when(!empty($imageIds), fn($q) => $q->whereNotIn('id', $imageIds))
             ->get(['id', 'path', 'disk']);
 
         foreach ($removed as $img) {
             Storage::disk($img->disk ?? 'public')->delete($img->path);
-            DB::table('product_images')->where('id', $img->id)->delete();
+            ProductImage::query()->where('id', $img->id)->delete();
         }
 
         // Assign product_id, position, and is_primary for each submitted image ID
         // (covers both newly uploaded images with product_id = null and existing ones)
         foreach ($imageIds as $i => $imageId) {
-            DB::table('product_images')
+            ProductImage::query()
                 ->where('id', $imageId)
                 ->update([
                     'product_id' => $productId,
