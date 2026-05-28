@@ -119,7 +119,7 @@ window.setButtonLoading = setButtonLoading;
 
    Usage:
      <form data-ajax-form
-           data-success-url="/admin/products"
+           data-success-url="/products"
            data-success-message="Product saved!"
            data-reload="true">
    ========================================================= */

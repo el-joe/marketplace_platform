@@ -1,10 +1,10 @@
 const Toast = window.Toast || { success: console.log, error: console.warn, info: console.log };
 
 const URLS = {
-    approve: () => `/admin/payouts/${window.PAYOUT_ID}/approve`,
-    process: () => `/admin/payouts/${window.PAYOUT_ID}/process`,
-    hold: () => `/admin/payouts/${window.PAYOUT_ID}/hold`,
-    recalculate: () => `/admin/payouts/${window.PAYOUT_ID}/recalculate`,
+    approve: () => `/payouts/${window.PAYOUT_ID}/approve`,
+    process: () => `/payouts/${window.PAYOUT_ID}/process`,
+    hold: () => `/payouts/${window.PAYOUT_ID}/hold`,
+    recalculate: () => `/payouts/${window.PAYOUT_ID}/recalculate`,
 };
 
 /**

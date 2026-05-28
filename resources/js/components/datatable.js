@@ -8,7 +8,7 @@
  *
  * Usage:
  *   window.initDataTable('my-table', {
- *     url:        '/admin/products/datatable',
+ *     url:        '/products/datatable',
  *     columns:    [...],   // DataTables column definitions
  *     pageLength: 25,
  *     order:      [[0, 'desc']],
@@ -315,7 +315,7 @@ window.reloadDataTable = function (tableId) {
 /**
  * Convenience helper for bulk POST actions.
  *
- * window.bulkPost('/admin/products/bulk-delete', ids, tableId, 'Products deleted.');
+ * window.bulkPost('/products/bulk-delete', ids, tableId, 'Products deleted.');
  */
 window.bulkPost = function (url, ids, tableId, successMessage) {
     $.ajax({

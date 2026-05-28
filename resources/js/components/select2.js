@@ -10,24 +10,18 @@
  * Async select:      <select data-async-select data-config='{...}'>
  */
 import $ from 'jquery';
-
-// Select2 is loaded as a jQuery plugin — it attaches to $.fn
-// Import it after jQuery is on window
-async function loadSelect2() {
-    if ($.fn.select2) return;
-    await import('select2');
-    // Select2 CSS must be loaded separately (add to vite input or use CDN)
-    // import 'select2/dist/css/select2.min.css'; // uncomment if not using CDN
+import select2Factory from 'select2';
+// Select2 (CJS) exports a factory function — call it to attach $.fn.select2
+if (typeof select2Factory === 'function') {
+    select2Factory(window, $);
 }
 
 /* =========================================================
    STANDARD SELECT2
    ========================================================= */
-async function initStandardSelect2($scope) {
+function initStandardSelect2($scope) {
     const $els = $scope.find('[data-select2="true"]');
     if (!$els.length) return;
-
-    await loadSelect2();
 
     $els.each(function () {
         const $el = $(this);
@@ -45,16 +39,16 @@ async function initStandardSelect2($scope) {
 /* =========================================================
    ASYNC SELECT2 (data-async-select)
    ========================================================= */
-async function initAsyncSelect2($scope) {
+function initAsyncSelect2($scope) {
     const $els = $scope.find('[data-async-select]');
     if (!$els.length) return;
 
-    await loadSelect2();
-
     $els.each(function () {
         const $el = $(this);
+        // Use .attr() not .data() — jQuery auto-parses JSON data-* attributes
+        // into objects, causing JSON.parse(object) to silently return {}
         const config = (() => {
-            try { return JSON.parse($el.data('config') || '{}'); } catch { return {}; }
+            try { return JSON.parse($el.attr('data-config') || '{}'); } catch { return {}; }
         })();
 
         if ($el.data('select2')) {
@@ -65,7 +59,7 @@ async function initAsyncSelect2($scope) {
             width: '100%',
             placeholder: $el.attr('placeholder') || config.placeholder || 'Type to search…',
             allowClear: !$el.prop('required'),
-            minimumInputLength: config.minLength ?? 2,
+            minimumInputLength: config.minLength ?? 0,
             ajax: {
                 url: config.url,
                 dataType: 'json',
@@ -96,12 +90,13 @@ async function initAsyncSelect2($scope) {
 /* =========================================================
    Public init
    ========================================================= */
-async function initSelect2($scope) {
+
+
+function initSelect2($scope) {
     $scope = $scope || $('body');
-    await Promise.all([
-        initStandardSelect2($scope),
-        initAsyncSelect2($scope),
-    ]);
+
+    initStandardSelect2($scope);
+    initAsyncSelect2($scope);
 }
 
 window.initSelect2 = initSelect2;

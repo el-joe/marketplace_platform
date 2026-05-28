@@ -66,7 +66,7 @@ pageLength, order, selectable, responsive, optionsJson
     {{-- ── Bulk action bar ─────────────────────────────────────────────── --}}
     @if($selectable && count($bulkActions))
         <div id="{{ $id }}-bulk-bar" class="hidden items-center gap-3 bg-primary-50 border border-primary-200
-                                                        rounded-lg px-4 py-3">
+                                                            rounded-lg px-4 py-3">
             <span id="{{ $id }}-selected-count" class="text-sm font-medium text-primary-700">
                 0 selected
             </span>
@@ -94,14 +94,14 @@ pageLength, order, selectable, responsive, optionsJson
                         @if($selectable)
                             <th class="w-10 px-4 py-3 text-center">
                                 <input type="checkbox" id="{{ $id }}-select-all" class="rounded border-gray-300 text-primary-600
-                                                                                  focus:ring-primary-500"
+                                                                                      focus:ring-primary-500"
                                     title="Select all on this page">
                             </th>
                         @endif
                         @foreach($columns as $column)
                             <th
                                 class="px-4 py-3 text-left text-xs font-semibold
-                                                                           text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                                                               text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 {{ $column['title'] }}
                             </th>
                         @endforeach
@@ -123,11 +123,20 @@ pageLength, order, selectable, responsive, optionsJson
                 // (render must be a function reference, not a JSON string)
                 rawOptions.columns = rawOptions.columns.map(function (col) {
                     if (col.render && typeof col.render === 'string') {
-                        try {
-                            // Evaluate the render expression in window scope
-                            col.render = eval('(' + col.render + ')');
-                        } catch (e) {
-                            col.render = null;
+                        if (col.render === '__DT_SELECT_CHECKBOX__') {
+                            col.render = function (data, type, row) {
+                                if (type !== 'display') return '';
+                                return '<input type="checkbox"'
+                                    + ' class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"'
+                                    + ' value="' + (row.id || '') + '">';
+                            };
+                        } else {
+                            try {
+                                // Evaluate the render expression in window scope
+                                col.render = eval('(' + col.render + ')');
+                            } catch (e) {
+                                col.render = null;
+                            }
                         }
                     }
                     return col;

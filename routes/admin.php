@@ -78,33 +78,6 @@ Route::middleware('auth.admin')->group(function () {
         Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
     });
 
-    // ─── Async-select search endpoints ────────────────────────────────────────────
-    Route::prefix('categories')->name('categories.')->middleware('admin.permission:categories.view')->group(function () {
-        Route::get('/search', function (Request $request) {
-            $term = trim($request->input('q', ''));
-            $results = DB::table('categories')
-                ->where('is_active', true)
-                ->where(function ($q) use ($term) {
-                    $q->where('name_en', 'like', "%{$term}%")
-                        ->orWhere('name_ar', 'like', "%{$term}%");
-                })
-                ->limit(30)
-                ->get(['id', 'name_en as text']);
-            return response()->json(['results' => $results]);
-        })->name('search');
-
-        Route::get('/{id}/attributes', function (string $id) {
-            $attrs = DB::table('category_attributes as ca')
-                ->join('attributes as a', 'a.id', '=', 'ca.attribute_id')
-                ->where('ca.category_id', $id)
-                ->where('a.is_variant_attribute', true)
-                ->select('a.id', 'a.name_en')
-                ->orderBy('a.sort_order')
-                ->get();
-            return response()->json(['data' => $attrs]);
-        })->name('attributes');
-    });
-
     // ─── Brands ──────────────────────────────────────────────────────────────────
     Route::prefix('brands')->name('brands.')->middleware('admin.permission:brands.view')->group(function () {
         Route::get('/create', [BrandController::class, 'create'])->name('create');
@@ -179,6 +152,32 @@ Route::middleware('auth.admin')->group(function () {
         Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         Route::post('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggle-featured');
         Route::post('/{category}/sync-attributes', [CategoryController::class, 'syncAttributes'])->name('sync-attributes');
+
+
+        Route::get('/search', function (Request $request) {
+            $term = trim($request->input('q', ''));
+            $results = DB::table('categories')
+                ->where('is_active', true)
+                ->where(function ($q) use ($term) {
+                    $q->where('name_en', 'like', "%{$term}%")
+                        ->orWhere('name_ar', 'like', "%{$term}%");
+                })
+                ->limit(30)
+                ->get(['id', 'name_en as text']);
+            return response()->json(['results' => $results]);
+        })->name('search');
+
+        Route::get('/{id}/attributes', function (string $id) {
+            $attrs = DB::table('category_attributes as ca')
+                ->join('attributes as a', 'a.id', '=', 'ca.attribute_id')
+                ->where('ca.category_id', $id)
+                ->where('a.is_variant_attribute', true)
+                ->select('a.id', 'a.name_en')
+                ->orderBy('a.sort_order')
+                ->get();
+            return response()->json(['data' => $attrs]);
+        })->name('attributes');
+
     });
 
     // ─── Attributes (CRUD) ────────────────────────────────────────────────────────

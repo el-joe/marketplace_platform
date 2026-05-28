@@ -125,79 +125,81 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request): JsonResponse|RedirectResponse
     {
         DB::beginTransaction();
-        try {
-            $id = (string) Str::uuid();
-            $slug = $request->slug ?: Str::slug($request->name_en) . '-' . Str::lower(Str::random(5));
+        // try {
+        $id = (string) Str::uuid();
+        $slug = $request->slug ?: Str::slug($request->name_en) . '-' . Str::lower(Str::random(5));
 
-            DB::table('products')->insert([
-                'id' => $id,
-                'name_en' => $request->name_en,
-                'name_ar' => $request->name_ar,
-                'slug' => $slug,
-                'category_id' => $request->category_id,
-                'brand_id' => $request->brand_id ?: null,
-                'gtin' => $request->gtin ?: null,
-                'model_number' => $request->model_number ?: null,
-                'description_en' => $request->description_en ?: null,
-                'description_ar' => $request->description_ar ?: null,
-                'short_desc_en' => $request->short_desc_en ?: null,
-                'short_desc_ar' => $request->short_desc_ar ?: null,
-                'status' => $request->status ?? 'draft',
-                'has_variants' => $request->boolean('has_variants'),
-                'is_featured' => $request->boolean('is_featured'),
-                'requires_brand_auth' => $request->boolean('requires_brand_auth'),
-                'is_age_restricted' => $request->boolean('is_age_restricted'),
-                'min_age' => $request->min_age ?: null,
-                'is_hazardous' => $request->boolean('is_hazardous'),
-                'seo_title' => $request->seo_title ?: null,
-                'seo_description' => $request->seo_description ?: null,
-                'rating_avg' => null,
-                'total_sold' => 0,
+        DB::table('products')->insert([
+            'id' => $id,
+            'name_en' => $request->name_en,
+            'name_ar' => $request->name_ar,
+            'slug' => $slug,
+            'category_id' => $request->category_id,
+            'brand_id' => $request->brand_id ?: null,
+            'gtin' => $request->gtin ?: null,
+            'model_number' => $request->model_number ?: null,
+            'description_en' => $request->description_en ?: null,
+            'description_ar' => $request->description_ar ?: null,
+            'short_desc_en' => $request->short_desc_en ?: null,
+            'short_desc_ar' => $request->short_desc_ar ?: null,
+            'status' => $request->status ?? 'draft',
+            'has_variants' => $request->boolean('has_variants'),
+            'is_featured' => $request->boolean('is_featured'),
+            'requires_brand_auth' => $request->boolean('requires_brand_auth'),
+            'is_age_restricted' => $request->boolean('is_age_restricted'),
+            'min_age' => $request->min_age ?: null,
+            'is_hazardous' => $request->boolean('is_hazardous'),
+            'seo_title_en' => $request->seo_title ?: null,
+            'seo_description_en' => $request->seo_description ?: null,
+            'total_sold' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Default variant when product has no variants
+        if (!$request->boolean('has_variants')) {
+            DB::table('product_variants')->insert([
+                'id' => (string) Str::uuid(),
+                'product_id' => $id,
+                'sku' => 'SKU-' . strtoupper(Str::random(8)),
+                'is_default' => true,
+                'is_active' => true,
+                'position' => 0,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-
-            // Default variant when product has no variants
-            if (!$request->boolean('has_variants')) {
-                DB::table('product_variants')->insert([
-                    'id' => (string) Str::uuid(),
-                    'product_id' => $id,
-                    'sku' => 'SKU-' . strtoupper(Str::random(8)),
-                    'is_default' => true,
-                    'is_active' => true,
-                    'sort_order' => 0,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            } else {
-                $this->syncVariants($id, $request->input('variants', []));
-            }
-
-            // Country settings for all launched countries
-            $this->syncCountrySettings($id, $request->input('countries', []));
-
-            DB::commit();
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'redirect' => route('admin.products.index'),
-                ]);
-            }
-
-            return redirect()->route('admin.products.index')
-                ->with('success', 'Product created successfully.');
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Product creation failed', ['error' => $e->getMessage()]);
-
-            if ($request->expectsJson()) {
-                return response()->json(['message' => 'Failed to create product.'], 500);
-            }
-
-            return back()->withInput()->withErrors(['error' => 'Failed to create product. Please try again.']);
+        } else {
+            $this->syncVariants($id, $request->input('variants', []));
         }
+
+        // Country settings for all launched countries
+        $this->syncCountrySettings($id, $request->input('countries', []));
+
+        // Attach uploaded images to this product
+        $this->syncImages($id, $request->input('images', []));
+
+        DB::commit();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('admin.products.index'),
+            ]);
+        }
+
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Product created successfully.');
+
+        // } catch (\Throwable $e) {
+        //     DB::rollBack();
+        //     Log::error('Product creation failed', ['error' => $e->getMessage()]);
+
+        //     if ($request->expectsJson()) {
+        //         return response()->json(['message' => 'Failed to create product.'], 500);
+        //     }
+
+        //     return back()->withInput()->withErrors(['error' => 'Failed to create product. Please try again.']);
+        // }
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -208,17 +210,20 @@ class ProductController extends Controller
     {
         $productData = DB::table('products')->where('id', $product)->whereNull('deleted_at')->firstOrFail();
 
+        // Alias bilingual SEO columns to the names the form expects
+        $productData->seo_title = $productData->seo_title_en ?? null;
+        $productData->seo_description = $productData->seo_description_en ?? null;
+
         $variants = DB::table('product_variants')
             ->where('product_id', $product)
             ->whereNull('deleted_at')
-            ->orderBy('sort_order')
+            ->orderBy('position')
             ->get();
 
         $images = DB::table('product_images as pi')
-            ->join('files as f', 'f.id', '=', 'pi.file_id')
             ->where('pi.product_id', $product)
-            ->orderBy('pi.sort_order')
-            ->select('pi.id', 'pi.file_id', 'f.path', 'pi.is_primary', 'pi.alt_text')
+            ->orderBy('pi.position')
+            ->select('pi.id', 'pi.path', 'pi.is_primary', 'pi.alt_text_en', 'pi.size_bytes', 'pi.mime_type')
             ->get();
 
         $countrySettings = DB::table('product_country_settings')
@@ -231,16 +236,18 @@ class ProductController extends Controller
             $categoryAttributes = DB::table('category_attributes as ca')
                 ->join('attributes as a', 'a.id', '=', 'ca.attribute_id')
                 ->where('ca.category_id', $productData->category_id)
-                ->where('a.is_variant_type', true)
+                ->where('a.is_variant_attribute', true)
                 ->select('a.id', 'a.name_en')
                 ->orderBy('a.sort_order')
                 ->get();
         }
 
         $existingAttrValueIds = DB::table('product_variant_attributes')
-            ->whereIn('variant_id', $variants->pluck('id'))
+            ->whereIn('product_variant_id', $variants->pluck('id'))
             ->pluck('attribute_value_id')
-            ->unique();
+            ->unique()
+            ->values()
+            ->toArray();
 
         return view('admin.products.edit', array_merge($this->formData(), [
             'breadcrumbs' => [
@@ -262,53 +269,55 @@ class ProductController extends Controller
         DB::table('products')->where('id', $product)->whereNull('deleted_at')->firstOrFail();
 
         DB::beginTransaction();
-        try {
-            $data = [
-                'name_en' => $request->name_en,
-                'name_ar' => $request->name_ar,
-                'category_id' => $request->category_id,
-                'brand_id' => $request->brand_id ?: null,
-                'gtin' => $request->gtin ?: null,
-                'model_number' => $request->model_number ?: null,
-                'description_en' => $request->description_en ?: null,
-                'description_ar' => $request->description_ar ?: null,
-                'short_desc_en' => $request->short_desc_en ?: null,
-                'short_desc_ar' => $request->short_desc_ar ?: null,
-                'status' => $request->status,
-                'has_variants' => $request->boolean('has_variants'),
-                'is_featured' => $request->boolean('is_featured'),
-                'requires_brand_auth' => $request->boolean('requires_brand_auth'),
-                'is_age_restricted' => $request->boolean('is_age_restricted'),
-                'min_age' => $request->min_age ?: null,
-                'is_hazardous' => $request->boolean('is_hazardous'),
-                'seo_title' => $request->seo_title ?: null,
-                'seo_description' => $request->seo_description ?: null,
-                'updated_at' => now(),
-            ];
+        // try {
+        $data = [
+            'name_en' => $request->name_en,
+            'name_ar' => $request->name_ar,
+            'category_id' => $request->category_id,
+            'brand_id' => $request->brand_id ?: null,
+            'gtin' => $request->gtin ?: null,
+            'model_number' => $request->model_number ?: null,
+            'description_en' => $request->description_en ?: null,
+            'description_ar' => $request->description_ar ?: null,
+            'short_desc_en' => $request->short_desc_en ?: null,
+            'short_desc_ar' => $request->short_desc_ar ?: null,
+            'status' => $request->status,
+            'has_variants' => $request->boolean('has_variants'),
+            'is_featured' => $request->boolean('is_featured'),
+            'requires_brand_auth' => $request->boolean('requires_brand_auth'),
+            'is_age_restricted' => $request->boolean('is_age_restricted'),
+            'min_age' => $request->min_age ?: null,
+            'is_hazardous' => $request->boolean('is_hazardous'),
+            'seo_title_en' => $request->seo_title ?: null,
+            'seo_description_en' => $request->seo_description ?: null,
+            'updated_at' => now(),
+        ];
 
-            if ($request->filled('slug')) {
-                $data['slug'] = $request->slug;
-            }
-
-            DB::table('products')->where('id', $product)->update($data);
-
-            if ($request->has('variants')) {
-                $this->syncVariants($product, $request->input('variants', []), update: true);
-            }
-
-            if ($request->has('countries')) {
-                $this->syncCountrySettings($product, $request->input('countries', []), update: true);
-            }
-
-            DB::commit();
-
-            return response()->json(['success' => true, 'message' => 'Product updated successfully.']);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Product update failed', ['id' => $product, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to update product.'], 500);
+        if ($request->filled('slug')) {
+            $data['slug'] = $request->slug;
         }
+
+        DB::table('products')->where('id', $product)->update($data);
+
+        if ($request->boolean('has_variants') && $request->has('variants')) {
+            $this->syncVariants($product, $request->input('variants', []), update: true);
+        }
+
+        if ($request->has('countries')) {
+            $this->syncCountrySettings($product, $request->input('countries', []), update: true);
+        }
+
+        $this->syncImages($product, $request->input('images', []));
+
+        DB::commit();
+
+        return response()->json(['success' => true, 'message' => 'Product updated successfully.']);
+
+        // } catch (\Throwable $e) {
+        //     DB::rollBack();
+        //     Log::error('Product update failed', ['id' => $product, 'error' => $e->getMessage()]);
+        //     return response()->json(['message' => 'Failed to update product.'], 500);
+        // }
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -434,64 +443,54 @@ class ProductController extends Controller
 
     public function uploadImage(Request $request): JsonResponse
     {
-        $request->validate(['file' => 'required|image|max:5120']); // 5 MB
+        $request->validate([
+            'images' => 'required|array|min:1',
+            'images.*' => 'image|max:5120', // 5 MB per image
+        ]);
 
-        $file = $request->file('file');
-        $hash = hash_file('sha256', $file->getRealPath());
+        $images = $request->file('images');
+        $ids = [];
 
-        // Dedup by content hash
-        $existing = DB::table('file_hashes')->where('hash', $hash)->first();
-        if ($existing) {
-            return response()->json([
-                'id' => $existing->file_id,
-                'url' => Storage::url($existing->path),
-                'filename' => $existing->filename,
+        foreach ($images as $file) {
+            $path = $file->store('products/images', 'public');
+
+            $imageId = (string) Str::uuid();
+
+            DB::table('product_images')->insert([
+                'id' => $imageId,
+                'product_id' => null, // assigned when the product form is saved
+                'path' => $path,
+                'disk' => 'public',
+                'mime_type' => $file->getMimeType(),
+                'size_bytes' => $file->getSize(),
+                'position' => 0,
+                'is_primary' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
+
+            $ids[] = $imageId;
         }
 
-        $path = $file->store('products/images', 'public');
-        $fileId = (string) Str::uuid();
-
-        DB::table('files')->insert([
-            'id' => $fileId,
-            'filename' => $file->getClientOriginalName(),
-            'path' => $path,
-            'disk' => 'public',
-            'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('file_hashes')->insert([
-            'id' => (string) Str::uuid(),
-            'file_id' => $fileId,
-            'hash' => $hash,
-            'path' => $path,
-            'filename' => $file->getClientOriginalName(),
-            'created_at' => now(),
-        ]);
 
         return response()->json([
-            'id' => $fileId,
-            'url' => Storage::url($path),
-            'filename' => $file->getClientOriginalName(),
+            'ids' => $ids,
+            'urls' => array_map(fn($id) => Storage::url(DB::table('product_images')->where('id', $id)->value('path')), $ids),
+            'filenames' => array_map(fn($id) => DB::table('product_images')->where('id', $id)->value('path'), $ids),
         ]);
     }
 
     public function deleteImage(string $mediaId): JsonResponse
     {
-        $file = DB::table('files')->where('id', $mediaId)->first();
+        $image = DB::table('product_images')->where('id', $mediaId)->first();
 
-        if (!$file) {
+        if (!$image) {
             return response()->json(['message' => 'Image not found.'], 404);
         }
 
-        Storage::disk('public')->delete($file->path);
+        Storage::disk($image->disk ?? 'public')->delete($image->path);
 
-        DB::table('product_images')->where('file_id', $mediaId)->delete();
-        DB::table('file_hashes')->where('file_id', $mediaId)->delete();
-        DB::table('files')->where('id', $mediaId)->delete();
+        DB::table('product_images')->where('id', $mediaId)->delete();
 
         return response()->json(['success' => true]);
     }
@@ -609,7 +608,7 @@ class ProductController extends Controller
 
     private function formData(): array
     {
-        return [
+        $data = [
             'categories' => DB::table('categories')
                 ->where('is_active', true)
                 ->orderBy('name_en')
@@ -622,11 +621,14 @@ class ProductController extends Controller
 
             'countries' => DB::table('countries')
                 ->where('is_active', true)
+                ->where('is_launched', true)
                 ->orderBy('name_en')
                 ->get(),
 
             'categoryAttributes' => [],
         ];
+
+        return $data;
     }
 
     private function syncVariants(string $productId, array $variants, bool $update = false): void
@@ -647,7 +649,7 @@ class ProductController extends Controller
                 'weight_grams' => isset($v['weight_grams']) && $v['weight_grams'] !== '' ? (int) $v['weight_grams'] : null,
                 'is_default' => isset($v['is_default']) && (bool) $v['is_default'],
                 'is_active' => !isset($v['is_active']) || (bool) $v['is_active'],
-                'sort_order' => $i,
+                'position' => $i,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -688,6 +690,33 @@ class ProductController extends Controller
                     'updated_at' => now(),
                 ]);
             }
+        }
+    }
+
+    private function syncImages(string $productId, array $imageIds): void
+    {
+        // Remove images belonging to this product that the user deleted from FilePond
+        $removed = DB::table('product_images')
+            ->where('product_id', $productId)
+            ->when(!empty($imageIds), fn($q) => $q->whereNotIn('id', $imageIds))
+            ->get(['id', 'path', 'disk']);
+
+        foreach ($removed as $img) {
+            Storage::disk($img->disk ?? 'public')->delete($img->path);
+            DB::table('product_images')->where('id', $img->id)->delete();
+        }
+
+        // Assign product_id, position, and is_primary for each submitted image ID
+        // (covers both newly uploaded images with product_id = null and existing ones)
+        foreach ($imageIds as $i => $imageId) {
+            DB::table('product_images')
+                ->where('id', $imageId)
+                ->update([
+                    'product_id' => $productId,
+                    'position' => $i,
+                    'is_primary' => $i === 0,
+                    'updated_at' => now(),
+                ]);
         }
     }
 

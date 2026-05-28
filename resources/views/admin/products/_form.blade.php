@@ -101,29 +101,20 @@
                         name="category_id"
                         label="Category"
                         required
-                        :config="[
-                            'url'                => route('admin.categories.search'),
-                            'dataKey'            => 'results',
-                            'placeholder'        => 'Search categories…',
-                            'minimumInputLength' => 2,
-                        ]"
-                        :selected="$isEdit && $product->category_id
-                            ? ['id' => $product->category_id, 'text' => ($categories[$product->category_id] ?? '')]
-                            : null"
+                        search-url="{{ route('admin.categories.search') }}"
+                        placeholder="Search categories…"
+                        :min-length="0"
+                        :value="$isEdit ? $product->category_id : null"
+                        :value-label="$isEdit && $product->category_id ? ($categories[$product->category_id] ?? '') : null"
                     />
                     <x-form.async-select
                         name="brand_id"
                         label="Brand"
-                        :config="[
-                            'url'                => route('admin.brands.search'),
-                            'dataKey'            => 'results',
-                            'placeholder'        => 'Search brands…',
-                            'minimumInputLength' => 1,
-                            'allowClear'         => true,
-                        ]"
-                        :selected="$isEdit && $product->brand_id
-                            ? ['id' => $product->brand_id, 'text' => ($brands[$product->brand_id] ?? '')]
-                            : null"
+                        search-url="{{ route('admin.brands.search') }}"
+                        placeholder="Search brands…"
+                        :min-length="0"
+                        :value="$isEdit ? $product->brand_id : null"
+                        :value-label="$isEdit && $product->brand_id ? ($brands[$product->brand_id] ?? '') : null"
                     />
                 </div>
 
@@ -322,16 +313,19 @@
                     name="images[]"
                     multiple
                     accept="image/jpeg,image/png,image/webp"
-                    class="hidden"
+                    data-process-field="file"
+                    data-upload-url="{{ route('admin.products.upload-image') }}"
+                    data-revert-base="{{ Str::beforeLast(route('admin.products.delete-image', ['mediaId' => '__id__']), '/__id__') }}"
                 />
-
                 {{-- Existing images (edit mode) rendered as FilePond mock files via JS --}}
                 @if($isEdit && isset($images) && count($images) > 0)
                 @php
                     $imagesMap = $images->map(fn($img) => [
-                        'id'   => $img->file_id,
+                        'id'   => $img->id,
                         'url'  => \Illuminate\Support\Facades\Storage::url($img->path),
                         'name' => basename($img->path),
+                        'size' => $img->size_bytes,
+                        'mime_type' => $img->mime_type,
                     ])->values()->all();
                 @endphp
                 <script>
@@ -378,15 +372,15 @@
                             @php
                                 $cs = isset($countrySettings) ? ($countrySettings[$country->id] ?? null) : null;
                                 $cAvailable    = (bool) old("countries.{$country->id}.is_available",  $cs?->is_available  ?? true);
-                                $cNameOverride = old("countries.{$country->id}.name_override",         $cs?->name_override ?? '');
-                                $cCert         = (bool) old("countries.{$country->id}.requires_cert", $cs?->requires_cert ?? false);
+                                $cNameOverride = old("countries.{$country->id}.name_override_en",    $cs?->name_override_en ?? '');
+                                $cCert         = (bool) old("countries.{$country->id}.requires_local_cert", $cs?->requires_local_cert ?? false);
                             @endphp
                             <tr class="hover:bg-gray-50 country-row" x-data="{ avail: {{ $cAvailable ? 'true' : 'false' }} }">
                                 <td class="px-6 py-3 font-medium text-gray-900">
                                     <input type="hidden" name="countries[{{ $country->id }}][country_id]" value="{{ $country->id }}">
                                     {{ $country->name_en }}
                                     <span class="text-xs text-gray-400 font-normal ml-1">
-                                        ({{ $country->iso2 ?? $country->code ?? '' }})
+                                        ({{ $country->iso_code_2 ?? $country->iso_code_3 ?? '' }})
                                     </span>
                                 </td>
                                 <td class="px-6 py-3 text-center">
@@ -401,7 +395,7 @@
                                 </td>
                                 <td class="px-6 py-3">
                                     <input type="text"
-                                        name="countries[{{ $country->id }}][name_override]"
+                                        name="countries[{{ $country->id }}][name_override_en]"
                                         value="{{ $cNameOverride }}"
                                         :disabled="!avail"
                                         placeholder="Same as default"
@@ -409,9 +403,9 @@
                                     />
                                 </td>
                                 <td class="px-6 py-3 text-center">
-                                    <input type="hidden" name="countries[{{ $country->id }}][requires_cert]" value="0">
+                                    <input type="hidden" name="countries[{{ $country->id }}][requires_local_cert]" value="0">
                                     <input type="checkbox"
-                                        name="countries[{{ $country->id }}][requires_cert]"
+                                        name="countries[{{ $country->id }}][requires_local_cert]"
                                         value="1"
                                         class="rounded text-primary-600 border-gray-300 w-4 h-4"
                                         {{ $cCert ? 'checked' : '' }}

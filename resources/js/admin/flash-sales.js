@@ -134,7 +134,7 @@ $(function () {
     $('#approve-form').on('submit', function (e) {
         e.preventDefault();
         const submissionId = $('#approve-submission-id').val();
-        const url = `/admin/flash-sales/submissions/${submissionId}/approve`;
+        const url = `/flash-sales/submissions/${submissionId}/approve`;
         const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Approving…');
 
         ajaxPost(url, $(this).serialize())
@@ -166,7 +166,7 @@ $(function () {
     $('#reject-form').on('submit', function (e) {
         e.preventDefault();
         const submissionId = $('#reject-submission-id').val();
-        const url = `/admin/flash-sales/submissions/${submissionId}/reject`;
+        const url = `/flash-sales/submissions/${submissionId}/reject`;
         const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Rejecting…');
 
         ajaxPost(url, $(this).serialize())

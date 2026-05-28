@@ -87,6 +87,10 @@
     }
 }
 
+@import 'select2/dist/css/select2.min.css';
+@import 'summernote/dist/summernote-lite.css';
+@import 'filepond/dist/filepond.min.css';
+@import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 @import './components.css';
 
 /* ---------- Base layout chrome ---------- */

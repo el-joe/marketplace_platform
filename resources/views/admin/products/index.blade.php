@@ -16,7 +16,7 @@
                 'orderable' => false,
                 'searchable' => false,
                 'className' => 'w-12 px-2',
-                'render' => 'Renderers.thumbnail'
+                'render' => 'Renderers.image()'
             ],
             ['title' => 'Product', 'data' => 'name_en', 'name' => 'name_en'],
             ['title' => 'Category', 'data' => 'category', 'name' => 'category', 'searchable' => false],
@@ -27,11 +27,11 @@
                 'name' => 'status',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                                                                                                         draft:        { label: \"Draft\",        color: \"gray\"    },
-                                                                                                         active:       { label: \"Active\",       color: \"success\" },
-                                                                                                         discontinued: { label: \"Discontinued\", color: \"warning\" },
-                                                                                                         restricted:   { label: \"Restricted\",   color: \"danger\"  }
-                                                                                                     })'
+                                                        draft:        { label: "Draft",        color: "gray"    },
+                                                        active:       { label: "Active",       color: "success" },
+                                                        discontinued: { label: "Discontinued", color: "warning" },
+                                                        restricted:   { label: "Restricted",   color: "danger"  }
+                                                    })'
             ],
             ['title' => 'Sellers', 'data' => 'seller_count', 'name' => 'seller_count', 'searchable' => false, 'className' => 'text-right'],
             ['title' => 'Rating', 'data' => 'rating_avg', 'name' => 'rating_avg', 'searchable' => false, 'className' => 'text-right'],
@@ -51,9 +51,9 @@
                 'searchable' => false,
                 'className' => 'text-right',
                 'render' => 'Renderers.actions([
-                                                                                                         { type: \"link\",   label: \"Edit\",   url: \":edit_url\" },
-                                                                                                         { type: \"button\", label: \"Delete\", id: \"delete\", class: \"btn-danger\" }
-                                                                                                     ])'
+                                                            { type: "link",   label: "Edit",   url: ":edit_url" },
+                                                            { type: "button", label: "Delete", id: "delete", class: "btn-danger" }
+                                                        ])'
             ],
         ];
 

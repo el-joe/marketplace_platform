@@ -48,9 +48,9 @@
                 'searchable' => false,
                 'className' => 'text-right',
                 'render' => 'Renderers.actions([
-                            { type: "link",   label: "Edit",   url: ":edit" },
-                            { type: "button", label: "Delete", id: "delete", class: "btn-danger" }
-                        ])',
+                                    { type: "link",   label: "Edit",   url: ":edit_url" },
+                                    { type: "button", label: "Delete", id: "delete", class: "btn-danger" }
+                                ])',
             ],
         ];
 
@@ -87,7 +87,7 @@
 
         window.tableActions.delete = function (id, row) {
             if (!confirm('Delete "' + (row.name_en || 'this brand') + '"?')) return;
-            $.ajax({ url: row.destroy, method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } })
+            $.ajax({ url: row.delete_url, method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } })
                 .done(function (res) {
                     window.Toast && window.Toast.success('Brand deleted.');
                     window.reloadDataTable('brands-table');

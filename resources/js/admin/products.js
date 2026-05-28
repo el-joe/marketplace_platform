@@ -18,9 +18,6 @@ import FilePond, { registerPlugin } from 'filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
-import 'filepond/dist/filepond.min.css';
-import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
-
 // Safe re-registration (file-upload.js may already have registered some plugins)
 try { registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType, FilePondPluginFileValidateSize); } catch (_) { }
 
@@ -38,6 +35,35 @@ function csrfToken() {
 
 function isEditMode() {
     return $('#form-mode').val() === 'edit';
+}
+
+function parseUploadServerId(response) {
+    let payload = response;
+
+
+    if (typeof response === 'string') {
+        try {
+            payload = JSON.parse(response);
+        } catch (_) {
+            payload = response;
+        }
+    }
+
+    if (payload && typeof payload === 'object') {
+        if (typeof payload.id === 'string' && payload.id.length > 0) {
+            return payload.id;
+        }
+
+        if (Array.isArray(payload.ids) && payload.ids.length > 0 && typeof payload.ids[0] === 'string') {
+            return payload.ids[0];
+        }
+
+        if (payload.data && typeof payload.data.id === 'string' && payload.data.id.length > 0) {
+            return payload.data.id;
+        }
+    }
+
+    return typeof response === 'string' ? response.trim() : '';
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
@@ -126,7 +152,7 @@ function initCategoryAttributes() {
             return;
         }
 
-        const url = '/admin/categories/' + encodeURIComponent(catId) + '/attributes';
+        const url = '/categories/' + encodeURIComponent(catId) + '/attributes';
 
         $.get(url).done(function (res) {
             const attrs = res.data ?? [];
@@ -300,17 +326,24 @@ function initSeoPreview() {
 // ─── FilePond image upload ────────────────────────────────────────────────────
 
 function initFilePond() {
+
     const inputEl = document.getElementById('product-images-filepond');
     if (!inputEl) return;
 
     const uploadUrl = inputEl.dataset.uploadUrl || buildAdminUrl('upload-image');
     const revertBase = inputEl.dataset.revertBase || buildAdminUrl('delete-image');
+    const processField = inputEl.dataset.processField || 'file';
+    const existing = window.existingProductImages ?? [];
+    const existingMap = new Map(existing.map(function (img) {
+        return [String(img.id), img];
+    }));
+
 
     const pond = FilePond.create(inputEl, {
         allowMultiple: true,
         allowReorder: true,
         maxFiles: 20,
-        acceptedFileTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        acceptedFileTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
         maxFileSize: '5MB',
         labelIdle: 'Drag &amp; drop images or <span class="filepond--label-action">Browse</span>',
 
@@ -318,33 +351,72 @@ function initFilePond() {
             process: {
                 url: uploadUrl,
                 method: 'POST',
+                name: processField,
                 headers: { 'X-CSRF-TOKEN': csrfToken() },
                 onload: function (response) {
-                    try {
-                        return JSON.parse(response).id;
-                    } catch (_) {
-                        return response;
-                    }
+                    return parseUploadServerId(response);
                 },
+            },
+            load: function (source, load, error, progress, abort) {
+
+                const existingImage = existingMap.get(String(source));
+                if (!existingImage || !existingImage.url) {
+                    error('Image URL not found.');
+                    return { abort: function () { abort(); } };
+                }
+
+                const request = new XMLHttpRequest();
+                request.open('GET', existingImage.url);
+                request.responseType = 'blob';
+
+                request.onload = function () {
+                    if (request.status >= 200 && request.status < 300) {
+                        load(request.response);
+                    } else {
+                        error('Failed to load image preview.');
+                    }
+                };
+
+                request.onerror = function () {
+                    error('Failed to load image preview.');
+                };
+
+                request.onprogress = function (e) {
+                    progress(e.lengthComputable, e.loaded, e.total);
+                };
+
+                request.send();
+
+                return {
+                    abort: function () {
+                        request.abort();
+                        abort();
+                    },
+                };
             },
             revert: function (uniqueFileId, load, error) {
                 $.ajax({
                     url: revertBase + '/' + encodeURIComponent(uniqueFileId),
                     method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrfToken() },
                 }).done(load).fail(function () { error('Failed to revert upload.'); });
             },
         },
     });
 
     // Load existing images in edit mode
-    const existing = window.existingProductImages ?? [];
     if (existing.length > 0) {
+
         pond.addFiles(existing.map(function (img) {
             return {
                 source: img.id,
                 options: {
                     type: 'local',
-                    file: { name: img.name, size: 0, type: 'image/jpeg' },
+                    file: {
+                        name: img.name || 'image',
+                        size: Number(img.size) || 0,
+                        type: img.mime_type || 'image/jpeg',
+                    },
                     metadata: { url: img.url },
                 },
             };

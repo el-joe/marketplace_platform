@@ -82,10 +82,8 @@ class BrandController extends Controller
                 'is_active' => (bool) $row->is_active,
                 'product_count' => (int) $row->product_count,
                 'created_at' => $row->created_at,
-                'actions' => [
-                    'edit' => route('admin.brands.edit', $row->id),
-                    'destroy' => route('admin.brands.destroy', $row->id),
-                ],
+                'edit_url' => route('admin.brands.edit', $row->id),
+                'delete_url' => route('admin.brands.destroy', $row->id),
             ];
         });
     }
@@ -210,9 +208,9 @@ class BrandController extends Controller
             ->get(['id', 'name_en', 'name_ar']);
 
         return response()->json([
-            'data' => $brands->map(fn($b) => [
+            'results' => $brands->map(fn($b) => [
                 'id' => $b->id,
-                'label' => $b->name_en . ($b->name_ar ? " / {$b->name_ar}" : ''),
+                'text' => $b->name_en . ($b->name_ar ? " / {$b->name_ar}" : ''),
             ]),
         ]);
     }

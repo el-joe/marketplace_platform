@@ -7,6 +7,7 @@
     'resources/js/components/rich-editor.js',
     'resources/js/components/file-upload.js',
     'resources/js/components/slug-input.js',
+    'resources/js/components/select2.js',
     'resources/js/admin/products.js',
 ])
 @endpush

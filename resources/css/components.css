@@ -166,3 +166,232 @@
 .badge {
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
 }
+
+/* =========================================================
+   SELECT2 — Tailwind-compatible theme
+   ========================================================= */
+
+/* Container */
+.select2-container {
+    @apply w-full;
+}
+
+/* Single selection trigger */
+.select2-container--default .select2-selection--single {
+    @apply block w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 transition;
+    height: auto;
+    padding-top: 0.375rem;
+    /* py-1.5 equivalent */
+    padding-bottom: 0.375rem;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    @apply border-primary-500 outline-none;
+    box-shadow: 0 0 0 3px rgb(186 230 253 / 0.5);
+    /* ring-primary-200 */
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    @apply text-sm text-gray-900 p-0 leading-normal;
+    line-height: 1.5rem;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    @apply text-gray-400;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    height: auto;
+    width: auto;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    @apply text-gray-400 hover:text-gray-600 font-bold;
+    margin-right: 1.5rem;
+}
+
+/* Multiple selection trigger */
+.select2-container--default .select2-selection--multiple {
+    @apply block w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-900 transition;
+    min-height: 2.375rem;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    @apply border-primary-500 outline-none;
+    box-shadow: 0 0 0 3px rgb(186 230 253 / 0.5);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    @apply bg-primary-100 text-primary-700 border border-primary-200 rounded px-2 py-0.5 text-xs mt-0.5 mb-0.5 mr-1 inline-flex items-center gap-1;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    @apply text-primary-500 hover:text-primary-700 font-bold mr-0.5;
+    border: none;
+    background: none;
+    order: -1;
+}
+
+/* Dropdown panel */
+.select2-dropdown {
+    @apply border border-gray-200 rounded-lg shadow-lg bg-white overflow-hidden;
+    z-index: 9999;
+}
+
+.select2-container--default .select2-search--dropdown {
+    @apply p-2;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    @apply block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none;
+    box-shadow: none;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    @apply border-primary-500;
+    box-shadow: 0 0 0 3px rgb(186 230 253 / 0.5);
+}
+
+/* Options */
+.select2-results__options {
+    @apply py-1;
+}
+
+.select2-results__option {
+    @apply px-3 py-2 text-sm text-gray-700 cursor-pointer select-none;
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    @apply bg-primary-600 text-white;
+}
+
+.select2-container--default .select2-results__option--selected {
+    @apply bg-gray-100 text-gray-900;
+}
+
+.select2-container--default .select2-results__option--disabled {
+    @apply text-gray-400 cursor-not-allowed;
+}
+
+.select2-container--default .select2-results__group {
+    @apply px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide bg-gray-50;
+}
+
+/* Loading / empty states */
+.select2-results__option.loading-results,
+.select2-results__option.select2-results__message {
+    @apply text-gray-400 text-sm;
+}
+
+/* =========================================================
+   Summernote theme overrides
+   ========================================================= */
+
+/* Editor wrapper */
+.note-editor.note-frame {
+    @apply rounded-lg border border-gray-300 overflow-hidden shadow-none;
+}
+
+.note-editor.note-frame.focus {
+    @apply border-primary-500 ring-1 ring-primary-300;
+}
+
+/* Toolbar */
+.note-editor .note-toolbar {
+    @apply bg-gray-50 border-b border-gray-200 px-2 py-1.5 flex flex-wrap gap-0.5;
+}
+
+.note-editor .note-btn {
+    @apply bg-transparent border-0 text-gray-600 rounded p-1 hover:bg-gray-200 text-sm;
+}
+
+.note-editor .note-btn:hover {
+    @apply bg-gray-200 text-gray-900;
+}
+
+.note-editor .note-btn.active {
+    @apply bg-gray-200 text-gray-900;
+}
+
+.note-editor .note-btn-group {
+    @apply flex gap-0;
+}
+
+/* Editing area */
+.note-editor .note-editable {
+    @apply px-3 py-2 text-sm text-gray-800 bg-white;
+}
+
+/* Dropdown menus */
+.note-editor .dropdown-menu,
+.note-popover .popover-content {
+    @apply bg-white border border-gray-200 rounded-lg shadow-md py-1 min-w-32;
+}
+
+.note-editor .dropdown-item,
+.note-popover .dropdown-item {
+    @apply block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer;
+}
+
+/* Status bar */
+.note-editor .note-statusbar {
+    @apply bg-gray-50 border-t border-gray-200;
+}
+
+.note-editor .note-statusbar .note-resizebar {
+    @apply cursor-row-resize;
+}
+
+/* Resize handle */
+.note-editor .note-resizebar .note-icon-bar {
+    @apply border-gray-300;
+}
+
+/* Code view */
+.note-editor .note-codable {
+    @apply bg-gray-900 text-gray-100 font-mono text-sm px-3 py-2;
+}
+
+/* Placeholder */
+.note-editable[contenteditable=true]:empty:before,
+.note-placeholder {
+    @apply text-gray-400 pointer-events-none;
+}
+
+/* Link / image modals — inherit from Bootstrap-less Summernote lite */
+.note-modal .note-modal-content {
+    @apply bg-white rounded-xl shadow-xl border border-gray-200;
+}
+
+.note-modal .note-modal-header {
+    @apply px-4 py-3 border-b border-gray-200 flex items-center justify-between;
+}
+
+.note-modal .note-modal-title {
+    @apply text-sm font-semibold text-gray-800;
+}
+
+.note-modal .note-modal-footer {
+    @apply px-4 py-3 border-t border-gray-200 flex justify-end gap-2;
+}
+
+.note-modal .note-input {
+    @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500;
+}
+
+.note-modal .note-btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-4 py-2 rounded-lg;
+}
+
+.note-modal .note-btn-default {
+    @apply bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300;
+}
+
+/* Popover (link edit) */
+.note-popover .popover-content {
+    @apply flex gap-0.5 p-1;
+}
