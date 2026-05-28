@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\CustomerController;
@@ -415,13 +416,27 @@ Route::middleware('auth.admin')->group(function () {
     // ─── Coupons ─────────────────────────────────────────────────────────────────
     Route::prefix('coupons')->name('coupons.')->middleware('admin.permission:coupons.view')->group(function () {
         Route::get('/create', [CouponController::class, 'create'])->name('create');
+        Route::get('/generate-code', [CouponController::class, 'generateCode'])->name('generate-code');
         Route::post('/datatable', [CouponController::class, 'datatable'])->name('datatable');
         Route::post('/bulk', [CouponController::class, 'bulkAction'])->name('bulk');
         Route::get('/', [CouponController::class, 'index'])->name('index');
         Route::post('/', [CouponController::class, 'store'])->name('store');
+        Route::get('/{coupon}/usages', [CouponController::class, 'usages'])->name('usages');
         Route::get('/{coupon}/edit', [CouponController::class, 'edit'])->name('edit');
         Route::put('/{coupon}', [CouponController::class, 'update'])->name('update');
         Route::delete('/{coupon}', [CouponController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Support Tickets ──────────────────────────────────────────────────────────
+    Route::prefix('support-tickets')->name('support-tickets.')->middleware('admin.permission:support.view')->group(function () {
+        Route::post('/datatable', [SupportTicketController::class, 'datatable'])->name('datatable');
+        Route::get('/', [SupportTicketController::class, 'index'])->name('index');
+        Route::get('/{ticket}', [SupportTicketController::class, 'show'])->name('show');
+        Route::post('/{ticket}/reply', [SupportTicketController::class, 'reply'])->name('reply');
+        Route::post('/{ticket}/assign', [SupportTicketController::class, 'assign'])->name('assign');
+        Route::post('/{ticket}/assign-me', [SupportTicketController::class, 'assignMe'])->name('assign-me');
+        Route::post('/{ticket}/update-status', [SupportTicketController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{ticket}/update-priority', [SupportTicketController::class, 'updatePriority'])->name('update-priority');
     });
 
     // ─── Stop Impersonating (no extra permission required, just auth) ─────────────

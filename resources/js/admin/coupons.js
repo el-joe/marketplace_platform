@@ -1,7 +1,33 @@
 /**
  * coupons.js — admin coupon form & datatable JS
  */
+
+function csrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+
+    // ─── Generate Code ───────────────────────────────────────────────────────
+    const generateBtn = document.getElementById('btn-generate-code');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', async () => {
+            generateBtn.disabled = true;
+            try {
+                const res = await fetch(generateBtn.dataset.url, {
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+                });
+                const data = await res.json();
+                if (data.code) {
+                    document.getElementById('code').value = data.code;
+                }
+            } catch {
+                window.Toast?.error('Could not generate code.');
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+    }
 
     // ─── AJAX form submit ─────────────────────────────────────────────────────
     const form = document.getElementById('coupon-form');
@@ -15,13 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btn = document.getElementById('save-btn');
             const originalText = btn ? btn.textContent : '';
-            if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+            if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
 
             try {
                 const fd = new FormData(form);
                 const res = await fetch(form.action, {
                     method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
+                    headers: { 'X-CSRF-TOKEN': csrfToken() },
                     body: fd,
                 });
 

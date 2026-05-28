@@ -68,17 +68,25 @@
                         <label for="code" class="block text-xs font-medium text-gray-700 mb-1">
                             Code <span class="text-red-500">*</span>
                         </label>
-                        <input
-                            type="text"
-                            id="code"
-                            name="code"
-                            value="{{ strtoupper($val('code')) }}"
-                            class="input w-full font-mono uppercase @error('code') border-red-400 @enderror"
-                            placeholder="e.g. WELCOME20"
-                            maxlength="50"
-                            oninput="this.value = this.value.toUpperCase()"
-                            required
-                        />
+                        <div class="flex gap-2">
+                            <input
+                                type="text"
+                                id="code"
+                                name="code"
+                                value="{{ strtoupper($val('code')) }}"
+                                class="input flex-1 font-mono uppercase @error('code') border-red-400 @enderror"
+                                placeholder="e.g. WELCOME20"
+                                maxlength="50"
+                                oninput="this.value = this.value.toUpperCase()"
+                                required
+                            />
+                            <button type="button"
+                                    id="btn-generate-code"
+                                    data-url="{{ route('admin.coupons.generate-code') }}"
+                                    class="btn btn-secondary btn-sm shrink-0 whitespace-nowrap">
+                                Generate
+                            </button>
+                        </div>
                         @error('code') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 

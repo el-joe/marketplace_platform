@@ -262,6 +262,45 @@ class CouponController extends Controller
     // Private
     // ─────────────────────────────────────────────────────────────────────────
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Generate Code
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function generateCode(): JsonResponse
+    {
+        do {
+            $code = strtoupper(Str::random(8));
+        } while (Coupon::where('code', $code)->exists());
+
+        return response()->json(['code' => $code]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Usages
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function usages(Coupon $coupon): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('coupons.view'), 403);
+
+        $usages = CouponUsage::where('coupon_id', $coupon->id)
+            ->with(['customer:id,name,email', 'order:id,order_number,status'])
+            ->orderByDesc('used_at')
+            ->paginate(20);
+
+        return response()->json([
+            'data' => $usages->items(),
+            'total' => $usages->total(),
+            'current_page' => $usages->currentPage(),
+            'last_page' => $usages->lastPage(),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private
+    // ─────────────────────────────────────────────────────────────────────────
+
     private function columnDefinitions(): array
     {
         return [
