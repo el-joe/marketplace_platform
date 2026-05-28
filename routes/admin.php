@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\AdCampaignController;
 use App\Http\Controllers\Admin\AdSlotController;
 use App\Http\Controllers\Admin\PaidAdBookingController;
+use App\Http\Controllers\Admin\VendorApplicationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -422,6 +423,7 @@ Route::middleware('auth.admin')->group(function () {
 
     // ─── Admins ───────────────────────────────────────────────────────────────────
     Route::prefix('admins')->name('admins.')->middleware('admin.permission:admins.view')->group(function () {
+        Route::get('/search', [AdminController::class, 'search'])->name('search');
         Route::get('/create', [AdminController::class, 'create'])->name('create');
         Route::post('/datatable', [AdminController::class, 'datatable'])->name('datatable');
         Route::get('/', [AdminController::class, 'index'])->name('index');
@@ -512,6 +514,20 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{paidAdBooking}', [PaidAdBookingController::class, 'show'])->name('show');
         Route::post('/{paidAdBooking}/approve', [PaidAdBookingController::class, 'approve'])->name('approve');
         Route::post('/{paidAdBooking}/reject', [PaidAdBookingController::class, 'reject'])->name('reject');
+    });
+
+    // ─── Vendor Applications Queue ────────────────────────────────────────────────
+    Route::prefix('vendor-applications')->name('vendor-applications.')->middleware('admin.permission:vendors.view')->group(function () {
+        Route::post('/datatable', [VendorApplicationController::class, 'datatable'])->name('datatable');
+        Route::post('/documents/{document}/verify', [VendorApplicationController::class, 'verifyDocument'])->name('documents.verify');
+        Route::post('/documents/{document}/reject', [VendorApplicationController::class, 'rejectDocument'])->name('documents.reject');
+        Route::get('/', [VendorApplicationController::class, 'index'])->name('index');
+        Route::get('/{vendor}', [VendorApplicationController::class, 'show'])->name('show');
+        Route::post('/{vendor}/start-review', [VendorApplicationController::class, 'startReview'])->name('start-review');
+        Route::post('/{vendor}/assign-me', [VendorApplicationController::class, 'assignMe'])->name('assign-me');
+        Route::post('/{vendor}/approve', [VendorApplicationController::class, 'approve'])->name('approve');
+        Route::post('/{vendor}/reject', [VendorApplicationController::class, 'reject'])->name('reject');
+        Route::post('/{vendor}/request-info', [VendorApplicationController::class, 'requestMoreInfo'])->name('request-info');
     });
 
 }); // end auth.admin middleware group

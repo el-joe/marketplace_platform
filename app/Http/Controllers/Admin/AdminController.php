@@ -256,6 +256,26 @@ class AdminController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Search (Select2 AJAX)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function search(Request $request): JsonResponse
+    {
+        $q = $request->input('q', '');
+
+        $results = Admin::when($q, fn($query) => $query->where(function ($sub) use ($q) {
+            $sub->where('name', 'like', "%{$q}%")
+                ->orWhere('email', 'like', "%{$q}%");
+        }))
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name'])
+            ->map(fn($a) => ['id' => $a->id, 'text' => $a->name]);
+
+        return response()->json(['results' => $results]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Reset Password
     // ─────────────────────────────────────────────────────────────────────────
 
