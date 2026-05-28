@@ -63,10 +63,13 @@ $(function () {
     // Delete country
     // ─────────────────────────────────────────────────────────────────────────
 
-    $(document).on('click', '#btn-delete-country', function () {
+    $(document).on('click', '#btn-delete-country', async function () {
         const name = $(this).data('country-name');
         const url = $(this).data('url');
-        if (!confirm(`Permanently delete "${name}"?\n\nThis cannot be undone.`)) return;
+        const confirmed = window.confirmDelete
+            ? await window.confirmDelete(`Permanently delete "${name}"? This cannot be undone.`, { title: 'Delete country?' })
+            : confirm(`Permanently delete "${name}"?\n\nThis cannot be undone.`);
+        if (!confirmed) return;
 
         $.ajax({ url, method: 'DELETE', headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
             .done(function (res) {
@@ -156,10 +159,13 @@ $(function () {
             });
     });
 
-    $(document).on('click', '.btn-delete-pm', function () {
+    $(document).on('click', '.btn-delete-pm', async function () {
         const pmId = $(this).data('pm-id');
         const url = $(this).data('url');
-        if (!confirm('Remove this payment method?')) return;
+        const confirmed = window.confirmDelete
+            ? await window.confirmDelete('Remove this payment method?', { title: 'Delete payment method?' })
+            : confirm('Remove this payment method?');
+        if (!confirmed) return;
 
         $.ajax({ url, method: 'DELETE', headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
             .done(function (res) {

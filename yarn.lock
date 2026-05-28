@@ -1744,6 +1744,7 @@ __metadata:
     laravel-vite-plugin: "npm:^3.1"
     select2: "npm:^4.1.0-rc.0"
     summernote: "npm:^0.9.1"
+    sweetalert2: "npm:^11.26.25"
     tailwindcss: "npm:^4.0.0"
     toastify-js: "npm:^1.12.0"
     vite: "npm:^8.0.0"
@@ -1838,6 +1839,13 @@ __metadata:
   dependencies:
     has-flag: "npm:^4.0.0"
   checksum: 10c0/afb4c88521b8b136b5f5f95160c98dee7243dc79d5432db7efc27efb219385bbc7d9427398e43dd6cc730a0f87d5085ce1652af7efbe391327bc0a7d0f7fc124
+  languageName: node
+  linkType: hard
+
+"sweetalert2@npm:^11.26.25":
+  version: 11.26.25
+  resolution: "sweetalert2@npm:11.26.25"
+  checksum: 10c0/3ee9d9184bf3467f13132e084cf5544b3d1e9eaa800978754ccb0687362f3e6e3f195ce031dc2de381589edb29c0086fcaec438ac43fdb57210b2a08c0cdc417
   languageName: node
   linkType: hard
 

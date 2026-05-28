@@ -326,15 +326,16 @@ class ProductController extends Controller
 
     public function destroy(string $product): JsonResponse
     {
-        $activeSellers = DB::table('seller_listings')
-            ->where('product_id', $product)
+        $productData = Product::where('id', $product)->whereNull('deleted_at')->firstOrFail();
+        $activeSellers = DB::table('vendor_listings')
+            ->whereIn('product_variant_id', $productData->variants->pluck('id'))
             ->where('status', 'active')
             ->whereNull('deleted_at')
             ->count();
 
         if ($activeSellers > 0) {
             return response()->json([
-                'message' => "Cannot delete: {$activeSellers} active seller listing(s) reference this product.",
+                'message' => "Cannot delete: {$activeSellers} active vendor listing(s) reference this product.",
             ], 422);
         }
 

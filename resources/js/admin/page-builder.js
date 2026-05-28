@@ -760,7 +760,10 @@ async function moveBlock(id, delta) {
 }
 
 async function deleteBlock(id) {
-    if (!confirm('Delete this block?')) return;
+    const confirmed = window.confirmDelete
+        ? await window.confirmDelete('Delete this block?', { title: 'Delete block?' })
+        : confirm('Delete this block?');
+    if (!confirmed) return;
     try {
         await ajaxDel(blockUrl(id));
         blocks = blocks.filter(b => b.id !== id);
@@ -949,7 +952,10 @@ function openAdImageEditModal(prefill = {}) {
 function initToolbar() {
     document.getElementById('btn-canvas-clear')?.addEventListener('click', async () => {
         if (!blocks.length) return Toast.info('Canvas is already empty');
-        if (!confirm(`Delete all ${blocks.length} block(s) from this page?`)) return;
+        const confirmed = window.confirmDelete
+            ? await window.confirmDelete(`Delete all ${blocks.length} block(s) from this page?`, { title: 'Clear canvas?' })
+            : confirm(`Delete all ${blocks.length} block(s) from this page?`);
+        if (!confirmed) return;
         for (const b of [...blocks]) {
             try { await ajaxDel(blockUrl(b.id)); } catch (_) { }
         }
@@ -1077,10 +1083,21 @@ function initTopBar() {
     });
 
     $('#btn-delete').on('click', () => {
+        const doDelete = function () {
+            ajaxDel(window.PAGE_URLS.destroy)
+                .done(() => { location.href = window.PAGE_URLS.indexUrl; })
+                .fail((err) => Toast.error(err?.responseJSON?.message || 'Delete failed'));
+        };
+
+        if (window.confirmDelete) {
+            window.confirmDelete('Permanently delete this page?', { title: 'Delete page?' }).then(function (confirmed) {
+                if (confirmed) doDelete();
+            });
+            return;
+        }
+
         if (!confirm('Permanently delete this page?')) return;
-        ajaxDel(window.PAGE_URLS.destroy)
-            .done(() => { location.href = window.PAGE_URLS.indexUrl; })
-            .fail((err) => Toast.error(err?.responseJSON?.message || 'Delete failed'));
+        doDelete();
     });
 }
 

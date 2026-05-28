@@ -48,9 +48,9 @@
                 'searchable' => false,
                 'className' => 'text-right',
                 'render' => 'Renderers.actions([
-                                    { type: "link",   label: "Edit",   url: ":edit_url" },
-                                    { type: "button", label: "Delete", id: "delete", class: "btn-danger" }
-                                ])',
+                                            { type: "link",   label: "Edit",   url: ":edit_url" },
+                                            { type: "button", label: "Delete", id: "delete", class: "btn-danger" }
+                                        ])',
             ],
         ];
 
@@ -85,8 +85,13 @@
     <script>
         window.tableActions = window.tableActions || {};
 
-        window.tableActions.delete = function (id, row) {
-            if (!confirm('Delete "' + (row.name_en || 'this brand') + '"?')) return;
+        window.tableActions.delete = async function (id, row) {
+            const message = 'Delete "' + (row.name_en || 'this brand') + '"?';
+            const confirmed = window.confirmDelete
+                ? await window.confirmDelete(message, { title: 'Delete brand?' })
+                : confirm(message);
+            if (!confirmed) return;
+
             $.ajax({ url: row.delete_url, method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } })
                 .done(function (res) {
                     window.Toast && window.Toast.success('Brand deleted.');

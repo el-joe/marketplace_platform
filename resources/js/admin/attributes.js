@@ -35,12 +35,15 @@ document.addEventListener('DOMContentLoaded', function () {
 // ─── Datatable: delete button ─────────────────────────────────────────────────
 
 function initDatatableDelete() {
-    $(document).on('click', '[data-action="delete"]', function () {
+    $(document).on('click', '[data-action="delete"]', async function () {
         const id = $(this).data('id');
         const url = (window.ROUTES_ATTR?.destroy ?? '').replace(':id', id);
 
         if (!url) return;
-        if (!window.confirm('Delete this attribute? This cannot be undone.')) return;
+        const confirmed = window.confirmDelete
+            ? await window.confirmDelete('Delete this attribute? This cannot be undone.', { title: 'Delete attribute?' })
+            : window.confirm('Delete this attribute? This cannot be undone.');
+        if (!confirmed) return;
 
         $.ajax({
             url: url,
@@ -151,10 +154,13 @@ function initEditValueActions() {
     });
 
     // Delete value
-    $(document).on('click', '.delete-value-btn', function () {
+    $(document).on('click', '.delete-value-btn', async function () {
         const id = $(this).data('id');
         const url = $(this).data('url');
-        if (!window.confirm('Delete this value?')) return;
+        const confirmed = window.confirmDelete
+            ? await window.confirmDelete('Delete this value?', { title: 'Delete value?' })
+            : window.confirm('Delete this value?');
+        if (!confirmed) return;
 
         $.ajax({
             url: url,

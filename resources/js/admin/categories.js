@@ -189,14 +189,17 @@ function initFeaturedToggle() {
 // ─── Delete category ──────────────────────────────────────────────────────────
 
 function initDeleteCategory() {
-    document.getElementById('categories-table')?.addEventListener('click', function (e) {
+    document.getElementById('categories-table')?.addEventListener('click', async function (e) {
         const btn = e.target.closest('.delete-cat-btn[data-id]');
         if (!btn) return;
 
         const name = btn.dataset.name;
         const url = btn.dataset.url;
 
-        if (!window.confirm('Delete "' + name + '"? This cannot be undone.')) return;
+        const confirmed = window.confirmDelete
+            ? await window.confirmDelete('Delete "' + name + '"? This cannot be undone.', { title: 'Delete category?' })
+            : window.confirm('Delete "' + name + '"? This cannot be undone.');
+        if (!confirmed) return;
 
         $.ajax({
             url: url,

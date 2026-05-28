@@ -119,7 +119,7 @@ window.getSelectedIds = getSelectedIds;
 /* =========================================================
    BULK ACTION HANDLER
    ========================================================= */
-$(document).on('click', '[data-bulk-action]', function () {
+$(document).on('click', '[data-bulk-action]', async function () {
     const action = $(this).data('bulk-action');
     const tableId = $(this).data('table');
     const needConfirm = $(this).data('confirm') !== false;
@@ -141,9 +141,15 @@ $(document).on('click', '[data-bulk-action]', function () {
     }
 
     if (needConfirm) {
+        const isDeleteAction = String(action || '').toLowerCase().includes('delete');
+
         // Use a confirm modal if available, otherwise native confirm
         if (window.bulkConfirmModal) {
             window.bulkConfirmModal(message, ids.length, executeAction);
+        } else if (window.confirmBulkAction) {
+            const confirmed = await window.confirmBulkAction(message, ids.length, { destructive: isDeleteAction });
+            if (!confirmed) return;
+            executeAction();
         } else if (window.confirm(`${message}\n\n${ids.length} item(s) selected.`)) {
             executeAction();
         }
@@ -339,6 +345,13 @@ window.bulkPost = function (url, ids, tableId, successMessage) {
  * Replace with your real modal implementation.
  */
 window.bulkConfirmModal = function (message, count, callback) {
+    if (window.confirmBulkAction) {
+        window.confirmBulkAction(message, count).then(function (confirmed) {
+            if (confirmed) callback();
+        });
+        return;
+    }
+
     if (window.confirm(`${message}\n\n${count} item(s) will be affected.`)) {
         callback();
     }

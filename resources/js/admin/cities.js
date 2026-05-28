@@ -12,10 +12,13 @@ $(function () {
     // Delete city
     // ─────────────────────────────────────────────────────────────────────────
 
-    $(document).on('click', '#btn-delete-city', function () {
+    $(document).on('click', '#btn-delete-city', async function () {
         const name = $(this).data('city-name');
         const url = $(this).data('url');
-        if (!confirm(`Delete "${name}"?\n\nThis cannot be undone.`)) return;
+        const confirmed = window.confirmDelete
+            ? await window.confirmDelete(`Delete "${name}"? This cannot be undone.`, { title: 'Delete city?' })
+            : confirm(`Delete "${name}"?\n\nThis cannot be undone.`);
+        if (!confirmed) return;
 
         $.ajax({ url, method: 'DELETE', headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
             .done(function (res) {

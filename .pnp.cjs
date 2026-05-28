@@ -58,6 +58,7 @@ const RAW_RUNTIME_STATE =
           ["root-workspace-0b6124", "workspace:."],\
           ["select2", "npm:4.1.0-rc.0"],\
           ["summernote", "npm:0.9.1"],\
+          ["sweetalert2", "npm:11.26.25"],\
           ["tailwindcss", "npm:4.3.0"],\
           ["toastify-js", "npm:1.12.0"],\
           ["vite", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:8.0.14"]\
@@ -2362,6 +2363,7 @@ const RAW_RUNTIME_STATE =
           ["root-workspace-0b6124", "workspace:."],\
           ["select2", "npm:4.1.0-rc.0"],\
           ["summernote", "npm:0.9.1"],\
+          ["sweetalert2", "npm:11.26.25"],\
           ["tailwindcss", "npm:4.3.0"],\
           ["toastify-js", "npm:1.12.0"],\
           ["vite", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:8.0.14"]\
@@ -2469,6 +2471,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["has-flag", "npm:4.0.0"],\
           ["supports-color", "npm:8.1.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["sweetalert2", [\
+      ["npm:11.26.25", {\
+        "packageLocation": "../../../home/joe/.yarn/berry/cache/sweetalert2-npm-11.26.25-8099d8c968-10c0.zip/node_modules/sweetalert2/",\
+        "packageDependencies": [\
+          ["sweetalert2", "npm:11.26.25"]\
         ],\
         "linkType": "HARD"\
       }]\
