@@ -36,6 +36,7 @@ export default defineConfig({
                 'resources/js/admin/admins.js',
                 'resources/js/admin/customers.js',
                 'resources/js/admin/banners.js',
+                'resources/js/admin/ad-campaigns.js',
             ],
             refresh: [
                 'resources/views/**',

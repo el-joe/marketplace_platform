@@ -19,6 +19,9 @@ use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\AdCampaignController;
+use App\Http\Controllers\Admin\AdSlotController;
+use App\Http\Controllers\Admin\PaidAdBookingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -474,6 +477,41 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{banner}/upload-image', [BannerController::class, 'uploadImage'])->name('upload-image');
         Route::delete('/image', [BannerController::class, 'deleteImage'])->name('delete-image');
         Route::post('/bulk', [BannerController::class, 'bulk'])->name('bulk');
+    });
+
+    // ─── Ad Campaigns ──────────────────────────────────────────────────────────────
+    Route::prefix('ad-campaigns')->name('ad-campaigns.')->middleware('admin.permission:ad_campaigns.view')->group(function () {
+        Route::post('/datatable', [AdCampaignController::class, 'datatable'])->name('datatable');
+        Route::get('/fraud', [AdCampaignController::class, 'fraudAlerts'])->name('fraud');
+        Route::post('/fraud/datatable', [AdCampaignController::class, 'fraudDatatable'])->name('fraud.datatable');
+        Route::post('/fraud/{pattern}/block', [AdCampaignController::class, 'blockFraudPattern'])->name('fraud.block');
+        Route::get('/', [AdCampaignController::class, 'index'])->name('index');
+        Route::get('/{campaign}', [AdCampaignController::class, 'show'])->name('show');
+        Route::post('/{campaign}/approve', [AdCampaignController::class, 'approve'])->name('approve');
+        Route::post('/{campaign}/reject', [AdCampaignController::class, 'reject'])->name('reject');
+        Route::post('/{campaign}/pause', [AdCampaignController::class, 'pauseCampaign'])->name('pause');
+        Route::post('/{campaign}/resume', [AdCampaignController::class, 'resumeCampaign'])->name('resume');
+    });
+
+    // ─── Ad Slots ──────────────────────────────────────────────────────────────────
+    Route::prefix('ad-slots')->name('ad-slots.')->middleware('admin.permission:ad_campaigns.view')->group(function () {
+        Route::post('/datatable', [AdSlotController::class, 'datatable'])->name('datatable');
+        Route::get('/create', [AdSlotController::class, 'create'])->name('create');
+        Route::post('/', [AdSlotController::class, 'store'])->name('store');
+        Route::get('/', [AdSlotController::class, 'index'])->name('index');
+        Route::get('/{adSlot}/bookings', [AdSlotController::class, 'bookings'])->name('bookings');
+        Route::get('/{adSlot}/edit', [AdSlotController::class, 'edit'])->name('edit');
+        Route::put('/{adSlot}', [AdSlotController::class, 'update'])->name('update');
+    });
+
+    // ─── Paid Ad Bookings ──────────────────────────────────────────────────────────
+    Route::prefix('paid-ad-bookings')->name('paid-ad-bookings.')->middleware('admin.permission:ad_campaigns.view')->group(function () {
+        Route::post('/datatable', [PaidAdBookingController::class, 'datatable'])->name('datatable');
+        Route::post('/creatives/{paidAdCreative}/review', [PaidAdBookingController::class, 'reviewCreative'])->name('creatives.review');
+        Route::get('/', [PaidAdBookingController::class, 'index'])->name('index');
+        Route::get('/{paidAdBooking}', [PaidAdBookingController::class, 'show'])->name('show');
+        Route::post('/{paidAdBooking}/approve', [PaidAdBookingController::class, 'approve'])->name('approve');
+        Route::post('/{paidAdBooking}/reject', [PaidAdBookingController::class, 'reject'])->name('reject');
     });
 
 }); // end auth.admin middleware group

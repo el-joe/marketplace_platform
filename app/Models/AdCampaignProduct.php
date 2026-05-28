@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AdCampaignProduct extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'ad_campaign_id',
         'product_variant_id',
