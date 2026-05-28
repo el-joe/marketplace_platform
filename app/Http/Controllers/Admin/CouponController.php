@@ -111,7 +111,7 @@ class CouponController extends Controller
                 ['label' => 'Coupons', 'url' => route('admin.coupons.index')],
                 ['label' => 'New Coupon'],
             ],
-            'vendors' => Vendor::query()->where('is_active', true)->orderBy('store_name')->get(['id', 'store_name']),
+            'vendors' => Vendor::query()->orderBy('store_name')->get(['id', 'store_name']),
             'categories' => Category::query()->where('is_active', true)->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en']),
         ]);
     }
@@ -174,7 +174,7 @@ class CouponController extends Controller
                 ['label' => 'Coupons', 'url' => route('admin.coupons.index')],
                 ['label' => e($model->code)],
             ],
-            'vendors' => Vendor::query()->where('is_active', true)->orderBy('store_name')->get(['id', 'store_name']),
+            'vendors' => Vendor::query()->orderBy('store_name')->get(['id', 'store_name']),
             'categories' => Category::query()->where('is_active', true)->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en']),
         ]);
     }

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vendor extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids/*, SoftDeletes*/ ;
     protected $fillable = [
         'name',
         'email',
