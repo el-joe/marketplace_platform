@@ -84,6 +84,7 @@ class PermissionSeeder extends Seeder
             'reviews.approve',
             'reviews.reject',
             'reviews.delete',
+            'reviews.edit',
             // Disputes
             'disputes.view',
             'disputes.resolve',

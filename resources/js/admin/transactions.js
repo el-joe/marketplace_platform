@@ -47,7 +47,7 @@ function initTransactionsIndex() {
         serverSide: true,
         order: [[9, 'desc']],
         ajax: {
-            url: '/admin/transactions/datatable',
+            url: '/transactions/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
@@ -124,7 +124,7 @@ function initRefundsPage() {
         serverSide: true,
         order: [[6, 'asc']], // status asc so pending comes first
         ajax: {
-            url: '/admin/transactions/refunds/datatable',
+            url: '/transactions/refunds/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {

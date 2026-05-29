@@ -60,13 +60,27 @@
 
     {{-- ─── Filter bar ──────────────────────────────────────────────────────────── --}}
     <x-card class="mb-5">
-        <div class="flex flex-wrap gap-3 items-end">
-            <div class="flex-1 min-w-[160px]">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Search product / customer</label>
-                <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="Product name, customer…">
+        {{-- Row 1: primary filters --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+
+            {{-- Search --}}
+            <div class="sm:col-span-2 lg:col-span-1">
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Search</label>
+                <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-2.5 -translate-y-1/2 w-4 h-4 text-gray-400"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" id="search-input"
+                           class="form-input w-full text-sm pl-9"
+                           placeholder="Product name, customer…">
+                </div>
             </div>
-            <div class="w-44">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+
+            {{-- Status --}}
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Status</label>
                 <select id="filter-status" class="form-input w-full text-sm">
                     <option value="">All statuses</option>
                     <option value="pending">Pending</option>
@@ -76,21 +90,10 @@
                     <option value="auto_flagged">Auto-Flagged</option>
                 </select>
             </div>
-            <div class="w-44">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Rating</label>
-                <div class="flex gap-1">
-                    @foreach([1,2,3,4,5] as $r)
-                        <label class="flex items-center cursor-pointer" title="{{ $r }} star{{ $r > 1 ? 's' : '' }}">
-                            <input type="checkbox" class="rating-checkbox sr-only" value="{{ $r }}">
-                            <span class="px-2 py-1 rounded border text-sm rating-star-btn border-gray-200 text-gray-400 hover:border-yellow-400 hover:text-yellow-500 transition-colors cursor-pointer select-none">
-                                {{ $r }}★
-                            </span>
-                        </label>
-                    @endforeach
-                </div>
-            </div>
-            <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Country</label>
+
+            {{-- Country --}}
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Country</label>
                 <select id="filter-country" class="form-input w-full text-sm">
                     <option value="">All countries</option>
                     @foreach($countries as $c)
@@ -98,23 +101,77 @@
                     @endforeach
                 </select>
             </div>
-            <div class="w-32">
-                <label class="block text-xs font-medium text-gray-600 mb-1">From date</label>
-                <input type="date" id="filter-date-from" class="form-input w-full text-sm">
+
+            {{-- Rating --}}
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Rating</label>
+                <div class="flex gap-1">
+                    @foreach([1,2,3,4,5] as $r)
+                        <label class="flex-1 flex items-center justify-center cursor-pointer"
+                               title="{{ $r }} star{{ $r > 1 ? 's' : '' }}">
+                            <input type="checkbox" class="rating-checkbox sr-only" value="{{ $r }}">
+                            <span class="w-full h-9 flex items-center justify-center rounded-lg border text-sm font-semibold
+                                         rating-star-btn border-gray-200 text-gray-400
+                                         hover:border-yellow-400 hover:text-yellow-500 hover:bg-yellow-50
+                                         transition-all select-none">
+                                {{ $r }}★
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
             </div>
-            <div class="w-32">
-                <label class="block text-xs font-medium text-gray-600 mb-1">To date</label>
-                <input type="date" id="filter-date-to" class="form-input w-full text-sm">
+        </div>
+
+        {{-- Divider --}}
+        <div class="border-t border-gray-100 mb-4"></div>
+
+        {{-- Row 2: secondary filters --}}
+        <div class="flex flex-wrap items-center gap-3">
+
+            {{-- Date range --}}
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-medium text-gray-500 whitespace-nowrap">Date range</span>
+                <input type="date" id="filter-date-from" class="form-input text-sm w-36">
+                <span class="text-gray-300 font-bold">→</span>
+                <input type="date" id="filter-date-to" class="form-input text-sm w-36">
             </div>
-            <label class="flex items-center gap-2 cursor-pointer self-end pb-1">
-                <input type="checkbox" id="filter-verified" class="form-checkbox">
-                <span class="text-sm text-gray-600">Verified only</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer self-end pb-1">
-                <input type="checkbox" id="filter-ai-flagged" class="form-checkbox">
-                <span class="text-sm text-gray-600">AI flagged</span>
-            </label>
-            <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">Reset</button>
+
+            <div class="h-5 w-px bg-gray-200 hidden sm:block"></div>
+
+            {{-- Toggle pills --}}
+            <div class="flex items-center gap-2 sm:ml-auto">
+
+                {{-- Verified purchase toggle --}}
+                <label class="cursor-pointer select-none">
+                    <input type="checkbox" id="filter-verified" class="sr-only peer">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium
+                                 transition-all duration-150 border-gray-200 text-gray-500
+                                 hover:border-success-400 hover:text-success-600
+                                 peer-checked:border-success-500 peer-checked:text-success-700 peer-checked:bg-success-50">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Verified
+                    </span>
+                </label>
+
+                {{-- AI Flagged toggle --}}
+                <label class="cursor-pointer select-none">
+                    <input type="checkbox" id="filter-ai-flagged" class="sr-only peer">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium
+                                 transition-all duration-150 border-gray-200 text-gray-500
+                                 hover:border-orange-400 hover:text-orange-600
+                                 peer-checked:border-orange-500 peer-checked:text-orange-700 peer-checked:bg-orange-50">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        AI Flagged
+                    </span>
+                </label>
+
+                <div class="h-5 w-px bg-gray-200"></div>
+                <button type="button" id="clear-filters" class="btn btn-ghost btn-sm">Reset</button>
+            </div>
         </div>
     </x-card>
 

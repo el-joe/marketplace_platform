@@ -46,7 +46,7 @@ function initIndexPage() {
         serverSide: true,
         order: [[9, 'desc']], // created_at desc
         ajax: {
-            url: '/admin/reviews/datatable',
+            url: '/reviews/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {

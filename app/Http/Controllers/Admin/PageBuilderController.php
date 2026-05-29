@@ -251,7 +251,7 @@ class PageBuilderController extends Controller
 
         $view = 'admin.page-builder.config-forms.' . str_replace('_', '-', $blockType->code);
 
-        if (! View::exists($view)) {
+        if (!View::exists($view)) {
             $view = 'admin.page-builder.config-forms.generic';
         }
 
@@ -378,14 +378,14 @@ class PageBuilderController extends Controller
         $rows = ProductVariant::query()
             ->with('product:id,name_en')
             ->when($q !== '', function ($query) use ($q) {
-                $query->whereHas('product', fn ($p) => $p->where('name_en', 'like', "%{$q}%"))
+                $query->whereHas('product', fn($p) => $p->where('name_en', 'like', "%{$q}%"))
                     ->orWhere('sku', 'like', "%{$q}%");
             })
             ->limit(20)
             ->get(['id', 'product_id', 'sku']);
 
         return response()->json([
-            'results' => $rows->map(fn ($v) => [
+            'results' => $rows->map(fn($v) => [
                 'id' => $v->id,
                 'text' => trim(optional($v->product)->name_en . ' — ' . $v->sku, ' —'),
             ])->values(),
@@ -397,12 +397,12 @@ class PageBuilderController extends Controller
         $q = trim((string) $request->query('q', ''));
 
         $rows = Category::query()
-            ->when($q !== '', fn ($query) => $query->where('name_en', 'like', "%{$q}%"))
+            ->when($q !== '', fn($query) => $query->where('name_en', 'like', "%{$q}%"))
             ->limit(20)
             ->get(['id', 'name_en']);
 
         return response()->json([
-            'results' => $rows->map(fn ($c) => ['id' => $c->id, 'text' => $c->name_en])->values(),
+            'results' => $rows->map(fn($c) => ['id' => $c->id, 'text' => $c->name_en])->values(),
         ]);
     }
 
@@ -411,12 +411,12 @@ class PageBuilderController extends Controller
         $q = trim((string) $request->query('q', ''));
 
         $rows = Brand::query()
-            ->when($q !== '', fn ($query) => $query->where('name_en', 'like', "%{$q}%"))
+            ->when($q !== '', fn($query) => $query->where('name_en', 'like', "%{$q}%"))
             ->limit(20)
             ->get(['id', 'name_en']);
 
         return response()->json([
-            'results' => $rows->map(fn ($b) => ['id' => $b->id, 'text' => $b->name_en])->values(),
+            'results' => $rows->map(fn($b) => ['id' => $b->id, 'text' => $b->name_en])->values(),
         ]);
     }
 

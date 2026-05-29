@@ -39,7 +39,9 @@ class ReviewController extends Controller
         $aiFlaggedCount = $stats['auto_flagged']
             + Review::where('status', 'flagged')->count();
 
-        $countries = Country::orderBy('name_en')->get(['id', 'name_en', 'flag_emoji']);
+        $countries = Country::orderBy('name_en')
+            ->where('is_launched', true)
+            ->get(['id', 'name_en', 'flag_emoji']);
 
         return view('admin.reviews.index', compact('stats', 'aiFlaggedCount', 'countries'));
     }

@@ -17,7 +17,7 @@ function initLedgerIndex() {
         serverSide: true,
         order: [[0, 'desc']], // created_at desc
         ajax: {
-            url: '/admin/ledger/datatable',
+            url: '/ledger/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
