@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             generateBtn.disabled = true;
             try {
                 const res = await fetch(generateBtn.dataset.url, {
-                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
                 });
                 const data = await res.json();
                 if (data.code) {
@@ -47,7 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fd = new FormData(form);
                 const res = await fetch(form.action, {
                     method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrfToken() },
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken(),
+                    },
                     body: fd,
                 });
 

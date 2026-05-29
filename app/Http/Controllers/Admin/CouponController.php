@@ -139,6 +139,7 @@ class CouponController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('CouponController@store failed', ['error' => $e->getMessage()]);
+
             if ($request->wantsJson()) {
                 return response()->json(['message' => 'Failed to create coupon.'], 500);
             }

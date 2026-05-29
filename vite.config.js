@@ -35,6 +35,7 @@ export default defineConfig({
                 'resources/js/admin/coupons.js',
                 'resources/js/admin/admins.js',
                 'resources/js/admin/customers.js',
+                'resources/js/admin/disputes.js',
                 'resources/js/admin/banners.js',
                 'resources/js/admin/ad-campaigns.js',
                 'resources/js/admin/vendor-applications.js',
