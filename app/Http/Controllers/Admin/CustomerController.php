@@ -150,7 +150,6 @@ class CustomerController extends Controller
         $returnRequests = $customer->returnRequests()->latest()->take(20)->get();
         $disputes = $customer->disputes()->latest()->take(20)->get();
         $tickets = $customer->supportTickets()
-            ->where('requester_role', 'customer')
             ->latest()
             ->take(20)
             ->get();

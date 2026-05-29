@@ -423,6 +423,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ─────────────────────────────────────────────────────────────────────────
+     * SHOW PAGE — Orders full DataTable
+     * ─────────────────────────────────────────────────────────────────────── */
+
+    const showOrdersDtBtn = document.getElementById('show-orders-datatable-btn');
+    if (showOrdersDtBtn) {
+        let ordersDtInitialized = false;
+        showOrdersDtBtn.addEventListener('click', () => {
+            const section = document.getElementById('orders-datatable-section');
+            if (!section) return;
+            const isHidden = section.classList.toggle('hidden');
+            showOrdersDtBtn.textContent = isHidden ? 'Full list (DataTable)' : 'Hide DataTable';
+            if (!ordersDtInitialized && !isHidden) {
+                ordersDtInitialized = true;
+                $('#orders-datatable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: showOrdersDtBtn.dataset.url,
+                        type: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                    },
+                    columns: [
+                        { data: 'order_number' },
+                        { data: 'total' },
+                        { data: 'status', orderable: false },
+                        { data: 'items', orderable: false },
+                        { data: 'placed_at' },
+                    ],
+                    order: [[4, 'desc']],
+                    pageLength: 25,
+                    language: { search: '', searchPlaceholder: 'Search…' },
+                });
+            }
+        });
+    }
+
+    /* ─────────────────────────────────────────────────────────────────────────
      * COPYABLE FIELDS
      * ─────────────────────────────────────────────────────────────────────── */
 

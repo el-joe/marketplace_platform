@@ -26,7 +26,9 @@ class Customer extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'date_of_birth' => 'date',
             'loyalty_points' => 'decimal:2',
             'password' => 'hashed',
         ];
@@ -104,5 +106,20 @@ class Customer extends Authenticatable implements MustVerifyEmail
     public function notifications(): MorphMany
     {
         return $this->morphMany(Notification::class, 'notifiable');
+    }
+
+    public function returnRequests(): HasMany
+    {
+        return $this->hasMany(ReturnRequest::class);
+    }
+
+    public function disputes(): HasMany
+    {
+        return $this->hasMany(Dispute::class);
+    }
+
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class, 'requester_user_id');
     }
 }

@@ -76,7 +76,9 @@
             <div x-show="tab === 'orders'">
                 <x-card title="Recent Orders" subtitle="Latest 20 orders">
                     <x-slot name="actions">
-                        <a href="{{ route('admin.customers.orders.datatable', $customer->id) }}" class="text-xs text-primary-600 hover:underline">Full list (DataTable)</a>
+                        <button type="button" id="show-orders-datatable-btn"
+                            data-url="{{ route('admin.customers.orders.datatable', $customer->id) }}"
+                            class="text-xs text-primary-600 hover:underline">Full list (DataTable)</button>
                     </x-slot>
                     @if($orders->isEmpty())
                         <p class="text-sm text-gray-500 py-4 text-center">No orders yet.</p>
@@ -124,6 +126,25 @@
                         </div>
                     @endif
                 </x-card>
+
+                <div id="orders-datatable-section" class="mt-4 hidden">
+                    <x-card title="All Orders">
+                        <div class="overflow-x-auto">
+                            <table id="orders-datatable" class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-100 text-left text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">Order #</th>
+                                        <th class="py-2 pr-4">Total</th>
+                                        <th class="py-2 pr-4">Status</th>
+                                        <th class="py-2 pr-4">Items</th>
+                                        <th class="py-2 pr-4">Placed</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </x-card>
+                </div>
             </div>
 
             {{-- ── Addresses ───────────────────────────────────────────────── --}}
