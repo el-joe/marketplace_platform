@@ -20,14 +20,17 @@ class FlashSaleVendorInvitition extends Model
         'status',
         'invited_at',
         'notified_at',
+        'responded_at',
+        'decline_reason',
         'slots_allocated',
     ];
 
     protected function casts(): array
     {
         return [
-            'invited_at'   => 'datetime',
-            'notified_at'  => 'datetime',
+            'invited_at' => 'datetime',
+            'notified_at' => 'datetime',
+            'responded_at' => 'datetime',
         ];
     }
 

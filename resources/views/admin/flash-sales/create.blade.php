@@ -1,162 +1,131 @@
 @extends('layouts.admin')
 
-@push('styles')
-    @vite(['resources/js/components/flatpickr.js', 'resources/js/components/select2.js', 'resources/js/components/file-upload.js', 'resources/js/admin/flash-sales.js'])
-@endpush
-
 @section('title', 'New Flash Sale')
 
+@push('styles')
+    @vite(['resources/js/components/flatpickr.js', 'resources/js/components/select2.js'])
+@endpush
+
+@push('scripts')
+    @vite('resources/js/admin/flash-sales.js')
+@endpush
+
 @section('content')
-    <form id="create-flash-sale-form">
+
+    <form id="flash-sale-form" class="flex gap-6 items-start" novalidate>
         @csrf
 
-        <div class="flex gap-6 items-start">
+        {{-- ─── Left column ───────────────────────────────────────────────────── --}}
+        <div class="flex-1 min-w-0">
 
-            {{-- ─── Main column ─────────────────────────────────────────────── --}}
-            <div class="flex-1 min-w-0 space-y-6">
+            {{-- Tab nav --}}
+            <div x-data="{ tab: 'details' }" class="space-y-6">
+                <div class="flex gap-1 border-b border-gray-200 pb-0 -mb-px">
+                    <button type="button" @click="tab='details'" :class="tab==='details' ? 'tab-active' : 'tab'"
+                        class="tab">Details</button>
+                    <button type="button" @click="tab='rules'" :class="tab==='rules' ? 'tab-active' : 'tab'"
+                        class="tab">Rules &amp; Eligibility</button>
+                </div>
 
-                {{-- Basic Info --}}
-                <x-card title="Basic Information">
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <div>
-                            <label class="form-label">Name (English) <span class="text-danger-500">*</span></label>
-                            <input type="text" name="name_en" class="form-input w-full" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Name (Arabic) <span class="text-danger-500">*</span></label>
-                            <input type="text" name="name_ar" class="form-input w-full text-right" dir="rtl" required>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="form-label">Description (English)</label>
-                            <textarea name="description_en" rows="3" class="form-textarea w-full"></textarea>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="form-label">Description (Arabic)</label>
-                            <textarea name="description_ar" rows="3" class="form-textarea w-full text-right" dir="rtl"></textarea>
-                        </div>
-                        <div>
-                            <label class="form-label">Country</label>
-                            <select name="country_id" class="form-select w-full" data-select2>
-                                <option value="">— All Countries —</option>
-                                @foreach($countries as $country)
-                                    <option value="{{ $country->id }}">{{ $country->name_en }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="form-label">Banner Image</label>
-                            <input type="hidden" name="banner_file_id" id="banner-file-id">
-                            <x-file-upload
-                                id="banner-upload"
-                                accept="image/*"
-                                :maxFiles="1"
-                                onUpload="function(file){ document.getElementById('banner-file-id').value = file.file_id; }"
-                            />
-                        </div>
-                    </div>
-                </x-card>
+                {{-- ── Tab: details ──────────────────────────────────────────── --}}
+                <div x-show="tab==='details'" class="space-y-6">
 
-                {{-- Schedule --}}
-                <x-card title="Schedule">
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <div>
-                            <label class="form-label">Submission Opens At <span class="text-danger-500">*</span></label>
-                            <input type="text" name="submission_opens_at" class="form-input w-full flatpickr-datetime" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Submission Closes At <span class="text-danger-500">*</span></label>
-                            <input type="text" name="submission_closes_at" class="form-input w-full flatpickr-datetime" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Review Deadline</label>
-                            <input type="text" name="review_deadline_at" class="form-input w-full flatpickr-datetime">
-                        </div>
-                        <div></div>
-                        <div>
-                            <label class="form-label">Sale Starts At <span class="text-danger-500">*</span></label>
-                            <input type="text" name="sale_starts_at" class="form-input w-full flatpickr-datetime" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Sale Ends At <span class="text-danger-500">*</span></label>
-                            <input type="text" name="sale_ends_at" class="form-input w-full flatpickr-datetime" required>
-                        </div>
-                    </div>
-                </x-card>
-
-                {{-- Eligibility Rules --}}
-                <x-card title="Eligibility Rules">
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <div>
-                            <label class="form-label">Min Discount % <span class="text-danger-500">*</span></label>
-                            <div class="relative">
-                                <input type="number" name="min_discount_pct" class="form-input w-full pr-8"
-                                    min="1" max="100" step="0.5" value="10" required>
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+                    <x-card title="Event Identity">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <x-form-input name="name_en" label="Name (English)" required />
+                            <x-form-input name="name_ar" label="الاسم بالعربي" dir="rtl" required />
+                            <div class="sm:col-span-2">
+                                <x-form-textarea name="description_en" label="Description (English)" rows="3" />
+                            </div>
+                            <div class="sm:col-span-2">
+                                <x-form-textarea name="description_ar" label="الوصف بالعربي" dir="rtl" rows="3" />
+                            </div>
+                            <x-form-select name="country_id" label="Country" :options="$countries->mapWithKeys(fn($c) => [$c->id => $c->name_en])->toArray()" :nullable="true" placeholder="All countries" />
+                            <div class="flex items-end gap-6 pb-1">
+                                <x-form-toggle name="is_featured" label="Featured on homepage" />
+                                <x-form-toggle name="is_exclusive" label="Exclusive (invite-only)" />
                             </div>
                         </div>
-                        <div>
-                            <label class="form-label">Max Products Per Vendor <span class="text-danger-500">*</span></label>
-                            <input type="number" name="max_products_per_vendor" class="form-input w-full" min="1" value="5" required>
+                    </x-card>
+
+                    <x-card title="Timeline" id="timeline-card">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <x-form-date-picker name="submission_opens_at" label="Submissions open" :enableTime="true"
+                                required />
+                            <x-form-date-picker name="submission_closes_at" label="Submissions close" :enableTime="true"
+                                required />
+                            <x-form-date-picker name="review_deadline_at" label="Review deadline" :enableTime="true"
+                                required />
+                            <div></div>
+                            <x-form-date-picker name="sale_starts_at" label="Sale starts" :enableTime="true" required />
+                            <x-form-date-picker name="sale_ends_at" label="Sale ends" :enableTime="true" required />
                         </div>
-                        <div>
-                            <label class="form-label">Max Total Slots</label>
-                            <input type="number" name="max_total_slots" class="form-input w-full" min="1" placeholder="Unlimited">
-                        </div>
-                        <div>
-                            <label class="form-label">Min Vendor Rating</label>
-                            <input type="number" name="min_vendor_rating" class="form-input w-full" min="0" max="5" step="0.1" placeholder="e.g. 3.5">
-                        </div>
-                        <div>
-                            <label class="form-label">Commission Override %</label>
-                            <div class="relative">
-                                <input type="number" name="commission_override_pct" class="form-input w-full pr-8" min="0" max="100" step="0.1" placeholder="Default rate">
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+                        <div id="timeline-visual" class="mt-4"></div>
+                    </x-card>
+
+                </div>
+
+                {{-- ── Tab: rules ────────────────────────────────────────────── --}}
+                <div x-show="tab==='rules'" class="space-y-6">
+
+                    <x-card title="Discount Requirements">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <x-form-input name="min_discount_pct" label="Minimum discount %" type="number" step="0.01"
+                                min="0" max="100" required suffix="%" hint="Vendors must discount at least this much" />
+                            <x-form-input name="max_products_per_seller" label="Max products per vendor" type="number"
+                                min="1" hint="Leave empty for unlimited" />
+                            <div class="sm:col-span-2">
+                                <x-form-toggle name="price_drop_required" label="Price drop required"
+                                    hint="Flash price must be below vendor's 30-day average price" :value="true" />
                             </div>
                         </div>
-                        <div>
-                            <label class="form-label">Eligible Vendor Tiers</label>
-                            <select name="eligible_vendor_tiers[]" class="form-select w-full" data-select2 multiple>
-                                <option value="bronze">Bronze</option>
-                                <option value="silver">Silver</option>
-                                <option value="gold">Gold</option>
-                                <option value="platinum">Platinum</option>
-                            </select>
+                    </x-card>
+
+                    <x-card title="Vendor Eligibility">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <x-form-checkbox-group name="eligible_seller_tiers" label="Eligible tiers (empty = all)"
+                                :options="['bronze' => 'Bronze', 'silver' => 'Silver', 'gold' => 'Gold', 'platinum' => 'Platinum']" />
+                            <x-form-input name="min_seller_rating" label="Minimum seller rating" type="number" step="0.1"
+                                min="0" max="5" />
                         </div>
-                        <div class="sm:col-span-2">
-                            <label class="form-label">Eligible Categories</label>
-                            <select name="eligible_categories[]" class="form-select w-full" data-select2 multiple>
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->name_en }}</option>
-                                @endforeach
-                            </select>
+                    </x-card>
+
+                    <x-card title="Capacity &amp; Commission">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <x-form-input name="max_total_slots" label="Maximum approved slots" type="number" min="1"
+                                hint="Empty = unlimited" />
+                            <x-form-input name="commission_override_pct" label="Commission override %" type="number"
+                                step="0.01" min="0" max="100" hint="Overrides normal rate during this sale" />
                         </div>
-                    </div>
-                </x-card>
+                    </x-card>
 
+                    <x-card title="Eligible Categories">
+                        <x-form-checkbox-group name="eligible_categories[]"
+                            label="Limit to specific categories (empty = all)" :options="$categories->mapWithKeys(fn($c) => [$c->id => $c->name_en])->toArray()" />
+                    </x-card>
+
+                </div>
             </div>
-
-            {{-- ─── Sidebar ──────────────────────────────────────────────────── --}}
-            <div class="w-72 flex-shrink-0 space-y-4 sticky top-20">
-                <x-card title="Settings">
-                    <div class="space-y-3">
-                        <x-form-toggle name="is_featured" label="Featured Sale" :value="false" />
-                        <x-form-toggle name="is_exclusive" label="Exclusive (Invite-Only)" :value="false" />
-                        <x-form-toggle name="price_drop_required" label="Require Price Drop" :value="true" />
-                    </div>
-                </x-card>
-
-                <x-card>
-                    <div class="space-y-2">
-                        <button type="submit" class="btn btn-primary w-full justify-center">
-                            Create Flash Sale
-                        </button>
-                        <a href="{{ route('admin.flash-sales.index') }}" class="btn btn-ghost w-full justify-center">
-                            Cancel
-                        </a>
-                    </div>
-                </x-card>
-            </div>
-
         </div>
+
+        {{-- ─── Right sidebar ──────────────────────────────────────────────────── --}}
+        <div class="w-72 flex-shrink-0 space-y-4 sticky top-20">
+            <x-card>
+                <div class="space-y-2">
+                    <button type="submit" id="flash-sale-submit-btn" class="btn btn-primary w-full justify-center">
+                        Create Flash Sale
+                    </button>
+                    <a href="{{ route('admin.flash-sales.index') }}" class="btn btn-ghost w-full justify-center">
+                        Cancel
+                    </a>
+                </div>
+            </x-card>
+        </div>
+
     </form>
+
+    <script>
+        const FLASH_SALE_STORE_URL = '{{ route('admin.flash-sales.store') }}';
+    </script>
+
 @endsection

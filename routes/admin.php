@@ -251,21 +251,40 @@ Route::middleware('auth.admin')->group(function () {
     // ─── Flash Sales ──────────────────────────────────────────────────────────────
 
     Route::prefix('flash-sales')->name('flash-sales.')->middleware('admin.permission:flash_sales.view')->group(function () {
+
+        // List + create
         Route::get('/', [FlashSaleController::class, 'index'])->name('index');
         Route::post('/datatable', [FlashSaleController::class, 'datatable'])->name('datatable');
         Route::get('/create', [FlashSaleController::class, 'create'])->name('create');
-        Route::post('/store', [FlashSaleController::class, 'store'])->name('store');
+        Route::post('/', [FlashSaleController::class, 'store'])->name('store');
 
-        // Submission actions (before /{flashSale} wildcard)
-        Route::post('/submissions/{submission}/approve', [FlashSaleController::class, 'approveSubmission'])->name('submissions.approve');
-        Route::post('/submissions/{submission}/reject', [FlashSaleController::class, 'rejectSubmission'])->name('submissions.reject');
-        Route::get('/submissions/{submission}/fraud-check', [FlashSaleController::class, 'checkFraud'])->name('submissions.fraud-check');
+        // Misc (before /{flashSale} wildcard)
+        Route::get('/price-history', [FlashSaleController::class, 'priceHistory'])->name('price-history');
 
-        Route::get('/{flashSale}', [FlashSaleController::class, 'show'])->name('show');
-        Route::put('/{flashSale}', [FlashSaleController::class, 'update'])->name('update');
-        Route::post('/{flashSale}/transition', [FlashSaleController::class, 'transition'])->name('transition');
-        Route::post('/{flashSale}/invite-vendors', [FlashSaleController::class, 'inviteVendors'])->name('invite-vendors');
-        Route::post('/{flashSale}/submissions/datatable', [FlashSaleController::class, 'submissionsDatatable'])->name('submissions.datatable');
+        // Submission review (before /{flashSale} wildcard)
+        Route::post('/submissions/{submission}/review', [FlashSaleController::class, 'reviewSubmission'])
+            ->name('submissions.review')
+            ->middleware('admin.permission:flash_sales.review_submissions');
+
+        // Per-sale routes
+        Route::prefix('/{flashSale}')->group(function () {
+
+            Route::get('/', [FlashSaleController::class, 'edit'])->name('edit');
+            Route::put('/', [FlashSaleController::class, 'update'])->name('update');
+            Route::delete('/', [FlashSaleController::class, 'destroy'])->name('destroy');
+
+            Route::post('/transition', [FlashSaleController::class, 'transition'])->name('transition');
+            Route::get('/eligible-vendor-count', [FlashSaleController::class, 'eligibleVendorCount'])->name('eligible-vendor-count');
+            Route::post('/invite-vendors', [FlashSaleController::class, 'inviteVendors'])->name('invite-vendors');
+            Route::post('/invitations/datatable', [FlashSaleController::class, 'invitationsDatatable'])->name('invitations.datatable');
+
+            Route::get('/submission-stats', [FlashSaleController::class, 'submissionStats'])->name('submission-stats');
+            Route::post('/submissions/datatable', [FlashSaleController::class, 'submissionsDatatable'])->name('submissions.datatable');
+            Route::post('/bulk-review', [FlashSaleController::class, 'bulkReviewSubmissions'])->name('submissions.bulk-review');
+
+            Route::get('/live-data', [FlashSaleController::class, 'liveMonitorData'])->name('live-data');
+            Route::get('/analytics-data', [FlashSaleController::class, 'analyticsData'])->name('analytics-data');
+        });
     });
 
     // ─── Page Builder ──────────────────────────────────────────────────────────────

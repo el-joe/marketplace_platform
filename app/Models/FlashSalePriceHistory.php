@@ -15,12 +15,13 @@ class FlashSalePriceHistory extends Model
         'price',
         'currency',
         'recorded_at',
+        'recorded_by',
     ];
 
     protected function casts(): array
     {
         return [
-            'price'       => 'integer',
+            'price' => 'integer',
             'recorded_at' => 'datetime',
         ];
     }

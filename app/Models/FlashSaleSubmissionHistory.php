@@ -15,7 +15,8 @@ class FlashSaleSubmissionHistory extends Model
         'from_status',
         'to_status',
         'changed_by_user_id',
-        'change_reason',
+        'changed_by_role',
+        'reason',
     ];
 
     public function submission(): BelongsTo

@@ -8,125 +8,90 @@ use App\Models\FlashSaleSubmission;
 class FakeDiscountDetectionService
 {
     /**
-     * Days before the submission to look back for reference prices.
-     */
-    private const LOOKBACK_DAYS = 30;
-
-    /**
-     * Minimum ratio: if the flash_price is below this fraction of the
-     * 30-day reference, the discount is considered suspiciously deep
-     * (possible original-price inflation).
-     */
-    private const MIN_FLASH_TO_REFERENCE_RATIO = 0.30;
-
-    /**
-     * If the price was raised within this many days before submission
-     * by at least this percentage, flag as potential fake discount.
-     */
-    private const INFLATION_WINDOW_DAYS = 7;
-    private const INFLATION_THRESHOLD_PCT = 20.0;
-
-    /**
-     * Check a flash sale submission for potential fake-discount manipulation.
+     * Analyze a submission for potential fake-discount manipulation.
      *
-     * Returns an array:
-     *   [
-     *     'flagged'       => bool,
-     *     'risk_level'    => 'none'|'low'|'medium'|'high',
-     *     'reasons'       => string[],
-     *     'reference_avg' => int|null,   // 30-day average price in cents
-     *     'price_spike'   => float|null, // % spike before submission window
-     *   ]
+     * Returns: {
+     *   is_suspect: bool,
+     *   confidence: float (0-1),
+     *   reasons: string[],
+     *   average_price_30d: int|null,
+     *   average_price_30d_formatted: string,
+     *   price_history_count: int,
+     *   checks: { is_price_barely_below_avg, is_price_recently_inflated, discount_is_artificial }
+     * }
      */
-    public function check(FlashSaleSubmission $submission): array
+    public function analyze(FlashSaleSubmission $submission): array
     {
-        $reasons   = [];
-        $riskLevel = 'none';
+        $listingId     = $submission->vendor_listing_id;
+        $flashPrice    = (int) $submission->flash_price;
+        $originalPrice = (int) $submission->original_price;
 
-        $listingId   = $submission->vendor_listing_id;
-        $flashPrice  = $submission->flash_price;
-        $cutoff      = $submission->submitted_at
-            ? $submission->submitted_at->subDays(self::LOOKBACK_DAYS)
-            : now()->subDays(self::LOOKBACK_DAYS);
-
-        // ── 1. 30-day average price ───────────────────────────────────────────
-        $recentPrices = FlashSalePriceHistory::where('vendor_listing_id', $listingId)
-            ->where('recorded_at', '>=', $cutoff)
+        $history = FlashSalePriceHistory::where('vendor_listing_id', $listingId)
+            ->where('recorded_at', '>=', now()->subDays(30))
             ->orderBy('recorded_at')
-            ->pluck('price');
+            ->get();
 
-        $referenceAvg = $recentPrices->isNotEmpty()
-            ? (int) round($recentPrices->average())
-            : null;
-
-        if ($referenceAvg !== null && $referenceAvg > 0) {
-            $ratio = $flashPrice / $referenceAvg;
-
-            if ($ratio < self::MIN_FLASH_TO_REFERENCE_RATIO) {
-                $reasons[] = sprintf(
-                    'Flash price (%s) is less than %d%% of the 30-day average (%s). Potential extreme inflation.',
-                    number_format($flashPrice / 100, 2),
-                    (int) (self::MIN_FLASH_TO_REFERENCE_RATIO * 100),
-                    number_format($referenceAvg / 100, 2)
-                );
-                $riskLevel = 'high';
-            }
+        if ($history->isEmpty()) {
+            return [
+                'is_suspect'                 => false,
+                'confidence'                 => 0.0,
+                'reasons'                    => [],
+                'average_price_30d'          => null,
+                'average_price_30d_formatted' => 'N/A',
+                'price_history_count'        => 0,
+                'checks' => [
+                    'is_price_barely_below_avg'   => false,
+                    'is_price_recently_inflated'  => false,
+                    'discount_is_artificial'      => false,
+                ],
+            ];
         }
 
-        // ── 2. Price spike in the 7 days before submission ────────────────────
-        $inflationCutoff = $submission->submitted_at
-            ? $submission->submitted_at->subDays(self::INFLATION_WINDOW_DAYS)
-            : now()->subDays(self::INFLATION_WINDOW_DAYS);
+        $avgPrice30d = (int) round($history->avg('price'));
 
-        $beforeSpike = FlashSalePriceHistory::where('vendor_listing_id', $listingId)
-            ->where('recorded_at', '<', $inflationCutoff)
-            ->orderByDesc('recorded_at')
-            ->value('price');
+        // Check 1: flash price barely below 30-day average
+        $isPriceBarellyBelowAvg = $avgPrice30d > 0 && $flashPrice >= ($avgPrice30d * 0.95);
 
-        $afterSpike = FlashSalePriceHistory::where('vendor_listing_id', $listingId)
-            ->where('recorded_at', '>=', $inflationCutoff)
-            ->orderBy('recorded_at')
-            ->value('price');
-
-        $priceSpikePct = null;
-        if ($beforeSpike && $afterSpike && $beforeSpike > 0) {
-            $priceSpikePct = (($afterSpike - $beforeSpike) / $beforeSpike) * 100;
-
-            if ($priceSpikePct >= self::INFLATION_THRESHOLD_PCT) {
-                $reasons[] = sprintf(
-                    'Price spiked %.1f%% within %d days before the submission window (from %s to %s). Possible artificial inflation.',
-                    $priceSpikePct,
-                    self::INFLATION_WINDOW_DAYS,
-                    number_format($beforeSpike / 100, 2),
-                    number_format($afterSpike / 100, 2)
-                );
-                $riskLevel = $riskLevel === 'high' ? 'high' : 'medium';
-            }
+        // Check 2: price raised significantly in last 7 days
+        $last7  = $history->filter(fn ($h) => $h->recorded_at->gte(now()->subDays(7)));
+        $older  = $history->filter(fn ($h) => $h->recorded_at->lt(now()->subDays(7)));
+        $isPriceRecentlyInflated = false;
+        if ($last7->isNotEmpty() && $older->isNotEmpty()) {
+            $avgLast7  = $last7->avg('price');
+            $avgOlder  = $older->avg('price');
+            $isPriceRecentlyInflated = $avgOlder > 0 && ($avgLast7 > $avgOlder * 1.10);
         }
 
-        // ── 3. Discount below flash sale minimum ──────────────────────────────
-        $minPct = $submission->flashSale?->min_discount_pct;
-        if ($minPct !== null && $submission->calculated_discount_pct < $minPct) {
-            $reasons[] = sprintf(
-                'Calculated discount (%.1f%%) is below the flash sale minimum (%.1f%%).',
-                $submission->calculated_discount_pct,
-                $minPct
-            );
-            $riskLevel = $riskLevel === 'none' ? 'low' : $riskLevel;
-        }
+        // Check 3: original_price appears inflated vs history
+        $maxHistoricalPrice       = (int) $history->max('price');
+        $isDiscountArtificial     = $maxHistoricalPrice > 0 && $maxHistoricalPrice < ($originalPrice * 0.90);
 
-        // ── 4. No price history at all ────────────────────────────────────────
-        if ($recentPrices->isEmpty()) {
-            $reasons[] = 'No price history found for this listing in the last 30 days. Cannot verify discount authenticity.';
-            $riskLevel = $riskLevel === 'none' ? 'low' : $riskLevel;
+        $triggeredCount = (int) $isPriceBarellyBelowAvg + (int) $isPriceRecentlyInflated + (int) $isDiscountArtificial;
+        $confidence     = $triggeredCount > 0 ? round($triggeredCount / 3, 2) : 0.0;
+
+        $reasons = [];
+        if ($isPriceBarellyBelowAvg) {
+            $reasons[] = 'Flash price barely below 30-day average';
+        }
+        if ($isPriceRecentlyInflated) {
+            $reasons[] = 'Price was raised significantly in last 7 days';
+        }
+        if ($isDiscountArtificial) {
+            $reasons[] = 'Original price appears inflated vs history';
         }
 
         return [
-            'flagged'       => !empty($reasons),
-            'risk_level'    => $riskLevel,
-            'reasons'       => $reasons,
-            'reference_avg' => $referenceAvg,
-            'price_spike'   => $priceSpikePct !== null ? round($priceSpikePct, 2) : null,
+            'is_suspect'                  => $triggeredCount > 0,
+            'confidence'                  => $confidence,
+            'reasons'                     => $reasons,
+            'average_price_30d'           => $avgPrice30d,
+            'average_price_30d_formatted' => number_format($avgPrice30d / 100, 2),
+            'price_history_count'         => $history->count(),
+            'checks' => [
+                'is_price_barely_below_avg'   => $isPriceBarellyBelowAvg,
+                'is_price_recently_inflated'  => $isPriceRecentlyInflated,
+                'discount_is_artificial'      => $isDiscountArtificial,
+            ],
         ];
     }
 }

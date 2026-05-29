@@ -4,6 +4,7 @@ use App\Jobs\AutoCompleteOrdersJob;
 use App\Jobs\CheckSlaBreachJob;
 use App\Jobs\GenerateVendorPayoutsJob;
 use App\Jobs\BannerSchedulerJob;
+use App\Jobs\FlashSaleSchedulerJob;
 use App\Jobs\TransitionFlashSaleStatusJob;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
@@ -17,6 +18,7 @@ Artisan::command('inspire', function () {
 Schedule::job(new CheckSlaBreachJob)->everyFifteenMinutes();
 Schedule::job(new AutoCompleteOrdersJob)->dailyAt('02:00');
 Schedule::job(new TransitionFlashSaleStatusJob)->everyFiveMinutes();
+Schedule::job(new FlashSaleSchedulerJob)->everyFiveMinutes()->withoutOverlapping()->name('flash-sale-scheduler');
 Schedule::job(new BannerSchedulerJob)->everyFiveMinutes();
 Schedule::job(new \App\Jobs\PageSchedulerJob)->everyFiveMinutes()->name('page-scheduler');
 
