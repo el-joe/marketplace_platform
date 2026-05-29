@@ -47,7 +47,7 @@ async function initDatePicker(el) {
         mode,
         minDate: minDate || undefined,
         maxDate: maxDate || undefined,
-        locale: locale || undefined,
+        ...(locale ? { locale } : {}),
         dateFormat: enableTime ? 'Y-m-d H:i' : 'Y-m-d',
         time_24hr: true,
         allowInput: false,

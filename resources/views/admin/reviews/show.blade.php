@@ -261,13 +261,13 @@
                 @endif
 
                 {{-- Delete --}}
-                @can('delete', $review)
+                @if(auth('admin')->user()->can('delete', $review))
                     <button type="button" class="w-full btn btn-ghost btn-sm mt-3 text-red-600 hover:bg-red-50" id="delete-btn"
                         data-url="{{ route('admin.reviews.delete', $review->id) }}"
                         data-redirect="{{ route('admin.reviews.index') }}">
                         Delete permanently
                     </button>
-                @endcan
+                @endif
             </x-card>
 
             {{-- ─── Quick Info ───────────────────────────────────────────────────────── --}}
@@ -276,7 +276,8 @@
                     <div class="flex justify-between">
                         <dt class="text-gray-500">Review ID</dt>
                         <dd class="font-mono text-xs text-gray-600 truncate max-w-[160px]" title="{{ $review->id }}">
-                            {{ substr($review->id, 0, 8) }}…</dd>
+                            {{ substr($review->id, 0, 8) }}…
+                        </dd>
                     </div>
                     @if($review->orderItem)
                         <div class="flex justify-between">

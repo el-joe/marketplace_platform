@@ -25,7 +25,7 @@ function initDataTable() {
         processing: true,
         serverSide: true,
         ajax: {
-            url: '/admin/banners/datatable',
+            url: '/banners/datatable',
             type: 'POST',
             data(d) {
                 d._token = window._token;

@@ -24,21 +24,47 @@
          x-data="{ tab: '{{ $sale->status === 'live' ? 'live-monitor' : ($sale->status === 'ended' ? 'analytics' : 'details') }}' }">
 
         {{-- Tab nav --}}
-        <div class="flex gap-1 border-b border-gray-200 mb-6 -mt-1 overflow-x-auto">
-            <button type="button" @click="tab='details'"     :class="tab==='details'     ? 'tab-active' : 'tab'" class="tab whitespace-nowrap">Details</button>
-            <button type="button" @click="tab='rules'"       :class="tab==='rules'       ? 'tab-active' : 'tab'" class="tab whitespace-nowrap">Rules</button>
-            @if($sale->status !== 'draft')
-            <button type="button" @click="tab='invitations'" :class="tab==='invitations' ? 'tab-active' : 'tab'" class="tab whitespace-nowrap">Invitations</button>
-            @endif
-            @if($hasSubmissions)
-            <button type="button" @click="tab='submissions'" :class="tab==='submissions' ? 'tab-active' : 'tab'" class="tab whitespace-nowrap">Submissions</button>
-            @endif
-            @if($sale->status === 'live')
-            <button type="button" @click="tab='live-monitor'" :class="tab==='live-monitor' ? 'tab-active' : 'tab'" class="tab whitespace-nowrap">⚡ Live Monitor</button>
-            @endif
-            @if($sale->status === 'ended')
-            <button type="button" @click="tab='analytics'"  :class="tab==='analytics'   ? 'tab-active' : 'tab'" class="tab whitespace-nowrap">Analytics</button>
-            @endif
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="-mb-px flex overflow-x-auto" aria-label="Flash sale tabs">
+                <button type="button" @click="tab='details'"
+                    :class="tab==='details' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                    class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                    Details
+                </button>
+                <button type="button" @click="tab='rules'"
+                    :class="tab==='rules' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                    class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                    Rules
+                </button>
+                @if($sale->status !== 'draft')
+                <button type="button" @click="tab='invitations'"
+                    :class="tab==='invitations' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                    class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                    Invitations
+                </button>
+                @endif
+                @if($hasSubmissions)
+                <button type="button" @click="tab='submissions'"
+                    :class="tab==='submissions' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                    class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                    Submissions
+                </button>
+                @endif
+                @if($sale->status === 'live')
+                <button type="button" @click="tab='live-monitor'"
+                    :class="tab==='live-monitor' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                    class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                    ⚡ Live Monitor
+                </button>
+                @endif
+                @if($sale->status === 'ended')
+                <button type="button" @click="tab='analytics'"
+                    :class="tab==='analytics' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                    class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                    Analytics
+                </button>
+                @endif
+            </nav>
         </div>
 
         {{-- ── Tab: details ──────────────────────────────────────────────── --}}
@@ -109,7 +135,7 @@
                         <x-form-checkbox-group name="eligible_seller_tiers"
                             label="Eligible tiers (empty = all)"
                             :options="['bronze' => 'Bronze', 'silver' => 'Silver', 'gold' => 'Gold', 'platinum' => 'Platinum']"
-                            :selected="$sale->eligible_seller_tiers ?? []" :disabled="!$isEditable" />
+                            :values="$sale->eligible_seller_tiers ?? []" :disabled="!$isEditable" />
                         <x-form-input name="min_seller_rating" label="Minimum seller rating"
                             type="number" step="0.1" min="0" max="5" :value="$sale->min_seller_rating" :disabled="!$isEditable" />
                     </div>
@@ -127,10 +153,10 @@
                 </x-card>
 
                 <x-card title="Eligible Categories">
-                    <x-form-checkbox-group name="eligible_categories[]"
+                    <x-form-checkbox-group name="eligible_categories"
                         label="Limit to specific categories (empty = all)"
                         :options="$categories->mapWithKeys(fn($c) => [$c->id => $c->name_en])->toArray()"
-                        :selected="$sale->eligible_categories ?? []" :disabled="!$isEditable" />
+                        :values="$sale->eligible_categories ?? []" :disabled="!$isEditable" />
                 </x-card>
 
                 @if($isEditable)

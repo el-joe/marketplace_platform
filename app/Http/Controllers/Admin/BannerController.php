@@ -179,7 +179,7 @@ class BannerController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('banners.create'), 403);
 
-        $countries = Country::orderBy('name_en')->get(['id', 'name_en', 'flag_emoji']);
+        $countries = Country::orderBy('name_en')->where('is_launched', true)->get(['id', 'name_en', 'flag_emoji']);
         $placements = BannerPlacementDefinition::where('is_active', true)->orderBy('sort_order')->get();
 
         return view('admin.banners.create', compact('countries', 'placements'));
@@ -232,7 +232,7 @@ class BannerController extends Controller
         $desktopImage = $this->bannerService->getDesktopImage($banner);
         $mobileImage = $this->bannerService->getMobileImage($banner);
 
-        $countries = Country::orderBy('name_en')->get(['id', 'name_en', 'flag_emoji']);
+        $countries = Country::orderBy('name_en')->where('is_launched', true)->get(['id', 'name_en', 'flag_emoji']);
         $placements = BannerPlacementDefinition::where('is_active', true)->orderBy('sort_order')->get();
 
         return view('admin.banners.edit', compact('banner', 'countries', 'placements', 'desktopImage', 'mobileImage'));

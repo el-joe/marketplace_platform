@@ -13,9 +13,9 @@
             <h1 class="text-2xl font-bold text-gray-900">Shipping Zones</h1>
             <p class="text-sm text-gray-500 mt-0.5">Define geographic zones for shipping rules.</p>
         </div>
-        @can('countries.view')
+        @if(auth('admin')->user()->can('countries.view'))
             <button id="btn-add-zone" class="btn btn-primary btn-sm">+ Add Zone</button>
-        @endcan
+        @endif
     </div>
 
     {{-- ─── Filter bar ──────────────────────────────────────────────────────── --}}

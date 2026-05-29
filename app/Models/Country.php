@@ -20,6 +20,7 @@ class Country extends Model
         'iso_code_3',
         'name_ar',
         'name_en',
+        'flag_emoji',
         'phone_prefix',
         'currency_code',
         'site_code',

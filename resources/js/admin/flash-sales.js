@@ -24,7 +24,14 @@ function csrfToken() {
 }
 
 function ajax(method, url, data) {
-    return $.ajax({ url, method, data: data ?? {}, headers: { 'X-CSRF-TOKEN': csrfToken() } });
+    return $.ajax({
+        url,
+        type: method,
+        data: data ?? {},
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken());
+        },
+    });
 }
 
 function openModal(id) {
@@ -112,7 +119,7 @@ $(function () {
         e.preventDefault();
         const $btn = $('#flash-sale-submit-btn').prop('disabled', true).text('Creating…');
 
-        ajax('POST', window.FLASH_SALE_STORE_URL, new FormData(this))
+        ajax('POST', window.FLASH_SALE_STORE_URL, $(this).serialize())
             .done(function (res) {
                 Toast.success(res.message ?? 'Flash sale created.');
                 if (res.redirect) setTimeout(() => { window.location.href = res.redirect; }, 500);
@@ -138,11 +145,21 @@ $(function () {
         e.preventDefault();
         const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Saving…');
         const data = {};
-        $(this).serializeArray().forEach(p => { data[p.name] = p.value; });
-        // Include unchecked checkboxes as array
-        $(this).find('input[type=checkbox]').each(function () {
-            const n = $(this).attr('name');
-            if (!this.checked && !data[n]) data[n] = [];
+        // Collect form values, aggregating checkbox[] groups into arrays
+        $(this).serializeArray().forEach(p => {
+            const isArr = p.name.endsWith('[]');
+            const key = isArr ? p.name.slice(0, -2) : p.name;
+            if (isArr) {
+                if (!Array.isArray(data[key])) data[key] = [];
+                data[key].push(p.value);
+            } else {
+                data[key] = p.value;
+            }
+        });
+        // Ensure unchecked checkbox groups are sent as empty arrays
+        $(this).find('input[type=checkbox][name$="[]"]').each(function () {
+            const key = $(this).attr('name').slice(0, -2);
+            if (!Array.isArray(data[key])) data[key] = [];
         });
 
         ajax('PUT', window.FLASH_SALE_UPDATE_URL, data)

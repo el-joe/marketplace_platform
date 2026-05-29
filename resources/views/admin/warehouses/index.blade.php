@@ -13,9 +13,9 @@
             <h1 class="text-2xl font-bold text-gray-900">Warehouses</h1>
             <p class="text-sm text-gray-500 mt-0.5">Manage platform fulfillment and seller-owned warehouses.</p>
         </div>
-        @can('warehouses.view')
+        @if(auth('admin')->user()->can('warehouses.view'))
             <a href="{{ route('admin.warehouses.create') }}" class="btn btn-primary btn-sm">+ Add Warehouse</a>
-        @endcan
+        @endif
     </div>
 
     {{-- ─── Stats ───────────────────────────────────────────────────────────── --}}

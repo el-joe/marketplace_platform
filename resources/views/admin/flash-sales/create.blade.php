@@ -20,11 +20,19 @@
 
             {{-- Tab nav --}}
             <div x-data="{ tab: 'details' }" class="space-y-6">
-                <div class="flex gap-1 border-b border-gray-200 pb-0 -mb-px">
-                    <button type="button" @click="tab='details'" :class="tab==='details' ? 'tab-active' : 'tab'"
-                        class="tab">Details</button>
-                    <button type="button" @click="tab='rules'" :class="tab==='rules' ? 'tab-active' : 'tab'"
-                        class="tab">Rules &amp; Eligibility</button>
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex" aria-label="Flash sale form tabs">
+                        <button type="button" @click="tab='details'"
+                            :class="tab==='details' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                            class="border-b-2 py-3 px-6 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                            Details
+                        </button>
+                        <button type="button" @click="tab='rules'"
+                            :class="tab==='rules' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                            class="border-b-2 py-3 px-6 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                            Rules &amp; Eligibility
+                        </button>
+                    </nav>
                 </div>
 
                 {{-- ── Tab: details ──────────────────────────────────────────── --}}
@@ -100,8 +108,8 @@
                     </x-card>
 
                     <x-card title="Eligible Categories">
-                        <x-form-checkbox-group name="eligible_categories[]"
-                            label="Limit to specific categories (empty = all)" :options="$categories->mapWithKeys(fn($c) => [$c->id => $c->name_en])->toArray()" />
+                        <x-form-checkbox-group name="eligible_categories" label="Limit to specific categories (empty = all)"
+                            :options="$categories->mapWithKeys(fn($c) => [$c->id => $c->name_en])->toArray()" />
                     </x-card>
 
                 </div>
@@ -125,7 +133,7 @@
     </form>
 
     <script>
-        const FLASH_SALE_STORE_URL = '{{ route('admin.flash-sales.store') }}';
+        window.FLASH_SALE_STORE_URL = '{{ route('admin.flash-sales.store') }}';
     </script>
 
 @endsection

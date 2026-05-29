@@ -13,11 +13,11 @@
             <h1 class="text-2xl font-bold text-gray-900">Banners</h1>
             <p class="text-sm text-gray-500 mt-0.5">Manage promotional banners across the platform.</p>
         </div>
-        @can('create', App\Models\Banner::class)
+        @if(auth('admin')->user()->can('create', App\Models\Banner::class))
             <a href="{{ route('admin.banners.create') }}" class="btn btn-primary">
                 + New Banner
             </a>
-        @endcan
+        @endif
     </div>
 
     {{-- ─── Stats ────────────────────────────────────────────────────────────────── --}}
@@ -37,7 +37,7 @@
         @foreach(['' => 'All', 'active' => 'Active', 'scheduled' => 'Scheduled', 'expired' => 'Expired', 'inactive' => 'Inactive'] as $val => $label)
             <button type="button"
                 class="status-tab px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors
-                            {{ $val === '' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+                                    {{ $val === '' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                 data-status="{{ $val }}">
                 {{ $label }}
             </button>

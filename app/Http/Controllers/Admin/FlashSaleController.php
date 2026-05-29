@@ -36,7 +36,9 @@ class FlashSaleController extends Controller
 
     public function index(): View
     {
-        $countries = Country::orderBy('name_en')->get(['id', 'name_en']);
+        $countries = Country::orderBy('name_en')
+            // ->where('is_launched', true)
+            ->get(['id', 'name_en']);
 
         $stats = [
             'live_count' => FlashSale::where('status', 'live')->count(),
@@ -125,7 +127,7 @@ class FlashSaleController extends Controller
     public function create(): View
     {
         return view('admin.flash-sales.create', [
-            'countries' => Country::orderBy('name_en')->get(),
+            'countries' => Country::orderBy('name_en')->where('is_launched', true)->get(),
             'categories' => Category::orderBy('name_en')->get(),
         ]);
     }
@@ -151,7 +153,7 @@ class FlashSaleController extends Controller
 
         return view('admin.flash-sales.edit', [
             'sale' => $flashSale,
-            'countries' => Country::orderBy('name_en')->get(),
+            'countries' => Country::orderBy('name_en')->where('is_launched', true)->get(),
             'categories' => Category::orderBy('name_en')->get(),
         ]);
     }

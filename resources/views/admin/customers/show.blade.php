@@ -355,14 +355,14 @@
                                     @endif
                                     <p class="text-gray-400 text-xs">{{ ucfirst($pm->gateway ?? $pm->type ?? '') }}</p>
                                 </div>
-                                @can('customers.edit')
+                                @if(auth('admin')->user()->can('customers.edit'))
                                 <button type="button"
                                     class="btn btn-xs btn-ghost text-danger-600 js-remove-payment-method flex-shrink-0"
                                     data-id="{{ $pm->id }}"
                                     data-customer="{{ $customer->id }}">
                                     Remove
                                 </button>
-                                @endcan
+                                @endif
                             </div>
                             @endforeach
                         </div>
@@ -555,7 +555,7 @@
                 </div>
 
                 {{-- Action buttons --}}
-                @can('customers.suspend')
+                @if(auth('admin')->user()->can('customers.suspend'))
                 <div class="flex flex-col gap-2">
                     @if($customer->status === 'active')
                         <button type="button"
@@ -595,9 +595,9 @@
                         </button>
                     @endif
                 </div>
-                @endcan
+                @endif
 
-                @can('customers.edit')
+                @if(auth('admin')->user()->can('customers.edit'))
                 <div class="border-t border-gray-100 pt-3 flex flex-col gap-2">
                     <button type="button"
                         id="open-loyalty-modal"
@@ -610,9 +610,9 @@
                         Send Notification
                     </button>
                 </div>
-                @endcan
+                @endif
 
-                @can('customers.view')
+                @if(auth('admin')->user()->can('customers.view'))
                 <div class="border-t border-gray-100 pt-3">
                     <a href="{{ route('admin.customers.export', $customer->id) }}"
                        class="btn btn-ghost btn-sm w-full text-center"
@@ -620,7 +620,7 @@
                         Export Data (GDPR)
                     </a>
                 </div>
-                @endcan
+                @endif
             </div>
         </x-card>
 
