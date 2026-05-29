@@ -73,4 +73,38 @@ class Page extends Model
     {
         return $this->hasMany(AbTest::class);
     }
+
+    // ─── Scopes ───────────────────────────────────────────────────────────
+
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────
+
+    public function isPublished(): bool
+    {
+        return $this->status === 'published';
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function getStatusBadgeColorAttribute(): string
+    {
+        return match ($this->status) {
+            'published' => 'success',
+            'scheduled' => 'warning',
+            'archived' => 'danger',
+            default => 'gray',
+        };
+    }
 }

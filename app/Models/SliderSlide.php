@@ -57,4 +57,16 @@ class SliderSlide extends Model
     {
         return $this->belongsTo(File::class, 'mobile_file_id');
     }
+
+    public function getDesktopUrlAttribute(): ?string
+    {
+        $f = $this->desktopFile;
+        return $f ? \Illuminate\Support\Facades\Storage::disk($f->storage_type)->url($f->path) : null;
+    }
+
+    public function getMobileUrlAttribute(): ?string
+    {
+        $f = $this->mobileFile;
+        return $f ? \Illuminate\Support\Facades\Storage::disk($f->storage_type)->url($f->path) : null;
+    }
 }

@@ -8,6 +8,7 @@ use App\Models\BlockType;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Country;
+use App\Models\FlashSale;
 use App\Models\Page;
 use App\Models\PageBlock;
 use App\Models\PageBlockProduct;
@@ -15,6 +16,7 @@ use App\Models\PageBlockRevision;
 use App\Models\PageRevision;
 use App\Models\ProductVariant;
 use App\Models\SliderSlide;
+use App\Models\Vendor;
 use App\Services\PageBuilderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
@@ -71,40 +73,89 @@ class PageBuilderController extends Controller
         return response()->json(['page' => $page]);
     }
 
-    public function publishPage(Request $request)
+    public function updatePage(Request $request, Page $page)
     {
         $this->authorizeManage();
 
         $data = $request->validate([
-            'page_id' => 'required|uuid|exists:pages,id',
+            'name' => 'sometimes|string|max:150',
+            'seo_title' => 'nullable|string|max:255',
+            'seo_description' => 'nullable|string',
+            'og_image_url' => 'nullable|string|max:500',
+            'publish_at' => 'nullable|date',
+            'unpublish_at' => 'nullable|date|after_or_equal:publish_at',
+        ]);
+
+        $page->update($data + ['last_edited_by_admin_id' => $this->admin()->id]);
+
+        return response()->json(['success' => true, 'message' => 'Page updated.']);
+    }
+
+    public function deletePage(Page $page)
+    {
+        $this->authorizeManage();
+        abort_if(
+            $page->status === 'published' && !$this->admin()->hasPermissionTo('pages.delete_published'),
+            403,
+            'Cannot delete a published page without the pages.delete_published permission.'
+        );
+        $page->delete();
+        return response()->json(['success' => true, 'message' => 'Page deleted.']);
+    }
+
+    public function duplicatePage(Page $page)
+    {
+        $this->authorizeManage();
+        $newPage = $this->service->duplicatePage($page, $this->admin());
+        return response()->json(['success' => true, 'data' => ['page' => $newPage], 'message' => 'Page duplicated.']);
+    }
+
+    public function publishPage(Request $request, Page $page)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
             'reason' => 'nullable|string|max:255',
         ]);
 
-        $page = Page::findOrFail($data['page_id']);
         $this->service->publishPage($page, $this->admin(), $data['reason'] ?? '');
+        $page->refresh();
 
-        return response()->json(['success' => true, 'page' => $page->fresh()]);
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'version' => $page->version,
+                'published_at' => $page->published_at?->format('M d, Y H:i'),
+            ],
+            'message' => 'Page published successfully.',
+        ]);
     }
 
-    public function getPageRevisions(string $pageId)
+    public function getPageRevisions(Page $page)
     {
-        $revisions = PageRevision::where('page_id', $pageId)
+        $revisions = PageRevision::where('page_id', $page->id)
             ->with('publishedByAdmin:id,name')
             ->orderByDesc('created_at')
             ->limit(50)
             ->get(['id', 'version', 'published_by_admin_id', 'publish_reason', 'created_at']);
 
-        return response()->json(['revisions' => $revisions]);
+        return response()->json([
+            'success' => true,
+            'data' => $revisions->map(fn($r) => [
+                'id' => $r->id,
+                'version' => $r->version,
+                'published_by' => $r->publishedByAdmin?->name,
+                'reason' => $r->publish_reason,
+                'created_at' => $r->created_at?->format('M d, Y H:i'),
+            ])
+        ]);
     }
 
-    public function restorePageRevision(string $revisionId)
+    public function restorePageRevision(PageRevision $revision)
     {
         $this->authorizeManage();
-
-        $revision = PageRevision::findOrFail($revisionId);
         $this->service->restoreRevision($revision, $this->admin());
-
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'message' => 'Page restored to version ' . $revision->version . '.']);
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -418,6 +469,59 @@ class PageBuilderController extends Controller
         return response()->json([
             'results' => $rows->map(fn($b) => ['id' => $b->id, 'text' => $b->name_en])->values(),
         ]);
+    }
+
+    public function searchVendors(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $rows = Vendor::query()
+            ->when($q !== '', fn($query) => $query->where('store_name', 'like', "%{$q}%"))
+            ->limit(20)
+            ->get(['id', 'store_name', 'store_slug']);
+
+        return response()->json([
+            'results' => $rows->map(fn($v) => [
+                'id' => $v->id,
+                'text' => $v->store_name,
+                'store_slug' => $v->store_slug,
+            ])->values(),
+        ]);
+    }
+
+    public function searchFlashSales(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $rows = FlashSale::query()
+            ->whereIn('status', ['submission_open', 'approved', 'live'])
+            ->when($q !== '', fn($query) => $query->where('name_en', 'like', "%{$q}%"))
+            ->limit(20)
+            ->get(['id', 'name_en', 'name_ar', 'sale_starts_at', 'status']);
+
+        return response()->json([
+            'results' => $rows->map(fn($fs) => [
+                'id' => $fs->id,
+                'text' => $fs->name_en,
+                'name_ar' => $fs->name_ar,
+                'sale_starts_at' => optional($fs->sale_starts_at)->format('M d, Y'),
+                'status' => $fs->status,
+            ])->values(),
+        ]);
+    }
+
+    public function reorderAdImages(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|uuid',
+            'items.*.position' => 'required|integer|min:0',
+        ]);
+
+        $this->service->reorderAdImages($data['items']);
+        return response()->json(['success' => true]);
     }
 
     // ─────────────────────────────────────────────────────────────────────

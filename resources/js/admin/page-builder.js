@@ -21,29 +21,37 @@ const state = {
 };
 
 const ROUTES = {
-    load:             '/page-builder/load',
-    pages:            '/page-builder/pages',
-    publish:          '/page-builder/publish',
-    pageRevisions:    (id) => `/page-builder/pages/${id}/revisions`,
-    pageRevRestore:   (id) => `/page-builder/page-revisions/${id}/restore`,
+    load: '/page-builder/load',
+    pages: '/page-builder/pages',
+    publish: (id) => `/page-builder/pages/${id}/publish`,
+    pageRevisions: (id) => `/page-builder/pages/${id}/revisions`,
+    pageRevRestore: (id) => `/page-builder/page-revisions/${id}/restore`,
 
-    blocks:           '/page-builder/blocks',
-    blockConfig:      (id) => `/page-builder/blocks/${id}/config`,
-    blockVisibility:  (id) => `/page-builder/blocks/${id}/visibility`,
-    blockRemove:      (id) => `/page-builder/blocks/${id}`,
-    blockRevisions:   (id) => `/page-builder/blocks/${id}/revisions`,
-    blockRevRestore:  (id) => `/page-builder/revisions/${id}/restore`,
-    reorder:          '/page-builder/reorder',
-    configForm:       '/page-builder/config-form',
+    blocks: '/page-builder/blocks',
+    blockConfig: (id) => `/page-builder/blocks/${id}/config`,
+    blockVisibility: (id) => `/page-builder/blocks/${id}/visibility`,
+    blockRemove: (id) => `/page-builder/blocks/${id}`,
+    blockRevisions: (id) => `/page-builder/blocks/${id}/revisions`,
+    blockRevRestore: (id) => `/page-builder/revisions/${id}/restore`,
+    reorder: '/page-builder/reorder',
+    configForm: '/page-builder/config-form',
 
-    slides:           (id) => `/page-builder/blocks/${id}/slides`,
-    slideSave:        (id) => `/page-builder/blocks/${id}/slides`,
-    slideDelete:      (id) => `/page-builder/slides/${id}`,
-    slideReorder:     (id) => `/page-builder/blocks/${id}/slides/reorder`,
+    slides: (id) => `/page-builder/blocks/${id}/slides`,
+    slideSave: (id) => `/page-builder/blocks/${id}/slides`,
+    slideDelete: (id) => `/page-builder/slides/${id}`,
+    slideReorder: (id) => `/page-builder/blocks/${id}/slides/reorder`,
 
-    adImages:         (id) => `/page-builder/blocks/${id}/ad-images`,
-    adImageSave:      (id) => `/page-builder/blocks/${id}/ad-images`,
-    adImageDelete:    (id) => `/page-builder/ad-images/${id}`,
+    adImages: (id) => `/page-builder/blocks/${id}/ad-images`,
+    adImageSave: (id) => `/page-builder/blocks/${id}/ad-images`,
+    adImageDelete: (id) => `/page-builder/ad-images/${id}`,
+    adImageReorder: (id) => `/page-builder/blocks/${id}/ad-images/reorder`,
+
+    pageUpdate: (id) => `/page-builder/pages/${id}`,
+    pageDelete: (id) => `/page-builder/pages/${id}`,
+    pageDuplicate: (id) => `/page-builder/pages/${id}/duplicate`,
+
+    searchVendors: '/page-builder/search/vendors',
+    searchFlashSales: '/page-builder/search/flash-sales',
 };
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
@@ -184,7 +192,7 @@ function persistOrder() {
         data: JSON.stringify({ blocks }),
         contentType: 'application/json',
     }).done(() => setSaveStatus('Order saved', 'saved'))
-      .fail(() => { setSaveStatus('Order save failed', 'error'); Toast.error('Could not save order.'); });
+        .fail(() => { setSaveStatus('Order save failed', 'error'); Toast.error('Could not save order.'); });
 }
 
 /* ─── Add block ─────────────────────────────────────────────────────────── */
@@ -517,10 +525,10 @@ $('#publish-btn').on('click', async function () {
 
     const $btn = $(this);
     withLoading($btn, ajax({
-        url: ROUTES.publish, method: 'POST',
-        data: { page_id: state.currentPageId, reason: 'Published from page builder' },
+        url: ROUTES.publish(state.currentPageId), method: 'POST',
+        data: { reason: 'Published from page builder' },
     }).done(() => Toast.success('Page published.'))
-      .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not publish.')));
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not publish.')));
 });
 
 $('#version-history-btn').on('click', function () {
@@ -531,10 +539,11 @@ $('#version-history-btn').on('click', function () {
             const drawerEl = document.getElementById('version-drawer');
             if (drawerEl && drawerEl._x_dataStack) {
                 const data = drawerEl._x_dataStack[0];
-                data.revisions = (res.revisions || []).map((r) => ({
+                data.revisions = (res.data || []).map((r) => ({
                     id: r.id, version: r.version,
-                    publish_reason: r.publish_reason,
-                    created_at: new Date(r.created_at).toLocaleString(),
+                    publish_reason: r.reason,
+                    published_by: r.published_by,
+                    created_at: r.created_at,
                 }));
                 data.loading = false;
             }

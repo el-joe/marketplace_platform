@@ -297,7 +297,10 @@ Route::middleware('auth.admin')->group(function () {
 
         // Pages
         Route::post('/pages', [PageBuilderController::class, 'createPage'])->name('pages.create');
-        Route::post('/publish', [PageBuilderController::class, 'publishPage'])->name('publish');
+        Route::put('/pages/{page}', [PageBuilderController::class, 'updatePage'])->name('pages.update');
+        Route::delete('/pages/{page}', [PageBuilderController::class, 'deletePage'])->name('pages.delete');
+        Route::post('/pages/{page}/duplicate', [PageBuilderController::class, 'duplicatePage'])->name('pages.duplicate');
+        Route::post('/pages/{page}/publish', [PageBuilderController::class, 'publishPage'])->name('pages.publish');
         Route::get('/pages/{page}/revisions', [PageBuilderController::class, 'getPageRevisions'])->name('pages.revisions');
         Route::post('/page-revisions/{revision}/restore', [PageBuilderController::class, 'restorePageRevision'])->name('page-revisions.restore');
 
@@ -326,11 +329,14 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/blocks/{block}/ad-images', [PageBuilderController::class, 'getAdImages'])->name('ad-images.list');
         Route::post('/blocks/{block}/ad-images', [PageBuilderController::class, 'saveAdImage'])->name('ad-images.save');
         Route::delete('/ad-images/{adImage}', [PageBuilderController::class, 'deleteAdImage'])->name('ad-images.delete');
+        Route::post('/blocks/{block}/ad-images/reorder', [PageBuilderController::class, 'reorderAdImages'])->name('ad-images.reorder');
 
         // Search (for manual selectors)
         Route::get('/search/products', [PageBuilderController::class, 'searchProducts'])->name('search.products');
         Route::get('/search/categories', [PageBuilderController::class, 'searchCategories'])->name('search.categories');
         Route::get('/search/brands', [PageBuilderController::class, 'searchBrands'])->name('search.brands');
+        Route::get('/search/vendors', [PageBuilderController::class, 'searchVendors'])->name('search.vendors');
+        Route::get('/search/flash-sales', [PageBuilderController::class, 'searchFlashSales'])->name('search.flash-sales');
 
         // Block product pickers
         Route::post('/blocks/{block}/products', [PageBuilderController::class, 'addBlockProduct'])->name('products.add');

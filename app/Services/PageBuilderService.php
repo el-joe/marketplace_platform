@@ -32,7 +32,7 @@ class PageBuilderService
             ->where('page_id', $pageId)
             ->orderBy('position')
             ->get()
-            ->map(fn (PageBlock $b) => $this->serializeBlock($b))
+            ->map(fn(PageBlock $b) => $this->serializeBlock($b))
             ->all();
 
         return [
@@ -74,11 +74,11 @@ class PageBuilderService
     public function addBlock(Page $page, string $blockTypeCode, int $position, Admin $admin): PageBlock
     {
         $type = BlockType::where('code', $blockTypeCode)->where('is_active', true)->first();
-        if (! $type) {
+        if (!$type) {
             throw ValidationException::withMessages(['block_type_code' => 'Unknown or inactive block type.']);
         }
 
-        if ($type->requires_permission && ! $admin->hasPermissionTo($type->requires_permission)) {
+        if ($type->requires_permission && !$admin->hasPermissionTo($type->requires_permission)) {
             throw ValidationException::withMessages(['block_type_code' => 'You do not have permission to add this block type.']);
         }
 
@@ -157,7 +157,7 @@ class PageBuilderService
     {
         DB::transaction(function () use ($orderedBlocks) {
             foreach ($orderedBlocks as $item) {
-                if (! isset($item['id'], $item['position'])) {
+                if (!isset($item['id'], $item['position'])) {
                     continue;
                 }
                 PageBlock::whereKey($item['id'])->update(['position' => (int) $item['position']]);
@@ -200,7 +200,7 @@ class PageBuilderService
             PageRevision::create([
                 'page_id' => $page->id,
                 'version' => $page->version,
-                'blocks_snapshot' => $blocks->map(fn (PageBlock $b) => $this->serializeBlock($b, true))->all(),
+                'blocks_snapshot' => $blocks->map(fn(PageBlock $b) => $this->serializeBlock($b, true))->all(),
                 'published_by_admin_id' => $admin->id,
                 'publish_reason' => $reason !== '' ? $reason : null,
             ]);
@@ -288,7 +288,7 @@ class PageBuilderService
 
     private function touchPage(?Page $page, Admin $admin): void
     {
-        if (! $page) {
+        if (!$page) {
             return;
         }
         $page->forceFill(['last_edited_by_admin_id' => $admin->id])->save();
@@ -309,7 +309,7 @@ class PageBuilderService
             'cache_ttl_seconds' => (int) $block->cache_ttl_seconds,
         ];
 
-        if (! $forSnapshot) {
+        if (!$forSnapshot) {
             $base['label_en'] = optional($block->blockType)->label_en ?? $block->block_type;
             $base['icon'] = optional($block->blockType)->icon ?? 'cube';
             $base['preview_text'] = $block->getPreviewText();
@@ -429,4 +429,106 @@ class PageBuilderService
             }
         });
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Page revisions
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function getPageRevisions(string $pageId): array
+    {
+        return PageRevision::where('page_id', $pageId)
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->toArray();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Block revisions
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function getBlockRevisions(string $blockId): array
+    {
+        return PageBlockRevision::where('page_block_id', $blockId)
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->toArray();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Duplicate page
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function duplicatePage(Page $page, Admin $admin): Page
+    {
+        return DB::transaction(function () use ($page, $admin) {
+            $newPage = $page->replicate();
+            $newPage->name = $page->name . ' (Copy)';
+            $newPage->slug = $page->slug . '-copy-' . now()->timestamp;
+            $newPage->status = 'draft';
+            $newPage->version = 1;
+            $newPage->is_default = false;
+            $newPage->last_edited_by_admin_id = $admin->id;
+            $newPage->published_at = null;
+            $newPage->save();
+
+            foreach ($page->blocks as $block) {
+                $newBlock = $block->replicate();
+                $newBlock->page_id = $newPage->id;
+                $newBlock->save();
+
+                // Duplicate slides
+                foreach ($block->slides as $slide) {
+                    $newSlide = $slide->replicate();
+                    $newSlide->page_block_id = $newBlock->id;
+                    $newSlide->save();
+                }
+
+                // Duplicate ad images
+                foreach ($block->adImageItems as $item) {
+                    $newItem = $item->replicate();
+                    $newItem->page_block_id = $newBlock->id;
+                    $newItem->save();
+                }
+
+                // Duplicate block products
+                foreach ($block->blockProducts as $prod) {
+                    $newProd = $prod->replicate();
+                    $newProd->page_block_id = $newBlock->id;
+                    $newProd->save();
+                }
+            }
+
+            return $newPage->load('blocks');
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Delete slide / ad-image
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function deleteSlide(SliderSlide $slide): void
+    {
+        $slide->delete();
+    }
+
+    public function deleteAdImage(AdImageItem $item): void
+    {
+        $item->delete();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Reorder ad images
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function reorderAdImages(array $ordered): void
+    {
+        DB::transaction(function () use ($ordered) {
+            foreach ($ordered as $row) {
+                AdImageItem::whereKey($row['id'])->update(['position' => (int) $row['position']]);
+            }
+        });
+    }
 }
+

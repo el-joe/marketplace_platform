@@ -12,6 +12,19 @@ class PageRevision extends Model
 
     public const UPDATED_AT = null; // append-only
 
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::updating(function () {
+            throw new \RuntimeException('PageRevision is append-only and cannot be updated.');
+        });
+
+        static::deleting(function () {
+            throw new \RuntimeException('PageRevision is append-only and cannot be deleted.');
+        });
+    }
+
     protected $fillable = [
         'page_id',
         'version',

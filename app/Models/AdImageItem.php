@@ -42,4 +42,10 @@ class AdImageItem extends Model
     {
         return $this->belongsTo(File::class, 'file_id');
     }
+
+    public function getFileUrlAttribute(): ?string
+    {
+        $f = $this->file;
+        return $f ? \Illuminate\Support\Facades\Storage::disk($f->storage_type)->url($f->path) : null;
+    }
 }
