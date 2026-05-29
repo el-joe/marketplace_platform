@@ -135,7 +135,7 @@
    ========================================================= */
 
 .modal-backdrop {
-    @apply fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 p-4;
+    @apply fixed inset-0 z-[60] items-center justify-center bg-black/50 p-4;
 }
 
 .modal-panel {

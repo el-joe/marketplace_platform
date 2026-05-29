@@ -15,6 +15,40 @@
 import $ from 'jquery';
 import DataTable from 'datatables.net-dt';
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function csrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+}
+
+function openModalById(id) {
+    const jq = window.jQuery || window.$;
+    if (jq && typeof jq.fn?.modal === 'function') {
+        jq(`#${id}`).modal('open');
+        return;
+    }
+
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeModalById(id) {
+    const jq = window.jQuery || window.$;
+    if (jq && typeof jq.fn?.modal === 'function') {
+        jq(`#${id}`).modal('close');
+        return;
+    }
+
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('flex');
+    el.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+}
+
 // ─── DataTable setup ──────────────────────────────────────────────────────────
 
 let bannersTable;
@@ -28,7 +62,7 @@ function initDataTable() {
             url: '/banners/datatable',
             type: 'POST',
             data(d) {
-                d._token = window._token;
+                d._token = csrfToken();
                 d.status = activeStatusFilter;
                 d.placement_code = $('#filter-placement').val();
                 d.country_id = $('#filter-country').val();
@@ -102,7 +136,7 @@ function initDeleteModal() {
     $(document).on('click', '.js-delete-btn', function () {
         pendingDeleteUrl = $(this).data('url');
         $('#delete-banner-name').text($(this).data('name'));
-        $('#delete-modal').modal('open');
+        openModalById('delete-modal');
     });
 
     $('#confirm-delete-btn').on('click', function () {
@@ -113,11 +147,11 @@ function initDeleteModal() {
         $.ajax({
             url: pendingDeleteUrl,
             method: 'DELETE',
-            data: { _token: window._token },
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
         })
             .done((res) => {
                 window.Toast.success(res.message || 'Banner deleted.');
-                $('#delete-modal').modal('close');
+                closeModalById('delete-modal');
                 bannersTable.ajax.reload(null, false);
             })
             .fail(() => window.Toast.error('Failed to delete banner.'))
@@ -133,7 +167,7 @@ function initDuplicateModal() {
     $(document).on('click', '.js-duplicate-btn', function () {
         pendingDuplicateUrl = $(this).data('url');
         $('#duplicate-banner-name').text($(this).data('name'));
-        $('#duplicate-modal').modal('open');
+        openModalById('duplicate-modal');
     });
 
     $('#confirm-duplicate-btn').on('click', function () {
@@ -141,12 +175,12 @@ function initDuplicateModal() {
         const btn = $(this);
         btn.prop('disabled', true).text('Duplicating…');
 
-        $.ajax({ url: pendingDuplicateUrl, method: 'POST', data: { _token: window._token } })
+        $.ajax({ url: pendingDuplicateUrl, method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken() } })
             .done((res) => {
                 window.Toast.success(res.message || 'Banner duplicated.');
                 if (res.redirect) window.location.href = res.redirect;
                 else {
-                    $('#duplicate-modal').modal('close');
+                    closeModalById('duplicate-modal');
                     bannersTable.ajax.reload(null, false);
                 }
             })
@@ -194,7 +228,8 @@ function initImageRemoval() {
         $.ajax({
             url: deleteUrl,
             method: 'DELETE',
-            data: { _token: window._token, file_id: fileId },
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
+            data: { file_id: fileId },
         })
             .done(() => {
                 window.Toast.success('Image removed.');

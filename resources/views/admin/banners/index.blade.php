@@ -37,7 +37,7 @@
         @foreach(['' => 'All', 'active' => 'Active', 'scheduled' => 'Scheduled', 'expired' => 'Expired', 'inactive' => 'Inactive'] as $val => $label)
             <button type="button"
                 class="status-tab px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors
-                                    {{ $val === '' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+                                                    {{ $val === '' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                 data-status="{{ $val }}">
                 {{ $label }}
             </button>
@@ -124,7 +124,7 @@
             This will also delete all associated images and cannot be undone.
         </p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#delete-modal').modal('close')">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
             <button type="button" id="confirm-delete-btn" class="btn btn-danger">Delete</button>
         </div>
     </x-modal>
@@ -135,7 +135,7 @@
             Duplicate <strong id="duplicate-banner-name"></strong>? A copy will be created with status <em>inactive</em>.
         </p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#duplicate-modal').modal('close')">Cancel</button>
+            <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
             <button type="button" id="confirm-duplicate-btn" class="btn btn-primary">Duplicate</button>
         </div>
     </x-modal>
