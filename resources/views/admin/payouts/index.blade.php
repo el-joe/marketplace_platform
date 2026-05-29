@@ -48,10 +48,10 @@
                 'name' => 'payout_method',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                    bank_transfer: { label: "Bank Transfer", color: "primary" },
-                    wallet:        { label: "Wallet",        color: "primary" },
-                    paypal:        { label: "PayPal",        color: "primary" }
-                })',
+                            bank_transfer: { label: "Bank Transfer", color: "primary" },
+                            wallet:        { label: "Wallet",        color: "primary" },
+                            paypal:        { label: "PayPal",        color: "primary" }
+                        })',
             ],
             [
                 'title' => 'Status',
@@ -59,13 +59,13 @@
                 'name' => 'status',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                    pending:    { label: "Pending",    color: "gray"    },
-                    approved:   { label: "Approved",   color: "primary" },
-                    processing: { label: "Processing", color: "primary" },
-                    completed:  { label: "Completed",  color: "success" },
-                    failed:     { label: "Failed",     color: "danger"  },
-                    on_hold:    { label: "On Hold",    color: "warning" }
-                })',
+                            pending:    { label: "Pending",    color: "gray"    },
+                            approved:   { label: "Approved",   color: "primary" },
+                            processing: { label: "Processing", color: "primary" },
+                            completed:  { label: "Completed",  color: "success" },
+                            failed:     { label: "Failed",     color: "danger"  },
+                            on_hold:    { label: "On Hold",    color: "warning" }
+                        })',
             ],
             [
                 'title' => 'Processed',
@@ -82,8 +82,8 @@
                 'searchable' => false,
                 'className' => 'text-right',
                 'render' => 'Renderers.actions([
-                    { type: "link", label: "View", url: ":show_url", class: "btn-primary btn-sm" }
-                ])',
+                            { type: "link", label: "View", url: ":show_url", class: "btn-primary btn-sm" }
+                        ])',
             ],
         ];
 
@@ -94,12 +94,12 @@
                 'name' => 'status',
                 'label' => 'Status',
                 'options' => [
-                    'pending'    => 'Pending',
-                    'approved'   => 'Approved',
+                    'pending' => 'Pending',
+                    'approved' => 'Approved',
                     'processing' => 'Processing',
-                    'completed'  => 'Completed',
-                    'failed'     => 'Failed',
-                    'on_hold'    => 'On Hold',
+                    'completed' => 'Completed',
+                    'failed' => 'Failed',
+                    'on_hold' => 'On Hold',
                 ],
             ],
             [
@@ -113,12 +113,6 @@
         ];
     @endphp
 
-    <x-table.datatable
-        id="payouts-table"
-        url="{{ route('admin.payouts.datatable') }}"
-        :columns="$columns"
-        :filters="$filters"
-        :page-length="25"
-        :order="[[7, 'desc']]"
-    />
+    <x-table.datatable id="payouts-table" url="{{ route('admin.payouts.datatable') }}" :columns="$columns"
+        :filters="$filters" :page-length="25" :order="[[7, 'desc']]" />
 @endsection
