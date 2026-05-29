@@ -296,7 +296,13 @@ class AdCampaignController extends Controller
         $unblocked = AdFraudPattern::where('is_blocked', false)->count();
         $blocked = AdFraudPattern::where('is_blocked', true)->count();
 
-        return view('admin.ad-campaigns.fraud-alerts', compact('unblocked', 'blocked'));
+        $stats = [
+            'unblocked' => $unblocked,
+            'blocked' => $blocked,
+            'total' => $unblocked + $blocked,
+        ];
+
+        return view('admin.ad-campaigns.fraud-alerts', compact('stats'));
     }
 
     public function fraudDatatable(Request $request): JsonResponse
