@@ -28,7 +28,9 @@ class AdSlotController extends Controller
             'available' => PaidAdSlot::where('is_available', true)->count(),
         ];
 
-        return view('admin.ad-slots.index', compact('stats'));
+        $countries = Country::orderBy('name_en')->where('is_launched', true)->get(['id', 'name_en']);
+
+        return view('admin.ad-slots.index', compact('stats', 'countries'));
     }
 
     // ─── DataTable ────────────────────────────────────────────────────────────
