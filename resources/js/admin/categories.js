@@ -188,6 +188,14 @@ function initFeaturedToggle() {
 
 // ─── Delete category ──────────────────────────────────────────────────────────
 
+function removeDescendantRows(id) {
+    document.querySelectorAll(`tr[data-parent="${id}"]`).forEach(function (row) {
+        const childId = row.dataset.id;
+        if (childId) removeDescendantRows(childId);
+        row.remove();
+    });
+}
+
 function initDeleteCategory() {
     document.getElementById('categories-table')?.addEventListener('click', async function (e) {
         const btn = e.target.closest('.delete-cat-btn[data-id]');
@@ -195,6 +203,7 @@ function initDeleteCategory() {
 
         const name = btn.dataset.name;
         const url = btn.dataset.url;
+        const id = btn.dataset.id;
 
         const confirmed = window.confirmDelete
             ? await window.confirmDelete('Delete "' + name + '"? This cannot be undone.', { title: 'Delete category?' })
@@ -207,8 +216,8 @@ function initDeleteCategory() {
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         }).done(function (res) {
             window.Toast?.success(res.message || 'Category deleted.');
-            const row = btn.closest('tr');
-            row?.remove();
+            removeDescendantRows(id);
+            btn.closest('tr')?.remove();
         }).fail(function (xhr) {
             window.Toast?.error(xhr.responseJSON?.message || 'Failed to delete category.');
         });

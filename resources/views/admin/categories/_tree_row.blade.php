@@ -6,7 +6,7 @@
     {{-- Expand toggle --}}
     <td class="px-2 py-2 w-8">
         @if($hasChildren)
-            <button type="button" onclick="window.catTree && window.catTree.toggle('{{ $category->id }}')"
+            <button type="button"
                 class="expand-btn w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded"
                 data-id="{{ $category->id }}">
                 <x-heroicon name="chevron-right" class="w-4 h-4 transition-transform duration-150" />

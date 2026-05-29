@@ -32,7 +32,7 @@ class CategoryController extends Controller
 
     public function index(): View
     {
-        $roots = Category::with(['children.children.children'])
+        $roots = Category::with(['children'])
             ->whereNull('parent_id')
             ->whereNull('deleted_at')
             ->orderBy('sort_order')
@@ -91,6 +91,10 @@ class CategoryController extends Controller
                 'seo_description_en' => $request->seo_description_en ?: null,
                 'seo_description_ar' => $request->seo_description_ar ?: null,
             ]);
+            if (!$parent->getLft() || !$parent->getRgt()) {
+                Category::fixTree();
+                $parent->refresh();
+            }
             $category->appendToNode($parent)->save();
         } else {
             $category = Category::create([
@@ -114,7 +118,8 @@ class CategoryController extends Controller
 
         // Sync attribute assignments if provided
         if ($request->filled('attributes')) {
-            $this->service->syncAttributes($category, $request->input('attributes', []));
+            $attributes = array_filter($request->input('attributes', []), fn($a) => isset($a['attribute_id']));
+            $this->service->syncAttributes($category, $attributes);
         }
 
         DB::commit();
@@ -192,6 +197,10 @@ class CategoryController extends Controller
         // Handle parent change via NestedSet
         if ($request->filled('parent_id') && $request->parent_id !== $categoryModel->parent_id) {
             $parent = Category::findOrFail($request->parent_id);
+            if (!$parent->getLft() || !$parent->getRgt()) {
+                Category::fixTree();
+                $parent->refresh();
+            }
             $categoryModel->appendToNode($parent);
         } elseif (!$request->filled('parent_id') && $categoryModel->parent_id) {
             $categoryModel->makeRoot();

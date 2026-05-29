@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -168,7 +169,7 @@ class ProductController extends Controller
             ProductVariant::query()->insert([
                 'id' => (string) Str::uuid(),
                 'product_id' => $id,
-                'sku' => 'SKU-' . strtoupper(Str::random(8)),
+                'sku' => $this->resolveVariantSku(null),
                 'is_default' => true,
                 'is_active' => true,
                 'position' => 0,
@@ -641,27 +642,88 @@ class ProductController extends Controller
 
     private function syncVariants(string $productId, array $variants, bool $update = false): void
     {
+        $incomingIds = collect($variants)
+            ->pluck('id')
+            ->filter(fn($id) => filled($id))
+            ->values()
+            ->all();
+
         if ($update) {
-            // Soft-delete existing variants not in the new list
+            // Soft-delete only variants removed from the submitted payload.
             ProductVariant::query()
                 ->where('product_id', $productId)
+                ->whereNull('deleted_at')
+                ->when(!empty($incomingIds), fn($q) => $q->whereNotIn('id', $incomingIds))
                 ->update(['deleted_at' => now(), 'updated_at' => now()]);
         }
 
         foreach ($variants as $i => $v) {
-            ProductVariant::query()->insert([
-                'id' => (string) Str::uuid(),
-                'product_id' => $productId,
-                'sku' => $v['sku'] ?: 'SKU-' . strtoupper(Str::random(8)),
+            $variantId = isset($v['id']) && $v['id'] !== '' ? (string) $v['id'] : null;
+
+            $payload = [
+                'sku' => $this->resolveVariantSku($v['sku'] ?? null, $variantId),
                 'barcode' => $v['barcode'] ?: null,
                 'weight_grams' => isset($v['weight_grams']) && $v['weight_grams'] !== '' ? (int) $v['weight_grams'] : null,
                 'is_default' => isset($v['is_default']) && (bool) $v['is_default'],
                 'is_active' => !isset($v['is_active']) || (bool) $v['is_active'],
                 'position' => $i,
-                'created_at' => now(),
                 'updated_at' => now(),
+            ];
+
+            if ($update && $variantId) {
+                $updated = ProductVariant::query()
+                    ->where('id', $variantId)
+                    ->where('product_id', $productId)
+                    ->update(array_merge($payload, ['deleted_at' => null]));
+
+                if ($updated) {
+                    continue;
+                }
+            }
+
+            ProductVariant::query()->insert(array_merge($payload, [
+                'id' => (string) Str::uuid(),
+                'product_id' => $productId,
+                'created_at' => now(),
+            ]));
+        }
+    }
+
+    private function resolveVariantSku(?string $requestedSku, ?string $ignoreVariantId = null): string
+    {
+        $sku = trim((string) $requestedSku);
+
+        if ($sku === '') {
+            return $this->generateUniqueVariantSku();
+        }
+
+        $exists = ProductVariant::query()
+            ->where('sku', $sku)
+            ->when($ignoreVariantId, fn($q) => $q->where('id', '!=', $ignoreVariantId))
+            ->exists();
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'variants' => ["The SKU '{$sku}' is already in use. Please provide a unique SKU."],
             ]);
         }
+
+        return $sku;
+    }
+
+    private function generateUniqueVariantSku(): string
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $candidate = 'SKU-' . strtoupper(Str::random(8));
+
+            if (!ProductVariant::query()->where('sku', $candidate)->exists()) {
+                return $candidate;
+            }
+        }
+
+        throw ValidationException::withMessages([
+            'variants' => ['Unable to generate a unique SKU automatically. Please enter one manually.'],
+        ]);
     }
 
     private function syncCountrySettings(string $productId, array $countriesInput, bool $update = false): void

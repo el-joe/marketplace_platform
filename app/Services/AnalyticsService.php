@@ -351,15 +351,23 @@ class AnalyticsService
                 SELECT
                     p.id,
                     p.name_en                           AS name,
-                    p.sku                               AS sku,
+                    MAX(COALESCE(vl.vendor_sku, oi.sku)) AS sku,
                     SUM(oi.quantity)                    AS units_sold,
                     COALESCE(SUM(oi.line_total), 0)     AS revenue
                 FROM order_items oi
                 JOIN product_variants pv ON pv.id = oi.product_variant_id
                 JOIN products p          ON p.id  = pv.product_id
+                LEFT JOIN (
+                    SELECT
+                        product_variant_id,
+                        vendor_id,
+                        MAX(vendor_sku) AS vendor_sku
+                    FROM vendor_listings
+                    GROUP BY product_variant_id, vendor_id
+                ) vl ON vl.product_variant_id = oi.product_variant_id AND vl.vendor_id = oi.vendor_id
                 JOIN orders o            ON o.id  = oi.order_id
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
-                GROUP BY p.id, p.name_en, p.sku
+                GROUP BY p.id, p.name_en
                 ORDER BY units_sold DESC
                 LIMIT 20
             ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);

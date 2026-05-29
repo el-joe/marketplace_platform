@@ -22,7 +22,7 @@
             <select id="filter-country" class="form-input py-1.5 text-sm w-36">
                 <option value="">All Countries</option>
                 @foreach ($countries as $country)
-                    <option value="{{ $country->id }}">{{ $country->name_en }}</option>
+                    <option value="{{ $country->id }}">{{ $country->name_en }} ({{ $country->iso_code_2 }})</option>
                 @endforeach
             </select>
 

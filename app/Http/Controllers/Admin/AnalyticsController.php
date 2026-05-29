@@ -20,7 +20,7 @@ class AnalyticsController extends Controller
     {
         $countries = Country::where('is_active', true)
             ->orderBy('name_en')
-            ->get(['id', 'name_en', 'code']);
+            ->get(['id', 'name_en', 'iso_code_2']);
 
         return view('admin.analytics.index', compact('countries'));
     }

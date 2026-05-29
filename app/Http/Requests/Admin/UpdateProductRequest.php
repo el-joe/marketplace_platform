@@ -39,6 +39,7 @@ class UpdateProductRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($productId)],
 
             'variants' => ['nullable', 'array'],
+            'variants.*.id' => ['nullable', 'exists:product_variants,id'],
             'variants.*.sku' => ['nullable', 'string', 'max:100'],
             'variants.*.barcode' => ['nullable', 'string', 'max:50'],
             'variants.*.weight_grams' => ['nullable', 'integer', 'min:0'],

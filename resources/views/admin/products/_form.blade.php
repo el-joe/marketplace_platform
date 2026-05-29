@@ -249,6 +249,7 @@
                                 <tr class="variant-row hover:bg-gray-50">
                                     <td class="px-4 py-3 font-medium text-gray-800">
                                         {{ $variant->name ?? 'Default variant' }}
+                                        <input type="hidden" name="variants[{{ $vi }}][id]" value="{{ $variant->id }}" />
                                     </td>
                                     <td class="px-4 py-3">
                                         <input type="text" name="variants[{{ $vi }}][sku]"
