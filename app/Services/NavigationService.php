@@ -256,6 +256,20 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => 'Shipping Methods',
+                        'route' => 'admin.shipping-methods.index',
+                        'icon' => 'cube',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Payment Methods',
+                        'route' => 'admin.payment-methods.index',
+                        'icon' => 'credit-card',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => 'Warehouses',
                         'route' => 'admin.warehouses.index',
                         'icon' => 'building-office-2',

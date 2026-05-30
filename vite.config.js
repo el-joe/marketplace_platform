@@ -48,6 +48,8 @@ export default defineConfig({
                 'resources/js/admin/support-tickets.js',
                 'resources/js/admin/analytics.js',
                 'resources/js/admin/activity-log.js',
+                'resources/js/admin/payment-methods.js',
+                'resources/js/admin/shipping-methods.js',
             ],
             refresh: [
                 'resources/views/**',

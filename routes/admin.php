@@ -33,6 +33,8 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ShippingZoneController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\Admin\ShippingMethodController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -623,13 +625,44 @@ Route::middleware('auth.admin')->group(function () {
     });
 
     // ─── Shipping Zones ───────────────────────────────────────────────────────
-    Route::prefix('shipping-zones')->name('shipping-zones.')->middleware('admin.permission:countries.view')->group(function () {
+    Route::prefix('shipping-zones')->name('shipping-zones.')->middleware('admin.permission:settings.view')->group(function () {
+        // Zone index + datatable
+        Route::get('/',         [ShippingZoneController::class, 'index'])->name('index');
         Route::post('/datatable', [ShippingZoneController::class, 'datatable'])->name('datatable');
-        Route::get('/', [ShippingZoneController::class, 'index'])->name('index');
-        Route::post('/', [ShippingZoneController::class, 'store'])->name('store');
-        Route::put('/{zone}', [ShippingZoneController::class, 'update'])->name('update');
-        Route::delete('/{zone}', [ShippingZoneController::class, 'destroy'])->name('destroy');
-        Route::post('/{zone}/assign-cities', [ShippingZoneController::class, 'assignCities'])->name('assign-cities');
+
+        // Rates endpoints (specific routes BEFORE /{zone} wildcard)
+        Route::post('/rates/datatable', [ShippingZoneController::class, 'getRates'])->name('rates.datatable');
+        Route::post('/rates/estimate',  [ShippingZoneController::class, 'calculateEstimate'])->name('rates.estimate');
+        Route::middleware('admin.permission:settings.edit')->group(function () {
+            Route::post('/rates/bulk',    [ShippingZoneController::class, 'bulkRates'])->name('rates.bulk');
+            Route::post('/rates/copy',    [ShippingZoneController::class, 'copyRates'])->name('rates.copy');
+            Route::post('/rates',         [ShippingZoneController::class, 'storeRate'])->name('rates.store');
+            Route::put('/rates/{rate}',   [ShippingZoneController::class, 'updateRate'])->name('rates.update');
+            Route::delete('/rates/{rate}',[ShippingZoneController::class, 'destroyRate'])->name('rates.destroy');
+            Route::post('/rates/{rate}/toggle', [ShippingZoneController::class, 'toggleRate'])->name('rates.toggle');
+        });
+
+        // City endpoints (specific before /{zone} wildcard)
+        Route::get('/cities/unassigned',  [ShippingZoneController::class, 'getUnassigned'])->name('cities.unassigned');
+        Route::post('/cities/unassign',   [ShippingZoneController::class, 'unassignCity'])->name('cities.unassign')
+            ->middleware('admin.permission:settings.edit');
+
+        // Zone show
+        Route::get('/{zone}', [ShippingZoneController::class, 'show'])->name('show');
+
+        // Zone CRUD (write operations)
+        Route::middleware('admin.permission:settings.edit')->group(function () {
+            Route::post('/',              [ShippingZoneController::class, 'store'])->name('store');
+            Route::put('/{zone}',         [ShippingZoneController::class, 'update'])->name('update');
+            Route::delete('/{zone}',      [ShippingZoneController::class, 'destroy'])->name('destroy');
+            Route::post('/{zone}/toggle', [ShippingZoneController::class, 'toggleActive'])->name('toggle');
+            Route::post('/{zone}/duplicate', [ShippingZoneController::class, 'duplicate'])->name('duplicate');
+        });
+
+        // City assignment per zone
+        Route::get('/{zone}/cities',  [ShippingZoneController::class, 'getCities'])->name('cities');
+        Route::post('/{zone}/cities', [ShippingZoneController::class, 'assignCities'])->name('cities.assign')
+            ->middleware('admin.permission:settings.edit');
     });
 
     // ─── Warehouses ───────────────────────────────────────────────────────────
@@ -662,6 +695,45 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/flash-sales', [AnalyticsController::class, 'flashSaleAnalytics'])->name('flash-sales');
         Route::get('/returns', [AnalyticsController::class, 'returnAnalytics'])->name('returns');
         Route::get('/support', [AnalyticsController::class, 'supportMetrics'])->name('support');
+    });
+
+    // ─── Payment Methods ──────────────────────────────────────────────────────
+    Route::prefix('payment-methods')->name('payment-methods.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
+        Route::get('/gateway-config', [PaymentMethodController::class, 'gatewayConfig'])->name('gateway-config');
+        Route::post('/test-gateway', [PaymentMethodController::class, 'testGateway'])->name('test-gateway')->middleware('admin.permission:settings.edit');
+        Route::post('/sort-order', [PaymentMethodController::class, 'updateSortOrder'])->name('sort-order')->middleware('admin.permission:settings.edit');
+        Route::post('/', [PaymentMethodController::class, 'store'])->name('store')->middleware('admin.permission:settings.edit');
+        Route::put('/{method}', [PaymentMethodController::class, 'update'])->name('update')->middleware('admin.permission:settings.edit');
+        Route::delete('/{method}', [PaymentMethodController::class, 'destroy'])->name('destroy')->middleware('admin.permission:settings.edit');
+        Route::post('/{method}/toggle', [PaymentMethodController::class, 'toggleActive'])->name('toggle')->middleware('admin.permission:settings.edit');
+    });
+
+    // ─── Shipping Methods ─────────────────────────────────────────────────────
+    Route::prefix('shipping-methods')->name('shipping-methods.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [ShippingMethodController::class, 'index'])->name('index');
+
+        // Shipping method CRUD
+        Route::post('/methods', [ShippingMethodController::class, 'storeMethod'])->name('methods.store')->middleware('admin.permission:settings.edit');
+        Route::put('/methods/{method}', [ShippingMethodController::class, 'updateMethod'])->name('methods.update')->middleware('admin.permission:settings.edit');
+        Route::post('/methods/{method}/toggle', [ShippingMethodController::class, 'toggleMethod'])->name('methods.toggle')->middleware('admin.permission:settings.edit');
+
+        // Carriers — test MUST come before {carrier} wildcard
+        Route::post('/carriers/test', [ShippingMethodController::class, 'testCarrier'])->name('carriers.test');
+        Route::post('/carriers', [ShippingMethodController::class, 'storeCarrier'])->name('carriers.store')->middleware('admin.permission:settings.edit');
+        Route::put('/carriers/{carrier}', [ShippingMethodController::class, 'updateCarrier'])->name('carriers.update')->middleware('admin.permission:settings.edit');
+        Route::post('/carriers/{carrier}/toggle', [ShippingMethodController::class, 'toggleCarrier'])->name('carriers.toggle')->middleware('admin.permission:settings.edit');
+
+        // Rates — datatable + store MUST come before {rate} wildcard
+        Route::post('/rates/datatable', [ShippingMethodController::class, 'ratesDatatable'])->name('rates.datatable');
+        Route::post('/rates', [ShippingMethodController::class, 'storeRate'])->name('rates.store')->middleware('admin.permission:settings.edit');
+        Route::put('/rates/{rate}', [ShippingMethodController::class, 'updateRate'])->name('rates.update')->middleware('admin.permission:settings.edit');
+        Route::delete('/rates/{rate}', [ShippingMethodController::class, 'destroyRate'])->name('rates.destroy')->middleware('admin.permission:settings.edit');
+        Route::post('/rates/{rate}/toggle', [ShippingMethodController::class, 'toggleRate'])->name('rates.toggle')->middleware('admin.permission:settings.edit');
+
+        // Country Settings
+        Route::post('/country-settings', [ShippingMethodController::class, 'upsertCountrySetting'])->name('country-settings.upsert')->middleware('admin.permission:settings.edit');
+        Route::get('/country-settings', [ShippingMethodController::class, 'countrySettings'])->name('country-settings.index');
     });
 
 }); // end auth.admin middleware group

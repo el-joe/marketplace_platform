@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CountryPaymentMethod extends Model
 {
+    use HasUuids;
     protected $table = 'country_payment_methods';
 
     protected $keyType = 'string';
@@ -39,5 +41,24 @@ class CountryPaymentMethod extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
+    }
+
+    // ── Formatted helpers ─────────────────────────────────────────────────────
+
+    public function getFeeFixedFormattedAttribute(): string
+    {
+        return number_format($this->fee_fixed_cents / 100, 2);
+    }
+
+    public function getMinOrderFormattedAttribute(): string
+    {
+        return number_format($this->min_order_cents / 100, 2);
+    }
+
+    public function getMaxOrderFormattedAttribute(): ?string
+    {
+        return $this->max_order_cents
+            ? number_format($this->max_order_cents / 100, 2)
+            : null;
     }
 }

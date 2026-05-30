@@ -8,6 +8,8 @@ use App\View\Components\Form\Input;
 use App\View\Components\Form\PriceInput;
 use App\View\Components\Form\RichEditor;
 use App\View\Components\Form\Select;
+use App\Services\Payment\PaymentGatewayFactory;
+use App\Services\Shipping\ShippingCarrierFactory;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
@@ -18,7 +20,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(PaymentGatewayFactory::class);
+        $this->app->singleton(ShippingCarrierFactory::class);
     }
 
     /**
