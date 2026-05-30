@@ -413,9 +413,12 @@ Route::middleware('auth.admin')->group(function () {
     // ─── Currencies ────────────────────────────────────────────────────────────────────────────
     Route::prefix('currencies')->name('currencies.')->middleware('admin.permission:countries.view')->group(function () {
         Route::get('/', [CurrencyController::class, 'index'])->name('index');
+        Route::get('/rates-table', [CurrencyController::class, 'ratesTable'])->name('rates-table');
+        Route::post('/dispatch-update', [CurrencyController::class, 'dispatchUpdate'])->name('dispatch-update');
+        Route::post('/refresh-rates', [CurrencyController::class, 'refreshRates'])->name('refresh-rates');
         Route::get('/{code}/edit', [CurrencyController::class, 'edit'])->name('edit');
         Route::put('/{code}', [CurrencyController::class, 'update'])->name('update');
-        Route::post('/dispatch-update', [CurrencyController::class, 'dispatchUpdate'])->name('dispatch-update');
+        Route::patch('/{code}/rate', [CurrencyController::class, 'updateRate'])->name('update-rate');
     });
 
     // ─── Coupons ─────────────────────────────────────────────────────────────────
@@ -604,7 +607,11 @@ Route::middleware('auth.admin')->group(function () {
     // ─── Settings ─────────────────────────────────────────────────────────────
     Route::prefix('settings')->name('settings.')->middleware('admin.permission:settings.view')->group(function () {
         Route::get('/', [SettingsController::class, 'index'])->name('index');
-        Route::post('/group/{category}', [SettingsController::class, 'updateGroup'])->name('update-group');
+        Route::get('/group/{category}', [SettingsController::class, 'getGroup'])->name('group');
+        Route::post('/group/{category}', [SettingsController::class, 'saveGroup'])->name('save')->middleware('admin.permission:settings.edit');
+        Route::post('/reset', [SettingsController::class, 'reset'])->name('reset')->middleware('admin.permission:settings.edit');
+        Route::post('/test-gateway', [SettingsController::class, 'testGateway'])->name('test-gateway');
+        Route::post('/clear-cache', [SettingsController::class, 'clearCache'])->name('clear-cache')->middleware('admin.permission:settings.edit');
     });
 
     // ─── Activity Log ─────────────────────────────────────────────────────────

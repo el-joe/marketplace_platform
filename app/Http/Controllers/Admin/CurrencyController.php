@@ -88,4 +88,55 @@ class CurrencyController extends Controller
             'message' => 'Exchange rate update has been queued.',
         ]);
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AJAX: Update a single currency rate
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function updateRate(Request $request, string $code): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('settings.edit'), 403);
+
+        $data = $request->validate([
+            'rate' => ['required', 'numeric', 'min:0.000001'],
+        ]);
+
+        $currency = Currency::findOrFail(strtoupper($code));
+        $currency->update([
+            'exchange_rate_to_base' => (float) $data['rate'],
+            'is_manually_overridden' => true,
+            'rate_updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => "{$currency->code} rate updated to {$data['rate']}.",
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AJAX: Dispatch job to refresh all rates from API
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function refreshRates(): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('settings.edit'), 403);
+
+        UpdateExchangeRatesJob::dispatch();
+
+        return response()->json(['message' => 'Exchange rate refresh queued successfully.']);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AJAX: Return rendered rates table tbody
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function ratesTable(): \Illuminate\View\View
+    {
+        $currencies = Currency::where('is_active', 1)->orderBy('code')->get();
+
+        return view('admin.settings.partials._rates_table', compact('currencies'));
+    }
 }
+

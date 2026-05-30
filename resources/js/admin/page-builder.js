@@ -317,6 +317,11 @@ function applyConfigToForm(cfg) {
     const $form = $('#config-form-body form[data-config-form]');
     if (!$form.length) return;
 
+    // Apply server-rendered data-selected-value for slot-based selects (before config override)
+    $form.find('select[data-selected-value]').each(function () {
+        $(this).val($(this).data('selected-value'));
+    });
+
     Object.entries(cfg.config || {}).forEach(([key, val]) => {
         const $f = $form.find(`[name="${key}"]`);
         if (!$f.length) return;

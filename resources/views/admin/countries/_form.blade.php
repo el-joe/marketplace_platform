@@ -323,42 +323,6 @@
             @endforelse
         </div>
 
-        {{-- Add/Edit Payment Method Modal --}}
-        <x-modal id="pm-modal" title="Payment Method">
-            <form id="pm-form" novalidate>
-                @csrf
-                <input type="hidden" id="pm-id" name="pm_id">
-                <div class="space-y-4 p-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <x-form.select
-                            name="method_type"
-                            label="Type"
-                            id="pm-method-type"
-                            :options="['card' => 'Card', 'wallet' => 'Wallet', 'cod' => 'COD', 'bnpl' => 'BNPL', 'bank_transfer' => 'Bank Transfer']"
-                        />
-                        <x-form.input name="provider" label="Provider" id="pm-provider" placeholder="e.g. Visa, Mada, Tamara" />
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <x-form.input name="display_name_en" label="Display Name (EN)" id="pm-display-en" required />
-                        <x-form.input name="display_name_ar" label="Display Name (AR)" id="pm-display-ar" dir="rtl" />
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <x-form.input name="fee_pct" label="Fee %" id="pm-fee-pct" type="number" step="0.01" min="0" value="0" />
-                        <x-form.input name="fee_fixed_cents" label="Fixed Fee (cents)" id="pm-fee-fixed" type="number" min="0" value="0" />
-                        <x-form.input name="sort_order" label="Sort Order" id="pm-sort-order" type="number" min="0" value="0" />
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <x-form.input name="min_order_cents" label="Min Order (cents)" id="pm-min-order" type="number" min="0" value="0" />
-                        <x-form.input name="max_order_cents" label="Max Order (cents, blank = unlimited)" id="pm-max-order" type="number" min="0" />
-                    </div>
-                    <x-form.toggle name="is_active" label="Active" id="pm-is-active" :checked="true" />
-                </div>
-                <div class="flex justify-end gap-2 px-4 pb-4">
-                    <button type="button" class="btn btn-ghost" data-modal-close="pm-modal">Cancel</button>
-                    <button type="submit" id="pm-submit-btn" class="btn btn-primary">Save</button>
-                </div>
-            </form>
-        </x-modal>
     </div>
     @endif
 
@@ -384,8 +348,7 @@
             </button>
         </div>
 
-        <form id="shipping-settings-form" novalidate>
-            @csrf
+        <div id="shipping-settings-form">
             <div id="shipping-methods-list" class="space-y-2">
                 @foreach ($allShippingMethods as $method)
                     @php
@@ -418,7 +381,7 @@
                     </div>
                 @endforeach
             </div>
-        </form>
+        </div>
     </div>
     @endif
 
@@ -461,46 +424,88 @@
             :page-length="25"
         />
 
-        {{-- Edit Category Override Modal --}}
-        <x-modal id="cat-override-modal" title="Edit Category Override">
-            <form id="cat-override-form" novalidate>
-                @csrf
-                <input type="hidden" id="cat-category-id" name="overrides[0][category_id]">
-                <div class="space-y-4 p-4">
-                    <p class="font-medium text-gray-800" id="cat-name-display"></p>
-                    <x-form.toggle name="overrides[0][is_available]" label="Available in this country" id="cat-is-available" :checked="true" />
-                    <x-form.input
-                        name="overrides[0][commission_rate]"
-                        label="Commission Rate Override (%)"
-                        id="cat-commission-rate"
-                        type="number" step="0.01" min="0" max="100"
-                        placeholder="Leave blank to use global rate"
-                    />
-                    <x-form.input
-                        name="overrides[0][unavailable_reason]"
-                        label="Reason (if unavailable)"
-                        id="cat-unavailable-reason"
-                        maxlength="100"
-                    />
-                    <x-form.textarea
-                        name="overrides[0][notes]"
-                        label="Internal Notes"
-                        id="cat-notes"
-                        rows="2"
-                    />
-                </div>
-                <div class="flex justify-end gap-2 px-4 pb-4">
-                    <button type="button" class="btn btn-ghost" data-modal-close="cat-override-modal">Cancel</button>
-                    <button
-                        type="submit"
-                        id="cat-override-submit"
-                        data-url="{{ route('admin.countries.category-overrides.update', $country->id) }}"
-                        class="btn btn-primary"
-                    >Save</button>
-                </div>
-            </form>
-        </x-modal>
     </div>
     @endif
 
 </div>{{-- end x-data --}}
+
+@if ($isEdit)
+@push('modals')
+    {{-- Add/Edit Payment Method Modal --}}
+    <x-modal id="pm-modal" title="Payment Method">
+        <form id="pm-form" novalidate>
+            @csrf
+            <input type="hidden" id="pm-id" name="pm_id">
+            <div class="space-y-4 p-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <x-form.select
+                        name="method_type"
+                        label="Type"
+                        id="pm-method-type"
+                        :options="['card' => 'Card', 'wallet' => 'Wallet', 'cod' => 'COD', 'bnpl' => 'BNPL', 'bank_transfer' => 'Bank Transfer']"
+                    />
+                    <x-form.input name="provider" label="Provider" id="pm-provider" placeholder="e.g. Visa, Mada, Tamara" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <x-form.input name="display_name_en" label="Display Name (EN)" id="pm-display-en" required />
+                    <x-form.input name="display_name_ar" label="Display Name (AR)" id="pm-display-ar" dir="rtl" />
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <x-form.input name="fee_pct" label="Fee %" id="pm-fee-pct" type="number" step="0.01" min="0" value="0" />
+                    <x-form.input name="fee_fixed_cents" label="Fixed Fee (cents)" id="pm-fee-fixed" type="number" min="0" value="0" />
+                    <x-form.input name="sort_order" label="Sort Order" id="pm-sort-order" type="number" min="0" value="0" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <x-form.input name="min_order_cents" label="Min Order (cents)" id="pm-min-order" type="number" min="0" value="0" />
+                    <x-form.input name="max_order_cents" label="Max Order (cents, blank = unlimited)" id="pm-max-order" type="number" min="0" />
+                </div>
+                <x-form.toggle name="is_active" label="Active" id="pm-is-active" :checked="true" />
+            </div>
+            <div class="flex justify-end gap-2 px-4 pb-4">
+                <button type="button" class="btn btn-ghost" data-modal-close="pm-modal">Cancel</button>
+                <button type="submit" id="pm-submit-btn" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </x-modal>
+
+    {{-- Edit Category Override Modal --}}
+    <x-modal id="cat-override-modal" title="Edit Category Override">
+        <form id="cat-override-form" novalidate>
+            @csrf
+            <input type="hidden" id="cat-category-id" name="overrides[0][category_id]">
+            <div class="space-y-4 p-4">
+                <p class="font-medium text-gray-800" id="cat-name-display"></p>
+                <x-form.toggle name="overrides[0][is_available]" label="Available in this country" id="cat-is-available" :checked="true" />
+                <x-form.input
+                    name="overrides[0][commission_rate]"
+                    label="Commission Rate Override (%)"
+                    id="cat-commission-rate"
+                    type="number" step="0.01" min="0" max="100"
+                    placeholder="Leave blank to use global rate"
+                />
+                <x-form.input
+                    name="overrides[0][unavailable_reason]"
+                    label="Reason (if unavailable)"
+                    id="cat-unavailable-reason"
+                    maxlength="100"
+                />
+                <x-form.textarea
+                    name="overrides[0][notes]"
+                    label="Internal Notes"
+                    id="cat-notes"
+                    rows="2"
+                />
+            </div>
+            <div class="flex justify-end gap-2 px-4 pb-4">
+                <button type="button" class="btn btn-ghost" data-modal-close="cat-override-modal">Cancel</button>
+                <button
+                    type="submit"
+                    id="cat-override-submit"
+                    data-url="{{ route('admin.countries.category-overrides.update', $country->id) }}"
+                    class="btn btn-primary"
+                >Save</button>
+            </div>
+        </form>
+    </x-modal>
+@endpush
+@endif

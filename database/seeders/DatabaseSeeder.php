@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,        // products + variants + listings; reads all above cache keys
             PermissionSeeder::class,     // spatie permissions (all 47)
             RoleSeeder::class,           // spatie roles (8) + assigns super_admin to admin@admin.com
+            SettingsSeeder::class,       // platform-wide settings (70+ keys across 8 categories)
         ]);
     }
 }

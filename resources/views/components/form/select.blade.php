@@ -21,12 +21,15 @@
     <select name="{{ $name }}{{ $multiple ? '[]' : '' }}" id="{{ $name }}" @if($required) required @endif @if($disabled)
     disabled @endif @if($multiple) multiple @endif @if($select2) data-select2="true" @endif
         class="{{ $selectClass }}" aria-invalid="{{ $hasError ? 'true' : 'false' }}" @if($hasError)
-        aria-describedby="{{ $name }}-error" @endif {{ $attributes->except(['class', 'name', 'id']) }}>
+        aria-describedby="{{ $name }}-error" @endif @if(!$slot->isEmpty() && $value !== null)
+        data-selected-value="{{ $value }}" @endif {{ $attributes->except(['class', 'name', 'id']) }}>
         @if($placeholder && !$multiple)
             <option value="">{{ $placeholder }}</option>
         @endif
 
-        @if($isGrouped)
+        @if(!$slot->isEmpty())
+            {{ $slot }}
+        @elseif($isGrouped)
             @foreach($normalizedOptions as $groupLabel => $groupItems)
                 <optgroup label="{{ $groupLabel }}">
                     @foreach($groupItems as $optVal => $optLabel)

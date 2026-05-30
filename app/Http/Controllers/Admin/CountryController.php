@@ -13,6 +13,7 @@ use App\Models\Currency;
 use App\Models\ShippingMethod;
 use App\Services\CountryService;
 use App\Traits\HasDataTable;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -343,7 +344,6 @@ class CountryController extends Controller
                         'shipping_method_id' => $row['shipping_method_id'],
                     ],
                     [
-                        'id' => fn($m) => $m->id ?? (string) Str::uuid(),
                         'is_active' => (bool) ($row['is_active'] ?? false),
                         'free_shipping_threshold_cents' => $row['free_shipping_threshold_cents'] ?? null,
                     ]
@@ -393,6 +393,7 @@ class CountryController extends Controller
         ];
 
         $query = Category::query()->from('categories as c')
+            ->withoutGlobalScopes([SoftDeletingScope::class])
             ->leftJoin('country_categories as cc', function ($join) use ($country) {
                 $join->on('cc.category_id', '=', 'c.id')
                     ->where('cc.country_id', '=', $country->id);
@@ -447,7 +448,6 @@ class CountryController extends Controller
                         'category_id' => $row['category_id'],
                     ],
                     [
-                        'id' => fn($m) => $m->id ?? (string) Str::uuid(),
                         'is_available' => (bool) ($row['is_available'] ?? true),
                         'commission_rate' => $row['commission_rate'] ?? null,
                         'unavailable_reason' => $row['unavailable_reason'] ?? null,

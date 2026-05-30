@@ -1,130 +1,196 @@
-import DataTable from 'datatables.net';
+/**
+ * Admin Settings JS
+ * Uses jQuery + window.Toast + window.confirmDialog (SweetAlert2-backed)
+ */
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-}
-
-async function postJson(url, body = {}) {
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-CSRF-TOKEN': csrfToken(),
-        },
-        body: JSON.stringify(body),
+// ─── withLoading helper ───────────────────────────────────────────────────────
+// Disables a button while a jQuery XHR runs; re-enables on completion.
+function withLoading($btn, jqXhr) {
+    const origText = $btn.html();
+    $btn.prop('disabled', true).html(
+        '<svg class="animate-spin h-4 w-4 inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
+        '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+        '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>' +
+        'Saving…'
+    );
+    jqXhr.always(function () {
+        $btn.prop('disabled', false).html(origText);
     });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw json;
-    return json;
+    return jqXhr;
 }
 
-// ─── Settings Forms ───────────────────────────────────────────────────────────
+// ─── Cents display helper ─────────────────────────────────────────────────────
+function updateCentsDisplay($input) {
+    const val = parseFloat($input.val()) || 0;
+    const formatted = (val / 100).toFixed(2);
+    $input.closest('.flex').find('.js-cents-display').text(formatted);
+}
 
-function initSettingsForms() {
-    document.querySelectorAll('.js-settings-form').forEach(form => {
-        form.addEventListener('submit', async e => {
-            e.preventDefault();
+// ─── Main settings form ───────────────────────────────────────────────────────
+$(function () {
 
-            const saveBtn = form.querySelector('.js-save-btn');
-            const url = form.dataset.saveUrl;
-            if (!url) return;
+    // ── Form submit ──────────────────────────────────────────────────────────
+    $('#settings-form').on('submit', function (e) {
+        e.preventDefault();
 
-            const data = {};
-            const formData = new FormData(form);
+        const $form     = $(this);
+        const category  = $form.data('category');
+        const $btn      = $('#btn-save-settings');
+        const settings  = {};
 
-            formData.forEach((value, key) => {
-                // Convert settings[key] → { key: value }
-                const match = key.match(/^settings\[(.+)\]$/);
-                if (match) data[match[1]] = value;
-            });
+        // Collect all settings[key] fields (including hidden inputs from Alpine toggles)
+        $form.find('[name^="settings["]').each(function () {
+            const match = this.name.match(/^settings\[(.+)\]$/);
+            if (match) {
+                // Use last value for duplicate keys (Alpine toggle sends hidden input last)
+                settings[match[1]] = $(this).val();
+            }
+        });
 
-            // For checkboxes / toggles that are not checked (unchecked = omitted by FormData)
-            // Read all visible inputs and include unchecked booleans as '0'
-            form.querySelectorAll('input[type="checkbox"], input[type="hidden"][name^="settings"]').forEach(el => {
-                const match = el.name.match(/^settings\[(.+)\]$/);
-                if (match && !(match[1] in data)) {
-                    data[match[1]] = '0';
-                }
-            });
+        const jqXhr = $.ajax({
+            url:         '/settings/group/' + category,
+            method:      'POST',
+            contentType: 'application/json',
+            headers:     { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data:        JSON.stringify({ settings }),
+        });
 
-            const originalText = saveBtn.textContent;
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving…';
+        withLoading($btn, jqXhr);
 
-            try {
-                const result = await postJson(url, { settings: data });
-                window.Toast?.success(result.message ?? 'Settings saved.');
-            } catch (err) {
-                const msg = err?.message ?? err?.error ?? 'Failed to save settings.';
-                window.Toast?.error(msg);
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
+        jqXhr.done(function (res) {
+            window.Toast.success(res.message || 'Settings saved successfully.');
+        });
+
+        jqXhr.fail(function (xhr) {
+            const data = xhr.responseJSON || {};
+            if (data.errors) {
+                const msgs = Object.values(data.errors).flat().join('\n');
+                window.Toast.error(msgs || 'Validation failed.');
+            } else {
+                window.Toast.error(data.message || 'Failed to save settings.');
             }
         });
     });
-}
 
-// ─── Activity Log DataTable ───────────────────────────────────────────────────
+    // ── Clear cache button ───────────────────────────────────────────────────
+    $('#btn-clear-cache').on('click', function () {
+        const $btn = $(this);
 
-function initActivityLogTable() {
-    const tableEl = document.getElementById('activity-log-table');
-    if (!tableEl) return;
+        window.confirmDialog({
+            title:   'Clear Application Cache?',
+            message: 'This will clear the config, view, and application cache. The next request may be slower.',
+            confirmText: 'Clear Cache',
+            onConfirm: function () {
+                const jqXhr = $.ajax({
+                    url:     '/settings/clear-cache',
+                    method:  'POST',
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                });
 
-    const dt = new DataTable('#activity-log-table', {
-        processing: true,
-        serverSide: true,
-        order: [[0, 'desc']],
-        ajax: {
-            url: tableEl.dataset.url,
-            type: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken() },
-            data(d) {
-                d.log_name = document.getElementById('filter-log-name')?.value ?? '';
-                d.event = document.getElementById('filter-event')?.value ?? '';
-                d.causer_type = document.getElementById('filter-causer-type')?.value ?? '';
-                d.date_from = document.getElementById('filter-date-from')?.value ?? '';
-                d.date_to = document.getElementById('filter-date-to')?.value ?? '';
+                withLoading($btn, jqXhr);
+
+                jqXhr.done(function (res) {
+                    window.Toast.success(res.message || 'Cache cleared.');
+                });
+                jqXhr.fail(function (xhr) {
+                    window.Toast.error(xhr.responseJSON?.message || 'Failed to clear cache.');
+                });
             },
-        },
-        columns: [
-            { data: 'created_at', title: 'Time' },
-            { data: 'causer', title: 'By', orderable: false },
-            { data: 'event', title: 'Event' },
-            { data: 'subject', title: 'Subject', orderable: false },
-            { data: 'description', title: 'Description', orderable: false },
-            { data: 'log_name', title: 'Log' },
-            { data: 'ip_address', title: 'IP', orderable: false },
-            { data: 'actions', title: '', orderable: false },
-        ],
-        columnDefs: [{ targets: [1, 2, 3, 5, 7], searchable: false }],
-        pageLength: 25,
+        });
     });
 
-    // Bind filter controls
-    ['filter-log-name', 'filter-event', 'filter-causer-type'].forEach(id => {
-        document.getElementById(id)?.addEventListener('change', () => dt.draw());
-    });
-    ['filter-date-from', 'filter-date-to'].forEach(id => {
-        document.getElementById(id)?.addEventListener('change', () => dt.draw());
+    // ── Test payment gateway ─────────────────────────────────────────────────
+    $('#btn-test-gateway').on('click', function () {
+        const $btn = $(this);
+
+        const jqXhr = $.ajax({
+            url:     '/settings/test-gateway',
+            method:  'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        });
+
+        withLoading($btn, jqXhr);
+
+        jqXhr.done(function (res) {
+            window.Toast.success(res.message || 'Gateway reachable.');
+        });
+        jqXhr.fail(function (xhr) {
+            window.Toast.error(xhr.responseJSON?.message || 'Gateway test failed.');
+        });
     });
 
-    document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
-        ['filter-log-name', 'filter-event', 'filter-causer-type', 'filter-date-from', 'filter-date-to']
-            .forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
+    // ── Currency: save individual rate ───────────────────────────────────────
+    $(document).on('click', '.btn-save-rate', function () {
+        const $btn  = $(this);
+        const code  = $btn.data('currency-code');
+        const $row  = $btn.closest('tr');
+        const rate  = $row.find('.rate-input[data-currency-code="' + code + '"]').val();
+
+        if (!rate || isNaN(parseFloat(rate)) || parseFloat(rate) <= 0) {
+            window.Toast.error('Please enter a valid positive rate.');
+            return;
+        }
+
+        const jqXhr = $.ajax({
+            url:         '/currencies/' + code + '/rate',
+            method:      'PATCH',
+            contentType: 'application/json',
+            headers:     { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data:        JSON.stringify({ rate: parseFloat(rate) }),
+        });
+
+        withLoading($btn, jqXhr);
+
+        jqXhr.done(function (res) {
+            window.Toast.success(res.message || code + ' rate updated.');
+        });
+        jqXhr.fail(function (xhr) {
+            window.Toast.error(xhr.responseJSON?.message || 'Failed to update rate.');
+        });
+    });
+
+    // ── Currency: refresh all rates from API ─────────────────────────────────
+    $('#btn-refresh-rates').on('click', function () {
+        const $btn = $(this);
+
+        const jqXhr = $.ajax({
+            url:     '/currencies/refresh-rates',
+            method:  'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        });
+
+        withLoading($btn, jqXhr);
+
+        jqXhr.done(function (res) {
+            window.Toast.success(res.message || 'Exchange rates refresh queued.');
+            // Reload the table
+            $.get('/currencies/rates-table', function (html) {
+                $('#rates-table-body').html(html);
             });
-        dt.draw();
+        });
+        jqXhr.fail(function (xhr) {
+            window.Toast.error(xhr.responseJSON?.message || 'Failed to queue refresh.');
+        });
     });
-}
 
-// ─── Init ──────────────────────────────────────────────────────────────────────
+    // ── Announcement bar live preview ────────────────────────────────────────
+    $(document).on('input', '[name="settings[announcement_bar_text_en]"]', function () {
+        $('#announcement-preview').text($(this).val());
+    });
 
-document.addEventListener('DOMContentLoaded', () => {
-    initSettingsForms();
-    initActivityLogTable();
+    $(document).on('input', '[name="settings[announcement_bar_color]"]', function () {
+        $('#announcement-preview').css('background-color', $(this).val());
+    });
+
+    // ── Cents input: live display ────────────────────────────────────────────
+    $(document).on('input', '.js-cents-display', function () {
+        updateCentsDisplay($(this).closest('.flex').find('input[type="number"]'));
+    });
+
+    $('input[type="number"]').filter(function () {
+        return $(this).closest('.flex').find('.js-cents-display').length > 0;
+    }).on('input', function () {
+        updateCentsDisplay($(this));
+    });
+
 });

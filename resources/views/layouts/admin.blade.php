@@ -24,6 +24,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/components/layout.js'])
 
     @stack('styles')
+    @stack('head')
 </head>
 
 <body class="bg-gray-50 font-figtree text-gray-900 antialiased">

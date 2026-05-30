@@ -98,16 +98,16 @@ $(function () {
 
         if (pm) {
             $('#pm-id').val(pm.id);
-            $('#pm-method-type').val(pm.method_type);
-            $('#pm-provider').val(pm.provider || '');
-            $('#pm-display-en').val(pm.display_name_en);
-            $('#pm-display-ar').val(pm.display_name_ar || '');
-            $('#pm-fee-pct').val(pm.fee_pct);
-            $('#pm-fee-fixed').val(pm.fee_fixed_cents);
-            $('#pm-sort-order').val(pm.sort_order);
-            $('#pm-min-order').val(pm.min_order_cents);
-            $('#pm-max-order').val(pm.max_order_cents || '');
-            $('#pm-is-active').prop('checked', !!pm.is_active);
+            $form.find('[name="method_type"]').val(pm.method_type);
+            $form.find('[name="provider"]').val(pm.provider || '');
+            $form.find('[name="display_name_en"]').val(pm.display_name_en);
+            $form.find('[name="display_name_ar"]').val(pm.display_name_ar || '');
+            $form.find('[name="fee_pct"]').val(pm.fee_pct);
+            $form.find('[name="fee_fixed_cents"]').val(pm.fee_fixed_cents);
+            $form.find('[name="sort_order"]').val(pm.sort_order);
+            $form.find('[name="min_order_cents"]').val(pm.min_order_cents);
+            $form.find('[name="max_order_cents"]').val(pm.max_order_cents || '');
+            $form.find('[name="is_active"][type="checkbox"]').prop('checked', !!pm.is_active).trigger('change');
         }
 
         openModal('pm-modal');
@@ -127,7 +127,6 @@ $(function () {
 
         const pmId = $('#pm-id').val();
         const data = $(this).serializeArray().reduce((acc, { name, value }) => { acc[name] = value; return acc; }, {});
-        data.is_active = $('#pm-is-active').is(':checked') ? 1 : 0;
 
         // Determine URL: POST for create, PUT for update
         const baseUrl = window.countryPaymentMethodsUrl || `/countries/${countryId}/payment-methods`;
@@ -226,25 +225,27 @@ $(function () {
     window.tableActions = window.tableActions || {};
 
     window.tableActions.editCatOverride = function (id, row) {
+        const $form = $('#cat-override-form');
         $('#cat-category-id').val(row.id);
         $('#cat-name-display').text(row.name_en + ' / ' + row.name_ar);
-        $('#cat-is-available').prop('checked', row.is_available);
-        $('#cat-commission-rate').val(row.override_commission_rate || '');
-        $('#cat-unavailable-reason').val(row.unavailable_reason || '');
-        $('#cat-notes').val(row.notes || '');
+        $form.find('[name="overrides[0][is_available]"][type="checkbox"]').prop('checked', !!row.is_available).trigger('change');
+        $form.find('[name="overrides[0][commission_rate]"]').val(row.override_commission_rate ?? '');
+        $form.find('[name="overrides[0][unavailable_reason]"]').val(row.unavailable_reason ?? '');
+        $form.find('[name="overrides[0][notes]"]').val(row.notes ?? '');
         openModal('cat-override-modal');
     };
 
     $('#cat-override-form').on('submit', function (e) {
         e.preventDefault();
+        const $form = $(this);
         const url = $('#cat-override-submit').data('url');
         const data = {
             overrides: [{
                 category_id: $('#cat-category-id').val(),
-                is_available: $('#cat-is-available').is(':checked') ? 1 : 0,
-                commission_rate: $('#cat-commission-rate').val() || null,
-                unavailable_reason: $('#cat-unavailable-reason').val() || null,
-                notes: $('#cat-notes').val() || null,
+                is_available: $form.find('[name="overrides[0][is_available]"][type="checkbox"]').is(':checked') ? 1 : 0,
+                commission_rate: $form.find('[name="overrides[0][commission_rate]"]').val() || null,
+                unavailable_reason: $form.find('[name="overrides[0][unavailable_reason]"]').val() || null,
+                notes: $form.find('[name="overrides[0][notes]"]').val() || null,
             }],
         };
 
@@ -274,6 +275,6 @@ $(function () {
     // Helpers — thin wrappers around whatever modal system is in use
     // ─────────────────────────────────────────────────────────────────────────
 
-    function openModal(id) { window.openModal ? window.openModal(id) : $(`#${id}`).removeClass('hidden').show(); }
-    function closeModal(id) { window.closeModal ? window.closeModal(id) : $(`#${id}`).addClass('hidden').hide(); }
+    function openModal(id) { $(`#${id}`).modal('open'); }
+    function closeModal(id) { $(`#${id}`).modal('close'); }
 });

@@ -1,13 +1,14 @@
 @props([
     'name',
     'label'    => null,
-    'value'    => false,
+    'checked'  => null,   // preferred: pass :checked="true/false"
+    'value'    => false,  // legacy alias
     'helpText' => null,
     'size'     => 'md', // sm | md | lg
 ])
 
 @php
-    $checked   = (bool) old($name, $value);
+    $checked   = (bool) old($name, $checked ?? $value);
     $hasError  = $errors->has($name);
 
     $trackSize = match($size) {
@@ -33,10 +34,7 @@
         class="inline-flex items-center gap-3 cursor-pointer group">
 
         {{-- Actual checkbox (screen-reader accessible) --}}
-        <input
-            type="hidden"
-            name="{{ $name }}"
-            value="0">
+
         <input
             type="checkbox"
             name="{{ $name }}"
@@ -48,7 +46,6 @@
 
         {{-- Visual track --}}
         <div
-            @click="on = !on"
             :class="on ? 'bg-primary-600' : 'bg-gray-300'"
             class="{{ $trackSize }} rounded-full transition-colors duration-200 relative
                    focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2">
