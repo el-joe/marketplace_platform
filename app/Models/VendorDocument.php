@@ -62,4 +62,9 @@ class VendorDocument extends Model
     {
         return $this->morphMany(File::class, 'model');
     }
+
+    public function getFullFilePathAttribute()
+    {
+        return asset('storage/' . $this->file_path);
+    }
 }

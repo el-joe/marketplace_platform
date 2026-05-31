@@ -17,7 +17,6 @@ class VendorApprovalService
         DB::transaction(function () use ($vendor, $admin) {
             $vendor->update([
                 'global_status' => 'active',
-                'status' => 'active',
                 'approved_at' => now(),
                 'approved_by_admin_id' => $admin->id,
                 'onboarding_completed_at' => now(),
@@ -37,7 +36,6 @@ class VendorApprovalService
         DB::transaction(function () use ($vendor, $reason, $admin) {
             $vendor->update([
                 'global_status' => 'rejected',
-                'status' => 'inactive',
                 'rejection_reason' => $reason,
             ]);
 
@@ -119,7 +117,6 @@ class VendorApprovalService
     {
         $vendor->update([
             'global_status' => 'suspended',
-            'status' => 'inactive',
         ]);
 
         $this->logActivity($vendor, $admin, 'suspended', 'Vendor suspended', ['reason' => $reason]);
@@ -130,7 +127,6 @@ class VendorApprovalService
     {
         $vendor->update([
             'global_status' => 'active',
-            'status' => 'active',
         ]);
 
         $this->logActivity($vendor, $admin, 'reactivated', 'Vendor reactivated');
@@ -141,7 +137,6 @@ class VendorApprovalService
     {
         $vendor->update([
             'global_status' => 'blacklisted',
-            'status' => 'inactive',
             'rejection_reason' => $reason,
         ]);
 
@@ -175,6 +170,7 @@ class VendorApprovalService
     private function logActivity(Vendor $vendor, Admin $admin, string $event, string $description, array $properties = []): void
     {
         DB::table('activity_log')->insert([
+            'id' => \Illuminate\Support\Str::uuid(),
             'log_name' => 'vendor',
             'description' => $description,
             'subject_type' => Vendor::class,
@@ -183,7 +179,7 @@ class VendorApprovalService
             'causer_id' => $admin->id,
             'properties' => json_encode(array_merge(['event' => $event], $properties)),
             'created_at' => now(),
-            'updated_at' => now(),
+            // 'updated_at' => now(),
         ]);
     }
 
@@ -196,7 +192,7 @@ class VendorApprovalService
             'notifiable_id' => $vendor->id,
             'data' => json_encode(['message' => $message, 'type' => $type]),
             'created_at' => now(),
-            'updated_at' => now(),
+            // 'updated_at' => now(),
         ]);
     }
 }

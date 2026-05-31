@@ -187,7 +187,7 @@
                                         <td class="py-3 text-right">
                                             <div class="flex items-center justify-end gap-2">
                                                 @if($doc->file_path)
-                                                    <a href="{{ $doc->file_path }}" target="_blank" class="text-xs text-primary-600 hover:underline">View</a>
+                                                    <a href="{{ $doc->full_file_path }}" target="_blank" class="text-xs text-primary-600 hover:underline">View</a>
                                                 @endif
                                                 @if(!in_array($doc->status, ['approved', 'verified']))
                                                     <button type="button" class="text-xs text-success-700 hover:underline" data-verify-doc="{{ $doc->id }}">Verify</button>
