@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\Partner\AuthController as PartnerAuthController;
+use App\Http\Controllers\Partner\BankAccountController;
 use App\Http\Controllers\Partner\DashboardController;
 use App\Http\Controllers\Partner\InventoryController;
 use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\Partner\OrderController;
+use App\Http\Controllers\Partner\PayoutController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -67,5 +69,20 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/low-stock', 'lowStock')->name('low-stock');
         Route::get('/out-of-stock', 'outOfStock')->name('out-of-stock');
         Route::get('/{listing}/movements', 'movements')->name('movements');
+    });
+
+    // ── Payouts module ───────────────────────────────────────────────────────
+    Route::prefix('payouts')->name('payouts.')->controller(PayoutController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/earnings-summary', 'earningsSummary')->name('earnings-summary');
+        Route::get('/{payoutNumber}', 'show')->name('show');
+    });
+
+    // ── Bank Accounts module ─────────────────────────────────────────────────
+    Route::prefix('bank-accounts')->name('bank-accounts.')->controller(BankAccountController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::post('/{account}/set-primary', 'setPrimary')->name('set-primary');
+        Route::delete('/{account}', 'destroy')->name('destroy');
     });
 });
