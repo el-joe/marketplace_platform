@@ -55,6 +55,7 @@ export default defineConfig({
                 'resources/js/admin/shipping-methods.js',
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
+                'resources/js/portal/registration.js',
             ],
             refresh: [
                 'resources/views/**',

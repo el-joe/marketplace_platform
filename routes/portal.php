@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Portal\LandingController;
-use App\Http\Controllers\Portal\AuthController as PortalAuthController;
+use App\Http\Controllers\Portal\RegistrationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,9 +17,15 @@ Route::get('/how-it-works', [LandingController::class, 'howItWorks'])->name('how
 Route::get('/fulfillment', [LandingController::class, 'fulfillment'])->name('fulfillment');
 Route::get('/smart-tools', [LandingController::class, 'smartTools'])->name('smart-tools');
 
-// Registration (redirects to partner login for now)
-Route::get('/register', [PortalAuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [PortalAuthController::class, 'register'])->name('register.submit');
+// Multi-step vendor registration
+Route::get('/register', [RegistrationController::class, 'show'])->name('register');
+Route::get('/register/success', [RegistrationController::class, 'success'])->name('register.success');
+Route::post('/register/step/{step}', [RegistrationController::class, 'storeStep'])->where('step', '[1-3]')->name('register.step');
+Route::get('/register/check-slug', [RegistrationController::class, 'checkSlug'])->name('register.check-slug');
+Route::get('/register/cities', [RegistrationController::class, 'cities'])->name('register.cities');
+Route::post('/register/upload', [RegistrationController::class, 'uploadDocument'])->name('register.upload');
+Route::delete('/register/document', [RegistrationController::class, 'removeDocument'])->name('register.document.remove');
+Route::post('/register/complete', [RegistrationController::class, 'complete'])->name('register.complete');
 
 // Language switcher
 Route::get('/language/{locale}', function (string $locale) {

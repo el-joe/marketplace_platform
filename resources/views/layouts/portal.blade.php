@@ -12,8 +12,8 @@
     {{-- Cairo for Arabic --}}
     <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700,800,900&display=swap" rel="stylesheet" />
 
-    @vite(['resources/css/app.css', 'resources/js/portal/app.js'])
     @stack('head')
+    @vite(['resources/css/app.css', 'resources/js/portal/app.js'])
 </head>
 
 <body class="bg-gray-950 text-white antialiased" style="font-family: 'Cairo', 'Figtree', sans-serif;">
