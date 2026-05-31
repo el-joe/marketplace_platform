@@ -41,15 +41,15 @@ $(function () {
     // ── STATE ─────────────────────────────────────────────────────────────────
 
     const SZ = {
-        currentZoneId:    null,
-        currentZoneName:  null,
+        currentZoneId: null,
+        currentZoneName: null,
         currentCountryId: null,
-        selectedRateIds:  new Set(),
+        selectedRateIds: new Set(),
         pendingCity: {
-            assigned:  [],
+            assigned: [],
             available: [],
         },
-        sortableAssigned:  null,
+        sortableAssigned: null,
         sortableAvailable: null,
     };
 
@@ -61,6 +61,7 @@ $(function () {
         const zoneId = $(this).data('zone-id');
         if (!zoneId) return;
         SZ.currentZoneId = zoneId;
+        SZ.currentCountryId = $(this).data('country-id') || null;
         loadZoneRates(zoneId);
     });
 
@@ -77,13 +78,13 @@ $(function () {
 
         const params = {
             destination_zone_id: zoneId,
-            shipping_method_id:  $('#rate-filter-method').val()  || '',
-            carrier_id:          $('#rate-filter-carrier').val() || '',
-            is_active:           $('#rate-filter-active').val(),
-            _token:              csrf(),
+            shipping_method_id: $('#rate-filter-method').val() || '',
+            carrier_id: $('#rate-filter-carrier').val() || '',
+            is_active: $('#rate-filter-active').val(),
+            _token: csrf(),
         };
 
-        $.post('/admin/shipping-zones/rates/datatable', params)
+        $.post('/shipping-zones/rates/datatable', params)
             .done(function (res) {
                 $('#rates-loading').addClass('hidden');
                 const rates = res.data || [];
@@ -111,7 +112,7 @@ $(function () {
                         : `<span class="text-gray-300">—</span>`;
 
                     const statusClass = r.is_active ? 'badge-success' : 'badge-gray';
-                    const statusText  = r.is_active ? 'Active' : 'Inactive';
+                    const statusText = r.is_active ? 'Active' : 'Inactive';
 
                     return `<tr class="hover:bg-gray-50 rate-row" data-rate-id="${r.id}">
                         <td class="px-4 py-3 w-8">
@@ -186,19 +187,19 @@ $(function () {
         const ids = Array.from(SZ.selectedRateIds);
         if (!ids.length) return;
         $.ajax({
-            url:         '/admin/shipping-zones/rates/bulk',
-            method:      'POST',
+            url: '/shipping-zones/rates/bulk',
+            method: 'POST',
             contentType: 'application/json',
-            data:        JSON.stringify({ action, ids }),
-            headers:     ajaxHeaders(),
+            data: JSON.stringify({ action, ids }),
+            headers: ajaxHeaders(),
         })
-        .done(function (res) {
-            window.Toast.success(res.message);
-            SZ.selectedRateIds.clear();
-            $('#select-all-rates').prop('checked', false);
-            loadZoneRates(SZ.currentZoneId);
-        })
-        .fail(() => window.Toast.error('Bulk action failed.'));
+            .done(function (res) {
+                window.Toast.success(res.message);
+                SZ.selectedRateIds.clear();
+                $('#select-all-rates').prop('checked', false);
+                loadZoneRates(SZ.currentZoneId);
+            })
+            .fail(() => window.Toast.error('Bulk action failed.'));
     }
 
     $('#bulk-activate').on('click', () => bulkAction('activate'));
@@ -206,10 +207,10 @@ $(function () {
     $('#bulk-delete').on('click', async function () {
         const n = SZ.selectedRateIds.size;
         const ok = await window.confirmDialog({
-            title:        'Delete ' + n + ' rates?',
-            text:         'This action cannot be undone.',
+            title: 'Delete ' + n + ' rates?',
+            text: 'This action cannot be undone.',
             confirmLabel: 'Delete all',
-            danger:       true,
+            danger: true,
         });
         if (ok) bulkAction('delete');
     });
@@ -240,15 +241,15 @@ $(function () {
         $('#rate-id').val(r.id);
         $('#rate-zone-id').val(r.destination_zone_id);
         $('[name="shipping_method_id"]', '#rate-form').val(r.shipping_method_id);
-        $('[name="carrier_id"]',         '#rate-form').val(r.carrier_id || '');
-        $('[name="origin_zone_id"]',     '#rate-form').val(r.origin_zone_id || '');
-        $('[name="base_fee"]',           '#rate-form').val(r.base_fee);
-        $('[name="rate_per_kg"]',        '#rate-form').val(r.rate_per_kg);
-        $('[name="cod_extra_fee"]',      '#rate-form').val(r.cod_extra_fee);
+        $('[name="carrier_id"]', '#rate-form').val(r.carrier_id || '');
+        $('[name="origin_zone_id"]', '#rate-form').val(r.origin_zone_id || '');
+        $('[name="base_fee"]', '#rate-form').val(r.base_fee);
+        $('[name="rate_per_kg"]', '#rate-form').val(r.rate_per_kg);
+        $('[name="cod_extra_fee"]', '#rate-form').val(r.cod_extra_fee);
         $('[name="free_shipping_threshold"]', '#rate-form').val(r.free_threshold || '');
-        $('[name="min_weight_grams"]',   '#rate-form').val(r.min_weight_grams);
+        $('[name="min_weight_grams"]', '#rate-form').val(r.min_weight_grams);
         $('[name="volumetric_divisor"]', '#rate-form').val(r.volumetric_divisor);
-        $('[name="is_active"]',          '#rate-form').prop('checked', r.is_active);
+        $('[name="is_active"]', '#rate-form').prop('checked', r.is_active);
         $('#rate-modal-title').text('Edit shipping rate');
         updateRatePreview();
         openModal('rate-modal');
@@ -256,8 +257,8 @@ $(function () {
 
     $('#rate-form').on('submit', function (e) {
         e.preventDefault();
-        const id  = $('#rate-id').val();
-        const url = id ? '/admin/shipping-zones/rates/' + id : '/admin/shipping-zones/rates';
+        const id = $('#rate-id').val();
+        const url = id ? '/shipping-zones/rates/' + id : '/shipping-zones/rates';
         const method = id ? 'PUT' : 'POST';
 
         withLoading('#rate-save-btn',
@@ -277,7 +278,7 @@ $(function () {
 
     $(document).on('click', '.toggle-rate-btn', function () {
         const id = $(this).data('id');
-        $.post('/admin/shipping-zones/rates/' + id + '/toggle', { _token: csrf() })
+        $.post('/shipping-zones/rates/' + id + '/toggle', { _token: csrf() })
             .done(function (res) {
                 const $badge = $('[data-id="' + id + '"] .badge');
                 if (res.data.is_active) {
@@ -290,12 +291,12 @@ $(function () {
     });
 
     $(document).on('click', '.delete-rate-btn', async function () {
-        const id  = $(this).data('id');
-        const ok  = await window.confirmDialog({
+        const id = $(this).data('id');
+        const ok = await window.confirmDialog({
             title: 'Delete this rate?', danger: true, confirmLabel: 'Delete',
         });
         if (!ok) return;
-        $.ajax({ url: '/admin/shipping-zones/rates/' + id, method: 'DELETE', headers: ajaxHeaders() })
+        $.ajax({ url: '/shipping-zones/rates/' + id, method: 'DELETE', headers: ajaxHeaders() })
             .done(function () {
                 window.Toast.success('Rate deleted.');
                 loadZoneRates(SZ.currentZoneId);
@@ -306,11 +307,11 @@ $(function () {
 
     // Live rate preview
     function updateRatePreview() {
-        const base   = parseFloat($('[name="base_fee"]', '#rate-form').val()) || 0;
-        const perKg  = parseFloat($('[name="rate_per_kg"]', '#rate-form').val()) || 0;
-        const free   = parseFloat($('[name="free_shipping_threshold"]', '#rate-form').val()) || null;
+        const base = parseFloat($('[name="base_fee"]', '#rate-form').val()) || 0;
+        const perKg = parseFloat($('[name="rate_per_kg"]', '#rate-form').val()) || 0;
+        const free = parseFloat($('[name="free_shipping_threshold"]', '#rate-form').val()) || null;
         const weight = parseInt($('#preview-weight').val()) || 500;
-        const cost   = base + (weight / 1000) * perKg;
+        const cost = base + (weight / 1000) * perKg;
         $('#rate-cost-preview').text(cost.toFixed(2));
         $('#rate-free-preview').text(free ? free.toFixed(2) : '—');
     }
@@ -333,18 +334,18 @@ $(function () {
     $(document).on('click', '.edit-zone-btn', function () {
         const z = $(this).data('zone');
         $('#zone-id').val(z.id);
-        $('[name="name"]',       '#zone-form').val(z.name);
+        $('[name="name"]', '#zone-form').val(z.name);
         $('[name="country_id"]', '#zone-form').val(z.country_id);
-        $('[name="description"]','#zone-form').val(z.description || '');
-        $('[name="is_active"]',  '#zone-form').prop('checked', z.is_active == 1);
+        $('[name="description"]', '#zone-form').val(z.description || '');
+        $('[name="is_active"]', '#zone-form').prop('checked', z.is_active == 1);
         $('#zone-modal-title').text('Edit zone: ' + z.name);
         openModal('zone-modal');
     });
 
     $('#zone-form').on('submit', function (e) {
         e.preventDefault();
-        const id  = $('#zone-id').val();
-        const url = id ? '/admin/shipping-zones/' + id : '/admin/shipping-zones';
+        const id = $('#zone-id').val();
+        const url = id ? '/shipping-zones/' + id : '/shipping-zones';
         const method = id ? 'PUT' : 'POST';
 
         withLoading('#zone-save-btn',
@@ -363,22 +364,22 @@ $(function () {
 
     $(document).on('click', '.toggle-zone-btn', function () {
         const id = $(this).data('zone-id');
-        $.post('/admin/shipping-zones/' + id + '/toggle', { _token: csrf() })
+        $.post('/shipping-zones/' + id + '/toggle', { _token: csrf() })
             .done(() => location.reload())
             .fail(() => window.Toast.error('Toggle failed.'));
     });
 
     $(document).on('click', '.delete-zone-btn', async function () {
-        const id   = $(this).data('zone-id');
+        const id = $(this).data('zone-id');
         const name = $(this).data('zone-name');
-        const ok   = await window.confirmDialog({
-            title:        'Delete zone "' + name + '"?',
-            text:         'Cities will become unassigned. Active rates must be deleted first.',
+        const ok = await window.confirmDialog({
+            title: 'Delete zone "' + name + '"?',
+            text: 'Cities will become unassigned. Active rates must be deleted first.',
             confirmLabel: 'Delete zone',
-            danger:       true,
+            danger: true,
         });
         if (!ok) return;
-        $.ajax({ url: '/admin/shipping-zones/' + id, method: 'DELETE', headers: ajaxHeaders() })
+        $.ajax({ url: '/shipping-zones/' + id, method: 'DELETE', headers: ajaxHeaders() })
             .done(function () {
                 window.Toast.success('Zone deleted.');
                 location.reload();
@@ -396,12 +397,12 @@ $(function () {
     // ═══════════════════════════════════════════════════════════════════════
 
     $(document).on('click', '.assign-cities-btn', async function () {
-        const zoneId    = $(this).data('zone-id');
-        const zoneName  = $(this).data('zone-name');
+        const zoneId = $(this).data('zone-id');
+        const zoneName = $(this).data('zone-name');
         const countryId = $(this).data('country-id');
 
-        SZ.currentZoneId    = zoneId;
-        SZ.currentZoneName  = zoneName;
+        SZ.currentZoneId = zoneId;
+        SZ.currentZoneName = zoneName;
         SZ.currentCountryId = countryId;
 
         $('#assign-zone-id').val(zoneId);
@@ -410,11 +411,11 @@ $(function () {
 
         try {
             const [assignedRes, availableRes] = await Promise.all([
-                $.get('/admin/shipping-zones/' + zoneId + '/cities'),
-                $.get('/admin/shipping-zones/cities/unassigned', { country_id: countryId }),
+                $.get('/shipping-zones/' + zoneId + '/cities'),
+                $.get('/shipping-zones/cities/unassigned', { country_id: countryId }),
             ]);
 
-            SZ.pendingCity.assigned  = assignedRes.data.cities || [];
+            SZ.pendingCity.assigned = assignedRes.data.cities || [];
             SZ.pendingCity.available = availableRes.data.cities || [];
 
             renderCityLists();
@@ -426,7 +427,7 @@ $(function () {
 
     function cityChip(city, side) {
         const arrow = side === 'assigned' ? '→' : '←';
-        const cod   = city.cod_available
+        const cod = city.cod_available
             ? '<span class="inline-block ml-1 px-1 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">COD</span>'
             : '';
         return `<div class="city-chip flex items-center justify-between px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm cursor-grab select-none"
@@ -443,7 +444,7 @@ $(function () {
     }
 
     function renderCityLists() {
-        const assignedEl  = document.getElementById('assigned-cities-sortable');
+        const assignedEl = document.getElementById('assigned-cities-sortable');
         const availableEl = document.getElementById('available-cities-sortable');
         if (!assignedEl || !availableEl) return;
 
@@ -459,14 +460,14 @@ $(function () {
 
         $('#assigned-count').text(SZ.pendingCity.assigned.length);
 
-        if (SZ.sortableAssigned)  SZ.sortableAssigned.destroy();
+        if (SZ.sortableAssigned) SZ.sortableAssigned.destroy();
         if (SZ.sortableAvailable) SZ.sortableAvailable.destroy();
 
         SZ.sortableAssigned = Sortable.create(assignedEl, {
             group: 'cities', animation: 150,
             onAdd: function (evt) {
                 const cityId = evt.item.dataset.cityId;
-                const idx    = SZ.pendingCity.available.findIndex(c => c.id === cityId);
+                const idx = SZ.pendingCity.available.findIndex(c => c.id === cityId);
                 if (idx > -1) {
                     SZ.pendingCity.assigned.push(SZ.pendingCity.available.splice(idx, 1)[0]);
                 }
@@ -478,7 +479,7 @@ $(function () {
             group: 'cities', animation: 150,
             onAdd: function (evt) {
                 const cityId = evt.item.dataset.cityId;
-                const idx    = SZ.pendingCity.assigned.findIndex(c => c.id === cityId);
+                const idx = SZ.pendingCity.assigned.findIndex(c => c.id === cityId);
                 if (idx > -1) {
                     SZ.pendingCity.available.push(SZ.pendingCity.assigned.splice(idx, 1)[0]);
                 }
@@ -515,23 +516,23 @@ $(function () {
 
     $('#save-assign-btn').on('click', function () {
         const cityIds = SZ.pendingCity.assigned.map(c => c.id);
-        const $btn    = $(this);
+        const $btn = $(this);
         $btn.prop('disabled', true).text('Saving…');
 
         $.ajax({
-            url:         '/admin/shipping-zones/' + SZ.currentZoneId + '/cities',
-            method:      'POST',
+            url: '/shipping-zones/' + SZ.currentZoneId + '/cities',
+            method: 'POST',
             contentType: 'application/json',
-            data:        JSON.stringify({ city_ids: cityIds }),
-            headers:     ajaxHeaders(),
+            data: JSON.stringify({ city_ids: cityIds }),
+            headers: ajaxHeaders(),
         })
-        .done(function (res) {
-            closeModal('assign-cities-modal');
-            window.Toast.success(res.message);
-            location.reload();
-        })
-        .fail(() => window.Toast.error('Failed to save assignment.'))
-        .always(() => $btn.prop('disabled', false).text('Save'));
+            .done(function (res) {
+                closeModal('assign-cities-modal');
+                window.Toast.success(res.message);
+                location.reload();
+            })
+            .fail(() => window.Toast.error('Failed to save assignment.'))
+            .always(() => $btn.prop('disabled', false).text('Save'));
     });
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -552,16 +553,16 @@ $(function () {
         if (!newName) { window.Toast.warning('Enter a name.'); return; }
 
         withLoading('#confirm-duplicate-btn',
-            $.post('/admin/shipping-zones/' + duplicatingZoneId + '/duplicate', {
-                name:   newName,
+            $.post('/shipping-zones/' + duplicatingZoneId + '/duplicate', {
+                name: newName,
                 _token: csrf(),
             })
-            .done(function (res) {
-                closeModal('duplicate-zone-modal');
-                window.Toast.success(res.message);
-                location.reload();
-            })
-            .fail(() => window.Toast.error('Failed to duplicate.'))
+                .done(function (res) {
+                    closeModal('duplicate-zone-modal');
+                    window.Toast.success(res.message);
+                    location.reload();
+                })
+                .fail(() => window.Toast.error('Failed to duplicate.'))
         );
     });
 
@@ -584,19 +585,19 @@ $(function () {
 
         withLoading('#confirm-copy-rates-btn',
             $.ajax({
-                url:         '/admin/shipping-zones/rates/copy',
-                method:      'POST',
+                url: '/shipping-zones/rates/copy',
+                method: 'POST',
                 contentType: 'application/json',
-                data:        JSON.stringify({ source_zone_id: sourceZoneId, target_zone_id: SZ.currentZoneId }),
-                headers:     ajaxHeaders(),
+                data: JSON.stringify({ source_zone_id: sourceZoneId, target_zone_id: SZ.currentZoneId }),
+                headers: ajaxHeaders(),
             })
-            .done(function (res) {
-                closeModal('copy-rates-modal');
-                window.Toast.success(res.message);
-                loadZoneRates(SZ.currentZoneId);
-                refreshZoneRateCount(SZ.currentZoneId);
-            })
-            .fail(() => window.Toast.error('Failed to copy rates.'))
+                .done(function (res) {
+                    closeModal('copy-rates-modal');
+                    window.Toast.success(res.message);
+                    loadZoneRates(SZ.currentZoneId);
+                    refreshZoneRateCount(SZ.currentZoneId);
+                })
+                .fail(() => window.Toast.error('Failed to copy rates.'))
         );
     });
 
@@ -610,11 +611,11 @@ $(function () {
     });
 
     $('#run-estimate-btn').on('click', function () {
-        const zoneId     = $('[name="calc_zone_id"]').val();
-        const methodId   = $('[name="calc_method_id"]').val();
-        const weight     = parseInt($('#calc-weight').val()) || 500;
+        const zoneId = $('[name="calc_zone_id"]').val();
+        const methodId = $('[name="calc_method_id"]').val();
+        const weight = parseInt($('#calc-weight').val()) || 500;
         const orderValue = parseFloat($('#calc-order-value').val()) || 0;
-        const isCod      = $('#calc-is-cod').is(':checked');
+        const isCod = $('#calc-is-cod').is(':checked');
 
         if (!zoneId || !methodId) {
             window.Toast.warning('Select zone and method.');
@@ -624,47 +625,47 @@ $(function () {
         const $btn = $(this);
         $btn.prop('disabled', true).text('Calculating…');
 
-        $.post('/admin/shipping-zones/rates/estimate', {
-            zone_id:      zoneId,
-            method_id:    methodId,
+        $.post('/shipping-zones/rates/estimate', {
+            zone_id: zoneId,
+            method_id: methodId,
             weight_grams: weight,
-            order_value:  orderValue,
-            is_cod:       isCod ? 1 : 0,
-            _token:       csrf(),
+            order_value: orderValue,
+            is_cod: isCod ? 1 : 0,
+            _token: csrf(),
         })
-        .done(function (res) {
-            const d = res.data;
-            $('#calc-result').removeClass('hidden');
-            $('#calc-free-hint').addClass('hidden');
-            $('#calc-breakdown').addClass('hidden').empty();
+            .done(function (res) {
+                const d = res.data;
+                $('#calc-result').removeClass('hidden');
+                $('#calc-free-hint').addClass('hidden');
+                $('#calc-breakdown').addClass('hidden').empty();
 
-            if (!d.available) {
-                $('#calc-cost').text('No rate found').removeClass('text-primary-700 text-green-600').addClass('text-red-600');
-                $('#calc-meta').text('No active rate configured for this zone + method.');
-                return;
-            }
+                if (!d.available) {
+                    $('#calc-cost').text('No rate found').removeClass('text-primary-700 text-green-600').addClass('text-red-600');
+                    $('#calc-meta').text('No active rate configured for this zone + method.');
+                    return;
+                }
 
-            if (d.is_free) {
-                $('#calc-cost').text('FREE').removeClass('text-primary-700 text-red-600').addClass('text-green-600');
-                $('#calc-free-hint').removeClass('hidden');
-            } else {
-                $('#calc-cost').text(d.cost_formatted).removeClass('text-green-600 text-red-600').addClass('text-primary-700');
-            }
+                if (d.is_free) {
+                    $('#calc-cost').text('FREE').removeClass('text-primary-700 text-red-600').addClass('text-green-600');
+                    $('#calc-free-hint').removeClass('hidden');
+                } else {
+                    $('#calc-cost').text(d.cost_formatted).removeClass('text-green-600 text-red-600').addClass('text-primary-700');
+                }
 
-            $('#calc-meta').text(
-                d.method_name
-                + (d.carrier_name !== 'Any' ? ' via ' + d.carrier_name : '')
-                + ' · ' + d.delivery_days + ' day(s)'
-            );
-
-            if (d.free_threshold_formatted && !d.is_free) {
-                $('#calc-breakdown').removeClass('hidden').html(
-                    '<p>🎁 Free shipping available from: <strong>' + d.free_threshold_formatted + '</strong></p>'
+                $('#calc-meta').text(
+                    d.method_name
+                    + (d.carrier_name !== 'Any' ? ' via ' + d.carrier_name : '')
+                    + ' · ' + d.delivery_days + ' day(s)'
                 );
-            }
-        })
-        .fail(() => window.Toast.error('Calculation failed.'))
-        .always(() => $btn.prop('disabled', false).text('Calculate'));
+
+                if (d.free_threshold_formatted && !d.is_free) {
+                    $('#calc-breakdown').removeClass('hidden').html(
+                        '<p>🎁 Free shipping available from: <strong>' + d.free_threshold_formatted + '</strong></p>'
+                    );
+                }
+            })
+            .fail(() => window.Toast.error('Calculation failed.'))
+            .always(() => $btn.prop('disabled', false).text('Calculate'));
     });
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -672,7 +673,7 @@ $(function () {
     // ═══════════════════════════════════════════════════════════════════════
 
     function refreshZoneRateCount(zoneId) {
-        $.get('/admin/shipping-zones/' + zoneId)
+        $.get('/shipping-zones/' + zoneId)
             .done(function (res) {
                 $(`.zone-rate-count[data-zone="${zoneId}"]`)
                     .text(res.data?.active_rate_count ?? 0);
@@ -684,7 +685,7 @@ $(function () {
     // ═══════════════════════════════════════════════════════════════════════
 
     // When the Alpine tab switches to 'cities', load the cities for the selected zone
-    document.addEventListener('alpine:init', function () {});
+    document.addEventListener('alpine:init', function () { });
 
     // Watch for Alpine tab change to 'cities' by polling the zone selection
     let cityTabLoaded = false;
@@ -713,17 +714,17 @@ $(function () {
 
     function loadInlineCities(zoneId) {
         Promise.all([
-            $.get('/admin/shipping-zones/' + zoneId + '/cities'),
-            $.get('/admin/shipping-zones/cities/unassigned', { country_id: SZ.currentCountryId }),
+            $.get('/shipping-zones/' + zoneId + '/cities'),
+            $.get('/shipping-zones/cities/unassigned', { country_id: SZ.currentCountryId }),
         ]).then(function ([assignedRes, availableRes]) {
-            SZ.pendingCity.assigned  = assignedRes.data.cities  || [];
+            SZ.pendingCity.assigned = assignedRes.data.cities || [];
             SZ.pendingCity.available = availableRes.data.cities || [];
             renderInlineCityLists();
         }).catch(() => window.Toast.error('Failed to load cities.'));
     }
 
     function renderInlineCityLists() {
-        const $assigned  = $('#assigned-cities-list');
+        const $assigned = $('#assigned-cities-list');
         const $available = $('#available-cities-list');
         if (!$assigned.length) return;
 
@@ -773,22 +774,22 @@ $(function () {
     $('#save-city-assignment-btn').on('click', function () {
         if (!SZ.currentZoneId) { window.Toast.warning('Select a zone first.'); return; }
         const cityIds = SZ.pendingCity.assigned.map(c => c.id);
-        const $btn    = $(this);
+        const $btn = $(this);
         $btn.prop('disabled', true).text('Saving…');
 
         $.ajax({
-            url:         '/admin/shipping-zones/' + SZ.currentZoneId + '/cities',
-            method:      'POST',
+            url: '/shipping-zones/' + SZ.currentZoneId + '/cities',
+            method: 'POST',
             contentType: 'application/json',
-            data:        JSON.stringify({ city_ids: cityIds }),
-            headers:     ajaxHeaders(),
+            data: JSON.stringify({ city_ids: cityIds }),
+            headers: ajaxHeaders(),
         })
-        .done(function (res) {
-            window.Toast.success(res.message);
-            lastZoneForCities = null;
-        })
-        .fail(() => window.Toast.error('Failed to save.'))
-        .always(() => $btn.prop('disabled', false).text('Save assignment'));
+            .done(function (res) {
+                window.Toast.success(res.message);
+                lastZoneForCities = null;
+            })
+            .fail(() => window.Toast.error('Failed to save.'))
+            .always(() => $btn.prop('disabled', false).text('Save assignment'));
     });
 
 });

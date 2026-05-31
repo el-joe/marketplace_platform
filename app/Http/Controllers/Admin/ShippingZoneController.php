@@ -24,7 +24,8 @@ class ShippingZoneController extends Controller
     public function __construct(
         private readonly ShippingZoneService $zoneService,
         private readonly ShippingRateService $rateService
-    ) {}
+    ) {
+    }
 
     // ═══════════════════════════════════════════════════════════════════════
     // Pages
@@ -43,9 +44,9 @@ class ShippingZoneController extends Controller
             ->get();
 
         // Append active_rate_count manually (uses accessor that queries DB)
-        $zones->each(fn ($z) => $z->append(['active_rate_count']));
+        $zones->each(fn($z) => $z->append(['active_rate_count']));
 
-        $methods  = ShippingMethod::where('is_active', 1)->get();
+        $methods = ShippingMethod::where('is_active', 1)->get();
         $carriers = ShippingCarrier::where('is_active', 1)->get();
 
         $unassignedCities = City::unassigned()
@@ -67,10 +68,10 @@ class ShippingZoneController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data'    => [
-                'zone'              => $zone->load('country'),
+            'data' => [
+                'zone' => $zone->load('country'),
                 'active_rate_count' => $zone->active_rate_count,
-                'city_count'        => $zone->city_count,
+                'city_count' => $zone->city_count,
             ],
         ]);
     }
@@ -88,7 +89,7 @@ class ShippingZoneController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => ['zone' => $zone->load('country')],
+            'data' => ['zone' => $zone->load('country')],
             'message' => 'Zone created successfully.',
         ]);
     }
@@ -103,7 +104,7 @@ class ShippingZoneController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => ['zone' => $zone],
+            'data' => ['zone' => $zone],
             'message' => 'Zone updated successfully.',
         ]);
     }
@@ -121,18 +122,18 @@ class ShippingZoneController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-                'errors'  => $e->errors(),
+                'errors' => $e->errors(),
             ], 422);
         }
     }
 
     public function toggleActive(ShippingZone $zone): JsonResponse
     {
-        $zone->update(['is_active' => ! $zone->is_active]);
+        $zone->update(['is_active' => !$zone->is_active]);
 
         return response()->json([
             'success' => true,
-            'data'    => ['is_active' => $zone->is_active],
+            'data' => ['is_active' => $zone->is_active],
         ]);
     }
 
@@ -148,7 +149,7 @@ class ShippingZoneController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => ['zone' => $new],
+            'data' => ['zone' => $new],
             'message' => 'Zone duplicated with ' . $new->destinationRates()->count() . ' rates.',
         ]);
     }
@@ -163,13 +164,13 @@ class ShippingZoneController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => [
-                'cities' => $zone->cities->map(fn ($c) => [
-                    'id'            => $c->id,
-                    'name_en'       => $c->name_en,
-                    'name_ar'       => $c->name_ar,
+            'data' => [
+                'cities' => $zone->cities->map(fn($c) => [
+                    'id' => $c->id,
+                    'name_en' => $c->name_en,
+                    'name_ar' => $c->name_ar,
                     'cod_available' => $c->cod_available,
-                    'is_active'     => $c->is_active,
+                    'is_active' => $c->is_active,
                 ]),
             ],
         ]);
@@ -178,7 +179,7 @@ class ShippingZoneController extends Controller
     public function assignCities(Request $request, ShippingZone $zone): JsonResponse
     {
         $request->validate([
-            'city_ids'   => 'required|array',
+            'city_ids' => 'required|array',
             'city_ids.*' => 'exists:cities,id',
         ]);
 
@@ -186,7 +187,7 @@ class ShippingZoneController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => $result,
+            'data' => $result,
             'message' => $result['assigned'] . ' cities assigned to zone.',
         ]);
     }
@@ -208,13 +209,13 @@ class ShippingZoneController extends Controller
         $countryId = $request->country_id;
 
         $cities = City::unassigned()
-            ->when($countryId, fn ($q) => $q->forCountry($countryId))
+            ->when($countryId, fn($q) => $q->forCountry($countryId))
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'name_ar', 'country_id', 'cod_available']);
 
         return response()->json([
             'success' => true,
-            'data'    => ['cities' => $cities],
+            'data' => ['cities' => $cities],
         ]);
     }
 
@@ -226,21 +227,21 @@ class ShippingZoneController extends Controller
     {
         $query = ShippingRate::query()
             ->with(['destinationZone', 'shippingMethod', 'carrier'])
-            ->when($request->destination_zone_id, fn ($q, $v) => $q->where('destination_zone_id', $v))
-            ->when($request->shipping_method_id,   fn ($q, $v) => $q->where('shipping_method_id', $v))
-            ->when($request->carrier_id,           fn ($q, $v) => $q->where('carrier_id', $v))
-            ->when($request->has('is_active') && $request->is_active !== '', fn ($q) => $q->where('is_active', (bool) $request->is_active))
+            ->when($request->destination_zone_id, fn($q, $v) => $q->where('destination_zone_id', $v))
+            ->when($request->shipping_method_id, fn($q, $v) => $q->where('shipping_method_id', $v))
+            ->when($request->carrier_id, fn($q, $v) => $q->where('carrier_id', $v))
+            ->when($request->has('is_active') && !in_array($request->is_active, ['', null]), fn($q) => $q->where('is_active', (bool) $request->is_active))
             ->orderByDesc('created_at');
 
         if ($request->country_id) {
-            $query->whereHas('destinationZone', fn ($q) => $q->where('country_id', $request->country_id));
+            $query->whereHas('destinationZone', fn($q) => $q->where('country_id', $request->country_id));
         }
 
         $rates = $query->get();
-
+        // dd($query->toRawSql(), $request->is_active);
         return response()->json([
             'success' => true,
-            'data'    => $rates->map(fn ($r) => $this->formatRate($r)),
+            'data' => $rates->map(fn($r) => $this->formatRate($r)),
         ]);
     }
 
@@ -253,7 +254,7 @@ class ShippingZoneController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => ['rate' => $this->formatRate($rate)],
+            'data' => ['rate' => $this->formatRate($rate)],
             'message' => 'Rate created.',
         ]);
     }
@@ -268,7 +269,7 @@ class ShippingZoneController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => ['rate' => $this->formatRate($updated)],
+            'data' => ['rate' => $this->formatRate($updated)],
             'message' => 'Rate updated.',
         ]);
     }
@@ -285,11 +286,11 @@ class ShippingZoneController extends Controller
 
     public function toggleRate(ShippingRate $rate): JsonResponse
     {
-        $rate->update(['is_active' => ! $rate->is_active]);
+        $rate->update(['is_active' => !$rate->is_active]);
 
         return response()->json([
             'success' => true,
-            'data'    => ['is_active' => $rate->is_active],
+            'data' => ['is_active' => $rate->is_active],
         ]);
     }
 
@@ -297,14 +298,14 @@ class ShippingZoneController extends Controller
     {
         $request->validate([
             'action' => 'required|in:activate,deactivate,delete',
-            'ids'    => 'required|array|min:1',
-            'ids.*'  => 'exists:shipping_rates,id',
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:shipping_rates,id',
         ]);
 
         $count = match ($request->action) {
-            'activate'   => $this->rateService->bulkToggle($request->ids, true),
+            'activate' => $this->rateService->bulkToggle($request->ids, true),
             'deactivate' => $this->rateService->bulkToggle($request->ids, false),
-            'delete'     => $this->rateService->bulkDelete($request->ids),
+            'delete' => $this->rateService->bulkDelete($request->ids),
         };
 
         return response()->json([
@@ -334,11 +335,11 @@ class ShippingZoneController extends Controller
     public function calculateEstimate(Request $request): JsonResponse
     {
         $request->validate([
-            'zone_id'      => 'required|exists:shipping_zones,id',
-            'method_id'    => 'required|exists:shipping_methods,id',
+            'zone_id' => 'required|exists:shipping_zones,id',
+            'method_id' => 'required|exists:shipping_methods,id',
             'weight_grams' => 'required|integer|min:1',
-            'order_value'  => 'required|numeric|min:0',
-            'is_cod'       => 'boolean',
+            'order_value' => 'required|numeric|min:0',
+            'is_cod' => 'boolean',
         ]);
 
         $result = $this->rateService->calculateEstimate(
@@ -351,7 +352,7 @@ class ShippingZoneController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => $result,
+            'data' => $result,
         ]);
     }
 
@@ -364,26 +365,26 @@ class ShippingZoneController extends Controller
         $rate->load(['destinationZone', 'shippingMethod', 'carrier']);
 
         return [
-            'id'                      => $rate->id,
-            'destination_zone'        => $rate->destinationZone->name,
-            'destination_zone_id'     => $rate->destination_zone_id,
-            'origin_zone'             => $rate->originZone?->name ?? 'Any',
-            'origin_zone_id'          => $rate->origin_zone_id,
-            'method_name'             => $rate->shippingMethod->name,
-            'shipping_method_id'      => $rate->shipping_method_id,
-            'carrier_name'            => $rate->carrier?->name ?? 'Any',
-            'carrier_id'              => $rate->carrier_id,
-            'base_fee'                => $rate->base_fee / 100,
-            'base_fee_formatted'      => $rate->base_fee_formatted,
-            'rate_per_kg'             => $rate->rate_per_kg / 100,
-            'rate_per_kg_formatted'   => $rate->rate_per_kg_formatted,
-            'free_threshold'          => $rate->free_shipping_threshold ? $rate->free_shipping_threshold / 100 : null,
-            'free_threshold_formatted'=> $rate->free_threshold_formatted,
-            'cod_extra_fee'           => $rate->cod_extra_fee / 100,
+            'id' => $rate->id,
+            'destination_zone' => $rate->destinationZone->name,
+            'destination_zone_id' => $rate->destination_zone_id,
+            'origin_zone' => $rate->originZone?->name ?? 'Any',
+            'origin_zone_id' => $rate->origin_zone_id,
+            'method_name' => $rate->shippingMethod->name,
+            'shipping_method_id' => $rate->shipping_method_id,
+            'carrier_name' => $rate->carrier?->name ?? 'Any',
+            'carrier_id' => $rate->carrier_id,
+            'base_fee' => $rate->base_fee / 100,
+            'base_fee_formatted' => $rate->base_fee_formatted,
+            'rate_per_kg' => $rate->rate_per_kg / 100,
+            'rate_per_kg_formatted' => $rate->rate_per_kg_formatted,
+            'free_threshold' => $rate->free_shipping_threshold ? $rate->free_shipping_threshold / 100 : null,
+            'free_threshold_formatted' => $rate->free_threshold_formatted,
+            'cod_extra_fee' => $rate->cod_extra_fee / 100,
             'cod_extra_fee_formatted' => $rate->cod_extra_fee_formatted,
-            'min_weight_grams'        => $rate->min_weight_grams,
-            'volumetric_divisor'      => $rate->volumetric_divisor,
-            'is_active'               => $rate->is_active,
+            'min_weight_grams' => $rate->min_weight_grams,
+            'volumetric_divisor' => $rate->volumetric_divisor,
+            'is_active' => $rate->is_active,
         ];
     }
 }
