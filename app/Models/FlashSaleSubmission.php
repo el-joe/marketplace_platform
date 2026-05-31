@@ -105,6 +105,11 @@ class FlashSaleSubmission extends Model
         return $this->belongsTo(Admin::class, 'reviewed_by_admin_id');
     }
 
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->reviewedByAdmin();
+    }
+
     public function histories(): HasMany
     {
         return $this->hasMany(FlashSaleSubmissionHistory::class, 'flash_sale_submission_id');
@@ -120,6 +125,37 @@ class FlashSaleSubmission extends Model
     public function getFlashPriceFormattedAttribute(): string
     {
         return number_format($this->flash_price / 100, 2) . ' ' . ($this->flash_price_currency ?? '');
+    }
+
+    public function getOriginalPriceFormattedAttribute(): string
+    {
+        return number_format($this->original_price / 100, 2) . ' ' . ($this->flash_price_currency ?? '');
+    }
+
+    public function getDiscountSavingsAttribute(): int
+    {
+        return max(0, (int) $this->original_price - (int) $this->flash_price);
+    }
+
+    public function getRevenueAttribute(): int
+    {
+        return (int) $this->flash_price * (int) $this->quantity_sold;
+    }
+
+    public function getRevenueFormattedAttribute(): string
+    {
+        return number_format($this->getRevenueAttribute() / 100, 2) . ' ' . ($this->flash_price_currency ?? '');
+    }
+
+    public function getProductNameAttribute(): string
+    {
+        return $this->vendorListing?->productVariant?->product?->name_en ?? 'Unknown';
+    }
+
+    public function getPrimaryImageUrlAttribute(): ?string
+    {
+        return $this->vendorListing?->productVariant?->product?->images
+                ?->where('is_primary', true)->first()?->url;
     }
 
     public function isFakeDiscountSuspected(): bool

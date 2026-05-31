@@ -15,11 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\SubdomainDetect::class,
         ]);
 
         $middleware->alias([
             'auth.admin' => \App\Http\Middleware\AdminAuth::class,
             'admin.permission' => \App\Http\Middleware\CheckAdminPermission::class,
+            'vendor.auth' => \App\Http\Middleware\VendorAuth::class,
+            'vendor.active' => \App\Http\Middleware\VendorActive::class,
+            'vendor.onboarded' => \App\Http\Middleware\VendorOnboarded::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

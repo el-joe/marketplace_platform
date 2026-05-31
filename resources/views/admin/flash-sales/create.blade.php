@@ -7,7 +7,7 @@
 @endpush
 
 @push('scripts')
-    @vite('resources/js/admin/flash-sales.js')
+    @vite('resources/js/admin/flash-sale-form.js')
 @endpush
 
 @section('content')

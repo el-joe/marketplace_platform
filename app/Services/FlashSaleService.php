@@ -13,6 +13,8 @@ use App\Models\FlashSaleVendorInvitition;
 use App\Models\Vendor;
 use Illuminate\Support\Facades\DB;
 
+use App\Services\FakeDiscountDetectionService;
+
 class FlashSaleService
 {
     // ─────────────────────────────────────────────────────────────────────────
@@ -270,5 +272,38 @@ class FlashSaleService
                 );
             }
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Discount analysis (delegates to FakeDiscountDetectionService)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function analyzeDiscount(FlashSaleSubmission $submission): array
+    {
+        return app(FakeDiscountDetectionService::class)->analyze($submission);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Manual vendor invite
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function inviteVendorManually(FlashSale $sale, string $vendorId): FlashSaleVendorInvitition
+    {
+        $existing = FlashSaleVendorInvitition::where('flash_sale_id', $sale->id)
+            ->where('vendor_id', $vendorId)
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        return FlashSaleVendorInvitition::create([
+            'flash_sale_id' => $sale->id,
+            'vendor_id' => $vendorId,
+            'invitation_type' => 'manual',
+            'status' => 'pending',
+            'invited_at' => now(),
+            'slots_allocated' => $sale->max_products_per_seller ?? null,
+        ]);
     }
 }

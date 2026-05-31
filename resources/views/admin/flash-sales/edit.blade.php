@@ -7,7 +7,7 @@
 @endpush
 
 @push('scripts')
-    @vite('resources/js/admin/flash-sales.js')
+    @vite('resources/js/admin/flash-sale-form.js')
 @endpush
 
 @section('content')
@@ -452,19 +452,21 @@
 @include('admin.flash-sales.partials.review-modal', ['sale' => $sale])
 
 <script>
-const FLASH_SALE_ID            = '{{ $sale->id }}';
-const FLASH_SALE_UPDATE_URL    = '{{ route('admin.flash-sales.update', $sale->id) }}';
-const FLASH_SALE_MIN_DISC      = {{ (float) $sale->min_discount_pct }};
-const SUBMISSIONS_DATATABLE_URL= '{{ route('admin.flash-sales.submissions.datatable', $sale->id) }}';
-const INVITATIONS_DATATABLE_URL= '{{ route('admin.flash-sales.invitations.datatable', $sale->id) }}';
-const TRANSITION_URL           = '{{ route('admin.flash-sales.transition', $sale->id) }}';
-const INVITE_URL               = '{{ route('admin.flash-sales.invite-vendors', $sale->id) }}';
-const ELIGIBLE_COUNT_URL       = '{{ route('admin.flash-sales.eligible-vendor-count', $sale->id) }}';
-const BULK_REVIEW_URL          = '{{ route('admin.flash-sales.submissions.bulk-review', $sale->id) }}';
-const LIVE_DATA_URL            = '{{ route('admin.flash-sales.live-data', $sale->id) }}';
-const PRICE_HISTORY_URL        = '{{ route('admin.flash-sales.price-history') }}';
-const IS_LIVE                  = {{ $sale->status === 'live' ? 'true' : 'false' }};
-const IS_ENDED                 = {{ $sale->status === 'ended' ? 'true' : 'false' }};
+window.FLASH_SALE_ID         = '{{ $sale->id }}';
+window.FLASH_SALE_UPDATE_URL = '{{ route('admin.flash-sales.update', $sale->id) }}';
+window.FLASH_SALE_STATUS     = '{{ $sale->status }}';
+window.MIN_DISCOUNT_PCT      = {{ (float) $sale->min_discount_pct }};
+window.URLS = {
+    update:       '{{ route('admin.flash-sales.update', $sale->id) }}',
+    submissionsDt:'{{ route('admin.flash-sales.submissions.datatable', $sale->id) }}',
+    invitationsDt:'{{ route('admin.flash-sales.invitations.datatable', $sale->id) }}',
+    transition:   '{{ route('admin.flash-sales.transition', $sale->id) }}',
+    inviteVendors:'{{ route('admin.flash-sales.invite-vendors', $sale->id) }}',
+    eligibleCount:'{{ route('admin.flash-sales.eligible-vendor-count', $sale->id) }}',
+    bulkReview:   '{{ route('admin.flash-sales.submissions.bulk-review', $sale->id) }}',
+    liveData:     '{{ route('admin.flash-sales.live-data', $sale->id) }}',
+    priceHistory: '{{ route('admin.flash-sales.price-history') }}',
+};
 </script>
 
 @endsection

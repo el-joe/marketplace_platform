@@ -88,7 +88,7 @@ $(function () {
         url: FLASH_SALES_DATATABLE_URL,
         columns: [
             { data: 'name_en',           title: 'Name',
-              render: (d, t, r) => `<a href="${r.edit_url}" class="font-medium text-primary-600 hover:underline">${d}</a>` },
+              render: (d, t, r) => `<a href="${r.show_url}" class="font-medium text-primary-600 hover:underline">${d}</a>` },
             { data: 'country_name',      title: 'Country' },
             { data: 'status',            title: 'Status',
               render: (d) => {

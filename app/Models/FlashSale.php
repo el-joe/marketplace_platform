@@ -95,19 +95,35 @@ class FlashSale extends Model
         return $this->belongsTo(Country::class);
     }
 
-    public function createdByAdmin(): BelongsTo
+    public function createdBy(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'created_by_admin_id');
     }
 
-    public function updatedByAdmin(): BelongsTo
+    public function createdByAdmin(): BelongsTo
+    {
+        return $this->createdBy();
+    }
+
+    public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'updated_by_admin_id');
     }
 
-    public function vendorInvitations(): HasMany
+    public function updatedByAdmin(): BelongsTo
+    {
+        return $this->updatedBy();
+    }
+
+    public function invititions(): HasMany
     {
         return $this->hasMany(FlashSaleVendorInvitition::class);
+    }
+
+    /** @deprecated use invititions() – typo preserved for DB table compatibility */
+    public function vendorInvitations(): HasMany
+    {
+        return $this->invititions();
     }
 
     public function submissions(): HasMany
@@ -120,6 +136,11 @@ class FlashSale extends Model
         return $this->hasMany(FlashSaleAnalytic::class);
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(FlashSaleOrder::class);
+    }
+
     // ── Scopes ────────────────────────────────────────────────────────────────
 
     public function scopeActive($query): void
@@ -130,6 +151,11 @@ class FlashSale extends Model
     public function scopeLive($query): void
     {
         $query->where('status', 'live');
+    }
+
+    public function scopeByCountry($query, string $countryId): void
+    {
+        $query->where('country_id', $countryId);
     }
 
     public function scopeUpcoming($query): void
@@ -162,21 +188,67 @@ class FlashSale extends Model
         return $this->canTransitionTo('approved');
     }
 
-    public function getDurationHours(): float
+    public static function getAllowedTransitions(): array
     {
-        if (!$this->sale_starts_at || !$this->sale_ends_at) {
+        return static::STATUS_TRANSITIONS;
+    }
+
+    // ── Accessors ────────────────────────────────────────────────────────────
+
+    public function getStatusColorAttribute(): string
+    {
+        return match ($this->status) {
+            'draft' => 'gray',
+            'submission_open' => 'primary',
+            'submission_closed' => 'warning',
+            'under_review' => 'info',
+            'approved' => 'success',
+            'live' => 'success',
+            'ended' => 'gray',
+            'cancelled' => 'danger',
+            default => 'gray',
+        };
+    }
+
+    public function getSaleDurationHoursAttribute(): float
+    {
+        if (!$this->sale_starts_at || !$this->sale_ends_at)
             return 0.0;
-        }
         return round($this->sale_ends_at->diffInMinutes($this->sale_starts_at) / 60, 1);
     }
 
-    public function getSubmissionCountAttribute(): int
+    public function getSubmissionsCountAttribute(): int
     {
         return $this->submissions()->count();
     }
 
-    public function getApprovedCountAttribute(): int
+    public function getApprovedSubmissionsCountAttribute(): int
     {
         return $this->submissions()->where('status', 'approved')->count();
+    }
+
+    public function getTimeRemainingSecondsAttribute(): int
+    {
+        if (!$this->isLive() || !$this->sale_ends_at)
+            return 0;
+        return max(0, now()->diffInSeconds($this->sale_ends_at, false));
+    }
+
+    /** @deprecated use getSaleDurationHoursAttribute */
+    public function getDurationHours(): float
+    {
+        return $this->getSaleDurationHoursAttribute();
+    }
+
+    /** @deprecated use getSubmissionsCountAttribute */
+    public function getSubmissionCountAttribute(): int
+    {
+        return $this->getSubmissionsCountAttribute();
+    }
+
+    /** @deprecated use getApprovedSubmissionsCountAttribute */
+    public function getApprovedCountAttribute(): int
+    {
+        return $this->getApprovedSubmissionsCountAttribute();
     }
 }

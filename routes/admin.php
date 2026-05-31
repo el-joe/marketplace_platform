@@ -257,8 +257,10 @@ Route::middleware('auth.admin')->group(function () {
         // List + create
         Route::get('/', [FlashSaleController::class, 'index'])->name('index');
         Route::post('/datatable', [FlashSaleController::class, 'datatable'])->name('datatable');
-        Route::get('/create', [FlashSaleController::class, 'create'])->name('create');
-        Route::post('/', [FlashSaleController::class, 'store'])->name('store');
+        Route::get('/create', [FlashSaleController::class, 'create'])->name('create')
+            ->middleware('admin.permission:flash_sales.create');
+        Route::post('/', [FlashSaleController::class, 'store'])->name('store')
+            ->middleware('admin.permission:flash_sales.create');
 
         // Misc (before /{flashSale} wildcard)
         Route::get('/price-history', [FlashSaleController::class, 'priceHistory'])->name('price-history');
@@ -268,12 +270,20 @@ Route::middleware('auth.admin')->group(function () {
             ->name('submissions.review')
             ->middleware('admin.permission:flash_sales.review_submissions');
 
+        Route::get('/submissions/{submission}/detail', [FlashSaleController::class, 'submissionDetail'])
+            ->name('submissions.detail')
+            ->middleware('admin.permission:flash_sales.review_submissions');
+
         // Per-sale routes
         Route::prefix('/{flashSale}')->group(function () {
 
-            Route::get('/', [FlashSaleController::class, 'edit'])->name('edit');
-            Route::put('/', [FlashSaleController::class, 'update'])->name('update');
-            Route::delete('/', [FlashSaleController::class, 'destroy'])->name('destroy');
+            Route::get('/', [FlashSaleController::class, 'show'])->name('show');
+            Route::get('/edit', [FlashSaleController::class, 'edit'])->name('edit')
+                ->middleware('admin.permission:flash_sales.edit');
+            Route::put('/', [FlashSaleController::class, 'update'])->name('update')
+                ->middleware('admin.permission:flash_sales.edit');
+            Route::delete('/', [FlashSaleController::class, 'destroy'])->name('destroy')
+                ->middleware('admin.permission:flash_sales.edit');
 
             Route::post('/transition', [FlashSaleController::class, 'transition'])->name('transition');
             Route::get('/eligible-vendor-count', [FlashSaleController::class, 'eligibleVendorCount'])->name('eligible-vendor-count');
@@ -282,7 +292,8 @@ Route::middleware('auth.admin')->group(function () {
 
             Route::get('/submission-stats', [FlashSaleController::class, 'submissionStats'])->name('submission-stats');
             Route::post('/submissions/datatable', [FlashSaleController::class, 'submissionsDatatable'])->name('submissions.datatable');
-            Route::post('/bulk-review', [FlashSaleController::class, 'bulkReviewSubmissions'])->name('submissions.bulk-review');
+            Route::post('/bulk-review', [FlashSaleController::class, 'bulkReviewSubmissions'])->name('submissions.bulk-review')
+                ->middleware('admin.permission:flash_sales.review_submissions');
 
             Route::get('/live-data', [FlashSaleController::class, 'liveMonitorData'])->name('live-data');
             Route::get('/analytics-data', [FlashSaleController::class, 'analyticsData'])->name('analytics-data');

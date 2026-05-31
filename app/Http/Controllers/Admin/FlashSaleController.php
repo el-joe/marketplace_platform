@@ -102,6 +102,7 @@ class FlashSaleController extends Controller
                 'min_discount_pct' => $row->min_discount_pct . '%+',
                 'units_sold' => (int) $row->units_sold,
                 'edit_url' => route('admin.flash-sales.edit', $row->id),
+                'show_url' => route('admin.flash-sales.show', $row->id),
             ];
         });
     }
@@ -141,6 +142,31 @@ class FlashSaleController extends Controller
             'message' => 'Flash sale created.',
             'redirect' => route('admin.flash-sales.edit', $sale->id),
         ], 201);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Show
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function show(FlashSale $flashSale): View
+    {
+        $flashSale->load(['country', 'createdByAdmin', 'updatedByAdmin']);
+
+        $submissionStats = \App\Models\FlashSaleSubmission::where('flash_sale_id', $flashSale->id)
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+
+        $invitationCount = \App\Models\FlashSaleVendorInvitition::where('flash_sale_id', $flashSale->id)->count();
+
+        $nextStatuses = $flashSale->getNextStatuses();
+
+        return view('admin.flash-sales.show', compact(
+            'flashSale',
+            'submissionStats',
+            'invitationCount',
+            'nextStatuses',
+        ));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -376,6 +402,61 @@ class FlashSaleController extends Controller
         );
 
         return response()->json(['success' => true, 'data' => $result]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Submission detail (for review modal)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function submissionDetail(FlashSale $flashSale, FlashSaleSubmission $submission): JsonResponse
+    {
+        $submission->load(['vendorListing.productVariant.product.images', 'histories', 'reviewedByAdmin']);
+
+        $analysis = $this->fakeDiscountService->analyze($submission);
+
+        $priceHistory = FlashSalePriceHistory::where('vendor_listing_id', $submission->vendor_listing_id)
+            ->where('recorded_at', '>=', now()->subDays(30))
+            ->orderBy('recorded_at')
+            ->get()
+            ->map(fn($r) => [
+                'date' => $r->recorded_at->toDateString(),
+                'price_raw' => $r->price,
+                'price_formatted' => number_format($r->price / 100, 2),
+            ]);
+
+        $listing = $submission->vendorListing;
+        $variant = $listing?->productVariant;
+        $product = $variant?->product;
+        $image = $product?->images?->where('is_primary', true)->first();
+
+        $stockLevels = [
+            'max_quantity_total' => $submission->max_quantity_total,
+            'quantity_sold' => $submission->quantity_sold,
+            'quantity_remaining' => $submission->quantity_remaining,
+            'max_quantity_per_customer' => $submission->max_quantity_per_customer,
+        ];
+
+        return response()->json([
+            'data' => [
+                'id' => $submission->id,
+                'status' => $submission->status,
+                'product_name' => e($product?->name_en ?? 'Unknown'),
+                'product_image_url' => $image?->url ?? null,
+                'vendor_listing_id' => $submission->vendor_listing_id,
+                'flash_price_raw' => $submission->flash_price,
+                'original_price_raw' => $submission->original_price,
+                'flash_price_formatted' => number_format($submission->flash_price / 100, 2) . ' ' . $submission->flash_price_currency,
+                'original_price_formatted' => number_format($submission->original_price / 100, 2) . ' ' . $submission->flash_price_currency,
+                'calculated_discount_pct' => (float) $submission->calculated_discount_pct,
+                'admin_notes' => $submission->admin_notes,
+                'vendor_notes' => $submission->vendor_notes,
+                'rejection_code' => $submission->rejection_code,
+                'rejection_reason' => $submission->rejection_reason,
+                'analysis' => $analysis,
+                'price_history' => $priceHistory,
+                'stock' => $stockLevels,
+            ]
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
