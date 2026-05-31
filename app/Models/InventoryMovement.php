@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InventoryMovement extends Model
 {
+    use HasUuids;
+
+    public $timestamps = false;
+
     protected $fillable = [
         'warehouse_inventory_id',
         'movement_type',
@@ -17,6 +22,30 @@ class InventoryMovement extends Model
         'reason',
         'created_by_user_id',
     ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+    ];
+
+    // Append-only: forbid updates and deletes
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (self $model): void {
+            $model->created_at = now();
+        });
+
+        static::updating(function (): void {
+            throw new \RuntimeException('InventoryMovement records are immutable and cannot be updated.');
+        });
+
+        static::deleting(function (): void {
+            throw new \RuntimeException('InventoryMovement records are immutable and cannot be deleted.');
+        });
+    }
+
+    // ─── Relationships ─────────────────────────────────────────────────────────
 
     public function warehouseInventory(): BelongsTo
     {

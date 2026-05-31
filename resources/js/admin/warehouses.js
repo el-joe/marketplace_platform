@@ -89,8 +89,56 @@ function initWarehousesTable() {
     return dt;
 }
 
+// ─── Transfers DataTable ──────────────────────────────────────────────────────
+
+function initTransfersTable() {
+    const tableEl = document.getElementById('transfers-table');
+    if (!tableEl) return;
+
+    const dt = new DataTable('#transfers-table', {
+        processing: true,
+        serverSide: true,
+        order: [[5, 'desc']],
+        ajax: {
+            url: tableEl.dataset.url,
+            type: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
+            data(d) {
+                d.status = document.getElementById('filter-status')?.value ?? '';
+                d.source_warehouse_id = document.getElementById('filter-source')?.value ?? '';
+                d.dest_warehouse_id = document.getElementById('filter-dest')?.value ?? '';
+            },
+        },
+        columns: [
+            { data: 'number' },
+            { data: 'source', orderable: false },
+            { data: 'destination', orderable: false },
+            { data: 'vendor', orderable: false },
+            { data: 'status' },
+            { data: 'created_at' },
+            { data: 'actions', orderable: false },
+        ],
+        pageLength: 25,
+    });
+
+    ['filter-status', 'filter-source', 'filter-dest'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', () => dt.draw());
+    });
+
+    document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
+        ['filter-status', 'filter-source', 'filter-dest'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        dt.draw();
+    });
+
+    return dt;
+}
+
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
     initWarehousesTable();
+    initTransfersTable();
 });

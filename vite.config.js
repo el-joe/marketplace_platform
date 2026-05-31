@@ -45,6 +45,7 @@ export default defineConfig({
                 'resources/js/admin/settings.js',
                 'resources/js/admin/shipping-zones.js',
                 'resources/js/admin/warehouses.js',
+                'resources/js/admin/warehouse-detail.js',
                 'resources/js/admin/support-tickets.js',
                 'resources/js/admin/analytics.js',
                 'resources/js/admin/activity-log.js',

@@ -276,6 +276,13 @@ class NavigationService
                         'permission' => 'warehouses.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => 'Inventory Transfers',
+                        'route' => 'admin.warehouses.transfers.index',
+                        'icon' => 'arrows-right-left',
+                        'permission' => 'warehouses.view',
+                        'badge' => null,
+                    ],
                     // [
                     //     'label' => 'Settings',
                     //     'route' => 'admin.settings.index',

@@ -627,24 +627,24 @@ Route::middleware('auth.admin')->group(function () {
     // ─── Shipping Zones ───────────────────────────────────────────────────────
     Route::prefix('shipping-zones')->name('shipping-zones.')->middleware('admin.permission:settings.view')->group(function () {
         // Zone index + datatable
-        Route::get('/',         [ShippingZoneController::class, 'index'])->name('index');
+        Route::get('/', [ShippingZoneController::class, 'index'])->name('index');
         Route::post('/datatable', [ShippingZoneController::class, 'datatable'])->name('datatable');
 
         // Rates endpoints (specific routes BEFORE /{zone} wildcard)
         Route::post('/rates/datatable', [ShippingZoneController::class, 'getRates'])->name('rates.datatable');
-        Route::post('/rates/estimate',  [ShippingZoneController::class, 'calculateEstimate'])->name('rates.estimate');
+        Route::post('/rates/estimate', [ShippingZoneController::class, 'calculateEstimate'])->name('rates.estimate');
         Route::middleware('admin.permission:settings.edit')->group(function () {
-            Route::post('/rates/bulk',    [ShippingZoneController::class, 'bulkRates'])->name('rates.bulk');
-            Route::post('/rates/copy',    [ShippingZoneController::class, 'copyRates'])->name('rates.copy');
-            Route::post('/rates',         [ShippingZoneController::class, 'storeRate'])->name('rates.store');
-            Route::put('/rates/{rate}',   [ShippingZoneController::class, 'updateRate'])->name('rates.update');
-            Route::delete('/rates/{rate}',[ShippingZoneController::class, 'destroyRate'])->name('rates.destroy');
+            Route::post('/rates/bulk', [ShippingZoneController::class, 'bulkRates'])->name('rates.bulk');
+            Route::post('/rates/copy', [ShippingZoneController::class, 'copyRates'])->name('rates.copy');
+            Route::post('/rates', [ShippingZoneController::class, 'storeRate'])->name('rates.store');
+            Route::put('/rates/{rate}', [ShippingZoneController::class, 'updateRate'])->name('rates.update');
+            Route::delete('/rates/{rate}', [ShippingZoneController::class, 'destroyRate'])->name('rates.destroy');
             Route::post('/rates/{rate}/toggle', [ShippingZoneController::class, 'toggleRate'])->name('rates.toggle');
         });
 
         // City endpoints (specific before /{zone} wildcard)
-        Route::get('/cities/unassigned',  [ShippingZoneController::class, 'getUnassigned'])->name('cities.unassigned');
-        Route::post('/cities/unassign',   [ShippingZoneController::class, 'unassignCity'])->name('cities.unassign')
+        Route::get('/cities/unassigned', [ShippingZoneController::class, 'getUnassigned'])->name('cities.unassigned');
+        Route::post('/cities/unassign', [ShippingZoneController::class, 'unassignCity'])->name('cities.unassign')
             ->middleware('admin.permission:settings.edit');
 
         // Zone show
@@ -652,29 +652,51 @@ Route::middleware('auth.admin')->group(function () {
 
         // Zone CRUD (write operations)
         Route::middleware('admin.permission:settings.edit')->group(function () {
-            Route::post('/',              [ShippingZoneController::class, 'store'])->name('store');
-            Route::put('/{zone}',         [ShippingZoneController::class, 'update'])->name('update');
-            Route::delete('/{zone}',      [ShippingZoneController::class, 'destroy'])->name('destroy');
+            Route::post('/', [ShippingZoneController::class, 'store'])->name('store');
+            Route::put('/{zone}', [ShippingZoneController::class, 'update'])->name('update');
+            Route::delete('/{zone}', [ShippingZoneController::class, 'destroy'])->name('destroy');
             Route::post('/{zone}/toggle', [ShippingZoneController::class, 'toggleActive'])->name('toggle');
             Route::post('/{zone}/duplicate', [ShippingZoneController::class, 'duplicate'])->name('duplicate');
         });
 
         // City assignment per zone
-        Route::get('/{zone}/cities',  [ShippingZoneController::class, 'getCities'])->name('cities');
+        Route::get('/{zone}/cities', [ShippingZoneController::class, 'getCities'])->name('cities');
         Route::post('/{zone}/cities', [ShippingZoneController::class, 'assignCities'])->name('cities.assign')
             ->middleware('admin.permission:settings.edit');
     });
 
     // ─── Warehouses ───────────────────────────────────────────────────────────
     Route::prefix('warehouses')->name('warehouses.')->middleware('admin.permission:warehouses.view')->group(function () {
+        // Index + datatable
+        Route::get('/', [WarehouseController::class, 'index'])->name('index');
         Route::post('/datatable', [WarehouseController::class, 'datatable'])->name('datatable');
+
+        // Create / Store
         Route::get('/create', [WarehouseController::class, 'create'])->name('create');
         Route::post('/', [WarehouseController::class, 'store'])->name('store');
-        Route::get('/', [WarehouseController::class, 'index'])->name('index');
+
+        // Transfers (must be before /{warehouse} so 'transfers' is not treated as a UUID)
+        Route::prefix('transfers')->name('transfers.')->group(function () {
+            Route::get('/', [WarehouseController::class, 'transfersIndex'])->name('index');
+            Route::post('/datatable', [WarehouseController::class, 'transfersDatatable'])->name('datatable');
+            Route::get('/create', [WarehouseController::class, 'transferCreate'])->name('create');
+            Route::post('/', [WarehouseController::class, 'transferStore'])->name('store');
+            Route::get('/{transfer}', [WarehouseController::class, 'transferShow'])->name('show');
+            Route::post('/{transfer}/ship', [WarehouseController::class, 'transferShip'])->name('ship');
+            Route::post('/{transfer}/receive', [WarehouseController::class, 'transferReceive'])->name('receive');
+            Route::post('/{transfer}/cancel', [WarehouseController::class, 'transferCancel'])->name('cancel');
+        });
+
+        // Single warehouse
         Route::get('/{warehouse}', [WarehouseController::class, 'show'])->name('show');
         Route::get('/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('edit');
         Route::put('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
         Route::post('/{warehouse}/toggle-active', [WarehouseController::class, 'toggleActive'])->name('toggle-active');
+
+        // Inventory endpoints
+        Route::post('/{warehouse}/inventory/datatable', [WarehouseController::class, 'inventoryDatatable'])->name('inventory.datatable');
+        Route::post('/{warehouse}/inventory/{inventory}/adjust', [WarehouseController::class, 'adjustInventory'])->name('inventory.adjust');
+        Route::get('/{warehouse}/inventory/{inventory}/movements', [WarehouseController::class, 'movements'])->name('inventory.movements');
     });
 
     // ─── Analytics ───────────────────────────────────────────────────────────────

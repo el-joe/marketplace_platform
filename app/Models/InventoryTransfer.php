@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InventoryTransfer extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'transfer_number',
         'source_warehouse_id',
@@ -20,12 +24,15 @@ class InventoryTransfer extends Model
         'shipped_at',
         'received_at',
         'notes',
-        'vendor_listing_id',
-        'quantity_requested',
-        'quantity_received',
-        'damaged_quantity',
-        'condition_notes',
     ];
+
+    protected $casts = [
+        'shipped_at' => 'datetime',
+        'received_at' => 'datetime',
+        'expected_arrival_date' => 'date',
+    ];
+
+    // ─── Relationships ─────────────────────────────────────────────────────────
 
     public function sourceWarehouse(): BelongsTo
     {
@@ -45,5 +52,10 @@ class InventoryTransfer extends Model
     public function initiatedBy(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'initiated_by_user_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(InventoryTransferItem::class);
     }
 }

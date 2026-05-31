@@ -3,19 +3,36 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreTransferRequest;
+use App\Http\Requests\Admin\StoreWarehouseRequest;
+use App\Http\Requests\Admin\UpdateWarehouseRequest;
+use App\Models\Admin;
 use App\Models\Country;
+use App\Models\InventoryMovement;
+use App\Models\InventoryTransfer;
+use App\Models\InventoryTransferItem;
 use App\Models\Vendor;
+use App\Models\VendorListing;
 use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
+use App\Services\WarehouseService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class WarehouseController extends Controller
 {
     use HasDataTable;
 
-    public function index(): \Illuminate\View\View
+    public function __construct(private readonly WarehouseService $warehouseService)
+    {
+    }
+
+    // ─── Index ───────────────────────────────────────────────────────────────
+
+    public function index(): View
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
@@ -24,12 +41,15 @@ class WarehouseController extends Controller
             'platform' => Warehouse::where('type', 'platform_fbn')->count(),
             'seller_owned' => Warehouse::where('type', 'seller_owned')->count(),
             'third_party' => Warehouse::where('type', 'third_party')->count(),
-            'total_capacity' => Warehouse::sum('total_capacity_m3'),
-            'used_capacity' => Warehouse::sum('used_capacity_m3'),
+            'total_capacity' => (float) Warehouse::sum('total_capacity_m3'),
+            'used_capacity' => (float) Warehouse::sum('used_capacity_m3'),
+            'active' => Warehouse::where('is_active', true)->count(),
         ];
 
         return view('admin.warehouses.index', compact('stats'));
     }
+
+    // ─── Datatable ───────────────────────────────────────────────────────────
 
     public function datatable(Request $request): JsonResponse
     {
@@ -65,7 +85,7 @@ class WarehouseController extends Controller
             8 => [],
         ];
 
-        return $this->dataTableResponse($request, $query, $columns, function ($wh) {
+        return $this->dataTableResponse($request, $query, $columns, function (Warehouse $wh) {
             $typeBadge = match ($wh->type) {
                 'platform_fbn' => 'bg-indigo-100 text-indigo-700',
                 'seller_owned' => 'bg-orange-100 text-orange-700',
@@ -73,7 +93,9 @@ class WarehouseController extends Controller
                 default => 'bg-gray-100 text-gray-700',
             };
 
-            $usedPct = $wh->total_capacity_m3 > 0 ? round($wh->used_capacity_m3 / $wh->total_capacity_m3 * 100) : 0;
+            $usedPct = $wh->total_capacity_m3 > 0
+                ? round($wh->used_capacity_m3 / $wh->total_capacity_m3 * 100)
+                : 0;
             $barColor = $usedPct >= 90 ? 'bg-red-500' : ($usedPct >= 70 ? 'bg-warning-500' : 'bg-green-500');
 
             $showUrl = route('admin.warehouses.show', $wh->id);
@@ -93,6 +115,7 @@ class WarehouseController extends Controller
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Active</span>'
                     : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">Inactive</span>',
                 'actions' => '<div class="flex items-center gap-1">'
+                    . '<a href="' . $showUrl . '" class="btn btn-xs btn-ghost">View</a>'
                     . '<a href="' . $editUrl . '" class="btn btn-xs btn-secondary">Edit</a>'
                     . '<button class="btn btn-xs btn-ghost js-toggle-active" data-url="' . $toggleUrl . '" data-active="' . (int) $wh->is_active . '">' . ($wh->is_active ? 'Disable' : 'Enable') . '</button>'
                     . '</div>',
@@ -100,7 +123,9 @@ class WarehouseController extends Controller
         });
     }
 
-    public function show(Warehouse $warehouse): \Illuminate\View\View
+    // ─── Show ────────────────────────────────────────────────────────────────
+
+    public function show(Warehouse $warehouse): View
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
@@ -108,73 +133,92 @@ class WarehouseController extends Controller
         $warehouse->load(['country', 'ownerVendor', 'managerAdmin']);
 
         $inventoryStats = [
-            'total_skus' => WarehouseInventory::where('warehouse_id', $warehouse->id)->count(),
-            'total_items' => WarehouseInventory::where('warehouse_id', $warehouse->id)->sum('quantity_on_hand'),
-            'low_stock' => WarehouseInventory::where('warehouse_id', $warehouse->id)
-                ->whereColumn('quantity_available', '<=', 'reorder_point')
-                ->where('quantity_available', '>', 0)
-                ->count(),
-            'out_of_stock' => WarehouseInventory::where('warehouse_id', $warehouse->id)
-                ->where('quantity_available', '<=', 0)
-                ->count(),
+            'total_skus' => WarehouseInventory::forWarehouse($warehouse->id)->count(),
+            'total_units' => WarehouseInventory::forWarehouse($warehouse->id)->sum('quantity_on_hand'),
+            'low_stock' => WarehouseInventory::forWarehouse($warehouse->id)->lowStock()->count(),
+            'out_of_stock' => WarehouseInventory::forWarehouse($warehouse->id)->outOfStock()->count(),
         ];
 
-        $inventory = WarehouseInventory::where('warehouse_id', $warehouse->id)
-            ->with('vendorListing.vendor')
-            ->orderBy('quantity_available')
-            ->paginate(50);
+        $recentMovements = InventoryMovement::query()
+            ->whereHas('warehouseInventory', fn($q) => $q->where('warehouse_id', $warehouse->id))
+            ->with('warehouseInventory.vendorListing')
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get();
 
-        $usedPct = $warehouse->total_capacity_m3 > 0
-            ? round($warehouse->used_capacity_m3 / $warehouse->total_capacity_m3 * 100, 1)
-            : 0;
+        $transfers = InventoryTransfer::query()
+            ->where(
+                fn($q) => $q
+                    ->where('source_warehouse_id', $warehouse->id)
+                    ->orWhere('destination_warehouse_id', $warehouse->id)
+            )
+            ->with(['sourceWarehouse', 'destinationWarehouse'])
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get();
 
-        return view('admin.warehouses.show', compact('warehouse', 'inventoryStats', 'inventory', 'usedPct'));
+        $usedPct = $warehouse->capacity_used_percent;
+
+        return view('admin.warehouses.show', compact(
+            'warehouse',
+            'inventoryStats',
+            'recentMovements',
+            'transfers',
+            'usedPct'
+        ));
     }
 
-    public function create(): \Illuminate\View\View
+    // ─── Create / Store ──────────────────────────────────────────────────────
+
+    public function create(): View
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
 
         $countries = Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id');
         $vendors = Vendor::where('global_status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
+        $admins = Admin::orderBy('name')->pluck('name', 'id');
 
-        return view('admin.warehouses.create', compact('countries', 'vendors'));
+        return view('admin.warehouses.create', compact('countries', 'vendors', 'admins'));
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(StoreWarehouseRequest $request): RedirectResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
 
-        $data = $this->validateWarehouse($request);
-        $warehouse = Warehouse::create($data);
+        $warehouse = $this->warehouseService->create($request->validated());
 
         return redirect()->route('admin.warehouses.show', $warehouse->id)
             ->with('success', 'Warehouse created successfully.');
     }
 
-    public function edit(Warehouse $warehouse): \Illuminate\View\View
+    // ─── Edit / Update ───────────────────────────────────────────────────────
+
+    public function edit(Warehouse $warehouse): View
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
 
         $countries = Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id');
-        $vendors = Vendor::where('status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
+        $vendors = Vendor::where('global_status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
+        $admins = Admin::orderBy('name')->pluck('name', 'id');
 
-        return view('admin.warehouses.edit', compact('warehouse', 'countries', 'vendors'));
+        return view('admin.warehouses.edit', compact('warehouse', 'countries', 'vendors', 'admins'));
     }
 
-    public function update(Request $request, Warehouse $warehouse): \Illuminate\Http\RedirectResponse
+    public function update(UpdateWarehouseRequest $request, Warehouse $warehouse): RedirectResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
 
-        $data = $this->validateWarehouse($request);
-        $warehouse->update($data);
+        $this->warehouseService->update($warehouse, $request->validated());
 
-        return back()->with('success', 'Warehouse updated successfully.');
+        return redirect()->route('admin.warehouses.show', $warehouse->id)
+            ->with('success', 'Warehouse updated successfully.');
     }
+
+    // ─── Toggle Active ───────────────────────────────────────────────────────
 
     public function toggleActive(Warehouse $warehouse): JsonResponse
     {
@@ -183,28 +227,297 @@ class WarehouseController extends Controller
 
         $warehouse->update(['is_active' => !$warehouse->is_active]);
 
-        $status = $warehouse->is_active ? 'activated' : 'deactivated';
-        return response()->json(['message' => "Warehouse {$status}.", 'is_active' => $warehouse->is_active]);
+        return response()->json([
+            'message' => 'Warehouse ' . ($warehouse->is_active ? 'activated' : 'deactivated') . '.',
+            'is_active' => $warehouse->is_active,
+        ]);
     }
 
-    // ─── Private ──────────────────────────────────────────────────────────────
+    // ─── Inventory ───────────────────────────────────────────────────────────
 
-    private function validateWarehouse(Request $request): array
+    public function inventoryDatatable(Request $request, Warehouse $warehouse): JsonResponse
     {
-        return $request->validate([
-            'name' => 'required|string|max:150',
-            'code' => 'required|string|max:20',
-            'type' => 'required|in:platform_fbn,seller_owned,third_party',
-            'country_id' => 'required|uuid|exists:countries,id',
-            'owner_vendor_id' => 'nullable|uuid|exists:vendors,id',
-            'manager_admin_id' => 'nullable|uuid|exists:admins,id',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'total_capacity_m3' => 'nullable|numeric|min:0',
-            'used_capacity_m3' => 'nullable|numeric|min:0',
-            'storage_rate_per_m3_price' => 'nullable|integer|min:0',
-            'storage_currency' => 'nullable|string|size:3',
-            'is_active' => 'boolean',
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $query = WarehouseInventory::forWarehouse($warehouse->id)
+            ->leftJoin('vendor_listings', 'vendor_listings.id', '=', 'warehouse_inventories.vendor_listing_id')
+            ->leftJoin('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
+            ->leftJoin('products', 'products.id', '=', 'product_variants.product_id')
+            ->leftJoin('vendors', 'vendors.id', '=', 'vendor_listings.vendor_id')
+            ->select(
+                'warehouse_inventories.*',
+                'products.name_en as product_name',
+                'vendors.store_name as vendor_name',
+                'product_variants.sku as sku',
+            );
+
+        if ($request->filled('filter_status')) {
+            match ($request->filter_status) {
+                'low_stock' => $query->lowStock(),
+                'out_of_stock' => $query->outOfStock(),
+                default => null,
+            };
+        }
+
+        $columns = [
+            0 => ['searchable_columns' => ['products.name_en', 'product_variants.sku'], 'orderable_column' => 'products.name_en'],
+            1 => ['searchable_columns' => ['vendors.store_name'], 'orderable_column' => 'vendors.store_name'],
+            2 => ['orderable_column' => 'warehouse_inventories.quantity_on_hand'],
+            3 => ['orderable_column' => 'warehouse_inventories.quantity_available'],
+            4 => ['orderable_column' => 'warehouse_inventories.quantity_reserved'],
+            5 => ['orderable_column' => 'warehouse_inventories.quantity_damaged'],
+            6 => ['orderable_column' => 'warehouse_inventories.bin_location'],
+            7 => [],
+        ];
+
+        return $this->dataTableResponse($request, $query, $columns, function (WarehouseInventory $inv) use ($warehouse) {
+            $adjustUrl = route('admin.warehouses.inventory.adjust', [$warehouse->id, $inv->id]);
+            $movementsUrl = route('admin.warehouses.inventory.movements', [$warehouse->id, $inv->id]);
+
+            $qty = $inv->quantity_available ?? ($inv->quantity_on_hand - $inv->quantity_reserved);
+            $isLow = $inv->reorder_point !== null && $inv->quantity_on_hand <= $inv->reorder_point;
+
+            $qtyCell = $isLow
+                ? '<span class="text-orange-600 font-medium">' . $qty . '</span> <span class="text-xs text-orange-400">Low</span>'
+                : '<span>' . $qty . '</span>';
+
+            return [
+                'DT_RowId' => 'inv-' . $inv->id,
+                'product' => '<div class="text-sm font-medium text-gray-800">' . e($inv->product_name) . '</div><div class="text-xs text-gray-400 font-mono">' . e($inv->sku ?? '') . '</div>',
+                'vendor' => e($inv->vendor_name ?? '—'),
+                'on_hand' => number_format($inv->quantity_on_hand),
+                'available' => $qtyCell,
+                'reserved' => number_format($inv->quantity_reserved),
+                'damaged' => $inv->quantity_damaged > 0
+                    ? '<span class="text-red-500">' . number_format($inv->quantity_damaged) . '</span>'
+                    : '0',
+                'bin' => $inv->bin_location
+                    ? '<span class="font-mono text-xs">' . e($inv->bin_location) . '</span>'
+                    : '<span class="text-gray-300">—</span>',
+                'actions' => '<div class="flex items-center gap-1">'
+                    . '<button class="btn btn-xs btn-secondary js-adjust-inventory" data-url="' . $adjustUrl . '" data-id="' . $inv->id . '">Adjust</button>'
+                    . '<a href="' . $movementsUrl . '" class="btn btn-xs btn-ghost">Movements</a>'
+                    . '</div>',
+            ];
+        });
+    }
+
+    public function adjustInventory(Request $request, Warehouse $warehouse, WarehouseInventory $inventory): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $request->validate([
+            'delta' => ['required', 'integer', 'not_in:0'],
+            'movement_type' => ['required', 'string', 'max:50'],
+            'reason' => ['required', 'string', 'max:500'],
         ]);
+
+        try {
+            $updated = $this->warehouseService->adjustInventory(
+                warehouseInventoryId: $inventory->id,
+                delta: (int) $request->delta,
+                movementType: $request->movement_type,
+                reason: $request->reason,
+                createdByUserId: $admin->id,
+            );
+
+            return response()->json([
+                'message' => 'Inventory adjusted successfully.',
+                'quantity_on_hand' => $updated->quantity_on_hand,
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
+    public function movements(Request $request, Warehouse $warehouse, WarehouseInventory $inventory): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $movements = $inventory->inventoryMovements()
+            ->with('createdBy')
+            ->orderByDesc('created_at')
+            ->paginate(50);
+
+        return response()->json($movements);
+    }
+
+    // ─── Transfers ───────────────────────────────────────────────────────────
+
+    public function transfersIndex(Request $request): View
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $warehouses = Warehouse::where('is_active', true)->orderBy('name')->pluck('name', 'id');
+
+        $stats = [
+            'pending' => InventoryTransfer::where('status', 'pending')->count(),
+            'in_transit' => InventoryTransfer::where('status', 'in_transit')->count(),
+            'received' => InventoryTransfer::where('status', 'received')->count(),
+            'cancelled' => InventoryTransfer::where('status', 'cancelled')->count(),
+        ];
+
+        return view('admin.warehouses.transfers.index', compact('warehouses', 'stats'));
+    }
+
+    public function transfersDatatable(Request $request): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $query = InventoryTransfer::query()
+            ->leftJoin('warehouses as sw', 'sw.id', '=', 'inventory_transfers.source_warehouse_id')
+            ->leftJoin('warehouses as dw', 'dw.id', '=', 'inventory_transfers.destination_warehouse_id')
+            ->leftJoin('vendors', 'vendors.id', '=', 'inventory_transfers.vendor_id')
+            ->select(
+                'inventory_transfers.*',
+                'sw.name as source_name',
+                'dw.name as destination_name',
+                'vendors.store_name as vendor_name',
+            );
+
+        $query = $this->applyFilters($query, $request, [
+            'status' => fn($q, $v) => $q->where('inventory_transfers.status', $v),
+            'source_warehouse_id' => fn($q, $v) => $q->where('inventory_transfers.source_warehouse_id', $v),
+            'dest_warehouse_id' => fn($q, $v) => $q->where('inventory_transfers.destination_warehouse_id', $v),
+        ]);
+
+        $columns = [
+            0 => ['searchable_columns' => ['inventory_transfers.transfer_number'], 'orderable_column' => 'inventory_transfers.transfer_number'],
+            1 => ['orderable_column' => 'sw.name'],
+            2 => ['orderable_column' => 'dw.name'],
+            3 => [],
+            4 => ['orderable_column' => 'inventory_transfers.status'],
+            5 => ['orderable_column' => 'inventory_transfers.created_at'],
+            6 => [],
+        ];
+
+        return $this->dataTableResponse($request, $query, $columns, function (InventoryTransfer $transfer) {
+            $showUrl = route('admin.warehouses.transfers.show', $transfer->id);
+
+            $statusBadge = match ($transfer->status) {
+                'pending' => 'bg-yellow-100 text-yellow-700',
+                'in_transit' => 'bg-blue-100 text-blue-700',
+                'received' => 'bg-green-100 text-green-700',
+                'cancelled' => 'bg-gray-100 text-gray-500',
+                default => 'bg-gray-100 text-gray-700',
+            };
+
+            return [
+                'DT_RowId' => 'tf-' . $transfer->id,
+                'number' => '<a href="' . $showUrl . '" class="font-mono text-primary-600 hover:underline">' . e($transfer->transfer_number) . '</a>',
+                'source' => e($transfer->source_name ?? '—'),
+                'destination' => e($transfer->destination_name ?? '—'),
+                'vendor' => e($transfer->vendor_name ?? '—'),
+                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e(str_replace('_', ' ', $transfer->status)) . '</span>',
+                'created_at' => $transfer->created_at?->format('Y-m-d H:i'),
+                'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-ghost">View</a>',
+            ];
+        });
+    }
+
+    public function transferCreate(): View
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $warehouses = Warehouse::where('is_active', true)->orderBy('name')->pluck('name', 'id');
+        $vendors = Vendor::where('global_status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
+
+        return view('admin.warehouses.transfers.create', compact('warehouses', 'vendors'));
+    }
+
+    public function transferStore(StoreTransferRequest $request): RedirectResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        try {
+            $transfer = $this->warehouseService->createTransfer(
+                data: $request->safe()->except('items'),
+                items: $request->validated('items'),
+                initiatedByUserId: $admin->id,
+            );
+
+            return redirect()->route('admin.warehouses.transfers.show', $transfer->id)
+                ->with('success', 'Transfer ' . $transfer->transfer_number . ' created.');
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['error' => $e->getMessage()])->withInput();
+        }
+    }
+
+    public function transferShow(InventoryTransfer $transfer): View
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $transfer->load([
+            'sourceWarehouse',
+            'destinationWarehouse',
+            'vendor',
+            'initiatedBy',
+            'items.vendorListing',
+        ]);
+
+        return view('admin.warehouses.transfers.show', compact('transfer'));
+    }
+
+    public function transferShip(Request $request, InventoryTransfer $transfer): RedirectResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $request->validate([
+            'carrier' => ['nullable', 'string', 'max:100'],
+            'tracking_number' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        try {
+            $this->warehouseService->shipTransfer($transfer, $request->only('carrier', 'tracking_number'), $admin->id);
+
+            return back()->with('success', 'Transfer marked as shipped.');
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function transferReceive(Request $request, InventoryTransfer $transfer): RedirectResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $request->validate([
+            'items' => ['required', 'array'],
+            'items.*.inventory_transfer_item_id' => ['required', 'uuid', 'exists:inventory_transfer_items,id'],
+            'items.*.quantity_received' => ['required', 'integer', 'min:0'],
+            'items.*.damaged_quantity' => ['nullable', 'integer', 'min:0'],
+            'items.*.condition_notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            $this->warehouseService->receiveTransfer($transfer, $request->items, $admin->id);
+
+            return back()->with('success', 'Transfer received and inventory updated.');
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function transferCancel(InventoryTransfer $transfer): RedirectResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        try {
+            $this->warehouseService->cancelTransfer($transfer);
+
+            return back()->with('success', 'Transfer cancelled.');
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 }
