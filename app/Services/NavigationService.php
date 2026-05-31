@@ -276,13 +276,13 @@ class NavigationService
                         'permission' => 'warehouses.view',
                         'badge' => null,
                     ],
-                    [
-                        'label' => 'Settings',
-                        'route' => 'admin.settings.index',
-                        'icon' => 'cog-6-tooth',
-                        'permission' => 'settings.view',
-                        'badge' => null,
-                    ],
+                    // [
+                    //     'label' => 'Settings',
+                    //     'route' => 'admin.settings.index',
+                    //     'icon' => 'cog-6-tooth',
+                    //     'permission' => 'settings.view',
+                    //     'badge' => null,
+                    // ],
                     [
                         'label' => 'Activity Log',
                         'route' => 'admin.activity-log.index',

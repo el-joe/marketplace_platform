@@ -137,7 +137,7 @@ class WarehouseController extends Controller
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
 
         $countries = Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id');
-        $vendors = Vendor::where('status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
+        $vendors = Vendor::where('global_status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
 
         return view('admin.warehouses.create', compact('countries', 'vendors'));
     }

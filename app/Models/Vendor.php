@@ -44,7 +44,7 @@ class Vendor extends Model
         'sla_compliance_pct',
         'strikes_count',
         'country_id',
-        'status',
+        // 'status',
         'last_login_at',
         'last_login_ip',
         'approved_at',

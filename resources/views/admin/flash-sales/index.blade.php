@@ -3,7 +3,7 @@
 @section('title', 'Flash Sales')
 
 @push('scripts')
-    @vite('resources/js/admin/flash-sales.js')
+    @vite(['resources/js/components/datatable.js', 'resources/js/admin/flash-sales.js'])
 @endpush
 
 @section('content')
@@ -29,7 +29,7 @@
                     'cancelled'         => 'Cancelled',
                 ] as $val => $label)
                     <button
-                        @click="tab = '{{ $val }}'; filterTable('{{ $val }}')"
+                        @click="tab = '{{ $val }}'; window.filterTable('{{ $val }}')"
                         :class="tab === '{{ $val }}' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm'"
                     >{{ $label }}</button>
                 @endforeach
@@ -60,7 +60,7 @@
 @endsection
 
 @push('scripts')
-<script>
+<script type="module">
 const FLASH_SALES_DATATABLE_URL = '{{ route('admin.flash-sales.datatable') }}';
 
 const STATUS_BADGES = {
@@ -74,14 +74,14 @@ const STATUS_BADGES = {
     cancelled:          { label: 'Cancelled',              color: 'danger'  },
 };
 
-function filterTable(status) {
+window.filterTable = function filterTable(status) {
     if ($.fn.DataTable.isDataTable('#flash-sales-table')) {
         const dt = $('#flash-sales-table').DataTable();
         dt.ajax.url(
             FLASH_SALES_DATATABLE_URL + (status !== 'all' ? '?status=' + status : '')
         ).load();
     }
-}
+};
 
 $(function () {
     initDataTable('flash-sales-table', {
