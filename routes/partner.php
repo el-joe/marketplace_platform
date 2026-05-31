@@ -6,7 +6,9 @@ use App\Http\Controllers\Partner\DashboardController;
 use App\Http\Controllers\Partner\InventoryController;
 use App\Http\Controllers\Partner\ListingController;
 use App\Http\Controllers\Partner\OrderController;
+use App\Http\Controllers\Partner\FlashSaleController;
 use App\Http\Controllers\Partner\PayoutController;
+use App\Http\Controllers\Partner\PerformanceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -84,5 +86,20 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/', 'store')->name('store');
         Route::post('/{account}/set-primary', 'setPrimary')->name('set-primary');
         Route::delete('/{account}', 'destroy')->name('destroy');
+    });
+    // ── Flash Sales module ────────────────────────────────────────────────────
+    Route::prefix('flash-sales')->name('flash-sales.')->controller(FlashSaleController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        // Static sub-routes BEFORE /{flashSaleId} wildcard
+        Route::get('/{flashSaleId}/eligible-listings', 'eligibleListings')->name('eligible-listings');
+        Route::post('/{flashSaleId}/submit', 'submit')->name('submit');
+        Route::get('/{flashSaleId}/live-stats', 'liveStats')->name('live-stats');
+        Route::get('/{flashSaleId}', 'show')->name('show');
+    });
+
+    // ── Performance module ───────────────────────────────────────────────────
+    Route::prefix('performance')->name('performance.')->controller(PerformanceController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/stats', 'stats')->name('stats');
     });
 });

@@ -64,6 +64,8 @@ export default defineConfig({
                 'resources/js/partner/inventory.js',
                 'resources/js/partner/payouts.js',
                 'resources/js/partner/bank-accounts.js',
+                'resources/js/partner/flash-sales.js',
+                'resources/js/partner/performance.js',
             ],
             refresh: [
                 'resources/views/**',
