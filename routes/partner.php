@@ -9,6 +9,8 @@ use App\Http\Controllers\Partner\OrderController;
 use App\Http\Controllers\Partner\FlashSaleController;
 use App\Http\Controllers\Partner\PayoutController;
 use App\Http\Controllers\Partner\PerformanceController;
+use App\Http\Controllers\Partner\ProfileController;
+use App\Http\Controllers\Partner\TeamController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 
 // ── Suspended page (accessible without full auth) ────────────────────────
 Route::get('/suspended', fn() => view('partner.suspended'))->name('suspended');
+
+Route::redirect('/', '/login')->name('home');
 
 // ── Auth (guest only) ────────────────────────────────────────────────────
 Route::middleware('guest:vendor')->group(function () {
@@ -101,5 +105,26 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
     Route::prefix('performance')->name('performance.')->controller(PerformanceController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/stats', 'stats')->name('stats');
+    });
+
+    // ── Profile & store settings ─────────────────────────────────────────────
+    Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/update-store', 'updateStore')->name('update-store');
+        Route::post('/update-password', 'updatePassword')->name('update-password');
+    });
+
+    // ── Documents ────────────────────────────────────────────────────────────
+    Route::prefix('documents')->name('documents.')->controller(ProfileController::class)->group(function () {
+        Route::get('/', 'documentsIndex')->name('index');
+        Route::post('/upload', 'uploadDocument')->name('upload');
+    });
+
+    // ── Team management ──────────────────────────────────────────────────────
+    Route::prefix('team')->name('team.')->controller(TeamController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::post('/{member}/toggle-active', 'toggleActive')->name('toggle-active');
+        Route::delete('/{member}', 'destroy')->name('destroy');
     });
 });
