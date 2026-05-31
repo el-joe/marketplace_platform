@@ -134,8 +134,7 @@ class PaymentMethodController extends Controller
 
     public function gatewayConfig()
     {
-        $gateways = app(PaymentGatewayFactory::class)->all();
-
+        $gateways = app(PaymentGatewayFactory::class)->allWithCodes();
         return view('admin.payment-methods.gateway-config', compact('gateways'));
     }
 }

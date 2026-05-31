@@ -66,6 +66,11 @@ class PaymentGatewayFactory
         return array_values($this->gateways);
     }
 
+    public function allWithCodes(): array
+    {
+        return $this->gateways;
+    }
+
     /** @return string[] */
     public function allCodes(): array
     {

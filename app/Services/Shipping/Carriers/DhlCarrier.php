@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Http;
 
 class DhlCarrier implements ShippingCarrierInterface
 {
-    private string $apiKey;
-    private string $apiSecret;
-    private string $baseUrl = 'https://express.api.dhl.com/mydhlapi';
+    private ?string $apiKey;
+    private ?string $apiSecret;
+    private ?string $baseUrl = 'https://express.api.dhl.com/mydhlapi';
 
     public function __construct()
     {

@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Http;
 
 class BostaCarrier implements ShippingCarrierInterface
 {
-    private string $apiKey;
-    private string $baseUrl;
+    private ?string $apiKey;
+    private ?string $baseUrl;
 
     public function __construct()
     {

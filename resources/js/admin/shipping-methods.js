@@ -49,7 +49,7 @@ function initRatesTable() {
         serverSide: true,
         order: [[0, 'asc']],
         ajax: {
-            url: '/admin/shipping-methods/rates/datatable',
+            url: '/shipping-methods/rates/datatable',
             type: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken(),
@@ -178,7 +178,7 @@ function initRateModal() {
 
         const id = $('#rate-id').val();
         const method = $('#rate-http').val();
-        const url = id ? `/admin/shipping-methods/rates/${id}` : '/admin/shipping-methods/rates';
+        const url = id ? `/shipping-methods/rates/${id}` : '/shipping-methods/rates';
 
         const payload = {
             shipping_method_id: $form.find('[name="shipping_method_id"]').val(),
@@ -223,7 +223,7 @@ function initDeleteRate() {
         const id = $('#delete-rate-id').val();
 
         try {
-            await sendJson(`/admin/shipping-methods/rates/${id}`, 'DELETE');
+            await sendJson(`/shipping-methods/rates/${id}`, 'DELETE');
             toast('Shipping rate deleted.');
             $deleteModal.modal('close');
             ratesTable?.draw();
@@ -240,7 +240,7 @@ function initToggleRate() {
         const id = $(this).data('id');
 
         try {
-            await sendJson(`/admin/shipping-methods/rates/${id}/toggle`, 'POST');
+            await sendJson(`/shipping-methods/rates/${id}/toggle`, 'POST');
             ratesTable?.draw();
         } catch {
             toast('Failed to update rate status.', 'error');
@@ -285,7 +285,7 @@ function initMethodModal() {
 
         const id = $('#method-id').val();
         const method = $('#method-http').val();
-        const url = id ? `/admin/shipping-methods/methods/${id}` : '/admin/shipping-methods/methods';
+        const url = id ? `/shipping-methods/methods/${id}` : '/shipping-methods/methods';
 
         const payload = {
             name: $form.find('[name="name"]').val(),
@@ -319,7 +319,7 @@ function initToggleMethod() {
         const id = $btn.data('id');
 
         try {
-            const res = await sendJson(`/admin/shipping-methods/methods/${id}/toggle`, 'POST');
+            const res = await sendJson(`/shipping-methods/methods/${id}/toggle`, 'POST');
             const active = res.is_active;
 
             $btn
@@ -375,7 +375,7 @@ function initCarrierModal() {
 
         const id = $('#carrier-id').val();
         const method = $('#carrier-http').val();
-        const url = id ? `/admin/shipping-methods/carriers/${id}` : '/admin/shipping-methods/carriers';
+        const url = id ? `/shipping-methods/carriers/${id}` : '/shipping-methods/carriers';
 
         const credentials = $('#carrier-credentials').val().trim();
         const payload = {
@@ -418,7 +418,7 @@ function initToggleCarrier() {
         const id = $btn.data('id');
 
         try {
-            const res = await sendJson(`/admin/shipping-methods/carriers/${id}/toggle`, 'POST');
+            const res = await sendJson(`/shipping-methods/carriers/${id}/toggle`, 'POST');
             const active = res.is_active;
 
             $btn
@@ -444,7 +444,7 @@ function initTestCarrier() {
         $btn.prop('disabled', true).text('Testing…');
 
         try {
-            const res = await sendJson('/admin/shipping-methods/carriers/test', 'POST', { code });
+            const res = await sendJson('/shipping-methods/carriers/test', 'POST', { code });
             const data = res.data ?? {};
 
             $status.text(data.success
@@ -470,7 +470,7 @@ function initCountrySettings() {
         const active = $btn.data('active') === '1' || $btn.data('active') === 1;
 
         try {
-            await sendJson('/admin/shipping-methods/country-settings', 'POST', {
+            await sendJson('/shipping-methods/country-settings', 'POST', {
                 country_id: countryId,
                 shipping_method_id: methodId,
                 is_active: active ? 0 : 1,
@@ -498,7 +498,7 @@ function initCountrySettings() {
         clearTimeout(thresholdTimeout);
         thresholdTimeout = setTimeout(async () => {
             try {
-                await sendJson('/admin/shipping-methods/country-settings', 'POST', {
+                await sendJson('/shipping-methods/country-settings', 'POST', {
                     country_id: countryId,
                     shipping_method_id: methodId,
                     free_shipping_threshold_cents: cents || null,

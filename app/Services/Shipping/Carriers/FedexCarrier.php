@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\Http;
 
 class FedexCarrier implements ShippingCarrierInterface
 {
-    private string $apiKey;
-    private string $apiSecret;
-    private string $accountNumber;
-    private string $baseUrl;
+    private ?string $apiKey;
+    private ?string $apiSecret;
+    private ?string $accountNumber;
+    private ?string $baseUrl;
     private bool $testMode;
 
     public function __construct()

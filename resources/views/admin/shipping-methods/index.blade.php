@@ -24,7 +24,7 @@
                 @foreach([
                     ['key' => 'methods',  'icon' => 'truck',           'label' => 'Shipping Methods'],
                     ['key' => 'carriers', 'icon' => 'building-office',  'label' => 'Carriers'],
-                    ['key' => 'rates',    'icon' => 'currency-dollar',  'label' => 'Rates'],
+                    /* ['key' => 'rates',    'icon' => 'currency-dollar',  'label' => 'Rates'],*/
                     ['key' => 'settings', 'icon' => 'cog-6-tooth',     'label' => 'Country Settings'],
                 ] as $tab)
                     <button type="button"
@@ -164,9 +164,8 @@
         {{-- ════════════════════════════════════════════════════════════════════
              TAB: Rates
              ════════════════════════════════════════════════════════════════════ --}}
-        <div x-show="activeTab === 'rates'" x-cloak>
+        {{-- <div x-show="activeTab === 'rates'" x-cloak>
             <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                {{-- Filters --}}
                 <div class="flex flex-wrap gap-2">
                     <select id="filter-method"
                             class="rounded-lg border border-gray-300 py-2 pl-3 pr-8 text-sm text-gray-900 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500">
@@ -220,7 +219,7 @@
                     <tbody></tbody>
                 </table>
             </x-card>
-        </div>
+        </div> --}}
 
         {{-- ════════════════════════════════════════════════════════════════════
              TAB: Country Settings

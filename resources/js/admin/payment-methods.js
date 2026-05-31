@@ -59,7 +59,7 @@ function initGatewayTest() {
         $btn.prop('disabled', true).text('Testing…');
 
         try {
-            const res = await sendJson('/admin/payment-methods/test-gateway', 'POST', { provider });
+            const res = await sendJson('/payment-methods/test-gateway', 'POST', { provider });
             const data = res.data ?? {};
 
             $status
@@ -96,7 +96,7 @@ function initToggleMethod() {
         const id = $btn.data('id');
 
         try {
-            const res = await sendJson(`/admin/payment-methods/${id}/toggle`, 'POST');
+            const res = await sendJson(`/payment-methods/${id}/toggle`, 'POST');
             const active = res.is_active;
 
             $btn
@@ -180,7 +180,7 @@ function initMethodModal() {
 
         const id = $('#method-id').val();
         const method = $('#method-http').val();
-        const url = id ? `/admin/payment-methods/${id}` : '/admin/payment-methods';
+        const url = id ? `/payment-methods/${id}` : '/payment-methods';
 
         // Build payload
         const payload = {
@@ -229,7 +229,7 @@ function initDeleteMethod() {
         const id = $('#delete-method-id').val();
 
         try {
-            await sendJson(`/admin/payment-methods/${id}`, 'DELETE');
+            await sendJson(`/payment-methods/${id}`, 'DELETE');
             toast('Payment method removed.');
             $deleteModal.modal('close');
             setTimeout(() => window.location.reload(), 500);

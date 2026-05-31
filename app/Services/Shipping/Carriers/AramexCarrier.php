@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Http;
 
 class AramexCarrier implements ShippingCarrierInterface
 {
-    private array $credentials;
-    private string $wsdlUrl;
+    private ?array $credentials;
+    private ?string $wsdlUrl;
     private bool $testMode;
 
     public function __construct()
