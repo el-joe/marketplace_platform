@@ -1,99 +1,237 @@
 @extends('layouts.partner')
 
-@section('title', session('locale', 'ar') === 'ar' ? 'لوحة التحكم' : 'Dashboard')
-@section('page-title', session('locale', 'ar') === 'ar' ? 'لوحة التحكم' : 'Dashboard')
+@section('title', 'لوحة التحكم')
+@section('page-title', 'لوحة التحكم')
+
+@push('scripts')
+    @vite('resources/js/partner/dashboard.js')
+    <script>
+        window.DASHBOARD = {
+            revenueChart: @json(
+                collect(range(6, 0))->mapWithKeys(fn($i) => [now()->subDays($i)->format('Y-m-d') => 0])
+                ->merge($stats['revenue_chart']->pluck('total', 'date'))
+                ->map(fn($v) => round($v / 100, 2))
+            ),
+        };
+    </script>
+@endpush
 
 @section('content')
-@php
-    $isAr = session('locale', 'ar') === 'ar';
-    $vendorAdmin = auth()->guard('vendor')->user();
-@endphp
 
-{{-- Welcome banner --}}
-<div class="bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-2xl p-6 mb-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-xl font-black text-gray-950">
-                {{ $isAr ? 'مرحباً،' : 'Welcome back,' }}
-                {{ $vendorAdmin?->name }}! 👋
-            </h1>
-            <p class="text-gray-700 text-sm mt-1">
-                {{ $isAr ? 'إليك ملخص متجرك اليوم.' : 'Here\'s your store summary for today.' }}
-            </p>
+    {{-- SLA urgent alert --}}
+    @if($stats['sla_urgent'] > 0)
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+            <span class="text-red-500 text-xl flex-shrink-0">⚠</span>
+            <div class="flex-1 min-w-0">
+                <p class="font-semibold text-red-800">{{ $stats['sla_urgent'] }} طلب يقترب من موعد الشحن!</p>
+                <p class="text-sm text-red-600">يجب شحنها خلال ساعتين لتجنب مخالفة الـ SLA</p>
+            </div>
+            @if(Route::has('partner.orders.index'))
+                <a href="{{ route('partner.orders.index', ['sla_urgent' => 1]) }}"
+                   class="shrink-0 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                    عرض الطلبات العاجلة
+                </a>
+            @endif
         </div>
-        <div class="hidden sm:block text-5xl">🏪</div>
-    </div>
-</div>
+    @endif
 
-{{-- Stats grid --}}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    @foreach([
-        ['💰', $isAr ? 'المبيعات اليوم' : "Today's Sales",     '0 د.إ', 'text-green-600', 'bg-green-50'],
-        ['📦', $isAr ? 'الطلبات الجديدة' : 'New Orders',        '0',    'text-blue-600',  'bg-blue-50'],
-        ['📋', $isAr ? 'المنتجات النشطة' : 'Active Products',   '0',    'text-purple-600','bg-purple-50'],
-        ['⭐', $isAr ? 'التقييم' : 'Rating',                    '—',    'text-yellow-600','bg-yellow-50'],
-    ] as $s)
-    <div class="bg-white border border-gray-200 rounded-2xl p-5">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-2xl">{{ $s[0] }}</span>
-            <div class="w-8 h-8 {{ $s[4] }} rounded-full flex items-center justify-center">
-                <span class="{{ $s[3] }} text-xs font-bold">↑</span>
+    @php $currency = auth()->guard('vendor')->user()->vendor?->country?->currency_code ?? '' @endphp
+
+    {{-- KPI Cards Row 1 --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <x-partner-stat-card
+            title="إيرادات الشهر"
+            :value="number_format($stats['revenue_month'], 2)"
+            :suffix="$currency"
+            icon="banknotes"
+            color="green" />
+
+        <x-partner-stat-card
+            title="طلبات اليوم"
+            :value="$stats['orders_today']"
+            icon="shopping-bag"
+            color="blue" />
+
+        <x-partner-stat-card
+            title="طلبات معلقة"
+            :value="$stats['pending_orders']"
+            icon="clock"
+            :color="$stats['pending_orders'] > 0 ? 'warning' : 'gray'"
+            :link="Route::has('partner.orders.index') ? route('partner.orders.index', ['status' => 'placed']) : null" />
+
+        <x-partner-stat-card
+            title="مدفوعات معلقة"
+            :value="number_format($stats['pending_payout'], 2)"
+            :suffix="$currency"
+            icon="credit-card"
+            color="primary" />
+    </div>
+
+    {{-- KPI Cards Row 2 --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <x-partner-stat-card
+            title="منتجات منخفضة المخزون"
+            :value="$stats['low_stock']"
+            icon="exclamation-triangle"
+            :color="$stats['low_stock'] > 0 ? 'warning' : 'success'"
+            :link="Route::has('partner.inventory.low-stock') ? route('partner.inventory.low-stock') : null" />
+
+        <x-partner-stat-card
+            title="نزاعات مفتوحة"
+            :value="$stats['open_disputes']"
+            icon="scale"
+            :color="$stats['open_disputes'] > 0 ? 'danger' : 'gray'" />
+
+        <x-partner-stat-card
+            title="تقييم المتجر"
+            :value="number_format($stats['rating_avg'], 1)"
+            suffix="/ 5 ⭐"
+            icon="star"
+            color="yellow" />
+
+        <x-partner-stat-card
+            title="مخالفات نشطة"
+            :value="$stats['active_strikes']"
+            icon="exclamation-circle"
+            :color="$stats['active_strikes'] > 0 ? 'danger' : 'success'" />
+    </div>
+
+    {{-- Charts + Quick Actions --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+        {{-- Revenue chart (2/3) --}}
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-800">الإيرادات — آخر 7 أيام</h3>
+                <span class="text-xs text-gray-400">{{ $currency }}</span>
+            </div>
+            <canvas id="revenue-chart" height="200"></canvas>
+        </div>
+
+        {{-- Quick actions (1/3) --}}
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">إجراءات سريعة</h3>
+            <div class="space-y-2">
+                @if(Route::has('partner.orders.index'))
+                    <a href="{{ route('partner.orders.index', ['status' => 'placed']) }}"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+                            <x-heroicon name="shopping-bag" class="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">معالجة الطلبات</p>
+                            <p class="text-xs text-gray-500">{{ $stats['pending_orders'] }} طلب جديد</p>
+                        </div>
+                    </a>
+                @endif
+                @if(Route::has('partner.listings.create'))
+                    <a href="{{ route('partner.listings.create') }}"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
+                            <x-heroicon name="plus" class="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">إضافة منتج</p>
+                            <p class="text-xs text-gray-500">قائمة جديدة</p>
+                        </div>
+                    </a>
+                @endif
+                @if(Route::has('partner.inventory.index'))
+                    <a href="{{ route('partner.inventory.index') }}"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center shrink-0">
+                            <x-heroicon name="cube" class="w-5 h-5 text-yellow-600" />
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">تحديث المخزون</p>
+                            <p class="text-xs text-gray-500">{{ $stats['low_stock'] }} منخفض</p>
+                        </div>
+                    </a>
+                @endif
+                @if(Route::has('partner.payouts.index'))
+                    <a href="{{ route('partner.payouts.index') }}"
+                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
+                            <x-heroicon name="banknotes" class="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">المدفوعات</p>
+                            <p class="text-xs text-gray-500">{{ number_format($stats['pending_payout'], 2) }} {{ $currency }} معلق</p>
+                        </div>
+                    </a>
+                @endif
             </div>
         </div>
-        <div class="text-2xl font-black text-gray-900">{{ $s[2] }}</div>
-        <div class="text-xs text-gray-500 mt-1">{{ $s[1] }}</div>
     </div>
-    @endforeach
-</div>
 
-{{-- Quick actions --}}
-<div class="grid md:grid-cols-3 gap-4 mb-6">
-    <div class="bg-white border border-gray-200 rounded-2xl p-5">
-        <h3 class="font-bold text-gray-800 mb-3 text-sm">
-            {{ $isAr ? 'الإجراءات السريعة' : 'Quick Actions' }}
-        </h3>
-        <div class="space-y-2">
-            @foreach([
-                [$isAr ? '➕ أضف منتجاً' : '➕ Add Product', '#'],
-                [$isAr ? '📦 عرض الطلبات' : '📦 View Orders', '#'],
-                [$isAr ? '💳 طلب سحب' : '💳 Request Payout', '#'],
-            ] as $action)
-            <a href="{{ $action[1] }}"
-               class="block py-2 px-3 bg-gray-50 hover:bg-yellow-50 hover:text-yellow-700
-                      text-gray-700 text-sm rounded-xl transition-colors">
-                {{ $action[0] }}
-            </a>
-            @endforeach
+    {{-- Recent orders --}}
+    <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-800">أحدث الطلبات</h3>
+            @if(Route::has('partner.orders.index'))
+                <a href="{{ route('partner.orders.index') }}" class="text-sm text-primary-600 hover:underline">
+                    عرض الكل
+                </a>
+            @endif
         </div>
-    </div>
 
-    <div class="bg-white border border-gray-200 rounded-2xl p-5 md:col-span-2">
-        <h3 class="font-bold text-gray-800 mb-3 text-sm">
-            {{ $isAr ? 'حالة الحساب' : 'Account Status' }}
-        </h3>
-        <div class="space-y-3">
-            @php
-            $checks = [
-                [$isAr ? 'الحساب محقق' : 'Account verified',          $vendor?->approved_at ? true : false],
-                [$isAr ? 'المستندات مرفوعة' : 'Documents uploaded',    false],
-                [$isAr ? 'الحساب البنكي مضاف' : 'Bank account added',  false],
-                [$isAr ? 'أول منتج مضاف' : 'First product added',     false],
-            ];
-            @endphp
-            @foreach($checks as $check)
-            <div class="flex items-center gap-3">
-                <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 {{ $check[1] ? 'bg-green-100' : 'bg-gray-100' }}">
-                    @if($check[1])
-                    <svg class="w-3 h-3 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg>
-                    @else
-                    <svg class="w-3 h-3 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>
-                    @endif
-                </div>
-                <span class="text-sm {{ $check[1] ? 'text-gray-700' : 'text-gray-400' }}">{{ $check[0] }}</span>
+        @if($stats['recent_orders']->isEmpty())
+            <div class="text-center py-8 text-gray-400 text-sm">لا توجد طلبات بعد</div>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-100 text-xs text-gray-500 uppercase">
+                            <th class="text-right pb-2 font-medium">رقم الطلب</th>
+                            <th class="text-right pb-2 font-medium">الحالة</th>
+                            <th class="text-right pb-2 font-medium">المبلغ</th>
+                            <th class="text-right pb-2 font-medium">موعد الشحن</th>
+                            <th class="text-right pb-2 font-medium">التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach($stats['recent_orders'] as $subOrder)
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="py-3">
+                                    @if(Route::has('partner.orders.show'))
+                                        <a href="{{ route('partner.orders.show', $subOrder->sub_order_number) }}"
+                                           class="text-primary-600 hover:underline font-mono text-xs">
+                                            {{ $subOrder->sub_order_number }}
+                                        </a>
+                                    @else
+                                        <span class="font-mono text-xs text-gray-600">{{ $subOrder->sub_order_number }}</span>
+                                    @endif
+                                </td>
+                                <td class="py-3">
+                                    <x-status-badge :status="$subOrder->status" />
+                                </td>
+                                <td class="py-3 font-medium text-gray-800">
+                                    {{ number_format($subOrder->vendor_payout / 100, 2) }}
+                                    <span class="text-xs text-gray-400">{{ $currency }}</span>
+                                </td>
+                                <td class="py-3">
+                                    @if($subOrder->sla_ship_deadline)
+                                        <span @class([
+                                            'text-xs',
+                                            'text-red-600 font-semibold'   => now()->gt($subOrder->sla_ship_deadline),
+                                            'text-orange-500 font-medium'  => !now()->gt($subOrder->sla_ship_deadline) && now()->addHours(2)->gt($subOrder->sla_ship_deadline),
+                                            'text-gray-500'                => !now()->addHours(2)->gt($subOrder->sla_ship_deadline),
+                                        ])>
+                                            {{ $subOrder->sla_ship_deadline->diffForHumans() }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400 text-xs">—</span>
+                                    @endif
+                                </td>
+                                <td class="py-3 text-gray-400 text-xs">
+                                    {{ $subOrder->created_at->format('M d, H:i') }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-            @endforeach
-        </div>
+        @endif
     </div>
-</div>
 
 @endsection

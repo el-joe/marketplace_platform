@@ -8,9 +8,12 @@ use App\View\Components\Form\Input;
 use App\View\Components\Form\PriceInput;
 use App\View\Components\Form\RichEditor;
 use App\View\Components\Form\Select;
+use App\Events\SubOrderPlaced;
+use App\Listeners\InvalidateVendorDashboardCache;
 use App\Services\Payment\PaymentGatewayFactory;
 use App\Services\Shipping\ShippingCarrierFactory;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
+
         // Hyphenated aliases used by admin Blade views (x-form-input etc.).
         Blade::component(Input::class, 'form-input');
         Blade::component(Select::class, 'form-select');

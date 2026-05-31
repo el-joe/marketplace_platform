@@ -28,9 +28,7 @@ class VendorActive
                     ], 403);
                 }
 
-                Auth::guard('vendor')->logout();
-                return redirect()->route('partner.login')
-                    ->with('error', 'Your store account has been suspended. Please contact support.');
+                return redirect()->route('partner.suspended');
             }
         }
 

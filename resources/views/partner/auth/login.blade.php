@@ -59,7 +59,7 @@
                         <label class="text-sm font-medium text-gray-300">
                             {{ $isAr ? 'كلمة المرور' : 'Password' }}
                         </label>
-                        <a href="#" class="text-xs text-yellow-400 hover:underline">
+                        <a href="{{ route('partner.auth.forgot') }}" class="text-xs text-yellow-400 hover:underline">
                             {{ $isAr ? 'نسيت كلمة المرور؟' : 'Forgot Password?' }}
                         </a>
                     </div>

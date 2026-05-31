@@ -56,6 +56,9 @@ export default defineConfig({
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
                 'resources/js/portal/registration.js',
+                // Partner panel (partner.noon.loc)
+                'resources/js/partner/app.js',
+                'resources/js/partner/dashboard.js',
             ],
             refresh: [
                 'resources/views/**',

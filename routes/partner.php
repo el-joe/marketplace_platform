@@ -11,10 +11,19 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+// ── Suspended page (accessible without full auth) ────────────────────────
+Route::get('/suspended', fn() => view('partner.suspended'))->name('suspended');
+
 // ── Auth (guest only) ────────────────────────────────────────────────────
 Route::middleware('guest:vendor')->group(function () {
     Route::get('/login', [PartnerAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [PartnerAuthController::class, 'login'])->name('login.submit');
+
+    Route::get('/forgot-password', [PartnerAuthController::class, 'forgotPassword'])->name('auth.forgot');
+    Route::post('/forgot-password', [PartnerAuthController::class, 'sendResetLink'])->name('auth.forgot.send');
+
+    Route::get('/reset-password/{token}', [PartnerAuthController::class, 'resetPassword'])->name('auth.reset');
+    Route::post('/reset-password', [PartnerAuthController::class, 'updatePassword'])->name('auth.reset.update');
 });
 
 Route::post('/logout', [PartnerAuthController::class, 'logout'])

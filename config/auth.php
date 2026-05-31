@@ -125,6 +125,13 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        'vendor_admins' => [
+            'provider' => 'vendor_admins',
+            'table' => 'vendor_admin_password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
         'customers' => [
             'provider' => 'customers',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),

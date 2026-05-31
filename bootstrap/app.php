@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'vendor.auth' => \App\Http\Middleware\VendorAuth::class,
             'vendor.active' => \App\Http\Middleware\VendorActive::class,
             'vendor.onboarded' => \App\Http\Middleware\VendorOnboarded::class,
+            'vendor.locale' => \App\Http\Middleware\SetVendorLocale::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
