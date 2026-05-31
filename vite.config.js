@@ -59,6 +59,9 @@ export default defineConfig({
                 // Partner panel (partner.noon.loc)
                 'resources/js/partner/app.js',
                 'resources/js/partner/dashboard.js',
+                'resources/js/partner/orders.js',
+                'resources/js/partner/listings.js',
+                'resources/js/partner/inventory.js',
             ],
             refresh: [
                 'resources/views/**',

@@ -1,0 +1,414 @@
+<?php
+
+namespace App\Http\Controllers\Partner;
+
+use App\Http\Controllers\Controller;
+use App\Models\InventoryMovement;
+use App\Models\OrderStatusHistory;
+use App\Models\Shipment;
+use App\Models\ShippingCarrier;
+use App\Models\SubOrder;
+use App\Models\VendorListing;
+use App\Models\WarehouseInventory;
+use App\Traits\HasDataTable;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
+use Illuminate\View\View;
+
+class OrderController extends Controller
+{
+    use HasDataTable;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function vendorId(): string
+    {
+        return Auth::guard('vendor')->user()->vendor_id;
+    }
+
+    /**
+     * Scope a SubOrder query to the authenticated vendor.
+     */
+    private function vendorSubOrder(string $subOrderNumber): SubOrder
+    {
+        return SubOrder::where('vendor_id', $this->vendorId())
+            ->where('sub_order_number', $subOrderNumber)
+            ->firstOrFail();
+    }
+
+    /**
+     * Mask customer name: first name + last initial (e.g. "Ahmed M.")
+     */
+    private function maskCustomerName(?string $name): string
+    {
+        if (!$name)
+            return '—';
+        $parts = explode(' ', trim($name));
+        if (count($parts) === 1)
+            return $parts[0];
+        $last = mb_substr(end($parts), 0, 1) . '.';
+        return $parts[0] . ' ' . $last;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Index
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function index(Request $request): View
+    {
+        $statuses = ['placed', 'confirmed', 'processing', 'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled'];
+
+        // Status counts for filter tabs
+        $counts = SubOrder::where('vendor_id', $this->vendorId())
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+
+        $slaUrgentCount = SubOrder::where('vendor_id', $this->vendorId())
+            ->where('sla_ship_deadline', '<=', now()->addHours(2))
+            ->whereNotIn('status', ['shipped', 'delivered', 'completed', 'cancelled'])
+            ->count();
+
+        return view('partner.orders.index', compact('statuses', 'counts', 'slaUrgentCount'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DataTable
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $vendorId = $this->vendorId();
+
+        $query = SubOrder::where('sub_orders.vendor_id', $vendorId)
+            ->leftJoin('orders as o', 'o.id', '=', 'sub_orders.order_id')
+            ->select([
+                'sub_orders.id',
+                'sub_orders.sub_order_number',
+                'sub_orders.status',
+                'sub_orders.vendor_payout',
+                'sub_orders.sla_ship_deadline',
+                'sub_orders.sla_breached',
+                'sub_orders.created_at',
+                'o.shipping_address_snapshot',
+                'o.customer_id',
+            ])
+            ->addSelect([
+                'item_count' => \App\Models\OrderItem::selectRaw('COUNT(*)')
+                    ->whereColumn('sub_order_id', 'sub_orders.id'),
+            ]);
+
+        // Filters
+        if ($request->filled('status') && $request->input('status') !== 'all') {
+            if ($request->input('status') === 'sla_urgent') {
+                $query->where('sub_orders.sla_ship_deadline', '<=', now()->addHours(2))
+                    ->whereNotIn('sub_orders.status', ['shipped', 'delivered', 'completed', 'cancelled']);
+            } else {
+                $query->where('sub_orders.status', $request->input('status'));
+            }
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('sub_orders.created_at', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('sub_orders.created_at', '<=', $request->input('date_to'));
+        }
+
+        $columns = [
+            ['searchable_columns' => ['sub_orders.sub_order_number']],
+            ['orderable_column' => 'sub_orders.status'],
+            ['orderable_column' => 'sub_orders.vendor_payout'],
+            [],
+            [],
+            ['orderable_column' => 'sub_orders.sla_ship_deadline'],
+            ['orderable_column' => 'sub_orders.created_at'],
+        ];
+
+        return $this->dataTableResponse($request, $query, $columns, function ($row) {
+            $address = $row->shipping_address_snapshot ?? [];
+            $city = $address['city'] ?? '—';
+            $area = $address['area'] ?? '';
+            $maskedLocation = $area ? "{$city}, {$area}" : $city;
+
+            $slaHtml = '—';
+            if ($row->sla_ship_deadline && !in_array($row->status, ['shipped', 'delivered', 'completed', 'cancelled'])) {
+                $isUrgent = now()->addHours(2)->gt($row->sla_ship_deadline);
+                $isPast = now()->gt($row->sla_ship_deadline);
+                $diff = $row->sla_ship_deadline->diffForHumans();
+                $class = $isPast ? 'text-red-600 font-bold' : ($isUrgent ? 'text-orange-500 font-semibold' : 'text-gray-600');
+                $slaHtml = "<span class=\"{$class} text-xs\">{$diff}</span>";
+            }
+
+            return [
+                'sub_order_number' => $row->sub_order_number,
+                'show_url' => Route::has('partner.orders.show')
+                    ? route('partner.orders.show', $row->sub_order_number)
+                    : '#',
+                'status' => $row->status,
+                'vendor_payout' => number_format($row->vendor_payout / 100, 2),
+                'location' => $maskedLocation,
+                'item_count' => $row->item_count,
+                'sla_countdown' => $slaHtml,
+                'placed_at' => $row->created_at->format('Y-m-d H:i'),
+            ];
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Show
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function show(string $subOrderNumber): View
+    {
+        $subOrder = SubOrder::where('vendor_id', $this->vendorId())
+            ->where('sub_order_number', $subOrderNumber)
+            ->with([
+                'order',
+                'order.customer',
+                'items',
+                'statusHistories' => fn($q) => $q->orderBy('created_at'),
+                'shipments.trackingEvents',
+                'carrier',
+            ])
+            ->firstOrFail();
+
+        $carriers = ShippingCarrier::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'code']);
+
+        $vendorAdmin = Auth::guard('vendor')->user();
+        $currency = $vendorAdmin->vendor?->country?->currency_code ?? '';
+
+        return view('partner.orders.show', compact('subOrder', 'carriers', 'currency'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Confirm
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function confirm(string $subOrderNumber): JsonResponse
+    {
+        $subOrder = $this->vendorSubOrder($subOrderNumber);
+
+        if ($subOrder->status !== 'placed') {
+            return response()->json(['success' => false, 'message' => 'الطلب لا يمكن تأكيده في حالته الحالية.'], 422);
+        }
+
+        $subOrder->update(['status' => 'confirmed']);
+
+        OrderStatusHistory::create([
+            'order_id' => $subOrder->order_id,
+            'sub_order_id' => $subOrder->id,
+            'from_status' => 'placed',
+            'to_status' => 'confirmed',
+            'changed_by_admin_id' => null,
+            'metadata' => json_encode([
+                'vendor_id' => $this->vendorId(),
+                'vendor_admin' => Auth::guard('vendor')->user()->id,
+                'action' => 'confirmed',
+            ]),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'تم تأكيد الطلب بنجاح.']);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Ship
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function ship(Request $request, string $subOrderNumber): JsonResponse
+    {
+        $request->validate([
+            'tracking_number' => ['required', 'string', 'max:100'],
+            'carrier_id' => ['required', 'exists:shipping_carriers,id'],
+            'estimated_delivery_date' => ['required', 'date', 'after_or_equal:today'],
+        ]);
+
+        $subOrder = $this->vendorSubOrder($subOrderNumber);
+
+        if (!in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'ready_to_ship'])) {
+            return response()->json(['success' => false, 'message' => 'لا يمكن شحن هذا الطلب في حالته الحالية.'], 422);
+        }
+
+        $vendorId = $this->vendorId();
+
+        try {
+            DB::transaction(function () use ($request, $subOrder, $vendorId) {
+                $fromStatus = $subOrder->status;
+
+                // 1. Update sub_order
+                $subOrder->update([
+                    'status' => 'shipped',
+                    'carrier_id' => $request->input('carrier_id'),
+                    'tracking_number' => $request->input('tracking_number'),
+                    'estimated_delivery_date' => $request->input('estimated_delivery_date'),
+                    'shipped_at' => now(),
+                ]);
+
+                // 2. Create shipment record
+                $shipment = Shipment::create([
+                    'sub_order_id' => $subOrder->id,
+                    'carrier_id' => $request->input('carrier_id'),
+                    'tracking_number' => $request->input('tracking_number'),
+                    'status' => 'shipped',
+                ]);
+
+                // 3. Inventory movements + decrement
+                foreach ($subOrder->items as $item) {
+                    $vendorListing = VendorListing::where('product_variant_id', $item->product_variant_id)
+                        ->where('vendor_id', $vendorId)
+                        ->first();
+
+                    if (!$vendorListing)
+                        continue;
+
+                    $inventory = WarehouseInventory::where('vendor_listing_id', $vendorListing->id)
+                        ->where('warehouse_id', $subOrder->warehouse_id)
+                        ->first();
+
+                    if (!$inventory)
+                        continue;
+
+                    $newOnHand = max(0, $inventory->quantity_on_hand - $item->quantity);
+                    $newReserved = max(0, $inventory->quantity_reserved - $item->quantity);
+
+                    $inventory->update([
+                        'quantity_on_hand' => $newOnHand,
+                        'quantity_reserved' => $newReserved,
+                    ]);
+
+                    InventoryMovement::create([
+                        'warehouse_inventory_id' => $inventory->id,
+                        'movement_type' => 'outbound',
+                        'quantity_delta' => -$item->quantity,
+                        'quantity_after' => $newOnHand,
+                        'reference_type' => 'sub_order',
+                        'reference_id' => $subOrder->id,
+                        'reason' => 'order_shipped',
+                        'created_by_user_id' => Auth::guard('vendor')->user()->id,
+                    ]);
+                }
+
+                // 4. Status history
+                OrderStatusHistory::create([
+                    'order_id' => $subOrder->order_id,
+                    'sub_order_id' => $subOrder->id,
+                    'from_status' => $fromStatus,
+                    'to_status' => 'shipped',
+                    'changed_by_admin_id' => null,
+                    'metadata' => json_encode([
+                        'vendor_id' => $vendorId,
+                        'vendor_admin' => Auth::guard('vendor')->user()->id,
+                        'tracking_number' => $request->input('tracking_number'),
+                        'carrier_id' => $request->input('carrier_id'),
+                        'action' => 'shipped',
+                    ]),
+                ]);
+
+                // 5. TODO: Dispatch OrderShipped notification to customer
+                Log::info('SubOrder shipped by vendor', [
+                    'sub_order' => $subOrder->sub_order_number,
+                    'vendor_id' => $vendorId,
+                    'tracking' => $request->input('tracking_number'),
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error('Ship action failed', ['error' => $e->getMessage(), 'sub_order' => $subOrderNumber]);
+            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء تحديث الشحن. يرجى المحاولة مرة أخرى.'], 500);
+        }
+
+        return response()->json(['success' => true, 'message' => 'تم تأكيد الشحن بنجاح.']);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Cancel
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function cancel(Request $request, string $subOrderNumber): JsonResponse
+    {
+        $request->validate([
+            'reason' => ['required', 'string', 'max:100'],
+            'reason_notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $subOrder = $this->vendorSubOrder($subOrderNumber);
+
+        $nonCancellableStatuses = ['shipped', 'delivered', 'completed', 'cancelled', 'return_requested', 'returned'];
+        if (in_array($subOrder->status, $nonCancellableStatuses)) {
+            return response()->json(['success' => false, 'message' => 'لا يمكن إلغاء هذا الطلب في حالته الحالية.'], 422);
+        }
+
+        $vendorId = $this->vendorId();
+
+        try {
+            DB::transaction(function () use ($request, $subOrder, $vendorId) {
+                $fromStatus = $subOrder->status;
+
+                $subOrder->update([
+                    'status' => 'cancelled',
+                    'cancelled_at' => now(),
+                    'cancellation_reason' => $request->input('reason'),
+                ]);
+
+                // Release reserved inventory
+                foreach ($subOrder->items as $item) {
+                    $vendorListing = VendorListing::where('product_variant_id', $item->product_variant_id)
+                        ->where('vendor_id', $vendorId)
+                        ->first();
+
+                    if (!$vendorListing)
+                        continue;
+
+                    $inventory = WarehouseInventory::where('vendor_listing_id', $vendorListing->id)
+                        ->where('warehouse_id', $subOrder->warehouse_id)
+                        ->first();
+
+                    if (!$inventory)
+                        continue;
+
+                    $newReserved = max(0, $inventory->quantity_reserved - $item->quantity);
+                    $inventory->update(['quantity_reserved' => $newReserved]);
+
+                    InventoryMovement::create([
+                        'warehouse_inventory_id' => $inventory->id,
+                        'movement_type' => 'reservation_release',
+                        'quantity_delta' => $item->quantity,
+                        'quantity_after' => $inventory->quantity_on_hand,
+                        'reference_type' => 'sub_order',
+                        'reference_id' => $subOrder->id,
+                        'reason' => 'order_cancelled_vendor',
+                        'created_by_user_id' => Auth::guard('vendor')->user()->id,
+                    ]);
+                }
+
+                OrderStatusHistory::create([
+                    'order_id' => $subOrder->order_id,
+                    'sub_order_id' => $subOrder->id,
+                    'from_status' => $fromStatus,
+                    'to_status' => 'cancelled',
+                    'changed_by_admin_id' => null,
+                    'reason' => $request->input('reason'),
+                    'metadata' => json_encode([
+                        'vendor_id' => $vendorId,
+                        'vendor_admin' => Auth::guard('vendor')->user()->id,
+                        'reason' => $request->input('reason'),
+                        'notes' => $request->input('reason_notes'),
+                        'action' => 'cancelled',
+                    ]),
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error('Cancel order failed', ['error' => $e->getMessage(), 'sub_order' => $subOrderNumber]);
+            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء إلغاء الطلب.'], 500);
+        }
+
+        return response()->json(['success' => true, 'message' => 'تم إلغاء الطلب بنجاح.']);
+    }
+}
