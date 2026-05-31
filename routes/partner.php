@@ -10,6 +10,8 @@ use App\Http\Controllers\Partner\FlashSaleController;
 use App\Http\Controllers\Partner\PayoutController;
 use App\Http\Controllers\Partner\PerformanceController;
 use App\Http\Controllers\Partner\ProfileController;
+use App\Http\Controllers\Partner\DisputeController;
+use App\Http\Controllers\Partner\SupportController;
 use App\Http\Controllers\Partner\TeamController;
 use Illuminate\Support\Facades\Route;
 
@@ -126,5 +128,22 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/', 'store')->name('store');
         Route::post('/{member}/toggle-active', 'toggleActive')->name('toggle-active');
         Route::delete('/{member}', 'destroy')->name('destroy');
+    });
+
+    // ── Support tickets ──────────────────────────────────────────────────────
+    Route::prefix('support/tickets')->name('support.tickets.')->controller(SupportController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{ticketNumber}', 'show')->name('show');
+        Route::post('/{ticketNumber}/reply', 'reply')->name('reply');
+    });
+
+    // ── Disputes ─────────────────────────────────────────────────────────────
+    Route::prefix('disputes')->name('disputes.')->controller(DisputeController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{disputeNumber}', 'show')->name('show');
+        Route::post('/{disputeNumber}/reply', 'reply')->name('reply');
+        Route::post('/{disputeNumber}/evidence', 'uploadEvidence')->name('evidence');
     });
 });
