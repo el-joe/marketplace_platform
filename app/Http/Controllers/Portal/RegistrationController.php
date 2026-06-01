@@ -244,104 +244,104 @@ class RegistrationController extends Controller
         }
 
         // try {
-            DB::transaction(function () use ($step1, $step2, $step3, $docs) {
-                // ① Create Vendor
-                $vendor = Vendor::create([
-                    'name' => $step1['name'],
-                    'email' => $step1['email'],
-                    'phone' => $step1['phone'],
-                    'password' => Hash::make($step1['password']),
-                    'country_id' => $step1['country_id'],
-                    'store_name' => $step2['store_name'],
-                    'store_slug' => $step2['store_slug'],
-                    'store_description' => $step2['store_description'] ?? null,
-                    'business_type' => $step2['business_type'],
-                    'business_name' => $step2['business_name'],
-                    'business_registration_number' => $step2['business_registration_number'] ?? null,
-                    'tax_id' => $step2['tax_id'] ?? null,
-                    'contact_email' => $step3['contact_email'],
-                    'contact_phone' => $step3['contact_phone'],
-                    'whatsapp_number' => $step3['whatsapp_number'] ?? null,
-                    'global_status' => 'pending',
-                    'approved_at' => 0,
-                ]);
-
-                // ② Create billing address (polymorphic)
-                $address = Address::create([
-                    'addressable_type' => Vendor::class,
-                    'addressable_id' => $vendor->id,
-                    'address_type' => 'billing',
-                    'country_id' => $step1['country_id'],
-                    'city_id' => $step3['city_id'],
-                    'area' => $step3['area'] ?? null,
-                    'street_address' => $step3['street_address'],
-                    'building' => $step3['building'] ?? null,
-                    'floor' => $step3['floor'] ?? null,
-                    'apartment' => $step3['apartment'] ?? null,
-                    'postal_code' => $step3['postal_code'] ?? null,
-                    'recipient_name' => $step1['name'],
-                    'recipient_phone' => $step3['contact_phone'],
-                    'is_default' => true,
-                ]);
-
-                // ③ Link address back to vendor
-                $vendor->update(['business_address_id' => $address->id]);
-
-                // ④ Create VendorAdmin (owner)
-                VendorAdmin::create([
-                    'vendor_id' => $vendor->id,
-                    'name' => $step1['name'],
-                    'email' => $step1['email'],
-                    'password' => Hash::make($step1['password']),
-                    'role' => 'owner',
-                    'is_active' => 1,
-                ]);
-
-                // ⑤ Move temp documents → permanent, create VendorDocument records
-                foreach ($docs as $docType => $tempPath) {
-                    $ext = pathinfo($tempPath, PATHINFO_EXTENSION);
-                    $permPath = "vendor-docs/{$vendor->id}/{$docType}.{$ext}";
-
-                    if (Storage::disk('public')->exists($tempPath)) {
-                        Storage::disk('public')->move($tempPath, $permPath);
-                    }
-
-                    VendorDocument::create([
-                        'vendor_id' => $vendor->id,
-                        'document_type' => $docType,
-                        'file_path' => $permPath,
-                        'status' => 'pending',
-                    ]);
-                }
-
-                // ⑥ Welcome email (non-blocking)
-                try {
-                    Mail::to($vendor->email)->send(new VendorApplicationReceivedMail($vendor));
-                } catch (\Throwable $e) {
-                    Log::warning('VendorApplicationReceivedMail failed: ' . $e->getMessage());
-                }
-
-                // ⑦ Activity log (non-blocking)
-                try {
-                    app(ActivityLoggerService::class)->log(
-                        'New vendor registration submitted',
-                        $vendor,
-                        null,
-                        ['email' => $vendor->email, 'store' => $vendor->store_name],
-                        'vendor',
-                        'created'
-                    );
-                } catch (\Throwable $e) {
-                    Log::warning('Activity log failed after vendor registration: ' . $e->getMessage());
-                }
-            });
-
-            session()->forget('reg_data');
-
-            return response()->json([
-                'success' => true,
-                'redirect' => route('portal.register.success'),
+        DB::transaction(function () use ($step1, $step2, $step3, $docs) {
+            // ① Create Vendor
+            $vendor = Vendor::create([
+                'name' => $step1['name'],
+                'email' => $step1['email'],
+                'phone' => $step1['phone'],
+                'password' => Hash::make($step1['password']),
+                'country_id' => $step1['country_id'],
+                'store_name' => $step2['store_name'],
+                'store_slug' => $step2['store_slug'],
+                'store_description' => $step2['store_description'] ?? null,
+                'business_type' => $step2['business_type'],
+                'business_name' => $step2['business_name'],
+                'business_registration_number' => $step2['business_registration_number'] ?? null,
+                'tax_id' => $step2['tax_id'] ?? null,
+                'contact_email' => $step3['contact_email'],
+                'contact_phone' => $step3['contact_phone'],
+                'whatsapp_number' => $step3['whatsapp_number'] ?? null,
+                'global_status' => 'pending',
+                // 'approved_at' => 0,
             ]);
+
+            // ② Create billing address (polymorphic)
+            $address = Address::create([
+                'addressable_type' => Vendor::class,
+                'addressable_id' => $vendor->id,
+                'address_type' => 'billing',
+                'country_id' => $step1['country_id'],
+                'city_id' => $step3['city_id'],
+                'area' => $step3['area'] ?? null,
+                'street_address' => $step3['street_address'],
+                'building' => $step3['building'] ?? null,
+                'floor' => $step3['floor'] ?? null,
+                'apartment' => $step3['apartment'] ?? null,
+                'postal_code' => $step3['postal_code'] ?? null,
+                'recipient_name' => $step1['name'],
+                'recipient_phone' => $step3['contact_phone'],
+                'is_default' => true,
+            ]);
+
+            // ③ Link address back to vendor
+            $vendor->update(['business_address_id' => $address->id]);
+
+            // ④ Create VendorAdmin (owner)
+            VendorAdmin::create([
+                'vendor_id' => $vendor->id,
+                'name' => $step1['name'],
+                'email' => $step1['email'],
+                'password' => Hash::make($step1['password']),
+                'role' => 'owner',
+                'is_active' => 1,
+            ]);
+
+            // ⑤ Move temp documents → permanent, create VendorDocument records
+            foreach ($docs as $docType => $tempPath) {
+                $ext = pathinfo($tempPath, PATHINFO_EXTENSION);
+                $permPath = "vendor-docs/{$vendor->id}/{$docType}.{$ext}";
+
+                if (Storage::disk('public')->exists($tempPath)) {
+                    Storage::disk('public')->move($tempPath, $permPath);
+                }
+
+                VendorDocument::create([
+                    'vendor_id' => $vendor->id,
+                    'document_type' => $docType,
+                    'file_path' => $permPath,
+                    'status' => 'pending',
+                ]);
+            }
+
+            // ⑥ Welcome email (non-blocking)
+            try {
+                Mail::to($vendor->email)->send(new VendorApplicationReceivedMail($vendor));
+            } catch (\Throwable $e) {
+                Log::warning('VendorApplicationReceivedMail failed: ' . $e->getMessage());
+            }
+
+            // ⑦ Activity log (non-blocking)
+            try {
+                app(ActivityLoggerService::class)->log(
+                    'New vendor registration submitted',
+                    $vendor,
+                    null,
+                    ['email' => $vendor->email, 'store' => $vendor->store_name],
+                    'vendor',
+                    'created'
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Activity log failed after vendor registration: ' . $e->getMessage());
+            }
+        });
+
+        session()->forget('reg_data');
+
+        return response()->json([
+            'success' => true,
+            'redirect' => route('portal.register.success'),
+        ]);
         // } catch (\Throwable $e) {
         //     Log::error('Vendor registration DB error: ' . $e->getMessage(), [
         //         'trace' => $e->getTraceAsString(),

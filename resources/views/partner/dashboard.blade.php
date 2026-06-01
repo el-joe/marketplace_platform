@@ -5,13 +5,15 @@
 
 @push('scripts')
     @vite('resources/js/partner/dashboard.js')
+    @php
+        $data = collect(range(6, 0))->mapWithKeys(fn($i) => [now()->subDays($i)->format('Y-m-d') => 0])
+            ->merge($stats['revenue_chart']->pluck('total', 'date'))
+            ->map(fn($v) => round($v / 100, 2));
+
+    @endphp
     <script>
         window.DASHBOARD = {
-            revenueChart: @json(
-                collect(range(6, 0))->mapWithKeys(fn($i) => [now()->subDays($i)->format('Y-m-d') => 0])
-                ->merge($stats['revenue_chart']->pluck('total', 'date'))
-                ->map(fn($v) => round($v / 100, 2))
-            ),
+            revenueChart: @json($data),
         };
     </script>
 @endpush
@@ -28,7 +30,7 @@
             </div>
             @if(Route::has('partner.orders.index'))
                 <a href="{{ route('partner.orders.index', ['sla_urgent' => 1]) }}"
-                   class="shrink-0 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                    class="shrink-0 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
                     عرض الطلبات العاجلة
                 </a>
             @endif
@@ -39,60 +41,30 @@
 
     {{-- KPI Cards Row 1 --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <x-partner-stat-card
-            title="إيرادات الشهر"
-            :value="number_format($stats['revenue_month'], 2)"
-            :suffix="$currency"
-            icon="banknotes"
-            color="green" />
+        <x-partner-stat-card title="إيرادات الشهر" :value="number_format($stats['revenue_month'], 2)" :suffix="$currency"
+            icon="banknotes" color="green" />
 
-        <x-partner-stat-card
-            title="طلبات اليوم"
-            :value="$stats['orders_today']"
-            icon="shopping-bag"
-            color="blue" />
+        <x-partner-stat-card title="طلبات اليوم" :value="$stats['orders_today']" icon="shopping-bag" color="blue" />
 
-        <x-partner-stat-card
-            title="طلبات معلقة"
-            :value="$stats['pending_orders']"
-            icon="clock"
-            :color="$stats['pending_orders'] > 0 ? 'warning' : 'gray'"
-            :link="Route::has('partner.orders.index') ? route('partner.orders.index', ['status' => 'placed']) : null" />
+        <x-partner-stat-card title="طلبات معلقة" :value="$stats['pending_orders']" icon="clock"
+            :color="$stats['pending_orders'] > 0 ? 'warning' : 'gray'" :link="Route::has('partner.orders.index') ? route('partner.orders.index', ['status' => 'placed']) : null" />
 
-        <x-partner-stat-card
-            title="مدفوعات معلقة"
-            :value="number_format($stats['pending_payout'], 2)"
-            :suffix="$currency"
-            icon="credit-card"
-            color="primary" />
+        <x-partner-stat-card title="مدفوعات معلقة" :value="number_format($stats['pending_payout'], 2)" :suffix="$currency"
+            icon="credit-card" color="primary" />
     </div>
 
     {{-- KPI Cards Row 2 --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <x-partner-stat-card
-            title="منتجات منخفضة المخزون"
-            :value="$stats['low_stock']"
-            icon="exclamation-triangle"
-            :color="$stats['low_stock'] > 0 ? 'warning' : 'success'"
-            :link="Route::has('partner.inventory.low-stock') ? route('partner.inventory.low-stock') : null" />
+        <x-partner-stat-card title="منتجات منخفضة المخزون" :value="$stats['low_stock']" icon="exclamation-triangle"
+            :color="$stats['low_stock'] > 0 ? 'warning' : 'success'" :link="Route::has('partner.inventory.low-stock') ? route('partner.inventory.low-stock') : null" />
 
-        <x-partner-stat-card
-            title="نزاعات مفتوحة"
-            :value="$stats['open_disputes']"
-            icon="scale"
+        <x-partner-stat-card title="نزاعات مفتوحة" :value="$stats['open_disputes']" icon="scale"
             :color="$stats['open_disputes'] > 0 ? 'danger' : 'gray'" />
 
-        <x-partner-stat-card
-            title="تقييم المتجر"
-            :value="number_format($stats['rating_avg'], 1)"
-            suffix="/ 5 ⭐"
-            icon="star"
+        <x-partner-stat-card title="تقييم المتجر" :value="number_format($stats['rating_avg'], 1)" suffix="/ 5 ⭐" icon="star"
             color="yellow" />
 
-        <x-partner-stat-card
-            title="مخالفات نشطة"
-            :value="$stats['active_strikes']"
-            icon="exclamation-circle"
+        <x-partner-stat-card title="مخالفات نشطة" :value="$stats['active_strikes']" icon="exclamation-circle"
             :color="$stats['active_strikes'] > 0 ? 'danger' : 'success'" />
     </div>
 
@@ -114,7 +86,7 @@
             <div class="space-y-2">
                 @if(Route::has('partner.orders.index'))
                     <a href="{{ route('partner.orders.index', ['status' => 'placed']) }}"
-                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
                         <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
                             <x-heroicon name="shopping-bag" class="w-5 h-5 text-blue-600" />
                         </div>
@@ -126,7 +98,7 @@
                 @endif
                 @if(Route::has('partner.listings.create'))
                     <a href="{{ route('partner.listings.create') }}"
-                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
                         <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
                             <x-heroicon name="plus" class="w-5 h-5 text-green-600" />
                         </div>
@@ -138,7 +110,7 @@
                 @endif
                 @if(Route::has('partner.inventory.index'))
                     <a href="{{ route('partner.inventory.index') }}"
-                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
                         <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center shrink-0">
                             <x-heroicon name="cube" class="w-5 h-5 text-yellow-600" />
                         </div>
@@ -150,13 +122,14 @@
                 @endif
                 @if(Route::has('partner.payouts.index'))
                     <a href="{{ route('partner.payouts.index') }}"
-                       class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
                         <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
                             <x-heroicon name="banknotes" class="w-5 h-5 text-purple-600" />
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-800">المدفوعات</p>
-                            <p class="text-xs text-gray-500">{{ number_format($stats['pending_payout'], 2) }} {{ $currency }} معلق</p>
+                            <p class="text-xs text-gray-500">{{ number_format($stats['pending_payout'], 2) }} {{ $currency }}
+                                معلق</p>
                         </div>
                     </a>
                 @endif
@@ -195,7 +168,7 @@
                                 <td class="py-3">
                                     @if(Route::has('partner.orders.show'))
                                         <a href="{{ route('partner.orders.show', $subOrder->sub_order_number) }}"
-                                           class="text-primary-600 hover:underline font-mono text-xs">
+                                            class="text-primary-600 hover:underline font-mono text-xs">
                                             {{ $subOrder->sub_order_number }}
                                         </a>
                                     @else
@@ -213,9 +186,9 @@
                                     @if($subOrder->sla_ship_deadline)
                                         <span @class([
                                             'text-xs',
-                                            'text-red-600 font-semibold'   => now()->gt($subOrder->sla_ship_deadline),
-                                            'text-orange-500 font-medium'  => !now()->gt($subOrder->sla_ship_deadline) && now()->addHours(2)->gt($subOrder->sla_ship_deadline),
-                                            'text-gray-500'                => !now()->addHours(2)->gt($subOrder->sla_ship_deadline),
+                                            'text-red-600 font-semibold' => now()->gt($subOrder->sla_ship_deadline),
+                                            'text-orange-500 font-medium' => !now()->gt($subOrder->sla_ship_deadline) && now()->addHours(2)->gt($subOrder->sla_ship_deadline),
+                                            'text-gray-500' => !now()->addHours(2)->gt($subOrder->sla_ship_deadline),
                                         ])>
                                             {{ $subOrder->sla_ship_deadline->diffForHumans() }}
                                         </span>

@@ -70,28 +70,28 @@ class DashboardController extends Controller
                         ->where('is_active', 1)
                         ->count(),
 
-                    // Recent orders (5)
-                    'recent_orders' => SubOrder::where('vendor_id', $vendorId)
-                        ->with('order')
-                        ->orderByDesc('created_at')
-                        ->limit(5)
-                        ->get(),
-
-                    // Revenue last 7 days for chart
-                    'revenue_chart' => SubOrder::where('vendor_id', $vendorId)
-                        ->whereIn('status', ['completed', 'delivered', 'shipped'])
-                        ->where('created_at', '>=', now()->subDays(6)->startOfDay())
-                        ->selectRaw('DATE(created_at) as date, SUM(vendor_payout) as total')
-                        ->groupBy('date')
-                        ->orderBy('date')
-                        ->get(),
-
                     // Store rating
                     'rating_avg' => $vendorAdmin->vendor->store_rating_avg ?? 0,
                     'rating_count' => $vendorAdmin->vendor->store_rating_count ?? 0,
                 ];
             }
         );
+
+        // Eloquent collections are excluded from the cache to avoid
+        // unserialize() failures when class definitions are not yet loaded.
+        $stats['recent_orders'] = SubOrder::where('vendor_id', $vendorId)
+            ->with('order')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+
+        $stats['revenue_chart'] = SubOrder::where('vendor_id', $vendorId)
+            ->whereIn('status', ['completed', 'delivered', 'shipped'])
+            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+            ->selectRaw('DATE(created_at) as date, SUM(vendor_payout) as total')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
 
         return view('partner.dashboard', compact('stats'));
     }
