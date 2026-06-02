@@ -51,7 +51,7 @@
                 </a>
 
                 {{-- Country flag --}}
-                <div class="flex items-center gap-1 text-sm text-gray-400 border border-gray-700 px-3 py-1.5 rounded-full"
+                {{--<div class="flex items-center gap-1 text-sm text-gray-400 border border-gray-700 px-3 py-1.5 rounded-full"
                     x-data="{ open: false }" @click.outside="open = false">
                     <button @click="open = !open" class="flex items-center gap-1 hover:text-white transition-colors">
                         <span>🇦🇪</span>
@@ -73,7 +73,7 @@
                             <span>🇪🇬</span> {{ $isAr ? 'مصر' : 'Egypt' }}
                         </a>
                     </div>
-                </div>
+                </div>--}}
 
                 {{-- Login --}}
                 <a href="{{ $loginUrl }}" class="text-sm text-gray-300 hover:text-white border border-gray-600 hover:border-gray-400
