@@ -70,6 +70,8 @@ export default defineConfig({
                 'resources/js/partner/team.js',
                 'resources/js/partner/support.js',
                 'resources/js/partner/disputes.js',
+                // Delivery Agent Panel (delivery.noon.loc)
+                'resources/js/delivery/app.js',
             ],
             refresh: [
                 'resources/views/**',

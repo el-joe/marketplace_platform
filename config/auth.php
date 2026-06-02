@@ -56,6 +56,11 @@ return [
             'driver' => 'session',
             'provider' => 'delivery_agents',
         ],
+        // Marketer portal
+        'marketer' => [
+            'driver' => 'session',
+            'provider' => 'marketers',
+        ],
     ],
 
     /*
@@ -91,6 +96,10 @@ return [
         'delivery_agents' => [
             'driver' => 'eloquent',
             'model' => \App\Models\DeliveryAgent::class,
+        ],
+        'marketers' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\Marketer::class,
         ],
 
         // 'users' => [

@@ -54,9 +54,14 @@
             <x-partner-nav-item route="partner.inventory.index" icon="cube" label="المخزون" />
         </x-partner-nav-group>
 
+        <x-partner-nav-group label="التوصيل والتخزين">
+            <x-partner-nav-item route="partner.fulfillment.index" icon="truck" label="نظام التوصيل" />
+        </x-partner-nav-group>
+
         <x-partner-nav-group label="المالية">
             <x-partner-nav-item route="partner.payouts.index" icon="banknotes" label="المدفوعات" />
             <x-partner-nav-item route="partner.finance.transactions" icon="credit-card" label="المعاملات" />
+            <x-partner-nav-item route="partner.subscription.index" icon="credit-card" label="اشتراكاتي" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="التسويق">

@@ -79,4 +79,14 @@ class DeliveryAssignment extends Model
     {
         return $this->belongsTo(File::class, 'proof_file_id');
     }
+
+    // ── Accessors ─────────────────────────────────────────────────────────────
+
+    public function getDurationMinutesAttribute(): ?int
+    {
+        if ($this->assigned_at && $this->delivered_at) {
+            return (int) $this->assigned_at->diffInMinutes($this->delivered_at);
+        }
+        return null;
+    }
 }

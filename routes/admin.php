@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductCostController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\BrandController;
@@ -35,6 +36,13 @@ use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ShippingMethodController;
+use App\Http\Controllers\Admin\DeliveryAgentController;
+use App\Http\Controllers\Admin\DeliveryZoneController;
+use App\Http\Controllers\Admin\DeliveryAssignmentController;
+use App\Http\Controllers\Admin\DeliveryPayoutController;
+use App\Http\Controllers\Admin\MarketerController;
+use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\FbnController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -97,6 +105,14 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{product}/country-settings', [ProductController::class, 'countrySettings'])->name('country-settings');
         Route::put('/{product}', [ProductController::class, 'update'])->name('update');
         Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+
+        // ── Cost Reference (requires elevated permission) ─────────────────────
+        Route::prefix('/{product}/cost')->name('cost.')->group(function () {
+            Route::get('/', [ProductCostController::class, 'show'])->name('show');
+            Route::post('/', [ProductCostController::class, 'save'])->name('save');
+            Route::post('/calculate', [ProductCostController::class, 'calculateMargin'])->name('calculate');
+            Route::post('/check-competitors', [ProductCostController::class, 'checkCompetitorPrices'])->name('check-competitors');
+        });
     });
 
     // ─── Brands ──────────────────────────────────────────────────────────────────
@@ -767,6 +783,155 @@ Route::middleware('auth.admin')->group(function () {
         // Country Settings
         Route::post('/country-settings', [ShippingMethodController::class, 'upsertCountrySetting'])->name('country-settings.upsert')->middleware('admin.permission:settings.edit');
         Route::get('/country-settings', [ShippingMethodController::class, 'countrySettings'])->name('country-settings.index');
+    });
+
+    // ─── Delivery ────────────────────────────────────────────────────────────
+    Route::prefix('delivery')->name('delivery.')->group(function () {
+        // Agents
+        Route::get('/agents', [DeliveryAgentController::class, 'index'])->name('agents.index');
+        Route::post('/agents', [DeliveryAgentController::class, 'store'])->name('agents.store');
+        Route::post('/agents/datatable', [DeliveryAgentController::class, 'datatable'])->name('agents.datatable');
+        Route::get('/agents/{agent}', [DeliveryAgentController::class, 'show'])->name('agents.show');
+        Route::put('/agents/{agent}', [DeliveryAgentController::class, 'update'])->name('agents.update');
+        Route::delete('/agents/{agent}', [DeliveryAgentController::class, 'destroy'])->name('agents.destroy');
+        Route::post('/agents/{agent}/suspend', [DeliveryAgentController::class, 'suspend'])->name('agents.suspend');
+        Route::post('/agents/{agent}/activate', [DeliveryAgentController::class, 'activate'])->name('agents.activate');
+        Route::post('/agents/{agent}/reset-password', [DeliveryAgentController::class, 'resetPassword'])->name('agents.reset-password');
+        Route::post('/agents/{agent}/assign-zone', [DeliveryAgentController::class, 'assignToZone'])->name('agents.assign-zone');
+        Route::post('/agents/{agent}/assignments/datatable', [DeliveryAgentController::class, 'assignmentsDatatable'])->name('agents.assignments.datatable');
+        Route::get('/agents/{agent}/earnings-summary', [DeliveryAgentController::class, 'earningsSummary'])->name('agents.earnings-summary');
+        // Documents
+        Route::post('/documents/{doc}/verify', [DeliveryAgentController::class, 'verifyDocument'])->name('documents.verify');
+        Route::post('/documents/{doc}/reject', [DeliveryAgentController::class, 'rejectDocument'])->name('documents.reject');
+        // Zones
+        Route::get('/zones', [DeliveryZoneController::class, 'index'])->name('zones.index');
+        Route::post('/zones', [DeliveryZoneController::class, 'store'])->name('zones.store');
+        Route::get('/zones/live-map', [DeliveryZoneController::class, 'getAgentMap'])->name('zones.live-map');
+        Route::get('/zones/{zone}', [DeliveryZoneController::class, 'show'])->name('zones.show');
+        Route::put('/zones/{zone}', [DeliveryZoneController::class, 'update'])->name('zones.update');
+        Route::delete('/zones/{zone}', [DeliveryZoneController::class, 'destroy'])->name('zones.destroy');
+        Route::post('/zones/{zone}/assign-agents', [DeliveryZoneController::class, 'assignAgents'])->name('zones.assign-agents');
+        Route::get('/zones/{zone}/agent-map', [DeliveryZoneController::class, 'getAgentMap'])->name('zones.agent-map');
+        // Assignments
+        Route::get('/assignments', [DeliveryAssignmentController::class, 'index'])->name('assignments.index');
+        Route::post('/assignments/datatable', [DeliveryAssignmentController::class, 'datatable'])->name('assignments.datatable');
+        Route::post('/assignments/auto-assign', [DeliveryAssignmentController::class, 'autoAssign'])->name('assignments.auto-assign');
+        Route::post('/assignments/manual-assign', [DeliveryAssignmentController::class, 'manualAssign'])->name('assignments.manual-assign');
+        Route::get('/assignments/live-map', [DeliveryAssignmentController::class, 'liveMap'])->name('assignments.live-map');
+        // Payouts
+        Route::get('/payouts', [DeliveryPayoutController::class, 'index'])->name('payouts.index');
+        Route::post('/payouts/datatable', [DeliveryPayoutController::class, 'datatable'])->name('payouts.datatable');
+        Route::post('/payouts/generate', [DeliveryPayoutController::class, 'generate'])->name('payouts.generate');
+        Route::post('/payouts/{payout}/approve', [DeliveryPayoutController::class, 'approve'])->name('payouts.approve');
+        Route::post('/payouts/{payout}/process', [DeliveryPayoutController::class, 'process'])->name('payouts.process');
+    });
+
+    // ── Marketers ─────────────────────────────────────────────────────────────────
+    Route::prefix('marketers')->name('marketers.')->group(function () {
+        Route::get('/', [MarketerController::class, 'index'])->name('index');
+        Route::post('/datatable', [MarketerController::class, 'datatable'])->name('datatable');
+        Route::get('/{marketer}', [MarketerController::class, 'show'])->name('show');
+        Route::post('/{marketer}/approve', [MarketerController::class, 'approve'])->name('approve');
+        Route::post('/{marketer}/reject', [MarketerController::class, 'reject'])->name('reject');
+        Route::post('/{marketer}/suspend', [MarketerController::class, 'suspend'])->name('suspend');
+        Route::post('/{marketer}/activate', [MarketerController::class, 'activate'])->name('activate');
+        Route::post('/{marketer}/campaigns/datatable', [MarketerController::class, 'marketerCampaignsDatatable'])->name('marketer-campaigns.datatable');
+        Route::post('/{marketer}/conversions/datatable', [MarketerController::class, 'marketerConversionsDatatable'])->name('marketer-conversions.datatable');
+        Route::get('/{marketer}/tiers', [MarketerController::class, 'tiersShow'])->name('tiers.show');
+        Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
+    });
+
+    // ── Marketer Secret Promotions ──────────────────────────────────────────────
+    Route::prefix('marketer-secret-promotions')->name('marketers.secret.')->group(function () {
+        Route::get('/', [MarketerController::class, 'secretPromotionsIndex'])->name('index');
+        Route::post('/', [MarketerController::class, 'storeSecretPromotion'])->name('store');
+        Route::put('/{secretPromotion}', [MarketerController::class, 'updateSecretPromotion'])->name('update');
+    });
+
+    // ── Marketer Samples ────────────────────────────────────────────────────────
+    Route::prefix('marketer-samples')->name('marketers.samples.')->group(function () {
+        Route::get('/', [MarketerController::class, 'samplesIndex'])->name('index');
+        Route::post('/datatable', [MarketerController::class, 'samplesDatatable'])->name('datatable');
+        Route::post('/{req}/approve', [MarketerController::class, 'approveSample'])->name('approve');
+        Route::post('/{req}/dispatch', [MarketerController::class, 'dispatchSample'])->name('dispatch');
+    });
+
+    // ── Marketer Campaigns ────────────────────────────────────────────────────────
+    Route::prefix('marketer-campaigns')->name('marketers.campaigns.')->group(function () {
+        Route::get('/', [MarketerController::class, 'campaignsIndex'])->name('index');
+        Route::post('/datatable', [MarketerController::class, 'campaignsDatatable'])->name('datatable');
+        Route::get('/{campaign}', [MarketerController::class, 'showCampaign'])->name('show');
+        Route::post('/{campaign}/approve', [MarketerController::class, 'approveCampaign'])->name('approve');
+        Route::post('/{campaign}/reject', [MarketerController::class, 'rejectCampaign'])->name('reject');
+    });
+
+    // ── Marketer Conversions ──────────────────────────────────────────────────────
+    Route::prefix('marketer-conversions')->name('marketers.conversions.')->group(function () {
+        Route::get('/', [MarketerController::class, 'conversionsIndex'])->name('index');
+        Route::post('/datatable', [MarketerController::class, 'conversionsDatatable'])->name('datatable');
+        Route::post('/approve', [MarketerController::class, 'approveConversions'])->name('approve');
+    });
+
+    // ── Marketer Payouts ──────────────────────────────────────────────────────────
+    Route::prefix('marketer-payouts')->name('marketers.payouts.')->group(function () {
+        Route::get('/', [MarketerController::class, 'payoutsIndex'])->name('index');
+        Route::post('/datatable', [MarketerController::class, 'payoutsDatatable'])->name('datatable');
+        Route::post('/generate', [MarketerController::class, 'generatePayout'])->name('generate');
+        Route::post('/{payout}/approve', [MarketerController::class, 'approvePayout'])->name('approve');
+        Route::post('/{payout}/process', [MarketerController::class, 'processPayout'])->name('process');
+    });
+
+    // ── FBN / Fulfillment ─────────────────────────────────────────────────────
+    Route::prefix('fbn')->name('fbn.')->group(function () {
+
+        // Inbound requests
+        Route::prefix('inbound')->name('inbound.')->group(function () {
+            Route::get('/', [FbnController::class, 'inboundIndex'])->name('index');
+            Route::post('/datatable', [FbnController::class, 'inboundDatatable'])->name('datatable');
+            Route::post('/{request}/approve', [FbnController::class, 'approveInbound'])->name('approve');
+            Route::post('/{request}/reject', [FbnController::class, 'rejectInbound'])->name('reject');
+            Route::post('/{request}/tracking', [FbnController::class, 'updateTracking'])->name('tracking');
+            Route::post('/{request}/receive', [FbnController::class, 'receiveInbound'])->name('receive');
+        });
+
+        // Storage fees
+        Route::prefix('storage-fees')->name('storage-fees.')->group(function () {
+            Route::get('/', [FbnController::class, 'storageFeesIndex'])->name('index');
+            Route::post('/datatable', [FbnController::class, 'storageFeesDatatable'])->name('datatable');
+            Route::post('/generate', [FbnController::class, 'generateMonthlyFees'])->name('generate');
+            Route::post('/{fee}/status', [FbnController::class, 'updateStorageFeeStatus'])->name('status');
+        });
+
+        // Marketplace shipping rules
+        Route::prefix('marketplace')->name('marketplace.')->group(function () {
+            Route::get('/', [FbnController::class, 'marketplaceIndex'])->name('index');
+            Route::post('/datatable', [FbnController::class, 'marketplaceDatatable'])->name('datatable');
+            Route::post('/', [FbnController::class, 'storeMarketplaceRule'])->name('store');
+            Route::put('/{rule}', [FbnController::class, 'updateMarketplaceRule'])->name('update');
+            Route::delete('/{rule}', [FbnController::class, 'destroyMarketplaceRule'])->name('destroy');
+        });
+    });
+
+    // ── Vendor Subscriptions ──────────────────────────────────────────────────────
+    Route::prefix('subscriptions')->name('subscriptions.')->group(function () {
+        // Plans CRUD
+        Route::get('/plans', [SubscriptionController::class, 'plansIndex'])->name('plans.index');
+        Route::post('/plans', [SubscriptionController::class, 'storePlan'])->name('plans.store');
+        Route::put('/plans/{plan}', [SubscriptionController::class, 'updatePlan'])->name('plans.update');
+        Route::post('/plans/{plan}/toggle-active', [SubscriptionController::class, 'togglePlanActive'])->name('plans.toggle-active');
+        Route::delete('/plans/{plan}', [SubscriptionController::class, 'destroyPlan'])->name('plans.destroy');
+
+        // Vendor subscriptions
+        Route::get('/', [SubscriptionController::class, 'index'])->name('index');
+        Route::post('/datatable', [SubscriptionController::class, 'datatable'])->name('datatable');
+        Route::post('/subscribe-vendor', [SubscriptionController::class, 'subscribeVendor'])->name('subscribe-vendor');
+        // Specific before wildcard
+        Route::get('/invoices/list', [SubscriptionController::class, 'invoicesIndex'])->name('invoices.index');
+        Route::post('/invoices/datatable', [SubscriptionController::class, 'invoicesDatatable'])->name('invoices.datatable');
+        Route::post('/invoices/{invoice}/mark-paid', [SubscriptionController::class, 'markInvoicePaid'])->name('invoices.mark-paid');
+
+        Route::get('/{subscription}', [SubscriptionController::class, 'show'])->name('show');
+        Route::post('/{subscription}/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('cancel');
     });
 
 }); // end auth.admin middleware group

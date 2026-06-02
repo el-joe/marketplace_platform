@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,     // spatie permissions (all 47)
             RoleSeeder::class,           // spatie roles (8) + assigns super_admin to admin@admin.com
             SettingsSeeder::class,       // platform-wide settings (70+ keys across 8 categories)
+            SubscriptionPlanSeeder::class, // vendor subscription plans (Bronze/Silver/Gold/Platinum)
         ]);
     }
 }

@@ -66,6 +66,30 @@
                         {{ $tab['label'] }}
                     </button>
                     @endforeach
+                    @if($isEdit && auth('admin')->user()?->hasPermissionTo('products.cost_data.view'))
+                    <button
+                        type="button"
+                        @click="activeTab = 'cost'"
+                        :class="activeTab === 'cost'
+                            ? 'border-b-2 border-red-500 text-red-700 bg-red-50/50'
+                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
+                        class="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium -mb-px whitespace-nowrap transition-colors"
+                    >
+                        <x-heroicon name="lock-closed" class="w-4 h-4" />
+                        تكلفة المنتج
+                    </button>
+                    @endif
+                        type="button"
+                        @click="activeTab = '{{ $tab['id'] }}'"
+                        :class="activeTab === '{{ $tab['id'] }}'
+                            ? 'border-b-2 border-primary-600 text-primary-700 bg-primary-50/50'
+                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
+                        class="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium -mb-px whitespace-nowrap transition-colors"
+                    >
+                        <x-heroicon name="{{ $tab['icon'] }}" class="w-4 h-4" />
+                        {{ $tab['label'] }}
+                    </button>
+                    @endforeach
                 </nav>
             </div>
 
@@ -477,6 +501,10 @@
                     </p>
                 </div>
             </div>
+
+            @if($isEdit)
+                @include('admin.products._cost_tab', ['product' => $product])
+            @endif
 
         </div>{{-- /left column --}}
 

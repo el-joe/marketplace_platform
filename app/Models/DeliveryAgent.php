@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\DeliveryZone;
+use App\Models\DeliveryAgentEarning;
+use App\Models\DeliveryAgentPayout;
+use App\Models\DeliveryAgentDocument;
+use App\Models\DeliveryAgentShift;
 
 class DeliveryAgent extends Authenticatable
 {
@@ -19,6 +24,7 @@ class DeliveryAgent extends Authenticatable
 
     protected $fillable = [
         'country_id',
+        'zone_id',
         'name',
         'email',
         'phone',
@@ -26,6 +32,12 @@ class DeliveryAgent extends Authenticatable
         'status',
         'agent_type',
         'vehicle_type',
+        'national_id',
+        'vehicle_plate',
+        'emergency_contact_name',
+        'emergency_contact_phone',
+        'base_salary_cents',
+        'per_delivery_fee_cents',
         'current_latitude',
         'current_longitude',
         'last_location_at',
@@ -61,9 +73,34 @@ class DeliveryAgent extends Authenticatable
         return $this->belongsTo(Country::class);
     }
 
+    public function zone(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryZone::class, 'zone_id');
+    }
+
     public function assignments(): HasMany
     {
         return $this->hasMany(DeliveryAssignment::class, 'agent_id');
+    }
+
+    public function earnings(): HasMany
+    {
+        return $this->hasMany(DeliveryAgentEarning::class, 'agent_id');
+    }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(DeliveryAgentPayout::class, 'agent_id');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(DeliveryAgentDocument::class, 'agent_id');
+    }
+
+    public function shifts(): HasMany
+    {
+        return $this->hasMany(DeliveryAgentShift::class, 'agent_id');
     }
 
     public function locationHistory(): HasMany
@@ -79,5 +116,22 @@ class DeliveryAgent extends Authenticatable
     public function notifications(): MorphMany
     {
         return $this->morphMany(Notification::class, 'notifiable');
+    }
+
+    // ── Scopes ────────────────────────────────────────────────────────────────
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeAvailable($query)
+    {
+        return $query->where('is_available', true)->where('status', 'active');
+    }
+
+    public function scopeOnShift($query)
+    {
+        return $query->where('status', 'on_shift');
     }
 }

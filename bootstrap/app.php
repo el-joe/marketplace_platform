@@ -25,6 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'vendor.active' => \App\Http\Middleware\VendorActive::class,
             'vendor.onboarded' => \App\Http\Middleware\VendorOnboarded::class,
             'vendor.locale' => \App\Http\Middleware\SetVendorLocale::class,
+            'auth.delivery' => \App\Http\Middleware\DeliveryAuth::class,
+            'auth.marketer' => \App\Http\Middleware\MarketerAuth::class,
+            'marketer.active' => \App\Http\Middleware\MarketerAuth::class,
+            'track.marketer.click' => \App\Http\Middleware\TrackMarketerClick::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

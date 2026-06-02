@@ -12,6 +12,8 @@ use App\Http\Controllers\Partner\PerformanceController;
 use App\Http\Controllers\Partner\ProfileController;
 use App\Http\Controllers\Partner\DisputeController;
 use App\Http\Controllers\Partner\SupportController;
+use App\Http\Controllers\Partner\SubscriptionController as PartnerSubscriptionController;
+use App\Http\Controllers\Partner\FulfillmentController;
 use App\Http\Controllers\Partner\TeamController;
 use Illuminate\Support\Facades\Route;
 
@@ -145,5 +147,22 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/{disputeNumber}', 'show')->name('show');
         Route::post('/{disputeNumber}/reply', 'reply')->name('reply');
         Route::post('/{disputeNumber}/evidence', 'uploadEvidence')->name('evidence');
+    });
+
+    // ── Fulfillment (FBN / FBP / Marketplace) ───────────────────────────────
+    Route::prefix('fulfillment')->name('fulfillment.')->controller(FulfillmentController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/fbn-requests', 'fbnRequests')->name('fbn.requests');
+        Route::post('/fbn/submit', 'submitInboundRequest')->name('fbn.submit');
+        Route::post('/fbn/{request}/cancel', 'cancelInboundRequest')->name('fbn.cancel');
+        Route::get('/fbp-inventory', 'fbpInventory')->name('fbp.inventory');
+        Route::get('/storage-fees', 'storageFees')->name('storage-fees');
+    });
+
+    // ── Subscription ──────────────────────────────────────────────────────────
+    Route::prefix('subscription')->name('subscription.')->controller(PartnerSubscriptionController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/subscribe', 'subscribe')->name('subscribe');
+        Route::post('/cancel', 'cancel')->name('cancel');
     });
 });

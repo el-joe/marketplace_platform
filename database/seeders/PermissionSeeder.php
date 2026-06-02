@@ -21,6 +21,8 @@ class PermissionSeeder extends Seeder
             'products.edit',
             'products.delete',
             'products.publish',
+            'products.cost_data.view',
+            'products.cost_data.edit',
             // Catalog – Categories
             'categories.view',
             'categories.create',
@@ -110,6 +112,28 @@ class PermissionSeeder extends Seeder
             'roles.edit',
             'roles.delete',
             'activity-log.view',
+            // Marketers
+            'marketers.view',
+            'marketers.approve',
+            'marketers.reject',
+            'marketers.suspend',
+            'marketers.campaigns.view',
+            'marketers.campaigns.approve',
+            'marketers.campaigns.reject',
+            'marketers.conversions.view',
+            'marketers.conversions.approve',
+            'marketers.payouts.view',
+            'marketers.payouts.generate',
+            'marketers.payouts.approve',
+            'marketers.payouts.process',
+            'marketers.tiers.view',
+            'marketers.tiers.edit',
+            'marketers.secret_promotions.view',
+            'marketers.secret_promotions.create',
+            'marketers.secret_promotions.edit',
+            'marketers.samples.view',
+            'marketers.samples.approve',
+            'marketers.samples.dispatch',
         ];
 
         foreach ($permissions as $name) {

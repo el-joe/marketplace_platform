@@ -32,3 +32,36 @@ Route::domain('partner.' . env('APP_DOMAIN', 'localhost'))->name('partner.')->gr
     base_path('routes/partner.php')
 );
 
+/*
+|--------------------------------------------------------------------------
+| Delivery Agent Panel (mobile-first)
+| delivery.noon.loc
+|--------------------------------------------------------------------------
+*/
+Route::domain('delivery.' . env('APP_DOMAIN', 'localhost'))->group(
+    base_path('routes/delivery.php')
+);
+
+/*
+|--------------------------------------------------------------------------
+| Marketer Portal
+| marketer.noon.loc
+|--------------------------------------------------------------------------
+*/
+Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))->group(
+    base_path('routes/marketer.php')
+);
+
+/*
+|--------------------------------------------------------------------------
+| Storefront Tracking Redirects
+| {country}.noon.loc/r/{slug}
+|--------------------------------------------------------------------------
+*/
+Route::prefix('{country}/r')
+    ->middleware(['web', 'track.marketer.click'])
+    ->group(function () {
+        Route::get('/{slug}', [\App\Http\Controllers\MarketerPortal\TrackingController::class, 'redirect'])
+            ->name('marketer.tracking.redirect');
+    });
+
