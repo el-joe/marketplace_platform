@@ -26,6 +26,12 @@ class SetLocale
             // Persist for next request
             if (!$request->session()->has('locale')) {
                 $request->session()->put('locale', $locale);
+            } else {
+                // Update session if locale changed via query param
+                $current = $request->session()->get('locale');
+                if ($current !== $locale) {
+                    $request->session()->put('locale', $locale);
+                }
             }
         }
 
@@ -53,15 +59,15 @@ class SetLocale
         }
 
         // 4. Accept-Language header (first tag only)
-        $accept = $request->header('Accept-Language', '');
-        if ($accept) {
-            $primary = explode(',', $accept)[0];
-            $lang = strtolower(explode(';', $primary)[0]);
-            $lang = substr($lang, 0, 2); // "en-US" → "en"
-            if ($this->isSupported($lang)) {
-                return $lang;
-            }
-        }
+        // $accept = $request->header('Accept-Language', '');
+        // if ($accept) {
+        //     $primary = explode(',', $accept)[0];
+        //     $lang = strtolower(explode(';', $primary)[0]);
+        //     $lang = substr($lang, 0, 2); // "en-US" → "en"
+        //     if ($this->isSupported($lang)) {
+        //         return $lang;
+        //     }
+        // }
 
         // 5. App default
         return config('app.locale', 'en');

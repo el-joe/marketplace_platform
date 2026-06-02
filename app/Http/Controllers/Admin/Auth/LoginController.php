@@ -50,6 +50,7 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
+
         /** @var \App\Models\Admin $admin */
         $admin = Auth::guard('admin')->user();
 

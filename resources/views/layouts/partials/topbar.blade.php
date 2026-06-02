@@ -38,12 +38,12 @@
 
     <div class="ml-auto flex items-center gap-2">
         {{-- Global search trigger --}}
-        <button type="button" id="global-search-btn" class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
+        {{--<button type="button" id="global-search-btn" class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
                        border border-gray-200 text-sm text-gray-500 hover:bg-gray-50">
             <x-heroicon name="magnifying-glass" class="w-4 h-4" />
             <span>Search…</span>
             <kbd class="ml-2 px-1.5 py-0.5 text-[10px] bg-gray-100 rounded border border-gray-200">⌘K</kbd>
-        </button>
+        </button>--}}
 
         {{-- Notifications --}}
         <div class="relative" x-data="{ open: false }">
@@ -72,7 +72,7 @@
         </div>
 
         {{-- Country selector --}}
-        <div class="relative" x-data="{ open: false }">
+        {{-- <div class="relative" x-data="{ open: false }">
             <button type="button" @click="open = !open" class="hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
                            text-sm text-gray-700 hover:bg-gray-100">
                 <x-heroicon name="globe-alt" class="w-4 h-4" />
@@ -82,13 +82,13 @@
             <div x-show="open" @click.outside="open = false" x-cloak
                 class="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
                 @foreach(['EG' => 'Egypt', 'SA' => 'Saudi Arabia', 'AE' => 'UAE'] as $code => $name)
-                    <button type="button" data-country="{{ $code }}"
-                        class="country-switch w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50">
-                        {{ $name }} <span class="text-gray-400 text-xs">({{ $code }})</span>
-                    </button>
+                <button type="button" data-country="{{ $code }}"
+                    class="country-switch w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50">
+                    {{ $name }} <span class="text-gray-400 text-xs">({{ $code }})</span>
+                </button>
                 @endforeach
             </div>
-        </div>
+        </div>--}}
 
         {{-- Language / direction switcher --}}
         <div class="relative" x-data="{ open: false }">
