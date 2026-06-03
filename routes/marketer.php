@@ -19,6 +19,8 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
         // ── Guest ─────────────────────────────────────────────────────────────
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
         Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+        Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+        Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
         // ── Authenticated ─────────────────────────────────────────────────────
         Route::middleware(['auth.marketer'])->group(function () {

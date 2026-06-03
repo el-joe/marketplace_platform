@@ -179,6 +179,41 @@ class MarketerController extends Controller
         return response()->json(['success' => true, 'message' => 'Marketer activated.']);
     }
 
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:marketers,email',
+            'phone' => 'nullable|string|max:30',
+            'password' => 'required|string|min:8',
+            'type' => 'required|in:influencer,celebrity,affiliate,brand_ambassador',
+            'country_id' => 'nullable|exists:countries,id',
+            'niche' => 'nullable|string|max:100',
+            'followers_count' => 'nullable|integer|min:0',
+            'commission_rate' => 'nullable|numeric|min:0|max:100',
+            'status' => 'in:pending,active',
+            'social_instagram' => 'nullable|url|max:255',
+            'social_tiktok' => 'nullable|url|max:255',
+            'social_youtube' => 'nullable|url|max:255',
+            'whatsapp_number' => 'nullable|string|max:30',
+            'bio' => 'nullable|string|max:1000',
+        ]);
+
+        $marketer = Marketer::create([
+            ...$data,
+            'password' => Hash::make($data['password']),
+            'status' => $data['status'] ?? 'active',
+            'approved_by_admin_id' => auth()->guard('admin')->id(),
+            'approved_at' => ($data['status'] ?? 'active') === 'active' ? now() : null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Marketer created successfully.',
+            'redirect' => route('admin.marketers.all.show', $marketer),
+        ], 201);
+    }
+
     public function marketerCampaignsDatatable(Marketer $marketer, Request $request): JsonResponse
     {
         $columns = [

@@ -830,6 +830,7 @@ Route::middleware('auth.admin')->group(function () {
     // ── Marketers ─────────────────────────────────────────────────────────────────
     Route::prefix('marketers')->name('marketers.all.')->group(function () {
         Route::get('/', [MarketerController::class, 'index'])->name('index');
+        Route::post('/', [MarketerController::class, 'store'])->name('store');
         Route::post('/datatable', [MarketerController::class, 'datatable'])->name('datatable');
         Route::get('/{marketer}', [MarketerController::class, 'show'])->name('show');
         Route::post('/{marketer}/approve', [MarketerController::class, 'approve'])->name('approve');

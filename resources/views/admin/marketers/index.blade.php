@@ -14,6 +14,9 @@
         <h1 class="text-2xl font-bold text-gray-900">Marketers & Influencers</h1>
         <p class="text-sm text-gray-500 mt-0.5">Manage marketer accounts, approvals and commissions.</p>
     </div>
+    <button type="button" id="create-marketer-btn" class="btn btn-primary btn-sm">
+        + Add Marketer
+    </button>
 </div>
 
 {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}
@@ -91,6 +94,99 @@
         <tbody></tbody>
     </table>
 </x-card>
+
+{{-- ─── Create Marketer Modal ───────────────────────────────────────────────── --}}
+<div id="create-marketer-modal" class="modal-backdrop hidden">
+    <div class="modal-box max-w-2xl">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Add New Marketer</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Account will be created immediately and can log in to the marketer portal.</p>
+            </div>
+            <button type="button" data-modal-close class="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1">&times;</button>
+        </div>
+        <form id="create-marketer-form">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">Full name <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" class="form-input w-full" placeholder="e.g. Sara Ahmed" required autocomplete="off">
+                    </div>
+                    <div>
+                        <label class="form-label">Email <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" class="form-input w-full" placeholder="marketer@example.com" required autocomplete="off">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Password <span class="text-red-500">*</span></label>
+                    <input type="password" name="password" class="form-input w-full" placeholder="Min. 8 characters" required autocomplete="new-password" minlength="8">
+                </div>
+                <div>
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="phone" class="form-input w-full" placeholder="+20 10 0000 0000">
+                </div>
+                <div>
+                    <label class="form-label">Type <span class="text-red-500">*</span></label>
+                    <select name="type" class="form-input w-full" required>
+                        <option value="">Select type…</option>
+                        <option value="influencer">Influencer</option>
+                        <option value="celebrity">Celebrity</option>
+                        <option value="affiliate">Affiliate</option>
+                        <option value="brand_ambassador">Brand Ambassador</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Country</label>
+                    <select name="country_id" class="form-input w-full">
+                        <option value="">Select country…</option>
+                        @foreach($countries as $country)
+                            <option value="{{ $country->id }}">{{ $country->name_en }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Niche</label>
+                    <input type="text" name="niche" class="form-input w-full" placeholder="e.g. fashion, beauty, tech">
+                </div>
+                <div>
+                    <label class="form-label">Followers count</label>
+                    <input type="number" name="followers_count" class="form-input w-full" min="0" placeholder="0">
+                </div>
+                <div>
+                    <label class="form-label">Commission rate %</label>
+                    <input type="number" name="commission_rate" class="form-input w-full" step="0.01" min="0" max="100" placeholder="e.g. 10.00">
+                </div>
+                <div>
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-input w-full">
+                        <option value="active" selected>Active (approved immediately)</option>
+                        <option value="pending">Pending (require approval)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">WhatsApp number</label>
+                    <input type="text" name="whatsapp_number" class="form-input w-full" placeholder="+20 10 0000 0000">
+                </div>
+                <div>
+                    <label class="form-label">Instagram URL</label>
+                    <input type="url" name="social_instagram" class="form-input w-full" placeholder="https://instagram.com/…">
+                </div>
+                <div>
+                    <label class="form-label">TikTok URL</label>
+                    <input type="url" name="social_tiktok" class="form-input w-full" placeholder="https://tiktok.com/@…">
+                </div>
+                <div class="col-span-2">
+                    <label class="form-label">Bio</label>
+                    <textarea name="bio" rows="2" class="form-input w-full" placeholder="Short bio about the marketer…"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-gray-100">
+                <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+                <button type="submit" id="create-marketer-submit" class="btn btn-primary btn-sm">Create marketer</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {{-- ─── Reject Modal ────────────────────────────────────────────────────────── --}}
 <div id="reject-marketer-modal" class="modal" style="display:none;">
@@ -223,6 +319,42 @@ $(function () {
         let t;
         return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
     }
+
+    // ── Create Marketer ──────────────────────────────────────────────────────
+    $('#create-marketer-btn').on('click', function () {
+        $('#create-marketer-form')[0].reset();
+        $('#create-marketer-modal').modal('open');
+    });
+
+    $('#create-marketer-form').on('submit', function (e) {
+        e.preventDefault();
+        const $btn = $('#create-marketer-submit');
+        $btn.prop('disabled', true).text('Creating…');
+
+        $.ajax({
+            url:  '{{ route('admin.marketers.all.store') }}',
+            type: 'POST',
+            data: $(this).serialize() + '&_token={{ csrf_token() }}',
+        })
+        .done(function (res) {
+            window.Toast.success(res.message);
+            $('#create-marketer-modal').modal('close');
+            if (res.redirect) {
+                setTimeout(() => window.location.href = res.redirect, 800);
+            } else {
+                table.ajax.reload();
+            }
+        })
+        .fail(function (xhr) {
+            if (xhr.status === 422) {
+                const errors = xhr.responseJSON?.errors ?? {};
+                Object.values(errors).flat().forEach(m => window.Toast.error(m));
+            } else {
+                window.Toast.error(xhr.responseJSON?.message ?? 'Failed to create marketer.');
+            }
+        })
+        .always(() => $btn.prop('disabled', false).text('Create marketer'));
+    });
 });
 </script>
 @endpush
