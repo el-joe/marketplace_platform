@@ -39,7 +39,7 @@ class SecretPromotionController extends Controller
         return view('admin.secret-promotions.index', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Marketers', 'url' => route('admin.marketers.index')],
+                ['label' => 'Marketers', 'url' => route('admin.marketers.all.index')],
                 ['label' => 'Secret Promotions'],
             ],
             'stats' => $stats,

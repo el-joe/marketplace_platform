@@ -85,7 +85,7 @@
 @endsection
 
 @push('scripts')
-<script>
+<script type="module">
 $(function () {
     const tok = '{{ csrf_token() }}';
     let selectedIds = [];

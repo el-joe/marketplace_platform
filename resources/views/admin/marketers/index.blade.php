@@ -121,7 +121,7 @@ $(function () {
         processing: true,
         serverSide: true,
         ajax: {
-            url:  '{{ route('admin.marketers.datatable') }}',
+            url:  '{{ route('admin.marketers.all.datatable') }}',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             data: function (d) {

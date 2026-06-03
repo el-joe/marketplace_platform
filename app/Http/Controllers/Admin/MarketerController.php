@@ -130,7 +130,7 @@ class MarketerController extends Controller
         return view('admin.marketers.show', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Marketers', 'url' => route('admin.marketers.index')],
+                ['label' => 'Marketers', 'url' => route('admin.marketers.all.index')],
                 ['label' => $marketer->name],
             ],
             'marketer' => $marketer,
@@ -230,7 +230,7 @@ class MarketerController extends Controller
         return view('admin.marketers.campaigns.index', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Marketers', 'url' => route('admin.marketers.index')],
+                ['label' => 'Marketers', 'url' => route('admin.marketers.all.index')],
                 ['label' => 'Campaigns'],
             ],
             'stats' => $stats,
@@ -268,7 +268,7 @@ class MarketerController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, fn($row) => [
             e($row->name),
-            '<a href="' . route('admin.marketers.show', $row->marketer_id) . '" class="text-primary-600 hover:underline">' . e($row->marketer_name) . '</a>',
+            '<a href="' . route('admin.marketers.all.show', $row->marketer_id) . '" class="text-primary-600 hover:underline">' . e($row->marketer_name) . '</a>',
             ucfirst(str_replace('_', ' ', $row->campaign_type)),
             '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status) . '</span>',
             number_format($row->total_clicks),
@@ -332,7 +332,7 @@ class MarketerController extends Controller
         return view('admin.marketers.conversions.index', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Marketers', 'url' => route('admin.marketers.index')],
+                ['label' => 'Marketers', 'url' => route('admin.marketers.all.index')],
                 ['label' => 'Conversions'],
             ],
             'stats' => $stats,
@@ -379,7 +379,7 @@ class MarketerController extends Controller
         return view('admin.marketers.payouts.index', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Marketers', 'url' => route('admin.marketers.index')],
+                ['label' => 'Marketers', 'url' => route('admin.marketers.all.index')],
                 ['label' => 'Payouts'],
             ],
             'stats' => $stats,
@@ -578,7 +578,7 @@ class MarketerController extends Controller
 
     private function actions(object $row): string
     {
-        $url = route('admin.marketers.show', $row->id);
+        $url = route('admin.marketers.all.show', $row->id);
         $html = '<div class="flex gap-1">';
         $html .= '<a href="' . $url . '" class="btn btn-xs btn-ghost">View</a>';
 
@@ -637,8 +637,8 @@ class MarketerController extends Controller
 
         return view('admin.marketers.tiers.show', [
             'breadcrumbs' => [
-                ['label' => 'Marketers', 'url' => route('admin.marketers.index')],
-                ['label' => $marketer->name, 'url' => route('admin.marketers.show', $marketer)],
+                ['label' => 'Marketers', 'url' => route('admin.marketers.all.index')],
+                ['label' => $marketer->name, 'url' => route('admin.marketers.all.show', $marketer)],
                 ['label' => 'Commission Tiers'],
             ],
             'marketer' => $marketer,
@@ -694,7 +694,7 @@ class MarketerController extends Controller
 
         return view('admin.marketers.secret-promotions.index', [
             'breadcrumbs' => [
-                ['label' => 'Marketers', 'url' => route('admin.marketers.index')],
+                ['label' => 'Marketers', 'url' => route('admin.marketers.all.index')],
                 ['label' => 'Secret Promotions'],
             ],
             'promotions' => $promotions,
@@ -766,7 +766,7 @@ class MarketerController extends Controller
 
         return view('admin.marketers.samples.index', [
             'breadcrumbs' => [
-                ['label' => 'Marketers', 'url' => route('admin.marketers.index')],
+                ['label' => 'Marketers', 'url' => route('admin.marketers.all.index')],
                 ['label' => 'Sample Requests'],
             ],
             'stats' => $stats,

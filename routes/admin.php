@@ -827,8 +827,23 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/payouts/{payout}/process', [DeliveryPayoutController::class, 'process'])->name('payouts.process');
     });
 
+    // ── Marketers ─────────────────────────────────────────────────────────────────
+    Route::prefix('marketers')->name('marketers.all.')->group(function () {
+        Route::get('/', [MarketerController::class, 'index'])->name('index');
+        Route::post('/datatable', [MarketerController::class, 'datatable'])->name('datatable');
+        Route::get('/{marketer}', [MarketerController::class, 'show'])->name('show');
+        Route::post('/{marketer}/approve', [MarketerController::class, 'approve'])->name('approve');
+        Route::post('/{marketer}/reject', [MarketerController::class, 'reject'])->name('reject');
+        Route::post('/{marketer}/suspend', [MarketerController::class, 'suspend'])->name('suspend');
+        Route::post('/{marketer}/activate', [MarketerController::class, 'activate'])->name('activate');
+        Route::post('/{marketer}/campaigns/datatable', [MarketerController::class, 'marketerCampaignsDatatable'])->name('marketer-campaigns.datatable');
+        Route::post('/{marketer}/conversions/datatable', [MarketerController::class, 'marketerConversionsDatatable'])->name('marketer-conversions.datatable');
+        Route::get('/{marketer}/tiers', [MarketerController::class, 'tiersShow'])->name('tiers.show');
+        Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
+    });
+
     // ── Marketer Secret Promotions ──────────────────────────────────────────────
-    Route::prefix('marketers/secret-promotions')->name('secret-promotions.')->group(function () {
+    Route::prefix('marketers-secret-promotions')->name('secret-promotions.')->group(function () {
         // AJAX helpers — must come before wildcard {secretPromotion}
         Route::get('/listings/by-vendor', [SecretPromotionController::class, 'getListingsForVendor'])->name('listings.by-vendor');
         Route::get('/listings/{listing}/details', [SecretPromotionController::class, 'getListingDetails'])->name('listings.details');
@@ -844,20 +859,7 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{secretPromotion}/duplicate', [SecretPromotionController::class, 'duplicate'])->name('duplicate');
     });
 
-    // ── Marketers ─────────────────────────────────────────────────────────────────
-    Route::prefix('marketers')->name('marketers.')->group(function () {
-        Route::get('/', [MarketerController::class, 'index'])->name('index');
-        Route::post('/datatable', [MarketerController::class, 'datatable'])->name('datatable');
-        Route::get('/{marketer}', [MarketerController::class, 'show'])->name('show');
-        Route::post('/{marketer}/approve', [MarketerController::class, 'approve'])->name('approve');
-        Route::post('/{marketer}/reject', [MarketerController::class, 'reject'])->name('reject');
-        Route::post('/{marketer}/suspend', [MarketerController::class, 'suspend'])->name('suspend');
-        Route::post('/{marketer}/activate', [MarketerController::class, 'activate'])->name('activate');
-        Route::post('/{marketer}/campaigns/datatable', [MarketerController::class, 'marketerCampaignsDatatable'])->name('marketer-campaigns.datatable');
-        Route::post('/{marketer}/conversions/datatable', [MarketerController::class, 'marketerConversionsDatatable'])->name('marketer-conversions.datatable');
-        Route::get('/{marketer}/tiers', [MarketerController::class, 'tiersShow'])->name('tiers.show');
-        Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
-    });
+
 
 
 
