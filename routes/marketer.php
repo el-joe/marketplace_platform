@@ -59,37 +59,37 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
         });
     });
 
-Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
-    ->name('marketer.')
-    ->group(function () {
+// Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
+//     ->name('marketer.')
+//     ->group(function () {
 
-        // ── Guest ─────────────────────────────────────────────────────────────
-        Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-        Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+//         // ── Guest ─────────────────────────────────────────────────────────────
+//         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+//         Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-        // ── Authenticated ─────────────────────────────────────────────────────
-        Route::middleware(['auth.marketer'])->group(function () {
+//         // ── Authenticated ─────────────────────────────────────────────────────
+//         Route::middleware(['auth.marketer'])->group(function () {
 
-            Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+//             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-            // Dashboard
-            Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+//             // Dashboard
+//             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-            // Campaigns
-            Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
-            Route::get('/campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');
-            Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
-            Route::get('/campaigns/{campaign}', [CampaignController::class, 'show'])->name('campaigns.show');
+//             // Campaigns
+//             Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
+//             Route::get('/campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');
+//             Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
+//             Route::get('/campaigns/{campaign}', [CampaignController::class, 'show'])->name('campaigns.show');
 
-            // Product AJAX search
-            Route::get('/campaigns/products/search', [CampaignController::class, 'searchProducts'])->name('campaigns.products.search');
+//             // Product AJAX search
+//             Route::get('/campaigns/products/search', [CampaignController::class, 'searchProducts'])->name('campaigns.products.search');
 
-            // Tracking link generation + stats
-            Route::get('/campaigns/{campaign}/link', [TrackingController::class, 'generateLink'])->name('campaigns.link');
-            Route::get('/campaigns/{campaign}/stats', [TrackingController::class, 'stats'])->name('campaigns.stats');
+//             // Tracking link generation + stats
+//             Route::get('/campaigns/{campaign}/link', [TrackingController::class, 'generateLink'])->name('campaigns.link');
+//             Route::get('/campaigns/{campaign}/stats', [TrackingController::class, 'stats'])->name('campaigns.stats');
 
-            // Earnings
-            Route::get('/earnings', [EarningsController::class, 'index'])->name('earnings.index');
-            Route::get('/earnings/summary', [EarningsController::class, 'summary'])->name('earnings.summary');
-        });
-    });
+//             // Earnings
+//             Route::get('/earnings', [EarningsController::class, 'index'])->name('earnings.index');
+//             Route::get('/earnings/summary', [EarningsController::class, 'summary'])->name('earnings.summary');
+//         });
+//     });
