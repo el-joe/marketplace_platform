@@ -79,17 +79,6 @@
                         تكلفة المنتج
                     </button>
                     @endif
-                        type="button"
-                        @click="activeTab = '{{ $tab['id'] }}'"
-                        :class="activeTab === '{{ $tab['id'] }}'
-                            ? 'border-b-2 border-primary-600 text-primary-700 bg-primary-50/50'
-                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
-                        class="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium -mb-px whitespace-nowrap transition-colors"
-                    >
-                        <x-heroicon name="{{ $tab['icon'] }}" class="w-4 h-4" />
-                        {{ $tab['label'] }}
-                    </button>
-                    @endforeach
                 </nav>
             </div>
 

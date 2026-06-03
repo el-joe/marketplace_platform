@@ -177,6 +177,54 @@ class NavigationService
                 ],
             ],
             [
+                'group' => 'Marketers',
+                'icon' => 'user-group',
+                'items' => [
+                    [
+                        'label' => 'All Marketers',
+                        'route' => 'admin.marketers.index',
+                        'icon' => 'user-group',
+                        'permission' => 'marketers.view',
+                        'badge' => $this->cachedBadge('pending_marketers', fn() => $this->countPendingMarketers()),
+                    ],
+                    [
+                        'label' => 'Campaigns',
+                        'route' => 'admin.marketers.campaigns.index',
+                        'icon' => 'megaphone',
+                        'permission' => 'marketers.campaigns.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Conversions',
+                        'route' => 'admin.marketers.conversions.index',
+                        'icon' => 'arrow-trending-up',
+                        'permission' => 'marketers.conversions.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Payouts',
+                        'route' => 'admin.marketers.payouts.index',
+                        'icon' => 'banknotes',
+                        'permission' => 'marketers.payouts.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Sample Requests',
+                        'route' => 'admin.marketers.samples.index',
+                        'icon' => 'inbox-stack',
+                        'permission' => 'marketers.samples.view',
+                        'badge' => $this->cachedBadge('pending_marketer_samples', fn() => $this->countPendingMarketerSamples()),
+                    ],
+                    [
+                        'label' => 'Secret Promotions',
+                        'route' => 'admin.marketers.secret.index',
+                        'icon' => 'lock-closed',
+                        'permission' => 'marketers.secret_promotions.view',
+                        'badge' => null,
+                    ],
+                ],
+            ],
+            [
                 'group' => 'Finance',
                 'icon' => 'banknotes',
                 'items' => [
@@ -406,6 +454,24 @@ class NavigationService
     {
         try {
             return (int) \App\Models\SupportTicket::query()->where('status', 'open')->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingMarketers(): int
+    {
+        try {
+            return (int) \App\Models\Marketer::query()->where('status', 'pending')->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingMarketerSamples(): int
+    {
+        try {
+            return (int) \App\Models\MarketerSampleRequest::query()->where('status', 'requested')->count();
         } catch (\Throwable) {
             return 0;
         }

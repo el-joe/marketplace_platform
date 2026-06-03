@@ -67,6 +67,8 @@
         <x-partner-nav-group label="التسويق">
             <x-partner-nav-item route="partner.flash-sales.index" icon="bolt" label="التخفيضات السريعة" />
             <x-partner-nav-item route="partner.ads.index" icon="megaphone" label="الإعلانات" />
+            <x-partner-nav-item route="partner.marketer-campaigns.index" icon="user-group" label="حملات المسوّقين" />
+            <x-partner-nav-item route="partner.marketer-samples.index" icon="inbox-stack" label="طلبات العينات" />
         </x-partner-nav-group>
 
         <x-partner-nav-item route="partner.performance.index" icon="chart-bar" label="الأداء" />

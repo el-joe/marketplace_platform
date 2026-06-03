@@ -22,7 +22,7 @@
         ['label' => 'Total Marketers',    'value' => $stats['total'],             'color' => 'gray'],
         ['label' => 'Active',             'value' => $stats['active'],            'color' => 'success'],
         ['label' => 'Pending Approval',   'value' => $stats['pending'],           'color' => 'warning'],
-        ['label' => 'Commissions (MTD)',  'value' => number_format($stats['commissions_month'] / 100, 2) . ' SAR', 'color' => 'primary'],
+        ['label' => 'Commissions (MTD)',  'value' => number_format($stats['commissions_month'] / 100, 2) , 'color' => 'primary'],
     ] as $stat)
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ $stat['label'] }}</p>
@@ -112,7 +112,8 @@
 @endsection
 
 @push('scripts')
-<script>
+
+<script type="module">
 $(function () {
     let currentType = '';
 

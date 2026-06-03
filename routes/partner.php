@@ -14,6 +14,8 @@ use App\Http\Controllers\Partner\DisputeController;
 use App\Http\Controllers\Partner\SupportController;
 use App\Http\Controllers\Partner\SubscriptionController as PartnerSubscriptionController;
 use App\Http\Controllers\Partner\FulfillmentController;
+use App\Http\Controllers\Partner\MarketerCampaignController as PartnerMarketerCampaignController;
+use App\Http\Controllers\Partner\MarketerSampleController as PartnerMarketerSampleController;
 use App\Http\Controllers\Partner\TeamController;
 use Illuminate\Support\Facades\Route;
 
@@ -164,5 +166,18 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/subscribe', 'subscribe')->name('subscribe');
         Route::post('/cancel', 'cancel')->name('cancel');
+    });
+
+    // ── Marketer Campaigns (read-only for vendors) ───────────────────────────────
+    Route::prefix('marketer-campaigns')->name('marketer-campaigns.')->controller(PartnerMarketerCampaignController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{campaign}', 'show')->name('show');
+    });
+
+    // ── Marketer Sample Requests ─────────────────────────────────────────────────
+    Route::prefix('marketer-samples')->name('marketer-samples.')->controller(PartnerMarketerSampleController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/{req}/approve', 'approve')->name('approve');
+        Route::post('/{req}/reject', 'reject')->name('reject');
     });
 });
