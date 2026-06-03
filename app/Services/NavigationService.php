@@ -217,7 +217,7 @@ class NavigationService
                     ],
                     [
                         'label' => 'Secret Promotions',
-                        'route' => 'admin.marketers.secret.index',
+                        'route' => 'admin.secret-promotions.index',
                         'icon' => 'lock-closed',
                         'permission' => 'marketers.secret_promotions.view',
                         'badge' => null,

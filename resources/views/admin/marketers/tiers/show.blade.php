@@ -8,7 +8,6 @@
 
 @section('content')
 
-    <x-breadcrumbs :items="$breadcrumbs" class="mb-4" />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

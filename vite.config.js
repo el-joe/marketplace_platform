@@ -53,6 +53,8 @@ export default defineConfig({
                 'resources/js/admin/activity-log.js',
                 'resources/js/admin/payment-methods.js',
                 'resources/js/admin/shipping-methods.js',
+                'resources/js/admin/secret-promotions.js',
+                'resources/js/admin/secret-promotion-detail.js',
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
                 'resources/js/portal/registration.js',

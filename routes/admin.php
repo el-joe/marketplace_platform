@@ -43,6 +43,7 @@ use App\Http\Controllers\Admin\DeliveryPayoutController;
 use App\Http\Controllers\Admin\MarketerController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\FbnController;
+use App\Http\Controllers\Admin\SecretPromotionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -826,6 +827,23 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/payouts/{payout}/process', [DeliveryPayoutController::class, 'process'])->name('payouts.process');
     });
 
+    // ── Marketer Secret Promotions ──────────────────────────────────────────────
+    Route::prefix('marketers/secret-promotions')->name('secret-promotions.')->group(function () {
+        // AJAX helpers — must come before wildcard {secretPromotion}
+        Route::get('/listings/by-vendor', [SecretPromotionController::class, 'getListingsForVendor'])->name('listings.by-vendor');
+        Route::get('/listings/{listing}/details', [SecretPromotionController::class, 'getListingDetails'])->name('listings.details');
+        Route::get('/stats/cards', [SecretPromotionController::class, 'stats'])->name('stats');
+        Route::post('/datatable', [SecretPromotionController::class, 'datatable'])->name('datatable');
+
+        Route::get('/', [SecretPromotionController::class, 'index'])->name('index');
+        Route::post('/', [SecretPromotionController::class, 'store'])->name('store');
+        Route::get('/{secretPromotion}', [SecretPromotionController::class, 'show'])->name('show');
+        Route::put('/{secretPromotion}', [SecretPromotionController::class, 'update'])->name('update');
+        Route::post('/{secretPromotion}/toggle-status', [SecretPromotionController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{secretPromotion}/expire', [SecretPromotionController::class, 'expire'])->name('expire');
+        Route::post('/{secretPromotion}/duplicate', [SecretPromotionController::class, 'duplicate'])->name('duplicate');
+    });
+
     // ── Marketers ─────────────────────────────────────────────────────────────────
     Route::prefix('marketers')->name('marketers.')->group(function () {
         Route::get('/', [MarketerController::class, 'index'])->name('index');
@@ -841,12 +859,7 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
     });
 
-    // ── Marketer Secret Promotions ──────────────────────────────────────────────
-    Route::prefix('marketer-secret-promotions')->name('marketers.secret.')->group(function () {
-        Route::get('/', [MarketerController::class, 'secretPromotionsIndex'])->name('index');
-        Route::post('/', [MarketerController::class, 'storeSecretPromotion'])->name('store');
-        Route::put('/{secretPromotion}', [MarketerController::class, 'updateSecretPromotion'])->name('update');
-    });
+
 
     // ── Marketer Samples ────────────────────────────────────────────────────────
     Route::prefix('marketer-samples')->name('marketers.samples.')->group(function () {

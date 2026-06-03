@@ -4,8 +4,6 @@
 
 @section('content')
 
-    <x-breadcrumbs :items="$breadcrumbs" class="mb-4" />
-
     <div class="flex items-center justify-between mb-5">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Secret Promotions</h1>
@@ -36,7 +34,8 @@
                         <td class="px-4 py-3 font-medium">{{ $promo->vendorListing?->product?->name_en ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-600">{{ $promo->vendor?->store_name ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-600">
-                            {{ $promo->marketer?->name ?? '<span class="text-xs text-gray-400 italic">Any</span>' }}</td>
+                            {{ $promo->marketer?->name ?? '<span class="text-xs text-gray-400 italic">Any</span>' }}
+                        </td>
                         <td class="px-4 py-3 text-right font-mono font-bold">{{ $promo->total_commission_pct }}%</td>
                         <td class="px-4 py-3 text-right font-mono text-green-600">{{ $promo->marketer_share_pct }}%</td>
                         <td class="px-4 py-3 text-right font-mono text-blue-600">{{ $promo->admin_share_pct }}%</td>
@@ -124,7 +123,7 @@
 @endsection
 
 @push('scripts')
-    <script>
+    <script type="module">
         $(function () {
             const tok = '{{ csrf_token() }}';
 

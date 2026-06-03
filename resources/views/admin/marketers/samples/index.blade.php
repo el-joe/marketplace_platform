@@ -8,7 +8,6 @@
 
 @section('content')
 
-<x-breadcrumbs :items="$breadcrumbs" class="mb-4"/>
 
 {{-- Stats bar --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -59,7 +58,7 @@
 @endsection
 
 @push('scripts')
-<script>
+<script type="module">
 $(function () {
     const tok = '{{ csrf_token() }}';
 

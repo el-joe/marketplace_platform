@@ -9,7 +9,6 @@
 @section('content')
 
 {{-- ─── Breadcrumb ──────────────────────────────────────────────────────────── --}}
-<x-breadcrumbs :items="$breadcrumbs" class="mb-4"/>
 
 {{-- ─── Profile Card ────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

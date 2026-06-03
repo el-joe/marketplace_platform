@@ -8,7 +8,6 @@
 
 @section('content')
 
-    <x-breadcrumbs :items="$breadcrumbs" class="mb-4" />
 
     {{-- ─── Page Header ─────────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex items-center justify-between gap-4">
