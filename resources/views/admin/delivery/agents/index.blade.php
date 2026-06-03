@@ -184,7 +184,7 @@
 @endsection
 
 @push('scripts')
-<script>
+<script type="module">
 (function () {
     const DATATABLE_URL = @json(route('admin.delivery.agents.datatable'));
     const STORE_URL     = @json(route('admin.delivery.agents.store'));

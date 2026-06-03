@@ -26,6 +26,7 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+
         if (Auth::guard('delivery')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
