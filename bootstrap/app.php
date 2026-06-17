@@ -29,6 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.marketer' => \App\Http\Middleware\MarketerAuth::class,
             'marketer.active' => \App\Http\Middleware\MarketerAuth::class,
             'track.marketer.click' => \App\Http\Middleware\TrackMarketerClick::class,
+            'auth.travel_agency' => \App\Http\Middleware\TravelAgencyAuth::class,
+            'auth.carrier' => \App\Http\Middleware\ShippingCompanySupervisorAuth::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

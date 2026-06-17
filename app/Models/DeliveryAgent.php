@@ -24,6 +24,8 @@ class DeliveryAgent extends Authenticatable
 
     protected $fillable = [
         'country_id',
+        'shipping_company_id',
+        'added_by_supervisor_id',
         'zone_id',
         'name',
         'email',
@@ -71,6 +73,16 @@ class DeliveryAgent extends Authenticatable
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function shippingCompany(): BelongsTo
+    {
+        return $this->belongsTo(ShippingCompany::class, 'shipping_company_id');
+    }
+
+    public function addedBySupervisor(): BelongsTo
+    {
+        return $this->belongsTo(ShippingCompanySupervisor::class, 'added_by_supervisor_id');
     }
 
     public function zone(): BelongsTo

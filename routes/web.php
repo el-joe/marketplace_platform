@@ -54,6 +54,26 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))->group(
 
 /*
 |--------------------------------------------------------------------------
+| Travel Agency Portal
+| travel-agency.noon.loc
+|--------------------------------------------------------------------------
+*/
+Route::domain('travel-agency.' . env('APP_DOMAIN', 'localhost'))->group(
+    base_path('routes/travel.php')
+);
+
+/*
+|--------------------------------------------------------------------------
+| Carrier (Shipping Company Supervisor) Portal
+| carrier.noon.loc
+|--------------------------------------------------------------------------
+*/
+Route::domain('carrier.' . env('APP_DOMAIN', 'localhost'))->group(
+    base_path('routes/carrier.php')
+);
+
+/*
+|--------------------------------------------------------------------------
 | Storefront Tracking Redirects
 | {country}.noon.loc/r/{slug}
 |--------------------------------------------------------------------------
@@ -110,5 +130,30 @@ Route::prefix('{country}/classifieds')
             ->name('show');
         Route::post('/{listing}/inquire', [\App\Http\Controllers\Storefront\ClassifiedController::class, 'inquire'])
             ->name('inquire');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Storefront — Travel Packages
+| {country}.noon.loc/travel
+|--------------------------------------------------------------------------
+*/
+Route::prefix('{country}/travel')
+    ->middleware(['web'])
+    ->name('travel.')
+    ->group(function () {
+        Route::get('/', [\App\Http\Controllers\Storefront\TravelController::class, 'index'])
+            ->name('index');
+        Route::get('/booking/{booking}/confirmed', [\App\Http\Controllers\Storefront\TravelController::class, 'bookingConfirmed'])
+            ->name('booking.confirmed')
+            ->middleware('auth:customer');
+        Route::get('/{package}', [\App\Http\Controllers\Storefront\TravelController::class, 'show'])
+            ->name('show');
+        Route::middleware('auth:customer')->group(function () {
+            Route::get('/{package}/book', [\App\Http\Controllers\Storefront\TravelController::class, 'bookForm'])
+                ->name('book');
+            Route::post('/{package}/book', [\App\Http\Controllers\Storefront\TravelController::class, 'book'])
+                ->name('book.submit');
+        });
     });
 

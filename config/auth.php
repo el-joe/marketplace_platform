@@ -61,6 +61,16 @@ return [
             'driver' => 'session',
             'provider' => 'marketers',
         ],
+        // Travel agency portal
+        'travel_agency' => [
+            'driver' => 'session',
+            'provider' => 'travel_agencies',
+        ],
+        // Shipping company supervisor portal
+        'shipping_supervisor' => [
+            'driver' => 'session',
+            'provider' => 'shipping_supervisors',
+        ],
     ],
 
     /*
@@ -100,6 +110,14 @@ return [
         'marketers' => [
             'driver' => 'eloquent',
             'model' => \App\Models\Marketer::class,
+        ],
+        'travel_agencies' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\TravelAgency::class,
+        ],
+        'shipping_supervisors' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\ShippingCompanySupervisor::class,
         ],
 
         // 'users' => [
@@ -144,6 +162,12 @@ return [
         'customers' => [
             'provider' => 'customers',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'travel_agencies' => [
+            'provider' => 'travel_agencies',
+            'table' => 'travel_agency_password_resets',
             'expire' => 60,
             'throttle' => 60,
         ],

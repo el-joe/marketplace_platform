@@ -997,5 +997,39 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{adminProductListing}/nawy-preview', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'nawyPreview'])->name('nawy-preview');
     });
 
+    // ─── Travel Agencies & Packages ───────────────────────────────────────────
+    Route::prefix('travel')->name('travel.')->group(function () {
+
+        Route::prefix('agencies')->name('agencies.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelAgencyController::class, 'index'])->name('index');
+            Route::get('/datatable', [\App\Http\Controllers\Admin\TravelAgencyController::class, 'datatable'])->name('datatable');
+            Route::get('/{travelAgency}', [\App\Http\Controllers\Admin\TravelAgencyController::class, 'show'])->name('show');
+            Route::post('/{travelAgency}/approve', [\App\Http\Controllers\Admin\TravelAgencyController::class, 'approve'])->name('approve');
+            Route::post('/{travelAgency}/suspend', [\App\Http\Controllers\Admin\TravelAgencyController::class, 'suspend'])->name('suspend');
+            Route::post('/{travelAgency}/reactivate', [\App\Http\Controllers\Admin\TravelAgencyController::class, 'reactivate'])->name('reactivate');
+            Route::post('/{travelAgency}/reject', [\App\Http\Controllers\Admin\TravelAgencyController::class, 'reject'])->name('reject');
+        });
+
+        Route::prefix('packages')->name('packages.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelPackageController::class, 'index'])->name('index');
+            Route::get('/{travelPackage}', [\App\Http\Controllers\Admin\TravelPackageController::class, 'show'])->name('show');
+            Route::post('/{travelPackage}/approve', [\App\Http\Controllers\Admin\TravelPackageController::class, 'approve'])->name('approve');
+            Route::post('/{travelPackage}/reject', [\App\Http\Controllers\Admin\TravelPackageController::class, 'reject'])->name('reject');
+            Route::post('/{travelPackage}/expire', [\App\Http\Controllers\Admin\TravelPackageController::class, 'expire'])->name('expire');
+        });
+    });
+
+    // ─── Shipping Companies (Carrier Portal) ─────────────────────────────────
+    Route::prefix('shipping-companies')->name('shipping-companies.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'index'])->name('index');
+        Route::get('/{shippingCompany}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'show'])->name('show');
+        Route::post('/{shippingCompany}/approve', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'approve'])->name('approve');
+        Route::post('/{shippingCompany}/suspend', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'suspend'])->name('suspend');
+        Route::post('/supervisors/{supervisor}/toggle-notifications', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'toggleSupervisorNotifications'])->name('supervisors.toggle-notifications');
+        Route::get('/fallback-rules', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'fallbackRules'])->name('fallback-rules.index');
+        Route::post('/fallback-rules', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'storeFallbackRule'])->name('fallback-rules.store');
+        Route::delete('/fallback-rules/{rule}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'destroyFallbackRule'])->name('fallback-rules.destroy');
+    });
+
 }); // end auth.admin middleware group
 
