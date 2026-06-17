@@ -65,3 +65,19 @@ Route::prefix('{country}/r')
             ->name('marketer.tracking.redirect');
     });
 
+/*
+|--------------------------------------------------------------------------
+| Storefront — Now Nawy curated feed
+| {country}.noon.loc/now-nawy
+|--------------------------------------------------------------------------
+*/
+Route::prefix('{country}')
+    ->middleware(['web'])
+    ->name('nawy.')
+    ->group(function () {
+        Route::get('/now-nawy', [\App\Http\Controllers\Storefront\NawyController::class, 'index'])
+            ->name('index');
+        Route::get('/now-nawy/category/{category}', [\App\Http\Controllers\Storefront\NawyController::class, 'byCategory'])
+            ->name('category');
+    });
+

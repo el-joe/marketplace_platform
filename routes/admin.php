@@ -950,5 +950,16 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{subscription}/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('cancel');
     });
 
+    // ─── Admin Product Listings (Now Nawy) ───────────────────────────────────
+    Route::prefix('admin-product-listings')->name('admin-product-listings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'store'])->name('store');
+        Route::get('/{adminProductListing}/edit', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'edit'])->name('edit');
+        Route::put('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'update'])->name('update');
+        Route::delete('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'destroy'])->name('destroy');
+        Route::get('/{adminProductListing}/nawy-preview', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'nawyPreview'])->name('nawy-preview');
+    });
+
 }); // end auth.admin middleware group
 
