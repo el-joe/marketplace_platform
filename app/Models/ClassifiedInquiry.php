@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class ClassifiedInquiry extends Model
+{
+    use HasUuids;
+
+    protected $fillable = [
+        'classified_listing_id', 'customer_id', 'marketer_id',
+        'message', 'contact_phone', 'status',
+    ];
+
+    public function listing(): BelongsTo
+    {
+        return $this->belongsTo(ClassifiedListing::class, 'classified_listing_id');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function marketer(): BelongsTo
+    {
+        return $this->belongsTo(Marketer::class);
+    }
+}

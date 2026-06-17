@@ -81,3 +81,34 @@ Route::prefix('{country}')
             ->name('category');
     });
 
+/*
+|--------------------------------------------------------------------------
+| Storefront — Classifieds Marketplace
+| {country}.noon.loc/classifieds
+|--------------------------------------------------------------------------
+*/
+Route::prefix('{country}/classifieds')
+    ->middleware(['web'])
+    ->name('classifieds.')
+    ->group(function () {
+        Route::get('/', [\App\Http\Controllers\Storefront\ClassifiedController::class, 'index'])
+            ->name('index');
+        Route::get('/map-data', [\App\Http\Controllers\Storefront\ClassifiedController::class, 'mapData'])
+            ->name('map-data');
+
+        // Auth-required routes (before /{listingNumber} wildcard)
+        Route::middleware('auth:customer')->group(function () {
+            Route::get('/create', [\App\Http\Controllers\Storefront\ClassifiedController::class, 'create'])
+                ->name('create');
+            Route::post('/draft', [\App\Http\Controllers\Storefront\ClassifiedController::class, 'storeDraft'])
+                ->name('draft');
+            Route::post('/{listing}/sign-contract', [\App\Http\Controllers\Storefront\ClassifiedController::class, 'signContract'])
+                ->name('sign');
+        });
+
+        Route::get('/{listingNumber}', [\App\Http\Controllers\Storefront\ClassifiedController::class, 'show'])
+            ->name('show');
+        Route::post('/{listing}/inquire', [\App\Http\Controllers\Storefront\ClassifiedController::class, 'inquire'])
+            ->name('inquire');
+    });
+

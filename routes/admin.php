@@ -950,6 +950,42 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{subscription}/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('cancel');
     });
 
+    // ─── Classifieds ──────────────────────────────────────────────────────────
+    Route::prefix('classifieds')->name('classifieds.')->group(function () {
+
+        // Categories
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'store'])->name('store');
+            Route::get('/{category}/edit', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'edit'])->name('edit');
+            Route::put('/{category}', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'update'])->name('update');
+            Route::delete('/{category}', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'destroy'])->name('destroy');
+        });
+
+        // Contract Templates
+        Route::prefix('contract-templates')->name('contract-templates.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'store'])->name('store');
+            Route::get('/{contractTemplate}/edit', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'edit'])->name('edit');
+            Route::put('/{contractTemplate}', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'update'])->name('update');
+            Route::delete('/{contractTemplate}', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'destroy'])->name('destroy');
+        });
+
+        // Listings (review queue)
+        Route::prefix('listings')->name('listings.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ClassifiedListingController::class, 'index'])->name('index');
+            Route::get('/{listing}', [\App\Http\Controllers\Admin\ClassifiedListingController::class, 'show'])->name('show');
+            Route::post('/{listing}/approve', [\App\Http\Controllers\Admin\ClassifiedListingController::class, 'approve'])->name('approve');
+            Route::post('/{listing}/reject', [\App\Http\Controllers\Admin\ClassifiedListingController::class, 'reject'])->name('reject');
+        });
+
+        // Attachment verification
+        Route::post('/attachments/{attachment}/verify', [\App\Http\Controllers\Admin\ClassifiedListingController::class, 'verifyAttachment'])
+            ->name('attachments.verify');
+    });
+
     // ─── Admin Product Listings (Now Nawy) ───────────────────────────────────
     Route::prefix('admin-product-listings')->name('admin-product-listings.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'index'])->name('index');
