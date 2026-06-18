@@ -5,8 +5,7 @@ use App\Http\Controllers\TravelAgencyPortal\DashboardController;
 use App\Http\Controllers\TravelAgencyPortal\PackageController;
 use Illuminate\Support\Facades\Route;
 
-Route::domain('travel-agency.' . env('APP_DOMAIN', 'localhost'))
-    ->name('travel-agency.')
+Route::name('travel-agency.')
     ->group(function () {
 
         // ── Guest ─────────────────────────────────────────────────────────────

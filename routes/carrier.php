@@ -7,8 +7,7 @@ use App\Http\Controllers\CarrierPortal\DashboardController;
 use App\Http\Controllers\CarrierPortal\SupervisorController;
 use Illuminate\Support\Facades\Route;
 
-Route::domain('carrier.' . env('APP_DOMAIN', 'localhost'))
-    ->name('carrier.')
+Route::name('carrier.')
     ->group(function () {
 
         // ── Guest ──────────────────────────────────────────────────────────────

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('ai_image_enhancement_jobs', function (Blueprint $table) {
@@ -22,7 +21,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('product_image_id')->references('id')->on('product_images')->onDelete('cascade');
-            $table->index(['requested_by_type', 'requested_by_id']);
+            $table->index(['requested_by_type', 'requested_by_id'], 'ai_jobs_requested_by_index');
             $table->index('status');
         });
     }
