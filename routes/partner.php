@@ -213,4 +213,13 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
     // ─── Delivery Ratings ─────────────────────────────────────────────────────
     Route::post('/orders/{subOrder}/rate-delivery', [\App\Http\Controllers\Partner\DeliveryRatingController::class, 'store'])
         ->name('orders.rate-delivery');
+
+    // ─── Packaging Supplies ───────────────────────────────────────────────────
+    Route::prefix('packaging-supplies')->name('packaging-supplies.')->group(function () {
+        Route::get('/',                                           [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'index'])->name('index');
+        Route::get('/request',                                    [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'request'])->name('request');
+        Route::post('/request',                                   [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'submitRequest'])->name('submit');
+        Route::get('/my-requests',                                [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'myRequests'])->name('my-requests');
+        Route::get('/my-requests/{packagingSupplyRequest}',       [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'showRequest'])->name('show-request');
+    });
 });

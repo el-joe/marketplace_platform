@@ -1085,5 +1085,23 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{shippingCompany}/trend',              [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'trendData'])->name('trend');
     });
 
+    // ─── Packaging Supplies ───────────────────────────────────────────────────
+    Route::prefix('packaging-supplies')->name('packaging-supplies.')->group(function () {
+        // Catalog CRUD
+        Route::get('/',                    [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'index'])->name('index');
+        Route::get('/create',              [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'create'])->name('create');
+        Route::post('/',                   [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'store'])->name('store');
+        Route::get('/{packagingSupply}/edit', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'edit'])->name('edit');
+        Route::put('/{packagingSupply}',   [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'update'])->name('update');
+        Route::delete('/{packagingSupply}',[\App\Http\Controllers\Admin\PackagingSupplyController::class, 'destroy'])->name('destroy');
+
+        // Requests queue
+        Route::get('/requests',                                     [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'requests'])->name('requests');
+        Route::get('/requests/{packagingSupplyRequest}',            [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'showRequest'])->name('show-request');
+        Route::patch('/requests/{packagingSupplyRequest}/approve',  [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'approveRequest'])->name('approve-request');
+        Route::patch('/requests/{packagingSupplyRequest}/reject',   [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'rejectRequest'])->name('reject-request');
+        Route::patch('/requests/{packagingSupplyRequest}/status',   [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'updateRequestStatus'])->name('update-request-status');
+    });
+
 }); // end auth.admin middleware group
 
