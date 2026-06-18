@@ -1,0 +1,73 @@
+@php
+    /** @var \Illuminate\Database\Eloquent\Collection $listings */
+    /** @var array $config */
+    $locale   = app()->getLocale();
+    $title_en = $config['title_en'] ?? '';
+    $title_ar = $config['title_ar'] ?? '';
+    $title    = $locale === 'ar' ? ($title_ar ?: $title_en) : ($title_en ?: $title_ar);
+@endphp
+
+@if($listings->isNotEmpty())
+<section class="py-4">
+    @if($title)
+    <div class="flex items-center gap-2 px-4 mb-3">
+        <x-heroicon name="sparkles" class="w-5 h-5 text-primary-600 shrink-0" />
+        <h2 class="text-base font-bold text-gray-900">{{ $title }}</h2>
+    </div>
+    @endif
+
+    {{-- Horizontal scroll carousel --}}
+    <div class="flex gap-3 overflow-x-auto px-4 pb-2 snap-x snap-mandatory scrollbar-hide">
+        @foreach($listings as $listing)
+        @php
+            $variant = $listing->productVariant;
+            $product = $variant?->product;
+            $image   = $product?->images->first();
+            $name    = $locale === 'ar'
+                ? ($product?->name_ar ?? $product?->name_en)
+                : ($product?->name_en ?? $product?->name_ar);
+        @endphp
+
+        <div class="flex-none w-36 snap-start bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            {{-- Image --}}
+            <div class="relative aspect-square bg-gray-50">
+                @if($image)
+                    <img
+                        src="{{ Storage::url($image->path) }}"
+                        alt="{{ $name }}"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                    >
+                @else
+                    <div class="w-full h-full flex items-center justify-center text-gray-200">
+                        <x-heroicon name="photo" class="w-8 h-8" />
+                    </div>
+                @endif
+
+                {{-- Fulfillment badge --}}
+                <div class="absolute top-1.5 start-1.5">
+                    @if($listing->fulfillment_type === 'express')
+                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                            🚀 إكسبريس
+                        </span>
+                    @elseif($listing->fulfillment_type === 'global')
+                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                            🌍 عالمي
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Info --}}
+            <div class="p-2 space-y-0.5">
+                <p class="text-xs text-gray-700 line-clamp-2 leading-tight">{{ $name }}</p>
+                <p class="text-sm font-bold text-gray-900">
+                    {{ number_format($listing->price_cents / 100, 2) }}
+                    <span class="text-xs font-normal text-gray-500">{{ $listing->currency }}</span>
+                </p>
+            </div>
+        </div>
+        @endforeach
+    </div>
+</section>
+@endif
