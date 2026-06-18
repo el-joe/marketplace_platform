@@ -180,4 +180,10 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/{req}/approve', 'approve')->name('approve');
         Route::post('/{req}/reject', 'reject')->name('reject');
     });
+
+    // ── Wallet ────────────────────────────────────────────────────────────────
+    Route::prefix('wallet')->name('wallet.')->controller(\App\Http\Controllers\Partner\WalletController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/withdraw', 'requestWithdrawal')->name('withdraw');
+    });
 });

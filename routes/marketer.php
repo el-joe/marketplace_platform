@@ -58,6 +58,10 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             // Earnings
             Route::get('/earnings', [EarningsController::class, 'index'])->name('earnings.index');
             Route::get('/earnings/summary', [EarningsController::class, 'summary'])->name('earnings.summary');
+
+            // Wallet
+            Route::get('/wallet', [\App\Http\Controllers\MarketerPortal\WalletController::class, 'index'])->name('wallet.index');
+            Route::post('/wallet/withdraw', [\App\Http\Controllers\MarketerPortal\WalletController::class, 'requestWithdrawal'])->name('wallet.withdraw');
         });
     });
 

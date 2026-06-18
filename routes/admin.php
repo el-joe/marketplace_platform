@@ -1031,5 +1031,25 @@ Route::middleware('auth.admin')->group(function () {
         Route::delete('/fallback-rules/{rule}', [\App\Http\Controllers\Admin\ShippingCompanyController::class, 'destroyFallbackRule'])->name('fallback-rules.destroy');
     });
 
+    // ─── Wallets ──────────────────────────────────────────────────────────────
+    Route::prefix('wallets')->name('wallets.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\WalletController::class, 'index'])->name('index');
+        Route::get('/{wallet}', [\App\Http\Controllers\Admin\WalletController::class, 'show'])->name('show');
+        Route::post('/{wallet}/adjust', [\App\Http\Controllers\Admin\WalletController::class, 'adjustBalance'])->name('adjust');
+        Route::patch('/{wallet}/freeze', [\App\Http\Controllers\Admin\WalletController::class, 'freezeWallet'])->name('freeze');
+        Route::patch('/{wallet}/unfreeze', [\App\Http\Controllers\Admin\WalletController::class, 'unfreezeWallet'])->name('unfreeze');
+
+        // Withdrawal requests
+        Route::get('/withdrawals/queue', [\App\Http\Controllers\Admin\WalletController::class, 'withdrawalRequests'])->name('withdrawals');
+        Route::patch('/withdrawals/{withdrawal}/approve', [\App\Http\Controllers\Admin\WalletController::class, 'approveWithdrawal'])->name('withdrawals.approve');
+        Route::patch('/withdrawals/{withdrawal}/reject', [\App\Http\Controllers\Admin\WalletController::class, 'rejectWithdrawal'])->name('withdrawals.reject');
+        Route::patch('/withdrawals/{withdrawal}/processed', [\App\Http\Controllers\Admin\WalletController::class, 'markWithdrawalProcessed'])->name('withdrawals.processed');
+
+        // COD settlements
+        Route::get('/cod/settlements', [\App\Http\Controllers\Admin\WalletController::class, 'codSettlements'])->name('cod-settlements');
+        Route::post('/cod/settlements/run', [\App\Http\Controllers\Admin\WalletController::class, 'runCodSettlement'])->name('cod-settlements.run');
+        Route::patch('/cod/settlements/{settlement}/settle', [\App\Http\Controllers\Admin\WalletController::class, 'markSettlementSettled'])->name('cod-settlements.settle');
+    });
+
 }); // end auth.admin middleware group
 
