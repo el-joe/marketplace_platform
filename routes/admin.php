@@ -1051,5 +1051,11 @@ Route::middleware('auth.admin')->group(function () {
         Route::patch('/cod/settlements/{settlement}/settle', [\App\Http\Controllers\Admin\WalletController::class, 'markSettlementSettled'])->name('cod-settlements.settle');
     });
 
+    // ── AI Features Dashboard ─────────────────────────────────────────────
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AiDashboardController::class, 'index'])->name('index');
+        Route::post('/credits/allocate', [\App\Http\Controllers\Admin\AiDashboardController::class, 'allocateCredits'])->name('credits.allocate');
+    });
+
 }); // end auth.admin middleware group
 

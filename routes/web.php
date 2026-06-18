@@ -157,3 +157,22 @@ Route::prefix('{country}/travel')
         });
     });
 
+/*
+|--------------------------------------------------------------------------
+| Storefront — Virtual Try-On
+| {country}.noon.loc/try-on/{listing}
+| Only available for listings whose category has supports_virtual_tryon = 1
+|--------------------------------------------------------------------------
+*/
+Route::prefix('{country}/try-on')
+    ->middleware(['web'])
+    ->name('tryon.')
+    ->group(function () {
+        Route::get('/{listing}', [\App\Http\Controllers\Storefront\TryOnController::class, 'create'])
+            ->name('create');
+        Route::post('/{listing}', [\App\Http\Controllers\Storefront\TryOnController::class, 'process'])
+            ->name('process');
+        Route::get('/status/{sessionId}', [\App\Http\Controllers\Storefront\TryOnController::class, 'status'])
+            ->name('status');
+    });
+

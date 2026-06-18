@@ -93,4 +93,14 @@ return [
         'env' => env('FEDEX_ENV', 'live'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | AI Provider
+    |--------------------------------------------------------------------------
+    | Set AI_PROVIDER in .env to switch from the mock stub to a real provider.
+    | Options (once implemented): openai | replicate | falai
+    | See: App\Services\AiProviderFactory
+    */
+    'ai_provider' => env('AI_PROVIDER', 'mock'),
+
 ];

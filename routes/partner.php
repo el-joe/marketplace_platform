@@ -186,4 +186,19 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/withdraw', 'requestWithdrawal')->name('withdraw');
     });
+
+    // ── AI Tools ──────────────────────────────────────────────────────────
+    Route::prefix('ai')->name('ai.')->controller(\App\Http\Controllers\Partner\AiToolsController::class)->group(function () {
+        Route::get('/credits', 'credits')->name('credits');
+        Route::get('/{listing}', 'index')->name('index');
+
+        // Image enhancement
+        Route::post('/enhance/{listing}/{image}', 'enhanceImage')->name('enhance');
+        Route::get('/enhance/status/{jobId}', 'checkEnhancementStatus')->name('enhance.status');
+        Route::post('/enhance/apply/{jobId}', 'applyEnhancement')->name('enhance.apply');
+
+        // Video generation
+        Route::post('/video/generate', 'generateVideo')->name('video.generate');
+        Route::get('/video/status/{jobId}', 'checkVideoStatus')->name('video.status');
+    });
 });
