@@ -195,3 +195,9 @@ Route::prefix('{country}/radio')
 Route::post('/radio/session', [\App\Http\Controllers\Storefront\RadioController::class, 'trackSession'])
     ->middleware(['web'])
     ->name('storefront.radio.session');
+
+// ─── Delivery Rating (customer rates carrier after delivery) ──────────────
+// NOTE: carrier identity is NEVER returned to the customer — only rating stored
+Route::post('/orders/{subOrder}/rate-delivery', [\App\Http\Controllers\Storefront\DeliveryRatingController::class, 'store'])
+    ->middleware(['web', 'auth:customer'])
+    ->name('storefront.orders.rate-delivery');

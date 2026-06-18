@@ -1,0 +1,92 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class CarrierClaim extends Model
+{
+    use HasUuids;
+
+    protected $fillable = [
+        'claim_number',
+        'shipment_id',
+        'shipping_company_id',
+        'delivery_agent_id',
+        'claim_type',
+        'description',
+        'claimed_amount_cents',
+        'evidence_files',
+        'status',
+        'resolution_notes',
+        'compensated_amount_cents',
+        'resolved_by_admin_id',
+        'resolved_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'evidence_files'           => 'array',
+            'claimed_amount_cents'     => 'integer',
+            'compensated_amount_cents' => 'integer',
+            'resolved_at'              => 'datetime',
+        ];
+    }
+
+    // ── Relationships ──────────────────────────────────────────────────────
+
+    public function shipment(): BelongsTo
+    {
+        return $this->belongsTo(Shipment::class);
+    }
+
+    public function shippingCompany(): BelongsTo
+    {
+        return $this->belongsTo(ShippingCompany::class);
+    }
+
+    public function deliveryAgent(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryAgent::class);
+    }
+
+    public function resolvedBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'resolved_by_admin_id');
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+
+    public function getClaimedAmountFormattedAttribute(): string
+    {
+        return number_format($this->claimed_amount_cents / 100, 2);
+    }
+
+    public function getCompensatedAmountFormattedAttribute(): string
+    {
+        if ($this->compensated_amount_cents === null) {
+            return '—';
+        }
+        return number_format($this->compensated_amount_cents / 100, 2);
+    }
+
+    public function isResolved(): bool
+    {
+        return in_array($this->status, ['approved', 'rejected', 'compensated']);
+    }
+
+    public function statusBadgeClass(): string
+    {
+        return match($this->status) {
+            'submitted'    => 'bg-yellow-100 text-yellow-800',
+            'under_review' => 'bg-blue-100 text-blue-800',
+            'approved'     => 'bg-green-100 text-green-800',
+            'compensated'  => 'bg-emerald-100 text-emerald-800',
+            'rejected'     => 'bg-red-100 text-red-800',
+            default        => 'bg-gray-100 text-gray-800',
+        };
+    }
+}

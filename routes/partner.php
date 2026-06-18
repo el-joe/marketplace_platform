@@ -201,4 +201,16 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/video/generate', 'generateVideo')->name('video.generate');
         Route::get('/video/status/{jobId}', 'checkVideoStatus')->name('video.status');
     });
+
+    // ─── Carrier Claims ───────────────────────────────────────────────────────
+    Route::prefix('claims')->name('claims.')->group(function () {
+        Route::get('/',              [\App\Http\Controllers\Partner\ClaimController::class, 'index'])->name('index');
+        Route::get('/create',        [\App\Http\Controllers\Partner\ClaimController::class, 'create'])->name('create');
+        Route::post('/',             [\App\Http\Controllers\Partner\ClaimController::class, 'store'])->name('store');
+        Route::get('/{claim}',       [\App\Http\Controllers\Partner\ClaimController::class, 'show'])->name('show');
+    });
+
+    // ─── Delivery Ratings ─────────────────────────────────────────────────────
+    Route::post('/orders/{subOrder}/rate-delivery', [\App\Http\Controllers\Partner\DeliveryRatingController::class, 'store'])
+        ->name('orders.rate-delivery');
 });

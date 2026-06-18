@@ -42,4 +42,9 @@ class Shipment extends Model
     {
         return $this->morphMany(File::class, 'model');
     }
+
+    public function carrierClaims(): HasMany
+    {
+        return $this->hasMany(CarrierClaim::class);
+    }
 }

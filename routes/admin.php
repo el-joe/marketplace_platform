@@ -1070,5 +1070,20 @@ Route::middleware('auth.admin')->group(function () {
         Route::delete('/channels/{channel}/slots/{slot}',       [\App\Http\Controllers\Admin\RadioChannelController::class, 'destroySlot'])->name('slots.destroy');
     });
 
+    // ─── Carrier Claims ───────────────────────────────────────────────────────
+    Route::prefix('carrier-claims')->name('carrier-claims.')->group(function () {
+        Route::get('/',                                     [\App\Http\Controllers\Admin\CarrierClaimController::class, 'index'])->name('index');
+        Route::get('/{carrierClaim}',                       [\App\Http\Controllers\Admin\CarrierClaimController::class, 'show'])->name('show');
+        Route::patch('/{carrierClaim}/resolve',             [\App\Http\Controllers\Admin\CarrierClaimController::class, 'resolve'])->name('resolve');
+        Route::patch('/{carrierClaim}/under-review',        [\App\Http\Controllers\Admin\CarrierClaimController::class, 'markUnderReview'])->name('under-review');
+    });
+
+    // ─── Carrier Scorecard ────────────────────────────────────────────────────
+    Route::prefix('carrier-scorecard')->name('carrier-scorecard.')->group(function () {
+        Route::get('/',                                     [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'index'])->name('index');
+        Route::get('/{shippingCompany}',                    [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'show'])->name('show');
+        Route::get('/{shippingCompany}/trend',              [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'trendData'])->name('trend');
+    });
+
 }); // end auth.admin middleware group
 
