@@ -176,3 +176,22 @@ Route::prefix('{country}/try-on')
             ->name('status');
     });
 
+
+/*
+|--------------------------------------------------------------------------
+| Storefront — Radio
+| {country}/radio
+|--------------------------------------------------------------------------
+*/
+Route::prefix('{country}/radio')
+    ->middleware(['web'])
+    ->name('storefront.radio.')
+    ->group(function () {
+        Route::get('/',              [\App\Http\Controllers\Storefront\RadioController::class, 'index'])->name('index');
+        Route::get('/{channel}',     [\App\Http\Controllers\Storefront\RadioController::class, 'player'])->name('player');
+    });
+
+// Session tracking (no country prefix — called from JS cross-page)
+Route::post('/radio/session', [\App\Http\Controllers\Storefront\RadioController::class, 'trackSession'])
+    ->middleware(['web'])
+    ->name('storefront.radio.session');

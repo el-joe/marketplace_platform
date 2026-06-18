@@ -1057,5 +1057,18 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/credits/allocate', [\App\Http\Controllers\Admin\AiDashboardController::class, 'allocateCredits'])->name('credits.allocate');
     });
 
+    // ── Radio ─────────────────────────────────────────────────────────────────
+    Route::prefix('radio')->name('radio.')->group(function () {
+        Route::resource('channels', \App\Http\Controllers\Admin\RadioChannelController::class)
+            ->names('channels')
+            ->except(['show']);
+
+        Route::get('/channels/{channel}/schedule',              [\App\Http\Controllers\Admin\RadioChannelController::class, 'schedule'])->name('schedule');
+        Route::get('/channels/{channel}/schedule/events',       [\App\Http\Controllers\Admin\RadioChannelController::class, 'scheduleEvents'])->name('schedule.events');
+        Route::post('/channels/{channel}/slots',                [\App\Http\Controllers\Admin\RadioChannelController::class, 'storeSlot'])->name('slots.store');
+        Route::put('/channels/{channel}/slots/{slot}',          [\App\Http\Controllers\Admin\RadioChannelController::class, 'updateSlot'])->name('slots.update');
+        Route::delete('/channels/{channel}/slots/{slot}',       [\App\Http\Controllers\Admin\RadioChannelController::class, 'destroySlot'])->name('slots.destroy');
+    });
+
 }); // end auth.admin middleware group
 
