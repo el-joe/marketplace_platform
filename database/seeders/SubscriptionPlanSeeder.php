@@ -97,7 +97,7 @@ class SubscriptionPlanSeeder extends Seeder
             DB::table('subscription_plans')->upsert(
                 $plan,
                 ['name_en'],
-                array_keys(array_except($plan, ['id', 'created_at']))
+                array_keys(\Illuminate\Support\Arr::except($plan, ['id', 'created_at']))
             );
         }
     }
