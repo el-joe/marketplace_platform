@@ -231,106 +231,102 @@
         <header id="app-header">
             <div class="flex items-center justify-between px-4 h-14">
                 <div class="flex items-center gap-2">
-                    @yield(
-                        'header-left',
-                        '<span class="text-yellow-400 font-bold text-xl tracking-tight">noon</span><span class="text-slate-400 text-sm ml-1 font-medium">delivery</span>'
-                    )
-            </di    v>
-            <div class="flex items-center gap-3">
+                    @hasSection('header-left')
+                        @yield('header-left')
+                    @else
+                        <span class="text-yellow-400 font-bold text-xl tracking-tight">noon</span>
+                        <span class="text-slate-400 text-sm ml-1 font-medium">delivery</span>
+                    @endif
+                </div>
+                <div class="flex items-center gap-3">
                     @auth('delivery')
                         @yield('header-right', '')
                     @endauth
                 </div>
-        </div>
+            </div>
         </header>
 
-        {{--     ── Page Content ───────────────────────────────────────────────────── --}}
-    <main id="page-content" class="px-4 pt-4">
-        @if(session('success'))
-            <div class="mb-3 p-3 rounded-xl bg-green-900/60 text-green-300 text-sm font-medium">
+        {{-- ── Page Content ───────────────────────────────────────────────────── --}}
+        <main id="page-content" class="px-4 pt-4">
+            @if(session('success'))
+                <div class="mb-3 p-3 rounded-xl bg-green-900/60 text-green-300 text-sm font-medium">
                     {{ session('success') }}
                 </div>
-        @endif
-        @if(session('error') || $errors->any())
-            <div class="mb-3 p-3 rounded-xl bg-red-900/60 text-red-300 text-sm font-medium">
+            @endif
+            @if(session('error') || $errors->any())
+                <div class="mb-3 p-3 rounded-xl bg-red-900/60 text-red-300 text-sm font-medium">
                     {{ session('error') ?? $errors->first() }}
-            </div>
-        @endif
+                </div>
+            @endif
 
             @yield('content')
         </main>
 
-            {{-- ── Bottom Navigation ──────────────────────────────────────────────── --}}
-    @auth('delivery')
-        <nav id=    "bottom-nav">
-            <div class="flex h-16">
-                @php
-                    $current = request()->route()->getName() ?? '';
-                    function navActive(string $prefix, string $current): string
-                    {
-                        return str_starts_with($current, $prefix) ? 'active' : '';
-                    }
-                @endphp
+        {{-- ── Bottom Navigation ──────────────────────────────────────────────── --}}
+        @auth('delivery')
+            <nav id="bottom-nav">
+                <div class="flex h-16">
+                    @php
+                        $current = request()->route()->getName() ?? '';
+                        function navActive(string $prefix, string $current): string
+                        {
+                            return str_starts_with($current, $prefix) ? 'active' : '';
+                        }
+                    @endphp
 
-                     <a h    ref="{{ route('delivery.dashboard') }}"
-                   class    ="nav-item {{ navActive('delivery.dashboard', $current) }}">
-
-                                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <a href="{{ route('delivery.dashboard') }}"
+                       class="nav-item {{ navActive('delivery.dashboard', $current) }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><polyline stroke-linecap="round" stroke-linejoin="round" points="9 22 9 12 15 12 15 22"/>
                         </svg>
-                    Home
+                        Home
                     </a>
 
                     <a href="{{ route('delivery.assignments.index') }}"
                        class="nav-item {{ navActive('delivery.assignments', $current) }}">
-
-
-                                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
                         </svg>
-                    Orders
+                        Orders
                     </a>
 
-                         <a href="{{ route('delivery.dashboard') }}#map"
-                   class    ="nav-item {{ navActive('delivery.map', $current) }}
-                "               >
-                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <a href="{{ route('delivery.dashboard') }}#map"
+                       class="nav-item {{ navActive('delivery.map', $current) }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 9m0 8V9m0 0L9 7"/>
                         </svg>
-                    Map
+                        Map
                     </a>
 
-                   <a h    ref="{{ route('delivery.earnings.index') }}"
-                   class    ="nav-item {{ navActive('delivery.earnings', $current) }}">
-                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <a href="{{ route('delivery.earnings.index') }}"
+                       class="nav-item {{ navActive('delivery.earnings', $current) }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                    Earnings
+                        Earnings
                     </a>
 
-                <a h    ref="{{ route('delivery.profile.index') }}"
+                    <a href="{{ route('delivery.profile.index') }}"
                        class="nav-item {{ navActive('delivery.profile', $current) }}">
-
-                                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         Profile
                     </a>
                 </div>
-        </nav>
-    @endauth
+            </nav>
+        @endauth
 
     </div>
 
-        <script>
-function         deliveryApp() {
+    <script>
+        function deliveryApp() {
             return {
                 isAvailable: @json(auth('delivery')->user()?->is_available ?? false),
-        };
-}
+            };
+        }
     </script>
 
-
-@stack('scripts')
+    @stack('scripts')
 </body>
 </html>

@@ -3,6 +3,10 @@
  * mobile-first, delivery.noon.loc
  */
 
+import Alpine from 'alpinejs';
+window.Alpine = Alpine;
+Alpine.start();
+
 // CSRF token for AJAX
 window.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 

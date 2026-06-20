@@ -29,7 +29,7 @@
          toggle() {
              if (this.loading) return;
              this.loading = true;
-             fetch(@json(route('delivery.availability.update')), {
+             fetch('{{ route('delivery.availability.update') }}', {
                  method: 'PUT',
                  headers: {
                      'Content-Type': 'application/json',

@@ -266,7 +266,7 @@
 
         </div>
 
-        {{-- Flash sale summary (only shows if > 0) ──────────────────────────────────}}
+        {{-- Flash sale summary (only shows if > 0) ──────────────────────────────── --}}
         <div id="flash-summary-row" class="hidden">
             <div class="rounded-xl border border-purple-200 bg-purple-50 px-5 py-4 flex items-center gap-6 flex-wrap">
                 <div class="flex items-center gap-2">

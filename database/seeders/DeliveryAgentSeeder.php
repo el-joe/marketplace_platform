@@ -63,7 +63,7 @@ class DeliveryAgentSeeder extends Seeder
                 [
                     'name'                  => $data['name'],
                     'phone'                 => fake()->phoneNumber(),
-                    'password'              => Hash::make('password123'),
+                    'password'              => 'password123',
                     'country_id'            => $country?->id,
                     'status'                => $data['status'],
                     'agent_type'            => 'platform',
