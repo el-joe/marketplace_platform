@@ -29,7 +29,8 @@ class DatabaseSeeder extends Seeder
                 // ── Admin accounts (creates the 4 base rows) ──────────────────
             AdminSeeder::class,
 
-                // ── Spatie permissions & roles (supersedes old Permission/Role seeders) ──
+            PermissionSeeder::class,
+            PermissionRoleSeeder::class,
             RolesAndPermissionsSeeder::class,
             AdminRoleAssignmentSeeder::class,
 
