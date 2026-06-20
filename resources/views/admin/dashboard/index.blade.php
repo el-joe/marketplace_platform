@@ -15,17 +15,30 @@
                 <p class="text-sm text-gray-500 mt-0.5">Welcome back — here's what's happening today.</p>
             </div>
 
-            {{-- Period toggle --}}
-            <div class="inline-flex items-center rounded-lg bg-gray-100 p-1 gap-0.5">
-                <button
-                    class="stat-period-btn px-3 py-1.5 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900"
-                    data-period="today">Today</button>
-                <button
-                    class="stat-period-btn px-3 py-1.5 text-sm font-medium rounded-md transition-all bg-white shadow-sm text-gray-900 active"
-                    data-period="week">This Week</button>
-                <button
-                    class="stat-period-btn px-3 py-1.5 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900"
-                    data-period="month">This Month</button>
+            {{-- Country filter + Period toggle --}}
+            <div class="flex flex-wrap items-center gap-2">
+                <select id="dashboard-country-filter"
+                    class="text-sm rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 w-48">
+                    <option value="">All countries</option>
+                    @foreach($countries as $c)
+                        <option value="{{ $c->id }}"
+                            {{ $defaultCountryId == $c->id ? 'selected' : '' }}>
+                            {{ $c->flag_emoji }} {{ $c->name_en }} ({{ $c->currency_code }})
+                        </option>
+                    @endforeach
+                </select>
+
+                <div class="inline-flex items-center rounded-lg bg-gray-100 p-1 gap-0.5">
+                    <button
+                        class="stat-period-btn px-3 py-1.5 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900"
+                        data-period="today">Today</button>
+                    <button
+                        class="stat-period-btn px-3 py-1.5 text-sm font-medium rounded-md transition-all bg-white shadow-sm text-gray-900 active"
+                        data-period="week">This Week</button>
+                    <button
+                        class="stat-period-btn px-3 py-1.5 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900"
+                        data-period="month">This Month</button>
+                </div>
             </div>
         </div>
 

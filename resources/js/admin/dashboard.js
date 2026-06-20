@@ -32,24 +32,42 @@ const STATUS_CLASSES = {
 let revenueChart = null;
 let donutChart = null;
 
+// ── Shared filter state ───────────────────────────────────────────────────────
+let currentPeriod = 'week';
+let currentCountry = '';
+
 $(function () {
 
+    // Pick up the admin's default country if pre-selected in the dropdown
+    currentCountry = $('#dashboard-country-filter').val() || '';
+
     // ── Stat cards ────────────────────────────────────────────────────────────
-    loadStats('week');
+    loadStats(currentPeriod, currentCountry);
 
     // Period toggle — active state + reload
     $(document).on('click', '.stat-period-btn', function () {
+        currentPeriod = $(this).data('period');
         $('.stat-period-btn')
             .removeClass('bg-white shadow-sm text-gray-900 active')
             .addClass('text-gray-600');
         $(this)
             .addClass('bg-white shadow-sm text-gray-900 active')
             .removeClass('text-gray-600');
-        loadStats($(this).data('period'));
+        loadStats(currentPeriod, currentCountry);
+        loadOrdersDonut(currentPeriod, currentCountry);
+    });
+
+    // Country filter change — refresh everything that is country-sensitive
+    $('#dashboard-country-filter').on('change', function () {
+        currentCountry = $(this).val();
+        loadStats(currentPeriod, currentCountry);
+        loadOrdersDonut(currentPeriod, currentCountry);
+        loadRevenueChart($('.chart-range-btn.active').data('range') || 30, currentCountry);
+        loadRecentOrders(currentCountry);
     });
 
     // ── Revenue chart ─────────────────────────────────────────────────────────
-    loadRevenueChart(30);
+    loadRevenueChart(30, currentCountry);
 
     $(document).on('click', '.chart-range-btn', function () {
         $('.chart-range-btn')
@@ -58,15 +76,15 @@ $(function () {
         $(this)
             .addClass('bg-white shadow-sm text-gray-900 active')
             .removeClass('text-gray-600');
-        loadRevenueChart($(this).data('range'));
+        loadRevenueChart($(this).data('range'), currentCountry);
     });
 
     // ── Orders donut ──────────────────────────────────────────────────────────
-    loadOrdersDonut();
+    loadOrdersDonut(currentPeriod, currentCountry);
 
     // ── Recent orders (poll every 30 s) ───────────────────────────────────────
-    loadRecentOrders();
-    setInterval(loadRecentOrders, 30_000);
+    loadRecentOrders(currentCountry);
+    setInterval(() => loadRecentOrders(currentCountry), 30_000);
 
     // ── Top sellers ───────────────────────────────────────────────────────────
     loadTopSellers();
@@ -81,7 +99,7 @@ $(function () {
 // ─────────────────────────────────────────────────────────────────────────────
 // STAT CARDS
 // ─────────────────────────────────────────────────────────────────────────────
-function loadStats(period) {
+function loadStats(period, countryId = '') {
     // Skeleton while loading
     $('.stat-value').each(function () {
         $(this).html('<span class="inline-block h-8 w-24 bg-gray-200 rounded animate-pulse"></span>');
@@ -91,7 +109,7 @@ function loadStats(period) {
     $.ajax({
         url: '/dashboard/stats',
         method: 'GET',
-        data: { period },
+        data: { period, country_id: countryId },
         success(response) {
             const d = response.data;
 
@@ -129,11 +147,11 @@ function renderChange(selector, pct) {
 // ─────────────────────────────────────────────────────────────────────────────
 // REVENUE LINE CHART
 // ─────────────────────────────────────────────────────────────────────────────
-function loadRevenueChart(days) {
+function loadRevenueChart(days, countryId = '') {
     $.ajax({
         url: '/dashboard/revenue-chart',
         method: 'GET',
-        data: { range: days },
+        data: { range: days, country_id: countryId },
         success(response) {
             const d = response.data;
 
@@ -208,10 +226,11 @@ function loadRevenueChart(days) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ORDERS DONUT CHART
 // ─────────────────────────────────────────────────────────────────────────────
-function loadOrdersDonut() {
+function loadOrdersDonut(period = 'week', countryId = '') {
     $.ajax({
         url: '/dashboard/orders-by-status',
         method: 'GET',
+        data: { period, country_id: countryId },
         success(response) {
             const d = response.data;
 
@@ -270,10 +289,11 @@ function loadOrdersDonut() {
 // ─────────────────────────────────────────────────────────────────────────────
 // RECENT ORDERS
 // ─────────────────────────────────────────────────────────────────────────────
-function loadRecentOrders() {
+function loadRecentOrders(countryId = '') {
     $.ajax({
         url: '/dashboard/recent-orders',
         method: 'GET',
+        data: { country_id: countryId },
         success(response) {
             const rows = response.data.map(order => {
                 const statusClass = STATUS_CLASSES[order.status] || 'bg-gray-100 text-gray-700';

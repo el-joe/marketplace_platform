@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Country;
 use App\Models\Dispute;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -21,12 +22,17 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $countries = Country::where('is_active', 1)->orderBy('name_en')->get();
+        $defaultCountryId = auth()->guard('admin')->user()?->country_id;
+
         return view('admin.dashboard.index', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard'],
             ],
+            'countries' => $countries,
+            'defaultCountryId' => $defaultCountryId,
         ]);
     }
 
@@ -53,11 +59,15 @@ class DashboardController extends Controller
                 : ($curr > 0 ? 100.0 : 0.0);
         }
 
+        $currency = $countryId
+            ? Country::find($countryId)?->currency_code
+            : null;
+
         return response()->json([
             'data' => [
-                'gmv' => $this->formatMoney($current['gmv']),
+                'gmv' => $this->formatMoney($current['gmv'], $currency),
                 'orders' => number_format($current['orders']),
-                'revenue' => $this->formatMoney($current['revenue']),
+                'revenue' => $this->formatMoney($current['revenue'], $currency),
                 'sellers' => number_format($current['sellers']),
                 'changes' => $changes,
             ],
@@ -76,16 +86,16 @@ class DashboardController extends Controller
         $start = now()->subDays($days - 1)->startOfDay();
         $end = now()->endOfDay();
 
-        $orderTotalColumn = $this->orderTotalColumn();
-        $hasOrderCountry = Schema::hasColumn('orders', 'country_id');
         $countryId = $request->input('country_id');
 
         // Build date-bucketed GMV
         $orderRows = Order::query()
-            ->selectRaw("DATE(created_at) as date, SUM({$orderTotalColumn}) as gmv")
-            ->whereBetween('created_at', [$start, $end])
-            ->whereNotIn('status', ['cancelled', 'refunded'])
-            ->when($countryId && $hasOrderCountry, fn($q) => $q->where('country_id', $countryId))
+            ->selectRaw('DATE(placed_at) as date, SUM(total) as gmv')
+            ->whereBetween('placed_at', [$start, $end])
+            ->whereNotIn('status', ['cancelled'])
+            ->when($countryId, fn($q) => $q->whereHas(
+                'customer', fn($cq) => $cq->where('country_id', $countryId)
+            ))
             ->groupBy('date')
             ->get()
             ->keyBy('date');
@@ -95,10 +105,16 @@ class DashboardController extends Controller
         if (Schema::hasTable('order_items') && Schema::hasColumn('order_items', 'commission_amount')) {
             $commRows = OrderItem::query()->from('order_items as oi')
                 ->join('orders as o', 'o.id', '=', 'oi.order_id')
-                ->selectRaw('DATE(o.created_at) as date, SUM(oi.commission_amount) as commission')
-                ->whereBetween('o.created_at', [$start, $end])
-                ->whereNotIn('o.status', ['cancelled', 'refunded'])
-                ->when($countryId && $hasOrderCountry, fn($q) => $q->where('o.country_id', $countryId))
+                ->selectRaw('DATE(o.placed_at) as date, SUM(oi.commission_amount) as commission')
+                ->whereBetween('o.placed_at', [$start, $end])
+                ->whereNotIn('o.status', ['cancelled'])
+                ->when($countryId, function ($q) use ($countryId) {
+                    $q->whereExists(function ($sub) use ($countryId) {
+                        $sub->from('customers')
+                            ->whereColumn('customers.id', 'o.customer_id')
+                            ->where('customers.country_id', $countryId);
+                    });
+                })
                 ->groupBy('date')
                 ->get()
                 ->keyBy('date');
@@ -128,68 +144,76 @@ class DashboardController extends Controller
     /**
      * AJAX — donut chart: orders broken down by status.
      */
-    public function ordersByStatus(): JsonResponse
+    public function ordersByStatus(Request $request): JsonResponse
     {
-        $rawCounts = Order::query()
-            ->selectRaw('status, COUNT(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status');
+        $period = $request->input('period', 'week');
+        $countryId = $request->input('country_id');
 
-        $statusConfig = [
-            'pending' => ['label' => 'Pending', 'color' => '#f59e0b'],
-            'processing' => ['label' => 'Processing', 'color' => '#3b82f6'],
-            'shipped' => ['label' => 'Shipped', 'color' => '#8b5cf6'],
-            'delivered' => ['label' => 'Delivered', 'color' => '#22c55e'],
-            'cancelled' => ['label' => 'Cancelled', 'color' => '#ef4444'],
-            'refunded' => ['label' => 'Refunded', 'color' => '#6b7280'],
+        [$start, $end] = $this->periodWindowDates($period);
+
+        // Maps the 6 UI labels to the actual orders.status enum values
+        $statusGroups = [
+            'Pending'    => ['placed'],
+            'Processing' => ['confirmed', 'partially_shipped'],
+            'Shipped'    => ['shipped', 'partially_delivered'],
+            'Delivered'  => ['delivered', 'completed'],
+            'Cancelled'  => ['cancelled'],
+            'Refunded'   => ['refunded'],
         ];
 
-        $labels = $values = $colors = [];
+        $colors = [
+            'Pending'    => '#f59e0b',
+            'Processing' => '#3b82f6',
+            'Shipped'    => '#8b5cf6',
+            'Delivered'  => '#22c55e',
+            'Cancelled'  => '#ef4444',
+            'Refunded'   => '#6b7280',
+        ];
 
-        foreach ($statusConfig as $status => $cfg) {
-            $count = (int) ($rawCounts[$status] ?? 0);
-            if ($count > 0) {
-                $labels[] = $cfg['label'];
-                $values[] = $count;
-                $colors[] = $cfg['color'];
-            }
+        $base = Order::query()
+            ->whereBetween('placed_at', [$start, $end])
+            ->when($countryId, fn($q) => $q->whereHas(
+                'customer', fn($cq) => $cq->where('country_id', $countryId)
+            ));
+
+        $labels = $values = $colorList = [];
+
+        foreach ($statusGroups as $label => $statuses) {
+            $count = (int) (clone $base)->whereIn('status', $statuses)->count();
+            $labels[] = $label;
+            $values[] = $count;
+            $colorList[] = $colors[$label];
         }
 
-        // Ensure at least placeholder data so chart renders on a fresh install
-        if (empty($values)) {
-            $labels = array_column($statusConfig, 'label');
-            $values = array_fill(0, count($statusConfig), 0);
-            $colors = array_column($statusConfig, 'color');
-        }
-
-        return response()->json(['data' => compact('labels', 'values', 'colors')]);
+        return response()->json(['data' => [
+            'labels' => $labels,
+            'values' => $values,
+            'colors' => $colorList,
+        ]]);
     }
 
     /**
      * AJAX — last 10 orders for the activity feed.
      */
-    public function recentOrders(): JsonResponse
+    public function recentOrders(Request $request): JsonResponse
     {
-        $orders = Order::query()->from('orders as o')
-            ->select([
-                'o.id',
-                'o.order_number',
-                'o.total',
-                'o.status',
-                'o.created_at',
-                DB::raw("COALESCE(c.name, 'Guest') as customer_name"),
-            ])
-            ->leftJoin('customers as c', 'c.id', '=', 'o.customer_id')
-            ->orderByDesc('o.created_at')
+        $countryId = $request->input('country_id');
+
+        // Use the Eloquent relationship so SoftDeletes scope is applied correctly.
+        $orders = Order::with('customer')
+            ->when($countryId, fn($q) => $q->whereHas(
+                'customer', fn($cq) => $cq->where('country_id', $countryId)
+            ))
+            ->orderByDesc('placed_at')
             ->limit(10)
             ->get()
-            ->map(fn($row) => [
-                'id' => $row->id,
-                'order_number' => $row->order_number ?? '#—',
-                'customer_name' => $row->customer_name,
-                'total' => $this->formatMoney($row->total),
-                'status' => $row->status,
-                'created_at' => Carbon::parse($row->created_at)->diffForHumans(),
+            ->map(fn($order) => [
+                'id' => $order->id,
+                'order_number' => $order->order_number ?? '#—',
+                'customer_name' => $order->customer?->name ?? 'Guest',
+                'total' => number_format($order->total / 100, 2) . ' ' . ($order->currency ?? ''),
+                'status' => $order->status,
+                'created_at' => Carbon::parse($order->placed_at)->diffForHumans(),
             ]);
 
         return response()->json(['data' => $orders]);
@@ -234,7 +258,7 @@ class DashboardController extends Controller
     {
         $counts = [
             'products' => Product::query()->where('status', 'pending_review')->count(),
-            'vendors' => Vendor::query()->whereIn('status', ['pending', 'pending_approval'])->count(),
+            'vendors' => Vendor::query()->whereIn('global_status', ['pending', 'under_review'])->count(),
             'disputes' => Dispute::query()->where('status', 'open')->count(),
             'withdrawals' => Schema::hasTable('withdrawal_requests')
                 ? WithdrawalRequest::query()->where('status', 'pending')->count()
@@ -283,11 +307,7 @@ class DashboardController extends Controller
     /** Returns [currentStart, currentEnd, previousStart, previousEnd] as Carbon instances. */
     private function periodDates(string $period): array
     {
-        [$start, $end] = match ($period) {
-            'today' => [now()->startOfDay(), now()->endOfDay()],
-            'month' => [now()->startOfMonth(), now()->endOfMonth()],
-            default => [now()->startOfWeek(), now()->endOfWeek()],  // week
-        };
+        [$start, $end] = $this->periodWindowDates($period);
 
         $lengthSeconds = $start->diffInSeconds($end);
         $prevEnd = $start->clone()->subSecond();
@@ -296,51 +316,63 @@ class DashboardController extends Controller
         return [$start, $end, $prevStart, $prevEnd];
     }
 
+    /** Returns [start, end] for the given period. */
+    private function periodWindowDates(string $period): array
+    {
+        return match ($period) {
+            'today' => [now()->startOfDay(), now()->endOfDay()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            default => [now()->startOfWeek(), now()->endOfWeek()],
+        };
+    }
+
     /** Fetch raw numeric stats for a time window. */
     private function fetchStats(Carbon $start, Carbon $end, ?string $countryId): array
     {
-        $orderTotalColumn = $this->orderTotalColumn();
-        $hasOrderCountry = Schema::hasColumn('orders', 'country_id');
-
         $gmv = (int) Order::query()
-            ->whereBetween('created_at', [$start, $end])
-            ->whereNotIn('status', ['cancelled', 'refunded'])
-            ->when($countryId && $hasOrderCountry, fn($q) => $q->where('country_id', $countryId))
-            ->sum($orderTotalColumn);
+            ->whereBetween('placed_at', [$start, $end])
+            ->whereNotIn('status', ['cancelled'])
+            ->when($countryId, fn($q) => $q->whereHas(
+                'customer', fn($cq) => $cq->where('country_id', $countryId)
+            ))
+            ->sum('total');
 
         $orders = (int) Order::query()
-            ->whereBetween('created_at', [$start, $end])
-            ->whereNotIn('status', ['cancelled', 'refunded'])
-            ->when($countryId && $hasOrderCountry, fn($q) => $q->where('country_id', $countryId))
+            ->whereBetween('placed_at', [$start, $end])
+            ->whereNotIn('status', ['cancelled'])
+            ->when($countryId, fn($q) => $q->whereHas(
+                'customer', fn($cq) => $cq->where('country_id', $countryId)
+            ))
             ->count();
 
         $revenue = 0;
         if (Schema::hasTable('order_items') && Schema::hasColumn('order_items', 'commission_amount')) {
             $revenue = (int) OrderItem::query()->from('order_items as oi')
                 ->join('orders as o', 'o.id', '=', 'oi.order_id')
-                ->whereBetween('o.created_at', [$start, $end])
-                ->whereNotIn('o.status', ['cancelled', 'refunded'])
-                ->when($countryId && $hasOrderCountry, fn($q) => $q->where('o.country_id', $countryId))
+                ->whereBetween('o.placed_at', [$start, $end])
+                ->whereNotIn('o.status', ['cancelled'])
+                ->when($countryId, function ($q) use ($countryId) {
+                    $q->whereExists(function ($sub) use ($countryId) {
+                        $sub->from('customers')
+                            ->whereColumn('customers.id', 'o.customer_id')
+                            ->where('customers.country_id', $countryId);
+                    });
+                })
                 ->sum('oi.commission_amount');
         }
 
-        $sellers = (int) Vendor::query()->where('status', 'active')->count();
+        $sellers = (int) Vendor::query()
+            ->where('global_status', 'active')
+            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
+            ->count();
 
         return compact('gmv', 'orders', 'revenue', 'sellers');
     }
 
-    private function orderTotalColumn(): string
+    /** Format a cents integer. Prepends currency code when known. */
+    private function formatMoney(int|float|null $cents, ?string $currency = null): string
     {
-        if (Schema::hasColumn('orders', 'total_amount')) {
-            return 'total_amount';
-        }
-
-        return 'total';
-    }
-
-    /** Format a cents integer as "EGP 1,234.56". */
-    private function formatMoney(int|float|null $cents): string
-    {
-        return 'EGP ' . number_format((int) $cents / 100, 2);
+        $amount = number_format((int) $cents / 100, 2);
+        return $currency ? "{$amount} {$currency}" : $amount;
     }
 }
