@@ -10,12 +10,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class VendorAdmin extends Authenticatable
 {
-    use HasUuids, SoftDeletes, Notifiable, HasApiTokens;
+    use HasUuids, SoftDeletes, Notifiable, HasApiTokens, HasRoles;
 
     protected string $guard = 'vendor';
+
+    protected string $guard_name = 'vendor';
 
     protected $fillable = [
         'vendor_id',
