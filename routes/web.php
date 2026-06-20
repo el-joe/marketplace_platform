@@ -201,3 +201,12 @@ Route::post('/radio/session', [\App\Http\Controllers\Storefront\RadioController:
 Route::post('/orders/{subOrder}/rate-delivery', [\App\Http\Controllers\Storefront\DeliveryRatingController::class, 'store'])
     ->middleware(['web', 'auth:customer'])
     ->name('storefront.orders.rate-delivery');
+
+/*
+|--------------------------------------------------------------------------
+| Payment Gateway Webhooks (external POST — exempt from CSRF)
+|--------------------------------------------------------------------------
+*/
+Route::post('/webhooks/payment/{gatewayCode}', [\App\Http\Controllers\WebhookController::class, 'payment'])
+    ->name('webhooks.payment')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);

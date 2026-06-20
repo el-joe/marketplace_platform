@@ -747,6 +747,11 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/support', [AnalyticsController::class, 'supportMetrics'])->name('support');
     });
 
+    // ─── Payment Gateways (DB-credential Strategy Pattern) ───────────────────
+    Route::prefix('payment-gateways')->name('payment-gateways.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [PaymentMethodController::class, 'gatewayIndex'])->name('index');
+    });
+
     // ─── Payment Methods ──────────────────────────────────────────────────────
     Route::prefix('payment-methods')->name('payment-methods.')->middleware('admin.permission:settings.view')->group(function () {
         Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
@@ -757,6 +762,8 @@ Route::middleware('auth.admin')->group(function () {
         Route::put('/{method}', [PaymentMethodController::class, 'update'])->name('update')->middleware('admin.permission:settings.edit');
         Route::delete('/{method}', [PaymentMethodController::class, 'destroy'])->name('destroy')->middleware('admin.permission:settings.edit');
         Route::post('/{method}/toggle', [PaymentMethodController::class, 'toggleActive'])->name('toggle')->middleware('admin.permission:settings.edit');
+        Route::post('/{method}/test-connection', [PaymentMethodController::class, 'testConnection'])->name('test-connection')->middleware('admin.permission:settings.edit');
+        Route::get('/{method}/webhook-logs', [PaymentMethodController::class, 'webhookLogs'])->name('webhook-logs');
     });
 
     // ─── Shipping Methods ─────────────────────────────────────────────────────

@@ -5,7 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\CountryPaymentMethod;
-use App\Services\Payment\PaymentGatewayFactory;
+use App\Models\Currency;
+use App\Models\PaymentTransaction;
+use App\Services\Payment\PaymentGatewayFactory as LegacyPaymentGatewayFactory;
+use App\Services\PaymentService;
+use App\Services\Payments\PaymentGatewayFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -20,69 +24,119 @@ class PaymentMethodController extends Controller
             ->get();
 
         $methodTypes = [
-            'card' => ['label' => 'Credit/Debit Card', 'icon' => '💳'],
-            'cod' => ['label' => 'Cash on Delivery', 'icon' => '💵'],
-            'wallet' => ['label' => 'Digital Wallet', 'icon' => '👛'],
+            'card'          => ['label' => 'Credit/Debit Card', 'icon' => '💳'],
+            'cod'           => ['label' => 'Cash on Delivery', 'icon' => '💵'],
+            'wallet'        => ['label' => 'Digital Wallet', 'icon' => '👛'],
             'bank_transfer' => ['label' => 'Bank Transfer', 'icon' => '🏦'],
-            'bnpl' => ['label' => 'Buy Now Pay Later', 'icon' => '📆'],
+            'bnpl'          => ['label' => 'Buy Now Pay Later', 'icon' => '📆'],
         ];
 
-        $gateways = app(PaymentGatewayFactory::class)->all();
+        $gateways          = app(LegacyPaymentGatewayFactory::class)->all();
+        $availableGateways = PaymentGatewayFactory::availableCodes();
+        $currencies        = Currency::where('is_active', 1)->orderBy('code')->get();
 
-        return view('admin.payment-methods.index', compact('countries', 'methodTypes', 'gateways'));
+        $methods = CountryPaymentMethod::with('country')
+            ->orderBy('country_id')
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('country_id');
+
+        return view('admin.payment-methods.index', compact(
+            'countries', 'methodTypes', 'gateways', 'availableGateways', 'currencies', 'methods'
+        ));
     }
 
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'country_id' => ['required', 'exists:countries,id'],
-            'method_type' => ['required', Rule::in(['card', 'cod', 'wallet', 'bank_transfer', 'bnpl'])],
-            'provider' => ['nullable', 'string', 'max:50'],
-            'display_name_en' => ['required', 'string', 'max:100'],
-            'display_name_ar' => ['nullable', 'string', 'max:100'],
-            'is_active' => ['boolean'],
-            'fee_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'fee_fixed_cents' => ['nullable', 'integer', 'min:0'],
-            'min_order_cents' => ['nullable', 'integer', 'min:0'],
-            'max_order_cents' => ['nullable', 'integer', 'min:0'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'country_id'           => ['required', 'exists:countries,id'],
+            'method_type'          => ['required', Rule::in(['card', 'cod', 'wallet', 'bank_transfer', 'bnpl'])],
+            'provider'             => ['nullable', 'string', 'max:50'],
+            'gateway_code'         => ['nullable', 'string', 'max:50', Rule::in(array_merge(PaymentGatewayFactory::availableCodes(), ['']))],
+            'display_name_en'      => ['required', 'string', 'max:100'],
+            'display_name_ar'      => ['nullable', 'string', 'max:100'],
+            'is_active'            => ['boolean'],
+            'fee_pct'              => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'fee_fixed_cents'      => ['nullable', 'integer', 'min:0'],
+            'min_order_cents'      => ['nullable', 'integer', 'min:0'],
+            'max_order_cents'      => ['nullable', 'integer', 'min:0'],
+            'settlement_currency'  => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
+            'environment'          => ['nullable', Rule::in(['sandbox', 'production'])],
+            'sort_order'           => ['nullable', 'integer', 'min:0'],
+            'credentials'          => ['nullable', 'array'],
+            'credentials.*'        => ['nullable', 'string'],
+            'webhook_secret'       => ['nullable', 'string'],
         ]);
 
-        $method = CountryPaymentMethod::create($data);
+        $method = CountryPaymentMethod::create(
+            array_filter($data, fn($k) => !in_array($k, ['credentials', 'webhook_secret']), ARRAY_FILTER_USE_KEY)
+        );
+
+        if (!empty($data['credentials'])) {
+            $method->setCredentials(array_filter($data['credentials']));
+        }
+        if (!empty($data['webhook_secret'])) {
+            $method->setWebhookSecret($data['webhook_secret']);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Payment method created.',
-            'data' => $method,
+            'data'    => $method->fresh()->append(['is_configured']),
         ], 201);
     }
 
     public function update(Request $request, CountryPaymentMethod $method): JsonResponse
     {
         $data = $request->validate([
-            'method_type' => ['sometimes', Rule::in(['card', 'cod', 'wallet', 'bank_transfer', 'bnpl'])],
-            'provider' => ['nullable', 'string', 'max:50'],
-            'display_name_en' => ['sometimes', 'required', 'string', 'max:100'],
-            'display_name_ar' => ['nullable', 'string', 'max:100'],
-            'is_active' => ['sometimes', 'boolean'],
-            'fee_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'fee_fixed_cents' => ['nullable', 'integer', 'min:0'],
-            'min_order_cents' => ['nullable', 'integer', 'min:0'],
-            'max_order_cents' => ['nullable', 'integer', 'min:0'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'method_type'         => ['sometimes', Rule::in(['card', 'cod', 'wallet', 'bank_transfer', 'bnpl'])],
+            'provider'            => ['nullable', 'string', 'max:50'],
+            'gateway_code'        => ['nullable', 'string', 'max:50'],
+            'display_name_en'     => ['sometimes', 'required', 'string', 'max:100'],
+            'display_name_ar'     => ['nullable', 'string', 'max:100'],
+            'is_active'           => ['sometimes', 'boolean'],
+            'fee_pct'             => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'fee_fixed_cents'     => ['nullable', 'integer', 'min:0'],
+            'min_order_cents'     => ['nullable', 'integer', 'min:0'],
+            'max_order_cents'     => ['nullable', 'integer', 'min:0'],
+            'settlement_currency' => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
+            'environment'         => ['nullable', Rule::in(['sandbox', 'production'])],
+            'sort_order'          => ['nullable', 'integer', 'min:0'],
+            'credentials'         => ['nullable', 'array'],
+            'credentials.*'       => ['nullable', 'string'],
+            'webhook_secret'      => ['nullable', 'string'],
         ]);
 
-        $method->update($data);
+        $method->update(
+            array_filter($data, fn($k) => !in_array($k, ['credentials', 'webhook_secret']), ARRAY_FILTER_USE_KEY)
+        );
+
+        // Only update credentials/secret when non-empty values are submitted (preserve existing on blank)
+        if (!empty(array_filter($data['credentials'] ?? []))) {
+            $method->setCredentials(array_filter($data['credentials']));
+        }
+        if (!empty($data['webhook_secret'])) {
+            $method->setWebhookSecret($data['webhook_secret']);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Payment method updated.',
-            'data' => $method->fresh(),
+            'data'    => $method->fresh()->append(['is_configured']),
         ]);
     }
 
     public function destroy(CountryPaymentMethod $method): JsonResponse
     {
+        $hasTransactions = PaymentTransaction::where('gateway', $method->gateway_code)->exists();
+
+        if ($hasTransactions) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete — transactions exist for this gateway. Deactivate instead.',
+            ], 422);
+        }
+
         $method->delete();
 
         return response()->json(['success' => true, 'message' => 'Payment method removed.']);
@@ -93,8 +147,8 @@ class PaymentMethodController extends Controller
         $method->update(['is_active' => !$method->is_active]);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Status updated.',
+            'success'   => true,
+            'message'   => 'Status updated.',
             'is_active' => $method->is_active,
         ]);
     }
@@ -102,8 +156,8 @@ class PaymentMethodController extends Controller
     public function updateSortOrder(Request $request): JsonResponse
     {
         $items = $request->validate([
-            'items' => ['required', 'array'],
-            'items.*.id' => ['required', 'exists:country_payment_methods,id'],
+            'items'             => ['required', 'array'],
+            'items.*.id'        => ['required', 'exists:country_payment_methods,id'],
             'items.*.sort_order' => ['required', 'integer', 'min:0'],
         ])['items'];
 
@@ -115,17 +169,60 @@ class PaymentMethodController extends Controller
         return response()->json(['success' => true, 'message' => 'Sort order updated.']);
     }
 
+    public function testConnection(CountryPaymentMethod $method): JsonResponse
+    {
+        try {
+            $result = app(PaymentService::class)->testGatewayConnection($method);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'success' => $result->success,
+            'message' => $result->message,
+            'details' => $result->details,
+        ]);
+    }
+
+    public function webhookLogs(CountryPaymentMethod $method): JsonResponse
+    {
+        $logs = $method->webhookLogs()
+            ->latest('created_at')
+            ->paginate(50);
+
+        return response()->json($logs);
+    }
+
+    public function gatewayIndex()
+    {
+        $countries         = Country::where('is_active', 1)->orderBy('name_en')->get();
+        $availableGateways = PaymentGatewayFactory::availableCodes();
+        $currencies        = Currency::where('is_active', 1)->orderBy('code')->get();
+
+        $methods = CountryPaymentMethod::with('country')
+            ->orderBy('country_id')
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('country_id');
+
+        return view('admin.payment-gateways.index', compact(
+            'countries', 'availableGateways', 'currencies', 'methods'
+        ));
+    }
+
+    // ── Legacy methods (existing config-based gateways) ───────────────────────
+
     public function testGateway(Request $request): JsonResponse
     {
         $request->validate(['provider' => ['required', 'string']]);
 
         try {
-            $gateway = app(PaymentGatewayFactory::class)->make($request->provider);
-            $result = $gateway->testConnection();
+            $gateway = app(LegacyPaymentGatewayFactory::class)->make($request->provider);
+            $result  = $gateway->testConnection();
         } catch (\InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,
-                'data' => ['success' => false, 'latency_ms' => 0, 'message' => $e->getMessage()],
+                'data'    => ['success' => false, 'latency_ms' => 0, 'message' => $e->getMessage()],
             ], 422);
         }
 
@@ -134,7 +231,7 @@ class PaymentMethodController extends Controller
 
     public function gatewayConfig()
     {
-        $gateways = app(PaymentGatewayFactory::class)->allWithCodes();
+        $gateways = app(LegacyPaymentGatewayFactory::class)->allWithCodes();
         return view('admin.payment-methods.gateway-config', compact('gateways'));
     }
 }

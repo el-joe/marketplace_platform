@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SubdomainDetect::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/payment/*',
+        ]);
+
         $middleware->alias([
             'auth.admin' => \App\Http\Middleware\AdminAuth::class,
             'admin.permission' => \App\Http\Middleware\CheckAdminPermission::class,
