@@ -93,24 +93,23 @@
 
     {{-- DataTable --}}
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div class="p-5 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-semibold text-gray-800">الطلبات</h3>
-        </div>
-        <div class="p-5">
-            <table id="orders-table" class="w-full text-sm" style="width:100%">
-                <thead>
-                    <tr class="text-xs text-gray-500 uppercase">
-                        <th class="text-right py-2 font-medium">رقم الطلب</th>
-                        <th class="text-right py-2 font-medium">الحالة</th>
-                        <th class="text-right py-2 font-medium">المبلغ</th>
-                        <th class="text-right py-2 font-medium">المدينة</th>
-                        <th class="text-right py-2 font-medium text-center">العناصر</th>
-                        <th class="text-right py-2 font-medium">موعد الشحن</th>
-                        <th class="text-right py-2 font-medium">التاريخ</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <table id="orders-table" class="w-full text-sm" style="width:100%">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">رقم الطلب</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">الحالة</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">المبلغ</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">المدينة</th>
+                    <th class="px-4 py-3 font-semibold tracking-wide text-center">العناصر</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">موعد الشحن</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">التاريخ</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100"></tbody>
+        </table>
+        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <span id="orders-table-info" class="text-xs text-gray-400"></span>
+            <div id="orders-table-pagination" class="flex items-center gap-1"></div>
         </div>
     </div>
 

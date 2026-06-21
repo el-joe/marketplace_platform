@@ -4,7 +4,7 @@
  */
 
 import './app.js';
-import { csrfToken, postJson, showModal, hideModal, showError, hideError, toast } from './datatable.js';
+import { csrfToken, createPartnerTable, postJson, showModal, hideModal, showError, hideError, toast } from './datatable.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DataTable  (orders index page)
@@ -33,55 +33,57 @@ function statusBadgeHtml(status) {
 let ordersTable = null;
 
 function initOrdersDataTable() {
-    const tableEl = document.getElementById('orders-table');
-    if (!tableEl || !ORDERS) return;
+    if (!document.getElementById('orders-table') || !ORDERS) return;
 
-    ordersTable = $(tableEl).DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: ORDERS.datatableUrl,
-            data: (d) => {
-                d.status = currentStatusFilter();
-                d.date_from = document.getElementById('filter-date-from')?.value ?? '';
-                d.date_to = document.getElementById('filter-date-to')?.value ?? '';
-            },
+    ordersTable = createPartnerTable('orders-table', {
+        url: ORDERS.datatableUrl,
+        ajaxData: (d) => {
+            d.status = currentStatusFilter();
+            d.date_from = document.getElementById('filter-date-from')?.value ?? '';
+            d.date_to = document.getElementById('filter-date-to')?.value ?? '';
+        },
+        order: [[6, 'desc']],
+        language: {
+            emptyTable:  '<div class="py-16 text-center"><div class="text-4xl mb-3">📦</div><p class="text-gray-500 font-medium">لا توجد طلبات</p></div>',
+            zeroRecords: '<div class="py-16 text-center"><div class="text-4xl mb-3">🔍</div><p class="text-gray-500 font-medium">لا توجد نتائج مطابقة</p></div>',
+            processing:  '<div class="flex justify-center py-12"><div class="w-7 h-7 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div></div>',
         },
         columns: [
             {
                 data: 'sub_order_number',
+                className: 'px-4 py-3',
                 render: (data, type, row) =>
                     `<a href="${row.show_url}" class="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline">${data}</a>`,
             },
             {
                 data: 'status',
+                className: 'px-4 py-3',
                 render: (data) => statusBadgeHtml(data),
             },
             {
                 data: 'vendor_payout',
+                className: 'px-4 py-3',
                 render: (data) => `<span class="font-semibold text-gray-800">${data}</span>`,
             },
-            { data: 'location' },
+            {
+                data: 'location',
+                className: 'px-4 py-3 text-sm text-gray-700',
+            },
             {
                 data: 'item_count',
-                className: 'text-center',
+                className: 'px-4 py-3 text-center text-sm text-gray-600',
             },
             {
                 data: 'sla_countdown',
+                className: 'px-4 py-3',
                 render: (data) => data,
                 orderable: true,
             },
-            { data: 'placed_at' },
+            {
+                data: 'placed_at',
+                className: 'px-4 py-3 text-sm text-gray-600',
+            },
         ],
-        order: [[6, 'desc']],
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.8/i18n/ar.json',
-            emptyTable: 'لا توجد طلبات',
-            processing: '<div class="flex justify-center py-8"><div class="w-6 h-6 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div></div>',
-        },
-        dom: "<'flex items-center justify-between mb-4'<'text-sm text-gray-500'i><'flex gap-2'p>>t<'flex items-center justify-between mt-4'<'text-sm text-gray-500'i><'flex gap-2'p>>",
-        pageLength: 25,
-        searching: false,
     });
 }
 
