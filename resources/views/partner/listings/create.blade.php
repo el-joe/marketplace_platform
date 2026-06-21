@@ -8,6 +8,7 @@
     <script>
         window.LISTINGS_CREATE = {
             productSearchUrl: '{{ route('partner.listings.product-search') }}',
+            warehousesByCountryUrl: '{{ route('partner.listings.warehouses-by-country') }}',
             storeUrl: '{{ route('partner.listings.store') }}',
             csrf: '{{ csrf_token() }}',
         };

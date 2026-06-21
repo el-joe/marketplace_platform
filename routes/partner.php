@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Route;
 // ── Suspended page (accessible without full auth) ────────────────────────
 Route::get('/suspended', fn() => view('partner.suspended'))->name('suspended');
 
-Route::redirect('/', '/login')->name('home');
+Route::redirect('/', '/dashboard')->name('home');
 
 // ── Auth (guest only) ────────────────────────────────────────────────────
 Route::middleware('guest:vendor')->group(function () {
@@ -69,6 +69,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
         Route::get('/product-search', 'productSearch')->name('product-search');
+        Route::get('/warehouses-by-country', 'warehousesByCountry')->name('warehouses-by-country');
         Route::get('/{listing}', 'show')->name('show');
         Route::post('/{listing}/update-price', 'updatePrice')->name('update-price');
         Route::post('/{listing}/toggle-status', 'toggleStatus')->name('toggle-status');
@@ -205,34 +206,34 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ─── Carrier Claims ───────────────────────────────────────────────────────
     Route::prefix('claims')->name('claims.')->group(function () {
-        Route::get('/',              [\App\Http\Controllers\Partner\ClaimController::class, 'index'])->name('index');
-        Route::get('/create',        [\App\Http\Controllers\Partner\ClaimController::class, 'create'])->name('create');
-        Route::post('/',             [\App\Http\Controllers\Partner\ClaimController::class, 'store'])->name('store');
-        Route::get('/{claim}',       [\App\Http\Controllers\Partner\ClaimController::class, 'show'])->name('show');
+        Route::get('/', [\App\Http\Controllers\Partner\ClaimController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Partner\ClaimController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Partner\ClaimController::class, 'store'])->name('store');
+        Route::get('/{claim}', [\App\Http\Controllers\Partner\ClaimController::class, 'show'])->name('show');
     });
 
     // ─── Warehouses (My Warehouse module) ────────────────────────────────────────
     Route::prefix('warehouses')->name('warehouses.')->group(function () {
-        Route::get('/',                        [WarehouseController::class, 'index'])->name('index');
-        Route::get('/create',                  [WarehouseController::class, 'create'])->name('create');
-        Route::post('/',                       [WarehouseController::class, 'store'])->name('store');
-        Route::get('/{warehouse}',             [WarehouseController::class, 'show'])->name('show');
-        Route::put('/{warehouse}',             [WarehouseController::class, 'update'])->name('update');
+        Route::get('/', [WarehouseController::class, 'index'])->name('index');
+        Route::get('/create', [WarehouseController::class, 'create'])->name('create');
+        Route::post('/', [WarehouseController::class, 'store'])->name('store');
+        Route::get('/{warehouse}', [WarehouseController::class, 'show'])->name('show');
+        Route::put('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
         Route::post('/{warehouse}/deactivate', [WarehouseController::class, 'deactivate'])->name('deactivate');
-        Route::post('/{warehouse}/inventory',  [WarehouseController::class, 'getInventory'])->name('inventory');
+        Route::post('/{warehouse}/inventory', [WarehouseController::class, 'getInventory'])->name('inventory');
 
-        Route::post('/inventory/{inventory}/adjust',   [WarehouseController::class, 'adjustInventory'])->name('inventory.adjust');
-        Route::post('/inventory/{inventory}/count',    [WarehouseController::class, 'stockCount'])->name('inventory.count');
+        Route::post('/inventory/{inventory}/adjust', [WarehouseController::class, 'adjustInventory'])->name('inventory.adjust');
+        Route::post('/inventory/{inventory}/count', [WarehouseController::class, 'stockCount'])->name('inventory.count');
         Route::get('/inventory/{inventory}/movements', [WarehouseController::class, 'getMovements'])->name('inventory.movements');
 
         Route::prefix('transfers')->name('transfers.')->group(function () {
-            Route::get('/',                       [WarehouseController::class, 'transfersIndex'])->name('index');
-            Route::post('/datatable',             [WarehouseController::class, 'transfersDatatable'])->name('datatable');
-            Route::get('/create',                 [WarehouseController::class, 'transferCreate'])->name('create');
-            Route::post('/',                      [WarehouseController::class, 'transferStore'])->name('store');
-            Route::get('/{transfer}',             [WarehouseController::class, 'transferShow'])->name('show');
-            Route::post('/{transfer}/ship',       [WarehouseController::class, 'transferShip'])->name('ship');
-            Route::post('/{transfer}/cancel',     [WarehouseController::class, 'transferCancel'])->name('cancel');
+            Route::get('/', [WarehouseController::class, 'transfersIndex'])->name('index');
+            Route::post('/datatable', [WarehouseController::class, 'transfersDatatable'])->name('datatable');
+            Route::get('/create', [WarehouseController::class, 'transferCreate'])->name('create');
+            Route::post('/', [WarehouseController::class, 'transferStore'])->name('store');
+            Route::get('/{transfer}', [WarehouseController::class, 'transferShow'])->name('show');
+            Route::post('/{transfer}/ship', [WarehouseController::class, 'transferShip'])->name('ship');
+            Route::post('/{transfer}/cancel', [WarehouseController::class, 'transferCancel'])->name('cancel');
         });
     });
 
@@ -242,10 +243,10 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ─── Packaging Supplies ───────────────────────────────────────────────────
     Route::prefix('packaging-supplies')->name('packaging-supplies.')->group(function () {
-        Route::get('/',                                           [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'index'])->name('index');
-        Route::get('/request',                                    [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'request'])->name('request');
-        Route::post('/request',                                   [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'submitRequest'])->name('submit');
-        Route::get('/my-requests',                                [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'myRequests'])->name('my-requests');
-        Route::get('/my-requests/{packagingSupplyRequest}',       [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'showRequest'])->name('show-request');
+        Route::get('/', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'index'])->name('index');
+        Route::get('/request', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'request'])->name('request');
+        Route::post('/request', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'submitRequest'])->name('submit');
+        Route::get('/my-requests', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'myRequests'])->name('my-requests');
+        Route::get('/my-requests/{packagingSupplyRequest}', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'showRequest'])->name('show-request');
     });
 });

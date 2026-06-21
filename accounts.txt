@@ -71,7 +71,7 @@ GUARD: delivery  →  Panel URL: http://delivery.noon.loc  (also Sanctum token A
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Email                            Password       Type          Company              Status      Vehicle
 ───────────────────────────────  ────────────   ───────────   ───────────────────  ──────────  ──────────
-mahmoud@delivery.com             password123    platform      —                    active      motorcycle
++1-681-242-4935                  password123    platform      —                    active      motorcycle
 khalifa@delivery.com             password123    platform      —                    on_shift    car
 inactive@delivery.com            password123    platform      —                    inactive    bicycle
 suspended@delivery.com           password123    platform      —                    suspended   motorcycle

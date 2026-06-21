@@ -382,10 +382,52 @@ function initChangeProduct() {
 // Create Form Submit (create page)
 // ─────────────────────────────────────────────────────────────────────────────
 
+async function loadWarehousesByCountry(countryId) {
+    const cfg = window.LISTINGS_CREATE;
+    const select = document.querySelector('select[name="warehouse_id"]');
+    if (!select || !cfg) return;
+
+    select.disabled = true;
+    select.innerHTML = '<option value="">جاري التحميل...</option>';
+
+    if (!countryId) {
+        select.innerHTML = '<option value="">اختر المستودع...</option>';
+        select.disabled = false;
+        return;
+    }
+
+    try {
+        const res = await fetch(`${cfg.warehousesByCountryUrl}?country_id=${encodeURIComponent(countryId)}`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+        });
+        const warehouses = await res.json();
+        if (!warehouses.length) {
+            select.innerHTML = '<option value="">لا توجد مستودعات في هذا البلد</option>';
+        } else {
+            const typeLabel = (t) => t === 'vendor' ? 'مستودع خاص' : t === 'platform' ? 'مستودع المنصة' : t;
+            select.innerHTML = '<option value="">اختر المستودع...</option>' +
+                warehouses.map(w =>
+                    `<option value="${w.id}">${escapeHtml(w.name)}${w.code ? ` (${escapeHtml(w.code)})` : ''} — ${typeLabel(w.type)}</option>`
+                ).join('');
+        }
+    } catch {
+        select.innerHTML = '<option value="">خطأ في تحميل المستودعات</option>';
+    }
+    select.disabled = false;
+}
+
 function initCreateForm() {
     const form = document.getElementById('listing-create-form');
     const cfg = window.LISTINGS_CREATE;
     if (!form || !cfg) return;
+
+    // Reload warehouses when country changes
+    const countrySelect = form.querySelector('select[name="country_id"]');
+    if (countrySelect) {
+        countrySelect.addEventListener('change', () => loadWarehousesByCountry(countrySelect.value));
+        // Trigger immediately to populate for the pre-selected vendor country
+        if (countrySelect.value) loadWarehousesByCountry(countrySelect.value);
+    }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();

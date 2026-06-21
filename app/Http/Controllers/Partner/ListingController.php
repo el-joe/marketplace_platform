@@ -239,6 +239,33 @@ class ListingController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Warehouses by Country (AJAX — for create form)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function warehousesByCountry(Request $request): JsonResponse
+    {
+        $request->validate(['country_id' => ['required', 'exists:countries,id']]);
+
+        $vendor = $this->vendor();
+
+        $warehouses = Warehouse::where('is_active', true)
+            ->where('country_id', $request->country_id)
+            ->where(function ($q) use ($vendor) {
+                $q->whereNull('owner_vendor_id')
+                    ->orWhere('owner_vendor_id', $vendor->id);
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'code', 'type']);
+
+        return response()->json($warehouses->map(fn($w) => [
+            'id'   => $w->id,
+            'name' => $w->name,
+            'code' => $w->code,
+            'type' => $w->type,
+        ]));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Show
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -352,7 +379,7 @@ class ListingController extends Controller
 
         $currency = Country::find($request->country_id)?->currency_code ?? 'SAR';
 
-        try {
+        // try {
             $listing = null;
             DB::transaction(function () use ($request, $vendorId, $status, $currency, &$listing, $vendor) {
                 $listing = VendorListing::create([
@@ -389,17 +416,17 @@ class ListingController extends Controller
                         'movement_type' => 'inbound',
                         'quantity_delta' => (int) $request->initial_quantity,
                         'quantity_after' => (int) $request->initial_quantity,
-                        'reference_type' => 'vendor_listing',
+                        'reference_type' => 'inbound_shipment',
                         'reference_id' => $listing->id,
                         'reason' => 'initial_stock',
                         'created_by_user_id' => Auth::guard('vendor')->user()->id,
                     ]);
                 }
             });
-        } catch (\Throwable $e) {
-            Log::error('ListingController::store failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء إنشاء القائمة. يرجى المحاولة مرة أخرى.'], 500);
-        }
+        // } catch (\Throwable $e) {
+        //     Log::error('ListingController::store failed', ['error' => $e->getMessage()]);
+        //     return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء إنشاء القائمة. يرجى المحاولة مرة أخرى.'], 500);
+        // }
 
         return response()->json([
             'success' => true,
