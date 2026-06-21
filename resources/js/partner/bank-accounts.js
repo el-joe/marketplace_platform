@@ -4,48 +4,9 @@
  */
 
 import './app.js';
+import { csrfToken, showModal, hideModal, showError, hideError, toast } from './datatable.js';
 
 const cfg = () => window.BANK_ACCOUNTS ?? {};
-
-function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
-
-function showModal(id) {
-    const el = document.getElementById(id);
-    if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
-}
-
-function hideModal(id) {
-    const el = document.getElementById(id);
-    if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
-}
-
-function showError(elId, msg) {
-    const el = document.getElementById(elId);
-    if (el) { el.textContent = msg; el.classList.remove('hidden'); }
-}
-
-function hideError(elId) {
-    const el = document.getElementById(elId);
-    if (el) el.classList.add('hidden');
-}
-
-function toast(msg, type = 'success') {
-    if (window.Toastify) {
-        Toastify({
-            text: msg,
-            duration: 4000,
-            gravity: 'top',
-            position: 'left',
-            style: {
-                background: type === 'success' ? '#16a34a' : '#dc2626',
-                borderRadius: '0.75rem',
-                fontFamily: 'inherit',
-            },
-        }).showToast();
-    }
-}
 
 async function sendRequest(method, url, body = null) {
     const opts = {

@@ -4,63 +4,7 @@
  */
 
 import './app.js';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Utilities
-// ─────────────────────────────────────────────────────────────────────────────
-
-function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
-
-function showModal(id) {
-    const el = document.getElementById(id);
-    if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
-}
-
-function hideModal(id) {
-    const el = document.getElementById(id);
-    if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
-}
-
-function showError(elId, msg) {
-    const el = document.getElementById(elId);
-    if (el) { el.textContent = msg; el.classList.remove('hidden'); }
-}
-
-function hideError(elId) {
-    const el = document.getElementById(elId);
-    if (el) el.classList.add('hidden');
-}
-
-function toast(msg, type = 'success') {
-    if (window.Toastify) {
-        Toastify({
-            text: msg,
-            duration: 4000,
-            gravity: 'top',
-            position: 'left',
-            style: {
-                background: type === 'success' ? '#16a34a' : '#dc2626',
-                borderRadius: '0.75rem',
-                fontFamily: 'inherit',
-            },
-        }).showToast();
-    }
-}
-
-async function postJson(url, data) {
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken(),
-            'Accept': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-    return { ok: res.ok, status: res.status, data: await res.json() };
-}
+import { createPartnerTable, postJson, showModal, hideModal, showError, hideError, toast } from './datatable.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Inventory DataTable
@@ -69,18 +13,20 @@ async function postJson(url, data) {
 let inventoryTable = null;
 
 function initInventoryDataTable() {
-    const tableEl = document.getElementById('inventory-table');
     const cfg = window.INVENTORY;
-    if (!tableEl || !cfg) return;
+    if (!cfg) return;
 
-    inventoryTable = $(tableEl).DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: cfg.datatableUrl,
-            data: (d) => {
-                d.filter = cfg.filterParam || '';
-            },
+    inventoryTable = createPartnerTable('inventory-table', {
+        url: cfg.datatableUrl,
+        ajaxData: (d) => {
+            d.filter = cfg.filterParam || '';
+            const searchEl = document.getElementById('inventory-search');
+            d.search = { value: searchEl ? searchEl.value : '' };
+        },
+        searchInputId: 'inventory-search',
+        order: [[3, 'asc']],
+        language: {
+            emptyTable: 'لا توجد بيانات مخزون',
         },
         columns: [
             {
@@ -104,8 +50,7 @@ function initInventoryDataTable() {
             },
             {
                 data: 'warehouse_name',
-                render: (data, type, row) =>
-                    `<span class="text-xs text-gray-700">${data}</span>`,
+                render: (data) => `<span class="text-xs text-gray-700">${data}</span>`,
             },
             {
                 data: 'quantity_on_hand',
@@ -144,26 +89,21 @@ function initInventoryDataTable() {
                     </button>`,
             },
         ],
-        order: [[3, 'asc']],
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.8/i18n/ar.json',
-            emptyTable: 'لا توجد بيانات مخزون',
-            processing: '<div class="flex justify-center py-8"><div class="w-6 h-6 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div></div>',
-        },
-        dom: "<'flex items-center justify-between mb-4'<'text-sm text-gray-500'i><'flex gap-2'p>>t<'flex items-center justify-between mt-4'<'text-sm text-gray-500'i><'flex gap-2'p>>",
-        pageLength: 25,
-        searching: true,
     });
 
+    if (!inventoryTable) return;
+
     // Bind adjust buttons (delegated — rows load async)
-    $(tableEl).on('click', '.btn-inv-adjust', function () {
-        const { listingId, invId, warehouse, onHand } = this.dataset;
+    document.getElementById('inventory-table')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-inv-adjust');
+        if (!btn) return;
+        const { listingId, invId, warehouse, onHand } = btn.dataset;
         document.getElementById('inv-adjust-listing-id').value = listingId;
         document.getElementById('inv-adjust-inv-id').value = invId;
         document.getElementById('inv-adjust-warehouse').textContent = warehouse;
         document.getElementById('inv-adjust-current').textContent = onHand;
         document.getElementById('inv-adjust-form')?.reset();
-        document.getElementById('inv-adjust-inv-id').value = invId; // re-set after reset
+        document.getElementById('inv-adjust-inv-id').value = invId;
         hideError('inv-adjust-error');
         showModal('inventory-adjust-modal');
     });
@@ -192,7 +132,6 @@ function initAdjustModal() {
         const submitBtn = e.target.querySelector('[type=submit]');
         submitBtn.disabled = true;
 
-        // Build the adjust-stock URL for this listing
         const cfg = window.INVENTORY;
         const url = `${cfg.adjustBaseUrl}/listings/${listingId}/adjust-stock`;
 

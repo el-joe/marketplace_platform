@@ -116,6 +116,7 @@ class ListingController extends Controller
                 ? $q->whereRaw('vendor_listings.id IN (SELECT vendor_listing_id FROM warehouse_inventories WHERE quantity_on_hand - quantity_reserved <= vendor_listings.low_stock_threshold AND quantity_on_hand > 0)')
                 : $q->where('vendor_listings.status', $v),
             'search' => fn($q, $v) => $q->where(function ($sq) use ($v) {
+                $v = $v['value'] ?? '';
                 $sq->where('p.name_en', 'like', '%' . $v . '%')
                     ->orWhere('p.name_ar', 'like', '%' . $v . '%')
                     ->orWhere('pv.sku', 'like', '%' . $v . '%')

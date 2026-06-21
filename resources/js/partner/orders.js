@@ -4,69 +4,7 @@
  */
 
 import './app.js';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
-
-function showModal(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.remove('hidden');
-    el.classList.add('flex');
-}
-
-function hideModal(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.add('hidden');
-    el.classList.remove('flex');
-}
-
-function showError(elId, msg) {
-    const el = document.getElementById(elId);
-    if (!el) return;
-    el.textContent = msg;
-    el.classList.remove('hidden');
-}
-
-function hideError(elId) {
-    const el = document.getElementById(elId);
-    if (el) el.classList.add('hidden');
-}
-
-function toast(msg, type = 'success') {
-    if (window.Toastify) {
-        Toastify({
-            text: msg,
-            duration: 4000,
-            gravity: 'top',
-            position: 'left',
-            style: {
-                background: type === 'success' ? '#16a34a' : '#dc2626',
-                borderRadius: '0.75rem',
-                fontFamily: 'inherit',
-            },
-        }).showToast();
-    }
-}
-
-async function postJson(url, data) {
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken(),
-            'Accept': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-    return { ok: res.ok, status: res.status, data: await res.json() };
-}
+import { csrfToken, postJson, showModal, hideModal, showError, hideError, toast } from './datatable.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DataTable  (orders index page)

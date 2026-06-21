@@ -31,56 +31,73 @@
             :color="$lowStockCount > 0 ? 'warning' : 'gray'" :link="route('partner.inventory.low-stock')" />
     </div>
 
-    {{-- Quick links --}}
-    <div class="flex flex-wrap gap-2 mb-4">
-        <a href="{{ route('partner.inventory.index') }}" @class([
-            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border',
-            'bg-gray-900 text-white border-gray-900' => !request('filter'),
-            'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' => request('filter')
-        ])>
-            الكل
-        </a>
-        <a href="{{ route('partner.inventory.index', ['filter' => 'low_stock']) }}" @class([
-            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border',
-            'bg-orange-500 text-white border-orange-500' => request('filter') === 'low_stock',
-            'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' => request('filter') !== 'low_stock'
-        ])>
-            ⚠ مخزون منخفض
-            @if($lowStockCount > 0)
-                <span class="bg-orange-100 text-orange-700 text-xs px-1.5 py-0.5 rounded-full">{{ $lowStockCount }}</span>
-            @endif
-        </a>
-        <a href="{{ route('partner.inventory.index', ['filter' => 'out_of_stock']) }}" @class([
-            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border',
-            'bg-red-500 text-white border-red-500' => request('filter') === 'out_of_stock',
-            'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' => request('filter') !== 'out_of_stock'
-        ])>
-            🚫 نفد المخزون
-            @if($outOfStockCount > 0)
-                <span class="bg-red-100 text-red-700 text-xs px-1.5 py-0.5 rounded-full">{{ $outOfStockCount }}</span>
-            @endif
-        </a>
+    {{-- Filter tabs --}}
+    <div class="bg-white rounded-2xl border border-gray-200 mb-4">
+        <div class="flex items-center overflow-x-auto">
+            <a href="{{ route('partner.inventory.index') }}" @class([
+                'flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
+                'border-yellow-400 text-yellow-600' => !request('filter'),
+                'border-transparent text-gray-500 hover:text-gray-700' => request('filter'),
+            ])>الكل</a>
+
+            <a href="{{ route('partner.inventory.index', ['filter' => 'low_stock']) }}" @class([
+                'flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1',
+                'border-orange-400 text-orange-600' => request('filter') === 'low_stock',
+                'border-transparent text-gray-500 hover:text-gray-700' => request('filter') !== 'low_stock',
+            ])>
+                ⚠ مخزون منخفض
+                @if($lowStockCount > 0)
+                    <span class="bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full leading-none">{{ $lowStockCount }}</span>
+                @endif
+            </a>
+
+            <a href="{{ route('partner.inventory.index', ['filter' => 'out_of_stock']) }}" @class([
+                'flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1',
+                'border-red-400 text-red-600' => request('filter') === 'out_of_stock',
+                'border-transparent text-gray-500 hover:text-gray-700' => request('filter') !== 'out_of_stock',
+            ])>
+                🚫 نفد المخزون
+                @if($outOfStockCount > 0)
+                    <span class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full leading-none">{{ $outOfStockCount }}</span>
+                @endif
+            </a>
+        </div>
+    </div>
+
+    {{-- Toolbar --}}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="relative">
+            <input type="text" id="inventory-search" placeholder="ابحث باسم المنتج أو SKU..."
+                class="w-64 border border-gray-200 rounded-xl pr-9 pl-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+            <svg class="w-4 h-4 text-gray-400 absolute top-2.5 right-2.5 pointer-events-none" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        </div>
     </div>
 
     {{-- DataTable --}}
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div class="p-5">
-            <table id="inventory-table" class="w-full text-sm" style="width:100%">
-                <thead>
-                    <tr class="text-xs text-gray-500 uppercase">
-                        <th class="text-right py-2 font-medium">المنتج</th>
-                        <th class="text-right py-2 font-medium">النسخة / SKU</th>
-                        <th class="text-right py-2 font-medium">المستودع</th>
-                        <th class="py-2 text-center font-medium">في المخزن</th>
-                        <th class="py-2 text-center font-medium">محجوز</th>
-                        <th class="py-2 text-center font-medium">متاح</th>
-                        <th class="py-2 text-center font-medium">وارد</th>
-                        <th class="py-2 text-center font-medium">تالف</th>
-                        <th class="py-2"></th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <table id="inventory-table" class="w-full text-sm" style="width:100%">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">المنتج</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">النسخة / SKU</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">المستودع</th>
+                    <th class="px-4 py-3 font-semibold tracking-wide text-center">في المخزن</th>
+                    <th class="px-4 py-3 font-semibold tracking-wide text-center">محجوز</th>
+                    <th class="px-4 py-3 font-semibold tracking-wide text-center">متاح</th>
+                    <th class="px-4 py-3 font-semibold tracking-wide text-center">وارد</th>
+                    <th class="px-4 py-3 font-semibold tracking-wide text-center">تالف</th>
+                    <th class="px-4 py-3 w-16"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100"></tbody>
+        </table>
+        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50" id="inventory-table-footer">
+            <span id="inventory-info" class="text-xs text-gray-400"></span>
+            <div id="inventory-pagination" class="flex items-center gap-1"></div>
         </div>
     </div>
 

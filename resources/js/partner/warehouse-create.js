@@ -4,35 +4,7 @@
  */
 
 import './app.js';
-
-function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
-
-function toast(msg, type = 'success') {
-    if (window.Toastify) {
-        Toastify({
-            text: msg,
-            duration: 4000,
-            gravity: 'top',
-            position: 'left',
-            style: {
-                background: type === 'success' ? '#16a34a' : '#dc2626',
-                borderRadius: '0.75rem',
-                fontFamily: 'inherit',
-            },
-        }).showToast();
-    }
-}
-
-async function postJson(url, data = {}) {
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json' },
-        body: JSON.stringify(data),
-    });
-    return { ok: res.ok, status: res.status, data: await res.json() };
-}
+import { csrfToken, postJson, toast } from './datatable.js';
 
 // ─── Warehouse Create ─────────────────────────────────────────────────────────
 

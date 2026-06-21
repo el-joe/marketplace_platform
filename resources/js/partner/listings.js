@@ -4,63 +4,7 @@
  */
 
 import './app.js';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Utilities
-// ─────────────────────────────────────────────────────────────────────────────
-
-function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
-
-function showModal(id) {
-    const el = document.getElementById(id);
-    if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
-}
-
-function hideModal(id) {
-    const el = document.getElementById(id);
-    if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
-}
-
-function showError(elId, msg) {
-    const el = document.getElementById(elId);
-    if (el) { el.textContent = msg; el.classList.remove('hidden'); }
-}
-
-function hideError(elId) {
-    const el = document.getElementById(elId);
-    if (el) el.classList.add('hidden');
-}
-
-function toast(msg, type = 'success') {
-    if (window.Toastify) {
-        Toastify({
-            text: msg,
-            duration: 4000,
-            gravity: 'top',
-            position: 'left',
-            style: {
-                background: type === 'success' ? '#16a34a' : '#dc2626',
-                borderRadius: '0.75rem',
-                fontFamily: 'inherit',
-            },
-        }).showToast();
-    }
-}
-
-async function postJson(url, data) {
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken(),
-            'Accept': 'application/json',
-        },
-        body: JSON.stringify(data),
-    });
-    return { ok: res.ok, status: res.status, data: await res.json() };
-}
+import { createPartnerTable, csrfToken, postJson, showModal, hideModal, showError, hideError, toast } from './datatable.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Status badge HTML (for DataTable column rendering)
@@ -92,95 +36,105 @@ function initListingsDataTable() {
     const cfg = window.LISTINGS;
     if (!tableEl || !cfg) return;
 
-    listingsTable = $(tableEl).DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: cfg.datatableUrl,
-            data: (d) => {
-                d.status = cfg.statusFilter !== 'all' ? cfg.statusFilter : '';
-                const searchEl = document.getElementById('listing-search');
-                d.search_term = searchEl ? searchEl.value : '';
-            },
+    listingsTable = createPartnerTable('listings-table', {
+        url: cfg.datatableUrl,
+        ajaxData: (d) => {
+            d.status = cfg.statusFilter !== 'all' ? cfg.statusFilter : '';
+            const searchEl = document.getElementById('listing-search');
+            d.search_term = searchEl ? searchEl.value : '';
+        },
+        searchInputId: 'listing-search',
+        order: [[7, 'desc']],
+        language: {
+            emptyTable:  '<div class="py-16 text-center"><div class="text-4xl mb-3">📦</div><p class="text-gray-500 font-medium">لا توجد قوائم</p><p class="text-gray-400 text-xs mt-1">لم يتم إنشاء أي قوائم منتجات بعد</p></div>',
+            zeroRecords: '<div class="py-16 text-center"><div class="text-4xl mb-3">🔍</div><p class="text-gray-500 font-medium">لا توجد نتائج مطابقة</p></div>',
+            processing:  '<div class="flex justify-center py-12"><div class="w-7 h-7 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div></div>',
         },
         columns: [
             {
                 data: null,
                 orderable: false,
+                className: 'px-4 py-3',
                 render: (data, type, row) =>
-                    `<input type="checkbox" class="row-select rounded" data-id="${row.id}" data-status="${row.status}">`,
+                    `<input type="checkbox" class="row-select rounded border-gray-300" data-id="${row.id}" data-status="${row.status}">`,
             },
             {
                 data: 'name_ar',
+                className: 'px-4 py-3',
                 render: (data, type, row) => {
                     const img = row.image_url
-                        ? `<img src="${row.image_url}" class="w-8 h-8 rounded-lg object-cover flex-shrink-0">`
-                        : `<div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0"><span class="text-gray-400 text-xs">📦</span></div>`;
-                    return `<a href="${row.show_url}" class="flex items-center gap-2 group">
+                        ? `<img src="${row.image_url}" class="w-10 h-10 rounded-xl object-cover shrink-0 border border-gray-100">`
+                        : `<div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><span class="text-gray-400 text-sm">📦</span></div>`;
+                    return `<a href="${row.show_url}" class="flex items-center gap-3 group">
                         ${img}
                         <div class="min-w-0">
-                            <p class="font-medium text-gray-800 text-xs group-hover:text-blue-600 leading-tight truncate max-w-[160px]">${data || row.name_en}</p>
-                            ${row.name_ar && row.name_en ? `<p class="text-xs text-gray-400 truncate max-w-[160px]">${row.name_en}</p>` : ''}
+                            <p class="font-semibold text-gray-800 text-sm group-hover:text-yellow-600 leading-tight truncate max-w-[180px]">${data || row.name_en}</p>
+                            ${row.name_ar && row.name_en ? `<p class="text-xs text-gray-400 truncate max-w-[180px] mt-0.5">${row.name_en}</p>` : ''}
                         </div>
                     </a>`;
                 },
             },
             {
                 data: 'variant_name',
+                className: 'px-4 py-3',
                 render: (data, type, row) =>
-                    `<div class="text-xs"><p class="text-gray-700">${data}</p><p class="font-mono text-gray-400">${row.sku}</p></div>`,
+                    `<div><p class="text-sm text-gray-700 font-medium">${data}</p><p class="font-mono text-xs text-gray-400 mt-0.5">${row.sku}</p></div>`,
             },
             {
                 data: 'status',
+                className: 'px-4 py-3',
                 render: (data) => listingStatusBadge(data),
             },
             {
                 data: 'price',
+                className: 'px-4 py-3',
                 render: (data, type, row) =>
-                    `<div class="flex items-center gap-1">
-                        <span class="font-semibold text-gray-800" id="price-display-${row.id}">${data}</span>
-                        <button class="btn-edit-price text-gray-300 hover:text-yellow-500 transition-colors ml-1"
+                    `<div class="flex items-center gap-2">
+                        <span class="font-bold text-gray-900 text-sm" id="price-display-${row.id}">${data}</span>
+                        <button class="btn-edit-price w-6 h-6 flex items-center justify-center rounded-lg text-gray-300 hover:text-yellow-500 hover:bg-yellow-50 transition-colors"
                                 data-listing-id="${row.id}" data-price="${row.price_raw / 100}" title="تعديل السعر">
-                            ✏️
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                         </button>
                     </div>`,
             },
             {
                 data: 'available_stock',
-                className: 'text-center',
-                render: (data) => data,
+                className: 'px-4 py-3 text-center',
+                render: (data) => {
+                    const n = parseInt(data, 10);
+                    const cls = n <= 0 ? 'text-red-600 font-semibold' : n <= 5 ? 'text-orange-500 font-semibold' : 'text-gray-700';
+                    return `<span class="text-sm ${cls}">${data}</span>`;
+                },
             },
             {
                 data: 'total_sold',
-                className: 'text-center text-xs text-gray-600',
+                className: 'px-4 py-3 text-center text-sm text-gray-600',
             },
             {
                 data: 'rating_avg',
-                className: 'text-center text-xs text-gray-600',
-                render: (data) => data !== '—' ? `${data} ★` : '—',
+                className: 'px-4 py-3 text-center text-sm text-gray-600',
+                render: (data) => data !== '—'
+                    ? `<span class="inline-flex items-center gap-1">${data}<span class="text-yellow-400">★</span></span>`
+                    : '<span class="text-gray-300">—</span>',
             },
             {
                 data: null,
                 orderable: false,
+                className: 'px-4 py-3 text-center',
                 render: (data, type, row) =>
-                    `<a href="${row.show_url}" class="text-xs text-blue-600 hover:underline">تفاصيل</a>`,
+                    `<a href="${row.show_url}" class="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-yellow-600 border border-gray-200 hover:border-yellow-300 rounded-lg px-2.5 py-1.5 transition-colors">تفاصيل</a>`,
             },
         ],
-        order: [[7, 'desc']],
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.8/i18n/ar.json',
-            emptyTable: 'لا توجد قوائم',
-            processing: '<div class="flex justify-center py-8"><div class="w-6 h-6 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div></div>',
-        },
-        dom: "<'flex items-center justify-between mb-4'<'text-sm text-gray-500'i><'flex gap-2'p>>t<'flex items-center justify-between mt-4'<'text-sm text-gray-500'i><'flex gap-2'p>>",
-        pageLength: 25,
-        searching: false,
     });
 
+    if (!listingsTable) return;
+
     // Row select
-    $(tableEl).on('change', '.row-select', function () {
-        const id = this.dataset.id;
-        if (this.checked) selectedIds.add(id);
+    tableEl.addEventListener('change', (e) => {
+        const cb = e.target.closest('.row-select');
+        if (!cb) return;
+        const id = cb.dataset.id;
+        if (cb.checked) selectedIds.add(id);
         else selectedIds.delete(id);
         updateBulkActions();
     });
@@ -196,21 +150,17 @@ function initListingsDataTable() {
     });
 
     // Price edit from table
-    $(tableEl).on('click', '.btn-edit-price', function () {
-        const id = this.dataset.listingId;
-        const price = this.dataset.price;
+    tableEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-edit-price');
+        if (!btn) return;
+        const id = btn.dataset.listingId;
+        const price = btn.dataset.price;
         document.getElementById('price-listing-id').value = id;
         document.getElementById('price-input').value = price;
         hideError('price-error');
         showModal('price-modal');
     });
 
-    // Reload on search
-    let searchDebounce = null;
-    document.getElementById('listing-search')?.addEventListener('input', () => {
-        clearTimeout(searchDebounce);
-        searchDebounce = setTimeout(() => listingsTable?.ajax.reload(), 400);
-    });
 }
 
 function updateBulkActions() {

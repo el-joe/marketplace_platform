@@ -108,23 +108,27 @@
 
     {{-- DataTable --}}
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div class="p-5">
-            <table id="listings-table" class="w-full text-sm" style="width:100%">
-                <thead>
-                    <tr class="text-xs text-gray-500 uppercase">
-                        <th class="py-2 w-8"><input type="checkbox" id="select-all-listings" class="rounded"></th>
-                        <th class="text-right py-2 font-medium">المنتج</th>
-                        <th class="text-right py-2 font-medium">النسخة / SKU</th>
-                        <th class="text-right py-2 font-medium">الحالة</th>
-                        <th class="text-right py-2 font-medium">السعر</th>
-                        <th class="text-right py-2 font-medium text-center">المتاح</th>
-                        <th class="text-right py-2 font-medium text-center">المباع</th>
-                        <th class="text-right py-2 font-medium text-center">التقييم</th>
-                        <th class="py-2"></th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <table id="listings-table" class="w-full text-sm" style="width:100%">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+                    <th class="px-4 py-3 w-10 font-medium">
+                        <input type="checkbox" id="select-all-listings" class="rounded border-gray-300">
+                    </th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">المنتج</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">النسخة / SKU</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">الحالة</th>
+                    <th class="px-4 py-3 text-right font-semibold tracking-wide">السعر</th>
+                    <th class="px-4 py-3 font-semibold tracking-wide text-center">المتاح</th>
+                    <th class="px-4 py-3 font-semibold tracking-wide text-center">المباع</th>
+                    <th class="px-4 py-3 font-semibold tracking-wide text-center">التقييم</th>
+                    <th class="px-4 py-3 w-16"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100"></tbody>
+        </table>
+        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50" id="listings-table-footer">
+            <span id="listings-info" class="text-xs text-gray-400"></span>
+            <div id="listings-pagination" class="flex items-center gap-1"></div>
         </div>
     </div>
 
