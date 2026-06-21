@@ -12,6 +12,19 @@ class UpdateFlashSaleRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        // The JS sends [''] as a sentinel when all checkboxes are unchecked
+        // (jQuery drops truly empty arrays during serialisation). Filter it out
+        // so the field validates and saves as null/[].
+        foreach (['eligible_categories', 'eligible_seller_tiers'] as $field) {
+            if ($this->has($field)) {
+                $filtered = array_filter((array) $this->input($field), fn($v) => $v !== '');
+                $this->merge([$field => array_values($filtered)]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         return [

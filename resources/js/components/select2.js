@@ -20,7 +20,7 @@ if (typeof select2Factory === 'function') {
    STANDARD SELECT2
    ========================================================= */
 function initStandardSelect2($scope) {
-    const $els = $scope.find('[data-select2="true"]');
+    const $els = $scope.find('[data-select2-init]');
     if (!$els.length) return;
 
     $els.each(function () {

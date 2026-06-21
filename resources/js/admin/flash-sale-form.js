@@ -144,21 +144,32 @@ function initPreviewUpdates() {
 // ─── Form submit ──────────────────────────────────────────────────────────────
 
 function initFormSubmit() {
+    // Details tab form
     const form = document.getElementById('flash-sale-form');
-    if (!form) return;
+    if (form) {
+        form.addEventListener('submit', handleFormSubmit);
+        document.getElementById('flash-sale-submit-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        });
+    }
 
-    form.addEventListener('submit', handleFormSubmit);
-
-    const btn = document.getElementById('flash-sale-submit-btn');
-    if (btn) {
-        btn.addEventListener('click', () => form.dispatchEvent(new Event('submit', { cancelable: true })));
+    // Rules tab form (Discount Requirements, Vendor Eligibility, Eligible Categories)
+    const rulesForm = document.getElementById('flash-sale-form-rules');
+    if (rulesForm) {
+        rulesForm.addEventListener('submit', handleFormSubmit);
+        document.getElementById('flash-sale-rules-submit-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            rulesForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        });
     }
 }
 
 function handleFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
-    const btn = document.getElementById('flash-sale-submit-btn');
+    // Find the submit button belonging to this specific form
+    const btn = form.querySelector('[type="submit"]');
 
     const url = window.FLASH_SALE_STORE_URL || window.FLASH_SALE_UPDATE_URL;
     const method = window.FLASH_SALE_UPDATE_URL ? 'PUT' : 'POST';
@@ -181,10 +192,15 @@ function handleFormSubmit(e) {
         }
     });
 
-    // Collect checkbox groups (eligible_categories[], eligible_seller_tiers[])
+    // Collect checkbox groups (eligible_categories[], eligible_seller_tiers[]).
+    // When nothing is checked FormData omits the key entirely; we must still send
+    // an empty marker so the backend knows to clear the field (jQuery drops empty
+    // arrays during serialisation, so we use a single empty-string entry which
+    // Laravel's "nullable|array" rule treats as null/empty after filtering).
     ['eligible_categories', 'eligible_seller_tiers'].forEach(fieldName => {
-        const checks = form.querySelectorAll(`[name="${fieldName}[]"]:checked`);
-        data[fieldName] = Array.from(checks).map(c => c.value);
+        if (!form.querySelector(`[name="${fieldName}[]"]`)) return; // field not in this form
+        const checked = Array.from(form.querySelectorAll(`[name="${fieldName}[]"]:checked`)).map(c => c.value);
+        data[fieldName] = checked.length ? checked : null;
     });
 
     // Toggle booleans

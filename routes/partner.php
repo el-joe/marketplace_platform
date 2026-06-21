@@ -17,6 +17,7 @@ use App\Http\Controllers\Partner\FulfillmentController;
 use App\Http\Controllers\Partner\MarketerCampaignController as PartnerMarketerCampaignController;
 use App\Http\Controllers\Partner\MarketerSampleController as PartnerMarketerSampleController;
 use App\Http\Controllers\Partner\TeamController;
+use App\Http\Controllers\Partner\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -208,6 +209,31 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/create',        [\App\Http\Controllers\Partner\ClaimController::class, 'create'])->name('create');
         Route::post('/',             [\App\Http\Controllers\Partner\ClaimController::class, 'store'])->name('store');
         Route::get('/{claim}',       [\App\Http\Controllers\Partner\ClaimController::class, 'show'])->name('show');
+    });
+
+    // ─── Warehouses (My Warehouse module) ────────────────────────────────────────
+    Route::prefix('warehouses')->name('warehouses.')->group(function () {
+        Route::get('/',                        [WarehouseController::class, 'index'])->name('index');
+        Route::get('/create',                  [WarehouseController::class, 'create'])->name('create');
+        Route::post('/',                       [WarehouseController::class, 'store'])->name('store');
+        Route::get('/{warehouse}',             [WarehouseController::class, 'show'])->name('show');
+        Route::put('/{warehouse}',             [WarehouseController::class, 'update'])->name('update');
+        Route::post('/{warehouse}/deactivate', [WarehouseController::class, 'deactivate'])->name('deactivate');
+        Route::post('/{warehouse}/inventory',  [WarehouseController::class, 'getInventory'])->name('inventory');
+
+        Route::post('/inventory/{inventory}/adjust',   [WarehouseController::class, 'adjustInventory'])->name('inventory.adjust');
+        Route::post('/inventory/{inventory}/count',    [WarehouseController::class, 'stockCount'])->name('inventory.count');
+        Route::get('/inventory/{inventory}/movements', [WarehouseController::class, 'getMovements'])->name('inventory.movements');
+
+        Route::prefix('transfers')->name('transfers.')->group(function () {
+            Route::get('/',                       [WarehouseController::class, 'transfersIndex'])->name('index');
+            Route::post('/datatable',             [WarehouseController::class, 'transfersDatatable'])->name('datatable');
+            Route::get('/create',                 [WarehouseController::class, 'transferCreate'])->name('create');
+            Route::post('/',                      [WarehouseController::class, 'transferStore'])->name('store');
+            Route::get('/{transfer}',             [WarehouseController::class, 'transferShow'])->name('show');
+            Route::post('/{transfer}/ship',       [WarehouseController::class, 'transferShip'])->name('ship');
+            Route::post('/{transfer}/cancel',     [WarehouseController::class, 'transferCancel'])->name('cancel');
+        });
     });
 
     // ─── Delivery Ratings ─────────────────────────────────────────────────────

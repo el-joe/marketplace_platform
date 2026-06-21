@@ -56,6 +56,8 @@
 
         <x-partner-nav-group label="التوصيل والتخزين">
             <x-partner-nav-item route="partner.fulfillment.index" icon="truck" label="نظام التوصيل" />
+            <x-partner-nav-item route="partner.warehouses.index" icon="building-storefront" label="مستودعاتي" />
+            <x-partner-nav-item route="partner.warehouses.transfers.index" icon="arrows-right-left" label="التحويلات" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="المالية">

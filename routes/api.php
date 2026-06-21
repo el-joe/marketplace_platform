@@ -20,6 +20,18 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ═══════════════════════════════════════════════════════════════════════
+// Shared / Internal Lookups
+// ═══════════════════════════════════════════════════════════════════════
+Route::get('cities', function (\Illuminate\Http\Request $request) {
+    $request->validate(['country_id' => 'required|uuid']);
+
+    return \App\Models\City::where('country_id', $request->country_id)
+        ->where('is_active', true)
+        ->orderBy('name_en')
+        ->get(['id', 'name_en', 'name_ar']);
+});
+
+// ═══════════════════════════════════════════════════════════════════════
 // Customer / Website / App
 // ═══════════════════════════════════════════════════════════════════════
 Route::prefix('v1/{country}')

@@ -51,8 +51,7 @@ function initDatatableDelete() {
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         }).done(function (res) {
             window.Toast?.success(res.message || 'Attribute deleted.');
-            // Reload the datatable
-            window.adminDataTable?.ajax.reload(null, false);
+            window.reloadDataTable?.('attributes-table');
         }).fail(function (xhr) {
             window.Toast?.error(xhr.responseJSON?.message || 'Failed to delete attribute.');
         });
