@@ -15,18 +15,26 @@ use App\Services\Payment\PaymentGatewayFactory;
 use App\Services\Shipping\ShippingCarrierFactory;
 use App\Models\Address;
 use App\Models\FlashSaleSubmission;
+use App\Models\MarketerCampaign;
+use App\Models\MarketerQrCode;
 use App\Models\Payout;
 use App\Models\SubOrder;
 use App\Models\VendorBankAccount;
 use App\Models\VendorListing;
 use App\Models\WarehouseInventory;
+use App\Models\MarketerSampleRequest;
+use App\Models\MarketerWhatsappLink;
 use App\Policies\AddressPolicy;
+use App\Policies\CampaignPolicy;
 use App\Policies\FlashSaleSubmissionPolicy;
 use App\Policies\PayoutPolicy;
+use App\Policies\QrCodePolicy;
+use App\Policies\SampleRequestPolicy;
 use App\Policies\SubOrderPolicy;
 use App\Policies\VendorBankAccountPolicy;
 use App\Policies\VendorListingPolicy;
 use App\Policies\WarehouseInventoryPolicy;
+use App\Policies\WhatsappLinkPolicy;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -49,6 +57,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Address::class, AddressPolicy::class);
+        Gate::policy(MarketerCampaign::class, CampaignPolicy::class);
+        Gate::policy(MarketerQrCode::class, QrCodePolicy::class);
+        Gate::policy(MarketerWhatsappLink::class, WhatsappLinkPolicy::class);
+        Gate::policy(MarketerSampleRequest::class, SampleRequestPolicy::class);
         Gate::policy(FlashSaleSubmission::class, FlashSaleSubmissionPolicy::class);
         Gate::policy(Payout::class, PayoutPolicy::class);
         Gate::policy(SubOrder::class, SubOrderPolicy::class);

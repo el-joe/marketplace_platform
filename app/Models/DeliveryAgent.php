@@ -15,8 +15,9 @@ use App\Models\DeliveryAgentEarning;
 use App\Models\DeliveryAgentPayout;
 use App\Models\DeliveryAgentDocument;
 use App\Models\DeliveryAgentShift;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class DeliveryAgent extends Authenticatable
+class DeliveryAgent extends Authenticatable implements JWTSubject
 {
     use HasUuids, SoftDeletes, Notifiable, HasApiTokens;
 
@@ -66,6 +67,18 @@ class DeliveryAgent extends Authenticatable
             'current_longitude' => 'float',
             'rating_avg' => 'float',
         ];
+    }
+
+    // ── JWT ───────────────────────────────────────────────────────────────
+
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return ['guard' => 'delivery_api'];
     }
 
     // ── Relationships ──────────────────────────────────────────────────────

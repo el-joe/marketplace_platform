@@ -59,9 +59,19 @@ return [
             'driver' => 'session',
             'provider' => 'delivery_agents',
         ],
-        // Marketer portal
+        // Delivery Agent mobile API (JWT)
+        'delivery_api' => [
+            'driver' => 'jwt',
+            'provider' => 'delivery_agents',
+        ],
+        // Marketer portal (web/blade — session-based)
         'marketer' => [
             'driver' => 'session',
+            'provider' => 'marketers',
+        ],
+        // Marketer API (mobile/JWT)
+        'marketer_api' => [
+            'driver' => 'jwt',
             'provider' => 'marketers',
         ],
         // Travel agency portal
@@ -171,6 +181,12 @@ return [
         'travel_agencies' => [
             'provider' => 'travel_agencies',
             'table' => 'travel_agency_password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'marketers' => [
+            'provider' => 'marketers',
+            'table' => 'marketer_password_resets',
             'expire' => 60,
             'throttle' => 60,
         ],

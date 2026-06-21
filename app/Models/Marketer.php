@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class Marketer extends Authenticatable
+class Marketer extends Authenticatable implements JWTSubject
 {
     use HasUuids, SoftDeletes, Notifiable;
 
@@ -69,7 +70,19 @@ class Marketer extends Authenticatable
         ];
     }
 
-    // ── Boot: generate referral_code ──────────────────────────────────────────
+    // ── JWTSubject ────────────────────────────────────────────────────────────
+
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return ['guard' => 'marketer_api'];
+    }
+
+    // ── Boot: generate referral_code + boutiqaat_style_slug ───────────────────
 
     protected static function boot(): void
     {
@@ -78,8 +91,18 @@ class Marketer extends Authenticatable
             if (empty($marketer->referral_code)) {
                 do {
                     $code = strtoupper(Str::random(8));
-                } while (self::where('referral_code', $code)->exists());
+                } while (self::withTrashed()->where('referral_code', $code)->exists());
                 $marketer->referral_code = $code;
+            }
+
+            if (empty($marketer->boutiqaat_style_slug) && !empty($marketer->name)) {
+                $base = Str::slug($marketer->name);
+                $slug = $base;
+                $i = 1;
+                while (self::withTrashed()->where('boutiqaat_style_slug', $slug)->exists()) {
+                    $slug = $base . '-' . $i++;
+                }
+                $marketer->boutiqaat_style_slug = $slug;
             }
         });
     }

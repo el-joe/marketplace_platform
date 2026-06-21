@@ -20,6 +20,16 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')
                 ->prefix('api/vendor')
                 ->group(base_path('routes/api_vendor.php'));
+
+            // Marketer API — authenticated marketer actions
+            Route::middleware('api')
+                ->prefix('api/marketer')
+                ->group(base_path('routes/api_marketer.php'));
+
+            // Public storefront routes (no auth) — deliberately outside /marketer/ prefix
+            Route::middleware('api')
+                ->prefix('api/public')
+                ->group(base_path('routes/api_public.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -40,8 +50,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'vendor.onboarded' => \App\Http\Middleware\VendorOnboarded::class,
             'vendor.locale' => \App\Http\Middleware\SetVendorLocale::class,
             'auth.delivery' => \App\Http\Middleware\DeliveryAuth::class,
+            'delivery.api.auth' => \App\Http\Middleware\DeliveryApiAuth::class,
+            'delivery.api.active' => \App\Http\Middleware\DeliveryApiActive::class,
             'auth.marketer' => \App\Http\Middleware\MarketerAuth::class,
             'marketer.active' => \App\Http\Middleware\MarketerAuth::class,
+            'marketer.api.auth' => \App\Http\Middleware\MarketerApiAuth::class,
+            'marketer.api.active' => \App\Http\Middleware\MarketerApiActive::class,
             'track.marketer.click' => \App\Http\Middleware\TrackMarketerClick::class,
             'auth.travel_agency' => \App\Http\Middleware\TravelAgencyAuth::class,
             'auth.carrier' => \App\Http\Middleware\ShippingCompanySupervisorAuth::class,
