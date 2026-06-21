@@ -23,8 +23,10 @@ use App\Models\VendorBankAccount;
 use App\Models\VendorListing;
 use App\Models\WarehouseInventory;
 use App\Models\MarketerSampleRequest;
+use App\Models\DeliveryAssignment;
 use App\Models\MarketerWhatsappLink;
 use App\Policies\AddressPolicy;
+use App\Policies\DeliveryAssignmentPolicy;
 use App\Policies\CampaignPolicy;
 use App\Policies\FlashSaleSubmissionPolicy;
 use App\Policies\PayoutPolicy;
@@ -67,6 +69,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(VendorBankAccount::class, VendorBankAccountPolicy::class);
         Gate::policy(VendorListing::class, VendorListingPolicy::class);
         Gate::policy(WarehouseInventory::class, WarehouseInventoryPolicy::class);
+        Gate::policy(DeliveryAssignment::class, DeliveryAssignmentPolicy::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);

@@ -38,6 +38,7 @@ class DeliveryAssignment extends Model
         'delivery_latitude',
         'delivery_longitude',
         'customer_rating',
+        'cod_amount_collected_cents',
     ];
 
     protected function casts(): array

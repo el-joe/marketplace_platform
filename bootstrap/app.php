@@ -30,6 +30,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')
                 ->prefix('api/public')
                 ->group(base_path('routes/api_public.php'));
+
+            // Delivery Agent mobile API
+            Route::middleware('api')
+                ->prefix('api/delivery')
+                ->group(base_path('routes/api_delivery.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
