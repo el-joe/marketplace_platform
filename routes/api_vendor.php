@@ -3,11 +3,18 @@
 use App\Http\Controllers\Vendor\AuthController;
 use App\Http\Controllers\Vendor\DashboardController;
 use App\Http\Controllers\Vendor\DisputeController;
+use App\Http\Controllers\Vendor\FinanceController;
+use App\Http\Controllers\Vendor\FlashSaleController;
+use App\Http\Controllers\Vendor\InventoryController;
+use App\Http\Controllers\Vendor\ListingController;
 use App\Http\Controllers\Vendor\OnboardingController;
 use App\Http\Controllers\Vendor\OrderController;
+use App\Http\Controllers\Vendor\PerformanceController;
 use App\Http\Controllers\Vendor\ProfileController;
 use App\Http\Controllers\Vendor\ReturnController;
+use App\Http\Controllers\Vendor\SupportTicketController;
 use App\Http\Controllers\Vendor\TeamController;
+use App\Http\Controllers\Vendor\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -92,6 +99,86 @@ Route::prefix('v1')->group(function (): void {
                 Route::get('/',                              [ReturnController::class, 'index'])->name('index');
                 Route::get('{returnNumber}',                 [ReturnController::class, 'show'])->name('show');
                 Route::post('{returnNumber}/respond',        [ReturnController::class, 'respond'])->name('respond');
+            });
+
+            // Listings
+            Route::prefix('listings')->name('vendor.listings.')->group(function (): void {
+                Route::get('/',            [ListingController::class, 'index'])->name('index');
+                Route::get('{id}',         [ListingController::class, 'show'])->name('show');
+                Route::post('/',           [ListingController::class, 'store'])->name('store');
+                Route::put('{id}/price',   [ListingController::class, 'updatePrice'])->name('price');
+                Route::put('{id}/status',  [ListingController::class, 'updateStatus'])->name('status');
+                Route::delete('{id}',      [ListingController::class, 'destroy'])->name('destroy');
+            });
+
+            // Warehouses (vendor-owned only)
+            Route::prefix('warehouses')->name('vendor.warehouses.')->group(function (): void {
+                Route::get('/',     [WarehouseController::class, 'index'])->name('index');
+                Route::post('/',    [WarehouseController::class, 'store'])->name('store');
+                Route::put('{id}',  [WarehouseController::class, 'update'])->name('update');
+                Route::delete('{id}', [WarehouseController::class, 'destroy'])->name('destroy');
+            });
+
+            // Inventory & transfers
+            Route::prefix('inventory')->name('vendor.inventory.')->group(function (): void {
+                Route::get('/',                                          [InventoryController::class, 'index'])->name('index');
+                Route::post('{id}/adjust',                               [InventoryController::class, 'adjust'])->name('adjust');
+                Route::get('{id}/movements',                             [InventoryController::class, 'movements'])->name('movements');
+
+                Route::prefix('transfers')->name('transfers.')->group(function (): void {
+                    Route::get('/',                                      [InventoryController::class, 'transferIndex'])->name('index');
+                    Route::post('/',                                     [InventoryController::class, 'transferStore'])->name('store');
+                    Route::get('{transferNumber}',                       [InventoryController::class, 'transferShow'])->name('show');
+                    Route::post('{transferNumber}/ship',                 [InventoryController::class, 'transferShip'])->name('ship');
+                    Route::post('{transferNumber}/cancel',               [InventoryController::class, 'transferCancel'])->name('cancel');
+                });
+            });
+
+            // Finance & payouts (read-mostly — no writes to ledger_entries or commissions)
+            Route::prefix('finance')->name('vendor.finance.')->group(function (): void {
+                Route::get('summary',          [FinanceController::class, 'summary'])->name('summary');
+                Route::get('ledger',           [FinanceController::class, 'ledger'])->name('ledger');
+                Route::get('commission-rates', [FinanceController::class, 'commissionRates'])->name('commission-rates');
+
+                Route::prefix('payouts')->name('payouts.')->group(function (): void {
+                    Route::get('/',              [FinanceController::class, 'payouts'])->name('index');
+                    Route::get('{id}',           [FinanceController::class, 'showPayout'])->name('show');
+                    Route::get('{id}/invoice',   [FinanceController::class, 'payoutInvoice'])->name('invoice');
+                });
+
+                Route::prefix('bank-accounts')->name('bank-accounts.')->group(function (): void {
+                    Route::get('/',              [FinanceController::class, 'bankAccounts'])->name('index');
+                    Route::post('/',             [FinanceController::class, 'storeBankAccount'])->name('store');
+                    Route::put('{id}/set-primary', [FinanceController::class, 'setPrimaryBankAccount'])->name('set-primary');
+                    Route::delete('{id}',        [FinanceController::class, 'deleteBankAccount'])->name('destroy');
+                });
+            });
+
+            // Flash sale participation (vendor-facing)
+            Route::prefix('flash-sales')->name('vendor.flash-sales.')->group(function (): void {
+                Route::get('/',    [FlashSaleController::class, 'index'])->name('index');
+                Route::get('{id}', [FlashSaleController::class, 'show'])->name('show');
+
+                Route::prefix('{id}/submissions')->name('submissions.')->group(function (): void {
+                    Route::post('/',                         [FlashSaleController::class, 'storeSubmission'])->name('store');
+                    Route::put('{submission_id}',            [FlashSaleController::class, 'updateSubmission'])->name('update');
+                    Route::delete('{submission_id}',         [FlashSaleController::class, 'destroySubmission'])->name('destroy');
+                });
+            });
+
+            // Performance & reviews (read-only)
+            Route::prefix('performance')->name('vendor.performance.')->group(function (): void {
+                Route::get('/',       [PerformanceController::class, 'index'])->name('index');
+                Route::get('reviews', [PerformanceController::class, 'reviews'])->name('reviews');
+            });
+
+            // Support tickets (vendor-facing)
+            Route::prefix('support/tickets')->name('vendor.support.tickets.')->group(function (): void {
+                Route::get('/',                              [SupportTicketController::class, 'index'])->name('index');
+                Route::post('/',                             [SupportTicketController::class, 'store'])->name('store');
+                Route::get('/{ticketNumber}',                [SupportTicketController::class, 'show'])->name('show');
+                Route::post('/{ticketNumber}/messages',      [SupportTicketController::class, 'addMessage'])->name('messages.store');
+                Route::put('/{ticketNumber}/rate',           [SupportTicketController::class, 'rate'])->name('rate');
             });
         });
     });

@@ -14,9 +14,19 @@ use App\Listeners\RecordMarketerConversion;
 use App\Services\Payment\PaymentGatewayFactory;
 use App\Services\Shipping\ShippingCarrierFactory;
 use App\Models\Address;
+use App\Models\FlashSaleSubmission;
+use App\Models\Payout;
 use App\Models\SubOrder;
+use App\Models\VendorBankAccount;
+use App\Models\VendorListing;
+use App\Models\WarehouseInventory;
 use App\Policies\AddressPolicy;
+use App\Policies\FlashSaleSubmissionPolicy;
+use App\Policies\PayoutPolicy;
 use App\Policies\SubOrderPolicy;
+use App\Policies\VendorBankAccountPolicy;
+use App\Policies\VendorListingPolicy;
+use App\Policies\WarehouseInventoryPolicy;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -39,7 +49,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Address::class, AddressPolicy::class);
+        Gate::policy(FlashSaleSubmission::class, FlashSaleSubmissionPolicy::class);
+        Gate::policy(Payout::class, PayoutPolicy::class);
         Gate::policy(SubOrder::class, SubOrderPolicy::class);
+        Gate::policy(VendorBankAccount::class, VendorBankAccountPolicy::class);
+        Gate::policy(VendorListing::class, VendorListingPolicy::class);
+        Gate::policy(WarehouseInventory::class, WarehouseInventoryPolicy::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);
