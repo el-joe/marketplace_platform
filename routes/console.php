@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\AutoCompleteOrdersJob;
+use App\Jobs\ReleaseExpiredLocksJob;
 use App\Jobs\ApproveMarketerCommissionsJob;
 use App\Jobs\CheckSlaBreachJob;
 use App\Jobs\GenerateVendorPayoutsJob;
@@ -18,6 +19,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Schedule::job(new ReleaseExpiredLocksJob)->everyMinute()->withoutOverlapping()->name('release-expired-locks');
 Schedule::job(new CheckSlaBreachJob)->everyFifteenMinutes();
 Schedule::job(new AutoCompleteOrdersJob)->dailyAt('02:00');
 Schedule::job(new TransitionFlashSaleStatusJob)->everyFiveMinutes();

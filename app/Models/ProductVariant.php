@@ -50,4 +50,9 @@ class ProductVariant extends Model
     {
         return $this->hasMany(ProductImage::class, 'product_variant_id')->orderBy('position');
     }
+
+    public function vendorListings(): HasMany
+    {
+        return $this->hasMany(VendorListing::class);
+    }
 }
