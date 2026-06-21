@@ -13,8 +13,11 @@ use App\Listeners\InvalidateVendorDashboardCache;
 use App\Listeners\RecordMarketerConversion;
 use App\Services\Payment\PaymentGatewayFactory;
 use App\Services\Shipping\ShippingCarrierFactory;
+use App\Models\Address;
+use App\Policies\AddressPolicy;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +36,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(Address::class, AddressPolicy::class);
+
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);
 

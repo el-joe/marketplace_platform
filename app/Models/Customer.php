@@ -2,37 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class Customer extends Authenticatable implements MustVerifyEmail
+class Customer extends Authenticatable implements JWTSubject
 {
-    use HasUuids, Notifiable, HasApiTokens;
-
-    protected string $guard = 'web';
-
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'phone_verified_at' => 'datetime',
-            'last_login_at' => 'datetime',
-            'date_of_birth' => 'date',
-            'loyalty_points' => 'decimal:2',
-            'password' => 'hashed',
-        ];
-    }
+    use HasUuids, Notifiable;
 
     protected $fillable = [
         'name',
@@ -53,6 +33,38 @@ class Customer extends Authenticatable implements MustVerifyEmail
         'loyalty_points',
     ];
 
+    protected $hidden = ['password'];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'date_of_birth' => 'date',
+            'loyalty_points' => 'decimal:2',
+            'total_spent' => 'decimal:2',
+            'password' => 'hashed',
+        ];
+    }
+
+    // ── JWTSubject ────────────────────────────────────────────────────────────
+
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'guard' => 'customer',
+            'country_id' => $this->country_id ?? null,
+        ];
+    }
+
+    // ── Relationships ─────────────────────────────────────────────────────────
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
@@ -71,6 +83,11 @@ class Customer extends Authenticatable implements MustVerifyEmail
     public function addresses(): MorphMany
     {
         return $this->morphMany(Address::class, 'addressable');
+    }
+
+    public function otpTokens(): HasMany
+    {
+        return $this->hasMany(CustomerOtpToken::class);
     }
 
     public function carts(): HasMany
@@ -101,11 +118,6 @@ class Customer extends Authenticatable implements MustVerifyEmail
     public function files(): MorphMany
     {
         return $this->morphMany(File::class, 'model');
-    }
-
-    public function notifications(): MorphMany
-    {
-        return $this->morphMany(Notification::class, 'notifiable');
     }
 
     public function returnRequests(): HasMany

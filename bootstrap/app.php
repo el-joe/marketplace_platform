@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -11,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            Route::middleware('api')
+                ->prefix('api/customer')
+                ->group(base_path('routes/api_customer.php'));
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
@@ -35,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'track.marketer.click' => \App\Http\Middleware\TrackMarketerClick::class,
             'auth.travel_agency' => \App\Http\Middleware\TravelAgencyAuth::class,
             'auth.carrier' => \App\Http\Middleware\ShippingCompanySupervisorAuth::class,
+            'detect.country' => \App\Http\Middleware\DetectCountry::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

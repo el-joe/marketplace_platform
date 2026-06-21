@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\User;
-
 return [
 
     /*
@@ -40,6 +38,11 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
+            'provider' => 'customers',
+        ],
+        // JWT guard for the Customer API (mobile + website)
+        'customer' => [
+            'driver' => 'jwt',
             'provider' => 'customers',
         ],
         'admin' => [

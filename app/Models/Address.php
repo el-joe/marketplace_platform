@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Address extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'addressable_type',
         'addressable_id',
@@ -28,6 +31,15 @@ class Address extends Model
         'is_default',
         'address_type',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+            'latitude' => 'float',
+            'longitude' => 'float',
+        ];
+    }
 
     public function addressable(): MorphTo
     {
