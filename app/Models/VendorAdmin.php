@@ -4,17 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class VendorAdmin extends Authenticatable
+class VendorAdmin extends Authenticatable implements JWTSubject
 {
-    use HasUuids, SoftDeletes, Notifiable, HasApiTokens, HasRoles;
+    use HasUuids, SoftDeletes, Notifiable, HasRoles;
 
     protected string $guard = 'vendor';
 
@@ -69,5 +68,21 @@ class VendorAdmin extends Authenticatable
     public function isOwner(): bool
     {
         return $this->role === 'owner';
+    }
+
+    // ── JWTSubject ─────────────────────────────────────────────────────────────
+
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'guard'     => 'vendor',
+            'vendor_id' => $this->vendor_id,
+            'role'      => $this->role,
+        ];
     }
 }

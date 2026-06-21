@@ -4,20 +4,25 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class VendorAuth
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::guard('vendor')->check()) {
-            if ($request->expectsJson()) {
-                return response()->json(['message' => 'Unauthenticated.'], 401);
+        try {
+            $user = JWTAuth::setRequest($request)->parseToken()->authenticate();
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
             }
-
-            return redirect()->route('partner.login')
-                ->with('error', 'Please sign in to access the vendor panel.');
+            auth()->shouldUse('vendor');
+        } catch (TokenExpiredException) {
+            return response()->json(['success' => false, 'message' => 'Token expired.'], 401);
+        } catch (JWTException) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
         }
 
         return $next($request);

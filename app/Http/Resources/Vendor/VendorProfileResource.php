@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Http\Resources\Vendor;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class VendorProfileResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'id'                          => $this->id,
+            'store_name'                  => $this->store_name,
+            'store_slug'                  => $this->store_slug,
+            'store_description'           => $this->store_description,
+            'business_name'               => $this->business_name,
+            'business_type'               => $this->business_type,
+            'business_registration_number'=> $this->business_registration_number,
+            'tax_id'                      => $this->tax_id,
+            'contact_email'               => $this->contact_email,
+            'contact_phone'               => $this->contact_phone,
+            'whatsapp_number'             => $this->whatsapp_number,
+            'global_status'               => $this->global_status,
+            'approved_at'                 => $this->approved_at?->toISOString(),
+            'onboarding_completed_at'     => $this->onboarding_completed_at?->toISOString(),
+            'store_rating_avg'            => $this->store_rating_avg,
+            'store_rating_count'          => $this->store_rating_count,
+            'country_id'                  => $this->country_id,
+            'logo_url'                    => $this->avatar ? asset('storage/' . $this->avatar) : null,
+        ];
+    }
+}
