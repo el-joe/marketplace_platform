@@ -206,15 +206,17 @@ class SecretPromotionService
         )->count();
 
         // Admin revenue this month: sum across all conversions this month
+        // secret_promotion_id lives on marketer_campaigns, not marketer_conversions,
+        // so we filter through the campaign relationship.
         $monthStart = Carbon::now()->startOfMonth();
         $conversionsThisMonth = MarketerConversion::where('created_at', '>=', $monthStart)
             ->where('status', '!=', 'reversed')
-            ->whereNotNull('secret_promotion_id')
-            ->with('secretPromotion')
+            ->whereHas('campaign', fn($q) => $q->whereNotNull('secret_promotion_id'))
+            ->with('campaign.secretPromotion')
             ->get();
 
         $adminRevenueMonth = $conversionsThisMonth->sum(function ($c) {
-            $adminPct = $c->secretPromotion?->admin_share_pct ?? 0;
+            $adminPct = $c->campaign?->secretPromotion?->admin_share_pct ?? 0;
 
             return (int) round($c->order_value_cents * $adminPct / 100);
         });
@@ -224,7 +226,7 @@ class SecretPromotionService
             ->avg('admin_share_pct') ?? 0;
 
         $totalConversionsMonth = MarketerConversion::where('created_at', '>=', $monthStart)
-            ->whereNotNull('secret_promotion_id')
+            ->whereHas('campaign', fn($q) => $q->whereNotNull('secret_promotion_id'))
             ->count();
 
         $topPerforming = MarketerSecretPromotion::withCount('conversions')

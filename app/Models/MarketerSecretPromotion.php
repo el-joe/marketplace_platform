@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class MarketerSecretPromotion extends Model
 {
@@ -64,9 +65,23 @@ class MarketerSecretPromotion extends Model
         return $this->belongsTo(Admin::class, 'approved_by_admin_id');
     }
 
-    public function conversions(): HasMany
+    public function campaigns(): HasMany
     {
-        return $this->hasMany(MarketerConversion::class, 'secret_promotion_id');
+        return $this->hasMany(MarketerCampaign::class, 'secret_promotion_id');
+    }
+
+    // secret_promotion_id lives on marketer_campaigns, not marketer_conversions.
+    // Conversions are reached through the campaign.
+    public function conversions(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            MarketerConversion::class,
+            MarketerCampaign::class,
+            'secret_promotion_id', // FK on marketer_campaigns → marketer_secret_promotions.id
+            'campaign_id',          // FK on marketer_conversions → marketer_campaigns.id
+            'id',                   // local key on marketer_secret_promotions
+            'id'                    // local key on marketer_campaigns
+        );
     }
 
     // ── Scopes ────────────────────────────────────────────────────────────────

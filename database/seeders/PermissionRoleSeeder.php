@@ -124,6 +124,14 @@ class PermissionRoleSeeder extends Seeder
         //     );
         // }
 
+        // ── Ensure all permissions that routes require actually exist ─────────
+        // These were missing from the original bulk-insert (which is commented out
+        // above) and would leave super_admin without access to those pages.
+        $requiredPermissions = ['analytics.view', 'transactions.view'];
+        foreach ($requiredPermissions as $name) {
+            Permission::firstOrCreate(['name' => $name, 'guard_name' => $guard]);
+        }
+
         // ── Create "Super Admin" role ─────────────────────────────────────────
         /** @var Role $superAdmin */
         $superAdmin = Role::firstOrCreate(

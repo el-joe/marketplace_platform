@@ -71,14 +71,14 @@
 
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Causer</label>
+                @php
+                    $causerSelectConfig = json_encode(
+                        ['url' => route('admin.activity-log.causer-search'), 'param' => 'q', 'multiple' => false, 'minLength' => 2, 'delay' => 300],
+                        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT
+                    );
+                @endphp
                 <select name="causer_id" id="filter-causer-id"
-                    class="block w-full rounded-lg border border-gray-300 text-sm" data-async-select data-config='@json([
-                        'url' => route('admin.activity-log.causer-search'),
-                        'param' => 'q',
-                        'multiple' => false,
-                        'minLength' => 2,
-                        'delay' => 300,
-                    ])' placeholder="Search admin / vendor / customer…"></select>
+                    class="block w-full rounded-lg border border-gray-300 text-sm" data-async-select data-config='{!! $causerSelectConfig !!}' placeholder="Search admin / vendor / customer…"></select>
             </div>
 
             <div>
