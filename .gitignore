@@ -25,3 +25,9 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Playwright auth state (contains live session cookies)
+tests/*/.auth/
+playwright-report/
+test-results/
+.env.testing

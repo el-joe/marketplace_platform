@@ -50,7 +50,7 @@ return [
             'provider' => 'admins',
         ],
         'vendor' => [
-            'driver' => 'jwt',
+            'driver' => 'session',
             'provider' => 'vendor_admins',
         ],
         // Delivery agent app: pure token auth via Sanctum. The 'session'

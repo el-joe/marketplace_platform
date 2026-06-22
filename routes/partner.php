@@ -217,15 +217,8 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/', [WarehouseController::class, 'index'])->name('index');
         Route::get('/create', [WarehouseController::class, 'create'])->name('create');
         Route::post('/', [WarehouseController::class, 'store'])->name('store');
-        Route::get('/{warehouse}', [WarehouseController::class, 'show'])->name('show');
-        Route::put('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
-        Route::post('/{warehouse}/deactivate', [WarehouseController::class, 'deactivate'])->name('deactivate');
-        Route::post('/{warehouse}/inventory', [WarehouseController::class, 'getInventory'])->name('inventory');
 
-        Route::post('/inventory/{inventory}/adjust', [WarehouseController::class, 'adjustInventory'])->name('inventory.adjust');
-        Route::post('/inventory/{inventory}/count', [WarehouseController::class, 'stockCount'])->name('inventory.count');
-        Route::get('/inventory/{inventory}/movements', [WarehouseController::class, 'getMovements'])->name('inventory.movements');
-
+        // transfers prefix must come before /{warehouse} wildcard to avoid shadowing
         Route::prefix('transfers')->name('transfers.')->group(function () {
             Route::get('/', [WarehouseController::class, 'transfersIndex'])->name('index');
             Route::post('/datatable', [WarehouseController::class, 'transfersDatatable'])->name('datatable');
@@ -235,6 +228,15 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
             Route::post('/{transfer}/ship', [WarehouseController::class, 'transferShip'])->name('ship');
             Route::post('/{transfer}/cancel', [WarehouseController::class, 'transferCancel'])->name('cancel');
         });
+
+        Route::post('/inventory/{inventory}/adjust', [WarehouseController::class, 'adjustInventory'])->name('inventory.adjust');
+        Route::post('/inventory/{inventory}/count', [WarehouseController::class, 'stockCount'])->name('inventory.count');
+        Route::get('/inventory/{inventory}/movements', [WarehouseController::class, 'getMovements'])->name('inventory.movements');
+
+        Route::get('/{warehouse}', [WarehouseController::class, 'show'])->name('show');
+        Route::put('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
+        Route::post('/{warehouse}/deactivate', [WarehouseController::class, 'deactivate'])->name('deactivate');
+        Route::post('/{warehouse}/inventory', [WarehouseController::class, 'getInventory'])->name('inventory');
     });
 
     // ─── Delivery Ratings ─────────────────────────────────────────────────────
@@ -248,5 +250,20 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/request', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'submitRequest'])->name('submit');
         Route::get('/my-requests', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'myRequests'])->name('my-requests');
         Route::get('/my-requests/{packagingSupplyRequest}', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'showRequest'])->name('show-request');
+    });
+
+    // ─── Returns ─────────────────────────────────────────────────────────────
+    Route::prefix('returns')->name('returns.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Partner\ReturnController::class, 'index'])->name('index');
+    });
+
+    // ─── Finance / Transactions ───────────────────────────────────────────────
+    Route::prefix('finance')->name('finance.')->group(function () {
+        Route::get('/transactions', [\App\Http\Controllers\Partner\FinanceController::class, 'transactions'])->name('transactions');
+    });
+
+    // ─── Ads ─────────────────────────────────────────────────────────────────
+    Route::prefix('ads')->name('ads.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Partner\AdsController::class, 'index'])->name('index');
     });
 });
