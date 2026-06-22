@@ -7,8 +7,7 @@
     $movementTypeLabels = [
         'inbound' => ['text-green-600', '↑ وارد'],
         'outbound' => ['text-red-600', '↓ صادر'],
-        'adjustment_in' => ['text-blue-600', '+ تعديل'],
-        'adjustment_out' => ['text-orange-600', '− تعديل'],
+        'adjustment' => ['text-blue-600', '± تعديل'],
         'reservation' => ['text-purple-600', '🔒 حجز'],
         'reservation_release' => ['text-teal-600', '🔓 إلغاء حجز'],
     ];

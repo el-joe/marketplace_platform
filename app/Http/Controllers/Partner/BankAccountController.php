@@ -8,6 +8,7 @@ use App\Models\VendorBankAccount;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -87,6 +88,7 @@ class BankAccountController extends Controller
         $account = VendorBankAccount::create([
             ...$data,
             'vendor_id' => $this->vendorId(),
+            'account_number_encrypted' => Crypt::encryptString($data['iban']),
             'verification_status' => 'pending',
             'is_primary' => false,
         ]);

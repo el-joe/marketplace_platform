@@ -532,7 +532,7 @@ class ListingController extends Controller
 
                 InventoryMovement::create([
                     'warehouse_inventory_id' => $inventory->id,
-                    'movement_type' => (int) $request->adjustment > 0 ? 'adjustment_in' : 'adjustment_out',
+                    'movement_type' => 'adjustment',
                     'quantity_delta' => (int) $request->adjustment,
                     'quantity_after' => $newOnHand,
                     'reference_type' => 'manual_adjustment',
