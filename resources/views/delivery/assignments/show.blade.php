@@ -18,7 +18,7 @@
         $isActive = in_array($assignment->status, ['assigned', 'accepted', 'picked_up']);
         $chipClass = 'chip-' . $assignment->status;
         $order = $assignment->subOrder?->order;
-        $items = $assignment->subOrder?->orderItems ?? collect();
+        $items = $assignment->subOrder?->items ?? collect();
         $customer = $order?->customer;
     @endphp
 
@@ -67,15 +67,15 @@
                 </div>
                 <div>
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Deliver To</p>
-                    @if($order?->shipping_address)
+                    @if($order?->shipping_address_snapshot)
                                 <p class="text-sm text-slate-200 mt-0.5">
-                                    {{ is_array($order->shipping_address)
+                                    {{ is_array($order->shipping_address_snapshot)
                         ? implode(', ', array_filter([
-                            $order->shipping_address['street'] ?? null,
-                            $order->shipping_address['city'] ?? null,
-                            $order->shipping_address['country'] ?? null,
+                            $order->shipping_address_snapshot['street'] ?? null,
+                            $order->shipping_address_snapshot['city'] ?? null,
+                            $order->shipping_address_snapshot['country'] ?? null,
                         ]))
-                        : $order->shipping_address }}
+                        : $order->shipping_address_snapshot }}
                                 </p>
                     @else
                         <p class="text-sm text-slate-500 mt-0.5">Address not available</p>
@@ -118,7 +118,7 @@
             <div class="mt-3 space-y-2 border-t border-slate-700 pt-3">
                 @forelse($items as $item)
                     <div class="flex justify-between text-sm">
-                        <span class="text-slate-300">{{ $item->product?->name_en ?? 'Product' }}</span>
+                        <span class="text-slate-300">{{ $item->productVariant?->product?->name_en ?? 'Product' }}</span>
                         <span class="text-slate-400">× {{ $item->quantity }}</span>
                     </div>
                 @empty
@@ -207,9 +207,9 @@
                     <select x-model="failReason"
                         class="w-full bg-slate-700 text-slate-200 rounded-xl p-3 mb-3 text-sm border border-slate-600 focus:outline-none focus:border-yellow-400">
                         <option value="">Select a reason…</option>
-                        <option value="customer_not_available">Customer not available</option>
+                        <option value="customer_not_home">Customer not home</option>
                         <option value="wrong_address">Wrong address</option>
-                        <option value="refused_delivery">Customer refused delivery</option>
+                        <option value="customer_refused">Customer refused delivery</option>
                         <option value="damaged_package">Package damaged</option>
                         <option value="other">Other</option>
                     </select>

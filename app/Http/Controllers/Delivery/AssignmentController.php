@@ -45,7 +45,7 @@ class AssignmentController extends Controller
 
         $assignment->load([
             'subOrder.order.customer',
-            'subOrder.orderItems.product',
+            'subOrder.items.productVariant.product',
             'shipment',
         ]);
 
@@ -187,6 +187,7 @@ class AssignmentController extends Controller
             DeliveryAgentEarning::create([
                 'agent_id' => $agent->id,
                 'delivery_assignment_id' => $assignment->id,
+                'order_id' => $assignment->subOrder?->order_id,
                 'earning_type' => 'base_fee',
                 'amount_cents' => $agent->per_delivery_fee_cents,
                 'currency' => 'USD',

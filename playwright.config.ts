@@ -45,5 +45,58 @@ export default defineConfig({
       },
       dependencies: ['vendor-setup'],
     },
+
+    // ── Marketer panel ─────────────────────────────────────────────────────
+    {
+      name: 'marketer-setup',
+      testMatch: /marketer\/auth\.setup\.ts/,
+      use: { baseURL: 'http://marketer.noon.loc' },
+    },
+    {
+      name: 'marketer',
+      testMatch: /marketer\/(?!auth\.setup).*\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://marketer.noon.loc',
+        storageState: 'tests/marketer/.auth/marketer.json',
+      },
+      dependencies: ['marketer-setup'],
+    },
+
+    // ── Carrier (shipping company) panel ──────────────────────────────────────
+    {
+      name: 'carrier-setup',
+      testMatch: /carrier\/auth\.setup\.ts/,
+      use: { baseURL: 'http://carrier.noon.loc' },
+    },
+    {
+      name: 'carrier',
+      testMatch: /carrier\/(?!auth\.setup).*\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://carrier.noon.loc',
+        storageState: 'tests/carrier/.auth/carrier.json',
+      },
+      dependencies: ['carrier-setup'],
+    },
+
+    // ── Delivery panel ─────────────────────────────────────────────────────────
+    {
+      name: 'delivery-setup',
+      testMatch: /delivery\/auth\.setup\.ts/,
+      use: { baseURL: 'http://delivery.noon.loc' },
+    },
+    {
+      name: 'delivery',
+      testMatch: /delivery\/(?!auth\.setup).*\.spec\.ts/,
+      use: {
+        ...devices['iPhone 13'],
+        baseURL: 'http://delivery.noon.loc',
+        storageState: 'tests/delivery/.auth/delivery.json',
+        permissions: ['geolocation'],
+        geolocation: { latitude: 25.2048, longitude: 55.2708 }, // Dubai — AE-zoned test agent
+      },
+      dependencies: ['delivery-setup'],
+    },
   ],
 });

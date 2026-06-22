@@ -44,6 +44,9 @@ class DatabaseSeeder extends Seeder
                 // ── Products (needs vendor data from VendorSeeder above) ───────
             ProductSeeder::class,
 
+                // ── Delivery assignment test fixtures (Phase 2 Playwright tests) ─
+            DeliveryAssignmentSeeder::class,
+
                 // ── Light cross-reference demo data (run last) ─────────────────
             DemoDataSeeder::class,
         ]);
