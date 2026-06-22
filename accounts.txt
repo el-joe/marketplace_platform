@@ -6,6 +6,8 @@
 DEFAULT PASSWORD FOR ALL NEW ACCOUNTS:  password123
 NOTE: The four original admin accounts (created by AdminSeeder) use:  123456
 
+Admin Panel Test Use this account : admin@admin.com / 123456
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 GUARD: admin  →  Panel URL: http://admin.noon.loc
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

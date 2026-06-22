@@ -8,6 +8,7 @@ use App\Http\Controllers\Carrier\FallbackStatusController;
 use App\Http\Controllers\Carrier\LiveMapController;
 use App\Http\Controllers\Carrier\NotificationController;
 use App\Http\Controllers\Carrier\SupervisorController;
+use App\Http\Controllers\Carrier\SupportTicketController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -97,6 +98,15 @@ Route::prefix('v1')->group(function (): void {
             ->group(function (): void {
                 Route::post('assignments/{id}/reassign', [AgentController::class, 'reassign'])->name('reassign');
             });
+
+        // ── Support Tickets (any authenticated supervisor) ────────────────────
+        Route::prefix('support/tickets')->name('carrier.support.tickets.')->group(function (): void {
+            Route::get('/',                          [SupportTicketController::class, 'index'])->name('index');
+            Route::post('/',                         [SupportTicketController::class, 'store'])->name('store');
+            Route::get('{ticketNumber}',             [SupportTicketController::class, 'show'])->name('show');
+            Route::post('{ticketNumber}/messages',   [SupportTicketController::class, 'addMessage'])->name('messages.store');
+            Route::put('{ticketNumber}/rate',        [SupportTicketController::class, 'rate'])->name('rate');
+        });
 
         // ── Supervisor Management (requires manage_agents permission) ─────────
         // // VERIFY: manage_agents is used as the owner-gate for supervisor
