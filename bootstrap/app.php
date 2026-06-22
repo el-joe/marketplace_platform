@@ -35,6 +35,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')
                 ->prefix('api/delivery')
                 ->group(base_path('routes/api_delivery.php'));
+
+            // Carrier (shipping company supervisor) API
+            Route::middleware('api')
+                ->prefix('api/carrier')
+                ->group(base_path('routes/api_carrier.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -64,6 +69,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'track.marketer.click' => \App\Http\Middleware\TrackMarketerClick::class,
             'auth.travel_agency' => \App\Http\Middleware\TravelAgencyAuth::class,
             'auth.carrier' => \App\Http\Middleware\ShippingCompanySupervisorAuth::class,
+            'carrier.api.auth' => \App\Http\Middleware\CarrierApiAuth::class,
+            'carrier.api.active' => \App\Http\Middleware\CarrierApiActive::class,
+            'carrier.permission' => \App\Http\Middleware\CarrierPermission::class,
             'detect.country' => \App\Http\Middleware\DetectCountry::class,
         ]);
     })

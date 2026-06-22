@@ -84,6 +84,11 @@ return [
             'driver' => 'session',
             'provider' => 'shipping_supervisors',
         ],
+        // Shipping company supervisor mobile/API (JWT)
+        'shipping_supervisor_api' => [
+            'driver' => 'jwt',
+            'provider' => 'shipping_supervisors',
+        ],
     ],
 
     /*

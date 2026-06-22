@@ -25,7 +25,11 @@ use App\Models\WarehouseInventory;
 use App\Models\MarketerSampleRequest;
 use App\Models\DeliveryAssignment;
 use App\Models\MarketerWhatsappLink;
+use App\Models\DeliveryAgent;
+use App\Models\ShippingCompanySupervisor;
 use App\Policies\AddressPolicy;
+use App\Policies\CarrierAgentPolicy;
+use App\Policies\SupervisorPolicy;
 use App\Policies\DeliveryAssignmentPolicy;
 use App\Policies\CampaignPolicy;
 use App\Policies\FlashSaleSubmissionPolicy;
@@ -70,6 +74,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(VendorListing::class, VendorListingPolicy::class);
         Gate::policy(WarehouseInventory::class, WarehouseInventoryPolicy::class);
         Gate::policy(DeliveryAssignment::class, DeliveryAssignmentPolicy::class);
+        Gate::policy(ShippingCompanySupervisor::class, SupervisorPolicy::class);
+        Gate::policy(DeliveryAgent::class, CarrierAgentPolicy::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);

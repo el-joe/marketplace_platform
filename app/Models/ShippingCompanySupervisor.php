@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class ShippingCompanySupervisor extends Authenticatable
+class ShippingCompanySupervisor extends Authenticatable implements JWTSubject
 {
     use HasUuids, SoftDeletes, Notifiable;
 
@@ -49,9 +50,25 @@ class ShippingCompanySupervisor extends Authenticatable
 
     // ── Helpers ────────────────────────────────────────────────────────────
 
+    // ── JWTSubject ────────────────────────────────────────────────────────────
+
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'guard'               => 'shipping_supervisor_api',
+            'shipping_company_id' => $this->shipping_company_id,
+            'permissions'         => $this->permissions ?? [],
+        ];
+    }
+
     public function hasPermission(string $perm): bool
     {
-        return in_array($perm, $this->permissions ?? []);
+        return \in_array($perm, $this->permissions ?? [], true);
     }
 
     // ── Scopes ─────────────────────────────────────────────────────────────

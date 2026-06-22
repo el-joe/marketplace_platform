@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Requests\Carrier\Agent;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateAgentRequest extends FormRequest
+{
+    public function authorize(): bool { return true; }
+
+    public function rules(): array
+    {
+        return [
+            'vehicle_type'  => ['sometimes', Rule::in(['motorcycle', 'car', 'van', 'bicycle'])],
+            'license_plate' => ['sometimes', 'string', 'max:20'],
+            'zone_id'       => ['sometimes', 'nullable', 'string', 'exists:delivery_zones,id'],
+            'is_available'  => ['sometimes', 'boolean'],
+            // status toggling: supervisors can activate/deactivate but not suspend
+            'status'        => ['sometimes', Rule::in(['active', 'inactive'])],
+        ];
+    }
+}
