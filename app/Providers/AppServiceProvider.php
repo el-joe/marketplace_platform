@@ -2,6 +2,48 @@
 
 namespace App\Providers;
 
+use App\View\Components\Form\AsyncSelect;
+use App\View\Components\Form\FileUpload;
+use App\View\Components\Form\Input;
+use App\View\Components\Form\PriceInput;
+use App\View\Components\Form\RichEditor;
+use App\View\Components\Form\Select;
+use App\Events\SubOrderPlaced;
+use App\Listeners\InvalidateVendorDashboardCache;
+use App\Listeners\RecordMarketerConversion;
+use App\Services\Payment\PaymentGatewayFactory;
+use App\Services\Shipping\ShippingCarrierFactory;
+use App\Models\Address;
+use App\Models\FlashSaleSubmission;
+use App\Models\MarketerCampaign;
+use App\Models\MarketerQrCode;
+use App\Models\Payout;
+use App\Models\SubOrder;
+use App\Models\VendorBankAccount;
+use App\Models\VendorListing;
+use App\Models\WarehouseInventory;
+use App\Models\MarketerSampleRequest;
+use App\Models\DeliveryAssignment;
+use App\Models\MarketerWhatsappLink;
+use App\Models\DeliveryAgent;
+use App\Models\ShippingCompanySupervisor;
+use App\Policies\AddressPolicy;
+use App\Policies\CarrierAgentPolicy;
+use App\Policies\SupervisorPolicy;
+use App\Policies\DeliveryAssignmentPolicy;
+use App\Policies\CampaignPolicy;
+use App\Policies\FlashSaleSubmissionPolicy;
+use App\Policies\PayoutPolicy;
+use App\Policies\QrCodePolicy;
+use App\Policies\SampleRequestPolicy;
+use App\Policies\SubOrderPolicy;
+use App\Policies\VendorBankAccountPolicy;
+use App\Policies\VendorListingPolicy;
+use App\Policies\WarehouseInventoryPolicy;
+use App\Policies\WhatsappLinkPolicy;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +53,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(PaymentGatewayFactory::class);
+        $this->app->singleton(ShippingCarrierFactory::class);
     }
 
     /**
@@ -19,6 +62,41 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(Address::class, AddressPolicy::class);
+        Gate::policy(MarketerCampaign::class, CampaignPolicy::class);
+        Gate::policy(MarketerQrCode::class, QrCodePolicy::class);
+        Gate::policy(MarketerWhatsappLink::class, WhatsappLinkPolicy::class);
+        Gate::policy(MarketerSampleRequest::class, SampleRequestPolicy::class);
+        Gate::policy(FlashSaleSubmission::class, FlashSaleSubmissionPolicy::class);
+        Gate::policy(Payout::class, PayoutPolicy::class);
+        Gate::policy(SubOrder::class, SubOrderPolicy::class);
+        Gate::policy(VendorBankAccount::class, VendorBankAccountPolicy::class);
+        Gate::policy(VendorListing::class, VendorListingPolicy::class);
+        Gate::policy(WarehouseInventory::class, WarehouseInventoryPolicy::class);
+        Gate::policy(DeliveryAssignment::class, DeliveryAssignmentPolicy::class);
+        Gate::policy(ShippingCompanySupervisor::class, SupervisorPolicy::class);
+        Gate::policy(DeliveryAgent::class, CarrierAgentPolicy::class);
+
+        Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
+        Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);
+
+        // Hyphenated aliases used by admin Blade views (x-form-input etc.).
+        Blade::component(Input::class, 'form-input');
+        Blade::component(Select::class, 'form-select');
+        Blade::component(PriceInput::class, 'form-price-input');
+        Blade::component(AsyncSelect::class, 'form-async-select');
+        Blade::component(RichEditor::class, 'form-rich-editor');
+        Blade::component(FileUpload::class, 'form-file-upload');
+
+        // x-file-upload (shorthand alias used in flash-sales view).
+        Blade::component(FileUpload::class, 'file-upload');
+
+        // Anonymous form components without a class-based counterpart.
+        Blade::component('components.form.toggle', 'form-toggle');
+        Blade::component('components.form.slug-input', 'form-slug-input');
+        Blade::component('components.form.checkbox-group', 'form-checkbox-group');
+        Blade::component('components.form.textarea', 'form-textarea');
+        Blade::component('components.form.date-picker', 'form-date-picker');
+        Blade::component('components.form.radio-group', 'form-radio-group');
     }
 }

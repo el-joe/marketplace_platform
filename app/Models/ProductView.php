@@ -7,18 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductView extends Model
 {
-    public $timestamps = false;
-
     protected $fillable = [
         'product_id',
-        'user_id',
+        'customer_id',
         'session_id',
         'source',
         'referrer_url',
-    ];
-
-    protected $casts = [
-        'created_at' => 'datetime',
+        'created_at',
     ];
 
     public function product(): BelongsTo
@@ -26,8 +21,8 @@ class ProductView extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function user(): BelongsTo
+    public function customer(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Customer::class);
     }
 }

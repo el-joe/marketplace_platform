@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->string('to_status', 50);
             $table->uuid('changed_by_admin_id')->nullable()->index();
             $table->text('reason')->nullable();
-            $table->jsonb('metadata')->nullable();
+            $table->json('metadata')->nullable();
             $table->timestamps();
         });
     }

@@ -1,0 +1,64 @@
+@php
+    use App\Services\NavigationService;
+    /** @var array $navGroups */
+@endphp
+
+<aside id="sidebar"
+    class="bg-gray-900 text-gray-100 flex flex-col fixed inset-y-0 left-0 z-40 md:relative md:translate-x-0 overflow-hidden">
+    {{-- Logo + collapse toggle --}}
+    <div class="h-16 flex items-center justify-between px-3 border-b border-gray-800 flex-shrink-0">
+        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 min-w-0">
+            <span id="sidebar-logo-icon"
+                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary-600 text-white font-bold">M</span>
+            <span id="sidebar-logo-full" class="text-base font-semibold tracking-tight truncate">Marketplace</span>
+        </a>
+        <button id="sidebar-toggle" type="button"
+            class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800" aria-label="Toggle sidebar">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+    </div>
+
+    {{-- Navigation --}}
+    <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-1">
+        @foreach($navGroups as $group)
+            <div class="sidebar-group-label">{{ $group['group'] }}</div>
+            @foreach($group['items'] as $item)
+                @php
+                    $isActive = NavigationService::isActive($item['route']);
+                    $url = \Illuminate\Support\Facades\Route::has($item['route']) ? route($item['route']) : '#';
+                @endphp
+                <a href="{{ $url }}" class="nav-item {{ $isActive ? 'is-active' : '' }}" title="{{ $item['label'] }}">
+                    <x-heroicon :name="$item['icon']" class="nav-item-icon" />
+                    <span class="sidebar-label truncate">{{ $item['label'] }}</span>
+                    @if(!empty($item['badge']))
+                        <span class="sidebar-badge">{{ $item['badge'] }}</span>
+                    @endif
+                </a>
+            @endforeach
+        @endforeach
+    </nav>
+
+    {{-- Bottom section --}}
+    <div class="border-t border-gray-800 px-2 py-3 space-y-1 flex-shrink-0">
+        <a href="{{ \Illuminate\Support\Facades\Route::has('admin.settings.index') ? route('admin.settings.index') : '#' }}"
+            class="nav-item {{ request()->routeIs('admin.settings.*') ? 'is-active' : '' }}">
+            <x-heroicon name="cog-6-tooth" class="nav-item-icon" />
+            <span class="sidebar-label">Settings</span>
+        </a>
+        <a href="{{ \Illuminate\Support\Facades\Route::has('admin.profile.edit') ? route('admin.profile.edit') : '#' }}"
+            class="nav-item">
+            <x-heroicon name="user-circle" class="nav-item-icon" />
+            <span class="sidebar-label">Profile</span>
+        </a>
+        <form method="POST"
+            action="{{ \Illuminate\Support\Facades\Route::has('admin.logout') ? route('admin.logout') : '#' }}">
+            @csrf
+            <button type="submit" class="nav-item w-full text-left">
+                <x-heroicon name="arrow-right-on-rectangle" class="nav-item-icon" />
+                <span class="sidebar-label">Logout</span>
+            </button>
+        </form>
+    </div>
+</aside>

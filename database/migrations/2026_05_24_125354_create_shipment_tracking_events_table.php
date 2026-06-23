@@ -20,7 +20,7 @@ return new class extends Migration {
             $table->text('description');
             $table->string('location', 255)->nullable();
             $table->timestamp('occurred_at');
-            $table->jsonb('raw_payload')->nullable();
+            $table->json('raw_payload')->nullable();
             $table->timestamps();
         });
     }

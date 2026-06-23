@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class TravelAgency extends Authenticatable
+{
+    use HasUuids, SoftDeletes, Notifiable;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'password',
+        'license_number',
+        'country_id',
+        'logo_path',
+        'status',
+        'approved_by_admin_id',
+        'approved_at',
+    ];
+
+    protected $hidden = ['password', 'remember_token'];
+
+    protected function casts(): array
+    {
+        return [
+            'approved_at' => 'datetime',
+            'password'    => 'hashed',
+        ];
+    }
+
+    // ── Relationships ─────────────────────────────────────────────────────────
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function approvedByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'approved_by_admin_id');
+    }
+
+    public function packages(): HasMany
+    {
+        return $this->hasMany(TravelPackage::class);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path ? asset('storage/' . $this->logo_path) : null;
+    }
+}

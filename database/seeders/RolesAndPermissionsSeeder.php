@@ -1,0 +1,135 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+
+/**
+ * Creates all Spatie permissions and roles for the 'admin' and 'vendor' guards.
+ * Uses firstOrCreate() throughout — fully idempotent and safe to re-run.
+ *
+ * Guard scope:
+ *   admin  → Admin model   (admins table)
+ *   vendor → VendorAdmin model (vendor_admins table)
+ *
+ * NOTE: VendorAdmin must use Spatie\Permission\Traits\HasRoles (already added).
+ */
+class RolesAndPermissionsSeeder extends Seeder
+{
+    public function run(): void
+    {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $adminPermissions = [
+            'dashboard.view',
+            'vendors.view', 'vendors.approve', 'vendors.suspend', 'vendors.edit',
+            'products.view', 'products.edit', 'products.delete',
+            'products.cost_data.view', 'products.cost_data.edit',
+            'orders.view', 'orders.edit', 'orders.cancel', 'orders.refund',
+            'flash_sales.view', 'flash_sales.create', 'flash_sales.edit',
+            'flash_sales.review_submissions',
+            'marketers.view', 'marketers.approve', 'marketers.campaigns',
+            'marketers.secret_promotions',
+            'warehouses.view', 'warehouses.edit',
+            'delivery.view', 'delivery.edit',
+            'shipping_companies.view', 'shipping_companies.approve',
+            'settings.view', 'settings.edit', 'settings.payment_gateways',
+            'classifieds.view', 'classifieds.approve',
+            'admins.view', 'admins.create', 'admins.edit', 'admins.delete',
+            'roles.manage',
+        ];
+
+        $vendorPermissions = [
+            'listings.manage',
+            'orders.manage',
+            'payouts.view',
+            'team.manage',
+            'documents.manage',
+        ];
+
+        $rolesMap = [
+            // ── admin guard ───────────────────────────────────────────────
+            [
+                'name'        => 'super_admin',
+                'guard'       => 'admin',
+                'permissions' => $adminPermissions,
+            ],
+            [
+                'name'  => 'operations_admin',
+                'guard' => 'admin',
+                'permissions' => [
+                    'dashboard.view', 'orders.view', 'orders.edit', 'orders.cancel',
+                    'vendors.view', 'delivery.view', 'delivery.edit',
+                    'warehouses.view', 'warehouses.edit',
+                ],
+            ],
+            [
+                'name'  => 'finance_admin',
+                'guard' => 'admin',
+                'permissions' => [
+                    'dashboard.view', 'orders.view', 'orders.refund',
+                    'settings.payment_gateways', 'marketers.view',
+                ],
+            ],
+            [
+                'name'  => 'marketing_admin',
+                'guard' => 'admin',
+                'permissions' => [
+                    'dashboard.view', 'marketers.view', 'marketers.approve',
+                    'marketers.campaigns', 'marketers.secret_promotions',
+                    'flash_sales.view', 'flash_sales.create', 'flash_sales.edit',
+                    'flash_sales.review_submissions',
+                ],
+            ],
+            [
+                'name'  => 'vendor_relations_admin',
+                'guard' => 'admin',
+                'permissions' => [
+                    'dashboard.view', 'vendors.view', 'vendors.approve',
+                    'vendors.suspend', 'vendors.edit', 'products.view', 'products.edit',
+                ],
+            ],
+
+            // ── vendor guard ──────────────────────────────────────────────
+            [
+                'name'        => 'vendor_owner',
+                'guard'       => 'vendor',
+                'permissions' => $vendorPermissions,
+            ],
+            [
+                'name'  => 'vendor_manager',
+                'guard' => 'vendor',
+                'permissions' => ['listings.manage', 'orders.manage', 'payouts.view'],
+            ],
+            [
+                'name'  => 'vendor_staff',
+                'guard' => 'vendor',
+                'permissions' => ['orders.manage'],
+            ],
+        ];
+
+        DB::transaction(function () use ($rolesMap, $adminPermissions, $vendorPermissions): void {
+            foreach (['admin' => $adminPermissions, 'vendor' => $vendorPermissions] as $guard => $perms) {
+                foreach ($perms as $perm) {
+                    Permission::firstOrCreate(['name' => $perm, 'guard_name' => $guard]);
+                }
+            }
+
+            foreach ($rolesMap as $def) {
+                $role = Role::firstOrCreate(['name' => $def['name'], 'guard_name' => $def['guard']]);
+                // syncPermissions scoped to the correct guard automatically
+                $role->syncPermissions(
+                    collect($def['permissions'])->map(
+                        fn ($p) => Permission::where('name', $p)->where('guard_name', $def['guard'])->first()
+                    )->filter()->values()->all()
+                );
+            }
+        });
+
+        $this->command->info('✅ Roles & permissions seeded for admin and vendor guards.');
+    }
+}

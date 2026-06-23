@@ -1,0 +1,15 @@
+@extends('layouts.admin')
+
+@push('head')
+    @vite('resources/js/admin/cities.js')
+@endpush
+
+@section('title', 'Edit City: ' . $city->name_en)
+
+@section('content')
+    <form method="POST" action="{{ route('admin.cities.update', $city->id) }}" novalidate>
+        @csrf
+        @method('PUT')
+        @include('admin.cities._form', ['mode' => 'edit', 'city' => $city])
+    </form>
+@endsection

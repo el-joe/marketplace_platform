@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->string('type', 255);
             $table->string('notifiable_type', 255);
             $table->uuid('notifiable_id');
-            $table->jsonb('data');
+            $table->json('data');
             $table->enum('channel', ['database', 'email', 'sms', 'push', 'whatsapp']);
             $table->timestamp('read_at')->nullable();
             $table->timestamp('sent_at')->nullable();

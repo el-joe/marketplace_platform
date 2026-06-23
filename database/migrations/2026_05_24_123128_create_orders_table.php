@@ -29,8 +29,8 @@ return new class extends Migration {
             $table->string('coupon_code_used', 50)->nullable();
             $table->enum('payment_method', ['card', 'wallet', 'cod', 'bnpl', 'bank_transfer']);
             $table->enum('payment_status', ['pending', 'authorized', 'captured', 'failed', 'refunded', 'partially_refunded']);
-            $table->jsonb('shipping_address_snapshot');
-            $table->jsonb('billing_address_snapshot')->nullable();
+            $table->json('shipping_address_snapshot');
+            $table->json('billing_address_snapshot')->nullable();
             $table->text('customer_notes')->nullable();
             $table->string('ip_address', 45);
             $table->text('user_agent')->nullable();

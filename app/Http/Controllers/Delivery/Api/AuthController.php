@@ -1,0 +1,140 @@
+<?php
+
+namespace App\Http\Controllers\Delivery\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Delivery\Auth\LoginRequest;
+use App\Http\Resources\Delivery\DeliveryAgentProfileResource;
+use App\Http\Responses\ApiResponse;
+use App\Models\DeliveryAgent;
+use App\Models\DeliveryAgentShift;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
+class AuthController extends Controller
+{
+    private const ACCESS_TTL_MINUTES  = 60;
+    private const REFRESH_TTL_MINUTES = 43200; // 30 days
+
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $credential = $request->email_or_phone;
+
+        /** @var DeliveryAgent|null $agent */
+        $agent = DeliveryAgent::where('email', $credential)
+            ->orWhere('phone', $credential)
+            ->first();
+
+        if (!$agent || !Hash::check($request->password, $agent->password)) {
+            return ApiResponse::error('Invalid credentials.', [], 401);
+        }
+
+        if (in_array($agent->status, ['suspended', 'inactive'], true)) {
+            $message = $agent->status === 'suspended'
+                ? 'Your account has been suspended. Please contact support.'
+                : 'Your account is not active.';
+
+            return ApiResponse::error($message, ['status' => $agent->status], 403);
+        }
+
+        $agent->update([
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip(),
+        ]);
+
+        $agent->load(['zone', 'country']);
+
+        $todayStats = $this->todayStats($agent);
+
+        $resource = new DeliveryAgentProfileResource($agent);
+        $resource->todayStats = $todayStats;
+
+        return ApiResponse::success(array_merge(
+            ['agent' => $resource],
+            $this->issueTokenPair($agent)
+        ));
+    }
+
+    public function logout(): JsonResponse
+    {
+        /** @var DeliveryAgent $agent */
+        $agent = auth('delivery_api')->user();
+
+        // Force agent offline on logout — they shouldn't appear available after closing the app
+        if ($agent->status === 'on_shift') {
+            $agent->update(['status' => 'active', 'is_available' => false]);
+
+            DeliveryAgentShift::where('agent_id', $agent->id)
+                ->where('status', 'active')
+                ->whereDate('shift_date', now()->toDateString())
+                ->update(['actual_end' => now(), 'status' => 'completed']);
+        } else {
+            $agent->update(['is_available' => false]);
+        }
+
+        auth('delivery_api')->logout();
+
+        return ApiResponse::success(null, 'Logged out successfully.');
+    }
+
+    public function refresh(): JsonResponse
+    {
+        try {
+            $newToken = auth('delivery_api')->refresh();
+        } catch (\Throwable) {
+            return ApiResponse::error('Invalid or expired refresh token.', [], 401);
+        }
+
+        return ApiResponse::success([
+            'access_token' => $newToken,
+            'token_type'   => 'bearer',
+            'expires_in'   => self::ACCESS_TTL_MINUTES * 60,
+        ]);
+    }
+
+    public function me(): JsonResponse
+    {
+        /** @var DeliveryAgent $agent */
+        $agent = auth('delivery_api')->user();
+        $agent->load(['zone', 'country']);
+
+        $resource = new DeliveryAgentProfileResource($agent);
+        $resource->todayStats = $this->todayStats($agent);
+
+        return ApiResponse::success(['agent' => $resource]);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private function issueTokenPair(DeliveryAgent $agent): array
+    {
+        $accessToken = auth('delivery_api')->setTTL(self::ACCESS_TTL_MINUTES)->login($agent);
+
+        $refreshToken = JWTAuth::customClaims([
+            'type'  => 'refresh',
+            'guard' => 'delivery_api',
+        ])->setTTL(self::REFRESH_TTL_MINUTES)->fromUser($agent);
+
+        return [
+            'access_token'  => $accessToken,
+            'refresh_token' => $refreshToken,
+            'token_type'    => 'bearer',
+            'expires_in'    => self::ACCESS_TTL_MINUTES * 60,
+        ];
+    }
+
+    private function todayStats(DeliveryAgent $agent): array
+    {
+        $todayShift = DeliveryAgentShift::where('agent_id', $agent->id)
+            ->whereDate('shift_date', now()->toDateString())
+            ->latest()
+            ->first();
+
+        return [
+            'deliveries_today' => $todayShift?->total_deliveries ?? 0,
+            'earnings_today'   => ($todayShift?->total_earnings_cents ?? 0) / 100,
+            'shift_started_at' => $todayShift?->actual_start?->toIso8601String(),
+        ];
+    }
+}

@@ -2,9 +2,140 @@
 
 namespace App\Models;
 
+use App\Traits\HasStateMachine;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SubOrder extends Model
 {
-    //
+    use HasUuids, HasStateMachine;
+
+    // ── State machine ─────────────────────────────────────────────────────────
+
+    public const STATUS_TRANSITIONS = [
+        'placed'           => ['confirmed', 'cancelled'],
+        'confirmed'        => ['processing', 'cancelled'],
+        'processing'       => ['packed', 'cancelled'],
+        'packed'           => ['shipped', 'cancelled'],
+        'shipped'          => ['out_for_delivery', 'delivered'],
+        'out_for_delivery' => ['delivered'],
+        'delivered'        => ['completed', 'returned'],
+        'completed'        => [],
+        'cancelled'        => [],
+        'returned'         => ['refunded'],
+        'refunded'         => [],
+    ];
+
+    public const STATUS_LABELS = [
+        'placed'           => 'Placed',
+        'confirmed'        => 'Confirmed',
+        'processing'       => 'Processing',
+        'packed'           => 'Packed',
+        'shipped'          => 'Shipped',
+        'out_for_delivery' => 'Out for Delivery',
+        'delivered'        => 'Delivered',
+        'completed'        => 'Completed',
+        'cancelled'        => 'Cancelled',
+        'returned'         => 'Returned',
+        'refunded'         => 'Refunded',
+    ];
+
+    /** Sub-orders in these statuses block force-cancel unless overridden. */
+    public const BLOCK_CANCEL_STATUSES = [
+        'shipped',
+        'out_for_delivery',
+        'delivered',
+        'completed',
+        'returned',
+        'refunded',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'shipped_at' => 'datetime',
+            'delivered_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'estimated_delivery_date' => 'date',
+            'sla_ship_deadline' => 'datetime',
+            'sla_breached' => 'boolean',
+        ];
+    }
+
+    protected $fillable = [
+        'id',
+        'order_id',
+        'sub_order_number',
+        'vendor_id',
+        'warehouse_id',
+        'status',
+        'fulfillment_model',
+        'subtotal',
+        'shipping',
+        'tax',
+        'platform_commission',
+        'vendor_payout',
+        'shipping_method_id',
+        'carrier_id',
+        'tracking_number',
+        'estimated_delivery_date',
+        'shipped_at',
+        'delivered_at',
+        'cancelled_at',
+        'cancellation_reason',
+        'sla_ship_deadline',
+        'sla_breached',
+    ];
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    public function shippingMethod(): BelongsTo
+    {
+        return $this->belongsTo(ShippingMethod::class);
+    }
+
+    public function carrier(): BelongsTo
+    {
+        return $this->belongsTo(ShippingCarrier::class, 'carrier_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(Shipment::class);
+    }
+
+    public function payoutItems(): HasMany
+    {
+        return $this->hasMany(PayoutItem::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(OrderStatusHistory::class);
+    }
 }

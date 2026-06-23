@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->string('reference_type', 50)->nullable();
             $table->uuid('reference_id')->nullable();
             $table->integer('response_status')->nullable();
-            $table->jsonb('response_body')->nullable();
+            $table->json('response_body')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });

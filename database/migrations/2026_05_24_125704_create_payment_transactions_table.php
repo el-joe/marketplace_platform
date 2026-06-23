@@ -28,8 +28,8 @@ return new class extends Migration {
             $table->string('failure_code', 50)->nullable();
             $table->text('failure_message')->nullable();
             $table->uuid('payment_method_id')->nullable();
-            $table->jsonb('raw_request')->nullable();
-            $table->jsonb('raw_response')->nullable();
+            $table->json('raw_request')->nullable();
+            $table->json('raw_response')->nullable();
             $table->timestamp('processed_at')->nullable();
             $table->timestamps();
         });

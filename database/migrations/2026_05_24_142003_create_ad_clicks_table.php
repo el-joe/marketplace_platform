@@ -14,7 +14,7 @@ return new class extends Migration {
          * Table: ad_clicks Separate from impressions for clarity and to prevent fraud analysis complications. ColumnTypeNullDefaultDescriptionidUUID PKNOgen_random_uuid()ad_impression_idUUID FK→ad_impressionsNOThe impression that was clickedad_campaign_idUUID FK→ad_campaignsNODenormalizedseller_listing_idUUID FK→seller_listingsNODenormalizeduser_idUUID FK→usersYESNULLsession_idVARCHAR(100)NOip_addressVARCHAR(45)NOFor click fraud detectionuser_agentTEXTYESNULLis_fraud_suspectBOOLEANNOfalseFlagged by fraud detectionfraud_reasonVARCHAR(100)YESNULLsame_ip_rapid_clicks, bot_patterncost_centsBIGINTNOWhat was charged to the vendorcountry_idUUID FK→countriesNOclicked_atTIMESTAMPTZNOnow()
          */
         Schema::create('ad_clicks', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
+            $table->uuid('id')->primary();
             $table->uuid('ad_impression_id');
             $table->uuid('ad_campaign_id');
             $table->uuid('vendor_listing_id');

@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class WebhookDelivery extends Model
 {
-    public $timestamps = false;
-
     protected $fillable = [
         'event_type',
         'payload',
@@ -19,9 +17,5 @@ class WebhookDelivery extends Model
         'processed_at',
     ];
 
-    protected $casts = [
-        'payload' => 'array',
-        'processed_at' => 'datetime',
-        'created_at' => 'datetime',
-    ];
+    //
 }

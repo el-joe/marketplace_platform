@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Http\Resources\Delivery;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class DocumentResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'id'               => $this->id,
+            'document_type'    => $this->document_type,
+            'status'           => $this->status,
+            'expires_at'       => $this->expires_at?->toDateString(),
+            'rejection_reason' => $this->when(
+                $this->status === 'rejected',
+                $this->rejection_reason
+            ),
+            'verified_at'      => $this->verified_at?->toIso8601String(),
+            'updated_at'       => $this->updated_at?->toIso8601String(),
+        ];
+    }
+}

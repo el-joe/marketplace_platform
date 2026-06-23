@@ -1,0 +1,342 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreAttributeRequest;
+use App\Http\Requests\Admin\UpdateAttributeRequest;
+use App\Models\Attribute;
+use App\Models\AttributeValue;
+use App\Models\CategoryAttribute;
+use App\Models\ProductVariantAttribute;
+use App\Traits\HasDataTable;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
+
+class AttributeController extends Controller
+{
+    use HasDataTable;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Index / Datatable
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function index(): View
+    {
+        return view('admin.attributes.index', [
+            'breadcrumbs' => [
+                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
+                ['label' => 'Attributes'],
+            ],
+        ]);
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $columns = $this->columnDefinitions();
+
+        $query = Attribute::query()->select([
+            'id',
+            'name_en',
+            'name_ar',
+            'code',
+            'type',
+            'unit',
+            'is_variant_attribute',
+            'is_filterable',
+            'is_required',
+            'sort_order',
+            'created_at',
+        ]);
+
+        $query = $this->applyFilters($query, $request, [
+            'type' => fn($q, $v) => $q->where('type', $v),
+        ]);
+
+        return $this->dataTableResponse($request, $query, $columns, function ($row) {
+            return [
+                'id' => $row->id,
+                'name_en' => e($row->name_en),
+                'name_ar' => e($row->name_ar ?? ''),
+                'code' => e($row->code),
+                'type' => $row->type,
+                'unit' => e($row->unit ?? '—'),
+                'is_variant_attribute' => (bool) $row->is_variant_attribute,
+                'is_filterable' => (bool) $row->is_filterable,
+                'created_at' => $row->created_at,
+                'edit_url' => route('admin.attributes.edit', $row->id),
+            ];
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Create / Store
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function create(): View
+    {
+        return view('admin.attributes.create', [
+            'breadcrumbs' => [
+                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
+                ['label' => 'Attributes', 'url' => route('admin.attributes.index')],
+                ['label' => 'New Attribute'],
+            ],
+        ]);
+    }
+
+    public function store(StoreAttributeRequest $request): JsonResponse|RedirectResponse
+    {
+        DB::beginTransaction();
+        try {
+            $id = (string) Str::uuid();
+
+            Attribute::query()->insert([
+                'id' => $id,
+                'name_en' => $request->name_en,
+                'name_ar' => $request->name_ar,
+                'code' => $request->code,
+                'type' => $request->type,
+                'unit' => $request->unit ?: null,
+                'is_variant_attribute' => $request->boolean('is_variant_attribute'),
+                'is_filterable' => $request->boolean('is_filterable'),
+                'is_required' => $request->boolean('is_required'),
+                'sort_order' => (int) ($request->sort_order ?? 0),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Seed initial values for types that require them
+            if (in_array($request->type, ['select', 'multi_select', 'color'], true)) {
+                foreach ($request->input('values', []) as $value) {
+                    if (empty($value['value_en']))
+                        continue;
+                    AttributeValue::query()->insert([
+                        'id' => (string) Str::uuid(),
+                        'attribute_id' => $id,
+                        'value_en' => $value['value_en'],
+                        'value_ar' => $value['value_ar'] ?? null,
+                        'color_hex' => $value['color_hex'] ?? null,
+                        'sort_order' => (int) ($value['sort_order'] ?? 0),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect' => route('admin.attributes.index'),
+                ]);
+            }
+
+            return redirect()->route('admin.attributes.index')
+                ->with('success', 'Attribute created successfully.');
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Attribute creation failed', ['error' => $e->getMessage()]);
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Failed to create attribute.'], 500);
+            }
+
+            return back()->withInput()->withErrors(['error' => 'Failed to create attribute. Please try again.']);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Edit / Update
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function edit(string $attribute): View
+    {
+        $attributeModel = Attribute::with('values')->findOrFail($attribute);
+
+        return view('admin.attributes.edit', [
+            'breadcrumbs' => [
+                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
+                ['label' => 'Attributes', 'url' => route('admin.attributes.index')],
+                ['label' => e($attributeModel->name_en)],
+            ],
+            'attribute' => $attributeModel,
+        ]);
+    }
+
+    public function update(UpdateAttributeRequest $request, string $attribute): JsonResponse
+    {
+        Attribute::query()->where('id', $attribute)->firstOrFail();
+
+        DB::beginTransaction();
+        try {
+            Attribute::query()->where('id', $attribute)->update([
+                'name_en' => $request->name_en,
+                'name_ar' => $request->name_ar,
+                'unit' => $request->unit ?: null,
+                'is_variant_attribute' => $request->boolean('is_variant_attribute'),
+                'is_filterable' => $request->boolean('is_filterable'),
+                'is_required' => $request->boolean('is_required'),
+                'sort_order' => (int) ($request->sort_order ?? 0),
+                'updated_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Attribute updated successfully.']);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Attribute update failed', ['id' => $attribute, 'error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to update attribute.'], 500);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Destroy
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function destroy(string $attribute): JsonResponse
+    {
+        $inUse = ProductVariantAttribute::query()
+            ->from('product_variant_attributes as pva')
+            ->join('attribute_values as av', 'av.id', '=', 'pva.attribute_value_id')
+            ->where('av.attribute_id', $attribute)
+            ->count();
+
+        if ($inUse > 0) {
+            return response()->json([
+                'message' => "Cannot delete: this attribute is used by {$inUse} product variant(s).",
+            ], 422);
+        }
+
+        AttributeValue::query()->where('attribute_id', $attribute)->delete();
+        CategoryAttribute::query()->where('attribute_id', $attribute)->delete();
+        Attribute::query()->where('id', $attribute)->delete();
+
+        return response()->json(['success' => true, 'message' => 'Attribute deleted.']);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Attribute Values (inline CRUD)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function storeValue(Request $request, string $attribute): JsonResponse
+    {
+        $request->validate([
+            'value_en' => 'required|string|max:255',
+            'value_ar' => 'nullable|string|max:255',
+            'color_hex' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        Attribute::query()->where('id', $attribute)->firstOrFail();
+
+        $id = (string) Str::uuid();
+
+        AttributeValue::query()->insert([
+            'id' => $id,
+            'attribute_id' => $attribute,
+            'value_en' => $request->value_en,
+            'value_ar' => $request->value_ar ?: null,
+            'color_hex' => $request->color_hex ?: null,
+            'sort_order' => (int) ($request->sort_order ?? 0),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'value' => [
+                'id' => $id,
+                'value_en' => $request->value_en,
+                'value_ar' => $request->value_ar,
+                'color_hex' => $request->color_hex,
+                'sort_order' => (int) ($request->sort_order ?? 0),
+            ],
+        ]);
+    }
+
+    public function updateValue(Request $request, string $attribute, string $value): JsonResponse
+    {
+        $request->validate([
+            'value_en' => 'required|string|max:255',
+            'value_ar' => 'nullable|string|max:255',
+            'color_hex' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        AttributeValue::query()
+            ->where('id', $value)
+            ->where('attribute_id', $attribute)
+            ->update([
+                'value_en' => $request->value_en,
+                'value_ar' => $request->value_ar ?: null,
+                'color_hex' => $request->color_hex ?: null,
+                'sort_order' => (int) ($request->sort_order ?? 0),
+                'updated_at' => now(),
+            ]);
+
+        return response()->json(['success' => true, 'message' => 'Value updated.']);
+    }
+
+    public function destroyValue(string $attribute, string $value): JsonResponse
+    {
+        $inUse = ProductVariantAttribute::query()
+            ->where('attribute_value_id', $value)
+            ->count();
+
+        if ($inUse > 0) {
+            return response()->json(['message' => "Cannot delete: value is used by {$inUse} variant(s)."], 422);
+        }
+
+        AttributeValue::query()
+            ->where('id', $value)
+            ->where('attribute_id', $attribute)
+            ->delete();
+
+        return response()->json(['success' => true, 'message' => 'Value deleted.']);
+    }
+
+    public function reorderValues(Request $request, string $attribute): JsonResponse
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|string',
+            'items.*.sort_order' => 'required|integer',
+        ]);
+
+        DB::transaction(function () use ($request, $attribute) {
+            foreach ($request->input('items') as $item) {
+                AttributeValue::query()
+                    ->where('id', $item['id'])
+                    ->where('attribute_id', $attribute)
+                    ->update(['sort_order' => $item['sort_order'], 'updated_at' => now()]);
+            }
+        });
+
+        return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private Helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function columnDefinitions(): array
+    {
+        return [
+            ['name' => 'name_en', 'data' => 'name_en', 'title' => 'Name'],
+            ['name' => 'code', 'data' => 'code', 'title' => 'Code'],
+            ['name' => 'type', 'data' => 'type', 'title' => 'Type', 'searchable' => false],
+            ['name' => 'unit', 'data' => 'unit', 'title' => 'Unit', 'searchable' => false],
+            ['name' => 'created_at', 'data' => 'created_at', 'title' => 'Created', 'searchable' => false],
+            ['name' => 'actions', 'data' => 'actions', 'title' => '', 'orderable' => false, 'searchable' => false],
+        ];
+    }
+}

@@ -1,0 +1,576 @@
+/**
+ * Admin Page Builder
+ *
+ * Drag-and-drop visual page composition tied to the /page-builder/* admin API.
+ * Uses jQuery (already loaded globally) + SortableJS + Alpine.js for the
+ * version-history drawer.
+ */
+
+import $ from 'jquery';
+import Sortable from 'sortablejs';
+
+const csrfToken = () => $('meta[name="csrf-token"]').attr('content');
+
+/* ─── State ─────────────────────────────────────────────────────────────── */
+const state = {
+    currentPageId: null,
+    currentPageMeta: null,
+    selectedBlockId: null,
+    autoSaveTimer: null,
+    sortable: null,
+};
+
+const ROUTES = {
+    load: '/page-builder/load',
+    pages: '/page-builder/pages',
+    publish: (id) => `/page-builder/pages/${id}/publish`,
+    pageRevisions: (id) => `/page-builder/pages/${id}/revisions`,
+    pageRevRestore: (id) => `/page-builder/page-revisions/${id}/restore`,
+
+    blocks: '/page-builder/blocks',
+    blockConfig: (id) => `/page-builder/blocks/${id}/config`,
+    blockVisibility: (id) => `/page-builder/blocks/${id}/visibility`,
+    blockRemove: (id) => `/page-builder/blocks/${id}`,
+    blockRevisions: (id) => `/page-builder/blocks/${id}/revisions`,
+    blockRevRestore: (id) => `/page-builder/revisions/${id}/restore`,
+    reorder: '/page-builder/reorder',
+    configForm: '/page-builder/config-form',
+
+    slides: (id) => `/page-builder/blocks/${id}/slides`,
+    slideSave: (id) => `/page-builder/blocks/${id}/slides`,
+    slideDelete: (id) => `/page-builder/slides/${id}`,
+    slideReorder: (id) => `/page-builder/blocks/${id}/slides/reorder`,
+
+    adImages: (id) => `/page-builder/blocks/${id}/ad-images`,
+    adImageSave: (id) => `/page-builder/blocks/${id}/ad-images`,
+    adImageDelete: (id) => `/page-builder/ad-images/${id}`,
+    adImageReorder: (id) => `/page-builder/blocks/${id}/ad-images/reorder`,
+
+    pageUpdate: (id) => `/page-builder/pages/${id}`,
+    pageDelete: (id) => `/page-builder/pages/${id}`,
+    pageDuplicate: (id) => `/page-builder/pages/${id}/duplicate`,
+
+    searchVendors: '/page-builder/search/vendors',
+    searchFlashSales: '/page-builder/search/flash-sales',
+};
+
+/* ─── Helpers ───────────────────────────────────────────────────────────── */
+const Toast = window.Toast || { success: alert, error: alert, info: console.log, warning: console.warn };
+
+function setSaveStatus(text, kind = '') {
+    const $ind = $('#save-indicator');
+    $ind.removeClass('saving saved error').addClass(kind || '').text(text);
+}
+
+function withLoading($btn, promise) {
+    const originalHtml = $btn.html();
+    const originalDisabled = $btn.prop('disabled');
+    $btn.prop('disabled', true).addClass('opacity-60 cursor-wait');
+    return Promise.resolve(promise).finally(() => {
+        $btn.html(originalHtml).prop('disabled', originalDisabled).removeClass('opacity-60 cursor-wait');
+    });
+}
+
+function ajax(options) {
+    return $.ajax({
+        ...options,
+        headers: { 'X-CSRF-TOKEN': csrfToken(), 'X-Requested-With': 'XMLHttpRequest', ...(options.headers || {}) },
+    });
+}
+
+/* ─── Rendering ─────────────────────────────────────────────────────────── */
+function renderBlockCard(block) {
+    const icon = block.icon || 'cube';
+    const badges = [];
+    if (!block.is_visible) badges.push('<span class="text-xs font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">Hidden</span>');
+    if (block.visible_from || block.visible_until) badges.push('<span class="text-xs font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">Scheduled</span>');
+    if (block.device_target && block.device_target !== 'all') badges.push(`<span class="text-xs font-medium px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">${escapeHtml(block.device_target)}</span>`);
+
+    return `
+        <div class="block-card group" data-block-id="${block.id}" data-block-type="${escapeHtml(block.block_type || '')}">
+            <div class="drag-handle" title="Drag to reorder">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </div>
+            <div class="block-icon flex-shrink-0">
+                ${heroiconSvg(icon)}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-900 truncate">${escapeHtml(block.label_en || block.block_type)}</div>
+                <div class="text-xs text-gray-500 truncate" data-preview>${escapeHtml(block.preview_text || '')}</div>
+            </div>
+            <div class="flex items-center gap-1.5">${badges.join('')}</div>
+            <div class="block-actions flex items-center gap-1">
+                <button type="button" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded" data-action="edit-block" title="Edit">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h-6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6m-6-9 6 6m-6-6L21 3l-4 4"/></svg>
+                </button>
+                <button type="button" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded" data-action="delete-block" title="Delete">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166M5.84 19.673a2.25 2.25 0 0 0 2.244 2.077h7.832a2.25 2.25 0 0 0 2.244-2.077L19.228 5.79m-14.456 0a48.108 48.108 0 0 1 3.478-.397m11.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function heroiconSvg(name) {
+    // Minimal inline SVG (we don't have the full heroicon paths in JS — use a generic cube).
+    const generic = '<path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>';
+    return `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" data-icon="${name}">${generic}</svg>`;
+}
+
+function escapeHtml(str) {
+    return String(str ?? '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* ─── Page loading ──────────────────────────────────────────────────────── */
+function loadPage(pageId) {
+    state.currentPageId = pageId;
+    state.selectedBlockId = null;
+    closeConfigPanel();
+
+    if (!pageId) {
+        $('#block-canvas').empty().addClass('hidden');
+        $('#canvas-empty').removeClass('hidden');
+        $('#publish-btn, #version-history-btn, #preview-btn').addClass('hidden');
+        return;
+    }
+
+    setSaveStatus('Loading…', 'saving');
+    return ajax({
+        url: ROUTES.load,
+        method: 'GET',
+        data: { page_id: pageId },
+    }).done((res) => {
+        state.currentPageMeta = res.page;
+        renderCanvas(res.blocks || []);
+        $('#publish-btn, #version-history-btn').removeClass('hidden');
+        $('#preview-btn').attr('href', `/preview/page/${res.page.id}`).removeClass('hidden');
+        setSaveStatus('');
+    }).fail(() => {
+        setSaveStatus('Load failed', 'error');
+        Toast.error('Could not load page.');
+    });
+}
+
+function renderCanvas(blocks) {
+    const $canvas = $('#block-canvas');
+    if (!blocks.length) {
+        $canvas.empty().addClass('hidden');
+        $('#canvas-empty').removeClass('hidden').find('p').text('This page has no blocks yet. Pick one from the left.');
+        return;
+    }
+
+    $('#canvas-empty').addClass('hidden');
+    $canvas.removeClass('hidden').html(blocks.map(renderBlockCard).join(''));
+    initSortable();
+}
+
+function initSortable() {
+    if (state.sortable) state.sortable.destroy();
+    const canvas = document.getElementById('block-canvas');
+    if (!canvas) return;
+    state.sortable = Sortable.create(canvas, {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: persistOrder,
+    });
+}
+
+function persistOrder() {
+    const blocks = $('#block-canvas .block-card').map(function (i) {
+        return { id: $(this).data('block-id'), position: i };
+    }).get();
+
+    setSaveStatus('Saving order…', 'saving');
+    ajax({
+        url: ROUTES.reorder,
+        method: 'POST',
+        data: JSON.stringify({ blocks }),
+        contentType: 'application/json',
+    }).done(() => setSaveStatus('Order saved', 'saved'))
+        .fail(() => { setSaveStatus('Order save failed', 'error'); Toast.error('Could not save order.'); });
+}
+
+/* ─── Add block ─────────────────────────────────────────────────────────── */
+$(document).on('click', '.palette-btn', function () {
+    if (!state.currentPageId) {
+        Toast.warning('Select or create a page first.');
+        return;
+    }
+
+    const $btn = $(this);
+    const code = $btn.data('block-type');
+    const position = $('#block-canvas .block-card').length;
+
+    withLoading($btn, ajax({
+        url: ROUTES.blocks,
+        method: 'POST',
+        data: { page_id: state.currentPageId, block_type_code: code, position },
+    }).done((res) => {
+        const block = {
+            id: res.block_id, block_type: res.block_type, label_en: res.label_en,
+            icon: res.icon, preview_text: res.preview_text, is_visible: true,
+        };
+        $('#canvas-empty').addClass('hidden');
+        $('#block-canvas').removeClass('hidden').append(renderBlockCard(block));
+        initSortable();
+        selectBlock(res.block_id);
+        Toast.success(`${res.label_en || res.block_type} added.`);
+    }).fail((xhr) => {
+        const msg = xhr.responseJSON?.message || xhr.responseJSON?.errors?.block_type_code?.[0] || 'Could not add block.';
+        Toast.error(msg);
+    }));
+});
+
+/* ─── Select / edit / delete blocks ─────────────────────────────────────── */
+$(document).on('click', '.block-card', function (e) {
+    if ($(e.target).closest('[data-action]').length) return;
+    selectBlock($(this).data('block-id'));
+});
+
+$(document).on('click', '[data-action="edit-block"]', function () {
+    selectBlock($(this).closest('.block-card').data('block-id'));
+});
+
+$(document).on('click', '[data-action="delete-block"]', async function () {
+    const $card = $(this).closest('.block-card');
+    const blockId = $card.data('block-id');
+
+    const ok = await window.confirmDialog({
+        title: 'Remove block?',
+        message: 'This block (and its config) will be removed from the page. You can restore it from version history if the page has been published.',
+        confirmLabel: 'Remove',
+        danger: true,
+    });
+    if (!ok) return;
+
+    ajax({ url: ROUTES.blockRemove(blockId), method: 'DELETE' })
+        .done(() => {
+            $card.remove();
+            if (state.selectedBlockId === blockId) closeConfigPanel();
+            if (!$('#block-canvas .block-card').length) {
+                $('#block-canvas').addClass('hidden');
+                $('#canvas-empty').removeClass('hidden');
+            }
+            Toast.success('Block removed.');
+        })
+        .fail(() => Toast.error('Could not remove block.'));
+});
+
+function selectBlock(blockId) {
+    state.selectedBlockId = blockId;
+    $('.block-card').removeClass('is-selected');
+    $(`.block-card[data-block-id="${blockId}"]`).addClass('is-selected');
+    openConfigPanel(blockId);
+}
+
+function closeConfigPanel() {
+    state.selectedBlockId = null;
+    $('.block-card').removeClass('is-selected');
+    $('#config-panel').removeClass('flex').addClass('hidden');
+    $('#config-empty').removeClass('hidden');
+    $('#config-form-body').empty();
+}
+
+$('#close-config-btn').on('click', closeConfigPanel);
+
+/* ─── Config panel ──────────────────────────────────────────────────────── */
+function openConfigPanel(blockId) {
+    $('#config-empty').addClass('hidden');
+    $('#config-panel').removeClass('hidden').addClass('flex');
+    $('#config-form-body').html('<div class="text-sm text-gray-400 text-center py-8">Loading…</div>');
+    $('#config-save-status').text('');
+
+    const $card = $(`.block-card[data-block-id="${blockId}"]`);
+    const blockType = $card.find('[data-preview]').length ? null : null;
+
+    // Two parallel requests: the form HTML + the current config values.
+    $.when(
+        ajax({ url: ROUTES.configForm, method: 'GET', data: { block_id: blockId, block_type_code: getBlockTypeOf(blockId) } }),
+        ajax({ url: ROUTES.blockConfig(blockId), method: 'GET' })
+    ).done((formRes, configRes) => {
+        const html = formRes[0];
+        const cfg = configRes[0] || {};
+        $('#config-title').text(($card.find('.text-sm.font-medium').text() || 'Block settings').trim());
+        $('#config-form-body').html(html);
+        applyConfigToForm(cfg);
+        if (getBlockTypeOf(blockId) === 'hero_slider') loadSlidesList(blockId);
+    }).fail(() => {
+        $('#config-form-body').html('<div class="text-sm text-rose-600 text-center py-8">Failed to load config form.</div>');
+    });
+}
+
+function getBlockTypeOf(blockId) {
+    const $card = $(`.block-card[data-block-id="${blockId}"]`);
+    return $card.attr('data-block-type') || '';
+}
+
+function inferBlockTypeFromAttrs($card) {
+    return $card.attr('data-block-type') || '';
+}
+
+function applyConfigToForm(cfg) {
+    const $form = $('#config-form-body form[data-config-form]');
+    if (!$form.length) return;
+
+    // Apply server-rendered data-selected-value for slot-based selects (before config override)
+    $form.find('select[data-selected-value]').each(function () {
+        $(this).val($(this).data('selected-value'));
+    });
+
+    Object.entries(cfg.config || {}).forEach(([key, val]) => {
+        const $f = $form.find(`[name="${key}"]`);
+        if (!$f.length) return;
+        if ($f.is(':checkbox')) $f.prop('checked', !!val);
+        else $f.val(val);
+    });
+
+    // Visibility section (prefixed)
+    $form.find('[name="__vis_is_visible"]').prop('checked', !!cfg.is_visible);
+    $form.find('[name="__vis_visible_from"]').val(cfg.visible_from || '');
+    $form.find('[name="__vis_visible_until"]').val(cfg.visible_until || '');
+    $form.find('[name="__vis_device_target"]').val(cfg.device_target || 'all');
+    $form.find('[name="__vis_audience"]').val(cfg.audience || 'all');
+}
+
+/* ─── Auto-save on config change ────────────────────────────────────────── */
+$(document).on('input change', '#config-form-body form[data-config-form] :input', function () {
+    if (!state.selectedBlockId) return;
+    clearTimeout(state.autoSaveTimer);
+    $('#config-save-status').text('Saving…').removeClass('text-emerald-600 text-rose-600').addClass('text-blue-600');
+    state.autoSaveTimer = setTimeout(saveConfig, 700);
+});
+
+function saveConfig() {
+    const blockId = state.selectedBlockId;
+    if (!blockId) return;
+
+    const $form = $('#config-form-body form[data-config-form]');
+    if (!$form.length) return;
+
+    const { config, visibility } = collectFormData($form);
+
+    // Save config
+    ajax({
+        url: ROUTES.blockConfig(blockId),
+        method: 'POST',
+        data: JSON.stringify({ config, change_type: 'config_updated' }),
+        contentType: 'application/json',
+    }).done((res) => {
+        $('#config-save-status').text(`Saved (rev #${res.revision_number})`).removeClass('text-blue-600 text-rose-600').addClass('text-emerald-600');
+        const $card = $(`.block-card[data-block-id="${blockId}"]`);
+        if (res.preview_text != null) $card.find('[data-preview]').text(res.preview_text);
+    }).fail(() => {
+        $('#config-save-status').text('Save failed').removeClass('text-blue-600 text-emerald-600').addClass('text-rose-600');
+    });
+
+    // Save visibility separately (different endpoint)
+    ajax({
+        url: ROUTES.blockVisibility(blockId),
+        method: 'POST',
+        data: visibility,
+    });
+}
+
+function collectFormData($form) {
+    const config = {};
+    const visibility = {};
+    $form.find(':input[name]').each(function () {
+        const $f = $(this);
+        const name = $f.attr('name');
+        if (!name || name === '_token') return;
+        let val;
+        if ($f.is(':checkbox')) val = $f.is(':checked') ? 1 : 0;
+        else val = $f.val();
+
+        if (name === '__raw_json') {
+            try { Object.assign(config, JSON.parse(val || '{}')); } catch (e) { /* ignore */ }
+            return;
+        }
+        if (name.startsWith('__vis_')) {
+            visibility[name.replace('__vis_', '')] = val;
+            return;
+        }
+        config[name] = val;
+    });
+    // Convert booleans for visibility
+    if ('is_visible' in visibility) visibility.is_visible = !!Number(visibility.is_visible);
+    return { config, visibility };
+}
+
+/* ─── Slides ────────────────────────────────────────────────────────────── */
+function loadSlidesList(blockId) {
+    const $container = $(`[data-slides-list][data-block-id="${blockId}"]`);
+    if (!$container.length) return;
+
+    ajax({ url: ROUTES.slides(blockId), method: 'GET' })
+        .done((res) => {
+            const slides = res.slides || [];
+            if (!slides.length) {
+                $container.html('<div class="text-xs text-gray-400 px-2 py-3 text-center">No slides yet. Click "Add slide" above.</div>');
+                return;
+            }
+            const html = slides.map((s) => `
+                <div class="flex items-center gap-2 px-2 py-1.5 border border-gray-100 rounded hover:bg-gray-50" data-slide-id="${s.id}">
+                    <span class="text-xs text-gray-400">#${s.position + 1}</span>
+                    <span class="flex-1 truncate text-sm text-gray-700">${escapeHtml(s.title_en || s.cta_label_en || 'Slide')}</span>
+                    <button type="button" class="text-xs text-gray-500 hover:text-gray-900" data-action="edit-slide" data-slide-id="${s.id}" data-block-id="${blockId}">Edit</button>
+                    <button type="button" class="text-xs text-rose-500 hover:text-rose-700" data-action="delete-slide" data-slide-id="${s.id}">Delete</button>
+                </div>
+            `).join('');
+            $container.html(html);
+        });
+}
+
+$(document).on('click', '[data-action="add-slide"]', function () {
+    const blockId = $(this).data('block-id');
+    openSlideModal(blockId, null, {});
+});
+
+$(document).on('click', '[data-action="edit-slide"]', function () {
+    const blockId = $(this).data('block-id');
+    const slideId = $(this).data('slide-id');
+    // Re-fetch this slide's full data from the slides list response (cached lazily)
+    ajax({ url: ROUTES.slides(blockId), method: 'GET' }).done((res) => {
+        const slide = (res.slides || []).find((s) => s.id === slideId);
+        openSlideModal(blockId, slideId, slide || {});
+    });
+});
+
+$(document).on('click', '[data-action="delete-slide"]', async function () {
+    const slideId = $(this).data('slide-id');
+    const ok = await window.confirmDialog({
+        title: 'Delete slide?', message: 'This slide will be removed.', confirmLabel: 'Delete', danger: true,
+    });
+    if (!ok) return;
+    ajax({ url: ROUTES.slideDelete(slideId), method: 'DELETE' })
+        .done(() => { Toast.success('Slide deleted.'); loadSlidesList(state.selectedBlockId); })
+        .fail(() => Toast.error('Could not delete slide.'));
+});
+
+function openSlideModal(blockId, slideId, slide) {
+    $('#slide-block-id').val(blockId);
+    $('#slide-id').val(slideId || '');
+    const $form = $('#slide-form');
+    $form[0].reset();
+    Object.entries(slide || {}).forEach(([k, v]) => {
+        const $f = $form.find(`[name="${k}"]`);
+        if (!$f.length) return;
+        if ($f.is(':checkbox')) $f.prop('checked', !!v);
+        else $f.val(v ?? '');
+    });
+    $('#slide-modal').modal('open');
+}
+
+$('#slide-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const blockId = $('#slide-block-id').val();
+    const data = {};
+    $form.find(':input[name]').each(function () {
+        const $f = $(this);
+        const name = $f.attr('name');
+        if (!name || name === '_token') return;
+        if ($f.is(':checkbox')) data[name] = $f.is(':checked') ? 1 : 0;
+        else data[name] = $f.val();
+    });
+    if (!data.id) delete data.id;
+
+    ajax({ url: ROUTES.slideSave(blockId), method: 'POST', data })
+        .done(() => {
+            Toast.success('Slide saved.');
+            $('#slide-modal').modal('close');
+            loadSlidesList(blockId);
+            // Trigger preview refresh on block card
+            $(`.block-card[data-block-id="${blockId}"] [data-preview]`).text('Slider — updated');
+        })
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not save slide.'));
+});
+
+/* ─── Page creation ─────────────────────────────────────────────────────── */
+$('#create-page-btn').on('click', () => $('#create-page-modal').modal('open'));
+
+$('#create-page-form').on('submit', function (e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(this).entries());
+
+    ajax({ url: ROUTES.pages, method: 'POST', data })
+        .done((res) => {
+            Toast.success('Page created.');
+            $('#create-page-modal').modal('close');
+
+            const p = res.page;
+            const option = new Option(`${p.name} (${p.page_type})`, p.id, true, true);
+            $('#page-select').append(option).val(p.id).trigger('change');
+        })
+        .fail((xhr) => {
+            const errs = xhr.responseJSON?.errors || {};
+            const first = Object.values(errs)[0]?.[0] || xhr.responseJSON?.message || 'Could not create page.';
+            Toast.error(first);
+        });
+});
+
+/* ─── Page selection / publish / preview / history ──────────────────────── */
+$('#page-select').on('change', function () {
+    loadPage($(this).val());
+});
+
+$('#publish-btn').on('click', async function () {
+    if (!state.currentPageId) return;
+    const ok = await window.confirmDialog({
+        title: 'Publish page?',
+        message: 'This will make the current draft live. A new version snapshot will be created.',
+        confirmLabel: 'Publish',
+    });
+    if (!ok) return;
+
+    const $btn = $(this);
+    withLoading($btn, ajax({
+        url: ROUTES.publish(state.currentPageId), method: 'POST',
+        data: { reason: 'Published from page builder' },
+    }).done(() => Toast.success('Page published.'))
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not publish.')));
+});
+
+$('#version-history-btn').on('click', function () {
+    if (!state.currentPageId) return;
+    window.dispatchEvent(new CustomEvent('open-version-drawer'));
+    ajax({ url: ROUTES.pageRevisions(state.currentPageId), method: 'GET' })
+        .done((res) => {
+            const drawerEl = document.getElementById('version-drawer');
+            if (drawerEl && drawerEl._x_dataStack) {
+                const data = drawerEl._x_dataStack[0];
+                data.revisions = (res.data || []).map((r) => ({
+                    id: r.id, version: r.version,
+                    publish_reason: r.reason,
+                    published_by: r.published_by,
+                    created_at: r.created_at,
+                }));
+                data.loading = false;
+            }
+        });
+});
+
+$(document).on('click', '[data-action="restore-page-revision"]', async function () {
+    const revId = $(this).data('revision-id');
+    const ok = await window.confirmDialog({
+        title: 'Restore this version?',
+        message: 'The current page blocks will be replaced with the selected version. A new revision snapshot will be created.',
+        confirmLabel: 'Restore',
+        danger: true,
+    });
+    if (!ok) return;
+
+    ajax({ url: ROUTES.pageRevRestore(revId), method: 'POST' })
+        .done(() => { Toast.success('Version restored.'); loadPage(state.currentPageId); })
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not restore.'));
+});
+
+/* ─── Boot ──────────────────────────────────────────────────────────────── */
+$(function () {
+    setSaveStatus('');
+});

@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->string('latitude')->nullable();
             $table->string('longitude')->nullable();
             $table->boolean('is_default')->default(false);
-            $table->enum('address_type', ['shipping', 'billing', 'both'])->default('home');
+            $table->enum('address_type', ['shipping', 'billing', 'both']);
             $table->timestamps();
             $table->softDeletes();
         });

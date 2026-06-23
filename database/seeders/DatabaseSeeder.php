@@ -2,24 +2,88 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+/**
+ * Master orchestrator. All seeders use firstOrCreate() so this is safe to
+ * re-run on an existing database without duplicating rows or breaking logins.
+ *
+ * Dev password for every NEW seeded account: password123
+ * Existing admin accounts created by AdminSeeder keep password: 123456
+ */
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+                // ── Core reference data ────────────────────────────────────────
+            BlockTypeSeeder::class,
+            CountrySeeder::class,
+            CitySeeder::class,
+            CategoryAttributeSeeder::class,
+            BrandShippingSeeder::class,
+            SettingsSeeder::class,
+            SubscriptionPlanSeeder::class,
+
+                // ── Admin accounts (creates the 4 base rows) ──────────────────
+            AdminSeeder::class,
+
+            PermissionSeeder::class,
+            PermissionRoleSeeder::class,
+            RolesAndPermissionsSeeder::class,
+            AdminRoleAssignmentSeeder::class,
+
+                // ── All guard user accounts ────────────────────────────────────
+            VendorSeeder::class,
+            CustomerSeeder::class,
+            MarketerSeeder::class,
+            ShippingCompanySeeder::class,
+            DeliveryAgentSeeder::class,
+
+                // ── Products (needs vendor data from VendorSeeder above) ───────
+            ProductSeeder::class,
+
+                // ── Delivery assignment test fixtures (Phase 2 Playwright tests) ─
+            DeliveryAssignmentSeeder::class,
+
+                // ── Light cross-reference demo data (run last) ─────────────────
+            DemoDataSeeder::class,
         ]);
+
+        // ── Credentials summary table ──────────────────────────────────────
+        $this->command->newLine();
+        $this->command->info('═══════════════════════════════════════════════════════════════');
+        $this->command->info('  ALL SEEDED ACCOUNTS  |  password for new accounts: password123');
+        $this->command->info('  Existing admin rows (AdminSeeder) still use password:  123456');
+        $this->command->info('═══════════════════════════════════════════════════════════════');
+
+        $this->command->table(
+            ['Guard', 'Panel URL', 'Email', 'Role / Status'],
+            [
+                ['admin', 'admin.noon.loc', 'admin@admin.com', 'super_admin (pw: 123456)'],
+                ['admin', 'admin.noon.loc', 'mohamed@admin.com', 'operations_admin (pw: 123456)'],
+                ['admin', 'admin.noon.loc', 'layla@admin.com', 'marketing_admin (pw: 123456)'],
+                ['admin', 'admin.noon.loc', 'sara@admin.com', 'finance_admin (pw: 123456)'],
+                ['vendor', 'partner.noon.loc', 'khalid@techzone.com', 'owner — TechZone (active)'],
+                ['vendor', 'partner.noon.loc', 'reem@bellafashion.com', 'owner — Bella Fashion (active)'],
+                ['vendor', 'partner.noon.loc', 'ahmed@cairohome.com', 'owner — Cairo Home (under_review)'],
+                ['vendor', 'partner.noon.loc', 'fahad@kuwaitgadgets.com', 'owner — Kuwait Gadgets (active)'],
+                ['vendor', 'partner.noon.loc', 'suspended-owner@vendor.com', 'owner — Suspended Store'],
+                ['web', 'storefront', 'ali@customer.com', 'active customer'],
+                ['web', 'storefront', 'dina@customer.com', 'active customer'],
+                ['web', 'storefront', 'suspended@customer.com', 'suspended customer'],
+                ['marketer', 'marketer.noon.loc', 'yasmin@marketer.com', 'active influencer'],
+                ['marketer', 'marketer.noon.loc', 'hana@marketer.com', 'active celebrity'],
+                ['marketer', 'marketer.noon.loc', 'pending-marketer@marketer.com', 'pending influencer'],
+                ['marketer', 'marketer.noon.loc', 'suspended-marketer@marketer.com', 'suspended brand_ambassador'],
+                ['delivery', 'delivery.noon.loc', 'mahmoud@delivery.com', 'platform agent (active)'],
+                ['delivery', 'delivery.noon.loc', 'khalifa@delivery.com', 'platform agent (on_shift)'],
+                ['delivery', 'delivery.noon.loc', 'aramex-rider1@delivery.com', 'third-party (Aramex Gulf)'],
+                ['shipping_supervisor', 'carrier.noon.loc', 'tariq@aramex.com', 'supervisor — Aramex Gulf'],
+                ['shipping_supervisor', 'carrier.noon.loc', 'salim@localexpress.om', 'supervisor — Local Express Oman'],
+                ['shipping_supervisor', 'carrier.noon.loc', 'mona@cairoswift.com', 'supervisor — Cairo Swift (pending)'],
+            ]
+        );
     }
 }

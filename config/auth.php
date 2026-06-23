@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\User;
-
 return [
 
     /*
@@ -40,7 +38,56 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'customers',
+        ],
+        // JWT guard for the Customer API (mobile + website)
+        'customer' => [
+            'driver' => 'jwt',
+            'provider' => 'customers',
+        ],
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'admins',
+        ],
+        'vendor' => [
+            'driver' => 'session',
+            'provider' => 'vendor_admins',
+        ],
+        // Delivery agent app: pure token auth via Sanctum. The 'session'
+        // driver is declared so first-party flows still work if needed.
+        'delivery' => [
+            'driver' => 'session',
+            'provider' => 'delivery_agents',
+        ],
+        // Delivery Agent mobile API (JWT)
+        'delivery_api' => [
+            'driver' => 'jwt',
+            'provider' => 'delivery_agents',
+        ],
+        // Marketer portal (web/blade — session-based)
+        'marketer' => [
+            'driver' => 'session',
+            'provider' => 'marketers',
+        ],
+        // Marketer API (mobile/JWT)
+        'marketer_api' => [
+            'driver' => 'jwt',
+            'provider' => 'marketers',
+        ],
+        // Travel agency portal
+        'travel_agency' => [
+            'driver' => 'session',
+            'provider' => 'travel_agencies',
+        ],
+        // Shipping company supervisor portal
+        'shipping_supervisor' => [
+            'driver' => 'session',
+            'provider' => 'shipping_supervisors',
+        ],
+        // Shipping company supervisor mobile/API (JWT)
+        'shipping_supervisor_api' => [
+            'driver' => 'jwt',
+            'provider' => 'shipping_supervisors',
         ],
     ],
 
@@ -62,9 +109,33 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'customers' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'model' => \App\Models\Customer::class,
+        ],
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\Admin::class,
+        ],
+        'vendor_admins' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\VendorAdmin::class,
+        ],
+        'delivery_agents' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\DeliveryAgent::class,
+        ],
+        'marketers' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\Marketer::class,
+        ],
+        'travel_agencies' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\TravelAgency::class,
+        ],
+        'shipping_supervisors' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\ShippingCompanySupervisor::class,
         ],
 
         // 'users' => [
@@ -96,6 +167,31 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        'vendor_admins' => [
+            'provider' => 'vendor_admins',
+            'table' => 'vendor_admin_password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'customers' => [
+            'provider' => 'customers',
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'travel_agencies' => [
+            'provider' => 'travel_agencies',
+            'table' => 'travel_agency_password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'marketers' => [
+            'provider' => 'marketers',
+            'table' => 'marketer_password_resets',
             'expire' => 60,
             'throttle' => 60,
         ],

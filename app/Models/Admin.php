@@ -2,9 +2,75 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
-class Admin extends Model
+class Admin extends Authenticatable
 {
-    //
+    use HasUuids, Notifiable, HasRoles;
+
+    protected string $guard_name = 'admin';
+
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'password',
+        'country_id',
+        'status',
+        'last_login_at',
+        'last_login_ip',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'last_login_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    // ── Relationships ──────────────────────────────────────────────────────────
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function loginSessions(): HasMany
+    {
+        return $this->hasMany(AdminLoginSession::class);
+    }
+
+    public function files(): MorphMany
+    {
+        return $this->morphMany(File::class, 'model');
+    }
+
+    public function notifications(): MorphMany
+    {
+        return $this->morphMany(Notification::class, 'notifiable');
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class, 'causer_id');
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    public function isAdmin(): bool
+    {
+        return true;
+    }
 }

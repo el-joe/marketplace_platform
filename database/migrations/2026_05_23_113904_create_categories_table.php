@@ -23,6 +23,7 @@ return new class extends Migration {
             $table->integer('rgt')->nullable();
             $table->integer('depth')->nullable();
             $table->integer('sort_order')->default(0);
+            $table->boolean('is_active')->default(true);
             $table->boolean('is_visible')->default(true);
             $table->boolean('is_featured')->default(false);
             $table->text('seo_title_ar')->nullable();
@@ -52,6 +53,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
+        Schema::dropIfExists('country_categories');
         Schema::dropIfExists('categories');
     }
 };

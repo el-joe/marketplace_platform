@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class TravelPackage extends Model
+{
+    use HasUuids;
+
+    protected $fillable = [
+        'travel_agency_id',
+        'title_en',
+        'title_ar',
+        'description_en',
+        'description_ar',
+        'destination_country',
+        'destination_city',
+        'price_cents',
+        'currency',
+        'duration_days',
+        'duration_nights',
+        'departure_date',
+        'return_date',
+        'available_seats',
+        'seats_booked',
+        'inclusions',
+        'status',
+        'approved_by_admin_id',
+        'approved_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'inclusions'    => 'array',
+            'departure_date' => 'date',
+            'return_date'   => 'date',
+            'approved_at'   => 'datetime',
+        ];
+    }
+
+    // ── Relationships ─────────────────────────────────────────────────────────
+
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(TravelAgency::class, 'travel_agency_id');
+    }
+
+    public function approvedByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'approved_by_admin_id');
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(TravelPackageMedia::class)->orderBy('position');
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(TravelBooking::class);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    public function priceFormatted(): string
+    {
+        return $this->currency . ' ' . number_format($this->price_cents / 100, 2);
+    }
+
+    public function seatsRemaining(): ?int
+    {
+        if ($this->available_seats === null) {
+            return null;
+        }
+
+        return max(0, $this->available_seats - $this->seats_booked);
+    }
+
+    public function coverImage(): ?TravelPackageMedia
+    {
+        return $this->media->where('media_type', 'image')->first();
+    }
+}
