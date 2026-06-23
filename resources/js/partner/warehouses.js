@@ -4,19 +4,16 @@
  */
 
 import './app.js';
-import { csrfToken, postJson, showModal, hideModal, toast } from './datatable.js';
+import { createPartnerTable, postJson, showModal, hideModal, toast } from './datatable.js';
 
 // ─── Transfers DataTable ──────────────────────────────────────────────────────
 
 function initTransfersDatatable() {
     const cfg = window.TRANSFERS_CFG;
-    const tableEl = document.getElementById('transfers-table');
-    if (!cfg || !tableEl) return;
+    if (!cfg || !document.getElementById('transfers-table')) return;
 
-    $(tableEl).DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: { url: cfg.datatableUrl, type: 'POST', data: d => { d._token = csrfToken(); } },
+    createPartnerTable('transfers-table', {
+        url: cfg.datatableUrl,
         columns: [
             { data: 'number' },
             { data: 'source' },
@@ -26,7 +23,14 @@ function initTransfersDatatable() {
             { data: 'actions', orderable: false, searchable: false },
         ],
         order: [[4, 'desc']],
-        language: { emptyTable: 'No transfers found.' },
+        searchInputId: 'transfers-search',
+        language: {
+            emptyTable:  'No transfers found.',
+            info:        'Showing _START_–_END_ of _TOTAL_ transfers',
+            infoEmpty:   'No transfers',
+            zeroRecords: 'No transfers match your search.',
+            processing:  '<div class="flex justify-center py-8"><div class="w-6 h-6 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"></div></div>',
+        },
     });
 }
 

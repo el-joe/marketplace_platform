@@ -357,7 +357,7 @@ class WarehouseController extends Controller
             'destination' => e($t->destinationWarehouse?->name ?? '—'),
             'status' => $this->transferStatusBadge($t->status),
             'date' => $t->created_at->format('d M Y'),
-            'actions' => '<a href="' . route('partner.warehouses.transfers.show', $t->id) . '" class="btn btn-xs btn-secondary">View</a>',
+            'actions' => '<a href="' . route('partner.warehouses.transfers.show', $t->id) . '" class="inline-flex items-center px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">View</a>',
         ]);
 
         return response()->json([

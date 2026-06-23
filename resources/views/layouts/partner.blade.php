@@ -12,6 +12,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/partner/app.js'])
     @stack('head')
+    <style>[x-cloak]{display:none!important}</style>
 </head>
 
 <body class="bg-gray-100 antialiased" style="font-family: 'Cairo', sans-serif;">

@@ -60,6 +60,7 @@ export default defineConfig({
                 'resources/js/portal/registration.js',
                 // Partner panel (partner.noon.loc)
                 'resources/js/partner/app.js',
+                'resources/js/partner/ads.js',
                 'resources/js/partner/dashboard.js',
                 'resources/js/partner/orders.js',
                 'resources/js/partner/listings.js',
@@ -72,6 +73,8 @@ export default defineConfig({
                 'resources/js/partner/team.js',
                 'resources/js/partner/support.js',
                 'resources/js/partner/disputes.js',
+                'resources/js/partner/returns.js',
+                'resources/js/partner/ads.js',
                 'resources/js/partner/warehouses.js',
                 'resources/js/partner/warehouse-create.js',
                 'resources/js/partner/warehouse-detail.js',

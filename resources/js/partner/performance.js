@@ -208,7 +208,7 @@ function renderRevenueChart(points) {
     if (!canvas) return;
 
     const hasData = points.some(p => p.revenue > 0);
-    if (emptyEl) emptyEl.classList.toggle('hidden', hasData);
+    if (emptyEl) { emptyEl.classList.toggle('hidden', hasData); emptyEl.classList.toggle('flex', !hasData); }
     canvas.style.display = hasData ? 'block' : 'none';
     if (!hasData) return;
 
@@ -317,7 +317,7 @@ function renderReviewsChart(breakdown, totalReviews) {
     }
 
     const hasData = totalReviews > 0;
-    if (emptyEl) emptyEl.classList.toggle('hidden', hasData);
+    if (emptyEl) { emptyEl.classList.toggle('hidden', hasData); emptyEl.classList.toggle('flex', !hasData); }
     canvas.style.display = hasData ? 'block' : 'none';
     if (!hasData) return;
 

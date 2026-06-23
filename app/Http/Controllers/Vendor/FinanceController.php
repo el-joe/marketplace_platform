@@ -8,6 +8,8 @@ use App\Http\Resources\Vendor\BankAccountResource;
 use App\Http\Resources\Vendor\LedgerEntryResource;
 use App\Http\Resources\Vendor\PayoutDetailResource;
 use App\Http\Resources\Vendor\PayoutResource;
+use App\Http\Resources\Vendor\TransactionFeedItemResource;
+use App\Services\Vendor\TransactionFeedService;
 use App\Http\Responses\ApiResponse;
 use App\Models\LedgerEntry;
 use App\Models\Payout;
@@ -19,7 +21,10 @@ use Illuminate\Http\Request;
 
 class FinanceController extends Controller
 {
-    public function __construct(private readonly FinanceService $financeService) {}
+    public function __construct(
+        private readonly FinanceService $financeService,
+        private readonly TransactionFeedService $transactionFeedService,
+    ) {}
 
     private function vendor(): Vendor
     {
@@ -35,6 +40,29 @@ class FinanceController extends Controller
         /** @var \App\Models\VendorAdmin $auth */
         $auth = auth('vendor')->user();
         return $auth->vendor_id;
+    }
+
+    public function transactions(Request $request): JsonResponse
+    {
+        $type     = $request->query('type');
+        $dateFrom = $request->query('date_from');
+        $dateTo   = $request->query('date_to');
+        $page     = max(1, (int) $request->query('page', 1));
+        $perPage  = min(100, max(1, (int) $request->query('per_page', 20)));
+
+        if ($type && !in_array($type, ['sale', 'refund', 'payout'], true)) {
+            return ApiResponse::error('Invalid type filter. Must be sale, refund, or payout.', [], 422);
+        }
+
+        $feed = $this->transactionFeedService->getFeed(
+            $this->vendor(), $type, $dateFrom, $dateTo, $page, $perPage
+        );
+
+        return ApiResponse::success([
+            'items'   => TransactionFeedItemResource::collection($feed['items'])->resolve(),
+            'meta'    => $feed['meta'],
+            'summary' => $feed['summary'],
+        ]);
     }
 
     public function summary(): JsonResponse

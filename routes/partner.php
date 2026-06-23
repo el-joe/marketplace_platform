@@ -221,7 +221,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         // transfers prefix must come before /{warehouse} wildcard to avoid shadowing
         Route::prefix('transfers')->name('transfers.')->group(function () {
             Route::get('/', [WarehouseController::class, 'transfersIndex'])->name('index');
-            Route::post('/datatable', [WarehouseController::class, 'transfersDatatable'])->name('datatable');
+            Route::get('/datatable', [WarehouseController::class, 'transfersDatatable'])->name('datatable');
             Route::get('/create', [WarehouseController::class, 'transferCreate'])->name('create');
             Route::post('/', [WarehouseController::class, 'transferStore'])->name('store');
             Route::get('/{transfer}', [WarehouseController::class, 'transferShow'])->name('show');
@@ -255,6 +255,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
     // ─── Returns ─────────────────────────────────────────────────────────────
     Route::prefix('returns')->name('returns.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Partner\ReturnController::class, 'index'])->name('index');
+        Route::get('{returnNumber}', [\App\Http\Controllers\Partner\ReturnController::class, 'show'])->name('show');
     });
 
     // ─── Finance / Transactions ───────────────────────────────────────────────
@@ -264,6 +265,8 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ─── Ads ─────────────────────────────────────────────────────────────────
     Route::prefix('ads')->name('ads.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Partner\AdsController::class, 'index'])->name('index');
+        Route::get('/',          [\App\Http\Controllers\Partner\AdsController::class, 'index'])->name('index');
+        Route::get('/datatable', [\App\Http\Controllers\Partner\AdsController::class, 'datatable'])->name('datatable');
+        Route::get('{id}',       [\App\Http\Controllers\Partner\AdsController::class, 'show'])->name('show');
     });
 });

@@ -71,6 +71,11 @@ class ReturnRequest extends Model
         return $this->hasMany(ReturnRequestItem::class);
     }
 
+    public function messages(): HasMany
+    {
+        return $this->hasMany(ReturnRequestMessage::class);
+    }
+
     public function disputes(): HasMany
     {
         return $this->hasMany(Dispute::class);

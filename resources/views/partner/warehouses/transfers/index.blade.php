@@ -2,6 +2,10 @@
 @section('title', 'Transfers')
 @section('page-title', 'Inventory Transfers')
 
+@push('styles')
+    @vite(['resources/js/components/datatable.js'])
+@endpush
+
 @push('scripts')
     @vite('resources/js/partner/warehouses.js')
     <script>
@@ -31,20 +35,36 @@
         </div>
     </div>
 
+    {{-- Search --}}
+    <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-4 flex items-center gap-3">
+        <div class="relative flex-1 max-w-sm">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+            </svg>
+            <input id="transfers-search" type="text" placeholder="Search by transfer #..."
+                class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/40 placeholder-gray-400">
+        </div>
+    </div>
+
+    {{-- DataTable --}}
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <table id="transfers-table" class="w-full text-sm">
-            <thead class="bg-gray-50 border-b text-xs text-gray-500 uppercase">
-                <tr>
-                    <th class="px-4 py-3 text-left">Transfer #</th>
-                    <th class="px-4 py-3 text-left">From</th>
-                    <th class="px-4 py-3 text-left">To</th>
-                    <th class="px-4 py-3 text-left">Status</th>
-                    <th class="px-4 py-3 text-left">Date</th>
-                    <th class="px-4 py-3 text-left"></th>
+        <table id="transfers-table" class="w-full text-sm" style="width:100%">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+                    <th class="px-4 py-3 text-left font-semibold tracking-wide">Transfer #</th>
+                    <th class="px-4 py-3 text-left font-semibold tracking-wide">From</th>
+                    <th class="px-4 py-3 text-left font-semibold tracking-wide">To</th>
+                    <th class="px-4 py-3 text-left font-semibold tracking-wide">Status</th>
+                    <th class="px-4 py-3 text-left font-semibold tracking-wide">Date</th>
+                    <th class="px-4 py-3 text-left font-semibold tracking-wide"></th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody class="divide-y divide-gray-100"></tbody>
         </table>
+        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <span id="transfers-table-info" class="text-xs text-gray-400"></span>
+            <div id="transfers-table-pagination" class="flex items-center gap-1"></div>
+        </div>
     </div>
 
 @endsection

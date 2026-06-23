@@ -182,5 +182,7 @@ window.injectValidationErrors = function ($form, errors) {
 };
 
 /* ---------- Alpine ---------- */
-Alpine.start();
+// Defer start so page-level scripts (ads.js, etc.) can register their
+// window.* component factories before Alpine walks the DOM.
+queueMicrotask(() => Alpine.start());
 

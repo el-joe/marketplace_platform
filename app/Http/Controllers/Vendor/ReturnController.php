@@ -3,22 +3,34 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Vendor\ReturnRespondRequest;
-use App\Http\Resources\Vendor\ReturnRequestResource;
+use App\Http\Requests\Vendor\ReturnListRequest;
+use App\Http\Requests\Vendor\ReturnMessageRequest;
+use App\Http\Resources\Vendor\ReturnRequestDetailResource;
+use App\Http\Resources\Vendor\ReturnRequestListResource;
+use App\Http\Resources\Vendor\ReturnRequestMessageResource;
 use App\Http\Responses\ApiResponse;
+use App\Jobs\NotifyAdminReturnCommentJob;
 use App\Models\ReturnRequest;
+use App\Services\Vendor\ReturnService;
 
 class ReturnController extends Controller
 {
-    public function index(): \Illuminate\Http\JsonResponse
+    public function __construct(private readonly ReturnService $returnService) {}
+
+    public function index(ReturnListRequest $request): \Illuminate\Http\JsonResponse
     {
         $vendorId = auth('vendor')->user()->vendor_id;
 
-        $returns = ReturnRequest::where('vendor_id', $vendorId)
-            ->latest()
-            ->paginate(20);
+        $filters = $request->validated();
 
-        return ApiResponse::paginated($returns, ReturnRequestResource::class);
+        $query = ReturnRequest::where('vendor_id', $vendorId)
+            ->with(['order:id,order_number', 'customer:id,first_name,last_name'])
+            ->when($filters['status'] ?? null,    fn ($q, $v) => $q->where('status', $v))
+            ->when($filters['date_from'] ?? null, fn ($q, $v) => $q->whereDate('created_at', '>=', $v))
+            ->when($filters['date_to'] ?? null,   fn ($q, $v) => $q->whereDate('created_at', '<=', $v))
+            ->latest();
+
+        return ApiResponse::paginated($query->paginate(20), ReturnRequestListResource::class);
     }
 
     public function show(string $returnNumber): \Illuminate\Http\JsonResponse
@@ -26,36 +38,37 @@ class ReturnController extends Controller
         $return = $this->resolveReturn($returnNumber);
 
         $return->load([
+            'order:id,order_number',
             'subOrder:id,sub_order_number',
+            'customer:id,first_name,last_name',
             'items.orderItem:id,product_snapshot',
+            'messages' => fn ($q) => $q->visibleToVendor()->oldest()->with('attachments'),
         ]);
 
-        return ApiResponse::success(new ReturnRequestResource($return));
+        $detail = $this->returnService->getDetail($return, auth('vendor')->user()->vendor_id);
+
+        return ApiResponse::success(new ReturnRequestDetailResource($detail, $return));
     }
 
-    public function respond(ReturnRespondRequest $request, string $returnNumber): \Illuminate\Http\JsonResponse
+    public function addMessage(ReturnMessageRequest $request, string $returnNumber): \Illuminate\Http\JsonResponse
     {
         $return = $this->resolveReturn($returnNumber);
+        $actor  = auth('vendor')->user();
 
-        if (! in_array($return->status, ['requested'])) {
-            return ApiResponse::error("Cannot respond to a return in '{$return->status}' status.", [], 422);
-        }
+        $message = $this->returnService->addComment(
+            $return,
+            $actor,
+            $request->message,
+            $request->file('attachments') ?? []
+        );
 
-        if ($request->decision === 'approve') {
-            $return->update([
-                'status'           => 'approved',
-                'rejection_reason' => null,
-            ]);
-            $message = 'Return approved.';
-        } else {
-            $return->update([
-                'status'           => 'rejected',
-                'rejection_reason' => $request->notes,
-            ]);
-            $message = 'Return rejected.';
-        }
+        NotifyAdminReturnCommentJob::dispatch($message);
 
-        return ApiResponse::success(new ReturnRequestResource($return), $message);
+        return ApiResponse::success(
+            new ReturnRequestMessageResource($message),
+            'Message sent.',
+            201
+        );
     }
 
     private function resolveReturn(string $returnNumber): ReturnRequest

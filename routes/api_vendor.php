@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Vendor\AdCampaignController;
 use App\Http\Controllers\Vendor\AuthController;
 use App\Http\Controllers\Vendor\DashboardController;
 use App\Http\Controllers\Vendor\DisputeController;
@@ -94,11 +95,11 @@ Route::prefix('v1')->group(function (): void {
                 Route::post('{disputeNumber}/evidence',          [DisputeController::class, 'addEvidence'])->name('evidence.store');
             });
 
-            // Returns (vendor side — read + respond only)
+            // Returns (vendor side — read-only + comment channel, no approve/reject authority)
             Route::prefix('returns')->name('vendor.returns.')->group(function (): void {
                 Route::get('/',                              [ReturnController::class, 'index'])->name('index');
                 Route::get('{returnNumber}',                 [ReturnController::class, 'show'])->name('show');
-                Route::post('{returnNumber}/respond',        [ReturnController::class, 'respond'])->name('respond');
+                Route::post('{returnNumber}/messages',       [ReturnController::class, 'addMessage'])->name('messages.store');
             });
 
             // Listings
@@ -137,6 +138,7 @@ Route::prefix('v1')->group(function (): void {
             // Finance & payouts (read-mostly — no writes to ledger_entries or commissions)
             Route::prefix('finance')->name('vendor.finance.')->group(function (): void {
                 Route::get('summary',          [FinanceController::class, 'summary'])->name('summary');
+                Route::get('transactions',     [FinanceController::class, 'transactions'])->name('transactions');
                 Route::get('ledger',           [FinanceController::class, 'ledger'])->name('ledger');
                 Route::get('commission-rates', [FinanceController::class, 'commissionRates'])->name('commission-rates');
 
@@ -170,6 +172,19 @@ Route::prefix('v1')->group(function (): void {
             Route::prefix('performance')->name('vendor.performance.')->group(function (): void {
                 Route::get('/',       [PerformanceController::class, 'index'])->name('index');
                 Route::get('reviews', [PerformanceController::class, 'reviews'])->name('reviews');
+            });
+
+            // Ads / self-serve advertising
+            Route::prefix('ads/campaigns')->name('vendor.ads.')->group(function (): void {
+                Route::get('/',                          [AdCampaignController::class, 'index'])->name('index');
+                Route::post('/',                         [AdCampaignController::class, 'store'])->name('store');
+                Route::get('{id}',                       [AdCampaignController::class, 'show'])->name('show');
+                Route::put('{id}',                       [AdCampaignController::class, 'update'])->name('update');
+                Route::delete('{id}',                    [AdCampaignController::class, 'destroy'])->name('destroy');
+                Route::put('{id}/pause',                 [AdCampaignController::class, 'pause'])->name('pause');
+                Route::put('{id}/resume',                [AdCampaignController::class, 'resume'])->name('resume');
+                Route::get('{id}/performance',           [AdCampaignController::class, 'performance'])->name('performance');
+                Route::get('{id}/quality-score',         [AdCampaignController::class, 'qualityScore'])->name('quality-score');
             });
 
             // Support tickets (vendor-facing)
