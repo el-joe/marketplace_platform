@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ClassifiedListing extends Model
 {
     use HasUuids, SoftDeletes;
 
     protected $fillable = [
-        'listing_number', 'seller_type', 'seller_id',
+        'listing_number', 'slug', 'seller_type', 'seller_id',
         'classified_category_id', 'country_id', 'city_id', 'listing_purpose',
         'title_en', 'title_ar', 'description_en', 'description_ar',
         'price_cents', 'currency', 'price_negotiable', 'attributes',
@@ -41,6 +42,12 @@ class ClassifiedListing extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (self $listing) {
+            $base   = Str::slug($listing->title_en ?? 'listing');
+            $suffix = 'clsf-' . Str::lower($listing->listing_number ?? Str::random(6));
+            $listing->slug = $base . '-' . $suffix;
+        });
+
         static::saving(function (self $listing) {
             // is_vendor_listing derives from seller_type — never set it independently
             $listing->is_vendor_listing = $listing->seller_type === Vendor::class;

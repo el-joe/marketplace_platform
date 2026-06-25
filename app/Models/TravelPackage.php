@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class TravelPackage extends Model
 {
@@ -14,6 +15,7 @@ class TravelPackage extends Model
 
     protected $fillable = [
         'travel_agency_id',
+        'slug',
         'title_en',
         'title_ar',
         'description_en',
@@ -33,6 +35,17 @@ class TravelPackage extends Model
         'approved_by_admin_id',
         'approved_at',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $package) {
+            $base = Str::slug($package->title_en ?? 'package');
+            do {
+                $slug = $base . '-' . Str::lower(Str::random(6));
+            } while (static::where('slug', $slug)->exists());
+            $package->slug = $slug;
+        });
+    }
 
     protected function casts(): array
     {

@@ -16,6 +16,7 @@ class ClassifiedListingDetailResource extends JsonResource
 
         return [
             'listing_number'   => $this->listing_number,
+            'slug'             => $this->slug,
             'title_en'         => $this->title_en,
             'title_ar'         => $this->title_ar,
             'description_en'   => $this->description_en,

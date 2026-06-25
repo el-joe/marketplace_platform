@@ -6,7 +6,8 @@ use App\Jobs\NotifyTravelBookingJob;
 use App\Models\Customer;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class TravelBookingService
@@ -51,40 +52,46 @@ class TravelBookingService
     public function book(TravelPackage $package, Customer $customer, array $data): TravelBooking
     {
         $travelersCount = (int) $data['travelers_count'];
+        $totalCents     = $package->price_cents * $travelersCount;
 
-        return DB::transaction(function () use ($package, $customer, $travelersCount, $data): TravelBooking {
-            /** @var TravelPackage $package */
-            $package = TravelPackage::lockForUpdate()->findOrFail($package->id);
+        $passportPath = null;
+        if (isset($data['passport_file']) && $data['passport_file'] instanceof UploadedFile) {
+            $passportPath = $data['passport_file']->store('travel-bookings/passports', 'private');
+        }
 
-            $remaining = $package->seatsRemaining();
-            if ($remaining !== null && $remaining < $travelersCount) {
-                throw ValidationException::withMessages([
-                    'travelers_count' => "Only {$remaining} seat(s) remaining for this package.",
-                ]);
-            }
+        $booking = TravelBooking::create([
+            'travel_package_id'  => $package->id,
+            'customer_id'        => $customer->id,
+            'travelers_count'    => $travelersCount,
+            'total_price_cents'  => $totalCents,
+            'passport_file_path' => $passportPath,
+            'status'             => 'pending_documents',
+        ]);
 
-            $totalCents = $package->price_cents * $travelersCount;
+        NotifyTravelBookingJob::dispatch($booking);
 
-            $booking = TravelBooking::create([
-                'travel_package_id'   => $package->id,
-                'customer_id'         => $customer->id,
-                'travelers_count'     => $travelersCount,
-                'total_price_cents'   => $totalCents,
-                'passport_file_path'  => $data['passport_file_path'] ?? null,
-                'status'              => 'pending_documents',
+        return $booking;
+    }
+
+    // ── Contract signing ──────────────────────────────────────────────────────
+
+    public function signContract(Customer $customer, string $bookingNumber, string $signatureData): TravelBooking
+    {
+        $booking = $customer->travelBookings()
+            ->where('booking_number', $bookingNumber)
+            ->firstOrFail();
+
+        if (! in_array($booking->status, ['pending_documents', 'confirmed'], true)) {
+            throw ValidationException::withMessages([
+                'booking_number' => 'Contract cannot be signed in the current booking state.',
             ]);
+        }
 
-            $package->increment('seats_booked', $travelersCount);
-            // After increment(), Eloquent updates the in-memory attribute too.
-            if ($package->available_seats !== null
-                && $package->seats_booked >= $package->available_seats
-            ) {
-                $package->update(['status' => 'sold_out']);
-            }
+        $booking->update([
+            'contract_signature_data' => $signatureData,
+            'contract_signed_at'      => now(),
+        ]);
 
-            NotifyTravelBookingJob::dispatch($booking);
-
-            return $booking;
-        });
+        return $booking->fresh();
     }
 }

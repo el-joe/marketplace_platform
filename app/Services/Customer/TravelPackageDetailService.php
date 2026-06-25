@@ -7,9 +7,9 @@ use Illuminate\Support\Carbon;
 
 class TravelPackageDetailService
 {
-    public function findActive(string $id): ?TravelPackage
+    public function findActive(string $slug): ?TravelPackage
     {
-        return TravelPackage::where('id', $id)
+        return TravelPackage::where('slug', $slug)
             ->where('status', 'active')
             ->where('departure_date', '>=', Carbon::today())
             ->with([

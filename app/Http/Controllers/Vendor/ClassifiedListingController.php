@@ -126,9 +126,9 @@ class ClassifiedListingController extends Controller
 
         Gate::authorize('pause', $listing);
 
-        $listing->update(['status' => 'paused']);
+        $listing = $this->listingService->pause($listing);
 
-        return ApiResponse::success(['status' => 'paused'], 'Listing paused.');
+        return ApiResponse::success(['status' => $listing->status], 'Listing paused.');
     }
 
     public function resume(string $id): JsonResponse
@@ -137,9 +137,9 @@ class ClassifiedListingController extends Controller
 
         Gate::authorize('resume', $listing);
 
-        $listing->update(['status' => 'active']);
+        $listing = $this->listingService->resume($listing);
 
-        return ApiResponse::success(['status' => 'active'], 'Listing resumed.');
+        return ApiResponse::success(['status' => $listing->status], 'Listing resumed.');
     }
 
     public function markSold(string $id): JsonResponse
@@ -148,9 +148,9 @@ class ClassifiedListingController extends Controller
 
         Gate::authorize('markSold', $listing);
 
-        $listing->update(['status' => 'sold']);
+        $listing = $this->listingService->markSold($listing);
 
-        return ApiResponse::success(['status' => 'sold'], 'Listing marked as sold.');
+        return ApiResponse::success(['status' => $listing->status], 'Listing marked as sold.');
     }
 
     public function destroy(string $id): JsonResponse
@@ -159,7 +159,7 @@ class ClassifiedListingController extends Controller
 
         Gate::authorize('delete', $listing);
 
-        $listing->delete();
+        $this->listingService->delete($listing);
 
         return ApiResponse::success(message: 'Listing deleted.');
     }

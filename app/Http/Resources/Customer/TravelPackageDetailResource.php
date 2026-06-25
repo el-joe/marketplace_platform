@@ -15,6 +15,7 @@ class TravelPackageDetailResource extends JsonResource
 
         return [
             'id'                  => $this->id,
+            'slug'                => $this->slug,
             'title_en'            => $this->title_en,
             'title_ar'            => $this->title_ar,
             'description_en'      => $this->description_en,
@@ -27,8 +28,6 @@ class TravelPackageDetailResource extends JsonResource
             'duration_nights'     => $this->duration_nights,
             'departure_date'      => $this->departure_date?->toDateString(),
             'return_date'         => $this->return_date?->toDateString(),
-            'available_seats'     => $this->available_seats,
-            'seats_remaining'     => $this->seatsRemaining(),
             'inclusions'          => $this->inclusions ?? [],
             'images'              => $this->relationLoaded('media')
                 ? $this->media->map(fn ($m) => [

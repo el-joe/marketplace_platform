@@ -127,6 +127,32 @@ class ClassifiedListingService
         return in_array($listing->status, ['draft', 'rejected'], true);
     }
 
+    public function pause(ClassifiedListing $listing): ClassifiedListing
+    {
+        $listing->update(['status' => 'paused']);
+
+        return $listing->fresh();
+    }
+
+    public function resume(ClassifiedListing $listing): ClassifiedListing
+    {
+        $listing->update(['status' => 'active']);
+
+        return $listing->fresh();
+    }
+
+    public function markSold(ClassifiedListing $listing): ClassifiedListing
+    {
+        $listing->update(['status' => 'sold']);
+
+        return $listing->fresh();
+    }
+
+    public function delete(ClassifiedListing $listing): void
+    {
+        $listing->delete();
+    }
+
     private function validateCategoryRequirements(ClassifiedCategory $category, array $data, bool $partial = false): void
     {
         $errors = [];

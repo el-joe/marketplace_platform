@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\Classified\CreateInquiryRequest;
 use App\Http\Requests\Customer\Travel\CreateBookingRequest;
+use App\Http\Requests\Customer\Travel\SignContractRequest;
 use App\Http\Resources\Customer\ClassifiedListingDetailResource;
 use App\Http\Resources\Customer\TravelPackageDetailResource;
 use App\Http\Responses\ApiResponse;
@@ -46,9 +47,9 @@ class ListingController extends Controller
     public function createInquiry(
         CreateInquiryRequest $request,
         Country $country,
-        string $listingNumber,
+        string $slug,
     ): JsonResponse {
-        $listing = $this->classifiedDetail->findActive($listingNumber, $country);
+        $listing = $this->classifiedDetail->findActive($slug, $country);
 
         abort_if(! $listing, 404, 'Listing not found or no longer active.');
 
@@ -57,22 +58,22 @@ class ListingController extends Controller
         $inquiry  = $this->inquiryService->create($listing, $customer, $request->validated());
 
         return ApiResponse::success([
-            'id'             => $inquiry->id,
-            'listing_number' => $listingNumber,
-            'status'         => $inquiry->status,
-            'created_at'     => $inquiry->created_at->toIso8601String(),
+            'id'         => $inquiry->id,
+            'listing_slug' => $slug,
+            'status'     => $inquiry->status,
+            'created_at' => $inquiry->created_at->toIso8601String(),
         ], 'Inquiry submitted.', 201);
     }
 
     public function createBooking(
         CreateBookingRequest $request,
         Country $_country,
-        string $packageId,
+        string $slug,
     ): JsonResponse {
-        $package = $this->travelDetail->findActive($packageId);
+        $package = $this->travelDetail->findActive($slug);
 
         if (! $package) {
-            return ApiResponse::notFound('Travel package not found, expired, or no longer active.');
+            abort(404, 'Travel package not found, expired, or no longer active.');
         }
 
         /** @var \App\Models\Customer $customer */
@@ -80,14 +81,37 @@ class ListingController extends Controller
         $booking  = $this->bookingService->book($package, $customer, $request->validated());
 
         return ApiResponse::success([
-            'id'             => $booking->id,
-            'booking_number' => $booking->booking_number,
-            'status'         => $booking->status,
-            'travelers_count' => $booking->travelers_count,
+            'id'                => $booking->id,
+            'booking_number'    => $booking->booking_number,
+            'status'            => $booking->status,
+            'travelers_count'   => $booking->travelers_count,
             'total_price_cents' => $booking->total_price_cents,
-            'currency'       => $package->currency,
-            'created_at'     => $booking->created_at->toIso8601String(),
-        ], 'Booking created.', 201);
+            'currency'          => $package->currency,
+            'created_at'        => $booking->created_at->toIso8601String(),
+            'message'           => 'Your booking is pending document review by the agency before confirmation.',
+        ], 'Booking submitted.', 201);
+    }
+
+    public function signContract(
+        SignContractRequest $request,
+        Country $_country,
+        string $slug,
+        string $bookingNumber,
+    ): JsonResponse {
+        // Verify the package still exists (even if expired — contract signing can happen post-departure)
+        $packageExists = \App\Models\TravelPackage::where('slug', $slug)->exists();
+        abort_if(! $packageExists, 404, 'Travel package not found.');
+
+        /** @var \App\Models\Customer $customer */
+        $customer = auth('customer')->user();
+        $booking  = $this->bookingService->signContract($customer, $bookingNumber, $request->validated()['signature_data']);
+
+        return ApiResponse::success([
+            'id'                  => $booking->id,
+            'booking_number'      => $booking->booking_number,
+            'contract_signed_at'  => $booking->contract_signed_at?->toIso8601String(),
+            'status'              => $booking->status,
+        ], 'Contract signed successfully.');
     }
 
     // ── Private branch methods ────────────────────────────────────────────────

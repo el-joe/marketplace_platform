@@ -8,9 +8,9 @@ use App\Models\Vendor;
 
 class ClassifiedDetailService
 {
-    public function findActive(string $listingNumber, Country $country): ?ClassifiedListing
+    public function findActive(string $slug, Country $country): ?ClassifiedListing
     {
-        return ClassifiedListing::where('listing_number', $listingNumber)
+        return ClassifiedListing::where('slug', $slug)
             ->where('status', 'active')
             ->where('country_id', $country->id)
             ->with([

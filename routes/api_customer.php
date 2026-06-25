@@ -61,18 +61,24 @@ Route::prefix('v1/{country}')
             ->name('customer.listings.show');
 
         // ── Classified inquiry (authenticated) ────────────────────────────────
-        // POST /listings/classified/{listing_number}/inquiries
+        // POST /listings/classified/{slug}/inquiries
         Route::post(
-            'listings/classified/{listing_number}/inquiries',
+            'listings/classified/{slug}/inquiries',
             [ListingController::class, 'createInquiry']
         )->middleware('auth:customer')->name('customer.listings.classified.inquiries.store');
 
         // ── Travel booking (authenticated) ────────────────────────────────────
-        // POST /listings/travel/{id}/bookings
+        // POST /listings/travel/{slug}/bookings
         Route::post(
-            'listings/travel/{id}/bookings',
+            'listings/travel/{slug}/bookings',
             [ListingController::class, 'createBooking']
         )->middleware('auth:customer')->name('customer.listings.travel.bookings.store');
+
+        // POST /listings/travel/{slug}/bookings/{booking_number}/contract
+        Route::post(
+            'listings/travel/{slug}/bookings/{booking_number}/contract',
+            [ListingController::class, 'signContract']
+        )->middleware('auth:customer')->name('customer.listings.travel.bookings.contract');
 
         // Legacy alias: GET /categories/{slug} → browse/product/{slug}
         Route::get('categories/{slug}', fn (Country $country, string $slug) =>

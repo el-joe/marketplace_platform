@@ -101,7 +101,7 @@ class AccountController extends Controller
             return ApiResponse::error('Only draft, rejected, or expired listings can be deleted.', [], 422);
         }
 
-        $listing->delete();
+        $this->listingService->delete($listing);
 
         return ApiResponse::success(message: 'Listing deleted.');
     }
