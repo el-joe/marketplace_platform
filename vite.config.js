@@ -78,6 +78,7 @@ export default defineConfig({
                 'resources/js/partner/warehouses.js',
                 'resources/js/partner/warehouse-create.js',
                 'resources/js/partner/warehouse-detail.js',
+                'resources/js/partner/classifieds.js',
                 // Delivery Agent Panel (delivery.noon.loc)
                 'resources/js/delivery/app.js',
             ],

@@ -98,7 +98,7 @@ class ClassifiedController extends Controller
     public function show(string $country, string $listingNumber): View
     {
         $listing = ClassifiedListing::with([
-                'classifiedCategory', 'customer', 'city', 'country',
+                'classifiedCategory', 'seller', 'city', 'country',
                 'images', 'attachments', 'listingMarketers.marketer',
             ])
             ->where('listing_number', $listingNumber)
@@ -209,7 +209,8 @@ class ClassifiedController extends Controller
 
     public function signContract(Request $request, string $country, ClassifiedListing $listing): JsonResponse
     {
-        if ($listing->customer_id !== auth('customer')->id()) {
+        $customer = auth('customer')->user();
+        if ($listing->seller_type !== \App\Models\Customer::class || $listing->seller_id !== $customer->id) {
             abort(403);
         }
 

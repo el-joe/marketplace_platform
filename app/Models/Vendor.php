@@ -160,4 +160,9 @@ class Vendor extends Model
     {
         return $this->morphMany(Notification::class, 'notifiable');
     }
+
+    public function classifiedListings(): MorphMany
+    {
+        return $this->morphMany(ClassifiedListing::class, 'seller');
+    }
 }

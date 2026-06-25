@@ -20,9 +20,8 @@ class ClassifiedListingService
 {
     public function createDraft(array $data, Customer $customer): ClassifiedListing
     {
-        return ClassifiedListing::create([
+        return $customer->classifiedListings()->create([
             'listing_number'          => 'CL-' . strtoupper(Str::random(8)),
-            'customer_id'             => $customer->id,
             'classified_category_id'  => $data['classified_category_id'],
             'country_id'              => $data['country_id'],
             'city_id'                 => $data['city_id'] ?? null,

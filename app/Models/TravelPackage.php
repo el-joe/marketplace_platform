@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TravelPackage extends Model
@@ -63,6 +64,11 @@ class TravelPackage extends Model
     public function bookings(): HasMany
     {
         return $this->hasMany(TravelBooking::class);
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(TravelCategory::class, 'travel_package_categories');
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

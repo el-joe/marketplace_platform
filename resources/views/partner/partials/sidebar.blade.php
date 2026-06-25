@@ -73,6 +73,10 @@
             <x-partner-nav-item route="partner.marketer-samples.index" icon="inbox-stack" label="طلبات العينات" />
         </x-partner-nav-group>
 
+        <x-partner-nav-group label="السوق المفتوح">
+            <x-partner-nav-item route="partner.classifieds.index" icon="squares-plus" label="إعلاناتي" />
+        </x-partner-nav-group>
+
         <x-partner-nav-item route="partner.performance.index" icon="chart-bar" label="الأداء" />
         <x-partner-nav-item route="partner.support.tickets.index" icon="chat-bubble-left" label="الدعم الفني" />
 

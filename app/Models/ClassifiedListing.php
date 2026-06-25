@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,14 +15,15 @@ class ClassifiedListing extends Model
     use HasUuids, SoftDeletes;
 
     protected $fillable = [
-        'listing_number', 'customer_id', 'classified_category_id',
-        'country_id', 'city_id', 'listing_purpose',
+        'listing_number', 'seller_type', 'seller_id',
+        'classified_category_id', 'country_id', 'city_id', 'listing_purpose',
         'title_en', 'title_ar', 'description_en', 'description_ar',
         'price_cents', 'currency', 'price_negotiable', 'attributes',
         'latitude', 'longitude', 'sketch_file_path', 'status',
         'contract_template_id', 'contract_accepted_at', 'contract_signature_data',
         'rejection_reason', 'approved_by_admin_id', 'approved_at',
         'views_count', 'expires_at', 'barcode_path', 'marketer_promotion_enabled',
+        'is_vendor_listing', 'vendor_listing_reference',
     ];
 
     protected $casts = [
@@ -34,11 +36,30 @@ class ClassifiedListing extends Model
         'expires_at'           => 'date',
         'price_negotiable'     => 'boolean',
         'marketer_promotion_enabled' => 'boolean',
+        'is_vendor_listing'    => 'boolean',
     ];
 
-    public function customer(): BelongsTo
+    protected static function booted(): void
     {
-        return $this->belongsTo(Customer::class);
+        static::saving(function (self $listing) {
+            // is_vendor_listing derives from seller_type — never set it independently
+            $listing->is_vendor_listing = $listing->seller_type === Vendor::class;
+        });
+    }
+
+    public function seller(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function scopeForCustomers($query)
+    {
+        return $query->where('seller_type', Customer::class);
+    }
+
+    public function scopeForVendors($query)
+    {
+        return $query->where('seller_type', Vendor::class);
     }
 
     public function classifiedCategory(): BelongsTo

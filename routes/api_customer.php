@@ -15,7 +15,13 @@ use App\Http\Controllers\Customer\ReviewController;
 use App\Http\Controllers\Customer\SearchController;
 use App\Http\Controllers\Customer\SupportTicketController;
 use App\Http\Controllers\Customer\WishlistController;
+use App\Http\Controllers\Customer\BrowseController;
+use App\Http\Controllers\Customer\ListingController;
+use App\Http\Controllers\Customer\NavigationController;
+use App\Http\Controllers\Customer\HomeController;
 use App\Http\Controllers\Customer\PageController;
+use App\Http\Controllers\Customer\AccountController;
+use App\Models\Country;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,16 +36,56 @@ Route::prefix('v1/{country}')
     ->middleware('detect.country')
     ->group(function (): void {
 
+        // ── Home composite (public) ───────────────────────────────────────────
+        Route::get('home', [HomeController::class, 'index'])->name('customer.home.index');
+
+        // ── Unified navigation tree (public) ─────────────────────────────────
+        Route::get('nav', [NavigationController::class, 'index'])->name('customer.nav.index');
+
         // ── Product catalog (public) ──────────────────────────────────────────
         Route::prefix('products')->name('customer.products.')->group(function (): void {
             Route::get('/', [ProductController::class, 'index'])->name('index');
             Route::get('{slug}', [ProductController::class, 'show'])->name('show');
         });
 
+        // ── Unified browse (public) ───────────────────────────────────────────
+        // GET /browse/{type}/{slug}  — type IN (product, classified, travel)
+        Route::get('browse/{type}/{slug}', [BrowseController::class, 'show'])->name('customer.browse.show');
+
+        // ── Unified listing detail (public) ───────────────────────────────────
+        // GET  /listings/{type}/{slug} — type IN (product, classified, travel)
+        //   product:    slug = product slug
+        //   classified: slug = listing_number (e.g. CL-XXXX)
+        //   travel:     slug = package UUID
+        Route::get('listings/{type}/{slug}', [ListingController::class, 'show'])
+            ->name('customer.listings.show');
+
+        // ── Classified inquiry (authenticated) ────────────────────────────────
+        // POST /listings/classified/{listing_number}/inquiries
+        Route::post(
+            'listings/classified/{listing_number}/inquiries',
+            [ListingController::class, 'createInquiry']
+        )->middleware('auth:customer')->name('customer.listings.classified.inquiries.store');
+
+        // ── Travel booking (authenticated) ────────────────────────────────────
+        // POST /listings/travel/{id}/bookings
+        Route::post(
+            'listings/travel/{id}/bookings',
+            [ListingController::class, 'createBooking']
+        )->middleware('auth:customer')->name('customer.listings.travel.bookings.store');
+
+        // Legacy alias: GET /categories/{slug} → browse/product/{slug}
+        Route::get('categories/{slug}', fn (Country $country, string $slug) =>
+            redirect()->route('customer.browse.show', [
+                'country' => $country->site_code,
+                'type'    => 'product',
+                'slug'    => $slug,
+            ], 301)
+        )->name('customer.categories.show.legacy');
+
         // ── Categories (public) ───────────────────────────────────────────────
         Route::prefix('categories')->name('customer.categories.')->group(function (): void {
             Route::get('/', [CategoryController::class, 'index'])->name('index');
-            Route::get('{slug}', [CategoryController::class, 'show'])->name('show');
         });
 
         // ── Page Renderer (public) ────────────────────────────────────────────
@@ -179,6 +225,33 @@ Route::prefix('v1/{country}')
                 Route::get('{ticket_number}', [SupportTicketController::class, 'show'])->name('show');
                 Route::post('{ticket_number}/messages', [SupportTicketController::class, 'addMessage'])->name('messages.store');
                 Route::put('{ticket_number}/rate', [SupportTicketController::class, 'rate'])->name('rate');
+            });
+
+            // Account dashboard
+            Route::get('account/dashboard', [AccountController::class, 'dashboard'])
+                ->name('customer.account.dashboard');
+
+            // My classified listings (customer as seller)
+            Route::prefix('account/classified-listings')->name('customer.account.classified-listings.')->group(function (): void {
+                Route::get('/', [AccountController::class, 'listingsIndex'])->name('index');
+                Route::post('/', [AccountController::class, 'listingsStore'])->name('store');
+                Route::get('{listing_number}', [AccountController::class, 'listingsShow'])->name('show');
+                Route::put('{listing_number}', [AccountController::class, 'listingsUpdate'])->name('update');
+                Route::delete('{listing_number}', [AccountController::class, 'listingsDestroy'])->name('destroy');
+                Route::get('{listing_number}/inquiries', [AccountController::class, 'listingInquiries'])->name('inquiries');
+            });
+
+            // My travel bookings
+            Route::prefix('account/travel-bookings')->name('customer.account.travel-bookings.')->group(function (): void {
+                Route::get('/', [AccountController::class, 'travelBookingsIndex'])->name('index');
+                Route::get('{id}', [AccountController::class, 'travelBookingsShow'])->name('show');
+                Route::post('{id}/cancel', [AccountController::class, 'travelBookingsCancel'])->name('cancel');
+            });
+
+            // My classified inquiries (customer as buyer)
+            Route::prefix('account/inquiries')->name('customer.account.inquiries.')->group(function (): void {
+                Route::get('/', [AccountController::class, 'inquiriesIndex'])->name('index');
+                Route::get('{id}', [AccountController::class, 'inquiriesShow'])->name('show');
             });
         });
 

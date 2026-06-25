@@ -47,6 +47,9 @@ class DatabaseSeeder extends Seeder
                 // ── Delivery assignment test fixtures (Phase 2 Playwright tests) ─
             DeliveryAssignmentSeeder::class,
 
+                // ── Travel categories starter set ─────────────────────────────
+            TravelCategorySeeder::class,
+
                 // ── Light cross-reference demo data (run last) ─────────────────
             DemoDataSeeder::class,
         ]);

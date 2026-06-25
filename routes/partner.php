@@ -269,4 +269,10 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/datatable', [\App\Http\Controllers\Partner\AdsController::class, 'datatable'])->name('datatable');
         Route::get('{id}',       [\App\Http\Controllers\Partner\AdsController::class, 'show'])->name('show');
     });
+
+    // ─── السوق المفتوح (Classifieds) ─────────────────────────────────────────
+    Route::prefix('classifieds')->name('classifieds.')->group(function () {
+        Route::get('/',    [\App\Http\Controllers\Partner\ClassifiedListingController::class, 'index'])->name('index');
+        Route::get('{id}', [\App\Http\Controllers\Partner\ClassifiedListingController::class, 'show'])->name('show');
+    });
 });

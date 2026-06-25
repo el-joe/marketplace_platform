@@ -43,6 +43,10 @@ use App\Policies\ReturnRequestPolicy;
 use App\Policies\VendorListingPolicy;
 use App\Policies\WarehouseInventoryPolicy;
 use App\Policies\WhatsappLinkPolicy;
+use App\Models\ClassifiedListing;
+use App\Models\ClassifiedInquiry;
+use App\Policies\ClassifiedListingPolicy;
+use App\Policies\ClassifiedInquiryPolicy;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -79,6 +83,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(DeliveryAssignment::class, DeliveryAssignmentPolicy::class);
         Gate::policy(ShippingCompanySupervisor::class, SupervisorPolicy::class);
         Gate::policy(DeliveryAgent::class, CarrierAgentPolicy::class);
+        Gate::policy(ClassifiedListing::class, ClassifiedListingPolicy::class);
+        Gate::policy(ClassifiedInquiry::class, ClassifiedInquiryPolicy::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);

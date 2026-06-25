@@ -134,4 +134,19 @@ class Customer extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(SupportTicket::class, 'requester_user_id');
     }
+
+    public function classifiedListings(): MorphMany
+    {
+        return $this->morphMany(ClassifiedListing::class, 'seller');
+    }
+
+    public function classifiedInquiries(): HasMany
+    {
+        return $this->hasMany(ClassifiedInquiry::class);
+    }
+
+    public function travelBookings(): HasMany
+    {
+        return $this->hasMany(TravelBooking::class);
+    }
 }

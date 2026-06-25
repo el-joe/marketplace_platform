@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Vendor\AdCampaignController;
+use App\Http\Controllers\Vendor\ClassifiedListingController;
 use App\Http\Controllers\Vendor\AuthController;
 use App\Http\Controllers\Vendor\DashboardController;
 use App\Http\Controllers\Vendor\DisputeController;
@@ -185,6 +186,23 @@ Route::prefix('v1')->group(function (): void {
                 Route::put('{id}/resume',                [AdCampaignController::class, 'resume'])->name('resume');
                 Route::get('{id}/performance',           [AdCampaignController::class, 'performance'])->name('performance');
                 Route::get('{id}/quality-score',         [AdCampaignController::class, 'qualityScore'])->name('quality-score');
+            });
+
+            // Classified listings (vendor-owned)
+            Route::prefix('classifieds')->name('vendor.classifieds.')->group(function (): void {
+                Route::get('categories',                        [ClassifiedListingController::class, 'categories'])->name('categories');
+                Route::get('/',                                 [ClassifiedListingController::class, 'index'])->name('index');
+                Route::post('/',                                [ClassifiedListingController::class, 'store'])->name('store');
+                Route::get('{id}',                              [ClassifiedListingController::class, 'show'])->name('show');
+                Route::put('{id}',                              [ClassifiedListingController::class, 'update'])->name('update');
+                Route::delete('{id}',                           [ClassifiedListingController::class, 'destroy'])->name('destroy');
+                Route::get('{id}/contract',                     [ClassifiedListingController::class, 'showContract'])->name('contract.show');
+                Route::post('{id}/contract/accept',             [ClassifiedListingController::class, 'acceptContract'])->name('contract.accept');
+                Route::put('{id}/pause',                        [ClassifiedListingController::class, 'pause'])->name('pause');
+                Route::put('{id}/resume',                       [ClassifiedListingController::class, 'resume'])->name('resume');
+                Route::put('{id}/mark-sold',                    [ClassifiedListingController::class, 'markSold'])->name('mark-sold');
+                Route::get('{id}/inquiries',                    [ClassifiedListingController::class, 'inquiries'])->name('inquiries.index');
+                Route::put('inquiries/{inquiryId}/status',      [ClassifiedListingController::class, 'updateInquiryStatus'])->name('inquiries.status');
             });
 
             // Support tickets (vendor-facing)

@@ -18,7 +18,7 @@ class ClassifiedListingController extends Controller
 
     public function index(Request $request): View
     {
-        $query = ClassifiedListing::with(['customer', 'classifiedCategory', 'city'])
+        $query = ClassifiedListing::with(['seller', 'classifiedCategory', 'city'])
             ->orderByRaw("FIELD(status, 'pending_review', 'pending_contract', 'draft') DESC")
             ->latest();
 
@@ -52,7 +52,7 @@ class ClassifiedListingController extends Controller
     public function show(ClassifiedListing $listing): View
     {
         $listing->load([
-            'customer', 'classifiedCategory', 'city', 'country',
+            'seller', 'classifiedCategory', 'city', 'country',
             'contractTemplate', 'attachments.verifiedByAdmin',
             'images', 'listingMarketers.marketer', 'inquiries.customer',
         ]);
