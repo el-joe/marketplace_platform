@@ -10,12 +10,13 @@ return new class extends Migration
     {
         Schema::create('return_request_message_attachments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('return_request_message_id')->constrained('return_request_messages')->cascadeOnDelete();
+            $table->uuid('return_request_message_id');
+            $table->foreign('return_request_message_id', 'rrma_message_id_foreign')->references('id')->on('return_request_messages')->cascadeOnDelete();
             $table->string('file_path');
             $table->string('file_type', 50)->nullable();
             $table->timestamp('created_at')->useCurrent();
 
-            $table->index('return_request_message_id');
+            $table->index('return_request_message_id', 'rrma_message_id_idx');
         });
     }
 

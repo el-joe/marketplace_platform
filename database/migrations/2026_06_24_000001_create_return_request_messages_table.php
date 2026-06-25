@@ -17,7 +17,7 @@ return new class extends Migration
             $table->tinyInteger('is_internal_note')->default(0);
             $table->timestamp('created_at')->useCurrent();
 
-            $table->index(['return_request_id', 'is_internal_note', 'created_at']);
+            $table->index(['return_request_id', 'is_internal_note', 'created_at'], 'rrm_request_note_created_idx');
         });
     }
 
