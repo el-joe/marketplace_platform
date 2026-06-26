@@ -34,7 +34,7 @@ class ProductCostController extends Controller
             ->whereHas('productVariant', fn($q) => $q->where('product_id', $productId))
             ->where('status', 'active')
             ->whereNull('deleted_at')
-            ->min('price_cents');
+            ->min('price');
 
         $belowCost = false;
         if ($ref && $lowestPriceCents) {

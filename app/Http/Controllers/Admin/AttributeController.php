@@ -120,7 +120,7 @@ class AttributeController extends Controller
                         'attribute_id' => $id,
                         'value_en' => $value['value_en'],
                         'value_ar' => $value['value_ar'] ?? null,
-                        'color_hex' => $value['color_hex'] ?? null,
+                        'code_hex' => $value['code_hex'] ?? null,
                         'sort_order' => (int) ($value['sort_order'] ?? 0),
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -148,7 +148,7 @@ class AttributeController extends Controller
                 return response()->json(['message' => 'Failed to create attribute.'], 500);
             }
 
-            return back()->withInput()->withErrors(['error' => 'Failed to create attribute. Please try again.']);
+            return back()->withInput()->withErrors(['error' => $e->getMessage()]);
         }
     }
 
@@ -232,7 +232,7 @@ class AttributeController extends Controller
         $request->validate([
             'value_en' => 'required|string|max:255',
             'value_ar' => 'nullable|string|max:255',
-            'color_hex' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'code_hex' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
@@ -245,7 +245,7 @@ class AttributeController extends Controller
             'attribute_id' => $attribute,
             'value_en' => $request->value_en,
             'value_ar' => $request->value_ar ?: null,
-            'color_hex' => $request->color_hex ?: null,
+            'code_hex' => $request->code_hex ?: null,
             'sort_order' => (int) ($request->sort_order ?? 0),
             'created_at' => now(),
             'updated_at' => now(),
