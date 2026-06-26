@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->foreign('travel_package_id')->references('id')->on('travel_packages')->cascadeOnDelete();
             $table->foreign('travel_category_id')->references('id')->on('travel_categories')->cascadeOnDelete();
-            $table->unique(['travel_package_id', 'travel_category_id']);
+            $table->unique(['travel_package_id', 'travel_category_id'], 'tp_categories_unique');
         });
     }
 
