@@ -9,16 +9,11 @@
 @push('scripts')
     @vite('resources/js/partner/ads.js')
     <script>
-        window.ADS_CFG = {
-            datatableUrl: '{{ route('partner.ads.datatable') }}',
-        };
         window.ADS_CONFIG = {
-            listUrl:          "{{ route('vendor.ads.index') }}",
-            createUrl:        "{{ route('vendor.ads.store') }}",
-            showBaseUrl:      "{{ rtrim(route('partner.ads.index'), '/') }}",
-            listingsUrl:      "{{ route('vendor.listings.index') }}?status=active&per_page=100",
-            categoriesUrl:    "/api/public/categories",
-            defaultCountryId: "{{ auth('vendor')->user()->vendor?->country_id ?? '' }}",
+            datatableUrl:  "{{ route('partner.ads.datatable') }}",
+            storeUrl:      "{{ route('partner.ads.store') }}",
+            listingsUrl:   "{{ route('partner.listings.datatable') }}",
+            categoriesUrl: "{{ route('partner.ads.categories') }}",
         };
     </script>
 @endpush

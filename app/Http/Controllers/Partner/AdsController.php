@@ -4,59 +4,237 @@ namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdCampaign;
+use App\Models\Vendor;
 use App\Models\Category;
 use App\Models\VendorListing;
+use App\Traits\HasDataTable;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AdsController extends Controller
 {
-    public function index(Request $request)
-    {
-        $vendor = Auth::guard('vendor')->user();
+    use HasDataTable;
 
-        return view('partner.ads.index', compact('vendor'));
+    private function vendorId(): string
+    {
+        return Auth::guard('vendor')->user()->vendor_id;
+    }
+
+    public function index(): View
+    {
+        return view('partner.ads.index', ['vendorId' => $this->vendorId()]);
     }
 
     public function datatable(Request $request): JsonResponse
     {
-        $vendor   = Auth::guard('vendor')->user();
-        $vendorId = $vendor->vendor_id;
+        $columns = [
+            ['searchable_columns' => ['ad_campaigns.name']],
+            ['orderable_column' => 'ad_campaigns.type'],
+            ['orderable_column' => 'ad_campaigns.status'],
+            [],
+            ['orderable_column' => 'ad_campaigns.bid'],
+            ['orderable_column' => 'ad_campaigns.created_at'],
+            [],
+        ];
 
-        $query = AdCampaign::where('vendor_id', $vendorId)->orderByDesc('created_at');
+        $query = AdCampaign::where('vendor_id', $this->vendorId());
 
-        if ($search = $request->input('search.value')) {
-            $query->where('name', 'like', "%{$search}%");
-        }
-
-        if ($status = $request->input('status')) {
-            $query->where('status', $status);
-        }
-
-        $total = (clone $query)->count();
-        $campaigns = $query
-            ->skip($request->input('start', 0))
-            ->take($request->input('length', 15))
-            ->get();
-
-        $rows = $campaigns->map(fn(AdCampaign $c) => [
-            'DT_RowId' => 'tr-' . $c->id,
-            'name'     => '<a href="' . route('partner.ads.show', $c->id) . '" class="font-medium text-primary-600 hover:underline">' . e($c->name) . '</a>',
-            'type'     => strtoupper($c->type),
-            'status'   => $this->statusBadge($c->status),
-            'budget'   => number_format($c->budget_total, 2) . ' / ' . number_format($c->budget_daily ?? 0, 2) . ' SAR',
-            'bid'      => number_format($c->bid, 2) . ' SAR',
-            'date'     => $c->created_at->format('d M Y'),
-            'actions'  => '<a href="' . route('partner.ads.show', $c->id) . '" class="inline-flex items-center px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">View</a>',
+        $query = $this->applyFilters($query, $request, [
+            'filter_status' => fn($q, $v) => $q->where('status', $v),
         ]);
+
+        return $this->dataTableResponse($request, $query, $columns, fn(AdCampaign $c) => [
+            'name'    => '<a href="' . route('partner.ads.show', $c->id) . '" class="font-medium text-primary-600 hover:underline">' . e($c->name) . '</a>',
+            'type'    => strtoupper($c->type),
+            'status'  => $this->statusBadge($c->status),
+            'budget'  => number_format($c->budget_total / 100, 2) . ' / ' . number_format(($c->budget_daily ?? 0) / 100, 2) . ' ر.س',
+            'bid'     => number_format($c->bid / 100, 2) . ' ر.س',
+            'date'    => $c->created_at->format('d M Y'),
+            'actions' => '<a href="' . route('partner.ads.show', $c->id) . '" class="inline-flex items-center px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">View</a>',
+        ]);
+    }
+
+    public function show(string $id): View
+    {
+        $campaign = AdCampaign::where('vendor_id', $this->vendorId())->findOrFail($id);
+
+        return view('partner.ads.show', compact('campaign'));
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name'                    => 'required|string|max:255',
+            'type'                    => 'required|in:cpc,cpm',
+            'targeting_type'          => 'required|in:auto,keyword,category,mixed',
+            'keywords'                => 'required_if:targeting_type,keyword,mixed|array',
+            'keywords.*.keyword'      => 'required_with:keywords|string|max:100',
+            'keywords.*.match_type'   => 'required_with:keywords|in:broad,phrase,exact',
+            'category_ids'            => 'required_if:targeting_type,category,mixed|array',
+            'category_ids.*'          => 'uuid|exists:categories,id',
+            'vendor_listing_ids'      => 'required|array|min:1',
+            'vendor_listing_ids.*'    => 'uuid',
+            'budget_total'            => 'required|numeric|min:1',
+            'budget_daily'            => 'nullable|numeric|min:1',
+            'bid'                     => 'required|numeric|min:0.01',
+            'starts_at'               => 'required|date|after_or_equal:today',
+            'ends_at'                 => 'nullable|date|after:starts_at',
+        ]);
+
+        $vendorId = $this->vendorId();
+
+        $listings = VendorListing::where('vendor_id', $vendorId)
+            ->whereIn('id', $data['vendor_listing_ids'])
+            ->get(['id', 'vendor_id', 'product_variant_id'])
+            ->keyBy('id');
+
+        if ($listings->count() !== count($data['vendor_listing_ids'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'One or more selected products do not belong to your store.',
+            ], 422);
+        }
+
+        $countryId = Vendor::where('id', $vendorId)->value('country_id');
+
+        $campaign = null;
+
+        DB::transaction(function () use ($data, $vendorId, $countryId, $listings, &$campaign) {
+            $campaign = AdCampaign::create([
+                'vendor_id'      => $vendorId,
+                'country_id'     => $countryId,
+                'name'           => $data['name'],
+                'type'           => $data['type'],
+                'targeting_type' => $data['targeting_type'],
+                'status'         => 'pending_review',
+                'budget_total'   => (int) round($data['budget_total'] * 100),
+                'budget_daily'   => isset($data['budget_daily']) ? (int) round($data['budget_daily'] * 100) : null,
+                'bid'            => (int) round($data['bid'] * 100),
+                'starts_at'      => $data['starts_at'],
+                'ends_at'        => $data['ends_at'] ?? null,
+                'quality_score'  => 5.00,
+            ]);
+
+            foreach ($data['vendor_listing_ids'] as $listingId) {
+                $listing = $listings->get($listingId);
+                $campaign->products()->create([
+                    'vendor_listing_id'  => $listingId,
+                    'vendor_id'          => $listing->vendor_id,
+                    'product_variant_id' => $listing->product_variant_id,
+                    'is_active'          => true,
+                ]);
+            }
+
+            foreach ($data['keywords'] ?? [] as $kw) {
+                $campaign->keywords()->create([
+                    'keyword'     => $kw['keyword'],
+                    'match_type'  => $kw['match_type'],
+                    'is_active'   => true,
+                    'is_negative' => false,
+                ]);
+            }
+
+            foreach ($data['category_ids'] ?? [] as $catId) {
+                $campaign->categoryTargets()->create(['category_id' => $catId, 'is_active' => true]);
+            }
+        });
 
         return response()->json([
-            'draw'            => (int) $request->input('draw'),
-            'recordsTotal'    => $total,
-            'recordsFiltered' => $total,
-            'data'            => $rows,
+            'success'  => true,
+            'message'  => 'تم إرسال حملتك للمراجعة بنجاح.',
+            'redirect' => route('partner.ads.show', $campaign->id),
+        ], 201);
+    }
+
+    public function categories(): JsonResponse
+    {
+        // Scoped to categories that have at least one active listing for this vendor,
+        // keeping the targeting picker relevant to what they actually sell.
+        $vendorId = $this->vendorId();
+
+        $categories = Category::where('is_active', true)
+            ->whereHas('vendorListings', fn($q) => $q->where('vendor_id', $vendorId)->where('status', 'active'))
+            ->orderBy('name_ar')
+            ->get(['id', 'name_ar', 'name_en']);
+
+        return response()->json(['data' => $categories]);
+    }
+
+    public function performance(Request $request, string $id): JsonResponse
+    {
+        $campaign = AdCampaign::where('vendor_id', $this->vendorId())->findOrFail($id);
+
+        $request->validate([
+            'from' => 'required|date',
+            'to'   => 'required|date|after_or_equal:from',
         ]);
+
+        $stats = $campaign->dailyStats()
+            ->whereBetween('date', [$request->from, $request->to])
+            ->orderBy('date')
+            ->get(['date', 'impressions', 'clicks', 'conversions', 'spend_cents', 'revenue_attributed_cents']);
+
+        return response()->json([
+            'labels'      => $stats->pluck('date')->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M')),
+            'impressions' => $stats->pluck('impressions'),
+            'clicks'      => $stats->pluck('clicks'),
+            'totals'      => [
+                'impressions' => $stats->sum('impressions'),
+                'clicks'      => $stats->sum('clicks'),
+                'conversions' => $stats->sum('conversions'),
+                'spend'       => number_format($stats->sum('spend_cents') / 100, 2),
+                'revenue'     => number_format($stats->sum('revenue_attributed_cents') / 100, 2),
+            ],
+        ]);
+    }
+
+    public function qualityScore(string $id): JsonResponse
+    {
+        $campaign = AdCampaign::where('vendor_id', $this->vendorId())->findOrFail($id);
+        $qs = $campaign->qualityScore;
+
+        if (!$qs) {
+            return response()->json(['success' => true, 'has_data' => false]);
+        }
+
+        return response()->json([
+            'success'   => true,
+            'has_data'  => true,
+            'overall'   => (float) $qs->score,
+            'ctr'       => (float) $qs->ctr_score,
+            'relevance' => (float) $qs->relevance_score,
+            'landing'   => (float) $qs->landing_score,
+            'seller'    => (float) $qs->seller_score,
+        ]);
+    }
+
+    public function pause(string $id): JsonResponse
+    {
+        $campaign = AdCampaign::where('vendor_id', $this->vendorId())->findOrFail($id);
+
+        if ($campaign->status !== 'active') {
+            return response()->json(['success' => false, 'message' => 'الحملة غير نشطة حالياً.'], 422);
+        }
+
+        $campaign->update(['status' => 'paused']);
+
+        return response()->json(['success' => true, 'message' => 'تم إيقاف الحملة مؤقتاً.']);
+    }
+
+    public function resume(string $id): JsonResponse
+    {
+        $campaign = AdCampaign::where('vendor_id', $this->vendorId())->findOrFail($id);
+
+        if ($campaign->status !== 'paused') {
+            return response()->json(['success' => false, 'message' => 'الحملة ليست متوقفة.'], 422);
+        }
+
+        $campaign->update(['status' => 'active']);
+
+        return response()->json(['success' => true, 'message' => 'تم استئناف الحملة.']);
     }
 
     private function statusBadge(string $status): string
@@ -73,15 +251,5 @@ class AdsController extends Controller
 
         return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $classes . '">'
             . ucfirst(str_replace('_', ' ', $status)) . '</span>';
-    }
-
-    public function show(string $id)
-    {
-        $vendor = Auth::guard('vendor')->user();
-
-        $campaign = AdCampaign::where('vendor_id', $vendor->vendor_id)
-            ->findOrFail($id);
-
-        return view('partner.ads.show', compact('vendor', 'campaign'));
     }
 }

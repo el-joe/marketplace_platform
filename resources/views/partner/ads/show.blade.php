@@ -26,10 +26,10 @@
 
     <script>
         window.ADS_CONFIG = {
-            performanceUrl:  "{{ route('vendor.ads.performance', $campaign->id) }}",
-            qualityScoreUrl: "{{ route('vendor.ads.quality-score', $campaign->id) }}",
-            pauseUrl:        "{{ route('vendor.ads.pause', $campaign->id) }}",
-            resumeUrl:       "{{ route('vendor.ads.resume', $campaign->id) }}",
+            performanceUrl:  "{{ route('partner.ads.performance', $campaign->id) }}",
+            qualityScoreUrl: "{{ route('partner.ads.quality-score', $campaign->id) }}",
+            pauseUrl:        "{{ route('partner.ads.pause', $campaign->id) }}",
+            resumeUrl:       "{{ route('partner.ads.resume', $campaign->id) }}",
         };
     </script>
 
@@ -60,7 +60,7 @@
         <div class="flex gap-2">
             @if ($campaign->status === 'active')
                 <button
-                    onclick="pauseCampaign('{{ route('vendor.ads.pause', $campaign->id) }}')"
+                    onclick="pauseCampaign('{{ route('partner.ads.pause', $campaign->id) }}')"
                     class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -70,7 +70,7 @@
                 </button>
             @elseif ($campaign->status === 'paused' && ($campaign->ends_at === null || $campaign->ends_at->isFuture()))
                 <button
-                    onclick="resumeCampaign('{{ route('vendor.ads.resume', $campaign->id) }}')"
+                    onclick="resumeCampaign('{{ route('partner.ads.resume', $campaign->id) }}')"
                     class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                 >
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

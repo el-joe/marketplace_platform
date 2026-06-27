@@ -12,6 +12,12 @@ class AdCampaign extends Model
 {
     use HasUuids;
 
+    protected $casts = [
+        'starts_at'   => 'datetime',
+        'ends_at'     => 'datetime',
+        'approved_at' => 'datetime',
+    ];
+
     protected $fillable = [
         'vendor_id',
         'country_id',

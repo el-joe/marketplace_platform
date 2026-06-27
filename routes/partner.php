@@ -18,6 +18,7 @@ use App\Http\Controllers\Partner\MarketerCampaignController as PartnerMarketerCa
 use App\Http\Controllers\Partner\MarketerSampleController as PartnerMarketerSampleController;
 use App\Http\Controllers\Partner\TeamController;
 use App\Http\Controllers\Partner\WarehouseController;
+use App\Http\Controllers\Partner\AdsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -265,9 +266,15 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ─── Ads ─────────────────────────────────────────────────────────────────
     Route::prefix('ads')->name('ads.')->group(function () {
-        Route::get('/',          [\App\Http\Controllers\Partner\AdsController::class, 'index'])->name('index');
-        Route::get('/datatable', [\App\Http\Controllers\Partner\AdsController::class, 'datatable'])->name('datatable');
-        Route::get('{id}',       [\App\Http\Controllers\Partner\AdsController::class, 'show'])->name('show');
+        Route::get('/',                   [AdsController::class, 'index'])->name('index');
+        Route::post('/datatable',         [AdsController::class, 'datatable'])->name('datatable');
+        Route::post('/',                  [AdsController::class, 'store'])->name('store');
+        Route::get('/categories',         [AdsController::class, 'categories'])->name('categories');
+        Route::get('/{id}',               [AdsController::class, 'show'])->name('show');
+        Route::get('/{id}/performance',   [AdsController::class, 'performance'])->name('performance');
+        Route::get('/{id}/quality-score', [AdsController::class, 'qualityScore'])->name('quality-score');
+        Route::post('/{id}/pause',        [AdsController::class, 'pause'])->name('pause');
+        Route::post('/{id}/resume',       [AdsController::class, 'resume'])->name('resume');
     });
 
     // ─── السوق المفتوح (Classifieds) ─────────────────────────────────────────
