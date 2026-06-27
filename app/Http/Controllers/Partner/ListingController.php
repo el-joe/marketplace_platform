@@ -187,12 +187,6 @@ class ListingController extends Controller
                     ->orWhere('model_number', 'like', '%' . $q . '%')
                     ->orWhere('gtin', 'like', $q . '%');
             })
-            // Exclude has_variants=0 products that are missing an active default variant —
-            // they cannot be listed until admin fixes the data gap.
-            ->where(function ($q) {
-                $q->where('has_variants', 1)
-                    ->orWhereHas('variants', fn ($vq) => $vq->where('is_default', true)->where('is_active', true));
-            })
             ->with([
                 'variants' => function ($vq) {
                     $vq->where('is_active', true)->orderBy('position');
@@ -266,7 +260,7 @@ class ListingController extends Controller
             ->get(['id', 'name', 'code', 'type']);
 
         return response()->json($warehouses->map(fn($w) => [
-            'id'   => $w->id,
+            'id' => $w->id,
             'name' => $w->name,
             'code' => $w->code,
             'type' => $w->type,
@@ -352,7 +346,7 @@ class ListingController extends Controller
     {
         $request->validate([
             'product_variant_id' => ['nullable', 'required_without:product_id', 'uuid', 'exists:product_variants,id'],
-            'product_id'         => ['nullable', 'required_without:product_variant_id', 'uuid', 'exists:products,id'],
+            'product_id' => ['nullable', 'required_without:product_variant_id', 'uuid', 'exists:products,id'],
             'country_id' => ['required', 'exists:countries,id'],
             'price' => ['required', 'numeric', 'min:0.01', 'max:999999'],
             'condition' => ['required', 'in:new,like_new,good,acceptable,refurbished'],
@@ -381,7 +375,7 @@ class ListingController extends Controller
                 ->where('is_default', true)
                 ->where('is_active', true)
                 ->first();
-            if (! $defaultVariant) {
+            if (!$defaultVariant) {
                 return response()->json([
                     'success' => false,
                     'message' => 'هذا المنتج غير متاح للبيع حالياً — يرجى التواصل مع الإدارة.',
@@ -414,49 +408,49 @@ class ListingController extends Controller
         $currency = Country::find($request->country_id)?->currency_code ?? 'SAR';
 
         // try {
-            $listing = null;
-            DB::transaction(function () use ($request, $vendorId, $status, $currency, &$listing, $vendor, $resolvedVariantId) {
-                $listing = VendorListing::create([
-                    'id' => (string) Str::uuid(),
-                    'vendor_id' => $vendorId,
-                    'product_variant_id' => $resolvedVariantId,
-                    'country_id' => $request->country_id,
-                    'price' => (int) round((float) $request->price * 100),
-                    'currency' => $currency,
-                    'condition' => $request->condition,
-                    'fulfillment_model' => $request->fulfillment_model,
-                    'vendor_sku' => $request->vendor_sku,
-                    'vendor_notes' => $request->vendor_notes,
-                    'status' => $status,
-                    'max_order_quantity' => $request->max_order_quantity,
-                    'low_stock_threshold' => $request->low_stock_threshold ?? 5,
-                ]);
+        $listing = null;
+        DB::transaction(function () use ($request, $vendorId, $status, $currency, &$listing, $vendor, $resolvedVariantId) {
+            $listing = VendorListing::create([
+                'id' => (string) Str::uuid(),
+                'vendor_id' => $vendorId,
+                'product_variant_id' => $resolvedVariantId,
+                'country_id' => $request->country_id,
+                'price' => (int) round((float) $request->price * 100),
+                'currency' => $currency,
+                'condition' => $request->condition,
+                'fulfillment_model' => $request->fulfillment_model,
+                'vendor_sku' => $request->vendor_sku,
+                'vendor_notes' => $request->vendor_notes,
+                'status' => $status,
+                'max_order_quantity' => $request->max_order_quantity,
+                'low_stock_threshold' => $request->low_stock_threshold ?? 5,
+            ]);
 
-                // Create warehouse inventory record
-                $inventory = WarehouseInventory::create([
-                    'id' => (string) Str::uuid(),
-                    'vendor_listing_id' => $listing->id,
-                    'warehouse_id' => $request->warehouse_id,
-                    'quantity_on_hand' => $request->initial_quantity,
-                    'quantity_reserved' => 0,
-                    'quantity_inbound' => 0,
-                    'quantity_damaged' => 0,
-                ]);
+            // Create warehouse inventory record
+            $inventory = WarehouseInventory::create([
+                'id' => (string) Str::uuid(),
+                'vendor_listing_id' => $listing->id,
+                'warehouse_id' => $request->warehouse_id,
+                'quantity_on_hand' => $request->initial_quantity,
+                'quantity_reserved' => 0,
+                'quantity_inbound' => 0,
+                'quantity_damaged' => 0,
+            ]);
 
-                // Initial stock movement
-                if ((int) $request->initial_quantity > 0) {
-                    InventoryMovement::create([
-                        'warehouse_inventory_id' => $inventory->id,
-                        'movement_type' => 'inbound',
-                        'quantity_delta' => (int) $request->initial_quantity,
-                        'quantity_after' => (int) $request->initial_quantity,
-                        'reference_type' => 'inbound_shipment',
-                        'reference_id' => $listing->id,
-                        'reason' => 'initial_stock',
-                        'created_by_user_id' => Auth::guard('vendor')->user()->id,
-                    ]);
-                }
-            });
+            // Initial stock movement
+            if ((int) $request->initial_quantity > 0) {
+                InventoryMovement::create([
+                    'warehouse_inventory_id' => $inventory->id,
+                    'movement_type' => 'inbound',
+                    'quantity_delta' => (int) $request->initial_quantity,
+                    'quantity_after' => (int) $request->initial_quantity,
+                    'reference_type' => 'inbound_shipment',
+                    'reference_id' => $listing->id,
+                    'reason' => 'initial_stock',
+                    'created_by_user_id' => Auth::guard('vendor')->user()->id,
+                ]);
+            }
+        });
         // } catch (\Throwable $e) {
         //     Log::error('ListingController::store failed', ['error' => $e->getMessage()]);
         //     return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء إنشاء القائمة. يرجى المحاولة مرة أخرى.'], 500);

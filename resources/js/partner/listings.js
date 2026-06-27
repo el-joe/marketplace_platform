@@ -251,7 +251,6 @@ function initProductSearch() {
                     ? `<img src="${product.image_url}" class="w-10 h-10 rounded-lg object-cover shrink-0">`
                     : `<div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 text-gray-400 text-xs">📦</div>`;
 
-                    alert('Product has no variants. This should not happen.');
                 if (!product.has_variants) {
                     // Single-variant product: the default variant is the only option.
                     // Make the whole card clickable — no variant chooser needed.
