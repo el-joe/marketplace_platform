@@ -1,25 +1,26 @@
 import './app.js';
+import DataTable from 'datatables.net-dt';
+import { csrfToken, toast } from './datatable.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Config (injected from Blade via window.CLASSIFIEDS_CFG)
+// Config
 // ─────────────────────────────────────────────────────────────────────────────
 const cfg = () => window.CLASSIFIEDS_CFG || {};
+const el  = (id) => document.getElementById(id);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Utilities
+// Shared utilities
 // ─────────────────────────────────────────────────────────────────────────────
 async function apiFetch(url, options = {}) {
-    const headers = { Accept: 'application/json', ...options.headers };
+    const headers = { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken(), ...options.headers };
     if (!(options.body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
     }
-    const res = await fetch(url, { ...options, headers });
+    const res  = await fetch(url, { ...options, headers });
     const json = await res.json();
     if (!res.ok) throw json;
     return json;
 }
-
-function el(id) { return document.getElementById(id); }
 
 function formatMoney(cents, currency = 'SAR') {
     return new Intl.NumberFormat('ar-SA', { style: 'currency', currency }).format(cents / 100);
@@ -45,145 +46,201 @@ function statusBadge(status) {
     return `<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${s.cls}">${s.label}</span>`;
 }
 
+async function confirmDialog(title, text) {
+    if (window.Swal) {
+        return Swal.fire({
+            title, text, icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'تأكيد',
+            cancelButtonText:  'إلغاء',
+        }).then(r => r.isConfirmed);
+    }
+    return confirm(text || title);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Index page — listing table
+// INDEX PAGE — DataTable
 // ─────────────────────────────────────────────────────────────────────────────
-let currentPage = 1;
-let currentStatus = '';
-let searchTimer = null;
+let clTable        = null;
+let clTableContainer = null; // saved before DataTables wraps the table
 
-async function loadListings(page = 1) {
-    currentPage = page;
-    const params = new URLSearchParams({ page, per_page: 20 });
-    if (currentStatus) params.set('status', currentStatus);
-    const q = el('cl-search')?.value.trim();
-    if (q) params.set('search', q);
+function initIndexPage() {
+    const tableEl = el('cl-table');
+    if (!tableEl) return;
 
-    const tbody = el('cl-tbody');
-    if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-sm text-gray-400">جاري التحميل...</td></tr>`;
+    // Save the .bg-white wrapper reference before DataTables moves the element
+    clTableContainer = tableEl.parentElement;
 
-    try {
-        const data = await apiFetch(`${cfg().listUrl}?${params}`);
-        renderListings(data.data?.items || []);
-        renderPagination(data.data?.meta);
-    } catch {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center text-sm text-red-500">تعذّر تحميل الإعلانات.</td></tr>`;
-    }
+    clTable = new DataTable(tableEl, {
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url:  cfg().datatableUrl,
+            type: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
+            data(d) {
+                d.search_term = el('cl-search')?.value.trim() || '';
+                d.status      = el('cl-filter-status')?.value  || '';
+            },
+        },
+        columns: [
+            {
+                data: null,
+                render(row) {
+                    const showUrl = buildShowUrl(row.id);
+                    const img = row.primary_image
+                        ? `<img src="${row.primary_image}" class="h-full w-full object-cover" alt="">`
+                        : `<svg class="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3 3l18 18"/></svg>`;
+                    return `<div class="flex items-center gap-3">
+                        <div class="shrink-0 h-10 w-10 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">${img}</div>
+                        <div class="min-w-0">
+                            <a href="${showUrl}" class="font-medium text-gray-900 hover:text-primary-600 line-clamp-1">${row.title_ar || row.title_en || ''}</a>
+                            <div class="text-xs text-gray-400 font-mono">${row.listing_number || ''}</div>
+                        </div>
+                    </div>`;
+                },
+            },
+            { data: 'status',       render: (s) => statusBadge(s) },
+            { data: null,           render: (r) => `<span class="font-semibold text-gray-800">${formatMoney(r.price_cents, r.currency)}</span>` },
+            { data: 'views_count',  defaultContent: '0' },
+            { data: 'created_at',   render: (d) => `<span class="text-xs text-gray-400">${formatDate(d)}</span>` },
+            {
+                data: null,
+                render(row) {
+                    return `<a href="${buildShowUrl(row.id)}" class="text-xs text-primary-600 hover:underline">عرض</a>`;
+                },
+            },
+        ],
+        order:      [[4, 'desc']],
+        dom:        't',
+        pageLength: 20,
+        searching:  false,
+        language: {
+            emptyTable:     'لا توجد إعلانات',
+            loadingRecords: 'جارٍ التحميل...',
+            processing:     '<div class="flex justify-center py-8"><div class="w-6 h-6 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"></div></div>',
+            zeroRecords:    'لم يتم العثور على نتائج',
+        },
+        createdRow(row, data) {
+            row.classList.add('hover:bg-gray-50', 'cursor-pointer', 'transition-colors');
+            row.addEventListener('click', (e) => {
+                if (e.target.closest('a')) return;
+                window.location.href = buildShowUrl(data.id);
+            });
+        },
+        drawCallback() {
+            const api  = this.api();
+            const info = api.page.info();
+
+            // Info label
+            const infoEl = el('cl-info');
+            if (infoEl) {
+                infoEl.textContent = info.recordsTotal === 0
+                    ? ''
+                    : `عرض ${info.start + 1}–${info.end} من ${info.recordsTotal} سجل`;
+            }
+
+            // Empty state — driven by total records, not just current filtered view
+            const empty = el('cl-empty');
+            if (info.recordsTotal === 0) {
+                if (clTableContainer) clTableContainer.style.display = 'none';
+                if (empty) empty.classList.remove('hidden');
+            } else {
+                if (clTableContainer) clTableContainer.style.display = '';
+                if (empty) empty.classList.add('hidden');
+            }
+
+            // Custom pagination
+            const pagEl = el('cl-pagination');
+            if (!pagEl) return;
+            pagEl.innerHTML = '';
+            const page  = info.page;
+            const pages = info.pages;
+            if (pages <= 1) return;
+
+            const mkBtn = (label, pg, disabled, active) => {
+                const b = document.createElement('button');
+                b.innerHTML = label;
+                b.className = [
+                    'min-w-[32px] h-8 px-2 rounded-lg text-xs font-medium transition-colors',
+                    active   ? 'bg-primary-500 text-white font-bold' : 'text-gray-600 hover:bg-gray-100',
+                    disabled ? 'opacity-30 cursor-not-allowed pointer-events-none' : '',
+                ].join(' ');
+                if (!disabled && !active) b.addEventListener('click', () => api.page(pg).draw(false));
+                return b;
+            };
+
+            pagEl.appendChild(mkBtn('«', 0,          page === 0,        false));
+            pagEl.appendChild(mkBtn('‹', page - 1,   page === 0,        false));
+            const start = Math.max(0, page - 2);
+            const end   = Math.min(pages - 1, page + 2);
+            for (let i = start; i <= end; i++) pagEl.appendChild(mkBtn(i + 1, i, false, i === page));
+            pagEl.appendChild(mkBtn('›', page + 1,   page >= pages - 1, false));
+            pagEl.appendChild(mkBtn('»', pages - 1,  page >= pages - 1, false));
+        },
+    });
+
+    // Debounced search
+    let searchTimer;
+    el('cl-search')?.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => clTable.ajax.reload(), 400);
+    });
+
+    // Status filter
+    el('cl-filter-status')?.addEventListener('change', () => clTable.ajax.reload());
 }
 
-function renderListings(items) {
-    const tbody = el('cl-tbody');
-    const empty = el('cl-empty');
-    if (!tbody) return;
-
-    if (!items.length) {
-        tbody.innerHTML = '';
-        if (empty) empty.classList.remove('hidden');
-        return;
-    }
-    if (empty) empty.classList.add('hidden');
-
-    tbody.innerHTML = items.map(listing => {
-        const img = listing.primary_image
-            ? `<img src="${listing.primary_image}" class="h-full w-full object-cover" alt="">`
-            : `<svg class="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3 3l18 18"/></svg>`;
-
-        const href = `${cfg().showBaseUrl}/${listing.id}`;
-        return `<tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='${href}'">
-            <td class="px-4 py-3">
-                <div class="flex items-center gap-3">
-                    <div class="shrink-0 h-10 w-10 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">${img}</div>
-                    <div class="min-w-0">
-                        <a href="${href}" class="font-medium text-gray-900 hover:text-primary-600 line-clamp-1">${listing.title_ar || listing.title_en}</a>
-                        <div class="text-xs text-gray-400 font-mono">${listing.listing_number || ''}</div>
-                    </div>
-                </div>
-            </td>
-            <td class="px-4 py-3 whitespace-nowrap">${statusBadge(listing.status)}</td>
-            <td class="px-4 py-3 whitespace-nowrap font-semibold text-gray-800">${formatMoney(listing.price_cents, listing.currency)}</td>
-            <td class="px-4 py-3 whitespace-nowrap text-gray-500">${listing.views_count ?? 0}</td>
-            <td class="px-4 py-3 whitespace-nowrap text-gray-400 text-xs">${formatDate(listing.created_at)}</td>
-            <td class="px-4 py-3 whitespace-nowrap">
-                <a href="${href}" class="text-xs text-primary-600 hover:underline">عرض</a>
-            </td>
-        </tr>`;
-    }).join('');
+function buildShowUrl(id) {
+    const base = window.location.origin + window.location.pathname.replace(/\/$/, '');
+    return `${base}/${id}`;
 }
-
-function renderPagination(meta) {
-    const infoEl = el('cl-info');
-    const pagEl  = el('cl-pagination');
-    if (!meta) return;
-
-    if (infoEl) infoEl.textContent = `${meta.from ?? 0}–${meta.to ?? 0} من ${meta.total ?? 0}`;
-    if (!pagEl) return;
-
-    if (meta.last_page <= 1) { pagEl.innerHTML = ''; return; }
-
-    let html = '';
-    if (meta.current_page > 1) {
-        html += `<button onclick="clGotoPage(${meta.current_page - 1})" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm">السابق</button>`;
-    }
-    html += `<span class="text-gray-500 text-sm">صفحة ${meta.current_page} من ${meta.last_page}</span>`;
-    if (meta.current_page < meta.last_page) {
-        html += `<button onclick="clGotoPage(${meta.current_page + 1})" class="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm">التالي</button>`;
-    }
-    pagEl.innerHTML = html;
-}
-
-window.clGotoPage = (page) => loadListings(page);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Wizard state
 // ─────────────────────────────────────────────────────────────────────────────
-let wizStep = 1;
-let wizTotalSteps = 6;
-let wizSubmitting = false;
-let wizCategories = [];
+let wizStep          = 1;
+let wizSubmitting    = false;
+let wizCategories    = [];
 let wizCategoriesLoaded = false;
-let wizSelectedCategory = null;   // leaf category object
+let wizSelectedCategory = null;
 let wizSelectedParentId = null;
-let wizImageFiles = [];
-let wizSketchFile = null;
+let wizImageFiles    = [];
+let wizSketchFile    = null;
 let wizAttachmentFiles = [];
-let wizAttributes = {};
+let wizAttributes    = {};
+let wizContractLoaded = false;
 
-const STEP_LABELS_FULL    = ['الفئة', 'الأساسيات', 'الموقع', 'الصور', 'العقد', 'مراجعة'];
-const STEP_LABELS_NO_CONTRACT = ['الفئة', 'الأساسيات', 'الموقع', 'الصور', 'مراجعة'];
+const STEP_LABELS_FULL        = ['الفئة', 'الأساسيات', 'الموقع والخصائص', 'الصور والمرفقات', 'العقد', 'مراجعة'];
+const STEP_LABELS_NO_CONTRACT = ['الفئة', 'الأساسيات', 'الموقع والخصائص', 'الصور والمرفقات', 'مراجعة'];
 
-function wizHasContract()  { return !!wizSelectedCategory?.has_contract; }
-function wizNeedsLocation(){ return !!wizSelectedCategory?.requires_location_map; }
-function wizNeedsSketch()  { return !!wizSelectedCategory?.requires_sketch_upload; }
+function wizHasContract()      { return !!wizSelectedCategory?.contract_template_id; }
+function wizNeedsLocation()    { return !!wizSelectedCategory?.requires_location_map; }
+function wizNeedsSketch()      { return !!wizSelectedCategory?.requires_sketch_upload; }
 function wizNeedsAttachments() { return (wizSelectedCategory?.required_attachment_types?.length ?? 0) > 0; }
+function wizStepLabels()       { return wizHasContract() ? STEP_LABELS_FULL : STEP_LABELS_NO_CONTRACT; }
 
-function wizStepLabels() {
-    return wizHasContract() ? STEP_LABELS_FULL : STEP_LABELS_NO_CONTRACT;
-}
-
-// Real DOM step IDs map: logical → DOM step id
-// DOM steps 1-6 always exist but step 5 (contract) is skipped if !wizHasContract
-function wizDomStep(logicalStep) {
-    // logical steps always present: 1-6 in DOM regardless of contract
-    return logicalStep;
-}
+// Dom steps 1-6 always exist; step 5 (contract) skipped in nav if !wizHasContract
+function wizNextDomStep(cur) { return (cur === 4 && !wizHasContract()) ? 6 : cur + 1; }
+function wizPrevDomStep(cur) { return (cur === 6 && !wizHasContract()) ? 4 : cur - 1; }
 
 function wizRenderProgress() {
     const container = el('cl-wiz-progress');
     if (!container) return;
     const labels = wizStepLabels();
-    const total = labels.length;
+    const total  = labels.length;
 
     container.innerHTML = labels.map((label, i) => {
-        const num  = i + 1;
-        const done = num < wizStep;
+        const num    = i + 1;
+        const done   = num < wizStep;
         const active = num === wizStep;
         const dotCls = done
             ? 'bg-primary-500 text-white'
             : active
                 ? 'bg-primary-600 text-white ring-4 ring-primary-100'
                 : 'bg-gray-100 text-gray-400';
-        const lineBefore = i === 0           ? 'bg-transparent' : (i < wizStep ? 'bg-primary-500' : 'bg-gray-200');
-        const lineAfter  = i === total - 1   ? 'bg-transparent' : (num < wizStep ? 'bg-primary-500' : 'bg-gray-200');
+        const lineBefore = i === 0         ? 'bg-transparent' : (i < wizStep       ? 'bg-primary-500' : 'bg-gray-200');
+        const lineAfter  = i === total - 1 ? 'bg-transparent' : (num < wizStep     ? 'bg-primary-500' : 'bg-gray-200');
         return `<div class="flex-1 flex flex-col items-center">
             <div class="flex items-center w-full">
                 <div class="h-0.5 flex-1 ${lineBefore}"></div>
@@ -195,242 +252,267 @@ function wizRenderProgress() {
     }).join('');
 }
 
-// Logical step → DOM step id (contract step may be skipped in flow)
-// We keep DOM steps fixed at 1-6 and just skip step 5 in navigation if no contract
-function wizNextDomStep(current) {
-    if (current === 4 && !wizHasContract()) return 6;
-    return current + 1;
-}
-function wizPrevDomStep(current) {
-    if (current === 6 && !wizHasContract()) return 4;
-    return current - 1;
-}
-
 function wizShowStep(domStep) {
     for (let i = 1; i <= 6; i++) {
         const s = el(`cl-wiz-step-${i}`);
         if (s) s.style.display = i === domStep ? 'block' : 'none';
     }
 
-    // Map domStep to logical step for progress
     const logicalStep = (!wizHasContract() && domStep === 6) ? 5 : domStep;
     wizStep = domStep;
 
-    el('cl-wiz-step-label').textContent = logicalStep;
-    el('cl-wiz-total-label').textContent = wizStepLabels().length;
+    if (el('cl-wiz-step-label')) el('cl-wiz-step-label').textContent = logicalStep;
+    if (el('cl-wiz-total-label')) el('cl-wiz-total-label').textContent = wizStepLabels().length;
     wizRenderProgress();
 
     const isFirst = domStep === 1;
     const isLast  = domStep === 6;
 
-    // prev button
-    if (!isFirst) { el('cl-wiz-prev').style.display = 'inline-flex'; el('cl-wiz-prev-spacer').style.display = 'none'; }
-    else          { el('cl-wiz-prev').style.display = 'none';        el('cl-wiz-prev-spacer').style.display = 'inline'; }
+    const prevBtn   = el('cl-wiz-prev');
+    const prevSpacer = el('cl-wiz-prev-spacer');
+    const nextBtn   = el('cl-wiz-next');
+    const submitBtn = el('cl-wiz-submit');
 
-    // next / submit
-    if (!isLast) { el('cl-wiz-next').style.display = 'inline-flex'; el('cl-wiz-submit').style.display = 'none'; }
-    else         { el('cl-wiz-next').style.display = 'none';        el('cl-wiz-submit').style.display = 'inline-flex'; }
+    if (prevBtn)    prevBtn.style.display    = isFirst ? 'none' : 'inline-flex';
+    if (prevSpacer) prevSpacer.style.display = isFirst ? 'inline' : 'none';
+    if (nextBtn)    nextBtn.style.display    = isLast  ? 'none' : 'inline-flex';
+    if (submitBtn)  submitBtn.style.display  = isLast  ? 'inline-flex' : 'none';
 
-    // Side effects per step
     if (domStep === 1 && !wizCategoriesLoaded) wizLoadCategories();
+    if (domStep === 1 && wizCategoriesLoaded)  wizRenderCategories();
     if (domStep === 3) wizRenderAttributeFields();
     if (domStep === 4) wizRenderConditionalFileFields();
     if (domStep === 5 && wizHasContract()) wizLoadContractInWizard();
     if (domStep === 6) wizRenderReview();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 1: Categories
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Step 1: Categories ───────────────────────────────────────────────────────
 async function wizLoadCategories() {
     if (wizCategoriesLoaded) { wizRenderCategories(); return; }
     try {
         const data = await apiFetch(cfg().categoriesUrl);
-        wizCategories = data.data || [];
-        wizCategoriesLoaded = true;
+        wizCategories        = data.data || [];
+        wizCategoriesLoaded  = true;
         wizRenderCategories();
     } catch {
-        el('cl-categories-loading').textContent = 'تعذّر تحميل الفئات.';
+        const loadEl = el('cl-categories-loading');
+        if (loadEl) loadEl.textContent = 'تعذّر تحميل الفئات.';
     }
 }
 
 function wizRenderCategories() {
-    el('cl-categories-loading').style.display = 'none';
-    const grid = el('cl-categories-grid');
+    const loadEl = el('cl-categories-loading');
+    const grid   = el('cl-categories-grid');
+    if (loadEl) loadEl.style.display = 'none';
     if (!grid) return;
     grid.style.display = 'grid';
     grid.innerHTML = wizCategories.map(cat => {
-        const isSelected = wizSelectedParentId === cat.id;
+        const sel = wizSelectedParentId === cat.id;
         return `<button type="button" onclick="wizSelectParent('${cat.id}')"
-            class="flex items-center gap-3 rounded-xl border-2 p-3 text-start transition-colors ${isSelected ? 'border-primary-500 bg-primary-50' : 'border-gray-100 hover:border-gray-200'}">
+            class="flex items-center gap-3 rounded-xl border-2 p-3 text-start transition-colors ${sel ? 'border-primary-500 bg-primary-50' : 'border-gray-100 hover:border-gray-200'}">
             ${cat.icon ? `<span class="text-xl shrink-0">${cat.icon}</span>` : ''}
             <div class="min-w-0">
-                <div class="text-sm font-semibold ${isSelected ? 'text-primary-700' : 'text-gray-800'} leading-snug">${cat.name_ar}</div>
-                <div class="text-xs text-gray-400">${cat.name_en}</div>
+                <div class="text-sm font-semibold ${sel ? 'text-primary-700' : 'text-gray-800'} leading-snug">${cat.name_ar}</div>
+                <div class="text-xs text-gray-400">${cat.name_en || ''}</div>
             </div>
         </button>`;
     }).join('');
 }
 
-window.wizSelectParent = function(parentId) {
+window.wizSelectParent = function (parentId) {
     wizSelectedParentId = parentId;
     wizSelectedCategory = null;
     wizRenderCategories();
 
-    const parent = wizCategories.find(c => c.id === parentId);
+    const parent     = wizCategories.find(c => c.id === parentId);
     const subSection = el('cl-subcategory-section');
-    const subGrid = el('cl-subcategories-grid');
-
+    const subGrid    = el('cl-subcategories-grid');
     if (!parent) return;
 
     if (parent.children?.length) {
-        subSection.classList.remove('hidden');
-        subGrid.innerHTML = parent.children.map(child => {
-            const isSelected = wizSelectedCategory?.id === child.id;
-            return `<button type="button" onclick="wizSelectCategory('${child.id}')"
-                class="flex items-center gap-2 rounded-xl border-2 p-2.5 text-start text-sm transition-colors ${isSelected ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-100 hover:border-gray-200 text-gray-800'}">
-                <span class="truncate">${child.name_ar}</span>
-            </button>`;
-        }).join('');
+        subSection?.classList.remove('hidden');
+        subGrid.innerHTML = parent.children.map(child => wizSubCategoryCard(child)).join('');
     } else {
-        // Parent is itself the leaf
-        subSection.classList.add('hidden');
+        subSection?.classList.add('hidden');
         wizSelectedCategory = parent;
     }
+    wizUpdateStepCount();
 };
 
-window.wizSelectCategory = function(id) {
+window.wizSelectCategory = function (id) {
     const parent = wizCategories.find(c => c.id === wizSelectedParentId);
     wizSelectedCategory = parent?.children?.find(c => c.id === id) || null;
-    // Re-render sub-grid to update selection highlight
     const subGrid = el('cl-subcategories-grid');
     if (subGrid && parent?.children) {
-        subGrid.innerHTML = parent.children.map(child => {
-            const isSelected = wizSelectedCategory?.id === child.id;
-            return `<button type="button" onclick="wizSelectCategory('${child.id}')"
-                class="flex items-center gap-2 rounded-xl border-2 p-2.5 text-start text-sm transition-colors ${isSelected ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-100 hover:border-gray-200 text-gray-800'}">
-                <span class="truncate">${child.name_ar}</span>
-            </button>`;
-        }).join('');
+        subGrid.innerHTML = parent.children.map(child => wizSubCategoryCard(child)).join('');
     }
+    wizUpdateStepCount();
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 3: Location & attribute fields (dynamic)
-// ─────────────────────────────────────────────────────────────────────────────
+function wizSubCategoryCard(child) {
+    const sel = wizSelectedCategory?.id === child.id;
+    return `<button type="button" onclick="wizSelectCategory('${child.id}')"
+        class="flex items-center gap-2 rounded-xl border-2 p-2.5 text-start text-sm transition-colors ${sel ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-100 hover:border-gray-200 text-gray-800'}">
+        <span class="truncate">${child.name_ar}</span>
+    </button>`;
+}
+
+function wizUpdateStepCount() {
+    if (el('cl-wiz-total-label')) {
+        el('cl-wiz-total-label').textContent = wizStepLabels().length;
+    }
+}
+
+// ─── Step 3: Location & Attributes ───────────────────────────────────────────
 function wizRenderAttributeFields() {
     const locSection  = el('cl-location-section');
     const attrSection = el('cl-attributes-section');
     const attrFields  = el('cl-attributes-fields');
 
-    if (!wizNeedsLocation()) locSection?.classList.add('hidden');
-    else locSection?.classList.remove('hidden');
+    if (wizNeedsLocation()) locSection?.classList.remove('hidden');
+    else                    locSection?.classList.add('hidden');
 
-    // Generic attribute fields from category (could be extended; for now provide common ones)
-    const commonAttrs = [
-        { key: 'rooms',     label: 'عدد الغرف',    type: 'number' },
-        { key: 'bathrooms', label: 'عدد الحمامات', type: 'number' },
-        { key: 'area',      label: 'المساحة (م²)', type: 'number' },
-        { key: 'floor',     label: 'الطابق',        type: 'text' },
-        { key: 'year_built',label: 'سنة البناء',    type: 'number' },
-        { key: 'condition', label: 'الحالة',         type: 'select',
-          options: ['جديد', 'ممتاز', 'جيد', 'يحتاج تجديد'] },
-    ];
-
-    if (attrFields) {
-        attrFields.innerHTML = commonAttrs.map(attr => {
+    // Use category attribute_schema if present, else generic free-form key-value builder
+    const schema = wizSelectedCategory?.attribute_schema;
+    if (schema?.length && attrFields) {
+        attrFields.innerHTML = schema.map(attr => {
             if (attr.type === 'select') {
                 return `<div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">${attr.label}</label>
                     <select id="cl-attr-${attr.key}" onchange="wizSetAttr('${attr.key}', this.value)"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                         <option value="">— اختياري —</option>
-                        ${attr.options.map(o => `<option value="${o}" ${wizAttributes[attr.key] === o ? 'selected' : ''}>${o}</option>`).join('')}
+                        ${(attr.options || []).map(o => `<option value="${o}" ${wizAttributes[attr.key] === o ? 'selected' : ''}>${o}</option>`).join('')}
                     </select>
                 </div>`;
             }
             return `<div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">${attr.label}</label>
-                <input type="${attr.type}" id="cl-attr-${attr.key}" value="${wizAttributes[attr.key] ?? ''}"
+                <input type="${attr.type || 'text'}" id="cl-attr-${attr.key}" value="${wizAttributes[attr.key] ?? ''}"
                     oninput="wizSetAttr('${attr.key}', this.value)"
                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     placeholder="اختياري">
             </div>`;
         }).join('');
-
-        // Wrap in 2-col grid
         attrFields.className = 'grid grid-cols-2 gap-3';
+        attrSection?.classList.remove('hidden');
+    } else if (attrFields) {
+        // Free-form key-value list builder when no schema is defined
+        attrSection?.classList.remove('hidden');
+        renderFreeformAttributes(attrFields);
     }
-
-    if (attrSection) attrSection.classList.remove('hidden');
 }
 
-window.wizSetAttr = function(key, val) {
-    if (val) wizAttributes[key] = val;
-    else delete wizAttributes[key];
+function renderFreeformAttributes(container) {
+    const entries = Object.entries(wizAttributes);
+    container.className = 'space-y-2';
+    const rows = entries.map(([k, v], i) =>
+        `<div class="flex gap-2">
+            <input type="text" value="${k}" placeholder="الخاصية"
+                oninput="wizUpdateAttrKey(${i}, this.value)"
+                class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+            <input type="text" value="${v}" placeholder="القيمة"
+                oninput="wizUpdateAttrVal(${i}, this.value)"
+                class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+            <button type="button" onclick="wizRemoveAttrRow(${i})" class="text-red-400 hover:text-red-600 px-2">✕</button>
+        </div>`
+    ).join('');
+    container.innerHTML = rows + `<button type="button" onclick="wizAddAttrRow()"
+        class="text-xs text-primary-600 hover:underline mt-1">+ إضافة خاصية</button>`;
+}
+
+window.wizSetAttr = function (key, val) {
+    if (val) wizAttributes[key] = val; else delete wizAttributes[key];
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 4: Conditional file sections
-// ─────────────────────────────────────────────────────────────────────────────
+window.wizAddAttrRow = function () {
+    wizAttributes[''] = '';
+    const attrFields = el('cl-attributes-fields');
+    if (attrFields) renderFreeformAttributes(attrFields);
+};
+
+window.wizUpdateAttrKey = function (idx, newKey) {
+    const entries = Object.entries(wizAttributes);
+    if (entries[idx]) {
+        const val = entries[idx][1];
+        delete wizAttributes[entries[idx][0]];
+        wizAttributes[newKey] = val;
+    }
+};
+
+window.wizUpdateAttrVal = function (idx, newVal) {
+    const entries = Object.entries(wizAttributes);
+    if (entries[idx]) wizAttributes[entries[idx][0]] = newVal;
+};
+
+window.wizRemoveAttrRow = function (idx) {
+    const entries = Object.entries(wizAttributes);
+    if (entries[idx]) {
+        delete wizAttributes[entries[idx][0]];
+        const attrFields = el('cl-attributes-fields');
+        if (attrFields) renderFreeformAttributes(attrFields);
+    }
+};
+
+// ─── Step 4: Conditional file sections ───────────────────────────────────────
 function wizRenderConditionalFileFields() {
     const sketchSection = el('cl-sketch-section');
     const attSection    = el('cl-attachments-section');
+    const hint          = el('cl-attachments-hint');
 
     if (wizNeedsSketch()) sketchSection?.classList.remove('hidden');
-    else sketchSection?.classList.add('hidden');
+    else                  sketchSection?.classList.add('hidden');
 
     if (wizNeedsAttachments()) {
         attSection?.classList.remove('hidden');
-        const hint = el('cl-attachments-hint');
-        if (hint && wizSelectedCategory?.required_attachment_types?.length) {
-            hint.textContent = 'مطلوب: ' + wizSelectedCategory.required_attachment_types.join('، ');
-        }
+        if (hint) hint.textContent = 'مطلوب: ' + wizSelectedCategory.required_attachment_types.join('، ');
     } else {
         attSection?.classList.add('hidden');
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 5: Contract (wizard)
-// ─────────────────────────────────────────────────────────────────────────────
-let wizContractLoaded = false;
-let wizContractTemplateId = null;
-
+// ─── Step 5: Contract (wizard) ────────────────────────────────────────────────
 async function wizLoadContractInWizard() {
     if (wizContractLoaded) return;
-    // We don't have a listing yet, so load contract from category's template via categories endpoint
-    // The categories endpoint already returns has_contract; we need the template content
-    // We can't get the contract content without a listing id — so we show a placeholder
-    const loading = el('cl-contract-loading');
-    const content = el('cl-contract-content');
-    if (loading) loading.style.display = 'none';
-    if (content) {
-        content.classList.remove('hidden');
-        const textEl = el('cl-contract-text');
-        if (textEl) textEl.textContent = 'سيتم إنشاء العقد بعد إنشاء الإعلان. يُرجى الموافقة على الشروط العامة للنشر في السوق المفتوح، وسيُرسَل إليك العقد التفصيلي للمراجعة.';
+    const loadEl   = el('cl-contract-loading');
+    const contentEl = el('cl-contract-content');
+    const textEl   = el('cl-contract-text');
+
+    // Try to use embedded template content from the categories response
+    const templateText = wizSelectedCategory?.contract_template_content;
+
+    if (loadEl) loadEl.style.display = 'none';
+    if (contentEl) contentEl.classList.remove('hidden');
+
+    if (textEl) {
+        if (templateText) {
+            textEl.textContent = templateText;
+        } else {
+            // NOTE: contractShow() requires an existing listing ID, so we cannot fetch the full
+            // contract before creation. Display terms summary; detailed contract sent after creation.
+            textEl.textContent = 'سيتم إنشاء العقد التفصيلي بعد إرسال الإعلان وسيُطلب منك قبوله قبل النشر. بالمتابعة توافق على الشروط العامة للسوق المفتوح في المنصة.';
+        }
     }
     wizContractLoaded = true;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 6: Review
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Step 6: Review ───────────────────────────────────────────────────────────
 function wizRenderReview() {
     const table = el('cl-review-table');
     if (!table) return;
 
     const rows = [
-        ['الفئة',    wizSelectedCategory ? (wizSelectedCategory.name_ar || wizSelectedCategory.name_en) : '—'],
-        ['العنوان (عربي)',  el('cl-title-ar')?.value || '—'],
-        ['العنوان (إنجليزي)', el('cl-title-en')?.value || '—'],
-        ['الغرض',    el('cl-purpose')?.value === 'sale' ? 'بيع' : 'إيجار'],
-        ['السعر',    `${el('cl-price')?.value || 0} ${el('cl-currency')?.value || 'SAR'}`],
-        ['قابل للتفاوض', el('cl-negotiable')?.checked ? 'نعم' : 'لا'],
-        ['عدد الصور', wizImageFiles.length],
-        wizNeedsSketch() ? ['مخطط', wizSketchFile ? wizSketchFile.name : 'لم يُرفع'] : null,
-        wizNeedsLocation() ? ['إحداثيات', `${el('cl-latitude')?.value || '—'} / ${el('cl-longitude')?.value || '—'}`] : null,
-        wizHasContract()   ? ['العقد',    el('cl-contract-agree')?.checked ? 'تمت الموافقة' : 'لم توافق بعد'] : null,
+        ['الفئة',              wizSelectedCategory ? (wizSelectedCategory.name_ar || wizSelectedCategory.name_en) : '—'],
+        ['العنوان (عربي)',     el('cl-title-ar')?.value  || '—'],
+        ['العنوان (إنجليزي)', el('cl-title-en')?.value  || '—'],
+        ['الغرض',              el('cl-purpose')?.value === 'sale' ? 'بيع' : 'إيجار'],
+        ['السعر',              `${el('cl-price')?.value || 0} ${el('cl-currency')?.value || 'SAR'}`],
+        ['قابل للتفاوض',      el('cl-negotiable')?.checked ? 'نعم' : 'لا'],
+        ['عدد الصور',         wizImageFiles.length],
+        wizNeedsSketch()      ? ['مخطط',          wizSketchFile ? wizSketchFile.name : 'لم يُرفع']                      : null,
+        wizNeedsLocation()    ? ['إحداثيات',      `${el('cl-latitude')?.value  || '—'} / ${el('cl-longitude')?.value || '—'}`] : null,
+        wizNeedsAttachments() ? ['مرفقات',        wizAttachmentFiles.length + ' ملف/ملفات']                            : null,
+        wizHasContract()      ? ['العقد',          el('cl-contract-agree')?.checked ? 'تمت الموافقة' : 'لم توافق بعد'] : null,
     ].filter(Boolean);
 
     table.innerHTML = rows.map(([label, val]) =>
@@ -441,73 +523,76 @@ function wizRenderReview() {
     ).join('');
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Validation
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Validation ───────────────────────────────────────────────────────────────
 function wizValidate(domStep) {
     if (domStep === 1 && !wizSelectedCategory) return 'يرجى اختيار فئة للإعلان.';
     if (domStep === 2) {
         if (!el('cl-title-ar')?.value.trim()) return 'العنوان بالعربية مطلوب.';
         if (!el('cl-title-en')?.value.trim()) return 'العنوان بالإنجليزية مطلوب.';
         if (!el('cl-price')?.value || Number(el('cl-price').value) < 0) return 'يرجى إدخال سعر صحيح.';
+        if (!el('cl-currency')?.value) return 'يرجى اختيار العملة.';
     }
     if (domStep === 4 && wizImageFiles.length === 0) return 'يرجى رفع صورة واحدة على الأقل.';
     if (domStep === 5 && wizHasContract()) {
-        if (!el('cl-contract-agree')?.checked) return 'يجب الموافقة على العقد للمتابعة.';
         if (!el('cl-signature-name')?.value.trim()) return 'يرجى إدخال الاسم للتوقيع.';
+        if (!el('cl-contract-agree')?.checked) return 'يجب الموافقة على العقد للمتابعة.';
     }
     return null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Submit
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Submit ───────────────────────────────────────────────────────────────────
 async function wizSubmit() {
     if (wizSubmitting) return;
     wizSetError(null);
 
-    if (!wizImageFiles.length) { wizSetError('يرجى رفع صورة واحدة على الأقل.'); return; }
+    if (!wizImageFiles.length)                              { wizSetError('يرجى رفع صورة واحدة على الأقل.'); return; }
     if (wizHasContract() && !el('cl-contract-agree')?.checked) { wizSetError('يجب الموافقة على العقد.'); return; }
 
     wizSubmitting = true;
     const submitBtn = el('cl-wiz-submit');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'جاري الإرسال...'; }
 
-    const formData = new FormData();
-    formData.append('classified_category_id', wizSelectedCategory.id);
-    formData.append('country_id',             cfg().countryId);
-    formData.append('listing_purpose',        el('cl-purpose')?.value || 'sale');
-    formData.append('title_ar',               el('cl-title-ar')?.value.trim());
-    formData.append('title_en',               el('cl-title-en')?.value.trim());
-    formData.append('description_ar',         el('cl-desc-ar')?.value.trim() || '');
-    formData.append('description_en',         el('cl-desc-en')?.value.trim() || '');
-    formData.append('price_cents',            Math.round(Number(el('cl-price')?.value || 0) * 100));
-    formData.append('currency',               el('cl-currency')?.value || 'SAR');
-    formData.append('price_negotiable',       el('cl-negotiable')?.checked ? '1' : '0');
+    const fd = new FormData();
+    fd.append('classified_category_id', wizSelectedCategory.id);
+    fd.append('listing_purpose',        el('cl-purpose')?.value || 'sale');
+    fd.append('title_ar',               el('cl-title-ar')?.value.trim());
+    fd.append('title_en',               el('cl-title-en')?.value.trim());
+    fd.append('description_ar',         el('cl-desc-ar')?.value.trim() || '');
+    fd.append('description_en',         el('cl-desc-en')?.value.trim() || '');
+    fd.append('price_cents',            Math.round(Number(el('cl-price')?.value || 0) * 100));
+    fd.append('currency',               el('cl-currency')?.value || 'SAR');
+    fd.append('price_negotiable',       el('cl-negotiable')?.checked ? '1' : '0');
 
     if (wizNeedsLocation()) {
         const lat = el('cl-latitude')?.value;
         const lng = el('cl-longitude')?.value;
-        if (lat) formData.append('latitude', lat);
-        if (lng) formData.append('longitude', lng);
+        if (lat) fd.append('latitude', lat);
+        if (lng) fd.append('longitude', lng);
     }
 
     if (Object.keys(wizAttributes).length) {
-        formData.append('attributes', JSON.stringify(wizAttributes));
+        fd.append('attributes', JSON.stringify(wizAttributes));
     }
 
-    wizImageFiles.forEach((f, i) => formData.append(`images[${i}]`, f));
-    if (wizSketchFile) formData.append('sketch_file', wizSketchFile);
-    wizAttachmentFiles.forEach((f, i) => formData.append(`attachments[${i}]`, f));
+    wizImageFiles.forEach((f, i) => fd.append(`images[${i}]`, f));
+    if (wizSketchFile) fd.append('sketch_file', wizSketchFile);
+    wizAttachmentFiles.forEach((f, i) => fd.append(`attachments[${i}]`, f));
 
-    // Contract signature (if applicable — included in request, backend will handle on acceptContract step)
-    if (wizHasContract() && el('cl-signature-name')?.value.trim()) {
-        formData.append('_signature_name', el('cl-signature-name').value.trim());
+    if (wizHasContract()) {
+        const sig = el('cl-signature-name')?.value.trim();
+        if (sig) fd.append('signature_name', sig);
+        fd.append('agreed', '1');
     }
 
     try {
-        const data = await apiFetch(cfg().storeUrl, { method: 'POST', body: formData });
-        window.location.href = `${cfg().showBaseUrl}/${data.data.id}`;
+        const data = await apiFetch(cfg().storeUrl, { method: 'POST', body: fd });
+        wizClose();
+        toast('تم إنشاء الإعلان بنجاح.');
+        if (data.redirect) {
+            window.location.href = data.redirect;
+        } else if (data.data?.id) {
+            window.location.href = buildShowUrl(data.data.id);
+        }
     } catch (e) {
         const firstError = e.errors ? Object.values(e.errors)[0]?.[0] : e.message;
         wizSetError(firstError || 'حدث خطأ أثناء الإرسال. حاول مرة أخرى.');
@@ -516,42 +601,39 @@ async function wizSubmit() {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Wizard open / close / reset
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Open / Close / Reset ─────────────────────────────────────────────────────
 function wizSetError(msg) {
     const e = el('cl-wiz-error');
     if (!e) return;
     if (msg) { e.textContent = msg; e.style.display = 'block'; }
-    else e.style.display = 'none';
+    else      e.style.display = 'none';
 }
 
 function wizOpen() {
-    wizStep          = 1;
-    wizSubmitting    = false;
+    wizStep             = 1;
+    wizSubmitting       = false;
     wizSelectedCategory = null;
     wizSelectedParentId = null;
-    wizImageFiles    = [];
-    wizSketchFile    = null;
-    wizAttachmentFiles = [];
-    wizAttributes    = {};
-    wizContractLoaded = false;
-    wizContractTemplateId = null;
+    wizImageFiles       = [];
+    wizSketchFile       = null;
+    wizAttachmentFiles  = [];
+    wizAttributes       = {};
+    wizContractLoaded   = false;
     wizSetError(null);
 
     ['cl-title-ar','cl-title-en','cl-desc-ar','cl-desc-en','cl-price',
      'cl-latitude','cl-longitude','cl-signature-name'].forEach(id => {
         const e = el(id); if (e) e.value = '';
     });
-    const neg = el('cl-negotiable'); if (neg) neg.checked = false;
-    const agree = el('cl-contract-agree'); if (agree) agree.checked = false;
-    const purpose = el('cl-purpose'); if (purpose) purpose.value = 'sale';
-    const currency = el('cl-currency'); if (currency) currency.value = 'SAR';
+    const neg     = el('cl-negotiable');     if (neg)     neg.checked  = false;
+    const agree   = el('cl-contract-agree'); if (agree)   agree.checked = false;
+    const purpose  = el('cl-purpose');        if (purpose)  purpose.value = 'sale';
+    const currency = el('cl-currency');       if (currency) currency.value = 'SAR';
 
-    el('cl-images-preview').innerHTML = '';
-    el('cl-sketch-name').classList.add('hidden');
-    el('cl-attachments-list').innerHTML = '';
-    el('cl-subcategory-section').classList.add('hidden');
+    const imgPrev = el('cl-images-preview');   if (imgPrev) imgPrev.innerHTML = '';
+    const sketch  = el('cl-sketch-name');      if (sketch)  sketch.classList.add('hidden');
+    const attList = el('cl-attachments-list'); if (attList) attList.innerHTML = '';
+    const subSec  = el('cl-subcategory-section'); if (subSec) subSec.classList.add('hidden');
 
     if (wizCategoriesLoaded) wizRenderCategories();
 
@@ -568,15 +650,18 @@ function wizClose() {
     document.body.style.overflow = '';
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Image / file handling
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Image / File handling ────────────────────────────────────────────────────
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+
 function initImageUpload() {
     const input = el('cl-images-input');
     if (!input) return;
     input.addEventListener('change', () => {
-        const newFiles = Array.from(input.files).slice(0, 10 - wizImageFiles.length);
-        wizImageFiles = [...wizImageFiles, ...newFiles].slice(0, 10);
+        const incoming = Array.from(input.files).filter(f => {
+            if (f.size > MAX_IMAGE_SIZE_BYTES) { toast(`${f.name} يتجاوز الحد المسموح (10 ميجابايت).`, 'error'); return false; }
+            return true;
+        });
+        wizImageFiles = [...wizImageFiles, ...incoming].slice(0, 10);
         renderImagePreviews();
         input.value = '';
     });
@@ -595,7 +680,7 @@ function renderImagePreviews() {
     }).join('');
 }
 
-window.wizRemoveImage = function(i) {
+window.wizRemoveImage = function (i) {
     wizImageFiles.splice(i, 1);
     renderImagePreviews();
 };
@@ -605,10 +690,10 @@ function initSketchUpload() {
     if (!input) return;
     input.addEventListener('change', () => {
         wizSketchFile = input.files[0] || null;
-        const nameEl = el('cl-sketch-name');
+        const nameEl  = el('cl-sketch-name');
         if (nameEl) {
             if (wizSketchFile) { nameEl.textContent = wizSketchFile.name; nameEl.classList.remove('hidden'); }
-            else nameEl.classList.add('hidden');
+            else               nameEl.classList.add('hidden');
         }
     });
 }
@@ -618,35 +703,28 @@ function initAttachmentUpload() {
     if (!input) return;
     input.addEventListener('change', () => {
         wizAttachmentFiles = [...wizAttachmentFiles, ...Array.from(input.files)];
-        const list = el('cl-attachments-list');
-        if (list) {
-            list.innerHTML = wizAttachmentFiles.map((f, i) =>
-                `<div class="flex items-center justify-between text-xs text-gray-600 py-1">
-                    <span class="truncate">${f.name}</span>
-                    <button type="button" onclick="wizRemoveAttachment(${i})" class="text-red-400 hover:text-red-600 ms-2">✕</button>
-                </div>`
-            ).join('');
-        }
+        renderAttachmentList();
         input.value = '';
     });
 }
 
-window.wizRemoveAttachment = function(i) {
-    wizAttachmentFiles.splice(i, 1);
+function renderAttachmentList() {
     const list = el('cl-attachments-list');
-    if (list) {
-        list.innerHTML = wizAttachmentFiles.map((f, idx) =>
-            `<div class="flex items-center justify-between text-xs text-gray-600 py-1">
-                <span class="truncate">${f.name}</span>
-                <button type="button" onclick="wizRemoveAttachment(${idx})" class="text-red-400 hover:text-red-600 ms-2">✕</button>
-            </div>`
-        ).join('');
-    }
+    if (!list) return;
+    list.innerHTML = wizAttachmentFiles.map((f, i) =>
+        `<div class="flex items-center justify-between text-xs text-gray-600 py-1">
+            <span class="truncate">${f.name}</span>
+            <button type="button" onclick="wizRemoveAttachment(${i})" class="text-red-400 hover:text-red-600 ms-2">✕</button>
+        </div>`
+    ).join('');
+}
+
+window.wizRemoveAttachment = function (i) {
+    wizAttachmentFiles.splice(i, 1);
+    renderAttachmentList();
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Wizard init (event bindings)
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Wizard init ──────────────────────────────────────────────────────────────
 function wizInit() {
     el('btn-open-wizard')?.addEventListener('click', wizOpen);
     el('btn-open-wizard-empty')?.addEventListener('click', wizOpen);
@@ -674,30 +752,31 @@ function wizInit() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Show page
+// SHOW PAGE
 // ─────────────────────────────────────────────────────────────────────────────
-async function initShowPage() {
+let currentListing = null;
+
+async function loadShowData() {
     const loadingEl = el('cl-show-loading');
     const errorEl   = el('cl-show-error');
     const contentEl = el('cl-show-content');
 
     try {
-        const data = await apiFetch(cfg().showUrl);
-        const listing = data.data;
+        const data = await apiFetch(cfg().showDataUrl);
+        currentListing = data.data;
 
         if (loadingEl) loadingEl.classList.add('hidden');
         if (contentEl) contentEl.classList.remove('hidden');
 
-        renderShowHeader(listing);
-        renderShowImages(listing.images || []);
-        renderShowMeta(listing);
-        renderShowDescription(listing);
-        renderShowAttachments(listing.attachments || [], listing.sketch_file_url);
-        setupShowActions(listing);
-        loadInquiries();
+        renderShowHeader(currentListing);
+        renderShowImages(currentListing.images || []);
+        renderShowMeta(currentListing);
+        renderShowDescription(currentListing);
+        renderShowAttachments(currentListing.attachments || [], currentListing.sketch_file_url);
+        updateShowButtons(currentListing.status, currentListing.expires_at);
     } catch {
         if (loadingEl) loadingEl.classList.add('hidden');
-        if (errorEl) errorEl.classList.remove('hidden');
+        if (errorEl)   errorEl.classList.remove('hidden');
     }
 }
 
@@ -705,18 +784,30 @@ function renderShowHeader(listing) {
     const set = (id, val) => { const e = el(id); if (e) e.textContent = val ?? ''; };
 
     set('sh-listing-number', listing.listing_number ? `#${listing.listing_number}` : '');
-    el('sh-status-badge').innerHTML = statusBadge(listing.status);
+    const badgeEl = el('sh-status-badge');
+    if (badgeEl) badgeEl.innerHTML = statusBadge(listing.status);
     set('sh-title', listing.title_ar || listing.title_en);
     set('sh-category-name', listing.category?.name_ar || listing.category?.name_en || '—');
     set('sh-views-count', listing.views_count ?? 0);
     set('sh-created-at', formatDate(listing.created_at));
 
-    el('sh-price').textContent = formatMoney(listing.price_cents, listing.currency);
-    if (listing.price_negotiable) el('sh-negotiable').classList.remove('hidden');
+    const priceEl = el('sh-price');
+    if (priceEl) priceEl.textContent = formatMoney(listing.price_cents, listing.currency);
 
-    if (listing.rejection_reason) {
-        el('sh-rejection-block').classList.remove('hidden');
-        set('sh-rejection-reason', listing.rejection_reason);
+    const negEl = el('sh-negotiable');
+    if (negEl) {
+        if (listing.price_negotiable) negEl.classList.remove('hidden');
+        else                          negEl.classList.add('hidden');
+    }
+
+    const rejBlock = el('sh-rejection-block');
+    if (rejBlock) {
+        if (listing.rejection_reason) {
+            rejBlock.classList.remove('hidden');
+            set('sh-rejection-reason', listing.rejection_reason);
+        } else {
+            rejBlock.classList.add('hidden');
+        }
     }
 }
 
@@ -726,7 +817,6 @@ function renderShowImages(images) {
     const emptyEl   = el('sh-images-empty');
 
     if (loadingEl) loadingEl.style.display = 'none';
-
     if (!images.length) { if (emptyEl) emptyEl.classList.remove('hidden'); return; }
 
     if (grid) {
@@ -741,12 +831,13 @@ function renderShowImages(images) {
 
 function renderShowMeta(listing) {
     const set = (id, val) => { const e = el(id); if (e) e.textContent = val ?? ''; };
-    set('sh-purpose',      listing.listing_purpose === 'sale' ? 'بيع' : 'إيجار');
-    set('sh-currency',     listing.currency || '—');
+    set('sh-purpose',       listing.listing_purpose === 'sale' ? 'بيع' : 'إيجار');
+    set('sh-currency',      listing.currency || '—');
     set('sh-meta-category', listing.category?.name_ar || listing.category?.name_en || '—');
 
     if (listing.expires_at) {
         set('sh-expires', formatDate(listing.expires_at));
+        el('sh-expires-row')?.classList.remove('hidden');
     } else {
         el('sh-expires-row')?.classList.add('hidden');
     }
@@ -768,6 +859,8 @@ function renderShowDescription(listing) {
                 </div>`
             ).join('');
         }
+    } else {
+        el('sh-attributes-section')?.classList.add('hidden');
     }
 }
 
@@ -778,11 +871,11 @@ const ATTACHMENT_STATUS = {
 };
 
 function renderShowAttachments(attachments, sketchUrl) {
-    if (sketchUrl) {
-        const row = el('sh-sketch-row');
-        if (row) row.style.display = 'flex';
-        const link = el('sh-sketch-link');
-        if (link) link.href = sketchUrl;
+    const sketchRow  = el('sh-sketch-row');
+    const sketchLink = el('sh-sketch-link');
+    if (sketchUrl && sketchRow && sketchLink) {
+        sketchRow.style.display = 'flex';
+        sketchLink.href = sketchUrl;
     }
 
     if (attachments.length) {
@@ -809,74 +902,122 @@ function renderShowAttachments(attachments, sketchUrl) {
     }
 }
 
-function setupShowActions(listing) {
-    const status = listing.status;
-
+function updateShowButtons(status, expiresAt) {
     const pauseBtn    = el('sh-btn-pause');
     const resumeBtn   = el('sh-btn-resume');
     const soldBtn     = el('sh-btn-sold');
     const contractBtn = el('sh-btn-contract');
 
+    // Reset all to hidden
+    [pauseBtn, resumeBtn, soldBtn, contractBtn].forEach(b => {
+        if (b) b.style.display = 'none';
+    });
+
+    const isExpired = expiresAt && new Date(expiresAt) < new Date();
+
     if (status === 'active') {
         pauseBtn?.style.setProperty('display', 'inline-flex');
         soldBtn?.style.setProperty('display', 'inline-flex');
     }
-    if (status === 'paused') {
+    if (status === 'paused' && !isExpired) {
         resumeBtn?.style.setProperty('display', 'inline-flex');
+    }
+    if (status === 'paused') {
         soldBtn?.style.setProperty('display', 'inline-flex');
     }
     if (status === 'pending_contract') {
         contractBtn?.style.setProperty('display', 'inline-flex');
     }
+}
+
+function setupShowActions() {
+    const pauseBtn    = el('sh-btn-pause');
+    const resumeBtn   = el('sh-btn-resume');
+    const soldBtn     = el('sh-btn-sold');
+    const contractBtn = el('sh-btn-contract');
 
     pauseBtn?.addEventListener('click', async () => {
-        if (!confirm('هل تريد إيقاف الإعلان مؤقتاً؟')) return;
-        try { await apiFetch(cfg().pauseUrl, { method: 'PUT' }); location.reload(); }
-        catch(e) { alert(e.message || 'تعذّر الإيقاف.'); }
+        const ok = await confirmDialog('إيقاف مؤقت؟', 'هل تريد إيقاف الإعلان مؤقتاً؟');
+        if (!ok) return;
+        try {
+            await apiFetch(cfg().pauseUrl, { method: 'PUT' });
+            toast('تم إيقاف الإعلان مؤقتاً.');
+            await loadShowData();
+        } catch (e) {
+            toast(e.message || 'تعذّر الإيقاف.', 'error');
+        }
     });
 
     resumeBtn?.addEventListener('click', async () => {
-        if (!confirm('هل تريد استئناف الإعلان؟')) return;
-        try { await apiFetch(cfg().resumeUrl, { method: 'PUT' }); location.reload(); }
-        catch(e) { alert(e.message || 'تعذّر الاستئناف.'); }
+        const ok = await confirmDialog('استئناف الإعلان؟', 'هل تريد استئناف الإعلان؟');
+        if (!ok) return;
+        try {
+            await apiFetch(cfg().resumeUrl, { method: 'PUT' });
+            toast('تم استئناف الإعلان.');
+            await loadShowData();
+        } catch (e) {
+            toast(e.message || 'تعذّر الاستئناف.', 'error');
+        }
     });
 
     soldBtn?.addEventListener('click', async () => {
-        if (!confirm('هل تريد تمييز الإعلان كـ "تم البيع / الإيجار"؟')) return;
-        try { await apiFetch(cfg().markSoldUrl, { method: 'PUT' }); location.reload(); }
-        catch(e) { alert(e.message || 'تعذّرت العملية.'); }
+        const ok = await confirmDialog('تمييز كـ "تم البيع"؟', 'هل تريد تمييز الإعلان كـ "تم البيع / الإيجار"؟');
+        if (!ok) return;
+        try {
+            await apiFetch(cfg().markSoldUrl, { method: 'PUT' });
+            toast('تم تمييز الإعلان كـ "تم البيع".');
+            await loadShowData();
+        } catch (e) {
+            toast(e.message || 'تعذّرت العملية.', 'error');
+        }
     });
 
     contractBtn?.addEventListener('click', () => openContractModal());
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Contract modal (show page)
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Contract modal ───────────────────────────────────────────────────────────
 async function openContractModal() {
-    const modal   = el('sh-contract-modal');
-    const loading = el('sh-contract-modal-loading');
-    const body    = el('sh-contract-modal-body');
-    const textEl  = el('sh-contract-modal-text');
+    const modal     = el('sh-contract-modal');
+    const loadingEl = el('sh-contract-modal-loading');
+    const bodyEl    = el('sh-contract-modal-body');
+    const textEl    = el('sh-contract-modal-text');
     const acceptBtn = el('sh-contract-accept-btn');
+    const errorEl   = el('sh-contract-modal-error');
 
     if (!modal) return;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
-    if (loading) loading.style.display = 'block';
-    if (body) body.classList.add('hidden');
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (bodyEl)    bodyEl.classList.add('hidden');
+    if (acceptBtn) acceptBtn.style.display = 'none';
+    if (errorEl)   errorEl.classList.add('hidden');
+
+    // Reset fields
+    const sigEl   = el('sh-contract-sig-name');
+    const agreeEl = el('sh-contract-modal-agree');
+    if (sigEl)   sigEl.value     = '';
+    if (agreeEl) agreeEl.checked = false;
 
     try {
-        const data = await apiFetch(cfg().contractUrl);
-        const content = data.data?.content_ar || data.data?.content_en || 'محتوى العقد غير متاح.';
+        const data    = await apiFetch(cfg().contractUrl);
+        const content = data.data?.content_ar || data.data?.content_en || data.data?.content || 'محتوى العقد غير متاح.';
         if (textEl) textEl.textContent = content;
-        if (loading) loading.style.display = 'none';
-        if (body) body.classList.remove('hidden');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (bodyEl)    bodyEl.classList.remove('hidden');
         if (acceptBtn) acceptBtn.style.display = 'inline-flex';
+        updateContractAcceptBtn();
     } catch {
-        if (loading) loading.textContent = 'تعذّر تحميل العقد.';
+        if (loadingEl) loadingEl.textContent = 'تعذّر تحميل العقد.';
     }
+}
+
+function updateContractAcceptBtn() {
+    const acceptBtn = el('sh-contract-accept-btn');
+    if (!acceptBtn) return;
+    const sigFilled = !!(el('sh-contract-sig-name')?.value.trim());
+    const agreed    = !!(el('sh-contract-modal-agree')?.checked);
+    acceptBtn.disabled = !(sigFilled && agreed);
 }
 
 function closeContractModal() {
@@ -885,9 +1026,7 @@ function closeContractModal() {
     document.body.style.overflow = '';
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Inquiries (show page)
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Inquiries ────────────────────────────────────────────────────────────────
 async function loadInquiries() {
     const loadingEl = el('sh-inquiries-loading');
     const emptyEl   = el('sh-inquiries-empty');
@@ -895,12 +1034,11 @@ async function loadInquiries() {
     const countEl   = el('sh-inquiries-count');
 
     try {
-        const data = await apiFetch(cfg().inquiriesUrl);
-        const items = data.data?.items || [];
+        const data  = await apiFetch(cfg().inquiriesUrl);
+        const items = data.data?.items || data.data || [];
 
         if (loadingEl) loadingEl.style.display = 'none';
-
-        if (countEl) countEl.textContent = items.length;
+        if (countEl)   countEl.textContent = items.length;
 
         if (!items.length) {
             if (emptyEl) emptyEl.classList.remove('hidden');
@@ -918,15 +1056,14 @@ async function loadInquiries() {
 
 function renderInquiryRow(inq) {
     const statusMap = {
-        new:      { label: 'جديد',          cls: 'bg-blue-100 text-blue-700' },
-        read:     { label: 'مقروء',          cls: 'bg-gray-100 text-gray-600' },
-        replied:  { label: 'تم الرد',        cls: 'bg-emerald-100 text-emerald-700' },
-        closed:   { label: 'مغلق',           cls: 'bg-gray-100 text-gray-500' },
+        new:     { label: 'جديد',    cls: 'bg-blue-100 text-blue-700' },
+        read:    { label: 'مقروء',   cls: 'bg-gray-100 text-gray-600' },
+        replied: { label: 'تم الرد', cls: 'bg-emerald-100 text-emerald-700' },
+        closed:  { label: 'مغلق',    cls: 'bg-gray-100 text-gray-500' },
     };
     const s = statusMap[inq.status] || { label: inq.status, cls: 'bg-gray-100 text-gray-600' };
-
-    const statusOptions = ['new','read','replied','closed'].map(v =>
-        `<option value="${v}" ${inq.status === v ? 'selected' : ''}>${statusMap[v]?.label || v}</option>`
+    const statusOptions = Object.entries(statusMap).map(([v, sm]) =>
+        `<option value="${v}" ${inq.status === v ? 'selected' : ''}>${sm.label}</option>`
     ).join('');
 
     return `<div class="px-5 py-4 space-y-2" id="inq-row-${inq.id}">
@@ -946,75 +1083,71 @@ function renderInquiryRow(inq) {
     </div>`;
 }
 
-window.updateInquiryStatus = async function(inquiryId, status) {
+window.updateInquiryStatus = async function (inquiryId, status) {
     const url = cfg().inquiryStatusBaseUrl.replace('__ID__', inquiryId);
     try {
-        await apiFetch(url, { method: 'PUT', body: JSON.stringify({ status }) });
-    } catch(e) {
-        alert(e.message || 'تعذّر تحديث الحالة.');
+        await apiFetch(url, { method: 'POST', body: JSON.stringify({ status }) });
+    } catch (e) {
+        toast(e.message || 'تعذّر تحديث الحالة.', 'error');
     }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Init
+// Boot
 // ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
     // ── Index page ────────────────────────────────────────────────────────────
     if (el('cl-tbody')) {
+        initIndexPage();
         wizInit();
-        loadListings();
-
-        el('cl-filter-status')?.addEventListener('change', e => {
-            currentStatus = e.target.value;
-            loadListings(1);
-        });
-
-        el('cl-search')?.addEventListener('input', () => {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => loadListings(1), 400);
-        });
     }
 
     // ── Show page ─────────────────────────────────────────────────────────────
     if (cfg().showId) {
-        initShowPage();
+        loadShowData();
+        loadInquiries();
+        setupShowActions();
 
+        // Contract modal wiring
         el('sh-contract-close')?.addEventListener('click', closeContractModal);
         el('sh-contract-cancel-btn')?.addEventListener('click', closeContractModal);
         el('sh-contract-backdrop')?.addEventListener('click', closeContractModal);
 
-        el('sh-contract-modal-agree')?.addEventListener('change', e => {
-            const btn = el('sh-contract-accept-btn');
-            if (btn) btn.disabled = !e.target.checked;
-        });
+        // Enable accept button only when both conditions are met
+        el('sh-contract-sig-name')?.addEventListener('input', updateContractAcceptBtn);
+        el('sh-contract-modal-agree')?.addEventListener('change', updateContractAcceptBtn);
 
         el('sh-contract-accept-btn')?.addEventListener('click', async () => {
             const sigName = el('sh-contract-sig-name')?.value.trim();
-            if (!el('sh-contract-modal-agree')?.checked) {
-                el('sh-contract-modal-error').textContent = 'يجب الموافقة على العقد.';
-                el('sh-contract-modal-error').classList.remove('hidden');
+            const agreed  = el('sh-contract-modal-agree')?.checked;
+            const errorEl = el('sh-contract-modal-error');
+
+            if (!agreed) {
+                if (errorEl) { errorEl.textContent = 'يجب الموافقة على العقد.'; errorEl.classList.remove('hidden'); }
                 return;
             }
             if (!sigName) {
-                el('sh-contract-modal-error').textContent = 'يرجى إدخال الاسم للتوقيع.';
-                el('sh-contract-modal-error').classList.remove('hidden');
+                if (errorEl) { errorEl.textContent = 'يرجى إدخال الاسم للتوقيع.'; errorEl.classList.remove('hidden'); }
                 return;
             }
+
             const btn = el('sh-contract-accept-btn');
-            btn.disabled = true;
+            btn.disabled    = true;
             btn.textContent = 'جاري القبول...';
+
             try {
                 await apiFetch(cfg().contractAcceptUrl, {
                     method: 'POST',
-                    body: JSON.stringify({ signature_name: sigName }),
+                    body:   JSON.stringify({ signature_name: sigName, agreed: true }),
                 });
-                location.reload();
-            } catch(e) {
+                closeContractModal();
+                toast('تم قبول العقد بنجاح. سيتم مراجعة الإعلان قريباً.');
+                await loadShowData();
+            } catch (e) {
                 const msg = e.errors ? Object.values(e.errors)[0]?.[0] : e.message;
-                el('sh-contract-modal-error').textContent = msg || 'حدث خطأ.';
-                el('sh-contract-modal-error').classList.remove('hidden');
-                btn.disabled = false;
+                if (errorEl) { errorEl.textContent = msg || 'حدث خطأ.'; errorEl.classList.remove('hidden'); }
+                btn.disabled    = false;
                 btn.textContent = 'قبول العقد وإرسال للمراجعة';
             }
         });

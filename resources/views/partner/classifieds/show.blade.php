@@ -6,20 +6,15 @@
     @vite('resources/js/partner/classifieds.js')
     <script>
         window.CLASSIFIEDS_CFG = {
-            categoriesUrl: "{{ route('vendor.classifieds.categories') }}",
-            listUrl:       "{{ route('vendor.classifieds.index') }}",
-            storeUrl:      "{{ route('vendor.classifieds.store') }}",
-            showBaseUrl:   "{{ rtrim(route('partner.classifieds.index'), '/') }}",
-            countryId:     "{{ auth('vendor')->user()->vendor?->country_id ?? '' }}",
             showId:        "{{ $listingId }}",
-            showUrl:       "{{ route('vendor.classifieds.show', $listingId) }}",
-            pauseUrl:      "{{ route('vendor.classifieds.pause', $listingId) }}",
-            resumeUrl:     "{{ route('vendor.classifieds.resume', $listingId) }}",
-            markSoldUrl:   "{{ route('vendor.classifieds.mark-sold', $listingId) }}",
-            inquiriesUrl:  "{{ route('vendor.classifieds.inquiries.index', $listingId) }}",
-            inquiryStatusBaseUrl: "{{ rtrim(route('vendor.classifieds.inquiries.status', ['inquiryId' => '__ID__']), '') }}",
-            contractUrl:   "{{ route('vendor.classifieds.contract.show', $listingId) }}",
-            contractAcceptUrl: "{{ route('vendor.classifieds.contract.accept', $listingId) }}",
+            showDataUrl:   "{{ route('partner.classifieds.show-data', $listingId) }}",
+            pauseUrl:      "{{ route('partner.classifieds.pause', $listingId) }}",
+            resumeUrl:     "{{ route('partner.classifieds.resume', $listingId) }}",
+            markSoldUrl:   "{{ route('partner.classifieds.mark-sold', $listingId) }}",
+            inquiriesUrl:  "{{ route('partner.classifieds.inquiries.index', $listingId) }}",
+            inquiryStatusBaseUrl: "{{ rtrim(route('partner.classifieds.inquiries.status', ['id' => $listingId, 'inquiryId' => '__ID__']), '') }}",
+            contractUrl:       "{{ route('partner.classifieds.contract.show', $listingId) }}",
+            contractAcceptUrl: "{{ route('partner.classifieds.contract.accept', $listingId) }}",
             indexUrl:      "{{ route('partner.classifieds.index') }}",
         };
     </script>

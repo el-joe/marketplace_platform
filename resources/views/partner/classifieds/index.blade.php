@@ -6,11 +6,9 @@
     @vite('resources/js/partner/classifieds.js')
     <script>
         window.CLASSIFIEDS_CFG = {
-            categoriesUrl: "{{ route('vendor.classifieds.categories') }}",
-            listUrl:       "{{ route('vendor.classifieds.index') }}",
-            storeUrl:      "{{ route('vendor.classifieds.store') }}",
-            showBaseUrl:   "{{ rtrim(route('partner.classifieds.index'), '/') }}",
-            countryId:     "{{ auth('vendor')->user()->vendor?->country_id ?? '' }}",
+            datatableUrl:  "{{ route('partner.classifieds.datatable') }}",
+            categoriesUrl: "{{ route('partner.classifieds.categories') }}",
+            storeUrl:      "{{ route('partner.classifieds.store') }}",
         };
     </script>
 @endpush

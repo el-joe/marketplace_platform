@@ -19,6 +19,7 @@ use App\Http\Controllers\Partner\MarketerSampleController as PartnerMarketerSamp
 use App\Http\Controllers\Partner\TeamController;
 use App\Http\Controllers\Partner\WarehouseController;
 use App\Http\Controllers\Partner\AdsController;
+use App\Http\Controllers\Partner\ClassifiedListingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -279,7 +280,24 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ─── السوق المفتوح (Classifieds) ─────────────────────────────────────────
     Route::prefix('classifieds')->name('classifieds.')->group(function () {
-        Route::get('/',    [\App\Http\Controllers\Partner\ClassifiedListingController::class, 'index'])->name('index');
-        Route::get('{id}', [\App\Http\Controllers\Partner\ClassifiedListingController::class, 'show'])->name('show');
+        Route::get('/',                [ClassifiedListingController::class, 'index'])->name('index');
+        Route::post('/datatable',      [ClassifiedListingController::class, 'datatable'])->name('datatable');
+        Route::get('/categories',      [ClassifiedListingController::class, 'categories'])->name('categories');
+        Route::post('/',               [ClassifiedListingController::class, 'store'])->name('store');
+        Route::get('/{id}',            [ClassifiedListingController::class, 'show'])->name('show');
+        Route::get('/{id}/data',       [ClassifiedListingController::class, 'showData'])->name('show-data');
+        Route::post('/{id}/pause',     [ClassifiedListingController::class, 'pause'])->name('pause');
+        Route::post('/{id}/resume',    [ClassifiedListingController::class, 'resume'])->name('resume');
+        Route::post('/{id}/mark-sold', [ClassifiedListingController::class, 'markSold'])->name('mark-sold');
+
+        Route::prefix('{id}/inquiries')->name('inquiries.')->group(function () {
+            Route::get('/', [ClassifiedListingController::class, 'inquiriesIndex'])->name('index');
+            Route::post('/{inquiryId}/status', [ClassifiedListingController::class, 'updateInquiryStatus'])->name('status');
+        });
+
+        Route::prefix('{id}/contract')->name('contract.')->group(function () {
+            Route::get('/',  [ClassifiedListingController::class, 'contractShow'])->name('show');
+            Route::post('/', [ClassifiedListingController::class, 'contractAccept'])->name('accept');
+        });
     });
 });
