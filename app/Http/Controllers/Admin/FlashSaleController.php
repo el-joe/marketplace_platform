@@ -152,18 +152,28 @@ class FlashSaleController extends Controller
     {
         $flashSale->load(['country', 'createdByAdmin', 'updatedByAdmin']);
 
-        $submissionStats = \App\Models\FlashSaleSubmission::where('flash_sale_id', $flashSale->id)
+        $submissionStats = FlashSaleSubmission::where('flash_sale_id', $flashSale->id)
             ->selectRaw('status, COUNT(*) as cnt')
             ->groupBy('status')
             ->pluck('cnt', 'status');
 
-        $invitationCount = \App\Models\FlashSaleVendorInvitition::where('flash_sale_id', $flashSale->id)->count();
+        $invitationStatuses = ['pending', 'accepted', 'declined', 'submitted'];
+        $invitationCounts = FlashSaleVendorInvitition::where('flash_sale_id', $flashSale->id)
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+
+        $invitationStats = collect($invitationStatuses)
+            ->mapWithKeys(fn($s) => [$s => (int) ($invitationCounts[$s] ?? 0)]);
+
+        $invitationCount = $invitationStats->sum();
 
         $nextStatuses = $flashSale->getNextStatuses();
 
         return view('admin.flash-sales.show', compact(
             'flashSale',
             'submissionStats',
+            'invitationStats',
             'invitationCount',
             'nextStatuses',
         ));
@@ -177,10 +187,27 @@ class FlashSaleController extends Controller
     {
         $flashSale->load(['country', 'createdByAdmin']);
 
+        $invitationStatuses = ['pending', 'accepted', 'declined', 'submitted'];
+        $invitationCounts = FlashSaleVendorInvitition::where('flash_sale_id', $flashSale->id)
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+        $invitationStats = collect($invitationStatuses)
+            ->mapWithKeys(fn($s) => [$s => (int) ($invitationCounts[$s] ?? 0)]);
+        $invitationCount = $invitationStats->sum();
+
+        $submissionStats = FlashSaleSubmission::where('flash_sale_id', $flashSale->id)
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+
         return view('admin.flash-sales.edit', [
             'sale' => $flashSale,
             'countries' => Country::orderBy('name_en')->where('is_launched', true)->get(),
             'categories' => Category::orderBy('name_en')->get(),
+            'invitationStats' => $invitationStats,
+            'invitationCount' => $invitationCount,
+            'submissionStats' => $submissionStats,
         ]);
     }
 
@@ -207,13 +234,14 @@ class FlashSaleController extends Controller
     public function transition(Request $request, FlashSale $flashSale): JsonResponse
     {
         $request->validate([
-            'action' => 'required|in:open_submissions,close_submissions,start_sale,end_sale,mark_approved,cancel',
+            'action' => 'required|in:open_submissions,close_submissions,move_to_review,start_sale,end_sale,mark_approved,cancel',
             'reason' => 'required_if:action,cancel|nullable|string|max:500',
         ]);
 
         $actionToStatus = [
             'open_submissions' => 'submission_open',
             'close_submissions' => 'submission_closed',
+            'move_to_review' => 'under_review',
             'mark_approved' => 'approved',
             'start_sale' => 'live',
             'end_sale' => 'ended',
@@ -244,13 +272,38 @@ class FlashSaleController extends Controller
     // Vendor invitations
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function inviteVendors(FlashSale $flashSale): JsonResponse
+    public function inviteVendors(Request $request, FlashSale $flashSale): JsonResponse
     {
+        if ($request->filled('vendor_ids')) {
+            $request->validate([
+                'vendor_ids' => 'required|array',
+                'vendor_ids.*' => 'string',
+            ]);
+
+            $invited = 0;
+            $skipped = 0;
+            foreach ($request->vendor_ids as $vendorId) {
+                $vendor = \App\Models\Vendor::find($vendorId);
+                if (!$vendor) {
+                    $skipped++;
+                    continue;
+                }
+                $this->flashSaleService->inviteVendorManually($flashSale, $vendorId);
+                $invited++;
+            }
+
+            return response()->json([
+                'success' => true,
+                'count' => $invited,
+                'message' => "{$invited} vendor(s) invited" . ($skipped ? ", {$skipped} not found." : '.'),
+            ]);
+        }
+
         $count = $this->flashSaleService->inviteEligibleVendors($flashSale);
         return response()->json([
             'success' => true,
             'count' => $count,
-            'message' => "{$count} vendors invited.",
+            'message' => "{$count} eligible vendor(s) invited.",
         ]);
     }
 
@@ -262,25 +315,56 @@ class FlashSaleController extends Controller
 
     public function invitationsDatatable(Request $request, FlashSale $flashSale): JsonResponse
     {
-        $query = FlashSaleVendorInvitition::where('flash_sale_id', $flashSale->id)
-            ->join('vendors', 'vendors.id', '=', 'flash_sale_vendor_invititions.vendor_id')
+        $query = FlashSaleVendorInvitition::where('flash_sale_vendor_invititions.flash_sale_id', $flashSale->id)
+            ->leftJoin('vendors', 'vendors.id', '=', 'flash_sale_vendor_invititions.vendor_id')
             ->select([
-                'flash_sale_vendor_invititions.*',
+                'flash_sale_vendor_invititions.id',
+                'flash_sale_vendor_invititions.vendor_id',
+                'flash_sale_vendor_invititions.invitation_type',
+                'flash_sale_vendor_invititions.status',
+                'flash_sale_vendor_invititions.invited_at',
+                'flash_sale_vendor_invititions.notified_at',
+                'flash_sale_vendor_invititions.responded_at',
+                'flash_sale_vendor_invititions.decline_reason',
+                'flash_sale_vendor_invititions.slots_allocated',
                 'vendors.store_name',
             ]);
+
+        if ($request->filled('status')) {
+            $query->where('flash_sale_vendor_invititions.status', $request->status);
+        }
 
         return $this->dataTableResponse($request, $query, [], function ($row) {
             return [
                 'id' => $row->id,
-                'store_name' => e($row->store_name),
+                'vendor_id' => $row->vendor_id,
+                'store_name' => e($row->store_name ?? '(unknown vendor)'),
                 'invitation_type' => $row->invitation_type,
                 'status' => $row->status,
+                'slots_allocated' => $row->slots_allocated,
                 'invited_at' => $row->invited_at?->toDateTimeString(),
                 'notified_at' => $row->notified_at?->toDateTimeString(),
                 'responded_at' => $row->responded_at?->toDateTimeString(),
                 'decline_reason' => e($row->decline_reason ?? ''),
+                'can_resend' => in_array($row->status, ['pending', 'declined'], true),
             ];
         });
+    }
+
+    public function resendInvitation(FlashSale $flashSale, FlashSaleVendorInvitition $invitation): JsonResponse
+    {
+        if ($invitation->flash_sale_id !== $flashSale->id) {
+            return response()->json(['message' => 'Invitation does not belong to this flash sale.'], 403);
+        }
+
+        if (!in_array($invitation->status, ['pending', 'declined'], true)) {
+            return response()->json(['message' => 'Notifications can only be resent for pending or declined invitations.'], 422);
+        }
+
+        $invitation->update(['notified_at' => now()]);
+        \App\Jobs\FlashSaleInviteBulkJob::dispatch($flashSale->id, [$invitation->vendor_id]);
+
+        return response()->json(['success' => true, 'message' => 'Notification queued for resend.']);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -408,7 +492,7 @@ class FlashSaleController extends Controller
     // Submission detail (for review modal)
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function submissionDetail(FlashSale $flashSale, FlashSaleSubmission $submission): JsonResponse
+    public function submissionDetail(FlashSaleSubmission $submission): JsonResponse
     {
         $submission->load(['vendorListing.productVariant.product.images', 'histories', 'reviewedByAdmin']);
 
@@ -526,8 +610,8 @@ class FlashSaleController extends Controller
 
     public function analyticsData(FlashSale $flashSale): JsonResponse
     {
-        if ($flashSale->status !== 'ended') {
-            return response()->json(['message' => 'Analytics are available after the sale ends.'], 422);
+        if (!in_array($flashSale->status, ['live', 'ended'])) {
+            return response()->json(['message' => 'Analytics are available once the sale is live or has ended.'], 422);
         }
 
         $byDay = FlashSaleAnalytic::where('flash_sale_id', $flashSale->id)

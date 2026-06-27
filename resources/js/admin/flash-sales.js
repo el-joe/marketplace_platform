@@ -449,7 +449,7 @@ $(function () {
         $(this).serializeArray().forEach(p => { data[p.name] = p.value; });
         const $btn = $('#review-submit-btn').prop('disabled', true).text('Saving…');
 
-        ajax('POST', `/admin/flash-sales/submissions/${submissionId}/review`, data)
+        ajax('POST', `/flash-sales/submissions/${submissionId}/review`, data)
             .done(res => {
                 Toast.success(res.message ?? 'Decision saved.');
                 closeModal('review-modal');

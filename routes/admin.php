@@ -306,6 +306,8 @@ Route::middleware('auth.admin')->group(function () {
             Route::get('/eligible-vendor-count', [FlashSaleController::class, 'eligibleVendorCount'])->name('eligible-vendor-count');
             Route::post('/invite-vendors', [FlashSaleController::class, 'inviteVendors'])->name('invite-vendors');
             Route::post('/invitations/datatable', [FlashSaleController::class, 'invitationsDatatable'])->name('invitations.datatable');
+            Route::post('/invitations/{invitation}/resend', [FlashSaleController::class, 'resendInvitation'])->name('invitations.resend')
+                ->middleware('admin.permission:flash_sales.edit');
 
             Route::get('/submission-stats', [FlashSaleController::class, 'submissionStats'])->name('submission-stats');
             Route::post('/submissions/datatable', [FlashSaleController::class, 'submissionsDatatable'])->name('submissions.datatable');
@@ -1070,44 +1072,44 @@ Route::middleware('auth.admin')->group(function () {
             ->names('channels')
             ->except(['show']);
 
-        Route::get('/channels/{channel}/schedule',              [\App\Http\Controllers\Admin\RadioChannelController::class, 'schedule'])->name('schedule');
-        Route::get('/channels/{channel}/schedule/events',       [\App\Http\Controllers\Admin\RadioChannelController::class, 'scheduleEvents'])->name('schedule.events');
-        Route::post('/channels/{channel}/slots',                [\App\Http\Controllers\Admin\RadioChannelController::class, 'storeSlot'])->name('slots.store');
-        Route::put('/channels/{channel}/slots/{slot}',          [\App\Http\Controllers\Admin\RadioChannelController::class, 'updateSlot'])->name('slots.update');
-        Route::delete('/channels/{channel}/slots/{slot}',       [\App\Http\Controllers\Admin\RadioChannelController::class, 'destroySlot'])->name('slots.destroy');
+        Route::get('/channels/{channel}/schedule', [\App\Http\Controllers\Admin\RadioChannelController::class, 'schedule'])->name('schedule');
+        Route::get('/channels/{channel}/schedule/events', [\App\Http\Controllers\Admin\RadioChannelController::class, 'scheduleEvents'])->name('schedule.events');
+        Route::post('/channels/{channel}/slots', [\App\Http\Controllers\Admin\RadioChannelController::class, 'storeSlot'])->name('slots.store');
+        Route::put('/channels/{channel}/slots/{slot}', [\App\Http\Controllers\Admin\RadioChannelController::class, 'updateSlot'])->name('slots.update');
+        Route::delete('/channels/{channel}/slots/{slot}', [\App\Http\Controllers\Admin\RadioChannelController::class, 'destroySlot'])->name('slots.destroy');
     });
 
     // ─── Carrier Claims ───────────────────────────────────────────────────────
     Route::prefix('carrier-claims')->name('carrier-claims.')->group(function () {
-        Route::get('/',                                     [\App\Http\Controllers\Admin\CarrierClaimController::class, 'index'])->name('index');
-        Route::get('/{carrierClaim}',                       [\App\Http\Controllers\Admin\CarrierClaimController::class, 'show'])->name('show');
-        Route::patch('/{carrierClaim}/resolve',             [\App\Http\Controllers\Admin\CarrierClaimController::class, 'resolve'])->name('resolve');
-        Route::patch('/{carrierClaim}/under-review',        [\App\Http\Controllers\Admin\CarrierClaimController::class, 'markUnderReview'])->name('under-review');
+        Route::get('/', [\App\Http\Controllers\Admin\CarrierClaimController::class, 'index'])->name('index');
+        Route::get('/{carrierClaim}', [\App\Http\Controllers\Admin\CarrierClaimController::class, 'show'])->name('show');
+        Route::patch('/{carrierClaim}/resolve', [\App\Http\Controllers\Admin\CarrierClaimController::class, 'resolve'])->name('resolve');
+        Route::patch('/{carrierClaim}/under-review', [\App\Http\Controllers\Admin\CarrierClaimController::class, 'markUnderReview'])->name('under-review');
     });
 
     // ─── Carrier Scorecard ────────────────────────────────────────────────────
     Route::prefix('carrier-scorecard')->name('carrier-scorecard.')->group(function () {
-        Route::get('/',                                     [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'index'])->name('index');
-        Route::get('/{shippingCompany}',                    [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'show'])->name('show');
-        Route::get('/{shippingCompany}/trend',              [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'trendData'])->name('trend');
+        Route::get('/', [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'index'])->name('index');
+        Route::get('/{shippingCompany}', [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'show'])->name('show');
+        Route::get('/{shippingCompany}/trend', [\App\Http\Controllers\Admin\CarrierScorecardController::class, 'trendData'])->name('trend');
     });
 
     // ─── Packaging Supplies ───────────────────────────────────────────────────
     Route::prefix('packaging-supplies')->name('packaging-supplies.')->group(function () {
         // Catalog CRUD
-        Route::get('/',                    [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'index'])->name('index');
-        Route::get('/create',              [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'create'])->name('create');
-        Route::post('/',                   [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'store'])->name('store');
+        Route::get('/', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'store'])->name('store');
         Route::get('/{packagingSupply}/edit', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'edit'])->name('edit');
-        Route::put('/{packagingSupply}',   [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'update'])->name('update');
-        Route::delete('/{packagingSupply}',[\App\Http\Controllers\Admin\PackagingSupplyController::class, 'destroy'])->name('destroy');
+        Route::put('/{packagingSupply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'update'])->name('update');
+        Route::delete('/{packagingSupply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'destroy'])->name('destroy');
 
         // Requests queue
-        Route::get('/requests',                                     [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'requests'])->name('requests');
-        Route::get('/requests/{packagingSupplyRequest}',            [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'showRequest'])->name('show-request');
-        Route::patch('/requests/{packagingSupplyRequest}/approve',  [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'approveRequest'])->name('approve-request');
-        Route::patch('/requests/{packagingSupplyRequest}/reject',   [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'rejectRequest'])->name('reject-request');
-        Route::patch('/requests/{packagingSupplyRequest}/status',   [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'updateRequestStatus'])->name('update-request-status');
+        Route::get('/requests', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'requests'])->name('requests');
+        Route::get('/requests/{packagingSupplyRequest}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'showRequest'])->name('show-request');
+        Route::patch('/requests/{packagingSupplyRequest}/approve', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'approveRequest'])->name('approve-request');
+        Route::patch('/requests/{packagingSupplyRequest}/reject', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'rejectRequest'])->name('reject-request');
+        Route::patch('/requests/{packagingSupplyRequest}/status', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'updateRequestStatus'])->name('update-request-status');
     });
 
 }); // end auth.admin middleware group

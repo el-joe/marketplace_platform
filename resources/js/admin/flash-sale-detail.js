@@ -209,7 +209,7 @@ function openReviewModal(submissionId) {
     if (approveRadio) approveRadio.click();
 
     // Open modal
-    window.dispatchEvent(new CustomEvent('modal:open', { detail: { id: 'review-modal' } }));
+    $('#review-modal').modal('open');
 
     // Fetch detail
     const detailUrl = `${window.URLS.submissionDetail}/${submissionId}/detail`;
@@ -310,8 +310,8 @@ function confirmReview() {
         success(res) {
             btn.disabled = false;
             btn.textContent = 'Confirm Decision';
-            window.dispatchEvent(new CustomEvent('modal:close', { detail: { id: 'review-modal' } }));
-            window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: res.message || 'Submission reviewed.' } }));
+            $('#review-modal').modal('close');
+            window.Toast.success(res.message || 'Submission reviewed.');
             if ($.fn.DataTable.isDataTable('#submissions-table')) {
                 $('#submissions-table').DataTable().ajax.reload(null, false);
             }
@@ -320,7 +320,7 @@ function confirmReview() {
             btn.disabled = false;
             btn.textContent = 'Confirm Decision';
             const msg = xhr.responseJSON?.message || 'Review failed.';
-            window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
+            window.Toast.error(msg);
         },
     });
 }
@@ -331,7 +331,7 @@ function initBulkReject() {
     document.getElementById('btn-bulk-reject')?.addEventListener('click', () => {
         if (!selectedSubmissionIds.size) return;
         document.getElementById('bulk-reject-count').textContent = selectedSubmissionIds.size;
-        window.dispatchEvent(new CustomEvent('modal:open', { detail: { id: 'bulk-reject-modal' } }));
+        $('#bulk-reject-modal').modal('open');
     });
 
     document.getElementById('btn-confirm-bulk-reject')?.addEventListener('click', () => {
@@ -349,11 +349,9 @@ function initBulkReject() {
                 _token: $('meta[name="csrf-token"]').attr('content'),
             },
             success(res) {
-                window.dispatchEvent(new CustomEvent('modal:close', { detail: { id: 'bulk-reject-modal' } }));
+                $('#bulk-reject-modal').modal('close');
                 const d = res.data;
-                window.dispatchEvent(new CustomEvent('toast', {
-                    detail: { type: 'success', message: `Rejected: ${d.rejected}, Failed: ${d.failed}` },
-                }));
+                window.Toast.success(`Rejected: ${d.rejected}, Failed: ${d.failed}`);
                 selectedSubmissionIds.clear();
                 updateBulkRejectVisibility();
                 if ($.fn.DataTable.isDataTable('#submissions-table')) {
@@ -362,7 +360,7 @@ function initBulkReject() {
             },
             error(xhr) {
                 const msg = xhr.responseJSON?.message || 'Bulk reject failed.';
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
+                window.Toast.error(msg);
             },
         });
     });
@@ -376,7 +374,7 @@ function initTransitionButtons() {
         const needsConfirm = $(this).data('needs-confirm') === '1' || $(this).data('needs-confirm') === 1;
 
         if (action === 'cancel') {
-            window.dispatchEvent(new CustomEvent('modal:open', { detail: { id: 'cancel-modal' } }));
+            $('#cancel-modal').modal('open');
             return;
         }
 
@@ -398,14 +396,12 @@ function doTransition(action, reason = '') {
             _token: $('meta[name="csrf-token"]').attr('content'),
         },
         success(res) {
-            window.dispatchEvent(new CustomEvent('toast', {
-                detail: { type: 'success', message: res.message || 'Status updated.' },
-            }));
+            window.Toast.success(res.message || 'Status updated.');
             setTimeout(() => window.location.reload(), 800);
         },
         error(xhr) {
             const msg = xhr.responseJSON?.message || 'Transition failed.';
-            window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
+            window.Toast.error(msg);
         },
     });
 }
@@ -415,7 +411,7 @@ function doTransition(action, reason = '') {
 function initCancelModal() {
     document.getElementById('btn-confirm-cancel')?.addEventListener('click', () => {
         const reason = document.getElementById('cancel-reason').value;
-        window.dispatchEvent(new CustomEvent('modal:close', { detail: { id: 'cancel-modal' } }));
+        $('#cancel-modal').modal('close');
         doTransition('cancel', reason);
     });
 }
@@ -423,9 +419,9 @@ function initCancelModal() {
 // ─── Invitations DataTable ────────────────────────────────────────────────────
 
 const INV_STATUS_BADGES = {
-    pending: { label: 'Pending', color: 'gray' },
-    accepted: { label: 'Accepted', color: 'success' },
-    declined: { label: 'Declined', color: 'danger' },
+    pending:   { label: 'Pending',   color: 'warning' },
+    accepted:  { label: 'Accepted',  color: 'success' },
+    declined:  { label: 'Declined',  color: 'danger' },
     submitted: { label: 'Submitted', color: 'primary' },
 };
 
@@ -436,33 +432,106 @@ function initInvitationsTable() {
         url: window.URLS.invitationsDt,
         method: 'POST',
         columns: [
-            { data: 'store_name', title: 'Vendor' },
-            { data: 'invitation_type', title: 'Type', render: d => d === 'manual' ? '✋ Manual' : '🤖 Auto' },
+            {
+                data: 'store_name',
+                title: 'Vendor',
+                render: (d, t, row) =>
+                    `<span class="font-medium text-gray-900">${d}</span>`
+                    + (row.vendor_id ? `<div class="text-xs text-gray-400 font-mono">${row.vendor_id.slice(0, 8)}…</div>` : ''),
+            },
+            {
+                data: 'invitation_type',
+                title: 'Type',
+                render: d => d === 'manual'
+                    ? '<span class="text-xs font-medium text-purple-700">✋ Manual</span>'
+                    : '<span class="text-xs font-medium text-blue-600">🤖 Auto</span>',
+            },
             {
                 data: 'status',
                 title: 'Status',
-                render: d => {
+                render: (d, t, row) => {
                     const b = INV_STATUS_BADGES[d] || { label: d, color: 'gray' };
-                    return `<span class="badge badge-${b.color}">${b.label}</span>`;
+                    let html = `<span class="badge badge-${b.color}">${b.label}</span>`;
+                    if (d === 'declined' && row.decline_reason) {
+                        html += ` <button type="button" class="btn-view-decline text-xs text-gray-400 underline ml-1"
+                            data-vendor="${row.store_name}" data-reason="${row.decline_reason.replace(/"/g, '&quot;')}">view reason</button>`;
+                    }
+                    return html;
                 },
             },
             {
                 data: 'slots_allocated',
                 title: 'Slots',
-                className: 'text-right font-mono',
-                render: d => d ?? '—',
+                className: 'text-right font-mono text-sm',
+                render: d => d != null ? d : '—',
             },
             {
                 data: 'invited_at',
                 title: 'Invited',
-                render: d => d ? new Date(d).toLocaleDateString() : '—',
+                render: d => d ? `<span class="text-xs text-gray-500">${new Date(d).toLocaleDateString()}</span>` : '—',
             },
             {
                 data: 'responded_at',
                 title: 'Responded',
-                render: d => d ? new Date(d).toLocaleDateString() : '—',
+                render: d => d ? `<span class="text-xs text-gray-500">${new Date(d).toLocaleDateString()}</span>` : '—',
+            },
+            {
+                data: null,
+                title: '',
+                orderable: false,
+                className: 'text-right',
+                render: (d, t, row) => {
+                    if (!row.can_resend) return '';
+                    return `<button type="button" class="btn btn-ghost btn-xs btn-resend-invitation"
+                        data-id="${row.id}" title="Resend notification">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        Resend
+                    </button>`;
+                },
             },
         ],
+        serverSideFilters: {
+            status: () => $('#inv-filter-status').val() || null,
+        },
+    });
+
+    // Status filter
+    $('#inv-filter-status').on('change', function () {
+        if ($.fn.DataTable.isDataTable('#invitations-table')) {
+            $('#invitations-table').DataTable().ajax.reload();
+        }
+    });
+
+    // Decline reason viewer (delegated)
+    $(document).on('click', '.btn-view-decline', function () {
+        document.getElementById('decline-reason-vendor').textContent = $(this).data('vendor');
+        document.getElementById('decline-reason-text').textContent = $(this).data('reason');
+        $('#decline-reason-modal').modal('open');
+    });
+
+    // Resend invitation (delegated)
+    $(document).on('click', '.btn-resend-invitation', function () {
+        const id = $(this).data('id');
+        const btn = this;
+        btn.disabled = true;
+
+        $.ajax({
+            url: `${window.URLS.resendInvitation}/${id}/resend`,
+            method: 'POST',
+            data: { _token: $('meta[name="csrf-token"]').attr('content') },
+            success(res) {
+                btn.disabled = false;
+                window.Toast.success(res.message || 'Notification queued.');
+            },
+            error(xhr) {
+                btn.disabled = false;
+                const msg = xhr.responseJSON?.message || 'Resend failed.';
+                window.Toast.error(msg);
+            },
+        });
     });
 }
 
@@ -470,7 +539,39 @@ function initInvitationsTable() {
 
 function initAutoInvite() {
     document.getElementById('btn-auto-invite')?.addEventListener('click', () => {
-        const btn = document.getElementById('btn-auto-invite');
+        // Reset modal state
+        document.getElementById('auto-invite-loading').classList.remove('hidden');
+        document.getElementById('auto-invite-content').classList.add('hidden');
+        document.getElementById('btn-confirm-auto-invite').classList.add('hidden');
+        document.getElementById('auto-invite-zero-msg').classList.add('hidden');
+
+        $('#auto-invite-modal').modal('open');
+
+        // Fetch eligible count first
+        $.get(window.URLS.eligibleCount)
+            .done(res => {
+                const count = res.data?.count ?? 0;
+                document.getElementById('auto-invite-loading').classList.add('hidden');
+                document.getElementById('auto-invite-content').classList.remove('hidden');
+                document.getElementById('auto-invite-count').textContent = count;
+
+                if (count === 0) {
+                    document.getElementById('auto-invite-zero-msg').classList.remove('hidden');
+                    document.getElementById('auto-invite-confirm-area').classList.add('hidden');
+                    buildCriteriaHint();
+                } else {
+                    document.getElementById('auto-invite-zero-msg').classList.add('hidden');
+                    document.getElementById('auto-invite-confirm-area').classList.remove('hidden');
+                    document.getElementById('btn-confirm-auto-invite').classList.remove('hidden');
+                }
+            })
+            .fail(() => {
+                document.getElementById('auto-invite-loading').textContent = 'Failed to load eligible vendor count.';
+            });
+    });
+
+    document.getElementById('btn-confirm-auto-invite')?.addEventListener('click', () => {
+        const btn = document.getElementById('btn-confirm-auto-invite');
         btn.disabled = true;
         btn.textContent = 'Inviting…';
 
@@ -480,22 +581,31 @@ function initAutoInvite() {
             data: { _token: $('meta[name="csrf-token"]').attr('content') },
             success(res) {
                 btn.disabled = false;
-                btn.textContent = 'Auto-Invite Eligible';
-                window.dispatchEvent(new CustomEvent('toast', {
-                    detail: { type: 'success', message: res.message || `${res.count} vendors invited.` },
-                }));
+                btn.textContent = 'Send Invitations';
+                $('#auto-invite-modal').modal('close');
+                window.Toast.success(res.message || `${res.count} vendor(s) invited.`);
                 if ($.fn.DataTable.isDataTable('#invitations-table')) {
                     $('#invitations-table').DataTable().ajax.reload(null, false);
                 }
             },
             error(xhr) {
                 btn.disabled = false;
-                btn.textContent = 'Auto-Invite Eligible';
+                btn.textContent = 'Send Invitations';
                 const msg = xhr.responseJSON?.message || 'Invite failed.';
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
+                window.Toast.error(msg);
             },
         });
     });
+}
+
+function buildCriteriaHint() {
+    const parts = [];
+    if (window.MIN_DISCOUNT_PCT) parts.push(`min discount ${window.MIN_DISCOUNT_PCT}%`);
+    const hint = parts.length
+        ? `Active criteria: ${parts.join(', ')}. All eligible vendors may already be invited.`
+        : 'All eligible vendors may already be invited, or no active vendors meet the criteria.';
+    const el = document.getElementById('auto-invite-criteria-hint');
+    if (el) el.textContent = hint;
 }
 
 // ─── Manual invite ────────────────────────────────────────────────────────────
@@ -517,17 +627,15 @@ function initManualInvite() {
                 _token: $('meta[name="csrf-token"]').attr('content'),
             },
             success(res) {
-                window.dispatchEvent(new CustomEvent('modal:close', { detail: { id: 'manual-invite-modal' } }));
-                window.dispatchEvent(new CustomEvent('toast', {
-                    detail: { type: 'success', message: res.message || 'Vendors invited.' },
-                }));
+                $('#manual-invite-modal').modal('close');
+                window.Toast.success(res.message || 'Vendors invited.');
                 if ($.fn.DataTable.isDataTable('#invitations-table')) {
                     $('#invitations-table').DataTable().ajax.reload(null, false);
                 }
             },
             error(xhr) {
                 const msg = xhr.responseJSON?.message || 'Failed to invite vendors.';
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
+                window.Toast.error(msg);
             },
         });
     });

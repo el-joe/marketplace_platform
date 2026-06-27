@@ -87,38 +87,11 @@ class FlashSaleService
 
     public function inviteEligibleVendors(FlashSale $sale): int
     {
-        $query = Vendor::where('global_status', 'active');
-
-        if ($sale->country_id) {
-            $query->where('country_id', $sale->country_id);
-        }
-
-        if (!empty($sale->eligible_seller_tiers)) {
-            // Vendors table has no tier column; use total_sales as proxy:
-            //   bronze: < 10 000  |  silver: 10 000–50 000
-            //   gold: 50 000–200 000  |  platinum: > 200 000
-            $query->where(function ($q) use ($sale) {
-                foreach ($sale->eligible_seller_tiers as $tier) {
-                    $q->orWhere(function ($inner) use ($tier) {
-                        match ($tier) {
-                            'bronze' => $inner->where('total_sales', '<', 10000),
-                            'silver' => $inner->whereBetween('total_sales', [10000, 50000]),
-                            'gold' => $inner->whereBetween('total_sales', [50001, 200000]),
-                            'platinum' => $inner->where('total_sales', '>', 200000),
-                            default => null,
-                        };
-                    });
-                }
-            });
-        }
-
-        if ($sale->min_seller_rating !== null) {
-            $query->where('store_rating_avg', '>=', $sale->min_seller_rating);
-        }
+        $query = $this->buildEligibleVendorQuery($sale);
 
         $alreadyInvited = FlashSaleVendorInvitition::where('flash_sale_id', $sale->id)->pluck('vendor_id');
         if ($alreadyInvited->isNotEmpty()) {
-            $query->whereNotIn('id', $alreadyInvited);
+            $query->whereNotIn('vendors.id', $alreadyInvited);
         }
 
         $newIds = [];
@@ -145,10 +118,57 @@ class FlashSaleService
 
     public function countEligibleVendors(FlashSale $sale): int
     {
-        return Vendor::where('global_status', 'active')
-            ->when($sale->country_id, fn($q) => $q->where('country_id', $sale->country_id))
-            ->when($sale->min_seller_rating, fn($q) => $q->where('store_rating_avg', '>=', $sale->min_seller_rating))
-            ->count();
+        $alreadyInvited = FlashSaleVendorInvitition::where('flash_sale_id', $sale->id)->pluck('vendor_id');
+        $query = $this->buildEligibleVendorQuery($sale);
+        if ($alreadyInvited->isNotEmpty()) {
+            $query->whereNotIn('vendors.id', $alreadyInvited);
+        }
+        return $query->count();
+    }
+
+    private function buildEligibleVendorQuery(FlashSale $sale): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Vendor::where('global_status', 'active');
+
+        if ($sale->country_id) {
+            $query->where('country_id', $sale->country_id);
+        }
+
+        if ($sale->min_seller_rating !== null) {
+            $query->where('store_rating_avg', '>=', $sale->min_seller_rating);
+        }
+
+        if (!empty($sale->eligible_seller_tiers)) {
+            $thresholds = config('flash_sales.tier_thresholds', []);
+            $query->where(function ($q) use ($sale, $thresholds) {
+                foreach ($sale->eligible_seller_tiers as $tier) {
+                    $t = $thresholds[$tier] ?? null;
+                    if (!$t) continue;
+                    $q->orWhere(function ($inner) use ($t) {
+                        $inner->where('total_sales', '>=', $t['min_total_sales'])
+                              ->where('store_rating_avg', '>=', $t['min_rating']);
+                        if ($t['min_sla_compliance'] > 0) {
+                            $inner->where('sla_compliance_pct', '>=', $t['min_sla_compliance']);
+                        }
+                        if ($t['max_strikes'] !== PHP_INT_MAX) {
+                            $inner->where('strikes_count', '<=', $t['max_strikes']);
+                        }
+                    });
+                }
+            });
+        }
+
+        if (!empty($sale->eligible_categories)) {
+            $categoryIds = $sale->eligible_categories;
+            $query->whereHas('listings', function ($q) use ($categoryIds) {
+                $q->where('status', 'active')
+                  ->whereHas('productVariant.product', function ($q2) use ($categoryIds) {
+                      $q2->whereIn('category_id', $categoryIds);
+                  });
+            });
+        }
+
+        return $query;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

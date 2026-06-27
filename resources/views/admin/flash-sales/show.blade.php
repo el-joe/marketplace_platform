@@ -47,10 +47,11 @@
             submissionStats:   '{{ route('admin.flash-sales.submission-stats', $flashSale->id) }}',
             submissionsDt:     '{{ route('admin.flash-sales.submissions.datatable', $flashSale->id) }}',
             invitationsDt:     '{{ route('admin.flash-sales.invitations.datatable', $flashSale->id) }}',
+            resendInvitation:  '{{ url('/flash-sales/' . $flashSale->id . '/invitations') }}',
             bulkReview:        '{{ route('admin.flash-sales.submissions.bulk-review', $flashSale->id) }}',
             liveData:          '{{ route('admin.flash-sales.live-data', $flashSale->id) }}',
             analyticsData:     '{{ route('admin.flash-sales.analytics-data', $flashSale->id) }}',
-            submissionDetail:  '{{ url('/admin/flash-sales/submissions') }}',
+            submissionDetail:  '{{ url('/flash-sales/submissions') }}',
         };
         window.MIN_DISCOUNT_PCT = {{ (float) $flashSale->min_discount_pct }};
     </script>
@@ -137,9 +138,39 @@
 
                 {{-- ─── Invitations tab ──────────────────────────────────────── --}}
                 <div x-show="tab === 'invitations'" x-cloak>
+
+                    {{-- Stat cards --}}
+                    @php
+                        $invStatConfig = [
+                            'pending'   => ['label' => 'Pending',   'color' => 'bg-amber-50 border-amber-200',   'dot' => 'bg-amber-400',   'text' => 'text-amber-800'],
+                            'accepted'  => ['label' => 'Accepted',  'color' => 'bg-emerald-50 border-emerald-200','dot' => 'bg-emerald-500', 'text' => 'text-emerald-800'],
+                            'declined'  => ['label' => 'Declined',  'color' => 'bg-red-50 border-red-200',       'dot' => 'bg-red-400',     'text' => 'text-red-800'],
+                            'submitted' => ['label' => 'Submitted', 'color' => 'bg-blue-50 border-blue-200',     'dot' => 'bg-blue-500',    'text' => 'text-blue-800'],
+                        ];
+                    @endphp
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                        @foreach($invStatConfig as $status => $cfg)
+                            <div class="rounded-xl border {{ $cfg['color'] }} px-4 py-3 flex items-center gap-3">
+                                <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 {{ $cfg['dot'] }}"></span>
+                                <div>
+                                    <p class="text-xs font-medium {{ $cfg['text'] }}">{{ $cfg['label'] }}</p>
+                                    <p class="text-2xl font-bold {{ $cfg['text'] }} leading-tight">{{ $invitationStats[$status] ?? 0 }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
                     <x-card>
                         <div class="flex items-center justify-between mb-4">
-                            <p class="text-sm text-gray-500">{{ $invitationCount }} vendor(s) invited.</p>
+                            <div class="flex items-center gap-3">
+                                <p class="text-sm text-gray-500">{{ $invitationCount }} vendor(s) invited total.</p>
+                                <select id="inv-filter-status" class="form-select form-select-sm">
+                                    <option value="">All statuses</option>
+                                    @foreach($invStatConfig as $status => $cfg)
+                                        <option value="{{ $status }}">{{ $cfg['label'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             @if(!in_array($flashSale->status, ['ended', 'cancelled']))
                                 <div class="flex gap-2">
                                     <button type="button" id="btn-auto-invite" class="btn btn-secondary btn-sm">
@@ -395,11 +426,11 @@
                             $actionMap = [
                                 'submission_open'   => ['action' => 'open_submissions',  'label' => 'Open Submissions',  'color' => 'primary'],
                                 'submission_closed' => ['action' => 'close_submissions', 'label' => 'Close Submissions', 'color' => 'secondary'],
-                                'under_review'      => ['action' => 'close_submissions', 'label' => 'Move to Review',    'color' => 'secondary'],
+                                'under_review'      => ['action' => 'move_to_review',    'label' => 'Move to Review',    'color' => 'info'],
                                 'approved'          => ['action' => 'mark_approved',     'label' => 'Mark Approved',     'color' => 'success'],
-                                'live'              => ['action' => 'start_sale',         'label' => 'Launch Sale',       'color' => 'success'],
-                                'ended'             => ['action' => 'end_sale',           'label' => 'End Sale',          'color' => 'secondary'],
-                                'cancelled'         => ['action' => 'cancel',             'label' => 'Cancel',            'color' => 'danger'],
+                                'live'              => ['action' => 'start_sale',        'label' => 'Launch Sale',       'color' => 'success'],
+                                'ended'             => ['action' => 'end_sale',          'label' => 'End Sale',          'color' => 'secondary'],
+                                'cancelled'         => ['action' => 'cancel',            'label' => 'Cancel',            'color' => 'danger'],
                             ];
                         @endphp
                         @foreach($nextStatuses as $next)
@@ -566,6 +597,45 @@
         <x-slot:footer>
             <button type="button" data-modal-close class="btn btn-ghost">Go Back</button>
             <button type="button" id="btn-confirm-cancel" class="btn btn-danger">Cancel Sale</button>
+        </x-slot:footer>
+    </x-modal>
+
+    {{-- Auto-invite confirmation modal --}}
+    <x-modal id="auto-invite-modal" title="Auto-Invite Eligible Vendors" size="sm">
+        <div class="space-y-3">
+            <div id="auto-invite-loading" class="py-6 text-center text-sm text-gray-400">
+                Checking eligible vendors…
+            </div>
+            <div id="auto-invite-content" class="hidden space-y-3">
+                <p class="text-sm text-gray-700">
+                    <span id="auto-invite-count" class="font-bold text-gray-900 text-lg">0</span>
+                    vendor(s) match this flash sale's eligibility criteria and have not yet been invited.
+                </p>
+                <div id="auto-invite-zero-msg" class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+                    <strong>No new vendors to invite.</strong>
+                    <p class="mt-1 text-xs" id="auto-invite-criteria-hint"></p>
+                </div>
+                <div id="auto-invite-confirm-area">
+                    <p class="text-xs text-gray-500">Invitations will be created as <em>Auto</em> type and notifications queued immediately.</p>
+                </div>
+            </div>
+        </div>
+        <x-slot:footer>
+            <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
+            <button type="button" id="btn-confirm-auto-invite" class="btn btn-secondary hidden">
+                Send Invitations
+            </button>
+        </x-slot:footer>
+    </x-modal>
+
+    {{-- Decline reason modal --}}
+    <x-modal id="decline-reason-modal" title="Decline Reason" size="sm">
+        <div class="space-y-2">
+            <p class="text-sm text-gray-600" id="decline-reason-vendor"></p>
+            <blockquote class="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-800 italic" id="decline-reason-text"></blockquote>
+        </div>
+        <x-slot:footer>
+            <button type="button" data-modal-close class="btn btn-ghost">Close</button>
         </x-slot:footer>
     </x-modal>
 

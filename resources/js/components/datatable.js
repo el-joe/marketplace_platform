@@ -229,6 +229,15 @@ window.initDataTable = function (tableId, options) {
                         if (item.value !== '') d[item.name] = item.value;
                     });
                 }
+                // Support inline serverSideFilters: { paramName: () => value }
+                if (options.serverSideFilters) {
+                    Object.entries(options.serverSideFilters).forEach(([key, fn]) => {
+                        const val = typeof fn === 'function' ? fn() : fn;
+                        if (val !== null && val !== undefined && val !== '') {
+                            d[key] = val;
+                        }
+                    });
+                }
                 return d;
             },
             error: function (xhr) {
