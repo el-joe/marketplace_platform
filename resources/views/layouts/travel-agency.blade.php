@@ -20,6 +20,8 @@
             <div class="flex items-center gap-4 text-sm">
                 <a href="{{ route('travel-agency.dashboard') }}" class="text-gray-600 hover:text-blue-600 font-medium">الرئيسية</a>
                 <a href="{{ route('travel-agency.packages.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">الباقات</a>
+                <a href="{{ route('travel-agency.bookings.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">الحجوزات</a>
+                <a href="{{ route('travel-agency.profile.edit') }}" class="text-gray-600 hover:text-blue-600 font-medium">الملف الشخصي</a>
                 <form method="POST" action="{{ route('travel-agency.logout') }}" class="inline">
                     @csrf
                     <button type="submit" class="text-red-500 hover:text-red-700 font-medium">خروج</button>

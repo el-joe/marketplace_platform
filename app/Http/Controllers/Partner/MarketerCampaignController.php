@@ -21,10 +21,8 @@ class MarketerCampaignController extends Controller
     {
         $vendorId = $this->vendorId();
 
-        $campaigns = MarketerCampaign::whereHas('products.vendorListing', function ($q) use ($vendorId) {
-            $q->where('vendor_id', $vendorId);
-        })
-            ->with(['marketer', 'products.vendorListing.product'])
+        $campaigns = MarketerCampaign::where('vendor_id', $vendorId)
+            ->with(['marketer'])
             ->orderByDesc('created_at')
             ->paginate(20);
 
@@ -40,12 +38,9 @@ class MarketerCampaignController extends Controller
     {
         $vendorId = $this->vendorId();
 
-        abort_unless(
-            $campaign->products()->whereHas('vendorListing', fn($q) => $q->where('vendor_id', $vendorId))->exists(),
-            403
-        );
+        abort_unless($campaign->vendor_id === $vendorId, 403);
 
-        $campaign->load(['marketer', 'products.vendorListing.product', 'conversions']);
+        $campaign->load(['marketer', 'conversions']);
 
         return view('partner.marketer-campaigns.show', [
             'campaign' => $campaign,

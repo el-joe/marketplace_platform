@@ -48,8 +48,10 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             Route::post('/campaigns/{campaign}/qr-code', [CampaignController::class, 'generateQrCode'])->name('campaigns.qr-code');
             Route::post('/campaigns/{campaign}/samples', [CampaignController::class, 'requestSamples'])->name('campaigns.samples');
 
-            // Product AJAX search
+            // Product / classified / travel AJAX search
             Route::get('/campaigns/products/search', [CampaignController::class, 'searchProducts'])->name('campaigns.products.search');
+            Route::get('/campaigns/classifieds/search', [CampaignController::class, 'searchClassifiedListings'])->name('campaigns.classifieds.search');
+            Route::get('/campaigns/travel-packages/search', [CampaignController::class, 'searchTravelPackages'])->name('campaigns.travel-packages.search');
 
             // Tracking link generation + stats
             Route::get('/campaigns/{campaign}/link', [TrackingController::class, 'generateLink'])->name('campaigns.link');

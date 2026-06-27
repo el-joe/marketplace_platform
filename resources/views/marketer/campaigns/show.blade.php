@@ -119,8 +119,8 @@
     <canvas id="campaign-chart" height="80"></canvas>
 </div>
 
-{{-- ── Products Grid ────────────────────────────────────────────────────────── --}}
-@if($campaign->products->isNotEmpty())
+{{-- ── Products Grid (vendor campaigns) ───────────────────────────────────── --}}
+@if($campaign->campaignable_type === \App\Models\Vendor::class && $campaign->products->isNotEmpty())
 <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
     <h3 class="font-bold text-gray-800 mb-4">Campaign Products ({{ $campaign->products->count() }})</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -151,6 +151,43 @@
                 </div>
             </div>
         @endforeach
+    </div>
+</div>
+@elseif($campaign->campaignable)
+{{-- ── Single-target card (classified listing or travel package) ───────────── --}}
+@php
+    $target = $campaign->campaignable;
+    $isClassified = $campaign->campaignable_type === \App\Models\ClassifiedListing::class;
+    $isTravel = $campaign->campaignable_type === \App\Models\TravelPackage::class;
+    $targetTitle = $target->title ?? $target->name ?? '—';
+    $targetPrice = match(true) {
+        $isClassified && $target->price => number_format($target->price / 100, 2) . ' SAR',
+        $isTravel && $target->price_cents => number_format($target->price_cents / 100, 2) . ' SAR',
+        default => null,
+    };
+    $targetUrl = match(true) {
+        $isClassified => url(env('DEFAULT_COUNTRY_SLUG', 'sa') . '/classifieds/' . $target->listing_number),
+        $isTravel => url(env('DEFAULT_COUNTRY_SLUG', 'sa') . '/travel/' . $target->id),
+        default => null,
+    };
+@endphp
+<div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+    <h3 class="font-bold text-gray-800 mb-4">{{ $isClassified ? 'Classified Listing' : 'Travel Package' }}</h3>
+    <div class="product-card">
+        @if($target->thumbnail_path ?? null)
+            <img src="{{ \Illuminate\Support\Facades\Storage::url($target->thumbnail_path) }}"
+                 alt="{{ $targetTitle }}" class="w-16 h-16 rounded-xl object-cover shrink-0">
+        @endif
+        <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-gray-800 truncate">{{ $targetTitle }}</p>
+            @if($targetPrice)
+                <p class="text-xs text-gray-500 mt-0.5">{{ $targetPrice }}</p>
+            @endif
+            @if($targetUrl)
+                <a href="{{ $targetUrl }}" target="_blank"
+                   class="text-xs text-blue-600 hover:underline mt-1 inline-block">View Listing →</a>
+            @endif
+        </div>
     </div>
 </div>
 @endif

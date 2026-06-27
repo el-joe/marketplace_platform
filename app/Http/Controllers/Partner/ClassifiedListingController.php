@@ -123,7 +123,8 @@ class ClassifiedListingController extends Controller
             'sketch_file'             => 'nullable|file|max:10240',
             'attachments'             => 'nullable|array',
             'attachments.*'           => 'file|max:10240',
-            'vendor_listing_reference' => 'nullable|uuid|exists:vendor_listings,id',
+            'vendor_listing_reference'    => 'nullable|uuid|exists:vendor_listings,id',
+            'marketer_promotion_enabled'  => 'boolean',
         ]);
 
         // Convert price → price_cents for the service

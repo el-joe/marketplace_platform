@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\MarketerPortal;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClassifiedListing;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerCampaignProduct;
+use App\Models\TravelPackage;
 use App\Models\Vendor;
 use App\Models\VendorListing;
 use App\Services\MarketerService;
@@ -40,7 +42,7 @@ class CampaignController extends Controller
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
 
-        $vendors = Vendor::where('status', 'active')->orderBy('store_name')->get(['id', 'store_name']);
+        $vendors = Vendor::where('global_status', 'active')->orderBy('store_name')->get(['id', 'store_name']);
 
         return view('marketer.campaigns.create', [
             'marketer' => $marketer,
@@ -53,8 +55,10 @@ class CampaignController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'campaign_type' => 'required|in:product_promotion,store_promotion,category_promotion,flash_sale,general',
+            'campaign_type' => 'required|in:referral_link,discount_code,product_specific,brand_deal,classified_promotion,travel_promotion',
             'vendor_id' => 'nullable|uuid|exists:vendors,id',
+            'classified_listing_id' => 'required_if:campaign_type,classified_promotion|nullable|uuid|exists:classified_listings,id',
+            'travel_package_id' => 'required_if:campaign_type,travel_promotion|nullable|uuid|exists:travel_packages,id',
             'starts_at' => 'required|date|after_or_equal:today',
             'ends_at' => 'required|date|after:starts_at',
             'products' => 'nullable|array',
@@ -64,31 +68,76 @@ class CampaignController extends Controller
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
 
-        $campaign = $marketer->campaigns()->create([
-            'vendor_id' => $validated['vendor_id'] ?? null,
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'campaign_type' => $validated['campaign_type'],
-            'status' => 'draft',
-            'commission_type' => 'percentage',
-            'commission_rate' => $marketer->commission_rate ?? 5,
-            'starts_at' => $validated['starts_at'],
-            'ends_at' => $validated['ends_at'],
-            'auto_approve_at' => now()->addHours(36),
-        ]);
+        $campaignType = $validated['campaign_type'];
 
-        // Attach products
-        if (!empty($validated['products'])) {
-            foreach ($validated['products'] as $pos => $listingId) {
-                MarketerCampaignProduct::create([
-                    'campaign_id' => $campaign->id,
-                    'vendor_listing_id' => $listingId,
-                    'position' => $pos + 1,
-                ]);
+        if ($campaignType === 'classified_promotion') {
+            $listing = ClassifiedListing::where('status', 'active')->findOrFail($validated['classified_listing_id']);
+
+            if (!$listing->marketer_promotion_enabled) {
+                abort(422, 'This listing has not been enabled for marketer promotion by the seller.');
+            }
+
+            $campaign = $marketer->campaigns()->create([
+                'campaignable_type' => ClassifiedListing::class,
+                'campaignable_id' => $listing->id,
+                'vendor_id' => null,
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+                'campaign_type' => $campaignType,
+                'status' => 'draft',
+                'commission_type' => 'percentage',
+                'commission_rate' => $marketer->commission_rate ?? 5,
+                'starts_at' => $validated['starts_at'],
+                'ends_at' => $validated['ends_at'],
+                'auto_approve_at' => now()->addHours(36),
+            ]);
+        } elseif ($campaignType === 'travel_promotion') {
+            $package = TravelPackage::where('status', 'active')->findOrFail($validated['travel_package_id']);
+            // NOTE: TravelPackage has no marketer opt-in flag yet (expected from Prompt 4).
+            // Defaulting to allow promotion — travel agencies typically want maximum marketer reach.
+            // Revisit once Prompt 4 adds an opt-in flag to travel_packages.
+
+            $campaign = $marketer->campaigns()->create([
+                'campaignable_type' => TravelPackage::class,
+                'campaignable_id' => $package->id,
+                'vendor_id' => null,
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+                'campaign_type' => $campaignType,
+                'status' => 'draft',
+                'commission_type' => 'percentage',
+                'commission_rate' => $marketer->commission_rate ?? 5,
+                'starts_at' => $validated['starts_at'],
+                'ends_at' => $validated['ends_at'],
+                'auto_approve_at' => now()->addHours(36),
+            ]);
+        } else {
+            $campaign = $marketer->campaigns()->create([
+                'campaignable_type' => Vendor::class,
+                'campaignable_id' => $validated['vendor_id'] ?? null,
+                'vendor_id' => $validated['vendor_id'] ?? null,
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+                'campaign_type' => $campaignType,
+                'status' => 'draft',
+                'commission_type' => 'percentage',
+                'commission_rate' => $marketer->commission_rate ?? 5,
+                'starts_at' => $validated['starts_at'],
+                'ends_at' => $validated['ends_at'],
+                'auto_approve_at' => now()->addHours(36),
+            ]);
+
+            if (!empty($validated['products'])) {
+                foreach ($validated['products'] as $pos => $listingId) {
+                    MarketerCampaignProduct::create([
+                        'campaign_id' => $campaign->id,
+                        'vendor_listing_id' => $listingId,
+                        'position' => $pos + 1,
+                    ]);
+                }
             }
         }
 
-        // Auto-approve after 36 hours if admin hasn't acted
         \App\Jobs\MarketerAutoApproveJob::dispatch($campaign->id, null)
             ->delay(now()->addHours(36));
 
@@ -196,6 +245,7 @@ class CampaignController extends Controller
 
         $campaign->load([
             'products.vendorListing' => fn($q) => $q->with('product'),
+            'campaignable',
         ]);
 
         // Daily chart data: last 30 days
@@ -212,6 +262,49 @@ class CampaignController extends Controller
         ]);
     }
 
+    public function searchClassifiedListings(Request $request): JsonResponse
+    {
+        $q = $request->input('q', '');
+
+        $listings = ClassifiedListing::query()
+            ->where('status', 'active')
+            ->where('marketer_promotion_enabled', true)
+            ->where('title', 'like', '%' . $q . '%')
+            ->limit(20)
+            ->get(['id', 'title', 'price', 'thumbnail_path', 'listing_number']);
+
+        return response()->json(
+            $listings->map(fn($l) => [
+                'id' => $l->id,
+                'title' => $l->title,
+                'price' => $l->price ? number_format($l->price / 100, 2) : null,
+                'thumbnail' => $l->thumbnail_path,
+            ])
+        );
+    }
+
+    public function searchTravelPackages(Request $request): JsonResponse
+    {
+        $q = $request->input('q', '');
+
+        // VERIFY: TravelPackage status=active is confirmed by TravelController usage.
+        // If Prompt 4 adds a marketer opt-in flag, add it to the where clause here.
+        $packages = TravelPackage::query()
+            ->where('status', 'active')
+            ->where('title', 'like', '%' . $q . '%')
+            ->limit(20)
+            ->get(['id', 'title', 'price_cents', 'thumbnail_path']);
+
+        return response()->json(
+            $packages->map(fn($p) => [
+                'id' => $p->id,
+                'title' => $p->title,
+                'price' => $p->price_cents ? number_format($p->price_cents / 100, 2) : null,
+                'thumbnail' => $p->thumbnail_path,
+            ])
+        );
+    }
+
     public function searchProducts(Request $request): JsonResponse
     {
         $vendorId = $request->input('vendor_id');
@@ -219,16 +312,16 @@ class CampaignController extends Controller
 
         $listings = VendorListing::query()
             ->when($vendorId, fn($query) => $query->where('vendor_id', $vendorId))
-            ->whereHas('product', fn($query) => $query->where('name_en', 'like', '%' . $q . '%'))
-            ->with('product:id,name_en')
+            ->whereHas('productVariant.product', fn($query) => $query->where('name_en', 'like', '%' . $q . '%'))
+            ->with('productVariant.product:id,name_en')
             ->limit(20)
-            ->get(['id', 'product_id', 'sale_price']);
+            ->get(['id', 'product_variant_id', 'price']);
 
         return response()->json(
             $listings->map(fn($l) => [
                 'id' => $l->id,
-                'text' => $l->product?->name_en ?? 'Unknown',
-                'price' => number_format($l->sale_price / 100, 2),
+                'text' => $l->productVariant?->product?->name_en ?? 'Unknown',
+                'price' => number_format($l->price / 100, 2),
             ])
         );
     }

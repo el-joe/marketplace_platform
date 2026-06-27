@@ -184,6 +184,15 @@
                         <input type="checkbox" id="cl-negotiable" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                         <span class="text-sm text-gray-700">السعر قابل للتفاوض</span>
                     </label>
+                    <div class="border border-gray-200 rounded-xl p-4 bg-gray-50/60">
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="cl-marketer-promo" class="mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                            <div>
+                                <span class="block text-sm font-medium text-gray-800">السماح للمسوّقين بترويج هذا الإعلان</span>
+                                <span class="block text-xs text-gray-500 mt-0.5">يمكن للمسوّقين إنشاء حملات ترويجية لهذا الإعلان وكسب عمولة على المبيعات أو الاستفسارات الناتجة.</span>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
                 {{-- Step 3: Location & Attributes (conditional) --}}

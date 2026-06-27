@@ -508,6 +508,7 @@ function wizRenderReview() {
         ['الغرض',              el('cl-purpose')?.value === 'sale' ? 'بيع' : 'إيجار'],
         ['السعر',              `${el('cl-price')?.value || 0} ${el('cl-currency')?.value || 'SAR'}`],
         ['قابل للتفاوض',      el('cl-negotiable')?.checked ? 'نعم' : 'لا'],
+        ['ترويج المسوّقين',   el('cl-marketer-promo')?.checked ? 'مسموح' : 'غير مسموح'],
         ['عدد الصور',         wizImageFiles.length],
         wizNeedsSketch()      ? ['مخطط',          wizSketchFile ? wizSketchFile.name : 'لم يُرفع']                      : null,
         wizNeedsLocation()    ? ['إحداثيات',      `${el('cl-latitude')?.value  || '—'} / ${el('cl-longitude')?.value || '—'}`] : null,
@@ -561,7 +562,8 @@ async function wizSubmit() {
     fd.append('description_en',         el('cl-desc-en')?.value.trim() || '');
     fd.append('price_cents',            Math.round(Number(el('cl-price')?.value || 0) * 100));
     fd.append('currency',               el('cl-currency')?.value || 'SAR');
-    fd.append('price_negotiable',       el('cl-negotiable')?.checked ? '1' : '0');
+    fd.append('price_negotiable',            el('cl-negotiable')?.checked ? '1' : '0');
+    fd.append('marketer_promotion_enabled',  el('cl-marketer-promo')?.checked ? '1' : '0');
 
     if (wizNeedsLocation()) {
         const lat = el('cl-latitude')?.value;
@@ -626,6 +628,7 @@ function wizOpen() {
         const e = el(id); if (e) e.value = '';
     });
     const neg     = el('cl-negotiable');     if (neg)     neg.checked  = false;
+    const mktPromo = el('cl-marketer-promo'); if (mktPromo) mktPromo.checked = false;
     const agree   = el('cl-contract-agree'); if (agree)   agree.checked = false;
     const purpose  = el('cl-purpose');        if (purpose)  purpose.value = 'sale';
     const currency = el('cl-currency');       if (currency) currency.value = 'SAR';

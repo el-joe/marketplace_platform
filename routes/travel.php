@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\TravelAgencyPortal\AuthController;
+use App\Http\Controllers\TravelAgencyPortal\BookingController;
 use App\Http\Controllers\TravelAgencyPortal\DashboardController;
 use App\Http\Controllers\TravelAgencyPortal\PackageController;
+use App\Http\Controllers\TravelAgencyPortal\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::name('travel-agency.')
@@ -31,5 +33,16 @@ Route::name('travel-agency.')
                 Route::post('/{package}/submit', [PackageController::class, 'submitForReview'])->name('submit');
                 Route::delete('/{package}/media/{media}', [PackageController::class, 'destroyMedia'])->name('media.destroy');
             });
+
+            // Bookings (read + status updates — agency confirms/cancels)
+            Route::prefix('bookings')->name('bookings.')->group(function () {
+                Route::get('/', [BookingController::class, 'index'])->name('index');
+                Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+                Route::patch('/{booking}/status', [BookingController::class, 'updateStatus'])->name('status');
+            });
+
+            // Profile
+            Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+            Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
         });
     });

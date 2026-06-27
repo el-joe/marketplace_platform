@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
 {
@@ -35,6 +37,8 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
         'secret_promotion_id',
         'approved_by_admin_id',
         'approved_at',
+        'campaignable_type',
+        'campaignable_id',
     ];
 
     protected function casts(): array
@@ -70,6 +74,11 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
     }
 
     // ── Relationships ─────────────────────────────────────────────────────────
+
+    public function campaignable(): MorphTo
+    {
+        return $this->morphTo();
+    }
 
     public function marketer(): BelongsTo
     {
@@ -109,6 +118,23 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
     public function secretPromotion(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(MarketerSecretPromotion::class, 'secret_promotion_id');
+    }
+
+    // ── Scopes ────────────────────────────────────────────────────────────────
+
+    public function scopeForVendors(Builder $query): Builder
+    {
+        return $query->where('campaignable_type', Vendor::class);
+    }
+
+    public function scopeForClassifieds(Builder $query): Builder
+    {
+        return $query->where('campaignable_type', ClassifiedListing::class);
+    }
+
+    public function scopeForTravelPackages(Builder $query): Builder
+    {
+        return $query->where('campaignable_type', TravelPackage::class);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

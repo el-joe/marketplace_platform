@@ -210,8 +210,8 @@
 
         function copyGlobalRef() {
             const url = document.getElementById('global-ref-url').textContent.trim();
-            navigator.clipboard.writeText(url).then(() => {
-                const btn = event.currentTarget;
+            const btn = event.currentTarget;
+            copyToClipboard(url).then(() => {
                 btn.textContent = '✓ Copied!';
                 setTimeout(() => { btn.textContent = '📋 Copy Link'; }, 2000);
             });

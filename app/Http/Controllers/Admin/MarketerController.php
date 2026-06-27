@@ -12,6 +12,8 @@ use App\Models\MarketerConversion;
 use App\Models\MarketerPayout;
 use App\Models\MarketerSampleRequest;
 use App\Models\MarketerSecretPromotion;
+use App\Models\ClassifiedListing;
+use App\Models\TravelPackage;
 use App\Models\Vendor;
 use App\Jobs\SendMarketerRejectionMail;
 use App\Jobs\SendMarketerWelcomeMail;
@@ -301,18 +303,48 @@ class MarketerController extends Controller
         if ($type = $request->input('filter_type')) {
             $query->where('marketer_campaigns.campaign_type', $type);
         }
+        if ($targetType = $request->input('filter_target_type')) {
+            $map = [
+                'vendor'     => Vendor::class,
+                'classified' => ClassifiedListing::class,
+                'travel'     => TravelPackage::class,
+            ];
+            if (isset($map[$targetType])) {
+                $query->where('marketer_campaigns.campaignable_type', $map[$targetType]);
+            }
+        }
 
-        return $this->dataTableResponse($request, $query, $columns, fn($row) => [
-            e($row->name),
-            '<a href="' . route('admin.marketers.all.show', $row->marketer_id) . '" class="text-primary-600 hover:underline">' . e($row->marketer_name) . '</a>',
-            ucfirst(str_replace('_', ' ', $row->campaign_type)),
-            '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status) . '</span>',
-            number_format($row->total_clicks),
-            number_format($row->total_conversions),
-            number_format($row->total_revenue_cents / 100, 2),
-            $row->starts_at?->format('d M Y') ?? '—',
-            $this->campaignActions($row),
-        ]);
+        return $this->dataTableResponse($request, $query, $columns, function ($row) {
+            // Build campaign cell: name + campaignable-type badge + target secondary line
+            // campaignable is lazy-loaded per row; page size is 25 so N+1 impact is negligible
+            $campaignCell = '<a href="' . route('admin.marketers.campaigns.show', $row->id) . '" class="font-medium text-gray-900 hover:underline">' . e($row->name) . '</a>';
+
+            if ($row->campaignable_type === ClassifiedListing::class) {
+                $listing = $row->campaignable;
+                $campaignCell .= '<div class="mt-0.5 flex items-center gap-1.5">'
+                    . '<span class="badge badge-secondary text-[10px] px-1.5 py-0">Classified</span>'
+                    . '<span class="text-xs text-gray-500">' . e($listing?->title_en ?? '—') . '</span>'
+                    . '</div>';
+            } elseif ($row->campaignable_type === TravelPackage::class) {
+                $package = $row->campaignable;
+                $campaignCell .= '<div class="mt-0.5 flex items-center gap-1.5">'
+                    . '<span class="badge badge-primary text-[10px] px-1.5 py-0">Travel</span>'
+                    . '<span class="text-xs text-gray-500">' . e($package?->title_en ?? '—') . '</span>'
+                    . '</div>';
+            }
+
+            return [
+                $campaignCell,
+                '<a href="' . route('admin.marketers.all.show', $row->marketer_id) . '" class="text-primary-600 hover:underline">' . e($row->marketer_name) . '</a>',
+                ucfirst(str_replace('_', ' ', $row->campaign_type)),
+                '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status) . '</span>',
+                number_format($row->total_clicks),
+                number_format($row->total_conversions),
+                number_format($row->total_revenue_cents / 100, 2),
+                $row->starts_at?->format('d M Y') ?? '—',
+                $this->campaignActions($row),
+            ];
+        });
     }
 
     public function approveCampaign(MarketerCampaign $campaign): JsonResponse
@@ -341,7 +373,12 @@ class MarketerController extends Controller
 
     public function showCampaign(MarketerCampaign $campaign): View
     {
-        $campaign->load(['marketer', 'products.vendorListing.product']);
+        $campaign->load(['marketer', 'products.vendorListing.product', 'campaignable']);
+
+        // For travel campaigns, also eager-load the agency on the already-loaded campaignable
+        if ($campaign->campaignable instanceof TravelPackage) {
+            $campaign->campaignable->loadMissing('agency');
+        }
 
         return view('admin.marketers.campaigns.show', [
             'breadcrumbs' => [

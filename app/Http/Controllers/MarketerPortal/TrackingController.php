@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\MarketerPortal;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClassifiedListing;
 use App\Models\MarketerCampaign;
+use App\Models\TravelPackage;
+use App\Models\Vendor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -82,19 +85,23 @@ class TrackingController extends Controller
      */
     public function redirect(string $country, string $slug): RedirectResponse
     {
-        $campaign = MarketerCampaign::where('tracking_url_slug', $slug)->first();
+        $campaign = MarketerCampaign::with('campaignable')->where('tracking_url_slug', $slug)->first();
 
         if (!$campaign || $campaign->status !== 'active') {
             return redirect('/');
         }
 
-        // Redirect to vendor or homepage
         $domain = env('APP_DOMAIN', 'localhost');
-        $destination = 'https://' . $country . '.' . $domain . '/';
+        $base = 'https://' . $country . '.' . $domain . '/';
 
-        if ($campaign->vendor_id) {
-            $destination .= 'store/' . $campaign->vendor_id;
-        }
+        $destination = match ($campaign->campaignable_type) {
+            Vendor::class => $base . 'store/' . $campaign->campaignable_id,
+            ClassifiedListing::class => $base . 'classifieds/' . $campaign->campaignable?->listing_number,
+            // VERIFY: travel storefront route uses package id — confirmed via TravelController::show model binding.
+            // If a slug-based route is added later, update this line.
+            TravelPackage::class => $base . 'travel/' . $campaign->campaignable_id,
+            default => $base,
+        };
 
         return redirect($destination);
     }

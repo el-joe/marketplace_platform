@@ -44,8 +44,9 @@ class ClassifiedListingService
             'attributes'               => $data['attributes'] ?? null,
             'latitude'                 => $data['latitude'] ?? null,
             'longitude'               => $data['longitude'] ?? null,
-            'vendor_listing_reference' => $data['vendor_listing_reference'] ?? null,
-            'status'                   => $status,
+            'vendor_listing_reference'   => $data['vendor_listing_reference'] ?? null,
+            'marketer_promotion_enabled' => $data['marketer_promotion_enabled'] ?? false,
+            'status'                     => $status,
         ]);
 
         $this->storeImages($listing, $data['images'] ?? []);

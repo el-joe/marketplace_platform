@@ -57,6 +57,15 @@
                 <option value="brand_deal">Brand Deal</option>
             </select>
         </div>
+        <div class="w-36">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Target</label>
+            <select id="filter-target-type" class="form-input w-full text-sm">
+                <option value="">All targets</option>
+                <option value="vendor">Vendor</option>
+                <option value="classified">Classified</option>
+                <option value="travel">Travel</option>
+            </select>
+        </div>
         <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">Reset</button>
     </div>
 </x-card>
@@ -113,9 +122,10 @@ $(function () {
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': tok },
             data: function (d) {
-                d.filter_status = $('#filter-status').val();
-                d.filter_type   = $('#filter-type').val();
-                d.search        = { value: $('#search-input').val() };
+                d.filter_status      = $('#filter-status').val();
+                d.filter_type        = $('#filter-type').val();
+                d.filter_target_type = $('#filter-target-type').val();
+                d.search             = { value: $('#search-input').val() };
             }
         },
         columns: [
@@ -126,18 +136,19 @@ $(function () {
     });
 
     $('#search-input').on('keyup', debounce(() => table.ajax.reload(), 350));
-    $('#filter-status, #filter-type').on('change', () => table.ajax.reload());
+    $('#filter-status, #filter-type, #filter-target-type').on('change', () => table.ajax.reload());
     $('#clear-filters').on('click', function () {
         $('#search-input').val('');
-        $('#filter-status, #filter-type').val('');
+        $('#filter-status, #filter-type, #filter-target-type').val('');
         table.ajax.reload();
     });
 
     // Approve campaign
     $(document).on('click', '.btn-approve-campaign', function () {
         const id = $(this).data('id');
-        window.confirmDialog({ title: 'Approve campaign?', confirmText: 'Approve', onConfirm: () => {
-            fetch('/marketers/campaigns/' + id + '/approve', {
+        window.confirmDialog({ title: 'Approve campaign?', confirmButtonText: 'Approve' }).then(confirmed => {
+            if (!confirmed) return;
+            fetch('/marketer-campaigns/' + id + '/approve', {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
                 body: '{}'
@@ -145,7 +156,7 @@ $(function () {
                 if (data.success) { window.Toast.success(data.message); table.ajax.reload(); }
                 else { window.Toast.error(data.message); }
             });
-        }});
+        });
     });
 
     // Reject campaign
@@ -159,7 +170,7 @@ $(function () {
         const id     = $('#reject-campaign-id').val();
         const reason = $('#reject-campaign-reason').val().trim();
         if (!reason) { window.Toast.warning('Please enter a reason.'); return; }
-        fetch('/marketers/campaigns/' + id + '/reject', {
+        fetch('/marketer-campaigns/' + id + '/reject', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
             body: JSON.stringify({ reason }),

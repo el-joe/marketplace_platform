@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
             MarketerSeeder::class,
             ShippingCompanySeeder::class,
             DeliveryAgentSeeder::class,
+            TravelAgencySeeder::class,
 
                 // ── Products (needs vendor data from VendorSeeder above) ───────
             ProductSeeder::class,
@@ -87,6 +88,9 @@ class DatabaseSeeder extends Seeder
                 ['shipping_supervisor', 'carrier.noon.loc', 'tariq@aramex.com', 'supervisor — Aramex Gulf'],
                 ['shipping_supervisor', 'carrier.noon.loc', 'salim@localexpress.om', 'supervisor — Local Express Oman'],
                 ['shipping_supervisor', 'carrier.noon.loc', 'mona@cairoswift.com', 'supervisor — Cairo Swift (pending)'],
+                ['travel_agency', 'travel-agency.noon.loc', 'info@gulfhorizons.com', 'Gulf Horizons Travel (active)'],
+                ['travel_agency', 'travel-agency.noon.loc', 'info@nilestar.com', 'Nile Star Tourism (active)'],
+                ['travel_agency', 'travel-agency.noon.loc', 'hello@riyadhwings.sa', 'Riyadh Wings Travel (pending)'],
             ]
         );
     }

@@ -197,6 +197,15 @@
                 </svg>
                 Earnings
             </a>
+
+            <a href="{{ route('marketer.profile.edit') }}"
+                class="{{ Str::startsWith($route, 'marketer.profile') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Profile
+            </a>
         </nav>
 
         <div class="sidebar-footer">
@@ -260,11 +269,27 @@
         </main>
     </div>
 
-    {{-- Copy referral code helper --}}
+    {{-- Copy helper --}}
     <script>
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+            return Promise.resolve();
+        }
+
         function copyReferral() {
             const code = '{{ auth()->guard("marketer")->user()?->referral_code }}';
-            navigator.clipboard.writeText(code).then(() => {
+            copyToClipboard(code).then(() => {
                 const el = document.querySelector('.referral-chip');
                 const orig = el.querySelector('span:last-child').textContent;
                 el.querySelector('span:last-child').textContent = '✓';
