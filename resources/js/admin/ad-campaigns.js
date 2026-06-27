@@ -6,6 +6,7 @@
  */
 
 import Chart from 'chart.js/auto';
+import DataTable from 'datatables.net';
 
 /* ─── CSRF helper ─────────────────────────────────────────────────────────── */
 function csrfToken() {
@@ -34,7 +35,7 @@ function initCampaignsTable() {
         processing: true,
         serverSide: true,
         ajax: {
-            url: window.routes?.campaignsDatatable ?? '/admin/ad-campaigns/datatable',
+            url: window.routes?.campaignsDatatable ?? '/ad-campaigns/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
@@ -105,6 +106,18 @@ function initFilters() {
         });
         const si = document.getElementById('search-input');
         if (si) si.value = '';
+        // Reset campaign type tab to "all"
+        document.querySelectorAll('.campaign-type-tab').forEach(t => {
+            t.classList.remove('border-primary-500', 'text-primary-600');
+            t.classList.add('border-transparent', 'text-gray-500');
+        });
+        const allTab = document.querySelector('.campaign-type-tab[data-type="all"]');
+        if (allTab) {
+            allTab.classList.add('border-primary-500', 'text-primary-600');
+            allTab.classList.remove('border-transparent', 'text-gray-500');
+        }
+        const hiddenType = document.getElementById('active-campaign-type');
+        if (hiddenType) hiddenType.value = 'all';
         campaignsTable?.ajax.reload();
     });
 }
@@ -223,7 +236,7 @@ function initFraudTable() {
         processing: true,
         serverSide: true,
         ajax: {
-            url: window.routes?.fraudDatatable ?? '/admin/ad-campaigns/fraud/datatable',
+            url: window.routes?.fraudDatatable ?? '/ad-campaigns/fraud/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
@@ -234,14 +247,14 @@ function initFraudTable() {
         columns: [
             { data: 'ip_address', title: 'IP Address' },
             { data: 'campaign', title: 'Campaign' },
-            { data: 'vendor', title: 'Vendor' },
-            { data: 'clicks_hour', title: 'Clicks/Hr' },
-            { data: 'clicks_24h', title: 'Clicks/24h' },
-            { data: 'status', title: 'Status', orderable: false },
-            { data: 'detected_at', title: 'Detected' },
+            { data: 'clicks_last_hour', title: 'Clicks/Hr' },
+            { data: 'clicks_last_24h', title: 'Clicks/24h' },
+            { data: 'is_blocked', title: 'Status', orderable: false },
+            { data: 'blocked_at', title: 'Blocked At' },
+            { data: 'block_reason', title: 'Reason', orderable: false },
             { data: 'actions', title: '', orderable: false },
         ],
-        order: [[6, 'desc']],
+        order: [[5, 'desc']],
     });
 
     document.getElementById('fraud-filter-status')?.addEventListener('change', () => fraudTable?.ajax.reload());
@@ -289,7 +302,7 @@ function initBookingsTable() {
         processing: true,
         serverSide: true,
         ajax: {
-            url: window.routes?.bookingsDatatable ?? '/admin/paid-ad-bookings/datatable',
+            url: window.routes?.bookingsDatatable ?? '/paid-ad-bookings/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
@@ -443,7 +456,7 @@ function initSlotsTable() {
         processing: true,
         serverSide: true,
         ajax: {
-            url: window.routes?.slotsDatatable ?? '/admin/ad-slots/datatable',
+            url: window.routes?.slotsDatatable ?? '/ad-slots/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
@@ -455,9 +468,10 @@ function initSlotsTable() {
             { data: 'name', title: 'Name' },
             { data: 'placement', title: 'Placement', orderable: false },
             { data: 'country', title: 'Country', orderable: false },
-            { data: 'pricing', title: 'Pricing', orderable: false },
+            { data: 'pricing_model', title: 'Pricing', orderable: false },
             { data: 'base_rate', title: 'Base Rate', orderable: false },
-            { data: 'available', title: 'Available', orderable: false },
+            { data: 'booking_days', title: 'Booking Days', orderable: false },
+            { data: 'is_available', title: 'Available', orderable: false },
             { data: 'actions', title: '', orderable: false },
         ],
         order: [[0, 'asc']],

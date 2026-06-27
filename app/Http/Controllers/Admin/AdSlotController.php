@@ -114,13 +114,13 @@ class AdSlotController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
-        $data = $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'slot_code' => ['required', 'string', 'max:50', 'unique:paid_ad_slots,slot_code'],
-            'placement_definition_id' => ['nullable', 'uuid', 'exists:banner_placement_definitions,id'],
+            'banner_placement_definition_id' => ['required', 'uuid', 'exists:banner_placement_definitions,id'],
             'country_id' => ['nullable', 'uuid', 'exists:countries,id'],
             'pricing_model' => ['required', Rule::in(['fixed_weekly', 'fixed_monthly', 'cpm', 'cpc'])],
-            'base_rate_cents' => ['required', 'integer', 'min:0'],
+            'base_rate_display' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'min_booking_days' => ['required', 'integer', 'min:1'],
             'max_booking_days' => ['nullable', 'integer', 'min:1'],
@@ -130,9 +130,22 @@ class AdSlotController extends Controller
             'notes_for_vendors' => ['nullable', 'string'],
         ]);
 
-        $data['created_by_admin_id'] = $admin->id;
-
-        PaidAdSlot::create($data);
+        PaidAdSlot::create([
+            'name' => $validated['name'],
+            'slot_code' => $validated['slot_code'],
+            'placement_definition_id' => $validated['banner_placement_definition_id'],
+            'country_id' => $validated['country_id'] ?? null,
+            'pricing_model' => $validated['pricing_model'],
+            'base_rate_cents' => (int) round($validated['base_rate_display'] * 100),
+            'currency' => $validated['currency'],
+            'min_booking_days' => $validated['min_booking_days'],
+            'max_booking_days' => $validated['max_booking_days'] ?? null,
+            'is_available' => $request->boolean('is_available'),
+            'requires_approval' => $request->boolean('requires_approval'),
+            'min_seller_tier' => $validated['min_seller_tier'] ?? null,
+            'notes_for_vendors' => $validated['notes_for_vendors'] ?? null,
+            'created_by_admin_id' => $admin->id,
+        ]);
 
         return response()->json([
             'message' => 'Ad slot created.',
@@ -160,13 +173,12 @@ class AdSlotController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
-        $data = $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:150'],
-            'slot_code' => ['required', 'string', 'max:50', Rule::unique('paid_ad_slots', 'slot_code')->ignore($adSlot->id)],
-            'placement_definition_id' => ['nullable', 'uuid', 'exists:banner_placement_definitions,id'],
+            'banner_placement_definition_id' => ['required', 'uuid', 'exists:banner_placement_definitions,id'],
             'country_id' => ['nullable', 'uuid', 'exists:countries,id'],
             'pricing_model' => ['required', Rule::in(['fixed_weekly', 'fixed_monthly', 'cpm', 'cpc'])],
-            'base_rate_cents' => ['required', 'integer', 'min:0'],
+            'base_rate_display' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'min_booking_days' => ['required', 'integer', 'min:1'],
             'max_booking_days' => ['nullable', 'integer', 'min:1'],
@@ -176,12 +188,47 @@ class AdSlotController extends Controller
             'notes_for_vendors' => ['nullable', 'string'],
         ]);
 
-        $adSlot->update($data);
+        $adSlot->update([
+            'name' => $validated['name'],
+            'placement_definition_id' => $validated['banner_placement_definition_id'],
+            'country_id' => $validated['country_id'] ?? null,
+            'pricing_model' => $validated['pricing_model'],
+            'base_rate_cents' => (int) round($validated['base_rate_display'] * 100),
+            'currency' => $validated['currency'],
+            'min_booking_days' => $validated['min_booking_days'],
+            'max_booking_days' => $validated['max_booking_days'] ?? null,
+            'is_available' => $request->boolean('is_available'),
+            'requires_approval' => $request->boolean('requires_approval'),
+            'min_seller_tier' => $validated['min_seller_tier'] ?? null,
+            'notes_for_vendors' => $validated['notes_for_vendors'] ?? null,
+        ]);
 
         return response()->json([
             'message' => 'Ad slot updated.',
             'redirect' => route('admin.ad-slots.index'),
         ]);
+    }
+
+    // ─── Destroy ──────────────────────────────────────────────────────────────
+
+    public function destroy(PaidAdSlot $adSlot): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
+
+        $activeBookings = $adSlot->bookings()
+            ->whereIn('status', ['pending', 'approved', 'active', 'paused'])
+            ->exists();
+
+        if ($activeBookings) {
+            return response()->json([
+                'message' => 'This slot has active or pending bookings and cannot be deleted. Deactivate the slot instead.',
+            ], 422);
+        }
+
+        $adSlot->delete();
+
+        return response()->json(['message' => 'Ad slot deleted.']);
     }
 
     // ─── Bookings for slot ────────────────────────────────────────────────────

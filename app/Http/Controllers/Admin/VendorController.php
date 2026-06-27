@@ -86,7 +86,11 @@ class VendorController extends Controller
                 'global_status' => $vendor->global_status,
                 'manager' => $vendor->accountManagerAdmin?->name ?? '—',
                 'created_at' => $vendor->created_at->format('d M Y'),
-                'actions' => $vendor->id,
+                'actions' => [
+                    'id'            => $vendor->id,
+                    'store_name'    => $vendor->store_name,
+                    'global_status' => $vendor->global_status,
+                ],
             ];
         });
     }

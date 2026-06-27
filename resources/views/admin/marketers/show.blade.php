@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@push('styles')
+@push('scripts')
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
@@ -109,7 +109,8 @@
 </div>
 
 {{-- ─── Tabs ────────────────────────────────────────────────────────────────── --}}
-<div x-data="{ tab: 'campaigns' }">
+<div x-data="{ tab: 'campaigns' }"
+     x-effect="document.dispatchEvent(new CustomEvent('marketer-tab-change', { detail: tab }))">
 
     <div class="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5 flex-wrap">
         @foreach([
@@ -176,7 +177,7 @@
                     <h3 class="text-lg font-bold text-gray-800">Commission Tiers (العمولات المتدرجة)</h3>
                     <p class="text-sm text-gray-500 mt-1">Current sales: <strong>{{ $stats['total_conversions'] }}</strong></p>
                 </div>
-                <a href="{{ route('admin.marketers.tiers.show', $marketer) }}" class="btn btn-primary btn-sm">Edit Tiers</a>
+                <a href="{{ route('admin.marketers.all.tiers.show', $marketer) }}" class="btn btn-primary btn-sm">Edit Tiers</a>
             </div>
             @php $tiers = $marketer->commissionTiers()->whereNull('campaign_id')->orderBy('tier_order')->get(); @endphp
             @if($tiers->isEmpty())
@@ -203,87 +204,38 @@
         </div>
     </div>
 
-    {{-- Sample Requests --}}
+    {{-- Sample Requests DataTable --}}
     <div x-show="tab === 'samples'">
-        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Sample Requests</h3>
-            @php $samples = $marketer->sampleRequests()->with(['vendor', 'items.vendorListing.product'])->orderByDesc('created_at')->limit(20)->get(); @endphp
-            @if($samples->isEmpty())
-                <p class="text-sm text-gray-400 italic">No sample requests yet.</p>
-            @else
-                <div class="space-y-3">
-                    @foreach($samples as $sample)
-                        <div class="border border-gray-200 rounded-xl p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <div>
-                                    <span class="font-medium text-sm">{{ $sample->vendor->store_name ?? '—' }}</span>
-                                    <span class="ml-2 text-xs text-gray-400">{{ $sample->created_at->format('d M Y') }}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="badge badge-{{ $sample->status_color }}">{{ ucfirst($sample->status) }}</span>
-                                    @if($sample->status === 'requested')
-                                        <button type="button" data-id="{{ $sample->id }}" class="btn btn-xs btn-success btn-approve-sample-inline">Approve</button>
-                                    @elseif($sample->status === 'approved')
-                                        <button type="button" data-id="{{ $sample->id }}" class="btn btn-xs btn-primary btn-dispatch-sample-inline">Dispatch</button>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="flex flex-wrap gap-2">
-                                @foreach($sample->items as $item)
-                                    <span class="text-xs bg-gray-100 rounded px-2 py-1">
-                                        {{ $item->vendorListing?->product?->name_en ?? $item->vendor_listing_id }} × {{ $item->quantity }}
-                                    </span>
-                                @endforeach
-                            </div>
-                            <p class="text-xs text-gray-400 mt-2">
-                                Total cost: {{ number_format($sample->total_cost_cents / 100, 2) }} EGP
-                            </p>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
+        <x-card>
+            <table id="marketer-samples-table" class="w-full text-sm" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Vendor</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </x-card>
     </div>
 
-    {{-- Secret Promotions --}}
+    {{-- Secret Promotions DataTable --}}
     <div x-show="tab === 'secret_promos'">
-        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-800">🔒 Secret Promotions</h3>
-                <button type="button" class="btn btn-primary btn-sm" @click="$dispatch('open-modal', 'add-secret-promo')">+ Add Promotion</button>
-            </div>
-            @php $promos = \App\Models\MarketerSecretPromotion::where('marketer_id', $marketer->id)->with('vendorListing.product')->orderByDesc('created_at')->get(); @endphp
-            @if($promos->isEmpty())
-                <p class="text-sm text-gray-400 italic">No secret promotions for this marketer.</p>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 text-left">
-                            <tr>
-                                <th class="px-3 py-2 font-medium text-gray-500">Listing</th>
-                                <th class="px-3 py-2 font-medium text-gray-500 text-right">Total %</th>
-                                <th class="px-3 py-2 font-medium text-gray-500 text-right">Marketer %</th>
-                                <th class="px-3 py-2 font-medium text-gray-500 text-right">Platform %</th>
-                                <th class="px-3 py-2 font-medium text-gray-500">Status</th>
-                                <th class="px-3 py-2 font-medium text-gray-500">Valid Until</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @foreach($promos as $promo)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2">{{ $promo->vendorListing?->product?->name_en ?? '—' }}</td>
-                                    <td class="px-3 py-2 text-right font-mono">{{ $promo->total_commission_pct }}%</td>
-                                    <td class="px-3 py-2 text-right font-mono text-green-600">{{ $promo->marketer_share_pct }}%</td>
-                                    <td class="px-3 py-2 text-right font-mono text-blue-600">{{ $promo->admin_share_pct }}%</td>
-                                    <td class="px-3 py-2"><span class="badge badge-{{ $promo->status === 'active' ? 'success' : 'secondary' }}">{{ ucfirst($promo->status) }}</span></td>
-                                    <td class="px-3 py-2 text-gray-500">{{ $promo->valid_until?->format('d M Y') ?? '—' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
+        <x-card>
+            <table id="marketer-secret-promos-table" class="w-full text-sm" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Vendor / Product</th>
+                        <th>Total %</th>
+                        <th>Status</th>
+                        <th>Valid Until</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </x-card>
     </div>
 
 </div>
@@ -291,47 +243,64 @@
 @endsection
 
 @push('scripts')
-<script>
+<script type="module">
 $(function () {
     const markId = '{{ $marketer->id }}';
     const tok    = '{{ csrf_token() }}';
 
-    // ── Campaigns Table ───────────────────────────────────────────────────────
-    $('#marketer-campaigns-table').DataTable({
+    const dtConfig = (url, columns, order) => ({
         processing: true,
         serverSide: true,
-        ajax: {
-            url:  '{{ route('admin.marketers.marketer-campaigns.datatable', $marketer->id) }}',
-            type: 'POST',
-            headers: { 'X-CSRF-TOKEN': tok },
-        },
-        columns: [
-            {}, {}, {}, {}, {}, {}, {}, { orderable: false }
-        ],
-        order: [[6, 'desc']],
+        ajax: { url, type: 'POST', headers: { 'X-CSRF-TOKEN': tok } },
+        columns,
+        order,
         pageLength: 10,
     });
 
-    // ── Conversions Table ─────────────────────────────────────────────────────
-    $('#marketer-conversions-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url:  '{{ route('admin.marketers.marketer-conversions.datatable', $marketer->id) }}',
-            type: 'POST',
-            headers: { 'X-CSRF-TOKEN': tok },
-        },
-        columns: [
-            {}, {}, {}, {}, {}, {}, { orderable: false }
-        ],
-        order: [[5, 'desc']],
-        pageLength: 10,
+    const inited = {};
+
+    function initTab(tab) {
+        if (inited[tab]) return;
+        inited[tab] = true;
+
+        if (tab === 'campaigns') {
+            $('#marketer-campaigns-table').DataTable(dtConfig(
+                '{{ route('admin.marketers.all.marketer-campaigns.datatable', $marketer->id) }}',
+                [{}, {}, {}, {}, {}, {}, {}, { orderable: false }],
+                [[6, 'desc']]
+            ));
+        } else if (tab === 'conversions') {
+            $('#marketer-conversions-table').DataTable(dtConfig(
+                '{{ route('admin.marketers.all.marketer-conversions.datatable', $marketer->id) }}',
+                [{}, {}, {}, {}, {}, {}, { orderable: false }],
+                [[5, 'desc']]
+            ));
+        } else if (tab === 'samples') {
+            $('#marketer-samples-table').DataTable(dtConfig(
+                '{{ route('admin.marketers.all.marketer-samples.datatable', $marketer->id) }}',
+                [{}, {}, {}, { orderable: false }],
+                [[2, 'desc']]
+            ));
+        } else if (tab === 'secret_promos') {
+            $('#marketer-secret-promos-table').DataTable(dtConfig(
+                '{{ route('admin.marketers.all.marketer-secret-promotions.datatable', $marketer->id) }}',
+                [{}, {}, {}, {}],
+                [[3, 'desc']]
+            ));
+        }
+    }
+
+    // Initialize the default tab on load, then lazily init others on switch.
+    initTab('campaigns');
+
+    document.addEventListener('marketer-tab-change', function (e) {
+        initTab(e.detail);
     });
 
     // ── Approve / Reject / Suspend / Activate ─────────────────────────────────
     $('#btn-approve').on('click', function () {
         window.confirmDialog({ title: 'Approve marketer?', confirmText: 'Approve', onConfirm: () => {
-            $.post('/admin/marketers/' + markId + '/approve', { _token: tok })
+            $.post('/marketers/' + markId + '/approve', { _token: tok })
                 .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
                 .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
         }});
@@ -339,34 +308,34 @@ $(function () {
     $('#btn-reject').on('click', function () {
         const reason = prompt('Rejection reason:');
         if (!reason) return;
-        $.post('/admin/marketers/' + markId + '/reject', { _token: tok, reason })
+        $.post('/marketers/' + markId + '/reject', { _token: tok, reason })
             .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
     });
     $('#btn-suspend').on('click', function () {
         window.confirmDialog({ title: 'Suspend marketer?', onConfirm: () => {
-            $.post('/admin/marketers/' + markId + '/suspend', { _token: tok })
+            $.post('/marketers/' + markId + '/suspend', { _token: tok })
                 .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
                 .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
         }});
     });
     $('#btn-activate').on('click', function () {
-        $.post('/admin/marketers/' + markId + '/activate', { _token: tok })
+        $.post('/marketers/' + markId + '/activate', { _token: tok })
             .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
     });
 
-    // ── Sample inline actions ────────────────────────────────────────────────
-    $(document).on('click', '.btn-approve-sample-inline', function () {
+    // ── Sample datatable actions (delegated) ──────────────────────────────────
+    $(document).on('click', '.btn-approve-sample', function () {
         const id = $(this).data('id');
-        $.post('/admin/marketer-samples/' + id + '/approve', { _token: tok })
-            .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
+        $.post('{{ url('admin/marketer-samples') }}/' + id + '/approve', { _token: tok })
+            .done(r => { window.Toast.success(r.message); $('#marketer-samples-table').DataTable().ajax.reload(); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
     });
-    $(document).on('click', '.btn-dispatch-sample-inline', function () {
+    $(document).on('click', '.btn-dispatch-sample', function () {
         const id = $(this).data('id');
-        $.post('/admin/marketer-samples/' + id + '/dispatch', { _token: tok })
-            .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
+        $.post('{{ url('admin/marketer-samples') }}/' + id + '/dispatch', { _token: tok })
+            .done(r => { window.Toast.success(r.message); $('#marketer-samples-table').DataTable().ajax.reload(); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
     });
 });

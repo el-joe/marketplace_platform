@@ -66,6 +66,7 @@
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Country</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Pricing</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Base Rate</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Booking Days</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Available</th>
                         <th class="py-2 text-xs font-medium text-gray-500 uppercase text-right">Actions</th>
                     </tr>

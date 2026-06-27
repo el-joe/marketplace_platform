@@ -61,7 +61,7 @@ function initTable() {
         processing: true,
         serverSide: true,
         ajax: {
-            url: window.routes?.datatable ?? '/admin/marketers/secret-promotions/datatable',
+            url: window.routes?.datatable ?? '/marketers/secret-promotions/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
@@ -214,7 +214,7 @@ function loadListingsForVendor(vendorId, preselect = null) {
 
     $select.html('<option value="">Loading listings…</option>').prop('disabled', true);
 
-    $.get('/admin/marketers/secret-promotions/listings/by-vendor', { vendor_id: vendorId })
+    $.get('/marketers/secret-promotions/listings/by-vendor', { vendor_id: vendorId })
         .done(function (data) {
             const listings = data.listings ?? [];
             if (!listings.length) {
@@ -335,8 +335,8 @@ function initCreateModal() {
 
         const $btn = $('#promo-save-btn');
         const url  = isEdit
-            ? `/admin/marketers/secret-promotions/${promoId}`
-            : '/admin/marketers/secret-promotions';
+            ? `/marketers/secret-promotions/${promoId}`
+            : '/marketers/secret-promotions';
         const method = isEdit ? 'PUT' : 'POST';
 
         withLoading($btn, 'Saving…', () =>
@@ -392,7 +392,7 @@ function initRowActions() {
         const $btn   = $(this);
 
         withLoading($btn, '…', () =>
-            ajax('POST', `/admin/marketers/secret-promotions/${id}/toggle-status`, { action })
+            ajax('POST', `/marketers/secret-promotions/${id}/toggle-status`, { action })
                 .done(function (res) {
                     Toast.success(res.message ?? 'Status updated.');
                     table?.ajax.reload();
@@ -416,7 +416,7 @@ function initRowActions() {
             confirmButtonColor: '#dc2626',
         }).then(() => {
             withLoading($btn, '…', () =>
-                ajax('POST', `/admin/marketers/secret-promotions/${id}/expire`, {})
+                ajax('POST', `/marketers/secret-promotions/${id}/expire`, {})
                     .done(function (res) {
                         Toast.success(res.message ?? 'Promotion expired.');
                         table?.ajax.reload();
@@ -434,7 +434,7 @@ function initRowActions() {
         const $btn = $(this);
 
         withLoading($btn, '…', () =>
-            ajax('POST', `/admin/marketers/secret-promotions/${id}/duplicate`, {})
+            ajax('POST', `/marketers/secret-promotions/${id}/duplicate`, {})
                 .done(function (res) {
                     Toast.success(res.message ?? 'Promotion duplicated.');
                     table?.ajax.reload();

@@ -219,7 +219,7 @@ $(function () {
     $(document).on('click', '.btn-approve-payout', function () {
         const id = $(this).data('id');
         window.confirmDialog({ title: 'Approve payout?', confirmText: 'Approve', onConfirm: () => {
-            fetch('/admin/marketers/payouts/' + id + '/approve', {
+            fetch('/marketers/payouts/' + id + '/approve', {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
                 body: '{}'
@@ -242,7 +242,7 @@ $(function () {
         const ref = $('#process-payment-ref').val().trim();
         if (!ref) { window.Toast.warning('Payment reference is required.'); return; }
 
-        fetch('/admin/marketers/payouts/' + id + '/process', {
+        fetch('/marketers/payouts/' + id + '/process', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
             body: JSON.stringify({ payment_reference: ref }),

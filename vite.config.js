@@ -55,6 +55,7 @@ export default defineConfig({
                 'resources/js/admin/shipping-methods.js',
                 'resources/js/admin/secret-promotions.js',
                 'resources/js/admin/secret-promotion-detail.js',
+                'resources/js/admin/marketer-tiers.js',
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
                 'resources/js/portal/registration.js',

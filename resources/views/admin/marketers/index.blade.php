@@ -268,12 +268,12 @@ $(function () {
         window.confirmDialog({
             title: 'Approve Marketer?',
             text: 'The marketer will be notified and gain access to the portal.',
-            confirmText: 'Approve',
-            onConfirm: () => {
-                $.post('{{ url('admin/marketers') }}/' + id + '/approve', { _token: '{{ csrf_token() }}' })
-                    .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
-                    .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
-            }
+            confirmButtonText: 'Approve',
+        }).then(confirmed => {
+            if (!confirmed) return;
+            $.post('{{ url('/marketers') }}/' + id + '/approve', { _token: '{{ csrf_token() }}' })
+                .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
         });
     });
 
@@ -288,7 +288,7 @@ $(function () {
         const id = $('#reject-marketer-id').val();
         const reason = $('#reject-reason').val().trim();
         if (!reason) { window.Toast.warning('Please enter a reason.'); return; }
-        $.post('{{ url('admin/marketers') }}/' + id + '/reject', { _token: '{{ csrf_token() }}', reason })
+        $.post('{{ url('/marketers') }}/' + id + '/reject', { _token: '{{ csrf_token() }}', reason })
             .done(r => { window.Toast.success(r.message); $('#reject-marketer-modal').hide(); table.ajax.reload(); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
     });
@@ -298,21 +298,27 @@ $(function () {
         const id = $(this).data('id');
         window.confirmDialog({
             title: 'Suspend Marketer?',
-            confirmText: 'Suspend',
-            onConfirm: () => {
-                $.post('{{ url('admin/marketers') }}/' + id + '/suspend', { _token: '{{ csrf_token() }}' })
-                    .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
-                    .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
-            }
+            confirmButtonText: 'Suspend',
+        }).then(confirmed => {
+            if (!confirmed) return;
+            $.post('{{ url('/marketers') }}/' + id + '/suspend', { _token: '{{ csrf_token() }}' })
+                .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
         });
     });
 
     // Activate
     $(document).on('click', '.btn-activate-marketer', function () {
         const id = $(this).data('id');
-        $.post('{{ url('admin/marketers') }}/' + id + '/activate', { _token: '{{ csrf_token() }}' })
-            .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
-            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+        window.confirmDialog({
+            title: 'Activate Marketer?',
+            confirmButtonText: 'Activate',
+        }).then(confirmed => {
+            if (!confirmed) return;
+            $.post('{{ url('/marketers') }}/' + id + '/activate', { _token: '{{ csrf_token() }}' })
+                .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+        });
     });
 
     function debounce(fn, ms) {

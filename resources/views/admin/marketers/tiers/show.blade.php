@@ -20,7 +20,7 @@
                         Define sales thresholds that automatically increase the commission rate.
                     </p>
                 </div>
-                <button type="button" id="save-tiers-btn" data-url="{{ route('admin.marketers.tiers.store', $marketer) }}"
+                <button type="button" id="save-tiers-btn" data-url="{{ route('admin.marketers.all.tiers.store', $marketer) }}"
                     class="btn btn-primary">Save Tiers</button>
             </div>
 
@@ -72,11 +72,13 @@
 @endsection
 
 @push('scripts')
-    <script>
-        window.existingTiers = @json($tiers->map(fn($t) => [
+    @php $tiers = $tiers->map(fn($t) => [
             'min_sales_count' => $t->min_sales_count,
             'max_sales_count' => $t->max_sales_count,
             'commission_rate' => (float) $t->commission_rate,
-        ])->values());
-    </script>
+        ])->values();
+    @endphp
+        <script>
+            window.existingTiers = @json($tiers);
+        </script>
 @endpush

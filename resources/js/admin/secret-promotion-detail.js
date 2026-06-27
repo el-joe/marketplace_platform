@@ -109,7 +109,7 @@ function initChartRangeFilter() {
         const id   = window.PROMO_ID;
         if (!id || !chart) return;
 
-        $.get(`/admin/marketers/secret-promotions/${id}/chart`, { days })
+        $.get(`/marketers/secret-promotions/${id}/chart`, { days })
             .done(function (data) {
                 chart.data.labels            = data.labels ?? [];
                 chart.data.datasets[0].data  = data.counts ?? [];

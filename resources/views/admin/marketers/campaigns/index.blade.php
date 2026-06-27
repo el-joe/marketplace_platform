@@ -137,7 +137,7 @@ $(function () {
     $(document).on('click', '.btn-approve-campaign', function () {
         const id = $(this).data('id');
         window.confirmDialog({ title: 'Approve campaign?', confirmText: 'Approve', onConfirm: () => {
-            fetch('/admin/marketers/campaigns/' + id + '/approve', {
+            fetch('/marketers/campaigns/' + id + '/approve', {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
                 body: '{}'
@@ -159,7 +159,7 @@ $(function () {
         const id     = $('#reject-campaign-id').val();
         const reason = $('#reject-campaign-reason').val().trim();
         if (!reason) { window.Toast.warning('Please enter a reason.'); return; }
-        fetch('/admin/marketers/campaigns/' + id + '/reject', {
+        fetch('/marketers/campaigns/' + id + '/reject', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
             body: JSON.stringify({ reason }),

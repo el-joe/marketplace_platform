@@ -57,6 +57,12 @@ function withLoading(btnOrSelector, jqXhr) {
     });
 }
 
+// ─── Row-action dropdown state ────────────────────────────────────────────────
+
+let activeVendorId     = null;
+let activeVendorName   = null;
+let activeVendorStatus = null;
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 $(function () {
@@ -127,6 +133,156 @@ $(function () {
         });
     }
 
+    // ── Row-action dropdown ────────────────────────────────────────────────────
+
+    function closeRowDropdown() {
+        $('#vendor-row-dropdown').addClass('hidden');
+        activeVendorId = null;
+    }
+
+    $(document).on('click', '.vendor-dots-btn', function (e) {
+        e.stopPropagation();
+        const $btn  = $(this);
+        const id     = $btn.data('id');
+        const name   = $btn.data('name');
+        const status = $btn.data('status');
+        const $dd    = $('#vendor-row-dropdown');
+
+        // Toggle if same button clicked again
+        if (activeVendorId === id && !$dd.hasClass('hidden')) {
+            closeRowDropdown();
+            return;
+        }
+
+        activeVendorId     = id;
+        activeVendorName   = name;
+        activeVendorStatus = status;
+
+        // Update static links
+        $('#vrd-view').attr('href', '/vendors/' + id);
+        $('#vrd-edit').attr('href', '/vendors/' + id + '/edit');
+
+        // Reset status-conditional items
+        $('#vrd-divider, #vrd-approve, #vrd-reject, #vrd-suspend, #vrd-reactivate').addClass('hidden');
+
+        if (status === 'active') {
+            $('#vrd-divider, #vrd-suspend').removeClass('hidden');
+        } else if (status === 'under_review') {
+            $('#vrd-divider, #vrd-approve, #vrd-reject').removeClass('hidden');
+        } else if (status === 'suspended') {
+            $('#vrd-divider, #vrd-reactivate').removeClass('hidden');
+        }
+
+        // Position (fixed to viewport)
+        const rect = this.getBoundingClientRect();
+        $dd.css({
+            top:  rect.bottom + 4,
+            left: rect.right - 192,   // 192px = w-48
+        }).removeClass('hidden');
+    });
+
+    // Close dropdown on outside click
+    $(document).on('click', function () { closeRowDropdown(); });
+    $('#vendor-row-dropdown').on('click', function (e) { e.stopPropagation(); });
+
+    // ── Dropdown → per-action modals ──────────────────────────────────────────
+
+    $('#vrd-suspend').on('click', function () {
+        closeRowDropdown();
+        $('#suspend-vendor-name').text(activeVendorName);
+        $('#suspend-reason').val('');
+        $('#suspend-reason-error').addClass('hidden');
+        openModal('suspend-modal');
+    });
+
+    $('#vrd-approve').on('click', function () {
+        closeRowDropdown();
+        $('#approve-vendor-name').text(activeVendorName);
+        openModal('approve-modal');
+    });
+
+    $('#vrd-reject').on('click', function () {
+        closeRowDropdown();
+        $('#reject-vendor-name').text(activeVendorName);
+        $('#reject-reason').val('');
+        $('#reject-reason-error').addClass('hidden');
+        openModal('reject-modal');
+    });
+
+    $('#vrd-reactivate').on('click', function () {
+        closeRowDropdown();
+        $('#reactivate-vendor-name').text(activeVendorName);
+        openModal('reactivate-modal');
+    });
+
+    // ── Per-action confirm buttons ─────────────────────────────────────────────
+
+    $('#suspend-confirm-btn').on('click', function () {
+        const reason = $('#suspend-reason').val().trim();
+        if (reason.length < 5) {
+            $('#suspend-reason-error').removeClass('hidden');
+            return;
+        }
+        const vendorId = activeVendorId;
+        const vendorName = activeVendorName;
+        withLoading(this,
+            $.post('/vendors/' + vendorId + '/suspend', { _token: csrfToken(), reason })
+                .done(function (res) {
+                    closeModal('suspend-modal');
+                    Toast.success((vendorName ? vendorName + ' suspended.' : res.message));
+                    if (dt) dt.ajax.reload();
+                })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Suspension failed.'); })
+        );
+    });
+
+    $('#approve-confirm-btn').on('click', function () {
+        const vendorId = activeVendorId;
+        const vendorName = activeVendorName;
+        withLoading(this,
+            $.post('/vendors/' + vendorId + '/approve', { _token: csrfToken() })
+                .done(function (res) {
+                    closeModal('approve-modal');
+                    Toast.success((vendorName ? vendorName + ' approved.' : res.message));
+                    if (dt) dt.ajax.reload();
+                })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Approval failed.'); })
+        );
+    });
+
+    $('#reject-confirm-btn').on('click', function () {
+        const reason = $('#reject-reason').val().trim();
+        if (reason.length < 5) {
+            $('#reject-reason-error').removeClass('hidden');
+            return;
+        }
+        const vendorId = activeVendorId;
+        const vendorName = activeVendorName;
+        withLoading(this,
+            $.post('/vendors/' + vendorId + '/reject', { _token: csrfToken(), reason })
+                .done(function (res) {
+                    closeModal('reject-modal');
+                    Toast.success((vendorName ? vendorName + ' rejected.' : res.message));
+                    if (dt) dt.ajax.reload();
+                })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Rejection failed.'); })
+        );
+    });
+
+    $('#reactivate-confirm-btn').on('click', function () {
+        const vendorId = activeVendorId;
+        const vendorName = activeVendorName;
+        withLoading(this,
+            $.post('/vendors/' + vendorId + '/reactivate', { _token: csrfToken() })
+                .done(function (res) {
+                    closeModal('reactivate-modal');
+                    Toast.success((vendorName ? vendorName + ' reactivated.' : res.message));
+                    if (dt) dt.ajax.reload();
+                })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Reactivation failed.'); })
+        );
+    });
+
     // ── Bulk actions ──────────────────────────────────────────────────────────
 
     let selectedIds = [];
@@ -147,7 +303,7 @@ $(function () {
             dt.rows().every(function () {
                 const row = this.node();
                 if ($(row).find('.row-check').is(':checked')) {
-                    selectedIds.push(this.data().actions);
+                    selectedIds.push(this.data().actions.id);
                 }
             });
         }
@@ -156,25 +312,79 @@ $(function () {
         $('#selected-count').text(count);
     }
 
-    $('#clear-selection').on('click', function () {
+    function clearSelection() {
         $('.row-check, #select-all').prop('checked', false);
         selectedIds = [];
         $('#bulk-bar').addClass('hidden');
+    }
+
+    $('#clear-selection').on('click', clearSelection);
+
+    // Bulk Suspend
+    $(document).on('click', '[data-bulk="suspend"]', function () {
+        $('#bulk-suspend-count').text(selectedIds.length);
+        $('#bulk-suspend-reason').val('');
+        $('#bulk-suspend-reason-error').addClass('hidden');
+        openModal('bulk-suspend-modal');
     });
 
+    $('#bulk-suspend-confirm-btn').on('click', function () {
+        const reason = $('#bulk-suspend-reason').val().trim();
+        if (reason.length < 5) {
+            $('#bulk-suspend-reason-error').removeClass('hidden');
+            return;
+        }
+        withLoading(this,
+            $.post('/vendors/bulk', {
+                _token: csrfToken(), action: 'suspend',
+                vendor_ids: selectedIds, reason,
+            })
+                .done(function (res) {
+                    closeModal('bulk-suspend-modal');
+                    Toast.success(res.message);
+                    if (dt) dt.ajax.reload();
+                    clearSelection();
+                })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Bulk suspension failed.'); })
+        );
+    });
+
+    // Bulk Reactivate
+    $(document).on('click', '[data-bulk="reactivate"]', function () {
+        $('#bulk-reactivate-count').text(selectedIds.length);
+        openModal('bulk-reactivate-modal');
+    });
+
+    $('#bulk-reactivate-confirm-btn').on('click', function () {
+        withLoading(this,
+            $.post('/vendors/bulk', {
+                _token: csrfToken(), action: 'reactivate',
+                vendor_ids: selectedIds,
+            })
+                .done(function (res) {
+                    closeModal('bulk-reactivate-modal');
+                    Toast.success(res.message);
+                    if (dt) dt.ajax.reload();
+                    clearSelection();
+                })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Bulk reactivation failed.'); })
+        );
+    });
+
+    // Bulk misc (place_hold / assign_manager / export)
     let pendingBulkAction = null;
 
-    $(document).on('click', '[data-bulk]', function () {
+    $(document).on('click', '[data-bulk="place_hold"], [data-bulk="assign_manager"], [data-bulk="export"]', function () {
         pendingBulkAction = $(this).data('bulk');
-        const needsAdmin = pendingBulkAction === 'assign_manager';
-        const needsReason = ['suspend', 'place_hold'].includes(pendingBulkAction);
+        const needsAdmin  = pendingBulkAction === 'assign_manager';
+        const needsReason = pendingBulkAction === 'place_hold';
 
         $('#bulk-admin-select').toggleClass('hidden', !needsAdmin);
         $('#bulk-reason-field').toggleClass('hidden', !needsReason);
-        openModal('bulk-reason-modal');
+        openModal('bulk-misc-modal');
     });
 
-    $('#bulk-confirm-btn').on('click', function () {
+    $('#bulk-misc-confirm-btn').on('click', function () {
         if (!pendingBulkAction || selectedIds.length === 0) return;
 
         withLoading(this,
@@ -186,11 +396,10 @@ $(function () {
                 admin_id: $('#bulk-admin-id').val(),
             })
                 .done(function (res) {
-                    closeModal('bulk-reason-modal');
+                    closeModal('bulk-misc-modal');
                     Toast.success(res.message);
                     if (dt) dt.ajax.reload();
-                    selectedIds = [];
-                    $('#bulk-bar').addClass('hidden');
+                    clearSelection();
                 })
                 .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Bulk action failed.'); })
         );
@@ -547,8 +756,8 @@ $(function () {
 function renderStore(data) {
     if (!data) return '—';
     const avatar = data.avatar
-        ? `<img src="${data.avatar}" class="w-8 h-8 rounded-lg object-cover border border-gray-200 flex-shrink-0">`
-        : `<div class="w-8 h-8 rounded-lg bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0">${data.store_name.charAt(0).toUpperCase()}</div>`;
+        ? `<img src="${data.avatar}" class="w-8 h-8 rounded-lg object-cover border border-gray-200 shrink-0">`
+        : `<div class="w-8 h-8 rounded-lg bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold shrink-0">${data.store_name.charAt(0).toUpperCase()}</div>`;
 
     const badges = [];
     if (data.payout_hold) badges.push('<span class="text-warning-700 text-xs">⚠ Hold</span>');
@@ -573,10 +782,20 @@ function renderStatus(status) {
     return `<span class="inline-flex items-center rounded-full font-medium px-2 py-0.5 text-xs bg-${color}-100 text-${color}-700">${label}</span>`;
 }
 
-function renderActions(vendorId) {
+function renderActions(data) {
+    if (!data) return '';
+    const { id, store_name, global_status } = data;
+    const name = escHtml(store_name ?? '');
     return `<div class="flex items-center justify-end gap-2 text-xs">
-        <a href="/vendors/${vendorId}" class="text-primary-600 hover:underline">View</a>
-        <button type="button" class="text-gray-400 hover:text-gray-600" data-open-modal="bulk-reason-modal" onclick="selectRow('${vendorId}')">⋯</button>
+        <a href="/vendors/${id}" class="text-primary-600 hover:underline">View</a>
+        <button type="button"
+            class="vendor-dots-btn p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            data-id="${id}" data-name="${name}" data-status="${global_status}"
+            title="More actions">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+            </svg>
+        </button>
     </div>`;
 }
 

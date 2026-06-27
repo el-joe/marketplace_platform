@@ -53,12 +53,12 @@
                 <thead>
                     <tr class="border-b border-gray-100 text-left">
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">IP Address</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Campaign</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Vendor</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Campaign / Vendor</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Clicks/Hr</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Clicks/24h</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Detected</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Blocked At</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Reason</th>
                         <th class="py-2 text-xs font-medium text-gray-500 uppercase">Action</th>
                     </tr>
                 </thead>

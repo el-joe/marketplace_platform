@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BannerPlacementDefinition extends Model
 {
+    use HasUuids;
     protected $fillable = [
         'code',
         'name',
@@ -21,6 +23,12 @@ class BannerPlacementDefinition extends Model
         'base_rate_weekly_cents',
         'is_active',
         'sort_order',
+    ];
+
+    protected $casts = [
+        'allowed_formats' => 'array',
+        'supports_vendor_ads' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function slots(): HasMany

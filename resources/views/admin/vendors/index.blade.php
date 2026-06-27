@@ -80,8 +80,8 @@
         class="hidden mb-4 flex items-center gap-3 rounded-lg bg-primary-50 border border-primary-200 px-4 py-2">
         <span class="text-sm font-medium text-primary-800"><span id="selected-count">0</span> selected</span>
         <div class="flex items-center gap-2 ml-2">
-            <button type="button" data-bulk="suspend" class="btn btn-warning btn-xs">Suspend</button>
-            <button type="button" data-bulk="reactivate" class="btn btn-success btn-xs">Reactivate</button>
+            <button type="button" data-bulk="suspend" class="btn btn-warning btn-xs">Bulk Suspend</button>
+            <button type="button" data-bulk="reactivate" class="btn btn-success btn-xs">Bulk Reactivate</button>
             <button type="button" data-bulk="place_hold" class="btn btn-ghost btn-xs">Place Hold</button>
             <button type="button" data-bulk="assign_manager" class="btn btn-ghost btn-xs">Assign Manager</button>
             <button type="button" data-bulk="export" class="btn btn-ghost btn-xs">Export CSV</button>
@@ -115,8 +115,122 @@
         </div>
     </x-card>
 
-    {{-- Bulk reason modal --}}
-    <x-modal id="bulk-reason-modal" title="Bulk Action" size="sm">
+    {{-- ─── Per-row action dropdown (shared, positioned via JS) ────────────────── --}}
+    <div id="vendor-row-dropdown"
+        class="hidden fixed z-50 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1"
+        style="top:0;left:0">
+        <a id="vrd-view" href="#"
+            class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">View</a>
+        <!-- <a id="vrd-edit" href="#"
+            class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">Edit</a> -->
+        <div id="vrd-divider" class="hidden border-t border-gray-100 my-1"></div>
+        <button id="vrd-approve" type="button"
+            class="hidden w-full text-left px-3 py-2 text-sm text-success-600 hover:bg-gray-50">Approve Vendor</button>
+        <button id="vrd-reject" type="button"
+            class="hidden w-full text-left px-3 py-2 text-sm text-danger-600 hover:bg-gray-50">Reject Vendor</button>
+        <button id="vrd-suspend" type="button"
+            class="hidden w-full text-left px-3 py-2 text-sm text-danger-600 hover:bg-gray-50">Suspend Vendor</button>
+        <button id="vrd-reactivate" type="button"
+            class="hidden w-full text-left px-3 py-2 text-sm text-success-600 hover:bg-gray-50">Reactivate Vendor</button>
+    </div>
+
+    {{-- ─── Suspend vendor modal ─────────────────────────────────────────────── --}}
+    <x-modal id="suspend-modal" title="Suspend Vendor" size="sm">
+        <p class="text-sm text-gray-600 mb-3">Suspend <strong id="suspend-vendor-name"></strong>?</p>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Reason <span class="text-danger-500">*</span>
+            </label>
+            <textarea id="suspend-reason" class="form-input w-full resize-none" rows="3"
+                placeholder="Provide a reason for suspension…"></textarea>
+            <p id="suspend-reason-error" class="hidden text-xs text-danger-600 mt-1">
+                Reason is required (min 5 characters).
+            </p>
+        </div>
+        <x-slot name="footer">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+            <button type="button" id="suspend-confirm-btn" class="btn btn-danger btn-sm">Suspend Vendor</button>
+        </x-slot>
+    </x-modal>
+
+    {{-- ─── Approve vendor modal ─────────────────────────────────────────────── --}}
+    <x-modal id="approve-modal" title="Approve Vendor" size="sm">
+        <p class="text-sm text-gray-600">
+            Approve <strong id="approve-vendor-name"></strong>?
+            This will activate their store on the platform.
+        </p>
+        <x-slot name="footer">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+            <button type="button" id="approve-confirm-btn" class="btn btn-success btn-sm">Approve Vendor</button>
+        </x-slot>
+    </x-modal>
+
+    {{-- ─── Reject vendor modal ──────────────────────────────────────────────── --}}
+    <x-modal id="reject-modal" title="Reject Vendor" size="sm">
+        <p class="text-sm text-gray-600 mb-3">Reject <strong id="reject-vendor-name"></strong>?</p>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Reason <span class="text-danger-500">*</span>
+            </label>
+            <textarea id="reject-reason" class="form-input w-full resize-none" rows="3"
+                placeholder="Provide a reason for rejection…"></textarea>
+            <p id="reject-reason-error" class="hidden text-xs text-danger-600 mt-1">
+                Reason is required (min 5 characters).
+            </p>
+        </div>
+        <x-slot name="footer">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+            <button type="button" id="reject-confirm-btn" class="btn btn-danger btn-sm">Reject Vendor</button>
+        </x-slot>
+    </x-modal>
+
+    {{-- ─── Reactivate vendor modal ──────────────────────────────────────────── --}}
+    <x-modal id="reactivate-modal" title="Reactivate Vendor" size="sm">
+        <p class="text-sm text-gray-600">
+            Reactivate <strong id="reactivate-vendor-name"></strong>?
+            Their store will be restored to active status.
+        </p>
+        <x-slot name="footer">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+            <button type="button" id="reactivate-confirm-btn" class="btn btn-success btn-sm">Reactivate Vendor</button>
+        </x-slot>
+    </x-modal>
+
+    {{-- ─── Bulk Suspend modal ───────────────────────────────────────────────── --}}
+    <x-modal id="bulk-suspend-modal" title="Bulk Suspend Vendors" size="sm">
+        <p class="text-sm text-gray-600 mb-3">
+            Suspend <strong><span id="bulk-suspend-count">0</span> selected vendor(s)</strong>?
+        </p>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Reason <span class="text-danger-500">*</span>
+            </label>
+            <textarea id="bulk-suspend-reason" class="form-input w-full resize-none" rows="3"
+                placeholder="Reason applied to all selected vendors…"></textarea>
+            <p id="bulk-suspend-reason-error" class="hidden text-xs text-danger-600 mt-1">
+                Reason is required (min 5 characters).
+            </p>
+        </div>
+        <x-slot name="footer">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+            <button type="button" id="bulk-suspend-confirm-btn" class="btn btn-danger btn-sm">Suspend All</button>
+        </x-slot>
+    </x-modal>
+
+    {{-- ─── Bulk Reactivate modal ────────────────────────────────────────────── --}}
+    <x-modal id="bulk-reactivate-modal" title="Bulk Reactivate Vendors" size="sm">
+        <p class="text-sm text-gray-600">
+            Reactivate <strong><span id="bulk-reactivate-count">0</span> selected vendor(s)</strong>?
+            All selected vendors will be restored to active status.
+        </p>
+        <x-slot name="footer">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+            <button type="button" id="bulk-reactivate-confirm-btn" class="btn btn-success btn-sm">Reactivate All</button>
+        </x-slot>
+    </x-modal>
+
+    {{-- ─── Generic bulk modal (place_hold / assign_manager / export) ──────────── --}}
+    <x-modal id="bulk-misc-modal" title="Bulk Action" size="sm">
         <div class="space-y-3">
             <div id="bulk-admin-select" class="hidden">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Admin</label>
@@ -133,7 +247,7 @@
         </div>
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="button" id="bulk-confirm-btn" class="btn btn-primary btn-sm">Confirm</button>
+            <button type="button" id="bulk-misc-confirm-btn" class="btn btn-primary btn-sm">Confirm</button>
         </x-slot>
     </x-modal>
 

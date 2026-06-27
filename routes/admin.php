@@ -578,6 +578,7 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{adSlot}/bookings', [AdSlotController::class, 'bookings'])->name('bookings');
         Route::get('/{adSlot}/edit', [AdSlotController::class, 'edit'])->name('edit');
         Route::put('/{adSlot}', [AdSlotController::class, 'update'])->name('update');
+        Route::delete('/{adSlot}', [AdSlotController::class, 'destroy'])->name('destroy');
     });
 
     // ─── Paid Ad Bookings ──────────────────────────────────────────────────────────
@@ -848,6 +849,8 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{marketer}/activate', [MarketerController::class, 'activate'])->name('activate');
         Route::post('/{marketer}/campaigns/datatable', [MarketerController::class, 'marketerCampaignsDatatable'])->name('marketer-campaigns.datatable');
         Route::post('/{marketer}/conversions/datatable', [MarketerController::class, 'marketerConversionsDatatable'])->name('marketer-conversions.datatable');
+        Route::post('/{marketer}/samples/datatable', [MarketerController::class, 'marketerSamplesDatatable'])->name('marketer-samples.datatable');
+        Route::post('/{marketer}/secret-promotions/datatable', [MarketerController::class, 'marketerSecretPromotionsDatatable'])->name('marketer-secret-promotions.datatable');
         Route::get('/{marketer}/tiers', [MarketerController::class, 'tiersShow'])->name('tiers.show');
         Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
     });

@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             BrandShippingSeeder::class,
             SettingsSeeder::class,
             SubscriptionPlanSeeder::class,
+            BannerPlacementDefinitionsSeeder::class,
 
                 // ── Admin accounts (creates the 4 base rows) ──────────────────
             AdminSeeder::class,

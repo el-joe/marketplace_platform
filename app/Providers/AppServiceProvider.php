@@ -45,6 +45,8 @@ use App\Policies\WarehouseInventoryPolicy;
 use App\Policies\WhatsappLinkPolicy;
 use App\Models\ClassifiedListing;
 use App\Models\ClassifiedInquiry;
+use App\Models\PaidAdSlot;
+use App\Policies\AdSlotPolicy;
 use App\Policies\ClassifiedListingPolicy;
 use App\Policies\ClassifiedInquiryPolicy;
 use Illuminate\Support\Facades\Blade;
@@ -85,6 +87,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(DeliveryAgent::class, CarrierAgentPolicy::class);
         Gate::policy(ClassifiedListing::class, ClassifiedListingPolicy::class);
         Gate::policy(ClassifiedInquiry::class, ClassifiedInquiryPolicy::class);
+        Gate::policy(PaidAdSlot::class, AdSlotPolicy::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);

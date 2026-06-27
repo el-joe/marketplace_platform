@@ -13,6 +13,8 @@ use App\Models\MarketerPayout;
 use App\Models\MarketerSampleRequest;
 use App\Models\MarketerSecretPromotion;
 use App\Models\Vendor;
+use App\Jobs\SendMarketerRejectionMail;
+use App\Jobs\SendMarketerWelcomeMail;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -150,8 +152,7 @@ class MarketerController extends Controller
             'approved_at' => now(),
         ]);
 
-        // TODO: dispatch welcome email job
-        // SendMarketerWelcomeMail::dispatch($marketer);
+        SendMarketerWelcomeMail::dispatch($marketer);
 
         return response()->json(['success' => true, 'message' => 'Marketer approved and activated.']);
     }
@@ -162,7 +163,7 @@ class MarketerController extends Controller
 
         $marketer->update(['status' => 'rejected']);
 
-        // TODO: dispatch rejection email
+        SendMarketerRejectionMail::dispatch($marketer, $request->reason);
 
         return response()->json(['success' => true, 'message' => 'Marketer rejected.']);
     }
@@ -539,6 +540,59 @@ class MarketerController extends Controller
         ]);
 
         return response()->json(['success' => true, 'message' => 'Payout marked as paid.']);
+    }
+
+    public function marketerSamplesDatatable(Marketer $marketer, Request $request): JsonResponse
+    {
+        $columns = [
+            ['searchable_columns' => ['vendors.store_name']],
+            ['orderable_column' => 'marketer_sample_requests.status'],
+            ['orderable_column' => 'marketer_sample_requests.created_at'],
+            [],
+        ];
+
+        $query = $marketer->sampleRequests()->getQuery()
+            ->join('vendors', 'vendors.id', '=', 'marketer_sample_requests.vendor_id')
+            ->select(['marketer_sample_requests.*', 'vendors.store_name as vendor_name']);
+
+        if ($status = $request->input('filter_status')) {
+            $query->where('marketer_sample_requests.status', $status);
+        }
+
+        return $this->dataTableResponse($request, $query, $columns, fn($row) => [
+            e($row->vendor_name),
+            '<span class="badge badge-' . (new MarketerSampleRequest(['status' => $row->status]))->status_color . '">' . ucfirst($row->status) . '</span>',
+            $row->created_at->format('d M Y'),
+            $this->sampleActions($row),
+        ]);
+    }
+
+    public function marketerSecretPromotionsDatatable(Marketer $marketer, Request $request): JsonResponse
+    {
+        $columns = [
+            ['searchable_columns' => ['vendors.store_name']],
+            ['orderable_column' => 'marketer_secret_promotions.total_commission_pct'],
+            ['orderable_column' => 'marketer_secret_promotions.status'],
+            ['orderable_column' => 'marketer_secret_promotions.valid_until'],
+        ];
+
+        $query = MarketerSecretPromotion::where('marketer_id', $marketer->id)
+            ->join('vendors', 'vendors.id', '=', 'marketer_secret_promotions.vendor_id')
+            ->leftJoin('vendor_listings', 'vendor_listings.id', '=', 'marketer_secret_promotions.vendor_listing_id')
+            ->leftJoin('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
+            ->leftJoin('products', 'products.id', '=', 'product_variants.product_id')
+            ->select([
+                'marketer_secret_promotions.*',
+                'vendors.store_name as vendor_name',
+                'products.name_en as product_name',
+            ]);
+
+        return $this->dataTableResponse($request, $query, $columns, fn($row) => [
+            e($row->vendor_name) . '<br><span class="text-xs text-gray-400">' . e($row->product_name ?? '') . '</span>',
+            $row->total_commission_pct . '%',
+            '<span class="badge badge-' . ($row->status === 'active' ? 'success' : ($row->status === 'paused' ? 'warning' : 'secondary')) . '">' . ucfirst($row->status) . '</span>',
+            $row->valid_until ? \Carbon\Carbon::parse($row->valid_until)->format('d M Y') : '—',
+        ]);
     }
 
     // ════════════════════════════════════════════════════════════════════════
