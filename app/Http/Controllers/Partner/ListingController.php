@@ -187,6 +187,12 @@ class ListingController extends Controller
                     ->orWhere('model_number', 'like', '%' . $q . '%')
                     ->orWhere('gtin', 'like', $q . '%');
             })
+            // Exclude has_variants=0 products that are missing an active default variant —
+            // they cannot be listed until admin fixes the data gap.
+            ->where(function ($q) {
+                $q->where('has_variants', 1)
+                    ->orWhereHas('variants', fn ($vq) => $vq->where('is_default', true)->where('is_active', true));
+            })
             ->with([
                 'variants' => function ($vq) {
                     $vq->where('is_active', true)->orderBy('position');
@@ -205,7 +211,7 @@ class ListingController extends Controller
                     ->limit(1),
             ])
             ->limit(10)
-            ->get(['id', 'name_en', 'name_ar', 'model_number']);
+            ->get(['id', 'name_en', 'name_ar', 'model_number', 'has_variants']);
 
         $vendorId = $this->vendorId();
 
@@ -229,6 +235,7 @@ class ListingController extends Controller
                 'name_ar' => $product->name_ar,
                 'model' => $product->model_number,
                 'image_url' => $imageUrl,
+                'has_variants' => (bool) $product->has_variants,
                 'variants' => $product->variants->map(fn($v) => [
                     'id' => $v->id,
                     'variant_name' => $v->variant_name ?: 'النسخة الافتراضية',
@@ -344,7 +351,8 @@ class ListingController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'product_variant_id' => ['required', 'exists:product_variants,id'],
+            'product_variant_id' => ['nullable', 'required_without:product_id', 'uuid', 'exists:product_variants,id'],
+            'product_id'         => ['nullable', 'required_without:product_variant_id', 'uuid', 'exists:products,id'],
             'country_id' => ['required', 'exists:countries,id'],
             'price' => ['required', 'numeric', 'min:0.01', 'max:999999'],
             'condition' => ['required', 'in:new,like_new,good,acceptable,refurbished'],
@@ -357,11 +365,36 @@ class ListingController extends Controller
             'initial_quantity' => ['required', 'integer', 'min:0', 'max:99999'],
         ]);
 
+        // Resolve product_variant_id — either sent directly (has_variants=1) or resolved
+        // from the product's sole default variant (has_variants=0).
+        if ($request->filled('product_variant_id')) {
+            $resolvedVariantId = $request->product_variant_id;
+        } else {
+            $product = Product::findOrFail($request->product_id);
+            if ($product->has_variants) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'يرجى اختيار نسخة محددة من هذا المنتج.',
+                ], 422);
+            }
+            $defaultVariant = $product->variants()
+                ->where('is_default', true)
+                ->where('is_active', true)
+                ->first();
+            if (! $defaultVariant) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'هذا المنتج غير متاح للبيع حالياً — يرجى التواصل مع الإدارة.',
+                ], 422);
+            }
+            $resolvedVariantId = $defaultVariant->id;
+        }
+
         $vendorId = $this->vendorId();
 
         // Prevent duplicate active listing for same vendor + variant + country
         $existing = VendorListing::where('vendor_id', $vendorId)
-            ->where('product_variant_id', $request->product_variant_id)
+            ->where('product_variant_id', $resolvedVariantId)
             ->where('country_id', $request->country_id)
             ->whereNotIn('status', ['archived'])
             ->first();
@@ -382,11 +415,11 @@ class ListingController extends Controller
 
         // try {
             $listing = null;
-            DB::transaction(function () use ($request, $vendorId, $status, $currency, &$listing, $vendor) {
+            DB::transaction(function () use ($request, $vendorId, $status, $currency, &$listing, $vendor, $resolvedVariantId) {
                 $listing = VendorListing::create([
                     'id' => (string) Str::uuid(),
                     'vendor_id' => $vendorId,
-                    'product_variant_id' => $request->product_variant_id,
+                    'product_variant_id' => $resolvedVariantId,
                     'country_id' => $request->country_id,
                     'price' => (int) round((float) $request->price * 100),
                     'currency' => $currency,

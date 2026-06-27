@@ -251,6 +251,34 @@ function initProductSearch() {
                     ? `<img src="${product.image_url}" class="w-10 h-10 rounded-lg object-cover shrink-0">`
                     : `<div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 text-gray-400 text-xs">📦</div>`;
 
+                    alert('Product has no variants. This should not happen.');
+                if (!product.has_variants) {
+                    // Single-variant product: the default variant is the only option.
+                    // Make the whole card clickable — no variant chooser needed.
+                    const v = product.variants[0];
+                    const disabled = v?.already_listed;
+                    const skuLabel = v ? `<span class="font-mono text-xs text-gray-400 mt-1 block">SKU: ${escapeHtml(v.sku)}</span>` : '';
+                    const alreadyBadge = disabled ? `<span class="text-xs text-green-600 mt-1 block">✓ مُدرج بالفعل</span>` : '';
+                    return `<div class="simple-product-card flex items-start gap-3 p-3 rounded-xl border border-transparent transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-yellow-300 hover:bg-yellow-50 cursor-pointer'}"
+                        data-product-id="${product.id}"
+                        data-product-name="${escapeHtml(product.name)}"
+                        data-variant-id="${v?.id || ''}"
+                        data-variant-name=""
+                        data-sku="${escapeHtml(v?.sku || '')}"
+                        data-image="${product.image_url || ''}"
+                        data-has-variants="0"
+                        ${disabled ? 'aria-disabled="true"' : ''}>
+                        ${img}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-800 leading-tight">${escapeHtml(product.name)}</p>
+                            ${product.model ? `<p class="text-xs text-gray-400">${escapeHtml(product.model)}</p>` : ''}
+                            ${skuLabel}
+                            ${alreadyBadge}
+                        </div>
+                    </div>`;
+                }
+
+                // Multi-variant product: show individual variant buttons.
                 const variants = product.variants.map(v => {
                     const disabled = v.already_listed;
                     return `<button type="button"
@@ -261,12 +289,13 @@ function initProductSearch() {
                         data-variant-name="${escapeHtml(v.variant_name)}"
                         data-sku="${escapeHtml(v.sku)}"
                         data-image="${product.image_url || ''}"
+                        data-has-variants="1"
                         ${disabled ? 'disabled title="قائمة موجودة بالفعل"' : ''}>
                         ${escapeHtml(v.variant_name)}${disabled ? ' ✓' : ''}
                     </button>`;
                 }).join('');
 
-                return `<div class="flex items-start gap-3 p-3 rounded-xl border border-transparent hover:border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
+                return `<div class="flex items-start gap-3 p-3 rounded-xl border border-transparent hover:border-gray-100 hover:bg-gray-50 transition-colors">
                     ${img}
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-gray-800 leading-tight">${escapeHtml(product.name)}</p>
@@ -276,7 +305,12 @@ function initProductSearch() {
                 </div>`;
             }).join('');
 
-            // Bind variant select
+            // Bind simple (no-variant) product card clicks
+            resultsDiv.querySelectorAll('.simple-product-card:not([aria-disabled="true"])').forEach(card => {
+                card.addEventListener('click', () => selectVariant(card.dataset));
+            });
+
+            // Bind variant select buttons (multi-variant products)
             resultsDiv.querySelectorAll('.variant-select-btn:not([disabled])').forEach(btn => {
                 btn.addEventListener('click', () => selectVariant(btn.dataset));
             });
@@ -294,8 +328,13 @@ function escapeHtml(str) {
 }
 
 function selectVariant(data) {
-    // Fill hidden input
-    document.getElementById('form-product-variant-id').value = data.variantId;
+    const hasVariants = data.hasVariants === '1' || data.hasVariants === true;
+
+    // Store resolution data on the hidden input so submit can read it
+    const hiddenInput = document.getElementById('form-product-variant-id');
+    hiddenInput.value = data.variantId;
+    hiddenInput.dataset.productId = data.productId;
+    hiddenInput.dataset.hasVariants = hasVariants ? '1' : '0';
 
     // Update selected product display
     const imgEl = document.getElementById('selected-img');
@@ -308,8 +347,12 @@ function selectVariant(data) {
     const variantEl = document.getElementById('selected-variant-name');
     const skuEl = document.getElementById('selected-sku');
     if (nameEl) nameEl.textContent = data.productName;
-    if (variantEl) variantEl.textContent = data.variantName;
-    if (skuEl) skuEl.textContent = `SKU: ${data.sku}`;
+    // For no-variation products there is nothing meaningful to show in the variant line
+    if (variantEl) {
+        variantEl.textContent = hasVariants ? data.variantName : '';
+        variantEl.style.display = hasVariants ? '' : 'none';
+    }
+    if (skuEl) skuEl.textContent = data.sku ? `SKU: ${data.sku}` : '';
 
     // Show form, hide placeholder
     document.getElementById('listing-form-placeholder')?.classList.add('hidden');
@@ -383,15 +426,27 @@ function initCreateForm() {
         e.preventDefault();
         hideError('create-error');
 
-        const variantId = document.getElementById('form-product-variant-id').value;
-        if (!variantId) {
-            showError('create-error', 'يرجى اختيار منتج ونسخة أولاً.');
+        const hiddenInput = document.getElementById('form-product-variant-id');
+        const variantId = hiddenInput.value;
+        const productId = hiddenInput.dataset.productId;
+        const hasVariants = hiddenInput.dataset.hasVariants === '1';
+
+        if (!variantId && !productId) {
+            showError('create-error', 'يرجى اختيار منتج أولاً.');
             return;
         }
 
         const formData = new FormData(form);
         const payload = Object.fromEntries(formData.entries());
-        payload.product_variant_id = variantId;
+
+        if (hasVariants) {
+            // Multi-variant: send the explicitly chosen variant id
+            payload.product_variant_id = variantId;
+        } else {
+            // No-variation: let the backend resolve the default variant from product_id
+            payload.product_id = productId;
+            delete payload.product_variant_id;
+        }
 
         const submitBtn = document.getElementById('create-submit-btn');
         submitBtn.disabled = true;

@@ -387,7 +387,12 @@
                         class="btn btn-warning w-full justify-center btn-sm">Close Submissions Early</button>
                     <button data-transition="cancel" data-sale-id="{{ $sale->id }}"
                         class="btn btn-danger-outline w-full justify-center btn-sm">Cancel</button>
-                @elseif(in_array($sale->status, ['submission_closed', 'under_review']))
+                @elseif($sale->status === 'submission_closed')
+                    <button data-transition="move_to_review" data-sale-id="{{ $sale->id }}"
+                        class="btn btn-primary w-full justify-center btn-sm">Start Review</button>
+                    <button data-transition="cancel" data-sale-id="{{ $sale->id }}"
+                        class="btn btn-danger-outline w-full justify-center btn-sm">Cancel</button>
+                @elseif($sale->status === 'under_review')
                     <button data-transition="mark_approved" data-sale-id="{{ $sale->id }}"
                         class="btn btn-primary w-full justify-center btn-sm">Mark Approved</button>
                     <button data-transition="cancel" data-sale-id="{{ $sale->id }}"
