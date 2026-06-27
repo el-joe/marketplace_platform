@@ -68,9 +68,10 @@ class PaymentMethodController extends Controller
             'webhook_secret'       => ['nullable', 'string'],
         ]);
 
-        $method = CountryPaymentMethod::create(
-            array_filter($data, fn($k) => !in_array($k, ['credentials', 'webhook_secret']), ARRAY_FILTER_USE_KEY)
-        );
+        $insertData = array_filter($data, fn($k) => !in_array($k, ['credentials', 'webhook_secret']), ARRAY_FILTER_USE_KEY);
+        $insertData['min_order_cents'] = $insertData['min_order_cents'] ?? 0;
+
+        $method = CountryPaymentMethod::create($insertData);
 
         if (!empty($data['credentials'])) {
             $method->setCredentials(array_filter($data['credentials']));
