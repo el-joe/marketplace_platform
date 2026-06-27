@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedContractTemplate;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -13,71 +13,91 @@ class ClassifiedContractTemplateController extends Controller
 {
     public function index(): View
     {
-        $templates = ClassifiedContractTemplate::with('category')
-            ->orderByDesc('created_at')
-            ->get();
+        $templates = ClassifiedContractTemplate::orderBy('name')->orderByDesc('version')->get();
 
         return view('admin.classified-contract-templates.index', compact('templates'));
     }
 
-    public function create(): View
-    {
-        $categories = ClassifiedCategory::where('is_active', true)->get();
-
-        return view('admin.classified-contract-templates.create', compact('categories'));
-    }
-
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'classified_category_id' => 'nullable|exists:classified_categories,id',
-            'name'                   => 'required|string|max:200',
-            'version'                => 'integer|min:1',
-            'content_en'             => 'required|string',
-            'content_ar'             => 'required|string',
-            'is_active'              => 'boolean',
+            'name'       => 'required|string|max:200',
+            'content_en' => 'required|string',
+            'content_ar' => 'required|string',
+            'is_active'  => 'boolean',
         ]);
 
+        // Auto-increment version per name
+        $maxVersion = ClassifiedContractTemplate::where('name', $validated['name'])->max('version') ?? 0;
+        $validated['version']             = $maxVersion + 1;
         $validated['created_by_admin_id'] = auth('admin')->id();
 
-        ClassifiedContractTemplate::create($validated);
+        $template = ClassifiedContractTemplate::create($validated);
 
-        return redirect()->route('admin.classifieds.contract-templates.index')
-            ->with('success', 'Contract template created.');
+        return response()->json(['message' => 'Template created.', 'template' => $template], 201);
     }
 
-    public function edit(ClassifiedContractTemplate $contractTemplate): View
-    {
-        $categories = ClassifiedCategory::where('is_active', true)->get();
-
-        return view('admin.classified-contract-templates.edit', [
-            'template'   => $contractTemplate,
-            'categories' => $categories,
-        ]);
-    }
-
-    public function update(Request $request, ClassifiedContractTemplate $contractTemplate): RedirectResponse
+    public function update(Request $request, ClassifiedContractTemplate $contractTemplate): JsonResponse
     {
         $validated = $request->validate([
-            'classified_category_id' => 'nullable|exists:classified_categories,id',
-            'name'                   => 'required|string|max:200',
-            'version'                => 'integer|min:1',
-            'content_en'             => 'required|string',
-            'content_ar'             => 'required|string',
-            'is_active'              => 'boolean',
+            'name'       => 'required|string|max:200',
+            'content_en' => 'required|string',
+            'content_ar' => 'required|string',
+            'is_active'  => 'boolean',
         ]);
 
-        $contractTemplate->update($validated);
+        $contentChanged = $validated['content_en'] !== $contractTemplate->content_en
+            || $validated['content_ar'] !== $contractTemplate->content_ar;
 
-        return redirect()->route('admin.classifieds.contract-templates.index')
-            ->with('success', 'Template updated.');
+        if ($contentChanged) {
+            // Create a new version row to preserve audit trail for already-signed contracts
+            $maxVersion = ClassifiedContractTemplate::where('name', $validated['name'])->max('version') ?? $contractTemplate->version;
+            $validated['version']             = $maxVersion + 1;
+            $validated['created_by_admin_id'] = auth('admin')->id();
+
+            // Deactivate old version
+            $contractTemplate->update(['is_active' => false]);
+
+            $template = ClassifiedContractTemplate::create($validated);
+
+            return response()->json([
+                'message'     => 'Content changed — a new template version was created. The previous version has been deactivated.',
+                'template'    => $template,
+                'new_version' => true,
+            ], 201);
+        }
+
+        // Only name/is_active changed — safe to update in place
+        $contractTemplate->update([
+            'name'      => $validated['name'],
+            'is_active' => $validated['is_active'] ?? $contractTemplate->is_active,
+        ]);
+
+        return response()->json([
+            'message'     => 'Template updated.',
+            'template'    => $contractTemplate->fresh(),
+            'new_version' => false,
+        ]);
     }
 
-    public function destroy(ClassifiedContractTemplate $contractTemplate): RedirectResponse
+    public function destroy(ClassifiedContractTemplate $contractTemplate): JsonResponse
     {
+        $categoryCount = ClassifiedCategory::where('contract_template_id', $contractTemplate->id)->count();
+        if ($categoryCount > 0) {
+            return response()->json([
+                'message' => "Cannot delete: {$categoryCount} " . str('category')->plural($categoryCount) . " reference this template. Update those categories first.",
+            ], 422);
+        }
+
+        $listingCount = \App\Models\ClassifiedListing::where('contract_template_id', $contractTemplate->id)->count();
+        if ($listingCount > 0) {
+            return response()->json([
+                'message' => "Cannot delete: {$listingCount} " . str('listing')->plural($listingCount) . " reference this template.",
+            ], 422);
+        }
+
         $contractTemplate->delete();
 
-        return redirect()->route('admin.classifieds.contract-templates.index')
-            ->with('success', 'Template deleted.');
+        return response()->json(['message' => 'Template deleted.']);
     }
 }

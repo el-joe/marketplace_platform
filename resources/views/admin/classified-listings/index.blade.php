@@ -43,7 +43,7 @@
                 <tr>
                     <th class="px-4 py-3 text-start font-semibold text-gray-700">Number</th>
                     <th class="px-4 py-3 text-start font-semibold text-gray-700">Title</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Customer</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Seller</th>
                     <th class="px-4 py-3 text-start font-semibold text-gray-700">Category</th>
                     <th class="px-4 py-3 text-start font-semibold text-gray-700">Price</th>
                     <th class="px-4 py-3 text-start font-semibold text-gray-700">Status</th>
@@ -71,7 +71,14 @@
                         <p class="font-medium text-gray-900">{{ $listing->title_en }}</p>
                         <p class="text-xs text-gray-400">{{ $listing->title_ar }}</p>
                     </td>
-                    <td class="px-4 py-3 text-gray-600">{{ $listing->customer?->name }}</td>
+                    <td class="px-4 py-3 text-gray-600">
+                        {{ $listing->seller?->name ?? $listing->seller?->store_name }}
+                        @if($listing->is_vendor_listing)
+                            <span class="ms-1 inline-flex items-center rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-700">Vendor</span>
+                        @else
+                            <span class="ms-1 inline-flex items-center rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700">Customer</span>
+                        @endif
+                    </td>
                     <td class="px-4 py-3 text-gray-600">{{ $listing->classifiedCategory?->name_en }}</td>
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $listing->price_formatted }}</td>
                     <td class="px-4 py-3">

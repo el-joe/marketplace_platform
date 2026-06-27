@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedContractTemplate;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -14,85 +14,151 @@ class ClassifiedCategoryController extends Controller
 {
     public function index(): View
     {
-        $categories = ClassifiedCategory::with(['parent', 'contractTemplate'])
+        $roots = ClassifiedCategory::with(['children.contractTemplate', 'contractTemplate'])
+            ->withCount(['listings as active_listing_count' => fn($q) => $q->where('status', 'active')])
+            ->whereNull('parent_id')
             ->orderBy('sort_order')
             ->get();
 
-        return view('admin.classified-categories.index', compact('categories'));
+        // Also eager-load children listing counts
+        $roots->each(function ($root) {
+            $root->children->each(function ($child) {
+                $child->loadCount(['listings as active_listing_count' => fn($q) => $q->where('status', 'active')]);
+            });
+        });
+
+        $templates = ClassifiedContractTemplate::where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.classified-categories.index', compact('roots', 'templates'));
     }
 
-    public function create(): View
-    {
-        $parents   = ClassifiedCategory::whereNull('parent_id')->where('is_active', true)->get();
-        $templates = ClassifiedContractTemplate::where('is_active', true)->get();
-
-        return view('admin.classified-categories.create', compact('parents', 'templates'));
-    }
-
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name_en'                  => 'required|string|max:150',
-            'name_ar'                  => 'required|string|max:150',
-            'slug'                     => 'nullable|string|max:150|unique:classified_categories,slug',
-            'icon'                     => 'nullable|string|max:50',
-            'parent_id'                => 'nullable|exists:classified_categories,id',
-            'requires_location_map'    => 'boolean',
-            'requires_sketch_upload'   => 'boolean',
-            'contract_template_id'     => 'nullable|exists:classified_contract_templates,id',
-            'required_attachment_types' => 'nullable|array',
-            'required_attachment_types.*' => 'string',
-            'sort_order'               => 'integer',
-            'is_active'                => 'boolean',
+            'name_en'                     => 'required|string|max:150',
+            'name_ar'                     => 'required|string|max:150',
+            'slug'                        => 'nullable|string|max:150|unique:classified_categories,slug',
+            'icon'                        => 'nullable|string|max:50',
+            'parent_id'                   => 'nullable|uuid|exists:classified_categories,id',
+            'requires_location_map'       => 'boolean',
+            'requires_sketch_upload'      => 'boolean',
+            'contract_template_id'        => 'nullable|uuid|exists:classified_contract_templates,id',
+            'required_attachment_types'   => 'nullable|array',
+            'required_attachment_types.*' => 'string|max:100',
+            'is_active'                   => 'boolean',
+            'sort_order'                  => 'integer|min:0',
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name_en']);
 
-        ClassifiedCategory::create($validated);
+        // Cycle guard: a category cannot be its own ancestor
+        if (!empty($validated['parent_id'])) {
+            if ($this->wouldCreateCycle(null, $validated['parent_id'])) {
+                return response()->json(['message' => 'Selected parent would create a category cycle.'], 422);
+            }
+        }
 
-        return redirect()->route('admin.classifieds.categories.index')
-            ->with('success', 'Category created.');
+        $category = ClassifiedCategory::create($validated);
+
+        return response()->json([
+            'message'  => 'Category created.',
+            'category' => $category->load('contractTemplate'),
+        ], 201);
     }
 
-    public function edit(ClassifiedCategory $category): View
-    {
-        $parents   = ClassifiedCategory::whereNull('parent_id')
-            ->where('is_active', true)
-            ->where('id', '!=', $category->id)
-            ->get();
-        $templates = ClassifiedContractTemplate::where('is_active', true)->get();
-
-        return view('admin.classified-categories.edit', compact('category', 'parents', 'templates'));
-    }
-
-    public function update(Request $request, ClassifiedCategory $category): RedirectResponse
+    public function update(Request $request, ClassifiedCategory $category): JsonResponse
     {
         $validated = $request->validate([
-            'name_en'                  => 'required|string|max:150',
-            'name_ar'                  => 'required|string|max:150',
-            'slug'                     => 'nullable|string|max:150|unique:classified_categories,slug,' . $category->id,
-            'icon'                     => 'nullable|string|max:50',
-            'parent_id'                => 'nullable|exists:classified_categories,id',
-            'requires_location_map'    => 'boolean',
-            'requires_sketch_upload'   => 'boolean',
-            'contract_template_id'     => 'nullable|exists:classified_contract_templates,id',
-            'required_attachment_types' => 'nullable|array',
-            'required_attachment_types.*' => 'string',
-            'sort_order'               => 'integer',
-            'is_active'                => 'boolean',
+            'name_en'                     => 'required|string|max:150',
+            'name_ar'                     => 'required|string|max:150',
+            'slug'                        => 'nullable|string|max:150|unique:classified_categories,slug,' . $category->id,
+            'icon'                        => 'nullable|string|max:50',
+            'parent_id'                   => 'nullable|uuid|exists:classified_categories,id',
+            'requires_location_map'       => 'boolean',
+            'requires_sketch_upload'      => 'boolean',
+            'contract_template_id'        => 'nullable|uuid|exists:classified_contract_templates,id',
+            'required_attachment_types'   => 'nullable|array',
+            'required_attachment_types.*' => 'string|max:100',
+            'is_active'                   => 'boolean',
+            'sort_order'                  => 'integer|min:0',
         ]);
+
+        if (!empty($validated['parent_id'])) {
+            if ($this->wouldCreateCycle($category->id, $validated['parent_id'])) {
+                return response()->json(['message' => 'Selected parent would create a category cycle.'], 422);
+            }
+        }
 
         $category->update($validated);
 
-        return redirect()->route('admin.classifieds.categories.index')
-            ->with('success', 'Category updated.');
+        return response()->json([
+            'message'  => 'Category updated.',
+            'category' => $category->load('contractTemplate'),
+        ]);
     }
 
-    public function destroy(ClassifiedCategory $category): RedirectResponse
+    public function destroy(ClassifiedCategory $category): JsonResponse
     {
+        if ($category->children()->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete: this category has child categories. Delete or reassign children first.',
+            ], 422);
+        }
+
+        if ($category->listings()->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete: there are listings referencing this category. Reassign or delete those listings first.',
+            ], 422);
+        }
+
         $category->delete();
 
-        return redirect()->route('admin.classifieds.categories.index')
-            ->with('success', 'Category deleted.');
+        return response()->json(['message' => 'Category deleted.']);
+    }
+
+    public function toggleActive(ClassifiedCategory $category): JsonResponse
+    {
+        $category->update(['is_active' => !$category->is_active]);
+
+        return response()->json([
+            'message'   => 'Category ' . ($category->is_active ? 'activated' : 'deactivated') . '.',
+            'is_active' => $category->is_active,
+        ]);
+    }
+
+    public function reorder(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'uuid',
+        ]);
+
+        \DB::transaction(function () use ($request) {
+            foreach ($request->ids as $order => $id) {
+                ClassifiedCategory::where('id', $id)->update(['sort_order' => $order]);
+            }
+        });
+
+        return response()->json(['message' => 'Order saved.']);
+    }
+
+    private function wouldCreateCycle(?string $categoryId, string $proposedParentId): bool
+    {
+        // Walk up the tree from proposedParent; if we hit $categoryId, it's a cycle
+        $current = $proposedParentId;
+        $visited = [];
+
+        while ($current !== null) {
+            if ($categoryId && $current === $categoryId) {
+                return true;
+            }
+            if (isset($visited[$current])) {
+                break; // existing cycle in data — stop
+            }
+            $visited[$current] = true;
+            $current = ClassifiedCategory::where('id', $current)->value('parent_id');
+        }
+
+        return false;
     }
 }

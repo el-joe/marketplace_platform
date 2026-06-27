@@ -225,6 +225,33 @@ class NavigationService
                 ],
             ],
             [
+                'group' => 'Classifieds',
+                'icon' => 'home-modern',
+                'items' => [
+                    [
+                        'label' => 'Categories',
+                        'route' => 'admin.classifieds.categories.index',
+                        'icon' => 'rectangle-stack',
+                        'permission' => 'classifieds.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Contract Templates',
+                        'route' => 'admin.classifieds.contract-templates.index',
+                        'icon' => 'document-text',
+                        'permission' => 'classifieds.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Listings',
+                        'route' => 'admin.classifieds.listings.index',
+                        'icon' => 'list-bullet',
+                        'permission' => 'classifieds.view',
+                        'badge' => $this->cachedBadge('pending_classifieds', fn() => $this->countPendingClassifieds()),
+                    ],
+                ],
+            ],
+            [
                 'group' => 'Finance',
                 'icon' => 'banknotes',
                 'items' => [
@@ -472,6 +499,15 @@ class NavigationService
     {
         try {
             return (int) \App\Models\MarketerSampleRequest::query()->where('status', 'requested')->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingClassifieds(): int
+    {
+        try {
+            return (int) \App\Models\ClassifiedListing::query()->where('status', 'pending_review')->count();
         } catch (\Throwable) {
             return 0;
         }

@@ -22,7 +22,13 @@
                 </span>
             </div>
             <p class="text-sm text-gray-500 mt-1">
-                By {{ $listing->customer?->name }} · {{ $listing->created_at->format('Y-m-d H:i') }}
+                By {{ $listing->seller?->name ?? $listing->seller?->store_name }}
+                @if($listing->is_vendor_listing)
+                    <span class="inline-flex items-center rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-700">Vendor</span>
+                @else
+                    <span class="inline-flex items-center rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700">Customer</span>
+                @endif
+                · {{ $listing->created_at->format('Y-m-d H:i') }}
             </p>
         </div>
 

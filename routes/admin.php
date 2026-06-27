@@ -968,19 +968,17 @@ Route::middleware('auth.admin')->group(function () {
         // Categories
         Route::prefix('categories')->name('categories.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'index'])->name('index');
-            Route::get('/create', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'store'])->name('store');
-            Route::get('/{category}/edit', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'edit'])->name('edit');
             Route::put('/{category}', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'update'])->name('update');
             Route::delete('/{category}', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'destroy'])->name('destroy');
+            Route::post('/{category}/toggle', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'toggleActive'])->name('toggle');
+            Route::post('/reorder', [\App\Http\Controllers\Admin\ClassifiedCategoryController::class, 'reorder'])->name('reorder');
         });
 
         // Contract Templates
         Route::prefix('contract-templates')->name('contract-templates.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'index'])->name('index');
-            Route::get('/create', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'store'])->name('store');
-            Route::get('/{contractTemplate}/edit', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'edit'])->name('edit');
             Route::put('/{contractTemplate}', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'update'])->name('update');
             Route::delete('/{contractTemplate}', [\App\Http\Controllers\Admin\ClassifiedContractTemplateController::class, 'destroy'])->name('destroy');
         });
