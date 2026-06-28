@@ -60,7 +60,7 @@ class MarketerQrCode extends Model
 
     public function getQrUrlAttribute(): ?string
     {
-        return $this->qr_code_path ? Storage::url($this->qr_code_path) : null;
+        return $this->qr_code_path;
     }
 
     public function getTypeLabel(): string

@@ -69,22 +69,29 @@ class MarketerService
         ?string $campaignId = null,
         ?string $vendorListingId = null
     ): MarketerQrCode {
-        $qr = QrCode::create($targetUrl)
-            ->setSize(300)
-            ->setMargin(10)
-            ->setEncoding(new Encoding('UTF-8'));
+        $qr = new QrCode(
+            data: $targetUrl,
+            size: 300,
+            margin: 10,
+            encoding: new Encoding('UTF-8')
+        );
         $writer = new PngWriter();
         $result = $writer->write($qr);
 
-        $path = 'marketer-qr/' . $marketer->id . '/' . uniqid() . '.png';
-        Storage::put($path, $result->getString());
+
+        // make sure the directory exists
+        Storage::disk('public')->makeDirectory('marketer-qr/' . $marketer->id);
+
+        $name = 'storage/marketer-qr/' . $marketer->id . '/' . $campaignId . '.png';
+
+        $result->saveToFile(public_path($name));
 
         return MarketerQrCode::create([
             'marketer_id' => $marketer->id,
             'campaign_id' => $campaignId,
             'vendor_listing_id' => $vendorListingId,
             'code_type' => $type,
-            'qr_code_path' => $path,
+            'qr_code_path' => asset($name),
             'barcode_value' => $targetUrl,
             'custom_label' => $label,
             'scan_count' => 0,

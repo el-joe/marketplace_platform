@@ -115,6 +115,11 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
         return $this->hasMany(MarketerWhatsappLink::class, 'campaign_id');
     }
 
+    public function sampleRequests(): HasMany
+    {
+        return $this->hasMany(\App\Models\MarketerSampleRequest::class, 'campaign_id');
+    }
+
     public function secretPromotion(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(MarketerSecretPromotion::class, 'secret_promotion_id');

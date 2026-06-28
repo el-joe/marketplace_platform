@@ -8,7 +8,8 @@ use App\Models\TravelPackage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class TravelController extends Controller
@@ -82,31 +83,42 @@ class TravelController extends Controller
         ]);
 
         $count    = (int) $request->input('travelers_count');
-        $total    = $package->price_cents * $count;
 
         $passportPath = $request->file('passport_file')
             ->store("travel-bookings/passports", 'public');
 
-        $booking = TravelBooking::create([
-            'travel_package_id'       => $package->id,
-            'customer_id'             => Auth::guard('web')->id(),
-            'travelers_count'         => $count,
-            'total_price_cents'       => $total,
-            'passport_file_path'      => $passportPath,
-            'contract_signed_at'      => now(),
-            'contract_signature_data' => $request->input('contract_signature_data'),
-            'status'                  => 'confirmed',
-        ]);
+        $booking = DB::transaction(function () use ($package, $request, $count, $passportPath) {
+            $pkg = TravelPackage::lockForUpdate()->findOrFail($package->id);
 
-        // Increment seats booked
-        $package->increment('seats_booked', $count);
+            if ($pkg->available_seats !== null
+                && ($pkg->seats_booked + $count) > $pkg->available_seats
+            ) {
+                throw ValidationException::withMessages([
+                    'travelers_count' => 'عدد المقاعد المطلوب غير متاح. الرجاء تقليل عدد المسافرين.',
+                ]);
+            }
 
-        // Check sold out
-        if ($package->available_seats !== null
-            && $package->seats_booked >= $package->available_seats
-        ) {
-            $package->update(['status' => 'sold_out']);
-        }
+            $booking = TravelBooking::create([
+                'travel_package_id'       => $pkg->id,
+                'customer_id'             => Auth::guard('web')->id(),
+                'travelers_count'         => $count,
+                'total_price_cents'       => $pkg->price_cents * $count,
+                'passport_file_path'      => $passportPath,
+                'contract_signed_at'      => now(),
+                'contract_signature_data' => $request->input('contract_signature_data'),
+                'status'                  => 'confirmed',
+            ]);
+
+            $pkg->increment('seats_booked', $count);
+
+            if ($pkg->available_seats !== null
+                && $pkg->seats_booked >= $pkg->available_seats
+            ) {
+                $pkg->update(['status' => 'sold_out']);
+            }
+
+            return $booking;
+        });
 
         return redirect()->route('travel.booking.confirmed', $booking)
             ->with('success', 'Booking confirmed! Reference: ' . $booking->booking_number);

@@ -328,13 +328,13 @@ $(function () {
     // ── Sample datatable actions (delegated) ──────────────────────────────────
     $(document).on('click', '.btn-approve-sample', function () {
         const id = $(this).data('id');
-        $.post('{{ url('admin/marketer-samples') }}/' + id + '/approve', { _token: tok })
+        $.post('{{ url('marketer-samples') }}/' + id + '/approve', { _token: tok })
             .done(r => { window.Toast.success(r.message); $('#marketer-samples-table').DataTable().ajax.reload(); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
     });
     $(document).on('click', '.btn-dispatch-sample', function () {
         const id = $(this).data('id');
-        $.post('{{ url('admin/marketer-samples') }}/' + id + '/dispatch', { _token: tok })
+        $.post('{{ url('marketer-samples') }}/' + id + '/dispatch', { _token: tok })
             .done(r => { window.Toast.success(r.message); $('#marketer-samples-table').DataTable().ajax.reload(); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
     });

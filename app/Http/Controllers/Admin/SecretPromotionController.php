@@ -221,6 +221,32 @@ class SecretPromotionController extends Controller
         }
     }
 
+    // ── Approve vendor-proposed promotion ────────────────────────────────────
+
+    public function approve(MarketerSecretPromotion $secretPromotion): JsonResponse
+    {
+        try {
+            $this->service->approve($secretPromotion, auth()->guard('admin')->user());
+
+            return response()->json(['success' => true, 'message' => 'Promotion approved and activated.']);
+        } catch (ValidationException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    // ── Reject vendor-proposed promotion ──────────────────────────────────────
+
+    public function reject(MarketerSecretPromotion $secretPromotion): JsonResponse
+    {
+        try {
+            $this->service->reject($secretPromotion, auth()->guard('admin')->user());
+
+            return response()->json(['success' => true, 'message' => 'Promotion rejected.']);
+        } catch (ValidationException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+    }
+
     // ── Toggle status ─────────────────────────────────────────────────────────
 
     public function toggleStatus(Request $request, MarketerSecretPromotion $secretPromotion): JsonResponse

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
 use App\Models\TravelBooking;
+use App\Models\TravelPackage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BookingController extends Controller
@@ -63,7 +65,31 @@ class BookingController extends Controller
             return back()->withErrors(['status' => 'لا يمكن تغيير حالة هذا الحجز.']);
         }
 
-        $booking->update(['status' => $request->status]);
+        DB::transaction(function () use ($booking, $request) {
+            if ($request->status === 'confirmed') {
+                $pkg = TravelPackage::lockForUpdate()->findOrFail($booking->travel_package_id);
+
+                if ($pkg->available_seats !== null
+                    && ($pkg->seats_booked + $booking->travelers_count) > $pkg->available_seats
+                ) {
+                    abort(422, 'لا توجد مقاعد كافية لتأكيد هذا الحجز.');
+                }
+
+                $pkg->increment('seats_booked', $booking->travelers_count);
+
+                if ($pkg->available_seats !== null
+                    && $pkg->seats_booked >= $pkg->available_seats
+                ) {
+                    $pkg->update(['status' => 'sold_out']);
+                }
+            }
+
+            if ($request->status === 'cancelled' && $booking->status === 'confirmed') {
+                $booking->package()->increment('seats_booked', -$booking->travelers_count);
+            }
+
+            $booking->update(['status' => $request->status]);
+        });
 
         $label = $request->status === 'confirmed' ? 'تم تأكيد الحجز.' : 'تم إلغاء الحجز.';
 

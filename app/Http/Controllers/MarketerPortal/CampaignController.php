@@ -42,7 +42,7 @@ class CampaignController extends Controller
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
 
-        $vendors = Vendor::where('global_status', 'active')->orderBy('store_name')->get(['id', 'store_name']);
+        $vendors = Vendor::where('global_status', 'active')->orderBy('store_name')->get(['id', 'name', 'store_name']);
 
         return view('marketer.campaigns.create', [
             'marketer' => $marketer,
@@ -63,6 +63,9 @@ class CampaignController extends Controller
             'ends_at' => 'required|date|after:starts_at',
             'products' => 'nullable|array',
             'products.*' => 'uuid|exists:vendor_listings,id',
+            'budget' => 'nullable|numeric|min:1',
+            'attribution_model' => 'nullable|in:last_click,first_click,linear',
+            'whatsapp_sharing_enabled' => 'nullable|boolean',
         ]);
 
         /** @var \App\Models\Marketer $marketer */
@@ -90,6 +93,9 @@ class CampaignController extends Controller
                 'starts_at' => $validated['starts_at'],
                 'ends_at' => $validated['ends_at'],
                 'auto_approve_at' => now()->addHours(36),
+                'budget_cents' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
+                'attribution_model' => $validated['attribution_model'] ?? 'last_click',
+                'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
             ]);
         } elseif ($campaignType === 'travel_promotion') {
             $package = TravelPackage::where('status', 'active')->findOrFail($validated['travel_package_id']);
@@ -110,6 +116,9 @@ class CampaignController extends Controller
                 'starts_at' => $validated['starts_at'],
                 'ends_at' => $validated['ends_at'],
                 'auto_approve_at' => now()->addHours(36),
+                'budget_cents' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
+                'attribution_model' => $validated['attribution_model'] ?? 'last_click',
+                'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
             ]);
         } else {
             $campaign = $marketer->campaigns()->create([
@@ -125,6 +134,9 @@ class CampaignController extends Controller
                 'starts_at' => $validated['starts_at'],
                 'ends_at' => $validated['ends_at'],
                 'auto_approve_at' => now()->addHours(36),
+                'budget_cents' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
+                'attribution_model' => $validated['attribution_model'] ?? 'last_click',
+                'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
             ]);
 
             if (!empty($validated['products'])) {
@@ -220,7 +232,8 @@ class CampaignController extends Controller
             'items.*.cost_cents' => 'nullable|integer|min:0',
         ]);
 
-        $vendor = $campaign->vendor ?? \App\Models\Vendor::findOrFail($request->input('vendor_id'));
+        $vendor = $campaign->campaignable;
+        abort_unless($vendor instanceof \App\Models\Vendor, 422, 'Sample requests are only available for vendor campaigns.');
 
         $sampleRequest = $this->service->requestSamples(
             $marketer,
@@ -246,6 +259,7 @@ class CampaignController extends Controller
         $campaign->load([
             'products.vendorListing' => fn($q) => $q->with('product'),
             'campaignable',
+            'sampleRequests' => fn($q) => $q->with(['items.vendorListing.productVariant.product'])->latest(),
         ]);
 
         // Daily chart data: last 30 days
@@ -259,6 +273,7 @@ class CampaignController extends Controller
             'chartLabels' => $clicksData['labels'],
             'clicksData' => $clicksData['data'],
             'conversionsData' => $conversionsData['data'],
+            'sampleRequests' => $campaign->sampleRequests,
         ]);
     }
 
@@ -269,15 +284,15 @@ class CampaignController extends Controller
         $listings = ClassifiedListing::query()
             ->where('status', 'active')
             ->where('marketer_promotion_enabled', true)
-            ->where('title', 'like', '%' . $q . '%')
+            ->where('title_en', 'like', '%' . $q . '%')
             ->limit(20)
-            ->get(['id', 'title', 'price', 'thumbnail_path', 'listing_number']);
+            ->get(['id', 'title_en', 'price_cents', 'thumbnail_path', 'listing_number']);
 
         return response()->json(
             $listings->map(fn($l) => [
                 'id' => $l->id,
-                'title' => $l->title,
-                'price' => $l->price ? number_format($l->price / 100, 2) : null,
+                'title' => $l->title_en,
+                'price' => $l->price_cents ? number_format($l->price_cents / 100, 2) : null,
                 'thumbnail' => $l->thumbnail_path,
             ])
         );
@@ -291,14 +306,14 @@ class CampaignController extends Controller
         // If Prompt 4 adds a marketer opt-in flag, add it to the where clause here.
         $packages = TravelPackage::query()
             ->where('status', 'active')
-            ->where('title', 'like', '%' . $q . '%')
+            ->where('title_en', 'like', '%' . $q . '%')
             ->limit(20)
-            ->get(['id', 'title', 'price_cents', 'thumbnail_path']);
+            ->get(['id', 'title_en', 'price_cents', 'thumbnail_path']);
 
         return response()->json(
             $packages->map(fn($p) => [
                 'id' => $p->id,
-                'title' => $p->title,
+                'title' => $p->title_en,
                 'price' => $p->price_cents ? number_format($p->price_cents / 100, 2) : null,
                 'thumbnail' => $p->thumbnail_path,
             ])

@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -72,13 +73,14 @@ class QrCodeController extends Controller
         $marketer = Auth::guard('marketer')->user();
 
         abort_if($qrCode->marketer_id !== $marketer->id, 403);
-        abort_if(!$qrCode->qr_code_path || !Storage::exists($qrCode->qr_code_path), 404);
+        abort_if(!$qrCode->qr_code_path, 404);
 
         $filename = 'qr-' . ($qrCode->custom_label ? \Illuminate\Support\Str::slug($qrCode->custom_label) : $qrCode->id) . '.png';
 
-        return response(Storage::get($qrCode->qr_code_path), 200, [
-            'Content-Type' => 'image/png',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
+        $response = Http::get($qrCode->qr_code_path);
+
+        return response($response->body(), 200)
+            ->header('Content-Type', 'image/png')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 }

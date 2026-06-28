@@ -6,6 +6,7 @@ use App\Http\Controllers\MarketerPortal\DashboardController;
 use App\Http\Controllers\MarketerPortal\EarningsController;
 use App\Http\Controllers\MarketerPortal\ProfileController;
 use App\Http\Controllers\MarketerPortal\QrCodeController;
+use App\Http\Controllers\MarketerPortal\SampleRequestController;
 use App\Http\Controllers\MarketerPortal\TrackingController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,10 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             // Tracking link generation + stats
             Route::get('/campaigns/{campaign}/link', [TrackingController::class, 'generateLink'])->name('campaigns.link');
             Route::get('/campaigns/{campaign}/stats', [TrackingController::class, 'stats'])->name('campaigns.stats');
+
+            // Sample Requests
+            Route::get('/samples', [SampleRequestController::class, 'index'])->name('samples.index');
+            Route::post('/samples/{sampleRequest}/mark-received', [SampleRequestController::class, 'markReceived'])->name('samples.mark-received');
 
             // Earnings
             Route::get('/earnings', [EarningsController::class, 'index'])->name('earnings.index');

@@ -868,6 +868,8 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{secretPromotion}', [SecretPromotionController::class, 'show'])->name('show');
         Route::put('/{secretPromotion}', [SecretPromotionController::class, 'update'])->name('update');
         Route::post('/{secretPromotion}/toggle-status', [SecretPromotionController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{secretPromotion}/approve', [SecretPromotionController::class, 'approve'])->name('approve');
+        Route::post('/{secretPromotion}/reject', [SecretPromotionController::class, 'reject'])->name('reject');
         Route::post('/{secretPromotion}/expire', [SecretPromotionController::class, 'expire'])->name('expire');
         Route::post('/{secretPromotion}/duplicate', [SecretPromotionController::class, 'duplicate'])->name('duplicate');
     });
@@ -882,6 +884,8 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/datatable', [MarketerController::class, 'samplesDatatable'])->name('datatable');
         Route::post('/{req}/approve', [MarketerController::class, 'approveSample'])->name('approve');
         Route::post('/{req}/dispatch', [MarketerController::class, 'dispatchSample'])->name('dispatch');
+        Route::post('/{req}/reject', [MarketerController::class, 'rejectSample'])->name('reject');
+        Route::get('/{req}', [MarketerController::class, 'showSample'])->name('show');
     });
 
     // ── Marketer Campaigns ────────────────────────────────────────────────────────
@@ -891,6 +895,7 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{campaign}', [MarketerController::class, 'showCampaign'])->name('show');
         Route::post('/{campaign}/approve', [MarketerController::class, 'approveCampaign'])->name('approve');
         Route::post('/{campaign}/reject', [MarketerController::class, 'rejectCampaign'])->name('reject');
+        Route::post('/{campaign}/samples-required', [MarketerController::class, 'updateCampaignSamplesRequired'])->name('samples-required');
     });
 
     // ── Marketer Conversions ──────────────────────────────────────────────────────

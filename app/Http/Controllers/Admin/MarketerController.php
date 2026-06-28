@@ -371,6 +371,19 @@ class MarketerController extends Controller
         return response()->json(['success' => true, 'message' => 'Campaign rejected.']);
     }
 
+    public function updateCampaignSamplesRequired(Request $request, MarketerCampaign $campaign): JsonResponse
+    {
+        abort_if(!in_array($campaign->status, ['draft', 'active']), 422, 'Cannot update samples_required on a campaign that is ended or cancelled.');
+
+        $validated = $request->validate([
+            'samples_required' => 'required|integer|min:0|max:10',
+        ]);
+
+        $campaign->update(['samples_required' => $validated['samples_required']]);
+
+        return response()->json(['success' => true, 'samples_required' => $campaign->samples_required]);
+    }
+
     public function showCampaign(MarketerCampaign $campaign): View
     {
         $campaign->load(['marketer', 'products.vendorListing.product', 'campaignable']);
@@ -960,11 +973,63 @@ class MarketerController extends Controller
         return response()->json(['success' => true, 'message' => 'Sample marked as dispatched.']);
     }
 
+    public function rejectSample(Request $httpRequest, MarketerSampleRequest $req): JsonResponse
+    {
+        if ($req->status !== 'requested') {
+            return response()->json(['success' => false, 'message' => 'Only pending requests can be rejected.'], 422);
+        }
+
+        $validated = $httpRequest->validate([
+            'rejection_reason' => 'required|string|max:1000',
+        ]);
+
+        $req->update([
+            'status' => 'rejected',
+            'rejection_reason' => $validated['rejection_reason'],
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Sample request rejected.']);
+    }
+
+    public function showSample(MarketerSampleRequest $req): JsonResponse
+    {
+        $req->load([
+            'marketer',
+            'vendor',
+            'campaign',
+            'items.vendorListing.productVariant.product',
+        ]);
+
+        return response()->json([
+            'id'               => $req->id,
+            'marketer'         => $req->marketer->name,
+            'vendor'           => $req->vendor->store_name,
+            'campaign'         => $req->campaign?->name,
+            'status'           => $req->status,
+            'notes'            => $req->notes,
+            'rejection_reason' => $req->rejection_reason,
+            'created_at'       => $req->created_at->format('d M Y H:i'),
+            'items'            => $req->items->map(function ($item) {
+                $variant = $item->vendorListing?->productVariant;
+                $product = $variant?->product;
+                return [
+                    'product_name'  => $product?->name_en ?? '—',
+                    'variant_name'  => $variant?->variant_name,
+                    'quantity'      => $item->quantity,
+                    'is_mandatory'  => $item->is_mandatory,
+                    'cost'          => $item->sample_cost_cents ? number_format($item->sample_cost_cents / 100, 2) : null,
+                ];
+            }),
+        ]);
+    }
+
     private function sampleActions(object $row): string
     {
         $html = '<div class="flex gap-1">';
+        $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-secondary btn-view-sample">Details</button>';
         if ($row->status === 'requested') {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-success btn-approve-sample">Approve</button>';
+            $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-danger btn-reject-sample">Reject</button>';
         } elseif ($row->status === 'approved') {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-primary btn-dispatch-sample">Dispatch</button>';
         }

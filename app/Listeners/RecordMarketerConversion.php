@@ -6,6 +6,7 @@ use App\Events\SubOrderPlaced;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerClick;
 use App\Models\MarketerConversion;
+use App\Models\MarketerSecretPromotion;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class RecordMarketerConversion implements ShouldQueue
@@ -34,14 +35,22 @@ class RecordMarketerConversion implements ShouldQueue
 
         $marketer = $campaign->marketer;
 
-        // Calculate commission
+        // Calculate commission — prefer secret promotion's marketer_share_pct when active
         $orderValue = $order->total ?? $subOrder->total ?? 0;
 
+        $secretPromotion = $campaign->secret_promotion_id
+            ? MarketerSecretPromotion::find($campaign->secret_promotion_id)
+            : null;
+
+        $effectiveRate = ($secretPromotion && $secretPromotion->isActive())
+            ? (float) $secretPromotion->marketer_share_pct
+            : (float) $campaign->commission_rate;
+
         $commissionAmount = match ($campaign->commission_type) {
-            'percentage' => (int) round($orderValue * ($campaign->commission_rate / 100)),
+            'percentage' => (int) round($orderValue * ($effectiveRate / 100)),
             'flat_per_order' => (int) ($campaign->commission_rate * 100),
             'flat_per_click' => 0,
-            default => (int) round($orderValue * ($campaign->commission_rate / 100)),
+            default => (int) round($orderValue * ($effectiveRate / 100)),
         };
 
         // Create conversion record
@@ -53,7 +62,7 @@ class RecordMarketerConversion implements ShouldQueue
             'customer_id' => $order->customer_id,
             'vendor_id' => $subOrder->vendor_id,
             'order_value_cents' => $orderValue,
-            'commission_rate' => $campaign->commission_rate,
+            'commission_rate' => $effectiveRate,
             'commission_amount_cents' => $commissionAmount,
             'currency' => $order->currency ?? 'SAR',
             'status' => 'pending',

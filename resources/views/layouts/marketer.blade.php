@@ -155,10 +155,10 @@
     @stack('styles')
 </head>
 
-<body x-data="{ sidebarOpen: false }">
+<body>
 
     {{-- ── Sidebar ─────────────────────────────────────────────────────────── --}}
-    <aside id="marketer-sidebar" :class="{ 'open': sidebarOpen }">
+    <aside id="marketer-sidebar">
         <div class="brand">
             <h1>noon <span style="color:#f1f5f9;font-weight:400">marketer</span></h1>
             <p>Partner Portal</p>
@@ -232,7 +232,7 @@
         <header id="marketer-topbar">
             <div class="flex items-center gap-3">
                 {{-- Mobile hamburger --}}
-                <button class="md:hidden p-1" @click="sidebarOpen = !sidebarOpen">
+                <button class="md:hidden p-1" onclick="toggleMobileSidebar()" aria-label="Toggle menu">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
@@ -301,12 +301,14 @@
     @stack('scripts')
 
     <script>
-        // Close sidebar on outside click (mobile)
+        function toggleMobileSidebar() {
+            document.getElementById('marketer-sidebar').classList.toggle('open');
+        }
         document.addEventListener('click', function (e) {
-            const sidebar = document.getElementById('marketer-sidebar');
-            const btn = e.target.closest('[\\@click]');
-            if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !btn) {
-                Alpine.store && Alpine.store('sidebar') ? null : null;
+            var sidebar = document.getElementById('marketer-sidebar');
+            var hamburger = e.target.closest('[aria-label="Toggle menu"]');
+            if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !hamburger) {
+                sidebar.classList.remove('open');
             }
         });
     </script>

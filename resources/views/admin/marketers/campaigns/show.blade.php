@@ -232,6 +232,28 @@
             </dl>
         </x-card>
 
+        {{-- Samples Required (admin-controlled) --------------------------------}}
+        <x-card>
+            <h2 class="text-base font-semibold text-gray-800 mb-3">Required Samples</h2>
+            <p class="text-xs text-gray-500 mb-3">Admin-set mandatory sample count for this campaign. The marketer cannot change this.</p>
+            <div class="flex items-center gap-3">
+                <input type="number" id="samples-required-input"
+                    value="{{ $campaign->samples_required }}" min="0" max="10"
+                    class="form-input w-24 text-sm py-1.5"
+                    {{ !in_array($campaign->status, ['draft', 'active']) ? 'disabled' : '' }}>
+                <button type="button" id="samples-required-btn"
+                    onclick="saveSamplesRequired()"
+                    class="btn btn-sm btn-primary"
+                    {{ !in_array($campaign->status, ['draft', 'active']) ? 'disabled' : '' }}>
+                    Save
+                </button>
+            </div>
+            <p id="samples-required-msg" class="text-xs mt-2 hidden"></p>
+            @if (!in_array($campaign->status, ['draft', 'active']))
+                <p class="text-xs text-gray-400 mt-2">Editing locked — campaign is {{ $campaign->status }}.</p>
+            @endif
+        </x-card>
+
         {{-- Conversion note for non-vendor campaigns -------------------------}}
         @if (in_array($targetType, ['classified', 'travel']))
         <x-card>
@@ -318,5 +340,37 @@ $(function () {
         });
     });
 });
+
+async function saveSamplesRequired() {
+    const input = document.getElementById('samples-required-input');
+    const btn   = document.getElementById('samples-required-btn');
+    const msg   = document.getElementById('samples-required-msg');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+        const res = await fetch('{{ route('admin.marketers.campaigns.samples-required', $campaign) }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+            body: JSON.stringify({ samples_required: parseInt(input.value, 10) }),
+        });
+        const data = await res.json();
+        msg.classList.remove('hidden', 'text-red-500', 'text-green-600');
+        if (data.success) {
+            msg.textContent = '✓ Saved — samples_required set to ' + data.samples_required;
+            msg.classList.add('text-green-600');
+        } else {
+            msg.textContent = data.message || 'Error saving.';
+            msg.classList.add('text-red-500');
+        }
+        msg.classList.remove('hidden');
+    } catch (e) {
+        msg.textContent = 'Network error.';
+        msg.classList.remove('hidden');
+        msg.classList.add('text-red-500');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+    }
+}
 </script>
 @endpush

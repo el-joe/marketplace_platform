@@ -177,6 +177,7 @@ class MarketerSecretPromotion extends Model
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
+            'pending' => 'info',
             'active' => $this->isExpired() ? 'gray' : 'success',
             'paused' => 'warning',
             'expired' => 'gray',

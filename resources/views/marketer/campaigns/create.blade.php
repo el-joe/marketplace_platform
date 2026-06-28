@@ -72,7 +72,7 @@
                         <option value="">Select a vendor…</option>
                         @foreach($vendors as $vendor)
                             <option value="{{ $vendor->id }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
-                                {{ $vendor->display_name ?? $vendor->name ?? $vendor->id }}
+                                {{ $vendor->name }}
                             </option>
                         @endforeach
                     </select>
@@ -135,6 +135,42 @@
                             <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
+
+                {{-- Budget Cap --}}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Budget Cap (optional)</label>
+                    <input type="number" name="budget" value="{{ old('budget') }}" step="0.01" min="1"
+                           class="form-input w-full text-sm @error('budget') border-red-400 @enderror"
+                           placeholder="Leave blank for unlimited">
+                    <p class="text-xs text-gray-400 mt-1">Campaign auto-pauses once this is spent.</p>
+                    @error('budget')
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Attribution Model --}}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Attribution Model</label>
+                    <select name="attribution_model" class="form-input w-full text-sm @error('attribution_model') border-red-400 @enderror">
+                        <option value="last_click" {{ old('attribution_model', 'last_click') === 'last_click' ? 'selected' : '' }}>Last Click (default)</option>
+                        <option value="first_click" {{ old('attribution_model') === 'first_click' ? 'selected' : '' }}>First Click</option>
+                        <option value="linear" {{ old('attribution_model') === 'linear' ? 'selected' : '' }}>Linear (split credit)</option>
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">Determines which click gets credit when a customer clicks multiple of your links before purchasing.</p>
+                    @error('attribution_model')
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- WhatsApp Sharing --}}
+                <div>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="whatsapp_sharing_enabled" value="1" {{ old('whatsapp_sharing_enabled') ? 'checked' : '' }}
+                               class="rounded border-gray-300">
+                        <span class="text-sm font-semibold text-gray-700">Enable WhatsApp incentive links for this campaign</span>
+                    </label>
+                    <p class="text-xs text-gray-400 mt-1">Lets you generate shareable WhatsApp links with discount coupons once the campaign is approved.</p>
                 </div>
 
                 {{-- Product Search --}}
@@ -232,8 +268,8 @@
                         const li = document.createElement('li');
                         li.className = 'px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between';
                         li.innerHTML = `
-                            <span>${p.name_en ?? p.id}</span>
-                            <button type="button" data-id="${p.listing_id}" data-name="${p.name_en ?? p.id}"
+                            <span>${p.text}</span>
+                            <button type="button" data-id="${p.id}" data-name="${p.text}"
                                     class="add-product-btn text-xs bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg px-2 py-0.5">
                                 + Add
                             </button>`;

@@ -91,6 +91,53 @@ class SecretPromotionService
         return $promo->fresh();
     }
 
+    // ── Approve (vendor-created → active) ────────────────────────────────────
+
+    public function approve(MarketerSecretPromotion $promo, Admin $admin): MarketerSecretPromotion
+    {
+        if ($promo->status !== 'pending') {
+            throw ValidationException::withMessages([
+                'status' => 'Only pending promotions can be approved.',
+            ]);
+        }
+
+        $promo->update([
+            'status' => 'active',
+            'approved_by_admin_id' => $admin->id,
+        ]);
+
+        app(ActivityLoggerService::class)->log(
+            description: 'Secret promotion approved',
+            subject: $promo,
+            causer: $admin,
+            event: 'updated',
+        );
+
+        return $promo->fresh();
+    }
+
+    // ── Reject (vendor-created → expired) ────────────────────────────────────
+
+    public function reject(MarketerSecretPromotion $promo, Admin $admin): MarketerSecretPromotion
+    {
+        if ($promo->status !== 'pending') {
+            throw ValidationException::withMessages([
+                'status' => 'Only pending promotions can be rejected.',
+            ]);
+        }
+
+        $promo->update(['status' => 'expired']);
+
+        app(ActivityLoggerService::class)->log(
+            description: 'Secret promotion rejected',
+            subject: $promo,
+            causer: $admin,
+            event: 'updated',
+        );
+
+        return $promo->fresh();
+    }
+
     // ── Pause ─────────────────────────────────────────────────────────────────
 
     public function pause(MarketerSecretPromotion $promo, Admin $admin): MarketerSecretPromotion

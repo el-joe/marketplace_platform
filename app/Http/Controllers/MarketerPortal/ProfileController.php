@@ -47,7 +47,8 @@ class ProfileController extends Controller
         $marketer = Auth::guard('marketer')->user();
 
         return view('marketer.profile.edit', [
-            'marketer' => $marketer,
+            'marketer'  => $marketer,
+            'countries' => \App\Models\Country::orderBy('name_en')->get(['id', 'name_en']),
         ]);
     }
 
@@ -60,6 +61,10 @@ class ProfileController extends Controller
         $marketer = Auth::guard('marketer')->user();
 
         $validated = $request->validate([
+            'name'       => 'required|string|max:255',
+            'phone'      => 'nullable|string|max:30',
+            'niche'      => 'nullable|string|max:100',
+            'country_id' => 'required|exists:countries,id',
             'bio' => 'nullable|string|max:2000',
             'profile_video_url' => 'nullable|url|max:500',
             'promo_content' => 'nullable|string|max:3000',
