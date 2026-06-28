@@ -658,6 +658,28 @@ $(function () {
         );
     });
 
+    // ── Request Document form ─────────────────────────────────────────────────
+    $('#request-doc-form').on('submit', function (e) {
+        e.preventDefault();
+        const vendorId = $(this).data('vendor-id');
+        const checked = $(this).find('input[type=checkbox]:checked');
+
+        if (!checked.length) {
+            Toast.error('Please select at least one document type.');
+            return;
+        }
+
+        withLoading('#request-doc-btn',
+            $.post('/vendors/' + vendorId + '/request-info', $(this).serialize())
+                .done(function (res) {
+                    closeModal('request-doc-modal');
+                    $('#request-doc-form input[type=checkbox]').prop('checked', false);
+                    Toast.success(res.message ?? 'Document request sent.');
+                })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed to send request.'); })
+        );
+    });
+
     // ── Send Notification form ────────────────────────────────────────────────
     $('#send-notification-form').on('submit', function (e) {
         e.preventDefault();

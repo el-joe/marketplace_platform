@@ -571,13 +571,19 @@
         <div class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Reason <span class="text-danger-500">*</span></label>
-                <input type="text" name="reason" class="form-input w-full" required>
+                <select name="reason" class="form-input w-full" required>
+                    <option value="">— Select —</option>
+                    <option value="late_shipment">Late Shipment</option>
+                    <option value="poor_quality">Poor Quality</option>
+                    <option value="customer_complaint">Customer Complaint</option>
+                    <option value="policy_violation">Policy Violation</option>
+                    <option value="other">Other</option>
+                </select>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Severity <span class="text-danger-500">*</span></label>
                 <select name="severity" class="form-input w-full" required>
                     <option value="">— Select —</option>
-                    <option value="warning">Warning</option>
                     <option value="minor">Minor</option>
                     <option value="major">Major</option>
                     <option value="critical">Critical</option>
@@ -713,6 +719,28 @@
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
             <button type="submit" form="reject-doc-form" class="btn btn-danger btn-sm">Reject Document</button>
+        </x-slot>
+    </form>
+</x-modal>
+
+{{-- Request Document --}}
+<x-modal id="request-doc-modal" title="Request Document" size="md">
+    <form id="request-doc-form" data-vendor-id="{{ $vendor->id }}">
+        @csrf
+        <div class="space-y-4">
+            <p class="text-sm text-gray-600">Select the document types you require from this vendor. They will be notified by email.</p>
+            <div class="space-y-2">
+                @foreach(['business_license' => 'Business License', 'tax_certificate' => 'Tax Certificate', 'owner_id' => 'Owner ID', 'bank_proof' => 'Bank Proof', 'vat_registration' => 'VAT Registration'] as $value => $label)
+                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                        <input type="checkbox" name="document_types[]" value="{{ $value }}" class="rounded border-gray-300 text-primary-600">
+                        {{ $label }}
+                    </label>
+                @endforeach
+            </div>
+        </div>
+        <x-slot name="footer">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+            <button type="submit" id="request-doc-btn" form="request-doc-form" class="btn btn-primary btn-sm">Send Request</button>
         </x-slot>
     </form>
 </x-modal>

@@ -10,6 +10,7 @@
  */
 
 import Chart from 'chart.js/auto';
+import DataTable from 'datatables.net';
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 const MIN_FLOOR = window.MIN_COMMISSION_FLOOR ?? 5.0;
