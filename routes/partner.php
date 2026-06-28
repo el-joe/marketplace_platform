@@ -61,6 +61,8 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/{subOrderNumber}', 'show')->name('show');
         Route::post('/{subOrderNumber}/confirm', 'confirm')->name('confirm');
         Route::post('/{subOrderNumber}/ship', 'ship')->name('ship');
+        Route::post('/{subOrderNumber}/out-for-delivery', 'markOutForDelivery')->name('out-for-delivery');
+        Route::post('/{subOrderNumber}/deliver', 'markDelivered')->name('deliver');
         Route::post('/{subOrderNumber}/cancel', 'cancel')->name('cancel');
     });
 

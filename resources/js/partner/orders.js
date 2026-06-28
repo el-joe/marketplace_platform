@@ -17,7 +17,7 @@ function statusBadgeHtml(status) {
         placed: ['bg-yellow-100 text-yellow-700', 'معلق'],
         confirmed: ['bg-blue-100 text-blue-700', 'مؤكد'],
         processing: ['bg-purple-100 text-purple-700', 'جارٍ التجهيز'],
-        ready_to_ship: ['bg-indigo-100 text-indigo-700', 'جاهز للشحن'],
+        packed: ['bg-indigo-100 text-indigo-700', 'جاهز للشحن'],
         shipped: ['bg-cyan-100 text-cyan-700', 'تم الشحن'],
         out_for_delivery: ['bg-teal-100 text-teal-700', 'في التوصيل'],
         delivered: ['bg-green-100 text-green-700', 'تم التسليم'],
@@ -235,6 +235,76 @@ function initCancelModal() {
     });
 }
 
+// ── Out for Delivery ──────────────────────────────────────────────────────────
+function initOutForDeliveryAction() {
+    const btn = document.getElementById('btn-out-for-delivery');
+    if (!btn || !ORDER_DETAIL) return;
+
+    btn.addEventListener('click', async () => {
+        const ok = window.Swal
+            ? await Swal.fire({
+                title: 'تحديث الحالة؟',
+                text: 'هل تريد تحديث الحالة إلى "في التوصيل"؟',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، تحديث',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#2563eb',
+            }).then(r => r.isConfirmed)
+            : confirm('هل تريد تحديث الحالة إلى "في التوصيل"؟');
+
+        if (!ok) return;
+
+        btn.disabled = true;
+        btn.textContent = 'جاري التحديث...';
+
+        const { ok: success, data } = await postJson(ORDER_DETAIL.outForDeliveryUrl, {});
+        if (success) {
+            toast(data.message ?? 'تم التحديث بنجاح.');
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            toast(data.message ?? 'حدث خطأ. يرجى المحاولة مرة أخرى.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'تحديث: في التوصيل';
+        }
+    });
+}
+
+// ── Deliver ───────────────────────────────────────────────────────────────────
+function initDeliverAction() {
+    const btn = document.getElementById('btn-deliver');
+    if (!btn || !ORDER_DETAIL) return;
+
+    btn.addEventListener('click', async () => {
+        const ok = window.Swal
+            ? await Swal.fire({
+                title: 'تأكيد التسليم؟',
+                text: 'هل تريد تأكيد تسليم هذا الطلب للعميل؟',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، تأكيد التسليم',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#15803d',
+            }).then(r => r.isConfirmed)
+            : confirm('هل تريد تأكيد تسليم هذا الطلب للعميل؟');
+
+        if (!ok) return;
+
+        btn.disabled = true;
+        btn.textContent = 'جاري التأكيد...';
+
+        const { ok: success, data } = await postJson(ORDER_DETAIL.deliverUrl, {});
+        if (success) {
+            toast(data.message ?? 'تم تأكيد التسليم بنجاح.');
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            toast(data.message ?? 'حدث خطأ. يرجى المحاولة مرة أخرى.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'تأكيد التسليم';
+        }
+    });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Boot
 // ─────────────────────────────────────────────────────────────────────────────
@@ -244,5 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDateFilter();
     initConfirmAction();
     initShipModal();
+    initOutForDeliveryAction();
+    initDeliverAction();
     initCancelModal();
 });

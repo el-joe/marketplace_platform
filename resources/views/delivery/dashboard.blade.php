@@ -96,7 +96,7 @@
                         <div>
                             <p class="font-semibold text-sm">#{{ $a->subOrder?->sub_order_number ?? $a->id }}</p>
                             <p class="text-xs text-slate-400 mt-0.5">
-                                {{ $a->subOrder?->orderItems?->count() ?? 0 }} items
+                                {{ $a->subOrder?->items?->count() ?? 0 }} items
                                 @if($a->assigned_at)
                                     · {{ $a->assigned_at->format('H:i') }}
                                 @endif

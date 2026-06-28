@@ -49,7 +49,7 @@ class DashboardController extends Controller
                 DeliveryAssignment::STATUS_ACCEPTED,
                 DeliveryAssignment::STATUS_PICKED_UP,
             ])
-            ->with(['subOrder.order', 'shipment'])
+            ->with(['subOrder.order', 'subOrder.items', 'shipment'])
             ->orderBy('assigned_at')
             ->limit(5)
             ->get();

@@ -62,7 +62,7 @@ class OrderController extends Controller
 
     public function index(Request $request): View
     {
-        $statuses = ['placed', 'confirmed', 'processing', 'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled'];
+        $statuses = ['placed', 'confirmed', 'processing', 'packed', 'shipped', 'delivered', 'completed', 'cancelled'];
 
         // Status counts for filter tabs
         $counts = SubOrder::where('vendor_id', $this->vendorId())
@@ -233,7 +233,7 @@ class OrderController extends Controller
 
         $subOrder = $this->vendorSubOrder($subOrderNumber);
 
-        if (!in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'ready_to_ship'])) {
+        if (!in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'packed'])) {
             return response()->json(['success' => false, 'message' => 'لا يمكن شحن هذا الطلب في حالته الحالية.'], 422);
         }
 
@@ -252,12 +252,21 @@ class OrderController extends Controller
                     'shipped_at' => now(),
                 ]);
 
-                // 2. Create shipment record
-                $shipment = Shipment::create([
+                // 2. Create shipment record — batch-load variant weights to avoid N+1
+                $variantIds = $subOrder->items->pluck('product_variant_id');
+                $variantWeights = \App\Models\ProductVariant::whereIn('id', $variantIds)
+                    ->pluck('weight_grams', 'id');
+                $weightGrams = $subOrder->items->sum(
+                    fn($item) => ($variantWeights[$item->product_variant_id] ?? 0) * $item->quantity
+                );
+
+                Shipment::create([
                     'sub_order_id' => $subOrder->id,
                     'carrier_id' => $request->input('carrier_id'),
                     'tracking_number' => $request->input('tracking_number'),
-                    'status' => 'shipped',
+                    'weight_grams' => $weightGrams,
+                    'shipping_cost_actual' => $subOrder->shipping,
+                    'status' => 'label_created',
                 ]);
 
                 // 3. Inventory movements + decrement
@@ -410,5 +419,91 @@ class OrderController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => 'تم إلغاء الطلب بنجاح.']);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Mark Out for Delivery
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function markOutForDelivery(string $subOrderNumber): JsonResponse
+    {
+        $subOrder = $this->vendorSubOrder($subOrderNumber);
+
+        if ($subOrder->status !== 'shipped') {
+            return response()->json(['success' => false, 'message' => 'لا يمكن تحديث هذا الطلب في حالته الحالية.'], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($subOrder) {
+                $fromStatus = $subOrder->status;
+                $subOrder->update(['status' => 'out_for_delivery']);
+
+                OrderStatusHistory::create([
+                    'order_id' => $subOrder->order_id,
+                    'sub_order_id' => $subOrder->id,
+                    'from_status' => $fromStatus,
+                    'to_status' => 'out_for_delivery',
+                    'changed_by_admin_id' => null,
+                    'metadata' => json_encode([
+                        'vendor_id' => $this->vendorId(),
+                        'vendor_admin' => Auth::guard('vendor')->user()->id,
+                        'action' => 'marked_out_for_delivery',
+                    ]),
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error('Mark out-for-delivery failed', ['error' => $e->getMessage(), 'sub_order' => $subOrderNumber]);
+            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء التحديث.'], 500);
+        }
+
+        return response()->json(['success' => true, 'message' => 'تم تحديث الحالة إلى "في التوصيل".']);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Mark Delivered
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function markDelivered(Request $request, string $subOrderNumber): JsonResponse
+    {
+        $subOrder = $this->vendorSubOrder($subOrderNumber);
+
+        if (!in_array($subOrder->status, ['shipped', 'out_for_delivery'])) {
+            return response()->json(['success' => false, 'message' => 'لا يمكن تحديث هذا الطلب في حالته الحالية.'], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($subOrder) {
+                $fromStatus = $subOrder->status;
+                $subOrder->update([
+                    'status' => 'delivered',
+                    'delivered_at' => now(),
+                ]);
+
+                foreach ($subOrder->items as $item) {
+                    $item->update([
+                        'fulfillment_status' => 'delivered',
+                        'return_eligible_until' => now()->addDays(14),
+                    ]);
+                }
+
+                OrderStatusHistory::create([
+                    'order_id' => $subOrder->order_id,
+                    'sub_order_id' => $subOrder->id,
+                    'from_status' => $fromStatus,
+                    'to_status' => 'delivered',
+                    'changed_by_admin_id' => null,
+                    'metadata' => json_encode([
+                        'vendor_id' => $this->vendorId(),
+                        'vendor_admin' => Auth::guard('vendor')->user()->id,
+                        'action' => 'marked_delivered',
+                    ]),
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error('Mark delivered failed', ['error' => $e->getMessage(), 'sub_order' => $subOrderNumber]);
+            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء التحديث.'], 500);
+        }
+
+        return response()->json(['success' => true, 'message' => 'تم تأكيد التسليم بنجاح.']);
     }
 }

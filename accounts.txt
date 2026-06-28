@@ -77,7 +77,7 @@ Email                            Password       Type          Company           
 khalifa@delivery.com             password123    platform      —                    on_shift    car
 inactive@delivery.com            password123    platform      —                    inactive    bicycle
 suspended@delivery.com           password123    platform      —                    suspended   motorcycle
-+1-682-336-0222                  password123    third_party   Aramex Gulf          active      van
+847-607-7542                  password123    third_party   Aramex Gulf          active      van
 aramex-rider2@delivery.com       password123    third_party   Aramex Gulf          on_shift    motorcycle
 localexpress-rider1@delivery.com password123    third_party   Local Express Oman   active      motorcycle
 

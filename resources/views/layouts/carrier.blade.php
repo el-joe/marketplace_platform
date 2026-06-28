@@ -31,8 +31,12 @@
                     المناديب
                 </a>
                 @if(auth('shipping_supervisor')->user()?->hasPermission('view_orders'))
+                <a href="{{ route('carrier.assignments.unassigned') }}"
+                   class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.assignments.unassigned') ? 'text-indigo-600 font-bold' : '' }}">
+                    غير معينة
+                </a>
                 <a href="{{ route('carrier.assignments.index') }}"
-                   class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.assignments.*') ? 'text-indigo-600 font-bold' : '' }}">
+                   class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.assignments.index') || request()->routeIs('carrier.assignments.show') ? 'text-indigo-600 font-bold' : '' }}">
                     الطلبات
                 </a>
                 @endif

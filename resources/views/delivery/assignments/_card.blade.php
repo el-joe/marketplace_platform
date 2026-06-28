@@ -16,7 +16,7 @@
                 #{{ $assignment->subOrder?->sub_order_number ?? substr($assignment->id, 0, 8) }}
             </p>
             <p class="text-xs text-slate-400 mt-0.5">
-                {{ $assignment->subOrder?->orderItems?->count() ?? '?' }} items
+                {{ $assignment->subOrder?->items?->count() ?? '?' }} items
                 @if($assignment->assigned_at)
                     · {{ $assignment->assigned_at->format('H:i') }}
                 @endif

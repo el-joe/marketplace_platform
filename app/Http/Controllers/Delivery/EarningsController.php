@@ -18,7 +18,7 @@ class EarningsController extends Controller
         $agent = Auth::guard('delivery')->user();
 
         $earnings = DeliveryAgentEarning::where('agent_id', $agent->id)
-            ->with('deliveryAssignment.subOrder')
+            ->with('assignment.subOrder')
             ->orderByDesc('created_at')
             ->paginate(20);
 

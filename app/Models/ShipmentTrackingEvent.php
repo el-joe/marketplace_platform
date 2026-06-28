@@ -16,6 +16,10 @@ class ShipmentTrackingEvent extends Model
         'raw_payload',
     ];
 
+    protected $casts = [
+        'occurred_at' => 'datetime',
+    ];
+
     public function shipment(): BelongsTo
     {
         return $this->belongsTo(Shipment::class);

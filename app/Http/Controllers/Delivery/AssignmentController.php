@@ -27,7 +27,7 @@ class AssignmentController extends Controller
 
         $assignments = DeliveryAssignment::where('agent_id', $agent->id)
             ->whereDate('assigned_at', today())
-            ->with(['subOrder.order', 'shipment'])
+            ->with(['subOrder.order', 'subOrder.items', 'shipment'])
             ->orderByRaw("FIELD(status, 'assigned','accepted','picked_up','delivered','failed')")
             ->get();
 

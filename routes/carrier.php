@@ -33,9 +33,11 @@ Route::name('carrier.')
             Route::resource('supervisors', SupervisorController::class)
                 ->except(['show']);
 
-            // Assignments — supervisor sees ALL including unaccepted
+            // Assignments — unassigned before {assignment} to avoid route collision
+            Route::get('/assignments/unassigned', [AssignmentController::class, 'unassigned'])->name('assignments.unassigned');
+            Route::post('/assignments/{shipment}/assign', [AssignmentController::class, 'assign'])->name('assignments.assign');
             Route::get('/assignments', [AssignmentController::class, 'index'])->name('assignments.index');
-            Route::post('/assignments/{assignment}/reassign', [AssignmentController::class, 'reassign'])
-                ->name('assignments.reassign');
+            Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
+            Route::post('/assignments/{assignment}/reassign', [AssignmentController::class, 'reassign'])->name('assignments.reassign');
         });
     });

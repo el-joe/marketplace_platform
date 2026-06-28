@@ -56,6 +56,10 @@ class DatabaseSeeder extends Seeder
             DemoDataSeeder::class,
         ]);
 
+        // ── Dashboard QA lifecycle orders (opt-in, TEST/DEV only) ─────────
+        // Run separately: php artisan db:seed --class=OrderLifecycleTestSeeder
+        // $this->call(OrderLifecycleTestSeeder::class);
+
         // ── Credentials summary table ──────────────────────────────────────
         $this->command->newLine();
         $this->command->info('═══════════════════════════════════════════════════════════════');

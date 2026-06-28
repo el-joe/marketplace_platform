@@ -137,7 +137,7 @@ $(function () {
 
     function closeRowDropdown() {
         $('#vendor-row-dropdown').addClass('hidden');
-        activeVendorId = null;
+        // activeVendorId = null;
     }
 
     $(document).on('click', '.vendor-dots-btn', function (e) {
@@ -225,6 +225,7 @@ $(function () {
         }
         const vendorId = activeVendorId;
         const vendorName = activeVendorName;
+
         withLoading(this,
             $.post('/vendors/' + vendorId + '/suspend', { _token: csrfToken(), reason })
                 .done(function (res) {

@@ -19,9 +19,9 @@ return new class extends Migration {
             $table->uuid('carrier_id')->index();
             $table->string('tracking_number', 100);
             $table->string('awb_label_url', 500)->nullable();
-            $table->integer('weight_grams');
+            $table->integer('weight_grams')->nullable();
             $table->string('dimensions', 50)->nullable();
-            $table->bigInteger('shipping_cost_actual');
+            $table->bigInteger('shipping_cost_actual')->nullable();
             $table->enum('status', ['label_created', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'failed', 'returned']);
             $table->timestamp('picked_up_at')->nullable();
             $table->timestamp('delivered_at')->nullable();

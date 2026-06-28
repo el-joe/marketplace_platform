@@ -9,6 +9,8 @@
         window.ORDER_DETAIL = {
             confirmUrl: '{{ route('partner.orders.confirm', $subOrder->sub_order_number) }}',
             shipUrl: '{{ route('partner.orders.ship', $subOrder->sub_order_number) }}',
+            outForDeliveryUrl: '{{ route('partner.orders.out-for-delivery', $subOrder->sub_order_number) }}',
+            deliverUrl: '{{ route('partner.orders.deliver', $subOrder->sub_order_number) }}',
             cancelUrl: '{{ route('partner.orders.cancel', $subOrder->sub_order_number) }}',
             csrf: '{{ csrf_token() }}',
             status: '{{ $subOrder->status }}',
@@ -47,7 +49,7 @@
             'placed' => 'معلق',
             'confirmed' => 'مؤكد',
             'processing' => 'جارٍ التجهيز',
-            'ready_to_ship' => 'جاهز للشحن',
+            'packed' => 'جاهز للشحن',
             'shipped' => 'تم الشحن',
             'out_for_delivery' => 'في التوصيل',
             'delivered' => 'تم التسليم',
@@ -287,7 +289,7 @@
                         </button>
                     @endif
 
-                    @if(in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'ready_to_ship']))
+                    @if(in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'packed']))
                         <button id="btn-ship"
                             class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="truck" class="w-4 h-4" />
@@ -295,7 +297,23 @@
                         </button>
                     @endif
 
-                    @if(!in_array($subOrder->status, ['shipped', 'delivered', 'completed', 'cancelled', 'return_requested', 'returned']))
+                    @if($subOrder->status === 'shipped')
+                        <button id="btn-out-for-delivery"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <x-heroicon name="truck" class="w-4 h-4" />
+                            تحديث: في التوصيل
+                        </button>
+                    @endif
+
+                    @if(in_array($subOrder->status, ['shipped', 'out_for_delivery']))
+                        <button id="btn-deliver"
+                            class="w-full bg-green-700 hover:bg-green-800 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <x-heroicon name="check-badge" class="w-4 h-4" />
+                            تأكيد التسليم
+                        </button>
+                    @endif
+
+                    @if(!in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed', 'cancelled', 'return_requested', 'returned']))
                         <button id="btn-cancel"
                             class="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="x-circle" class="w-4 h-4" />
@@ -303,7 +321,7 @@
                         </button>
                     @endif
 
-                    @if(in_array($subOrder->status, ['shipped', 'delivered', 'completed', 'cancelled']))
+                    @if(in_array($subOrder->status, ['delivered', 'completed', 'cancelled']))
                         <p class="text-xs text-gray-400 text-center py-1">لا توجد إجراءات متاحة</p>
                     @endif
 
