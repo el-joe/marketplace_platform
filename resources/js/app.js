@@ -186,3 +186,6 @@ window.injectValidationErrors = function ($form, errors) {
 // window.* component factories before Alpine walks the DOM.
 queueMicrotask(() => Alpine.start());
 
+/* ---------- Reverb / Echo ---------- */
+import './shared/echo-setup.js';
+

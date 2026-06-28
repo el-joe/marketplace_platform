@@ -10,9 +10,11 @@ use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentEarning;
 use App\Models\DeliveryAssignment;
 use App\Models\ShipmentTrackingEvent;
+use App\Notifications\Carrier\DeliveryFailed as DeliveryFailedNotification;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class AssignmentService
 {
@@ -271,5 +273,24 @@ class AssignmentService
 
         NotifyCustomerFailedDeliveryJob::dispatch($assignment->sub_order_id);
         NotifyOperationsTeamJob::dispatch($assignment->id);
+
+        $this->notifyCarrierSupervisors($assignment, new DeliveryFailedNotification($assignment));
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private function notifyCarrierSupervisors(DeliveryAssignment $assignment, object $notification): void
+    {
+        $company = $assignment->agent?->shippingCompany;
+
+        if (! $company) {
+            return;
+        }
+
+        $supervisors = $company->supervisors()->receivingNotifications()->get();
+
+        if ($supervisors->isNotEmpty()) {
+            Notification::send($supervisors, $notification);
+        }
     }
 }

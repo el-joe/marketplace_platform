@@ -7,15 +7,18 @@ use App\Models\InventoryMovement;
 use App\Models\OrderStatusHistory;
 use App\Models\Shipment;
 use App\Models\ShippingCarrier;
+use App\Models\ShippingCompanySupervisor;
 use App\Models\SubOrder;
 use App\Models\VendorListing;
 use App\Models\WarehouseInventory;
+use App\Notifications\Carrier\NewUnassignedShipmentArrived;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
@@ -260,7 +263,7 @@ class OrderController extends Controller
                     fn($item) => ($variantWeights[$item->product_variant_id] ?? 0) * $item->quantity
                 );
 
-                Shipment::create([
+                $shipment = Shipment::create([
                     'sub_order_id' => $subOrder->id,
                     'carrier_id' => $request->input('carrier_id'),
                     'tracking_number' => $request->input('tracking_number'),
@@ -268,6 +271,13 @@ class OrderController extends Controller
                     'shipping_cost_actual' => $subOrder->shipping,
                     'status' => 'label_created',
                 ]);
+
+                // Notify all active supervisors across all companies — no shipping_company_id
+                // on shipments yet, so any company's supervisors may claim this shipment.
+                $supervisors = ShippingCompanySupervisor::receivingNotifications()->get();
+                if ($supervisors->isNotEmpty()) {
+                    Notification::send($supervisors, new NewUnassignedShipmentArrived($shipment));
+                }
 
                 // 3. Inventory movements + decrement
                 foreach ($subOrder->items as $item) {

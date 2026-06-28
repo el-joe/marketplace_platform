@@ -12,6 +12,10 @@ use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Writer\PngWriter;
+use App\Models\Vendor;
+use App\Notifications\Vendor\ClassifiedListingApproved;
+use App\Notifications\Vendor\ClassifiedListingRejected;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -147,7 +151,13 @@ class ClassifiedListingService
 
         dispatch(fn () => $this->generateBarcode($listing));
 
-        return $listing->fresh();
+        $fresh = $listing->fresh();
+
+        if ($listing->seller_type === Vendor::class) {
+            Notification::send($listing->seller->vendorAdmins, new ClassifiedListingApproved($fresh));
+        }
+
+        return $fresh;
     }
 
     public function reject(ClassifiedListing $listing, string $reason): ClassifiedListing
@@ -157,7 +167,13 @@ class ClassifiedListingService
             'rejection_reason' => $reason,
         ]);
 
-        return $listing->fresh();
+        $fresh = $listing->fresh();
+
+        if ($listing->seller_type === Vendor::class) {
+            Notification::send($listing->seller->vendorAdmins, new ClassifiedListingRejected($fresh, $reason));
+        }
+
+        return $fresh;
     }
 
     public function recordInquiry(

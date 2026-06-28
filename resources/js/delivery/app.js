@@ -7,6 +7,8 @@ import Alpine from 'alpinejs';
 window.Alpine = Alpine;
 Alpine.start();
 
+import '../shared/echo-setup.js';
+
 // CSRF token for AJAX
 window.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 

@@ -17,11 +17,25 @@ use App\Models\TravelPackage;
 use App\Models\Vendor;
 use App\Jobs\SendMarketerRejectionMail;
 use App\Jobs\SendMarketerWelcomeMail;
+use App\Notifications\Admin\PayoutBatchReadyForApproval;
+use App\Notifications\Admin\SampleRequestSubmitted;
+use App\Notifications\Marketer\AccountReactivated as MarketerAccountReactivated;
+use App\Notifications\Marketer\AccountSuspended as MarketerAccountSuspended;
+use App\Notifications\Marketer\ApplicationApproved as MarketerApplicationApproved;
+use App\Notifications\Marketer\ApplicationRejected as MarketerApplicationRejected;
+use App\Notifications\Marketer\CampaignApproved as MarketerCampaignApproved;
+use App\Notifications\Marketer\CampaignRejected as MarketerCampaignRejected;
+use App\Notifications\Marketer\ConversionApproved as MarketerConversionApproved;
+use App\Notifications\Marketer\PayoutProcessed as MarketerPayoutProcessed;
+use App\Notifications\Marketer\SampleDispatched as MarketerSampleDispatched;
+use App\Notifications\Marketer\SampleRequestApproved as MarketerSampleRequestApproved;
+use App\Notifications\Marketer\SampleRequestRejected as MarketerSampleRequestRejected;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -155,6 +169,7 @@ class MarketerController extends Controller
         ]);
 
         SendMarketerWelcomeMail::dispatch($marketer);
+        $marketer->notify(new MarketerApplicationApproved($marketer));
 
         return response()->json(['success' => true, 'message' => 'Marketer approved and activated.']);
     }
@@ -166,6 +181,7 @@ class MarketerController extends Controller
         $marketer->update(['status' => 'rejected']);
 
         SendMarketerRejectionMail::dispatch($marketer, $request->reason);
+        $marketer->notify(new MarketerApplicationRejected($marketer, $request->reason));
 
         return response()->json(['success' => true, 'message' => 'Marketer rejected.']);
     }
@@ -173,12 +189,14 @@ class MarketerController extends Controller
     public function suspend(Request $request, Marketer $marketer): JsonResponse
     {
         $marketer->update(['status' => 'suspended']);
+        $marketer->notify(new MarketerAccountSuspended($marketer, $request->input('reason', '')));
         return response()->json(['success' => true, 'message' => 'Marketer suspended.']);
     }
 
     public function activate(Marketer $marketer): JsonResponse
     {
         $marketer->update(['status' => 'active']);
+        $marketer->notify(new MarketerAccountReactivated($marketer));
         return response()->json(['success' => true, 'message' => 'Marketer activated.']);
     }
 
@@ -359,6 +377,8 @@ class MarketerController extends Controller
             'approved_at' => now(),
         ]);
 
+        $campaign->marketer->notify(new MarketerCampaignApproved($campaign));
+
         return response()->json(['success' => true, 'message' => 'Campaign approved and activated.']);
     }
 
@@ -367,6 +387,8 @@ class MarketerController extends Controller
         $request->validate(['reason' => 'required|string|max:500']);
 
         $campaign->update(['status' => 'cancelled']);
+
+        $campaign->marketer->notify(new MarketerCampaignRejected($campaign, $request->reason));
 
         return response()->json(['success' => true, 'message' => 'Campaign rejected.']);
     }
@@ -434,12 +456,23 @@ class MarketerController extends Controller
     {
         $request->validate(['ids' => 'required|array', 'ids.*' => 'uuid']);
 
-        $count = MarketerConversion::whereIn('id', $request->ids)
+        $conversions = MarketerConversion::whereIn('id', $request->ids)
+            ->where('status', 'pending')
+            ->get();
+
+        $count = $conversions->count();
+
+        MarketerConversion::whereIn('id', $request->ids)
             ->where('status', 'pending')
             ->update([
                 'status' => 'approved',
                 'approved_at' => now(),
             ]);
+
+        foreach ($conversions as $conversion) {
+            $conversion->status = 'approved';
+            $conversion->marketer->notify(new MarketerConversionApproved($conversion));
+        }
 
         return response()->json([
             'success' => true,
@@ -555,6 +588,16 @@ class MarketerController extends Controller
         // Update marketer totals
         $marketer->increment('total_earnings_cents', $net);
 
+        Notification::send(
+            Admin::permission('marketers.payouts.approve')->get(),
+            new PayoutBatchReadyForApproval(
+                batchType: 'marketer',
+                payoutCount: 1,
+                periodStart: $request->period_start,
+                periodEnd: $request->period_end,
+            ),
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Payout generated: ' . $payout->payout_number,
@@ -588,6 +631,8 @@ class MarketerController extends Controller
             'payment_reference' => $request->payment_reference,
             'processed_at' => now(),
         ]);
+
+        $payout->marketer->notify(new MarketerPayoutProcessed($payout));
 
         return response()->json(['success' => true, 'message' => 'Payout marked as paid.']);
     }
@@ -956,6 +1001,8 @@ class MarketerController extends Controller
             'approved_at' => now(),
         ]);
 
+        $req->marketer->notify(new MarketerSampleRequestApproved($req));
+
         return response()->json(['success' => true, 'message' => 'Sample request approved.']);
     }
 
@@ -969,6 +1016,8 @@ class MarketerController extends Controller
             'status' => 'dispatched',
             'dispatched_at' => now(),
         ]);
+
+        $req->marketer->notify(new MarketerSampleDispatched($req));
 
         return response()->json(['success' => true, 'message' => 'Sample marked as dispatched.']);
     }
@@ -987,6 +1036,8 @@ class MarketerController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $validated['rejection_reason'],
         ]);
+
+        $req->marketer->notify(new MarketerSampleRequestRejected($req));
 
         return response()->json(['success' => true, 'message' => 'Sample request rejected.']);
     }

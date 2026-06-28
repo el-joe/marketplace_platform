@@ -6,7 +6,15 @@ use App\Jobs\VendorApprovedJob;
 use App\Models\Admin;
 use App\Models\Vendor;
 use App\Models\VendorStrike;
+use App\Notifications\Vendor\AccountReactivated;
+use App\Notifications\Vendor\AccountSuspended;
+use App\Notifications\Vendor\DocumentsRequested;
+use App\Notifications\Vendor\PayoutHoldPlaced;
+use App\Notifications\Vendor\PayoutHoldReleased;
+use App\Notifications\Vendor\StrikeIssued;
+use App\Notifications\Vendor\VendorApproved;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class VendorApprovalService
 {
@@ -23,7 +31,8 @@ class VendorApprovalService
             ]);
 
             $this->logActivity($vendor, $admin, 'approved', 'Vendor account approved');
-            $this->createNotification($vendor, 'Your account has been approved!', 'vendor_approved');
+
+            Notification::send($vendor->vendorAdmins, new VendorApproved());
 
             VendorApprovedJob::dispatch($vendor->id);
         });
@@ -40,7 +49,7 @@ class VendorApprovalService
             ]);
 
             $this->logActivity($vendor, $admin, 'rejected', 'Vendor application rejected', ['reason' => $reason]);
-            $this->createNotification($vendor, 'Your vendor application was rejected. Reason: ' . $reason, 'vendor_rejected');
+            // No notification class for rejection — vendor cannot log in after rejection
         });
     }
 
@@ -59,11 +68,8 @@ class VendorApprovalService
             }
 
             $this->logActivity($vendor, $admin, 'info_requested', 'Additional documents requested', ['types' => $documentTypes]);
-            $this->createNotification(
-                $vendor,
-                'Please upload the following documents: ' . implode(', ', $documentTypes),
-                'documents_requested'
-            );
+
+            Notification::send($vendor->vendorAdmins, new DocumentsRequested($documentTypes));
         });
     }
 
@@ -98,11 +104,8 @@ class VendorApprovalService
                 'reason' => $data['reason'],
                 'auto_suspend' => $autoSuspended,
             ]);
-            $this->createNotification(
-                $vendor,
-                'A ' . $data['severity'] . ' strike has been issued on your account.',
-                'strike_issued'
-            );
+
+            Notification::send($vendor->vendorAdmins, new StrikeIssued($strike));
 
             $strike->auto_suspended = $autoSuspended;
             $strike->active_count = $activeCount;
@@ -120,7 +123,8 @@ class VendorApprovalService
         ]);
 
         $this->logActivity($vendor, $admin, 'suspended', 'Vendor suspended', ['reason' => $reason]);
-        $this->createNotification($vendor, 'Your account has been suspended. Reason: ' . $reason, 'account_suspended');
+
+        Notification::send($vendor->vendorAdmins, new AccountSuspended($reason));
     }
 
     public function reactivate(Vendor $vendor, Admin $admin): void
@@ -130,7 +134,8 @@ class VendorApprovalService
         ]);
 
         $this->logActivity($vendor, $admin, 'reactivated', 'Vendor reactivated');
-        $this->createNotification($vendor, 'Your account has been reactivated.', 'account_reactivated');
+
+        Notification::send($vendor->vendorAdmins, new AccountReactivated());
     }
 
     public function blacklist(Vendor $vendor, string $reason, Admin $admin): void
@@ -152,7 +157,7 @@ class VendorApprovalService
             'payout_hold_reason' => $reason,
         ]);
 
-        $this->createNotification($vendor, 'A payout hold has been placed on your account. Reason: ' . $reason, 'payout_hold_placed');
+        Notification::send($vendor->vendorAdmins, new PayoutHoldPlaced($reason));
     }
 
     public function releasePayoutHold(Vendor $vendor): void
@@ -162,7 +167,7 @@ class VendorApprovalService
             'payout_hold_reason' => null,
         ]);
 
-        $this->createNotification($vendor, 'Your payout hold has been released.', 'payout_hold_released');
+        Notification::send($vendor->vendorAdmins, new PayoutHoldReleased());
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -178,19 +183,6 @@ class VendorApprovalService
             'causer_type' => Admin::class,
             'causer_id' => $admin->id,
             'properties' => json_encode(array_merge(['event' => $event], $properties)),
-            'created_at' => now(),
-            // 'updated_at' => now(),
-        ]);
-    }
-
-    private function createNotification(Vendor $vendor, string $message, string $type): void
-    {
-        DB::table('notifications')->insert([
-            'id' => \Illuminate\Support\Str::uuid(),
-            'type' => 'App\\Notifications\\Vendor\\' . str($type)->studly(),
-            'notifiable_type' => Vendor::class,
-            'notifiable_id' => $vendor->id,
-            'data' => json_encode(['message' => $message, 'type' => $type]),
             'created_at' => now(),
             // 'updated_at' => now(),
         ]);

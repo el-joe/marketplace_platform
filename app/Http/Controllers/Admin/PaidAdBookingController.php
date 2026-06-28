@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PaidAdBooking;
 use App\Models\PaidAdCreative;
+use App\Notifications\Vendor\AdSlotBookingApproved;
+use App\Notifications\Vendor\AdSlotBookingRejected;
+use Illuminate\Support\Facades\Notification;
 use App\Traits\HasDataTable;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -140,11 +143,14 @@ class PaidAdBookingController extends Controller
             return response()->json(['message' => 'Booking is not pending approval.'], 422);
         }
 
+        $paidAdBooking->load('adSlot');
         $paidAdBooking->update([
             'status' => 'active',
             'approved_by_admin_id' => $admin->id,
             'approved_at' => now(),
         ]);
+
+        Notification::send($paidAdBooking->vendor->vendorAdmins, new AdSlotBookingApproved($paidAdBooking));
 
         return response()->json(['message' => 'Booking approved.']);
     }
@@ -160,10 +166,13 @@ class PaidAdBookingController extends Controller
             'rejection_reason' => ['required', 'string', 'max:1000'],
         ]);
 
+        $paidAdBooking->load('adSlot');
         $paidAdBooking->update([
             'status' => 'rejected',
             'rejection_reason' => $request->input('rejection_reason'),
         ]);
+
+        Notification::send($paidAdBooking->vendor->vendorAdmins, new AdSlotBookingRejected($paidAdBooking, $request->input('rejection_reason')));
 
         return response()->json(['message' => 'Booking rejected.']);
     }

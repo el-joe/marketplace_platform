@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Marketer\Sample\StoreSampleRequestRequest;
 use App\Http\Resources\Marketer\SampleRequestResource;
 use App\Http\Responses\ApiResponse;
+use App\Models\Admin;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerSampleRequest;
+use App\Notifications\Admin\SampleRequestSubmitted;
 use App\Policies\CampaignPolicy;
 use App\Policies\SampleRequestPolicy;
 use App\Services\Marketer\SampleRequestService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Notification;
 
 class SampleRequestController extends Controller
 {
@@ -69,6 +72,11 @@ class SampleRequestController extends Controller
         }
 
         $sampleRequest = $this->service->create($marketer, $campaign, $request->validated());
+
+        Notification::send(
+            Admin::permission('marketers.samples.approve')->get(),
+            new SampleRequestSubmitted($sampleRequest),
+        );
 
         return ApiResponse::success(new SampleRequestResource($sampleRequest), 'Sample request submitted.', 201);
     }

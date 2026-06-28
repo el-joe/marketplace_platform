@@ -22,6 +22,7 @@
             </div>
 
             <div class="flex items-center gap-6 text-sm font-medium">
+                <x-notification-bell guard="shipping_supervisor" />
                 <a href="{{ route('carrier.dashboard') }}"
                    class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.dashboard') ? 'text-indigo-600 font-bold' : '' }}">
                     الرئيسية

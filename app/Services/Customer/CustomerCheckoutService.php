@@ -17,7 +17,9 @@ use App\Models\SubOrder;
 use App\Models\VendorListing;
 use App\Services\LedgerService;
 use App\Services\PaymentService;
+use App\Notifications\Vendor\NewOrderReceived;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class CustomerCheckoutService
@@ -212,6 +214,8 @@ class CustomerCheckoutService
                 ]);
 
                 $subOrderSuffix++;
+
+                Notification::send($subOrder->vendor->vendorAdmins, new NewOrderReceived($subOrder));
 
                 foreach ($blueprint['items'] as $cartItem) {
                     $listing = $cartItem->vendorListing;

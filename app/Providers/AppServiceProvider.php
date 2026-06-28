@@ -63,6 +63,14 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PaymentGatewayFactory::class);
         $this->app->singleton(ShippingCarrierFactory::class);
+
+        // Replace Laravel's built-in DatabaseChannel with our custom one that
+        // writes to the platform's non-standard notifications table schema
+        // (has required `channel` enum column, no `updated_at` column).
+        $this->app->bind(
+            \Illuminate\Notifications\Channels\DatabaseChannel::class,
+            \App\Notifications\Channels\CustomDatabaseChannel::class
+        );
     }
 
     /**

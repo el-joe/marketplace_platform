@@ -6,11 +6,15 @@ use App\Http\Controllers\Delivery\DashboardController;
 use App\Http\Controllers\Delivery\EarningsController;
 use App\Http\Controllers\Delivery\LocationController;
 use App\Http\Controllers\Delivery\ProfileController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::domain('delivery.' . env('APP_DOMAIN', 'localhost'))
     ->name('delivery.')
     ->group(function () {
+
+        Broadcast::routes(['middleware' => ['web', 'auth.delivery']]);
 
         // ── Guest routes ──────────────────────────────────────────────────────
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -20,6 +24,16 @@ Route::domain('delivery.' . env('APP_DOMAIN', 'localhost'))
         Route::middleware(['auth.delivery'])->group(function () {
 
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+            // ── Notifications ─────────────────────────────────────────────────
+            Route::prefix('notifications')->name('notifications.')
+                ->controller(NotificationController::class)
+                ->group(function () {
+                    Route::get('/recent',        'recent')->name('recent');
+                    Route::get('/unread-count',  'unreadCount')->name('unread-count');
+                    Route::post('/mark-all-read','markAllRead')->name('mark-all-read');
+                    Route::post('/{id}/read',    'markRead')->name('mark-read');
+                });
 
             // Dashboard
             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');

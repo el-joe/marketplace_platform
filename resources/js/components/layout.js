@@ -63,67 +63,9 @@ $(function () {
         $el.find('[data-flash-dismiss]').on('click', dismiss);
     });
 
-    /* ---------- Notification polling ---------- */
-    function pollNotifications() {
-        $.ajax({
-            url: '/notifications/unread-count',
-            method: 'GET',
-        })
-            .done(function (response) {
-                const count = response && response.data ? response.data.count : 0;
-                const $badge = $('#notif-badge');
-                if (count > 0) {
-                    $badge.text(count > 99 ? '99+' : count).removeClass('hidden');
-                } else {
-                    $badge.addClass('hidden');
-                }
-            })
-            .fail(function (xhr) {
-                // Silently mark handled so global handler stays quiet on dashboards
-                xhr.handled = true;
-            });
-    }
-
-    if ($('#notif-badge').length) {
-        pollNotifications();
-        window.__notifInterval && clearInterval(window.__notifInterval);
-        window.__notifInterval = setInterval(pollNotifications, 60000);
-    }
-
-    /* ---------- Load notifications dropdown list on open ---------- */
-    $(document).off('click.notif-open').on('click.notif-open', '#topbar [class*="bell"]', function () {
-        const $list = $('#notif-list');
-        if ($list.data('loaded')) return;
-
-        $.ajax({ url: '/notifications/unread', method: 'GET' })
-            .done(function (response) {
-                const items = (response && response.data && response.data.items) || [];
-                if (!items.length) {
-                    $list.html('<div class="p-6 text-center text-sm text-gray-500">No new notifications</div>');
-                } else {
-                    $list.html(items.map((n) => `
-                        <a href="${n.url || '#'}" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-50">
-                            <div class="text-sm font-medium text-gray-900">${$('<div>').text(n.title || '').html()}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">${$('<div>').text(n.message || '').html()}</div>
-                            <div class="text-[10px] text-gray-400 mt-1">${$('<div>').text(n.created_at || '').html()}</div>
-                        </a>
-                    `).join(''));
-                }
-                $list.data('loaded', true);
-            })
-            .fail(function (xhr) { xhr.handled = true; });
-    });
-
-    /* ---------- Mark all notifications read ---------- */
-    $(document).off('click.notif-mark').on('click.notif-mark', '#notif-mark-all-read', function (e) {
-        e.preventDefault();
-        $.ajax({ url: '/notifications/mark-all-read', method: 'POST' })
-            .done(function () {
-                $('#notif-badge').addClass('hidden');
-                $('#notif-list').html('<div class="p-6 text-center text-sm text-gray-500">No new notifications</div>');
-                window.Toast && window.Toast.success('All notifications marked as read.');
-            });
-    });
+    /* ---------- Notifications ---------- */
+    // Handled entirely by <x-notification-bell> Alpine component + Echo.
+    // No jQuery polling needed here.
 
     /* ---------- Locale / direction switcher ---------- */
     $(document).off('click.locale').on('click.locale', '.locale-switch', function () {

@@ -35,6 +35,6 @@ class CustomerShippedNotificationJob implements ShouldQueue
             return;
         }
 
-        $customer->notify(new \App\Notifications\OrderShippedNotification($subOrder));
+        $customer->notify(new \App\Notifications\Customer\OrderShipped($subOrder));
     }
 }

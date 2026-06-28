@@ -10,8 +10,10 @@ use App\Services\PayoutCalculationService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Notifications\Vendor\PayoutProcessed;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class PayoutController extends Controller
@@ -186,6 +188,8 @@ class PayoutController extends Controller
                 'receipt_url'       => $request->receipt_url,
                 'processed_at'      => now(),
             ]);
+
+            Notification::send($payout->vendor->vendorAdmins, new PayoutProcessed($payout));
 
             return response()->json(['success' => true, 'message' => 'Payout marked as completed.']);
         } catch (\Throwable $e) {

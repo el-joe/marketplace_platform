@@ -7,7 +7,9 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ReturnRequest;
 use App\Models\SubOrder;
+use App\Notifications\Vendor\ReturnRequestSubmitted;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class ReturnService
@@ -40,6 +42,8 @@ class ReturnService
                 'quantity' => $item->quantity,
             ]);
         }
+
+        Notification::send($subOrder->vendor->vendorAdmins, new ReturnRequestSubmitted($returnRequest));
 
         return $returnRequest;
     }

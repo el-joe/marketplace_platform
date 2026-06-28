@@ -5,10 +5,14 @@ use App\Http\Controllers\TravelAgencyPortal\BookingController;
 use App\Http\Controllers\TravelAgencyPortal\DashboardController;
 use App\Http\Controllers\TravelAgencyPortal\PackageController;
 use App\Http\Controllers\TravelAgencyPortal\ProfileController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::name('travel-agency.')
     ->group(function () {
+
+        Broadcast::routes(['middleware' => ['web', 'auth.travel_agency']]);
 
         // ── Guest ─────────────────────────────────────────────────────────────
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -18,6 +22,17 @@ Route::name('travel-agency.')
         Route::middleware(['auth.travel_agency'])->group(function () {
 
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+            // ── Notifications ───────────────────────────────────────────────────
+            Route::prefix('notifications')->name('notifications.')
+                ->controller(NotificationController::class)
+                ->group(function () {
+                    Route::get('/',              'index')->name('index');
+                    Route::get('/recent',        'recent')->name('recent');
+                    Route::get('/unread-count',  'unreadCount')->name('unread-count');
+                    Route::post('/mark-all-read','markAllRead')->name('mark-all-read');
+                    Route::post('/{id}/read',    'markRead')->name('mark-read');
+                });
 
             // Dashboard
             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');

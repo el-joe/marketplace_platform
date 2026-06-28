@@ -20,6 +20,8 @@ use App\Http\Controllers\Partner\TeamController;
 use App\Http\Controllers\Partner\WarehouseController;
 use App\Http\Controllers\Partner\AdsController;
 use App\Http\Controllers\Partner\ClassifiedListingController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,9 +52,24 @@ Route::post('/logout', [PartnerAuthController::class, 'logout'])
     ->middleware('vendor.auth')
     ->name('logout');
 
+// ── Broadcasting auth (Reverb channel authorization for vendor guard) ────────────
+Broadcast::routes(['middleware' => ['web', 'vendor.auth']]);
+
 // ── Protected panel ──────────────────────────────────────────────────────
 Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // ── Notifications ───────────────────────────────────────────────────────────
+    Route::prefix('notifications')->name('notifications.')
+        ->controller(NotificationController::class)
+        ->group(function () {
+            Route::get('/',              'index')->name('index');
+            Route::get('/recent',        'recent')->name('recent');
+            Route::get('/unread-count',  'unreadCount')->name('unread-count');
+            Route::get('/unread',        'unread')->name('unread');
+            Route::post('/mark-all-read','markAllRead')->name('mark-all-read');
+            Route::post('/{id}/read',    'markRead')->name('mark-read');
+        });
 
     // ── Orders module ────────────────────────────────────────────────────────
     Route::prefix('orders')->name('orders.')->controller(OrderController::class)->group(function () {

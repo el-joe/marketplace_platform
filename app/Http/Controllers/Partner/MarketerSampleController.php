@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
 use App\Models\MarketerSampleRequest;
+use App\Notifications\Vendor\SampleRequestApproved;
+use App\Notifications\Vendor\SampleRequestRejected;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class MarketerSampleController extends Controller
@@ -50,6 +53,8 @@ class MarketerSampleController extends Controller
 
         $req->update(['status' => 'approved', 'approved_at' => now()]);
 
+        Notification::send(auth('vendor')->user()->vendor->vendorAdmins, new SampleRequestApproved($req));
+
         return response()->json(['success' => true, 'message' => 'Sample request approved.']);
     }
 
@@ -62,6 +67,8 @@ class MarketerSampleController extends Controller
         abort_unless(in_array($req->status, ['requested', 'approved']), 422, 'Cannot reject at this stage.');
 
         $req->update(['status' => 'rejected']);
+
+        Notification::send(auth('vendor')->user()->vendor->vendorAdmins, new SampleRequestRejected($req));
 
         return response()->json(['success' => true, 'message' => 'Sample request rejected.']);
     }

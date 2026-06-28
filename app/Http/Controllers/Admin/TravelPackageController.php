@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TravelPackage;
+use App\Notifications\TravelAgency\PackageApproved;
+use App\Notifications\TravelAgency\PackageRejected;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -48,6 +50,8 @@ class TravelPackageController extends Controller
             'approved_at'          => now(),
         ]);
 
+        $travelPackage->agency->notify(new PackageApproved($travelPackage));
+
         return response()->json(['message' => 'Package approved and is now live.']);
     }
 
@@ -58,6 +62,8 @@ class TravelPackageController extends Controller
         $request->validate(['reason' => ['required', 'string', 'min:5', 'max:500']]);
 
         $travelPackage->update(['status' => 'draft']);
+
+        $travelPackage->agency->notify(new PackageRejected($travelPackage, $request->reason));
 
         return response()->json(['message' => 'Package returned to agency as draft.']);
     }

@@ -8,11 +8,15 @@ use App\Http\Controllers\MarketerPortal\ProfileController;
 use App\Http\Controllers\MarketerPortal\QrCodeController;
 use App\Http\Controllers\MarketerPortal\SampleRequestController;
 use App\Http\Controllers\MarketerPortal\TrackingController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
     ->name('marketer.')
     ->group(function () {
+
+        Broadcast::routes(['middleware' => ['web', 'auth.marketer']]);
 
         // ── Public: Boutiqaat profile ─────────────────────────────────────────
         Route::get('/p/{slug}', [ProfileController::class, 'boutiqaat'])->name('profile.public');
@@ -27,6 +31,17 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
         Route::middleware(['auth.marketer'])->group(function () {
 
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+            // ── Notifications ───────────────────────────────────────────────────
+            Route::prefix('notifications')->name('notifications.')
+                ->controller(NotificationController::class)
+                ->group(function () {
+                    Route::get('/',              'index')->name('index');
+                    Route::get('/recent',        'recent')->name('recent');
+                    Route::get('/unread-count',  'unreadCount')->name('unread-count');
+                    Route::post('/mark-all-read','markAllRead')->name('mark-all-read');
+                    Route::post('/{id}/read',    'markRead')->name('mark-read');
+                });
 
             // Dashboard
             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');

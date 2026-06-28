@@ -2,14 +2,24 @@
 
 namespace App\Services;
 
+use App\Models\Admin;
 use App\Models\Dispute;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Refund;
 use App\Models\SubOrder;
+use App\Notifications\Admin\FraudPatternDetected;
+use App\Notifications\Customer\OrderCancelled as CustomerOrderCancelled;
+use App\Notifications\Customer\OrderConfirmed;
+use App\Notifications\Customer\OrderDelivered;
+use App\Notifications\Customer\OrderOutForDelivery;
+use App\Notifications\Customer\OrderRefunded;
+use App\Notifications\Customer\OrderShipped as CustomerOrderShipped;
+use App\Notifications\Vendor\OrderCancelledByAdmin;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 class OrderInterventionService
@@ -144,6 +154,27 @@ class OrderInterventionService
             // auto-advance the parent order status.
             $this->syncParentOrderStatus($subOrder->order_id, $adminId);
         });
+
+        // Notify the customer outside the transaction so a notification failure
+        // cannot roll back the status change.
+        $subOrder->loadMissing('order.customer');
+        $customer = $subOrder->order?->customer;
+
+        if ($customer) {
+            $notification = match ($newStatus) {
+                'confirmed'        => new OrderConfirmed($subOrder),
+                'shipped'          => new CustomerOrderShipped($subOrder),
+                'out_for_delivery' => new OrderOutForDelivery($subOrder),
+                'delivered'        => new OrderDelivered($subOrder),
+                'cancelled'        => new CustomerOrderCancelled($subOrder, $reason),
+                'refunded'         => new OrderRefunded($subOrder),
+                default            => null,
+            };
+
+            if ($notification) {
+                $customer->notify($notification);
+            }
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -193,6 +224,8 @@ class OrderInterventionService
                     'changed_by_admin_id' => $adminId,
                     'reason' => '[Force Cancel] ' . $reason,
                 ]);
+
+                Notification::send($subOrder->vendor->vendorAdmins, new OrderCancelledByAdmin($subOrder, $reason));
             }
 
             $originalStatus = $order->status;
@@ -369,6 +402,11 @@ class OrderInterventionService
                 'metadata' => ['action' => 'fraud_flagged'],
             ]);
         });
+
+        Notification::send(
+            Admin::permission('orders.flag_fraud')->get(),
+            new FraudPatternDetected($order, $reason),
+        );
     }
 
     // ─────────────────────────────────────────────────────────────────────────

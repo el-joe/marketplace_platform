@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\MarketerPortal;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\ClassifiedListing;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerCampaignProduct;
 use App\Models\TravelPackage;
 use App\Models\Vendor;
 use App\Models\VendorListing;
+use App\Notifications\Admin\SampleRequestSubmitted;
 use App\Services\MarketerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class CampaignController extends Controller
@@ -240,6 +243,11 @@ class CampaignController extends Controller
             $vendor,
             $campaign,
             $validated['items'],
+        );
+
+        Notification::send(
+            Admin::permission('marketers.samples.approve')->get(),
+            new SampleRequestSubmitted($sampleRequest),
         );
 
         return response()->json([

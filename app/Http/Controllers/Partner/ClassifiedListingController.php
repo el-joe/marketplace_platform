@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedListing;
 use App\Models\Country;
 use App\Models\Vendor;
+use App\Notifications\Admin\NewClassifiedListingPendingReview;
 use App\Services\Shared\ClassifiedListingService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class ClassifiedListingController extends Controller
@@ -151,6 +154,13 @@ class ClassifiedListingController extends Controller
 
         $listing = app(ClassifiedListingService::class)->create($vendor, $data);
 
+        if ($listing->status === 'pending_review') {
+            Notification::send(
+                Admin::where('status', 'active')->get(),
+                new NewClassifiedListingPendingReview($listing),
+            );
+        }
+
         return response()->json([
             'success'  => true,
             'message'  => $listing->status === 'pending_contract'
@@ -277,6 +287,14 @@ class ClassifiedListingController extends Controller
         ]);
 
         app(ClassifiedListingService::class)->acceptContract($listing, $signatureData);
+
+        $listing->refresh();
+        if ($listing->status === 'pending_review') {
+            Notification::send(
+                Admin::where('status', 'active')->get(),
+                new NewClassifiedListingPendingReview($listing),
+            );
+        }
 
         return response()->json(['success' => true, 'message' => 'تم قبول العقد، إعلانك الآن قيد المراجعة.']);
     }

@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Mail\VendorApplicationReceivedMail;
+use App\Models\Admin;
+use App\Notifications\Admin\NewVendorApplicationSubmitted;
+use Illuminate\Support\Facades\Notification;
 use App\Models\Address;
 use App\Models\City;
 use App\Models\Country;
@@ -319,6 +322,16 @@ class RegistrationController extends Controller
                 Mail::to($vendor->email)->send(new VendorApplicationReceivedMail($vendor));
             } catch (\Throwable $e) {
                 Log::warning('VendorApplicationReceivedMail failed: ' . $e->getMessage());
+            }
+
+            // ⑧ Notify admins of new application
+            try {
+                Notification::send(
+                    Admin::permission('vendors.approve')->get(),
+                    new NewVendorApplicationSubmitted($vendor),
+                );
+            } catch (\Throwable $e) {
+                Log::warning('NewVendorApplicationSubmitted notification failed: ' . $e->getMessage());
             }
 
             // ⑦ Activity log (non-blocking)

@@ -4,15 +4,18 @@ namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdCampaign;
+use App\Models\Admin;
 use App\Models\Vendor;
 use App\Models\Category;
 use App\Models\VendorListing;
+use App\Notifications\Admin\AdCampaignSubmittedForReview;
 use App\Traits\HasDataTable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class AdsController extends Controller
 {
@@ -141,6 +144,11 @@ class AdsController extends Controller
                 $campaign->categoryTargets()->create(['category_id' => $catId, 'is_active' => true]);
             }
         });
+
+        Notification::send(
+            Admin::permission('ad_campaigns.manage')->get(),
+            new AdCampaignSubmittedForReview($campaign),
+        );
 
         return response()->json([
             'success'  => true,

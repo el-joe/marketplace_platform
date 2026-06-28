@@ -46,30 +46,7 @@
         </button>--}}
 
         {{-- Notifications --}}
-        <div class="relative" x-data="{ open: false }">
-            <button type="button" @click="open = !open" class="relative p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-                <x-heroicon name="bell" class="w-5 h-5" />
-                <span id="notif-badge" class="hidden absolute -top-0.5 -right-0.5 inline-flex items-center justify-center
-                             min-w-[18px] h-[18px] px-1 rounded-full bg-danger-600 text-white text-[10px] font-bold">
-                    0
-                </span>
-            </button>
-            <div x-show="open" @click.outside="open = false" x-cloak
-                class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
-                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                    <h4 class="text-sm font-semibold">Notifications</h4>
-                    <button type="button" id="notif-mark-all-read" class="text-xs text-primary-600 hover:underline">Mark
-                        all read</button>
-                </div>
-                <div id="notif-list" class="max-h-80 overflow-y-auto">
-                    <div class="p-6 text-center text-sm text-gray-500">Loading…</div>
-                </div>
-                <div class="px-4 py-2 border-t border-gray-100 text-center">
-                    <a href="{{ \Illuminate\Support\Facades\Route::has('admin.notifications.index') ? route('admin.notifications.index') : '#' }}"
-                        class="text-xs text-primary-600 hover:underline">View all</a>
-                </div>
-            </div>
-        </div>
+        <x-notification-bell guard="admin" />
 
         {{-- Country selector --}}
         {{-- <div class="relative" x-data="{ open: false }">

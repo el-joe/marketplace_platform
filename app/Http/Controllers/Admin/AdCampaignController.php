@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\CampaignApprovedNotificationJob;
 use App\Models\AdCampaign;
+use App\Notifications\Vendor\AdCampaignApproved;
+use App\Notifications\Vendor\AdCampaignRejected;
+use Illuminate\Support\Facades\Notification;
 use App\Models\AdDailyStat;
 use App\Models\AdFraudPattern;
 use App\Models\Country;
@@ -230,7 +232,7 @@ class AdCampaignController extends Controller
             'rejection_reason' => null,
         ]);
 
-        CampaignApprovedNotificationJob::dispatch($campaign);
+        Notification::send($campaign->vendor->vendorAdmins, new AdCampaignApproved($campaign));
 
         return response()->json(['message' => 'Campaign approved and set to active.']);
     }
@@ -250,6 +252,8 @@ class AdCampaignController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $request->input('rejection_reason'),
         ]);
+
+        Notification::send($campaign->vendor->vendorAdmins, new AdCampaignRejected($campaign, $request->input('rejection_reason')));
 
         return response()->json(['message' => 'Campaign rejected.']);
     }

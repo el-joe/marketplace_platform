@@ -63,6 +63,13 @@ class VendorAdmin extends Authenticatable implements JWTSubject
         return $this->morphMany(Notification::class, 'notifiable');
     }
 
+    // ── Broadcasting ──────────────────────────────────────────────────────────
+
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'vendor.' . $this->id;
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     public function isOwner(): bool

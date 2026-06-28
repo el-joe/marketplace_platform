@@ -2,13 +2,16 @@
 
 namespace App\Jobs;
 
+use App\Models\Admin;
 use App\Models\MarketerCampaign;
+use App\Notifications\Admin\MarketerCampaignSubmittedForReview;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class NotifyAdminCampaignRequestJob implements ShouldQueue
 {
@@ -24,5 +27,10 @@ class NotifyAdminCampaignRequestJob implements ShouldQueue
             'vendor_id'   => $this->campaign->vendor_id,
             'auto_approve_at' => $this->campaign->auto_approve_at?->toIso8601String(),
         ]);
+
+        Notification::send(
+            Admin::permission('ad_campaigns.manage')->get(),
+            new MarketerCampaignSubmittedForReview($this->campaign),
+        );
     }
 }

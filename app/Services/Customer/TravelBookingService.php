@@ -3,6 +3,8 @@
 namespace App\Services\Customer;
 
 use App\Jobs\NotifyTravelBookingJob;
+use App\Notifications\Customer\TravelBookingCancelled as CustomerTravelBookingCancelled;
+use App\Notifications\TravelAgency\BookingCancelled;
 use App\Models\Customer;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
@@ -43,6 +45,10 @@ class TravelBookingService
         // No automatic refund logic or cancellation_reason column exists in
         // the schema — cancellation is marked and left for admin/agency review.
         $booking->update(['status' => 'cancelled']);
+
+        $booking->loadMissing('package.agency');
+        $booking->package->agency->notify(new BookingCancelled($booking, 'customer'));
+        $customer->notify(new CustomerTravelBookingCancelled($booking, 'customer'));
 
         return $booking->fresh();
     }

@@ -18,6 +18,9 @@ Alpine.store('locale', {
 
 Alpine.start();
 
+/* ---------- Reverb / Echo + notification bell ---------- */
+import '../shared/echo-setup.js';
+
 // ── Scroll-to-top button ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('scroll-top');

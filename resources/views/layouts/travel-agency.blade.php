@@ -18,6 +18,7 @@
                 <span class="font-bold text-gray-800">{{ auth()->guard('travel_agency')->user()->name }}</span>
             </div>
             <div class="flex items-center gap-4 text-sm">
+                <x-notification-bell guard="travel_agency" />
                 <a href="{{ route('travel-agency.dashboard') }}" class="text-gray-600 hover:text-blue-600 font-medium">الرئيسية</a>
                 <a href="{{ route('travel-agency.packages.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">الباقات</a>
                 <a href="{{ route('travel-agency.bookings.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">الحجوزات</a>

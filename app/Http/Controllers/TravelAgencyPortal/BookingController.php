@@ -5,6 +5,9 @@ namespace App\Http\Controllers\TravelAgencyPortal;
 use App\Http\Controllers\Controller;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
+use App\Notifications\Customer\TravelBookingCancelled as CustomerTravelBookingCancelled;
+use App\Notifications\Customer\TravelBookingConfirmed;
+use App\Notifications\TravelAgency\LowSeatsRemaining;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -76,11 +79,17 @@ class BookingController extends Controller
                 }
 
                 $pkg->increment('seats_booked', $booking->travelers_count);
+                $pkg->refresh();
 
                 if ($pkg->available_seats !== null
                     && $pkg->seats_booked >= $pkg->available_seats
                 ) {
                     $pkg->update(['status' => 'sold_out']);
+                } elseif ($pkg->available_seats !== null) {
+                    $remaining = $pkg->available_seats - $pkg->seats_booked;
+                    if ($remaining > 0 && $remaining <= 3) {
+                        $pkg->agency->notify(new LowSeatsRemaining($pkg, $remaining));
+                    }
                 }
             }
 
@@ -90,6 +99,14 @@ class BookingController extends Controller
 
             $booking->update(['status' => $request->status]);
         });
+
+        $booking->loadMissing('customer');
+
+        if ($request->status === 'confirmed') {
+            $booking->customer?->notify(new TravelBookingConfirmed($booking));
+        } elseif ($request->status === 'cancelled') {
+            $booking->customer?->notify(new CustomerTravelBookingCancelled($booking, 'agency'));
+        }
 
         $label = $request->status === 'confirmed' ? 'تم تأكيد الحجز.' : 'تم إلغاء الحجز.';
 

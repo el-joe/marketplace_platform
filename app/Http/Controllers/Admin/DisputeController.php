@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Dispute;
 use App\Models\DisputeMessage;
+use App\Notifications\Customer\DisputeStatusChanged;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -171,6 +172,7 @@ class DisputeController extends Controller
             ]);
 
             // Advance status from open → under_review on first admin (non-internal) reply
+            $previousStatus = $dispute->status;
             if (!$isInternal && $dispute->status === 'open') {
                 $dispute->update(['status' => 'under_review']);
             }
@@ -181,9 +183,16 @@ class DisputeController extends Controller
             return response()->json(['message' => 'Failed to send reply.'], 500);
         }
 
+        $dispute->refresh();
+
+        if (isset($previousStatus) && $dispute->status !== $previousStatus) {
+            $dispute->loadMissing('customer');
+            $dispute->customer?->notify(new DisputeStatusChanged($dispute, $previousStatus));
+        }
+
         return response()->json([
             'message' => $isInternal ? 'Internal note saved.' : 'Reply sent.',
-            'status' => $dispute->fresh()->status,
+            'status' => $dispute->status,
             'sender_name' => $admin->name,
         ]);
     }
@@ -243,6 +252,8 @@ class DisputeController extends Controller
             'status' => 'required|in:open,seller_responded,under_review,escalated,resolved,closed',
         ]);
 
+        $previousStatus = $dispute->status;
+
         $updates = ['status' => $data['status']];
 
         if (in_array($data['status'], ['resolved', 'closed'], true) && !$dispute->resolved_at) {
@@ -252,6 +263,11 @@ class DisputeController extends Controller
         }
 
         $dispute->update($updates);
+
+        if ($dispute->status !== $previousStatus) {
+            $dispute->loadMissing('customer');
+            $dispute->customer?->notify(new DisputeStatusChanged($dispute, $previousStatus));
+        }
 
         return response()->json([
             'message' => 'Status updated.',
@@ -274,6 +290,8 @@ class DisputeController extends Controller
             'compensation' => 'nullable|numeric|min:0|max:1000000',
             'close' => 'boolean',
         ]);
+
+        $previousStatus = $dispute->status;
 
         DB::beginTransaction();
         try {
@@ -311,9 +329,16 @@ class DisputeController extends Controller
             return response()->json(['message' => 'Failed to resolve dispute.'], 500);
         }
 
+        $dispute->refresh();
+
+        if ($dispute->status !== $previousStatus) {
+            $dispute->loadMissing('customer');
+            $dispute->customer?->notify(new DisputeStatusChanged($dispute, $previousStatus));
+        }
+
         return response()->json([
             'message' => 'Dispute resolved.',
-            'status' => $dispute->fresh()->status,
+            'status' => $dispute->status,
         ]);
     }
 

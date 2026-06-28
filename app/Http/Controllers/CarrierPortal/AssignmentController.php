@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
 use App\Models\Shipment;
+use App\Notifications\DeliveryAgent\DeliveryReassigned;
+use App\Notifications\DeliveryAgent\NewDeliveryAssigned;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +84,8 @@ class AssignmentController extends Controller
             ->where('status', 'active')
             ->firstOrFail();
 
+        $oldAgentId = $assignment->agent_id;
+
         DB::transaction(function () use ($assignment, $newAgent) {
             $assignment->update([
                 'agent_id'    => $newAgent->id,
@@ -93,6 +97,12 @@ class AssignmentController extends Controller
             // The reassignment is reflected in the assignment record itself (agent_id, assigned_at reset).
             // Consider adding an assignment_history table for a proper audit trail.
         });
+
+        $oldAgent = DeliveryAgent::find($oldAgentId);
+        if ($oldAgent) {
+            $oldAgent->notify(new DeliveryReassigned($assignment, $oldAgentId));
+        }
+        $newAgent->notify(new NewDeliveryAssigned($assignment));
 
         return response()->json(['success' => true, 'message' => 'تم إعادة تعيين الطلب بنجاح.']);
     }
@@ -136,8 +146,10 @@ class AssignmentController extends Controller
             ->where('status', 'active')
             ->firstOrFail();
 
-        DB::transaction(function () use ($shipment, $agent) {
-            DeliveryAssignment::create([
+        $assignment = null;
+
+        DB::transaction(function () use ($shipment, $agent, &$assignment) {
+            $assignment = DeliveryAssignment::create([
                 'shipment_id'  => $shipment->id,
                 'sub_order_id' => $shipment->sub_order_id,
                 'agent_id'     => $agent->id,
@@ -146,6 +158,8 @@ class AssignmentController extends Controller
                 'delivery_otp' => str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT),
             ]);
         });
+
+        $agent->notify(new NewDeliveryAssigned($assignment));
 
         return response()->json(['success' => true, 'message' => 'تم تعيين المندوب بنجاح.']);
     }

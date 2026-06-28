@@ -5,10 +5,14 @@ use App\Http\Controllers\CarrierPortal\AssignmentController;
 use App\Http\Controllers\CarrierPortal\AuthController;
 use App\Http\Controllers\CarrierPortal\DashboardController;
 use App\Http\Controllers\CarrierPortal\SupervisorController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::name('carrier.')
     ->group(function () {
+
+        Broadcast::routes(['middleware' => ['web', 'auth.carrier']]);
 
         // ── Guest ──────────────────────────────────────────────────────────────
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -18,6 +22,17 @@ Route::name('carrier.')
         Route::middleware(['auth.carrier'])->group(function () {
 
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+            // ── Notifications ───────────────────────────────────────────────────
+            Route::prefix('notifications')->name('notifications.')
+                ->controller(NotificationController::class)
+                ->group(function () {
+                    Route::get('/',              'index')->name('index');
+                    Route::get('/recent',        'recent')->name('recent');
+                    Route::get('/unread-count',  'unreadCount')->name('unread-count');
+                    Route::post('/mark-all-read','markAllRead')->name('mark-all-read');
+                    Route::post('/{id}/read',    'markRead')->name('mark-read');
+                });
 
             // Dashboard
             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');

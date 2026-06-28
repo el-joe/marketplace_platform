@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\TravelBooking;
+use App\Notifications\TravelAgency\NewBookingReceived;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -17,7 +18,7 @@ class NotifyTravelBookingJob implements ShouldQueue
 
     public function handle(): void
     {
-        // Send booking confirmation to the customer and travel agency.
-        // Wire to the platform's notification channel once travel notifications are defined.
+        $this->booking->loadMissing('package.agency');
+        $this->booking->package->agency->notify(new NewBookingReceived($this->booking));
     }
 }

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Marketer Portal') — Noon</title>
-    @vite(['resources/css/app.css'])
+    @vite(['resources/css/app.css', 'resources/js/marketer/app.js'])
     <style>
         /* ── Sidebar layout ─────────────────────────────────────────────────── */
         body {
@@ -246,6 +246,7 @@
             @auth('marketer')
                 @php $m = auth()->guard('marketer')->user(); @endphp
                 <div class="flex items-center gap-3">
+                    <x-notification-bell guard="marketer" />
                     <div class="text-right hidden sm:block">
                         <p class="text-sm font-semibold text-gray-800">{{ $m->name }}</p>
                         <span class="type-badge">{{ ucfirst(str_replace('_', ' ', $m->type)) }}</span>

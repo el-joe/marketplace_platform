@@ -10,8 +10,10 @@ use App\Models\Vendor;
 use App\Models\VendorAdmin;
 use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
+use App\Notifications\Vendor\LowStockAlert;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -144,7 +146,13 @@ class VendorWarehouseService
                 'created_by_user_id'     => $vendorAdmin->id,
             ]);
 
-            return $locked->fresh();
+            $fresh = $locked->fresh();
+
+            if ($adjustment < 0 && $fresh->reorder_point !== null && $newOnHand <= $fresh->reorder_point) {
+                Notification::send($vendorAdmin->vendor->vendorAdmins, new LowStockAlert($fresh));
+            }
+
+            return $fresh;
         });
     }
 

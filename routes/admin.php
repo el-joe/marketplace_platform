@@ -44,7 +44,9 @@ use App\Http\Controllers\Admin\MarketerController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\FbnController;
 use App\Http\Controllers\Admin\SecretPromotionController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -69,6 +71,9 @@ Route::post('/set-locale', function (Request $request) {
     }
     return response()->json(['success' => true]);
 })->name('set-locale');
+
+// ─── Broadcasting auth (Reverb channel authorization for admin guard) ────────────
+Broadcast::routes(['middleware' => ['web', 'auth.admin']]);
 
 // ─── All protected admin routes ───────────────────────────────────────────────────
 Route::middleware('auth.admin')->group(function () {
@@ -129,53 +134,16 @@ Route::middleware('auth.admin')->group(function () {
     });
 
     // ─── Notifications ────────────────────────────────────────────────────────────
-    Route::prefix('notifications')->name('notifications.')->group(function () {
-
-        Route::get('/unread-count', function () {
-            $adminId = auth('admin')->id();
-            if (!$adminId) {
-                return response()->json(['data' => ['count' => 0]]);
-            }
-            $count = DB::table('notifications')
-                ->where('notifiable_type', \App\Models\Admin::class)
-                ->where('notifiable_id', $adminId)
-                ->whereNull('read_at')
-                ->count();
-            return response()->json(['data' => ['count' => $count]]);
-        })->name('unread-count');
-
-        Route::get('/unread', function () {
-            $adminId = auth('admin')->id();
-            $items = DB::table('notifications')
-                ->where('notifiable_type', \App\Models\Admin::class)
-                ->where('notifiable_id', $adminId)
-                ->whereNull('read_at')
-                ->orderByDesc('created_at')
-                ->limit(20)
-                ->get()
-                ->map(function ($n) {
-                    $data = is_string($n->data) ? json_decode($n->data, true) : (array) $n->data;
-                    return [
-                        'id' => $n->id,
-                        'title' => $data['title'] ?? 'Notification',
-                        'message' => $data['message'] ?? '',
-                        'url' => $data['url'] ?? '#',
-                        'created_at' => $n->created_at,
-                    ];
-                });
-            return response()->json(['data' => ['items' => $items]]);
-        })->name('unread');
-
-        Route::post('/mark-all-read', function () {
-            $adminId = auth('admin')->id();
-            DB::table('notifications')
-                ->where('notifiable_type', \App\Models\Admin::class)
-                ->where('notifiable_id', $adminId)
-                ->whereNull('read_at')
-                ->update(['read_at' => now()]);
-            return response()->json(['success' => true]);
-        })->name('mark-all-read');
-    });
+    Route::prefix('notifications')->name('notifications.')
+        ->controller(NotificationController::class)
+        ->group(function () {
+            Route::get('/',              'index')->name('index');
+            Route::get('/recent',        'recent')->name('recent');
+            Route::get('/unread-count',  'unreadCount')->name('unread-count');
+            Route::get('/unread',        'unread')->name('unread');
+            Route::post('/mark-all-read','markAllRead')->name('mark-all-read');
+            Route::post('/{id}/read',    'markRead')->name('mark-read');
+        });
 
 
     // ─── Categories (CRUD) ────────────────────────────────────────────────────────

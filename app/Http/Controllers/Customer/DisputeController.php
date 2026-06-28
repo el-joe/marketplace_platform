@@ -7,10 +7,14 @@ use App\Http\Requests\Customer\Dispute\DisputeMessageRequest;
 use App\Http\Requests\Customer\Dispute\DisputeStoreRequest;
 use App\Http\Resources\Customer\DisputeResource;
 use App\Http\Responses\ApiResponse;
+use App\Models\Admin;
 use App\Models\Customer;
 use App\Models\Dispute;
 use App\Models\Order;
+use App\Notifications\Admin\DisputeOpened;
+use App\Notifications\Vendor\DisputeOpenedAgainstYou;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 class DisputeController extends Controller
@@ -53,7 +57,13 @@ class DisputeController extends Controller
             'is_internal_note' => false,
         ]);
 
-        dispatch(new \App\Jobs\NotifyVendorDisputeOpenedJob($dispute));
+        $subOrder->vendor->load('vendorAdmins');
+        Notification::send($subOrder->vendor->vendorAdmins, new DisputeOpenedAgainstYou($dispute));
+
+        Notification::send(
+            Admin::permission('disputes.resolve')->get(),
+            new DisputeOpened($dispute),
+        );
 
         return ApiResponse::success(new DisputeResource($dispute->load('messages')), 'Dispute opened.', 201);
     }

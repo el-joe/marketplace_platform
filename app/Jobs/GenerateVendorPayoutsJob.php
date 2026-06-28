@@ -2,9 +2,11 @@
 
 namespace App\Jobs;
 
+use App\Models\Admin;
 use App\Models\Payout;
 use App\Models\Vendor;
 use App\Models\VendorBankAccount;
+use App\Notifications\Admin\PayoutBatchReadyForApproval;
 use App\Services\PayoutCalculationService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -13,6 +15,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class GenerateVendorPayoutsJob implements ShouldQueue
 {
@@ -93,6 +96,18 @@ class GenerateVendorPayoutsJob implements ShouldQueue
             });
 
         Log::info("GenerateVendorPayoutsJob: generated {$generated} payout(s) for period {$this->periodStart->toDateString()} → {$this->periodEnd->toDateString()}.");
+
+        if ($generated > 0) {
+            Notification::send(
+                Admin::permission('payouts.approve')->get(),
+                new PayoutBatchReadyForApproval(
+                    batchType: 'vendor',
+                    payoutCount: $generated,
+                    periodStart: $this->periodStart->toDateString(),
+                    periodEnd: $this->periodEnd->toDateString(),
+                ),
+            );
+        }
     }
 
     private function generatePayoutNumber(): string

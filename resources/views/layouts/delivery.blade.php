@@ -240,6 +240,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     @auth('delivery')
+                        <x-notification-bell guard="delivery" />
                         @yield('header-right', '')
                     @endauth
                 </div>

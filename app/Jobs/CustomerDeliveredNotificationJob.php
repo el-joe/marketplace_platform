@@ -34,6 +34,6 @@ class CustomerDeliveredNotificationJob implements ShouldQueue
             return;
         }
 
-        $customer->notify(new \App\Notifications\OrderDeliveredNotification($subOrder));
+        $customer->notify(new \App\Notifications\Customer\OrderDelivered($subOrder));
     }
 }
