@@ -160,7 +160,7 @@
             <div x-show="tab === 'documents'">
                 <x-card title="Documents">
                     <x-slot name="actions">
-                        <button type="button" data-open-modal="request-doc-modal" class="btn btn-secondary btn-sm text-xs">Request Document</button>
+                        <button type="button" data-modal-open="request-doc-modal" class="btn btn-secondary btn-sm text-xs">Request Document</button>
                     </x-slot>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
@@ -266,7 +266,7 @@
             <div x-show="tab === 'strikes'">
                 <x-card title="Strikes">
                     <x-slot name="actions">
-                        <button type="button" data-open-modal="issue-strike-modal" class="btn btn-danger btn-sm text-xs">Issue Strike</button>
+                        <button type="button" data-modal-open="issue-strike-modal" class="btn btn-danger btn-sm text-xs">Issue Strike</button>
                     </x-slot>
 
                     <div class="grid grid-cols-2 gap-4 mb-5">
@@ -525,7 +525,7 @@
                 </div>
             </dl>
             <div class="mt-4 pt-4 border-t border-gray-100">
-                <button type="button" data-open-modal="assign-manager-modal" class="w-full btn btn-ghost btn-sm text-xs">
+                <button type="button" data-modal-open="assign-manager-modal" class="w-full btn btn-ghost btn-sm text-xs">
                     Assign Manager
                 </button>
             </div>
@@ -534,25 +534,25 @@
         <x-card title="Quick Actions">
             <div class="space-y-2">
                 @if($vendor->global_status === 'active')
-                    <button type="button" data-open-modal="suspend-modal" class="w-full btn btn-warning btn-sm">Suspend Vendor</button>
+                    <button type="button" data-modal-open="suspend-modal" class="w-full btn btn-warning btn-sm">Suspend Vendor</button>
                 @elseif($vendor->global_status === 'suspended')
                     <button type="button" data-reactivate-vendor="{{ $vendor->id }}" class="w-full btn btn-success btn-sm">Reactivate Vendor</button>
                 @elseif($vendor->global_status === 'pending')
                     <button type="button" data-approve-vendor="{{ $vendor->id }}" class="w-full btn btn-success btn-sm">Approve Vendor</button>
-                    <button type="button" data-open-modal="reject-modal" class="w-full btn btn-ghost btn-sm text-danger-600">Reject Application</button>
+                    <button type="button" data-modal-open="reject-modal" class="w-full btn btn-ghost btn-sm text-danger-600">Reject Application</button>
                 @endif
 
                 @if($vendor->payout_hold_active)
                     <button type="button" data-release-hold="{{ $vendor->id }}" class="w-full btn btn-secondary btn-sm">Release Payout Hold</button>
                 @else
-                    <button type="button" data-open-modal="place-hold-modal" class="w-full btn btn-ghost btn-sm">Place Payout Hold</button>
+                    <button type="button" data-modal-open="place-hold-modal" class="w-full btn btn-ghost btn-sm">Place Payout Hold</button>
                 @endif
 
                 @if($vendor->global_status !== 'blacklisted')
-                    <button type="button" data-open-modal="blacklist-modal" class="w-full btn btn-danger btn-sm">Blacklist Vendor</button>
+                    <button type="button" data-modal-open="blacklist-modal" class="w-full btn btn-danger btn-sm">Blacklist Vendor</button>
                 @endif
 
-                <button type="button" data-open-modal="send-notification-modal" class="w-full btn btn-ghost btn-sm">Send Notification</button>
+                <button type="button" data-modal-open="send-notification-modal" class="w-full btn btn-ghost btn-sm">Send Notification</button>
             </div>
         </x-card>
 
@@ -595,7 +595,7 @@
         </div>
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" id="issue-strike-btn" class="btn btn-danger btn-sm">Issue Strike</button>
+            <button type="submit" form="issue-strike-form" id="issue-strike-btn" class="btn btn-danger btn-sm">Issue Strike</button>
         </x-slot>
     </form>
 </x-modal>
@@ -610,7 +610,7 @@
         </div>
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" class="btn btn-warning btn-sm">Place Hold</button>
+            <button type="submit" form="hold-form" class="btn btn-warning btn-sm">Place Hold</button>
         </x-slot>
     </form>
 </x-modal>
@@ -628,7 +628,7 @@
         </div>
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" class="btn btn-warning btn-sm">Confirm Suspension</button>
+            <button type="submit" form="suspend-form" class="btn btn-warning btn-sm">Confirm Suspension</button>
         </x-slot>
     </form>
 </x-modal>
@@ -643,7 +643,7 @@
         </div>
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" class="btn btn-danger btn-sm">Confirm Rejection</button>
+            <button type="submit" form="reject-form" class="btn btn-danger btn-sm">Confirm Rejection</button>
         </x-slot>
     </form>
 </x-modal>
@@ -661,7 +661,7 @@
         </div>
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" class="btn btn-danger btn-sm">Confirm Blacklist</button>
+            <button type="submit" form="blacklist-form" class="btn btn-danger btn-sm">Confirm Blacklist</button>
         </x-slot>
     </form>
 </x-modal>
@@ -683,7 +683,7 @@
         </div>
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+            <button type="submit" form="assign-manager-form" class="btn btn-primary btn-sm">Assign</button>
         </x-slot>
     </form>
 </x-modal>
@@ -712,7 +712,7 @@
         </div>
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" class="btn btn-danger btn-sm">Reject Document</button>
+            <button type="submit" form="reject-doc-form" class="btn btn-danger btn-sm">Reject Document</button>
         </x-slot>
     </form>
 </x-modal>
@@ -733,7 +733,7 @@
         </div>
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="submit" class="btn btn-primary btn-sm">Send</button>
+            <button type="submit" form="send-notification-form" class="btn btn-primary btn-sm">Send</button>
         </x-slot>
     </form>
 </x-modal>
