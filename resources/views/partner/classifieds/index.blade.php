@@ -57,6 +57,7 @@
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
                     <th class="px-4 py-3 text-start font-semibold tracking-wide">الإعلان</th>
+                    <th class="px-4 py-3 text-start font-semibold tracking-wide">الفئة</th>
                     <th class="px-4 py-3 text-start font-semibold tracking-wide">الحالة</th>
                     <th class="px-4 py-3 text-start font-semibold tracking-wide">السعر</th>
                     <th class="px-4 py-3 text-start font-semibold tracking-wide">المشاهدات</th>
@@ -197,6 +198,25 @@
 
                 {{-- Step 3: Location & Attributes (conditional) --}}
                 <div id="cl-wiz-step-3" class="hidden space-y-4">
+                    {{-- Country & City --}}
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">الدولة <span class="text-red-500">*</span></label>
+                            <select id="cl-country-id" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                                <option value="">— اختر الدولة —</option>
+                                @foreach($countries as $country)
+                                    <option value="{{ $country->id }}">{{ $country->name_ar ?: $country->name_en }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
+                            <select id="cl-city-id" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500" disabled>
+                                <option value="">— اختر المدينة —</option>
+                            </select>
+                        </div>
+                    </div>
+
                     {{-- Location map (shown if category requires_location_map) --}}
                     <div id="cl-location-section" class="space-y-3">
                         <label class="block text-sm font-semibold text-gray-800">الموقع الجغرافي</label>

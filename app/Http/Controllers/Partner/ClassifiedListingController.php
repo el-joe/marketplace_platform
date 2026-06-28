@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Partner;
 use App\Http\Controllers\Controller;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedListing;
+use App\Models\Country;
 use App\Models\Vendor;
 use App\Services\Shared\ClassifiedListingService;
 use App\Traits\HasDataTable;
@@ -36,7 +37,8 @@ class ClassifiedListingController extends Controller
 
     public function index(): View
     {
-        return view('partner.classifieds.index');
+        $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'name_ar']);
+        return view('partner.classifieds.index', compact('countries'));
     }
 
     public function show(string $id): View
@@ -60,27 +62,38 @@ class ClassifiedListingController extends Controller
             ['orderable_column'   => 'classified_listings.views_count'],
             ['orderable_column'   => 'classified_listings.created_at'],
             [],
+            [],
         ];
 
         $query = ClassifiedListing::forVendors()
             ->where('seller_id', $this->vendor()->id)
-            ->with(['images']);
+            ->with(['images', 'classifiedCategory']);
 
-        $query = $this->applyFilters($query, $request, [
-            'filter_status' => fn ($q, $v) => $q->where('status', $v['value'] ?? null),
-            'search'        => fn ($q, $v) => $q->where(
-                fn ($q2) => $q2->where('title_ar', 'like', "%" . ($v['value'] ?? '') . "%")
-                               ->orWhere('title_en', 'like', "%" . ($v['value'] ?? '') . "%")
-            ),
-        ]);
+        if ($request->filled('search_term')) {
+            $term = $request->input('search_term');
+            $query->where(fn ($q) => $q->where('title_ar', 'like', "%{$term}%")
+                                       ->orWhere('title_en', 'like', "%{$term}%"));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
 
         return $this->dataTableResponse($request, $query, $columns, fn (ClassifiedListing $l) => [
-            $this->listingCell($l),
-            $this->statusBadge($l->status),
-            number_format($l->price_cents / 100, 0) . ' ' . $l->currency,
-            number_format($l->views_count),
-            $l->created_at->format('d M Y'),
-            '<a href="' . route('partner.classifieds.show', $l->id) . '" class="btn btn-xs btn-ghost">عرض</a>',
+            'id'               => $l->id,
+            'listing_number'   => $l->listing_number,
+            'title_ar'         => $l->title_ar,
+            'title_en'         => $l->title_en,
+            'status'           => $l->status,
+            'price_cents'      => $l->price_cents,
+            'currency'         => $l->currency,
+            'price_negotiable' => $l->price_negotiable,
+            'listing_purpose'  => $l->listing_purpose,
+            'views_count'      => $l->views_count,
+            'created_at'       => $l->created_at?->toISOString(),
+            'expires_at'       => $l->expires_at?->toISOString(),
+            'primary_image'    => $l->primary_image_url,
+            'category_name'    => $l->classifiedCategory?->name_ar ?? $l->classifiedCategory?->name_en,
         ]);
     }
 

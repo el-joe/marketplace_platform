@@ -90,28 +90,67 @@ function initIndexPage() {
                     const showUrl = buildShowUrl(row.id);
                     const img = row.primary_image
                         ? `<img src="${row.primary_image}" class="h-full w-full object-cover" alt="">`
-                        : `<svg class="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3 3l18 18"/></svg>`;
-                    return `<div class="flex items-center gap-3">
-                        <div class="shrink-0 h-10 w-10 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">${img}</div>
+                        : `<svg class="h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3 3l18 18"/></svg>`;
+                    const purposeCls = row.listing_purpose === 'sale'
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'bg-violet-50 text-violet-700';
+                    const purposeLabel = row.listing_purpose === 'sale' ? 'بيع' : 'إيجار';
+                    return `<div class="flex items-center gap-3 min-w-0">
+                        <div class="shrink-0 h-11 w-11 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center border border-gray-100">${img}</div>
                         <div class="min-w-0">
-                            <a href="${showUrl}" class="font-medium text-gray-900 hover:text-primary-600 line-clamp-1">${row.title_ar || row.title_en || ''}</a>
-                            <div class="text-xs text-gray-400 font-mono">${row.listing_number || ''}</div>
+                            <a href="${showUrl}" class="font-semibold text-gray-900 hover:text-primary-600 line-clamp-1 text-sm">${row.title_ar || row.title_en || '—'}</a>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="text-xs text-gray-400 font-mono">${row.listing_number || ''}</span>
+                                <span class="inline-flex items-center rounded-full px-1.5 py-px text-[10px] font-semibold ${purposeCls}">${purposeLabel}</span>
+                            </div>
                         </div>
                     </div>`;
                 },
             },
-            { data: 'status',       render: (s) => statusBadge(s) },
-            { data: null,           render: (r) => `<span class="font-semibold text-gray-800">${formatMoney(r.price_cents, r.currency)}</span>` },
-            { data: 'views_count',  defaultContent: '0' },
-            { data: 'created_at',   render: (d) => `<span class="text-xs text-gray-400">${formatDate(d)}</span>` },
+            {
+                data: 'category_name',
+                render: (val) => val
+                    ? `<span class="text-xs text-gray-600 bg-gray-100 rounded-full px-2.5 py-0.5 font-medium">${val}</span>`
+                    : '<span class="text-gray-300">—</span>',
+            },
+            { data: 'status', render: (s) => statusBadge(s) },
             {
                 data: null,
                 render(row) {
-                    return `<a href="${buildShowUrl(row.id)}" class="text-xs text-primary-600 hover:underline">عرض</a>`;
+                    const price = `<span class="font-semibold text-gray-900">${formatMoney(row.price_cents, row.currency)}</span>`;
+                    const neg   = row.price_negotiable
+                        ? `<span class="block text-[10px] text-emerald-600 font-medium mt-0.5">قابل للتفاوض</span>`
+                        : '';
+                    return price + neg;
+                },
+            },
+            {
+                data: 'views_count',
+                render: (v) => `<div class="flex items-center gap-1 text-gray-600">
+                    <svg class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                    <span class="text-sm font-medium">${(v ?? 0).toLocaleString('ar-SA')}</span>
+                </div>`,
+            },
+            {
+                data: 'created_at',
+                render(d, type, row) {
+                    const dateStr = formatDate(d);
+                    const expStr  = row.expires_at ? `<span class="block text-[10px] text-amber-600 mt-0.5">ينتهي ${formatDate(row.expires_at)}</span>` : '';
+                    return `<span class="text-xs text-gray-500">${dateStr}</span>${expStr}`;
+                },
+            },
+            {
+                data: null,
+                render(row) {
+                    return `<a href="${buildShowUrl(row.id)}"
+                        class="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg px-2.5 py-1.5 transition-colors">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                        عرض
+                    </a>`;
                 },
             },
         ],
-        order:      [[4, 'desc']],
+        order:      [[5, 'desc']],
         dom:        't',
         pageLength: 20,
         searching:  false,
@@ -533,6 +572,7 @@ function wizValidate(domStep) {
         if (!el('cl-price')?.value || Number(el('cl-price').value) < 0) return 'يرجى إدخال سعر صحيح.';
         if (!el('cl-currency')?.value) return 'يرجى اختيار العملة.';
     }
+    if (domStep === 3 && !el('cl-country-id')?.value) return 'يرجى اختيار الدولة.';
     if (domStep === 4 && wizImageFiles.length === 0) return 'يرجى رفع صورة واحدة على الأقل.';
     if (domStep === 5 && wizHasContract()) {
         if (!el('cl-signature-name')?.value.trim()) return 'يرجى إدخال الاسم للتوقيع.';
@@ -555,12 +595,15 @@ async function wizSubmit() {
 
     const fd = new FormData();
     fd.append('classified_category_id', wizSelectedCategory.id);
+    fd.append('country_id',             el('cl-country-id')?.value || '');
+    const cityId = el('cl-city-id')?.value;
+    if (cityId) fd.append('city_id', cityId);
     fd.append('listing_purpose',        el('cl-purpose')?.value || 'sale');
     fd.append('title_ar',               el('cl-title-ar')?.value.trim());
     fd.append('title_en',               el('cl-title-en')?.value.trim());
     fd.append('description_ar',         el('cl-desc-ar')?.value.trim() || '');
     fd.append('description_en',         el('cl-desc-en')?.value.trim() || '');
-    fd.append('price_cents',            Math.round(Number(el('cl-price')?.value || 0) * 100));
+    fd.append('price',                   el('cl-price')?.value || 0);
     fd.append('currency',               el('cl-currency')?.value || 'SAR');
     fd.append('price_negotiable',            el('cl-negotiable')?.checked ? '1' : '0');
     fd.append('marketer_promotion_enabled',  el('cl-marketer-promo')?.checked ? '1' : '0');
@@ -572,9 +615,9 @@ async function wizSubmit() {
         if (lng) fd.append('longitude', lng);
     }
 
-    if (Object.keys(wizAttributes).length) {
-        fd.append('attributes', JSON.stringify(wizAttributes));
-    }
+    Object.entries(wizAttributes).forEach(([k, v]) => {
+        fd.append(`attributes[${k}]`, v);
+    });
 
     wizImageFiles.forEach((f, i) => fd.append(`images[${i}]`, f));
     if (wizSketchFile) fd.append('sketch_file', wizSketchFile);
@@ -637,6 +680,8 @@ function wizOpen() {
     const sketch  = el('cl-sketch-name');      if (sketch)  sketch.classList.add('hidden');
     const attList = el('cl-attachments-list'); if (attList) attList.innerHTML = '';
     const subSec  = el('cl-subcategory-section'); if (subSec) subSec.classList.add('hidden');
+    const countryEl = el('cl-country-id'); if (countryEl) countryEl.value = '';
+    resetCitySelect();
 
     if (wizCategoriesLoaded) wizRenderCategories();
 
@@ -727,11 +772,38 @@ window.wizRemoveAttachment = function (i) {
     renderAttachmentList();
 };
 
+// ─── Country / City ───────────────────────────────────────────────────────────
+function resetCitySelect() {
+    const cityEl = el('cl-city-id');
+    if (!cityEl) return;
+    cityEl.innerHTML = '<option value="">— اختر المدينة —</option>';
+    cityEl.disabled = true;
+}
+
+async function loadCities(countryId) {
+    resetCitySelect();
+    if (!countryId) return;
+    const cityEl = el('cl-city-id');
+    if (!cityEl) return;
+    try {
+        const res  = await fetch(`/api/cities?country_id=${countryId}`, { headers: { Accept: 'application/json' } });
+        const list = await res.json();
+        (Array.isArray(list) ? list : (list.data ?? [])).forEach(c => {
+            const opt = document.createElement('option');
+            opt.value       = c.id;
+            opt.textContent = c.name_ar || c.name_en;
+            cityEl.appendChild(opt);
+        });
+        cityEl.disabled = false;
+    } catch { /* non-critical */ }
+}
+
 // ─── Wizard init ──────────────────────────────────────────────────────────────
 function wizInit() {
     el('btn-open-wizard')?.addEventListener('click', wizOpen);
     el('btn-open-wizard-empty')?.addEventListener('click', wizOpen);
     el('cl-wiz-close')?.addEventListener('click', wizClose);
+    el('cl-country-id')?.addEventListener('change', e => loadCities(e.target.value));
     el('cl-wiz-cancel')?.addEventListener('click', wizClose);
     el('cl-wizard-backdrop')?.addEventListener('click', wizClose);
 
@@ -790,7 +862,7 @@ function renderShowHeader(listing) {
     const badgeEl = el('sh-status-badge');
     if (badgeEl) badgeEl.innerHTML = statusBadge(listing.status);
     set('sh-title', listing.title_ar || listing.title_en);
-    set('sh-category-name', listing.category?.name_ar || listing.category?.name_en || '—');
+    set('sh-category-name', listing.classified_category?.name_ar || listing.classified_category?.name_en || '—');
     set('sh-views-count', listing.views_count ?? 0);
     set('sh-created-at', formatDate(listing.created_at));
 
@@ -824,11 +896,12 @@ function renderShowImages(images) {
 
     if (grid) {
         grid.style.display = 'grid';
-        grid.innerHTML = images.map(img =>
-            `<a href="${img.url}" target="_blank" class="block aspect-square rounded-lg overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity">
-                <img src="${img.url}" class="h-full w-full object-cover" alt="">
-            </a>`
-        ).join('');
+        grid.innerHTML = images.map(img => {
+            const url = img.url || `/storage/${img.file_path}`;
+            return `<a href="${url}" target="_blank" class="block aspect-square rounded-lg overflow-hidden bg-gray-100 hover:opacity-90 transition-opacity">
+                <img src="${url}" class="h-full w-full object-cover" alt="">
+            </a>`;
+        }).join('');
     }
 }
 
@@ -836,7 +909,7 @@ function renderShowMeta(listing) {
     const set = (id, val) => { const e = el(id); if (e) e.textContent = val ?? ''; };
     set('sh-purpose',       listing.listing_purpose === 'sale' ? 'بيع' : 'إيجار');
     set('sh-currency',      listing.currency || '—');
-    set('sh-meta-category', listing.category?.name_ar || listing.category?.name_en || '—');
+    set('sh-meta-category', listing.classified_category?.name_ar || listing.classified_category?.name_en || '—');
 
     if (listing.expires_at) {
         set('sh-expires', formatDate(listing.expires_at));
@@ -851,11 +924,12 @@ function renderShowDescription(listing) {
     if (descEl) descEl.textContent = listing.description_ar || listing.description_en || 'لا يوجد وصف.';
 
     const attrs = listing.attributes;
-    if (attrs && Object.keys(attrs).length) {
+    const attrEntries = attrs ? Object.entries(attrs).filter(([, v]) => v !== null && v !== '') : [];
+    if (attrEntries.length) {
         el('sh-attributes-section')?.classList.remove('hidden');
         const dl = el('sh-attributes');
         if (dl) {
-            dl.innerHTML = Object.entries(attrs).map(([k, v]) =>
+            dl.innerHTML = attrEntries.map(([k, v]) =>
                 `<div class="col-span-1">
                     <dt class="text-gray-400 text-xs">${k}</dt>
                     <dd class="font-medium text-gray-800">${v}</dd>

@@ -237,9 +237,20 @@
 
         <div>
             <label class="block text-xs font-medium text-gray-700 mb-1">Required Attachment Types</label>
-            <input type="text" id="f-attach-input" class="form-input w-full text-sm"
-                   placeholder="ownership_deed, id_copy, floor_plan  (comma-separated)">
-            <p class="text-xs text-gray-400 mt-0.5">Each entry becomes a required upload field on the listing form.</p>
+            <select id="f-attach-select" multiple
+                    class="form-input w-full text-sm" style="height:130px;">
+                <option value="ownership_deed">Ownership Deed</option>
+                <option value="id_copy">ID Copy</option>
+                <option value="floor_plan">Floor Plan</option>
+                <option value="title_deed">Title Deed</option>
+                <option value="noc_letter">NOC Letter</option>
+                <option value="trade_license">Trade License</option>
+                <option value="passport_copy">Passport Copy</option>
+                <option value="utility_bill">Utility Bill</option>
+                <option value="photos">Photos</option>
+                <option value="sketch">Sketch / كروكي</option>
+            </select>
+            <p class="text-xs text-gray-400 mt-0.5">Hold Ctrl / Cmd to select multiple. Each selection becomes a required upload field on the listing form.</p>
             <div id="f-attach-hidden"></div>
         </div>
 
@@ -316,18 +327,18 @@
         return { ok: res.ok, status: res.status, data };
     }
 
-    // ── Attachment type tag-input sync ────────────────────────────────────────
-    const attachInput   = document.getElementById('f-attach-input');
+    // ── Attachment type multi-select sync ────────────────────────────────────
+    const attachSelect  = document.getElementById('f-attach-select');
     const attachHidden  = document.getElementById('f-attach-hidden');
 
     function syncAttach() {
         attachHidden.innerHTML = '';
-        attachInput.value.split(',').map(s => s.trim()).filter(Boolean).forEach(v => {
-            const inp = Object.assign(document.createElement('input'), { type: 'hidden', name: 'required_attachment_types[]', value: v });
+        Array.from(attachSelect.selectedOptions).forEach(opt => {
+            const inp = Object.assign(document.createElement('input'), { type: 'hidden', name: 'required_attachment_types[]', value: opt.value });
             attachHidden.appendChild(inp);
         });
     }
-    attachInput.addEventListener('input', syncAttach);
+    attachSelect.addEventListener('change', syncAttach);
 
     // ── Open "New Category" ───────────────────────────────────────────────────
     document.querySelector('[data-mode="create"]')?.addEventListener('click', () => {
@@ -338,7 +349,8 @@
 
     function resetForm() {
         document.getElementById('form-category-id').value = '';
-        ['f-name-en','f-name-ar','f-slug','f-icon','f-attach-input'].forEach(id => document.getElementById(id).value = '');
+        ['f-name-en','f-name-ar','f-slug','f-icon'].forEach(id => document.getElementById(id).value = '');
+        Array.from(attachSelect.options).forEach(o => o.selected = false);
         document.getElementById('f-parent-id').value       = '';
         document.getElementById('f-template-id').value     = '';
         document.getElementById('f-req-map').checked       = false;
@@ -364,7 +376,8 @@
             document.getElementById('f-req-sketch').checked        = !!cat.requires_sketch_upload;
             document.getElementById('f-is-active').checked         = !!cat.is_active;
             document.getElementById('f-sort-order').value          = cat.sort_order ?? 0;
-            attachInput.value = (cat.required_attachment_types ?? []).join(', ');
+            const selected = new Set(cat.required_attachment_types ?? []);
+            Array.from(attachSelect.options).forEach(o => o.selected = selected.has(o.value));
             syncAttach();
             document.getElementById('form-error').classList.add('hidden');
             document.querySelector('#category-modal [id$="-title"]').textContent = 'Edit Category';
