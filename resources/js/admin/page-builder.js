@@ -298,8 +298,12 @@ function openConfigPanel(blockId) {
         const cfg = configRes[0] || {};
         $('#config-title').text(($card.find('.text-sm.font-medium').text() || 'Block settings').trim());
         $('#config-form-body').html(html);
-        applyConfigToForm(cfg);
-        if (getBlockTypeOf(blockId) === 'hero_slider') loadSlidesList(blockId);
+        if (window.initDatePickers) window.initDatePickers($('#config-form-body'));
+        // Apply config after flatpickr async init settles (initDatePicker uses await internally)
+        Promise.resolve().then(() => {
+            applyConfigToForm(cfg);
+            if (getBlockTypeOf(blockId) === 'hero_slider') loadSlidesList(blockId);
+        });
     }).fail(() => {
         $('#config-form-body').html('<div class="text-sm text-rose-600 text-center py-8">Failed to load config form.</div>');
     });

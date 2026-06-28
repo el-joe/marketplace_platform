@@ -230,7 +230,7 @@ class PageBuilderController extends Controller
         $this->authorizeManage();
 
         $data = $request->validate([
-            'is_visible' => 'required|boolean',
+            'is_visible' => 'required|in:true,false,1,0',
             'visible_from' => 'nullable|date',
             'visible_until' => 'nullable|date|after_or_equal:visible_from',
             'device_target' => 'nullable|in:all,desktop,mobile,app',
@@ -309,11 +309,22 @@ class PageBuilderController extends Controller
             $view = 'admin.page-builder.config-forms.generic';
         }
 
-        return response()->view($view, [
+        $extra = [];
+        if ($blockType->code === 'product_row') {
+            $extra['categories'] = Category::orderBy('name_en')->get(['id', 'name_en']);
+            $extra['flashSales'] = FlashSale::whereIn('status', ['submission_open', 'approved', 'live'])
+                ->orderBy('name_en')->get(['id', 'name_en']);
+        }
+        if (in_array($blockType->code, ['flash_sale', 'deal_of_day'])) {
+            $extra['flashSales'] = FlashSale::whereIn('status', ['submission_open', 'approved', 'live'])
+                ->orderBy('name_en')->get(['id', 'name_en']);
+        }
+
+        return response()->view($view, array_merge([
             'blockType' => $blockType,
             'block' => $block,
             'config' => $config,
-        ]);
+        ], $extra));
     }
 
     // ─────────────────────────────────────────────────────────────────────

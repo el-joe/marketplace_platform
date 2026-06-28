@@ -134,8 +134,9 @@ class PageBuilderService
     public function updateBlockVisibility(PageBlock $block, array $data, Admin $admin): int
     {
         return DB::transaction(function () use ($block, $data, $admin) {
+            $isVisible = in_array($data['is_visible'], ['true', '1'], true);
             $block->fill([
-                'is_visible' => (bool) ($data['is_visible'] ?? $block->is_visible),
+                'is_visible' => $isVisible ?? $block->is_visible,
                 'visible_from' => $data['visible_from'] ?? null,
                 'visible_until' => $data['visible_until'] ?? null,
                 'device_target' => $data['device_target'] ?? $block->device_target,
@@ -528,8 +529,8 @@ class PageBuilderService
     {
         switch ($block->block_type) {
             case 'nawy_carousel':
-                $config   = $block->config ?? [];
-                $query    = AdminProductListing::where('status', 'active')
+                $config = $block->config ?? [];
+                $query = AdminProductListing::where('status', 'active')
                     ->with(['productVariant.product.images']);
 
                 if ($country) {

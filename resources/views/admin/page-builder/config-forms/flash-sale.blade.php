@@ -2,7 +2,17 @@
 
 <form data-config-form data-block-id="{{ $block?->id }}">
     @csrf
-    <x-form.input name="flash_sale_id" label="Flash sale ID" :value="$config['flash_sale_id'] ?? ''" required />
+    <div class="space-y-1">
+        <label class="block text-sm font-medium text-gray-700">Flash sale</label>
+        <select name="flash_sale_id" required class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500">
+            <option value="">— select —</option>
+            @foreach ($flashSales as $fs)
+                <option value="{{ $fs->id }}" {{ ($config['flash_sale_id'] ?? '') == $fs->id ? 'selected' : '' }}>
+                    {{ $fs->name_en }}
+                </option>
+            @endforeach
+        </select>
+    </div>
 
     <div class="grid grid-cols-2 gap-3 mt-3">
         <x-form.input name="max_items_shown" type="number" label="Max items" :value="$config['max_items_shown'] ?? 8" min="1" />
