@@ -30,6 +30,10 @@ $(function () {
     });
 
     /* ---------- Modal interactions ---------- */
+    $(document).off('click.modal-open').on('click.modal-open', '[data-modal-open]', function () {
+        $('#' + $(this).data('modal-open')).modal('open');
+    });
+
     $(document).off('click.modal-close').on('click.modal-close', '[data-modal-close]', function () {
         $(this).closest('.modal-backdrop').modal('close');
     });

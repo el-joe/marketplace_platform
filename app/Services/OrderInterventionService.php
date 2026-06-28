@@ -36,6 +36,66 @@ class OrderInterventionService
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Update order-level status (admin override)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public const ORDER_STATUS_TRANSITIONS = [
+        'placed'              => ['confirmed', 'cancelled', 'disputed'],
+        'confirmed'           => ['partially_shipped', 'shipped', 'cancelled', 'disputed'],
+        'partially_shipped'   => ['shipped', 'partially_delivered', 'cancelled', 'disputed'],
+        'shipped'             => ['partially_delivered', 'delivered', 'disputed'],
+        'partially_delivered' => ['delivered', 'cancelled', 'disputed'],
+        'delivered'           => ['completed', 'refunded', 'disputed'],
+        'completed'           => ['refunded', 'disputed'],
+        'cancelled'           => ['refunded'],
+        'refunded'            => [],
+        'disputed'            => ['delivered', 'cancelled', 'refunded', 'completed'],
+    ];
+
+    /**
+     * Transition an order's own status field, enforcing the admin-level state machine.
+     *
+     * @throws ValidationException if the transition is not permitted
+     */
+    public function updateOrderStatus(
+        Order $order,
+        string $newStatus,
+        string $reason,
+        string $adminId
+    ): void {
+        $allowed = self::ORDER_STATUS_TRANSITIONS[$order->status] ?? [];
+
+        if (!in_array($newStatus, $allowed, true)) {
+            throw ValidationException::withMessages([
+                'new_status' => ["Transition from '{$order->status}' to '{$newStatus}' is not allowed."],
+            ]);
+        }
+
+        DB::transaction(function () use ($order, $newStatus, $reason, $adminId) {
+            $old = $order->status;
+
+            $updates = ['status' => $newStatus];
+            if ($newStatus === 'completed') {
+                $updates['completed_at'] = now();
+            } elseif ($newStatus === 'cancelled') {
+                $updates['cancelled_at'] = now();
+            }
+
+            $order->update($updates);
+
+            OrderStatusHistory::create([
+                'order_id'            => $order->id,
+                'sub_order_id'        => null,
+                'from_status'         => $old,
+                'to_status'           => $newStatus,
+                'changed_by_admin_id' => $adminId,
+                'reason'              => $reason ?: '[Admin] Status updated.',
+                'metadata'            => ['action' => 'admin_status_override'],
+            ]);
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Update sub-order status
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -172,19 +232,22 @@ class OrderInterventionService
     ): Refund {
         $order->loadMissing('transactions');
 
+        // COD orders never produce a gateway capture; treat as manual refund.
+        $isCod = $order->payment_method === 'cod';
+
         $capturedTx = $order->transactions->firstWhere('type', 'capture')
             ?? $order->transactions->firstWhere('type', 'sale');
 
-        if (!$capturedTx) {
+        if (!$capturedTx && !$isCod) {
             throw ValidationException::withMessages([
                 'order_id' => ['No captured payment transaction found to refund against.'],
             ]);
         }
 
         $amountCents = match ($refundType) {
-            'full' => $order->total,
+            'full'          => $order->total,
             'shipping_only' => $order->shipping,
-            default => (int) round(($amount ?? 0) * 100),
+            default         => (int) round(($amount ?? 0) * 100),
         };
 
         if ($amountCents <= 0) {
@@ -193,21 +256,47 @@ class OrderInterventionService
             ]);
         }
 
-        return Refund::create([
-            'order_id' => $order->id,
-            'sub_order_id' => $subOrderId,
-            'original_transaction_id' => $capturedTx->id,
-            'refund_transaction_id' => null,
-            'amount' => $amountCents,
-            'currency' => $order->currency,
-            'reason' => $reason,
-            'reason_notes' => $reasonNotes,
-            'refund_type' => $refundType,
-            'initiated_by_customer_id' => $order->customer_id,
-            'approved_by_admin_id' => $adminId,
-            'vendor_charged_back' => $vendorChargedBack,
-            'status' => 'approved',
-        ]);
+        return DB::transaction(function () use (
+            $order, $subOrderId, $capturedTx, $amountCents, $refundType,
+            $reason, $reasonNotes, $vendorChargedBack, $adminId
+        ) {
+            $refund = Refund::create([
+                'order_id'                 => $order->id,
+                'sub_order_id'             => $subOrderId,
+                'original_transaction_id'  => $capturedTx?->id,
+                'refund_transaction_id'    => null,
+                'amount'                   => $amountCents,
+                'currency'                 => $order->currency,
+                'reason'                   => $reason,
+                'reason_notes'             => $reasonNotes,
+                'refund_type'              => $refundType,
+                'initiated_by_customer_id' => $order->customer_id,
+                'approved_by_admin_id'     => $adminId,
+                'vendor_charged_back'      => $vendorChargedBack,
+                'status'                   => 'approved',
+            ]);
+
+            // Update payment_status on the order to reflect the refund.
+            $newPayStatus = ($amountCents >= $order->total) ? 'refunded' : 'partially_refunded';
+            $order->update(['payment_status' => $newPayStatus]);
+
+            OrderStatusHistory::create([
+                'order_id'            => $order->id,
+                'sub_order_id'        => $subOrderId,
+                'from_status'         => $order->status,
+                'to_status'           => $order->status,
+                'changed_by_admin_id' => $adminId,
+                'reason'              => "[Refund] {$reason}" . ($reasonNotes ? " — {$reasonNotes}" : ''),
+                'metadata'            => [
+                    'action'       => 'refund_created',
+                    'refund_id'    => $refund->id,
+                    'amount_cents' => $amountCents,
+                    'refund_type'  => $refundType,
+                ],
+            ]);
+
+            return $refund;
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -226,17 +315,36 @@ class OrderInterventionService
     ): Dispute {
         $subOrder = SubOrder::findOrFail($subOrderId);
 
-        return Dispute::create([
-            'dispute_number' => 'DSP-' . strtoupper(substr(str_replace('-', '', (string) \Illuminate\Support\Str::uuid()), 0, 10)),
-            'order_id' => $order->id,
-            'sub_order_id' => $subOrder->id,
-            'customer_id' => $order->customer_id,
-            'vendor_id' => $subOrder->vendor_id,
-            'reason' => $reason,
-            'description' => $description,
-            'status' => 'escalated',
-            'assigned_to_admin_id' => $adminId,
-        ]);
+        return DB::transaction(function () use ($order, $subOrder, $reason, $description, $adminId) {
+            $dispute = Dispute::create([
+                'dispute_number'       => 'DSP-' . strtoupper(substr(str_replace('-', '', (string) \Illuminate\Support\Str::uuid()), 0, 10)),
+                'order_id'             => $order->id,
+                'sub_order_id'         => $subOrder->id,
+                'customer_id'          => $order->customer_id,
+                'vendor_id'            => $subOrder->vendor_id,
+                'reason'               => $reason,
+                'description'          => $description,
+                'status'               => 'escalated',
+                'assigned_to_admin_id' => $adminId,
+            ]);
+
+            $previousStatus = $order->status;
+            if ($previousStatus !== 'disputed') {
+                $order->update(['status' => 'disputed']);
+
+                OrderStatusHistory::create([
+                    'order_id'            => $order->id,
+                    'sub_order_id'        => null,
+                    'from_status'         => $previousStatus,
+                    'to_status'           => 'disputed',
+                    'changed_by_admin_id' => $adminId,
+                    'reason'              => "[Dispute] {$reason} — {$dispute->dispute_number}",
+                    'metadata'            => ['action' => 'dispute_escalated', 'dispute_id' => $dispute->id],
+                ]);
+            }
+
+            return $dispute;
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────

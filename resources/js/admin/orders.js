@@ -5,7 +5,6 @@ $(function () {
     // ── Sub-order accordion ──────────────────────────────────────────────────
 
     $(document).on('click', '.sub-order-toggle, .sub-order-header', function (e) {
-        // Don't toggle if user clicked a button inside header (other than toggle)
         if ($(e.target).closest('button').length && !$(e.target).closest('.sub-order-toggle').length) {
             return;
         }
@@ -19,34 +18,6 @@ $(function () {
     // Open first sub-order by default
     $('.sub-order-header').first().next('.sub-order-body').show();
     $('.sub-order-header').first().find('.toggle-icon').addClass('rotate-180');
-
-    // ── Load next statuses dynamically ──────────────────────────────────────
-
-    $('#sub-order-select').on('change', function () {
-        const subOrderId = $(this).val();
-        const $newStatus = $('#new-status-select');
-
-        $newStatus.empty().append('<option value="">Loading…</option>').prop('disabled', true);
-
-        if (!subOrderId) {
-            $newStatus.empty().append('<option value="">Select sub-order first…</option>');
-            return;
-        }
-
-        $.get('/sub-orders/' + subOrderId + '/next-statuses')
-            .done(function (res) {
-                $newStatus.empty().append('<option value="">Select new status…</option>');
-                (res.data || []).forEach(function (s) {
-                    $newStatus.append(new Option(s.label, s.value));
-                });
-            })
-            .fail(function () {
-                $newStatus.empty().append('<option value="">Failed to load statuses</option>');
-            })
-            .always(function () {
-                $newStatus.prop('disabled', false);
-            });
-    });
 
     // ── Partial amount toggle ────────────────────────────────────────────────
 
@@ -74,7 +45,6 @@ $(function () {
             data: $form.serialize(),
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: function (res) {
-                // Close nearest modal
                 $form.closest('[id$="-modal"]').find('[data-modal-close]').first().trigger('click');
                 if (window.Toast) {
                     window.Toast.success(res.message || 'Action completed.');
@@ -86,6 +56,9 @@ $(function () {
             error: function (xhr) {
                 $btn.prop('disabled', false);
                 const json = xhr.responseJSON || {};
+                const message = typeof json.message === 'string'
+                    ? json.message
+                    : 'An error occurred. Please try again.';
 
                 if (xhr.status === 422 && json.errors) {
                     Object.entries(json.errors).forEach(function ([field, msgs]) {
@@ -94,10 +67,9 @@ $(function () {
                             .text(msgs[0])
                             .removeClass('hidden');
                     });
-                } else {
-                    if (window.Toast) {
-                        window.Toast.error(json.message || 'An error occurred. Please try again.');
-                    }
+                }
+                if (window.Toast) {
+                    window.Toast.error(message);
                 }
             },
         });
@@ -109,7 +81,7 @@ $(function () {
 
     $('#update-status-form').on('submit', function (e) {
         e.preventDefault();
-        submitOrderAction('update-status-form', '/orders/update-sub-order-status', function () {
+        submitOrderAction('update-status-form', '/orders/' + orderId + '/update-status', function () {
             location.reload();
         });
     });

@@ -135,6 +135,39 @@ class OrderController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Update order-level status
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function updateOrderStatus(Request $request, string $id): JsonResponse
+    {
+        $order = Order::findOrFail($id);
+
+        $request->validate([
+            'new_status' => 'required|string',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $this->interventionService->updateOrderStatus(
+                $order,
+                $request->new_status,
+                $request->reason ?? '',
+                auth('admin')->id()
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order status updated to ' . ucwords(str_replace('_', ' ', $request->new_status)),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => collect($e->errors())->flatten()->first()], 422);
+        } catch (\Throwable $e) {
+            Log::error('Order status update failed', ['order' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['message' => 'Status update failed.'], 500);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Update sub-order status
     // ─────────────────────────────────────────────────────────────────────────
 

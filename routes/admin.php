@@ -247,6 +247,7 @@ Route::middleware('auth.admin')->group(function () {
     Route::prefix('orders')->name('orders.')->middleware('admin.permission:orders.view')->group(function () {
         Route::post('/datatable', [OrderController::class, 'datatable'])->name('datatable');
         Route::post('/update-sub-order-status', [OrderController::class, 'updateSubOrderStatus'])->name('update-sub-order-status');
+        Route::post('/{id}/update-status', [OrderController::class, 'updateOrderStatus'])->name('update-status');
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{id}', [OrderController::class, 'show'])->name('show');
         Route::post('/{id}/force-cancel', [OrderController::class, 'forceCancel'])->name('force-cancel');

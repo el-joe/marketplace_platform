@@ -586,38 +586,56 @@
     {{-- MODALS --}}
     {{-- ═══════════════════════════════════════════════════════════════════════════ --}}
 
-    {{-- 1. Update Sub-Order Status --}}
-    <x-modal id="update-status-modal" title="Update Sub-Order Status" size="md">
+    {{-- 1. Update Order Status --}}
+    @php
+        $orderStatusTransitions = [
+            'placed'              => ['confirmed', 'cancelled', 'disputed'],
+            'confirmed'           => ['partially_shipped', 'shipped', 'cancelled', 'disputed'],
+            'partially_shipped'   => ['shipped', 'partially_delivered', 'cancelled', 'disputed'],
+            'shipped'             => ['partially_delivered', 'delivered', 'disputed'],
+            'partially_delivered' => ['delivered', 'cancelled', 'disputed'],
+            'delivered'           => ['completed', 'refunded', 'disputed'],
+            'completed'           => ['refunded', 'disputed'],
+            'cancelled'           => ['refunded'],
+            'refunded'            => [],
+            'disputed'            => ['delivered', 'cancelled', 'refunded', 'completed'],
+        ];
+        $allowedNextStatuses = $orderStatusTransitions[$order->status] ?? [];
+    @endphp
+    <x-modal id="update-status-modal" title="Update Order Status" size="md">
         <form id="update-status-form">
             @csrf
             <div class="space-y-4">
-                <div>
-                    <label class="form-label" for="sub-order-select">Sub-order</label>
-                    <select id="sub-order-select" name="sub_order_id" class="form-select w-full">
-                        <option value="">Select sub-order…</option>
-                        @foreach($order->subOrders as $so)
-                            <option value="{{ $so->id }}">
-                                {{ $so->sub_order_number }} — {{ $so->vendor->store_name ?? 'Seller' }}
-                                ({{ ucwords(str_replace('_', ' ', $so->status)) }})
-                            </option>
-                        @endforeach
-                    </select>
+                <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-sm text-gray-700">
+                    Current status:
+                    <x-badge :color="$statusColors[$order->status] ?? 'gray'" class="ml-1">
+                        {{ ucwords(str_replace('_', ' ', $order->status)) }}
+                    </x-badge>
                 </div>
                 <div>
-                    <label class="form-label" for="new-status-select">New Status</label>
-                    <select id="new-status-select" name="new_status" class="form-select w-full">
-                        <option value="">Select sub-order first…</option>
-                    </select>
+                    <label class="form-label" for="order-new-status">New Status <span class="text-danger-500">*</span></label>
+                    @if(empty($allowedNextStatuses))
+                        <p class="text-sm text-gray-400 italic">No further status transitions are available for this order.</p>
+                    @else
+                        <select id="order-new-status" name="new_status" class="form-select w-full">
+                            <option value="">Select new status…</option>
+                            @foreach($allowedNextStatuses as $s)
+                                <option value="{{ $s }}">{{ ucwords(str_replace('_', ' ', $s)) }}</option>
+                            @endforeach
+                        </select>
+                    @endif
                 </div>
                 <div>
-                    <label class="form-label" for="status-reason">Reason <span class="text-danger-500">*</span></label>
-                    <textarea id="status-reason" name="reason" rows="3" class="form-textarea w-full"
+                    <label class="form-label" for="order-status-reason">Reason / Notes</label>
+                    <textarea id="order-status-reason" name="reason" rows="3" class="form-textarea w-full"
                         placeholder="Briefly explain this status change…"></textarea>
                 </div>
             </div>
             <x-slot:footer>
                 <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-                <button type="submit" class="btn btn-primary">Update Status</button>
+                <button type="submit" form="update-status-form" class="btn btn-primary" @if(empty($allowedNextStatuses)) disabled @endif>
+                    Update Status
+                </button>
             </x-slot:footer>
         </form>
     </x-modal>
@@ -695,7 +713,7 @@
 
             <x-slot:footer>
                 <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-                <button type="submit" class="btn btn-secondary">Process Refund</button>
+                <button type="submit" form="refund-form" class="btn btn-secondary">Process Refund</button>
             </x-slot:footer>
         </form>
     </x-modal>
@@ -726,7 +744,7 @@
 
             <x-slot:footer>
                 <button type="button" data-modal-close class="btn btn-ghost">Abort</button>
-                <button type="submit" class="btn btn-danger">Force Cancel</button>
+                <button type="submit" form="force-cancel-form" class="btn btn-danger">Force Cancel</button>
             </x-slot:footer>
         </form>
     </x-modal>
@@ -764,7 +782,7 @@
 
             <x-slot:footer>
                 <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-                <button type="submit" class="btn btn-danger">Escalate Dispute</button>
+                <button type="submit" form="dispute-form" class="btn btn-danger">Escalate Dispute</button>
             </x-slot:footer>
         </form>
     </x-modal>
@@ -787,7 +805,7 @@
 
             <x-slot:footer>
                 <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-                <button type="submit" class="btn btn-danger">Flag Fraud</button>
+                <button type="submit" form="fraud-form" class="btn btn-danger">Flag Fraud</button>
             </x-slot:footer>
         </form>
     </x-modal>
