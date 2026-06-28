@@ -173,5 +173,9 @@
 @endsection
 
 @push('scripts')
-    @vite(['resources/js/admin/page-builder.js'])
+    @vite([
+        'resources/js/components/flatpickr.js',
+        'resources/js/components/file-upload.js',
+        'resources/js/admin/page-builder.js',
+    ])
 @endpush

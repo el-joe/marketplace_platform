@@ -17,9 +17,12 @@ use App\Models\PageRevision;
 use App\Models\ProductVariant;
 use App\Models\SliderSlide;
 use App\Models\Vendor;
+use App\Models\File;
 use App\Services\PageBuilderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
 
 class PageBuilderController extends Controller
 {
@@ -320,8 +323,17 @@ class PageBuilderController extends Controller
     public function getSlides(PageBlock $block)
     {
         $slides = $block->slides()
+            ->with(['desktopFile', 'mobileFile'])
             ->orderBy('position')
-            ->get();
+            ->get()
+            ->map(function ($slide) {
+                $arr = $slide->toArray();
+                $arr['desktop_file_url'] = $slide->desktop_url;
+                $arr['mobile_file_url']  = $slide->mobile_url;
+                $arr['visible_from']     = $slide->visible_from?->format('Y-m-d H:i');
+                $arr['visible_until']    = $slide->visible_until?->format('Y-m-d H:i');
+                return $arr;
+            });
 
         return response()->json(['slides' => $slides]);
     }
@@ -562,6 +574,40 @@ class PageBuilderController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    public function uploadSlideImage(Request $request)
+    {
+        $this->authorizeManage();
+
+        $request->validate([
+            'image' => ['required', 'image', 'max:8192'],
+            'slot'  => ['required', 'in:desktop,mobile'],
+        ]);
+
+        $uploaded = $request->file('image');
+        $slot     = $request->input('slot');
+        $ext      = $uploaded->getClientOriginalExtension() ?: $uploaded->guessExtension();
+        $path     = $uploaded->storeAs(
+            'page-builder/slides',
+            Str::random(16) . '_' . $slot . '.' . $ext,
+            'public'
+        );
+
+        $file = File::create([
+            'key'          => 'page-builder/slides/' . basename($path),
+            'path'         => $path,
+            'storage_type' => 'public',
+            'file_type'    => 'slide_' . $slot,
+            'mime_type'    => $uploaded->getMimeType(),
+            'extension'    => $ext,
+            'size'         => $uploaded->getSize(),
+        ]);
+
+        return response()->json([
+            'file_id' => $file->id,
+            'url'     => Storage::disk('public')->url($path),
+        ]);
+    }
+
     // Helpers
     // ─────────────────────────────────────────────────────────────────────
 

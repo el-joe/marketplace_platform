@@ -38,8 +38,34 @@
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-            <x-form.input name="desktop_file_id" type="number" label="Desktop image (file ID)" helpText="Upload via Files first; paste ID." />
-            <x-form.input name="mobile_file_id" type="number" label="Mobile image (file ID)" />
+            {{-- Desktop image upload --}}
+            <div class="space-y-1">
+                <label class="block text-sm font-medium text-gray-700">Desktop image</label>
+                <input type="hidden" name="desktop_file_id" id="slide-desktop-file-id">
+                <div id="slide-desktop-preview" class="hidden mb-2">
+                    <img id="slide-desktop-img" src="" alt="Desktop preview" class="w-full h-28 object-cover rounded border border-gray-200">
+                    <button type="button" data-clear-image="desktop" class="mt-1 text-xs text-rose-500 hover:text-rose-700">Remove</button>
+                </div>
+                <label class="flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition text-sm text-gray-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+                    <span>Upload desktop</span>
+                    <input type="file" accept="image/*" class="sr-only" data-slide-upload="desktop">
+                </label>
+            </div>
+            {{-- Mobile image upload --}}
+            <div class="space-y-1">
+                <label class="block text-sm font-medium text-gray-700">Mobile image</label>
+                <input type="hidden" name="mobile_file_id" id="slide-mobile-file-id">
+                <div id="slide-mobile-preview" class="hidden mb-2">
+                    <img id="slide-mobile-img" src="" alt="Mobile preview" class="w-full h-28 object-cover rounded border border-gray-200">
+                    <button type="button" data-clear-image="mobile" class="mt-1 text-xs text-rose-500 hover:text-rose-700">Remove</button>
+                </div>
+                <label class="flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition text-sm text-gray-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+                    <span>Upload mobile</span>
+                    <input type="file" accept="image/*" class="sr-only" data-slide-upload="mobile">
+                </label>
+            </div>
         </div>
 
         <x-form.toggle name="is_active" label="Active" :value="true" />

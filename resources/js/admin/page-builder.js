@@ -40,6 +40,7 @@ const ROUTES = {
     slideSave: (id) => `/page-builder/blocks/${id}/slides`,
     slideDelete: (id) => `/page-builder/slides/${id}`,
     slideReorder: (id) => `/page-builder/blocks/${id}/slides/reorder`,
+    slideUploadImage: '/page-builder/slides/upload-image',
 
     adImages: (id) => `/page-builder/blocks/${id}/ad-images`,
     adImageSave: (id) => `/page-builder/blocks/${id}/ad-images`,
@@ -452,19 +453,81 @@ $(document).on('click', '[data-action="delete-slide"]', async function () {
         .fail(() => Toast.error('Could not delete slide.'));
 });
 
+function setSlideImagePreview(slot, fileId, url) {
+    const $hidden = $(`#slide-${slot}-file-id`);
+    const $preview = $(`#slide-${slot}-preview`);
+    const $img = $(`#slide-${slot}-img`);
+    $hidden.val(fileId || '');
+    if (url) {
+        $img.attr('src', url);
+        $preview.removeClass('hidden');
+    } else {
+        $preview.addClass('hidden');
+        $img.attr('src', '');
+    }
+}
+
 function openSlideModal(blockId, slideId, slide) {
     $('#slide-block-id').val(blockId);
     $('#slide-id').val(slideId || '');
     const $form = $('#slide-form');
     $form[0].reset();
+
+    // Reset image previews
+    setSlideImagePreview('desktop', '', '');
+    setSlideImagePreview('mobile', '', '');
+
     Object.entries(slide || {}).forEach(([k, v]) => {
         const $f = $form.find(`[name="${k}"]`);
         if (!$f.length) return;
         if ($f.is(':checkbox')) $f.prop('checked', !!v);
+        else if ($f[0]?._flatpickr) $f[0]._flatpickr.setDate(v || '', true);
         else $f.val(v ?? '');
     });
+
+    // Populate image previews when editing existing slide
+    if (slide.desktop_file_url) setSlideImagePreview('desktop', slide.desktop_file_id, slide.desktop_file_url);
+    if (slide.mobile_file_url) setSlideImagePreview('mobile', slide.mobile_file_id, slide.mobile_file_url);
+
     $('#slide-modal').modal('open');
 }
+
+$(document).on('change', '[data-slide-upload]', function () {
+    const slot = $(this).data('slide-upload');
+    const file = this.files[0];
+    if (!file) return;
+
+    const fd = new FormData();
+    fd.append('image', file);
+    fd.append('slot', slot);
+    fd.append('_token', csrfToken());
+
+    const $label = $(this).closest('label');
+    $label.addClass('opacity-50 pointer-events-none');
+
+    $.ajax({
+        url: ROUTES.slideUploadImage,
+        method: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        headers: { 'X-CSRF-TOKEN': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+    }).done((res) => {
+        setSlideImagePreview(slot, res.file_id, res.url);
+        Toast.success('Image uploaded.');
+    }).fail((xhr) => {
+        Toast.error(xhr.responseJSON?.message || 'Upload failed.');
+    }).always(() => {
+        $label.removeClass('opacity-50 pointer-events-none');
+        this.value = '';
+    });
+});
+
+$(document).on('click', '[data-clear-image]', function (e) {
+    e.preventDefault();
+    const slot = $(this).data('clear-image');
+    setSlideImagePreview(slot, '', '');
+});
 
 $('#slide-form').on('submit', function (e) {
     e.preventDefault();

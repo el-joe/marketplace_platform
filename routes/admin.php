@@ -364,6 +364,9 @@ Route::middleware('auth.admin')->group(function () {
         Route::delete('/ad-images/{adImage}', [PageBuilderController::class, 'deleteAdImage'])->name('ad-images.delete');
         Route::post('/blocks/{block}/ad-images/reorder', [PageBuilderController::class, 'reorderAdImages'])->name('ad-images.reorder');
 
+        // Slide image upload
+        Route::post('/slides/upload-image', [PageBuilderController::class, 'uploadSlideImage'])->name('slides.upload-image');
+
         // Search (for manual selectors)
         Route::get('/search/products', [PageBuilderController::class, 'searchProducts'])->name('search.products');
         Route::get('/search/categories', [PageBuilderController::class, 'searchCategories'])->name('search.categories');
