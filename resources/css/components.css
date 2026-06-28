@@ -138,8 +138,9 @@
     @apply fixed inset-0 z-[60] items-center justify-center bg-black/50 p-4;
 }
 
-.modal-panel {
-    @apply bg-white rounded-xl shadow-xl w-full max-h-[90vh] overflow-y-auto;
+.modal-panel,
+.modal-box {
+    @apply bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto;
     animation: fade-in 200ms ease-out;
 }
 

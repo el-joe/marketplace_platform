@@ -245,10 +245,10 @@ function updateListingPreview(option) {
     listingPriceCents = parseInt(price) || 0;
 
     if (name) {
-        $('#listing-preview').removeClass('hidden');
+        $('#listing-preview').css('display', 'flex');
         $('#listing-preview-name').text(name);
         $('#listing-preview-price').text(fmtMoney(listingPriceCents / 100));
-        $('#listing-preview-img').attr('src', img || '').toggleClass('hidden', !img);
+        $('#listing-preview-img').attr('src', img || '').toggle(!!img);
     } else {
         resetListingPreview();
     }
@@ -262,7 +262,7 @@ function updateListingPreview(option) {
 
 function resetListingPreview() {
     listingPriceCents = 0;
-    $('#listing-preview').addClass('hidden');
+    $('#listing-preview').hide();
     recalculateSplit();
 }
 
