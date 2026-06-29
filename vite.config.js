@@ -84,6 +84,7 @@ export default defineConfig({
                 'resources/js/partner/classifieds.js',
                 // Delivery Agent Panel (delivery.noon.loc)
                 'resources/js/delivery/app.js',
+                'resources/js/marketer/app.js'
             ],
             refresh: [
                 'resources/views/**',
