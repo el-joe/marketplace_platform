@@ -19,7 +19,7 @@ class PackageApproved extends BaseDatabaseBroadcastNotification
     {
         return [
             'title'         => 'Package Approved',
-            'message'       => "Your package "{$this->package->title_en}" has been approved and is now live.",
+            'message'       => "Your package \"{$this->package->title_en}\" has been approved and is now live.",
             'url'           => route('travel-agency.packages.show', $this->package->id),
             'package_id'    => $this->package->id,
             'package_title' => $this->package->title_en,

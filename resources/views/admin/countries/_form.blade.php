@@ -371,7 +371,7 @@
 
                         <x-form.input
                             name="settings[{{ $loop->index }}][free_shipping_threshold_cents]"
-                            label="Free Shipping at (cents)"
+                            label="Free Shipping at ({{ $country?->currency?->symbol ?? $country?->currency_code ?? 'cents' }})"
                             type="number"
                             min="0"
                             :value="$setting?->free_shipping_threshold_cents"

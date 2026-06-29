@@ -112,7 +112,7 @@ const agencyId = '{{ $travelAgency->id }}';
 
 async function approveAgency() {
     if (!confirm('Approve this travel agency?')) return;
-    const res = await fetch(`/admin/travel/agencies/${agencyId}/approve`, {
+    const res = await fetch(`/travel/agencies/${agencyId}/approve`, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
     });
@@ -123,7 +123,7 @@ async function approveAgency() {
 async function rejectAgency() {
     const reason = prompt('Rejection reason:');
     if (!reason) return;
-    const res = await fetch(`/admin/travel/agencies/${agencyId}/reject`, {
+    const res = await fetch(`/travel/agencies/${agencyId}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
         body: JSON.stringify({ reason }),
@@ -135,7 +135,7 @@ async function rejectAgency() {
 async function suspendAgency() {
     const reason = prompt('Suspension reason:');
     if (!reason) return;
-    const res = await fetch(`/admin/travel/agencies/${agencyId}/suspend`, {
+    const res = await fetch(`/travel/agencies/${agencyId}/suspend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
         body: JSON.stringify({ reason }),
@@ -146,7 +146,7 @@ async function suspendAgency() {
 
 async function reactivateAgency() {
     if (!confirm('Reactivate this agency?')) return;
-    const res = await fetch(`/admin/travel/agencies/${agencyId}/reactivate`, {
+    const res = await fetch(`/travel/agencies/${agencyId}/reactivate`, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }
     });

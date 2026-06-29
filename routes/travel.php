@@ -42,6 +42,7 @@ Route::name('travel-agency.')
                 Route::get('/', [PackageController::class, 'index'])->name('index');
                 Route::get('/create', [PackageController::class, 'create'])->name('create');
                 Route::post('/', [PackageController::class, 'store'])->name('store');
+                Route::get('/cities-for-country/{travelCountryId}', [PackageController::class, 'citiesForCountry'])->name('cities-for-country');
                 Route::get('/{package}', [PackageController::class, 'show'])->name('show');
                 Route::get('/{package}/edit', [PackageController::class, 'edit'])->name('edit');
                 Route::put('/{package}', [PackageController::class, 'update'])->name('update');

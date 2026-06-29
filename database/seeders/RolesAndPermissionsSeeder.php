@@ -39,6 +39,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'shipping_companies.view', 'shipping_companies.approve',
             'settings.view', 'settings.edit', 'settings.payment_gateways',
             'classifieds.view', 'classifieds.approve',
+            'travel.view', 'travel.approve', 'travel.reject', 'travel.suspend', 'travel.geography.manage',
             'admins.view', 'admins.create', 'admins.edit', 'admins.delete',
             'roles.manage',
         ];

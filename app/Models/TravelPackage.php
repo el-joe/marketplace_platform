@@ -22,6 +22,8 @@ class TravelPackage extends Model
         'description_ar',
         'destination_country',
         'destination_city',
+        'destination_travel_country_id',
+        'destination_travel_city_id',
         'price_cents',
         'currency',
         'duration_days',
@@ -34,6 +36,7 @@ class TravelPackage extends Model
         'status',
         'approved_by_admin_id',
         'approved_at',
+        'rejection_reason',
     ];
 
     protected static function booted(): void
@@ -82,6 +85,16 @@ class TravelPackage extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(TravelCategory::class, 'travel_package_categories');
+    }
+
+    public function destinationCountry(): BelongsTo
+    {
+        return $this->belongsTo(TravelCountry::class, 'destination_travel_country_id');
+    }
+
+    public function destinationCity(): BelongsTo
+    {
+        return $this->belongsTo(TravelCity::class, 'destination_travel_city_id');
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

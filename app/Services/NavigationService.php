@@ -252,6 +252,47 @@ class NavigationService
                 ],
             ],
             [
+                'group' => 'Travel',
+                'icon' => 'globe-alt',
+                'items' => [
+                    [
+                        'label' => 'Agencies',
+                        'route' => 'admin.travel.agencies.index',
+                        'icon' => 'building-office',
+                        'permission' => 'travel.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Packages',
+                        'route' => 'admin.travel.packages.index',
+                        'icon' => 'briefcase',
+                        'permission' => 'travel.view',
+                        'badge' => $this->cachedBadge('pending_travel_packages', fn() => $this->countPendingTravelPackages()),
+                    ],
+                    [
+                        'label' => 'Bookings',
+                        'route' => 'admin.travel.bookings.index',
+                        'icon' => 'ticket',
+                        'permission' => 'travel.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Countries',
+                        'route' => 'admin.travel.countries.index',
+                        'icon' => 'flag',
+                        'permission' => 'travel.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Cities',
+                        'route' => 'admin.travel.cities.index',
+                        'icon' => 'map-pin',
+                        'permission' => 'travel.view',
+                        'badge' => null,
+                    ],
+                ],
+            ],
+            [
                 'group' => 'Finance',
                 'icon' => 'banknotes',
                 'items' => [
@@ -515,6 +556,15 @@ class NavigationService
     {
         try {
             return (int) \App\Models\ClassifiedListing::query()->where('status', 'pending_review')->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingTravelPackages(): int
+    {
+        try {
+            return (int) \App\Models\TravelPackage::query()->where('status', 'pending_review')->count();
         } catch (\Throwable) {
             return 0;
         }

@@ -32,13 +32,26 @@
     <div class="grid grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">الدولة المقصودة *</label>
-            <input type="text" name="destination_country" value="{{ old('destination_country', $pkg?->destination_country) }}" required
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+            <select name="destination_travel_country_id" id="travel-country-select" required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+                <option value="">— اختر الدولة —</option>
+                @foreach($travelCountries as $c)
+                    <option value="{{ $c->id }}"
+                        {{ old('destination_travel_country_id', $pkg?->destination_travel_country_id) == $c->id ? 'selected' : '' }}>
+                        {{ $c->flag_emoji }} {{ $c->name_en }}
+                    </option>
+                @endforeach
+            </select>
+            @error('destination_travel_country_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
-            <input type="text" name="destination_city" value="{{ old('destination_city', $pkg?->destination_city) }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+            <select name="destination_travel_city_id" id="travel-city-select"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400"
+                    {{ old('destination_travel_country_id', $pkg?->destination_travel_country_id) ? '' : 'disabled' }}>
+                <option value="">— اختر الدولة أولاً —</option>
+            </select>
+            @error('destination_travel_city_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ المغادرة *</label>
@@ -75,8 +88,17 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">العملة *</label>
-            <input type="text" name="currency" value="{{ old('currency', $pkg?->currency ?? auth()->user()?->country?->currency_code ?? '') }}" maxlength="3" required
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+            @php $selectedCurrency = old('currency', $pkg?->currency ?? auth()->guard('travel_agency')->user()?->country?->currency_code ?? ''); @endphp
+            <select name="currency" required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+                <option value="">— اختر العملة —</option>
+                @foreach($currencies as $cur)
+                    <option value="{{ $cur->code }}" {{ $selectedCurrency === $cur->code ? 'selected' : '' }}>
+                        {{ $cur->code }} — {{ $cur->name }} ({{ $cur->symbol }})
+                    </option>
+                @endforeach
+            </select>
+            @error('currency') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">عدد المقاعد المتاحة</label>
@@ -152,3 +174,46 @@
         <p class="mt-1 text-xs text-gray-400">أنواع مقبولة: JPG, PNG, WEBP, MP4, MOV — الحد الأقصى 50MB لكل ملف</p>
     </div>
 </div>
+
+<script>
+(function () {
+    const countrySelect = document.getElementById('travel-country-select');
+    const citySelect    = document.getElementById('travel-city-select');
+    const citiesUrl     = '{{ rtrim(url('/packages/cities-for-country'), '/') }}/';
+    const preselectedCity = '{{ old('destination_travel_city_id', $pkg?->destination_travel_city_id ?? '') }}';
+
+    function populateCities(cities, selectedId) {
+        citySelect.innerHTML = '<option value="">— اختر المدينة (اختياري) —</option>';
+        cities.forEach(function (c) {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name_en + (c.name_ar ? ' / ' + c.name_ar : '');
+            if (c.id === selectedId) opt.selected = true;
+            citySelect.appendChild(opt);
+        });
+        citySelect.disabled = cities.length === 0;
+    }
+
+    function loadCities(countryId, selectedId) {
+        if (!countryId) {
+            citySelect.innerHTML = '<option value="">— اختر الدولة أولاً —</option>';
+            citySelect.disabled = true;
+            return;
+        }
+        fetch(citiesUrl + countryId)
+            .then(function (r) { return r.json(); })
+            .then(function (cities) { populateCities(cities, selectedId || ''); })
+            .catch(function () { citySelect.disabled = true; });
+    }
+
+    countrySelect.addEventListener('change', function () {
+        loadCities(this.value, '');
+    });
+
+    // On edit: pre-populate cities for the already-selected country
+    const initialCountry = countrySelect.value;
+    if (initialCountry) {
+        loadCities(initialCountry, preselectedCity);
+    }
+})();
+</script>

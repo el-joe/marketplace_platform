@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
+use App\Models\Currency;
+use App\Models\TravelCity;
+use App\Models\TravelCountry;
 use App\Models\TravelPackage;
 use App\Models\TravelPackageMedia;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +34,7 @@ class PackageController extends Controller
     public function index(): View
     {
         $packages = TravelPackage::where('travel_agency_id', $this->agencyId())
-            ->with('media')
+            ->with(['media', 'destinationCountry', 'destinationCity'])
             ->latest()
             ->paginate(20);
 
@@ -39,31 +43,39 @@ class PackageController extends Controller
 
     // ── Create / Store ────────────────────────────────────────────────────────
 
+    private function formData(): array
+    {
+        return [
+            'travelCountries' => TravelCountry::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'flag_emoji']),
+            'currencies'      => Currency::where('is_active', true)->orderBy('code')->get(['code', 'name', 'symbol']),
+        ];
+    }
+
     public function create(): View
     {
-        return view('travel-agency.packages.create');
+        return view('travel-agency.packages.create', $this->formData());
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'title_en' => ['required', 'string', 'max:255'],
-            'title_ar' => ['required', 'string', 'max:255'],
-            'description_en' => ['nullable', 'string'],
-            'description_ar' => ['nullable', 'string'],
-            'destination_country' => ['required', 'string', 'max:100'],
-            'destination_city' => ['nullable', 'string', 'max:100'],
-            'price_cents' => ['required', 'integer', 'min:1'],
-            'currency' => ['required', 'string', 'size:3'],
-            'duration_days' => ['required', 'integer', 'min:1'],
-            'duration_nights' => ['required', 'integer', 'min:0'],
-            'departure_date' => ['required', 'date', 'after:today'],
-            'return_date' => ['required', 'date', 'after:departure_date'],
-            'available_seats' => ['nullable', 'integer', 'min:1'],
-            'inclusions' => ['nullable', 'array'],
-            'inclusions.*' => ['string'],
-            'media' => ['nullable', 'array', 'max:10'],
-            'media.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'title_en'                      => ['required', 'string', 'max:255'],
+            'title_ar'                      => ['required', 'string', 'max:255'],
+            'description_en'                => ['nullable', 'string'],
+            'description_ar'                => ['nullable', 'string'],
+            'destination_travel_country_id' => ['required', 'uuid', 'exists:travel_countries,id'],
+            'destination_travel_city_id'    => ['nullable', 'uuid', 'exists:travel_cities,id'],
+            'price_cents'                   => ['required', 'integer', 'min:1'],
+            'currency'                      => ['required', 'string', 'size:3', 'exists:currencies,code'],
+            'duration_days'                 => ['required', 'integer', 'min:1'],
+            'duration_nights'               => ['required', 'integer', 'min:0'],
+            'departure_date'                => ['required', 'date', 'after:today'],
+            'return_date'                   => ['required', 'date', 'after:departure_date'],
+            'available_seats'               => ['nullable', 'integer', 'min:1'],
+            'inclusions'                    => ['nullable', 'array'],
+            'inclusions.*'                  => ['string'],
+            'media'                         => ['nullable', 'array', 'max:10'],
+            'media.*'                       => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
         ]);
 
         $package = TravelPackage::create([
@@ -95,7 +107,7 @@ class PackageController extends Controller
         $this->authorise($package);
         $package->load('media');
 
-        return view('travel-agency.packages.edit', compact('package'));
+        return view('travel-agency.packages.edit', ['package' => $package, ...$this->formData()]);
     }
 
     public function update(Request $request, TravelPackage $package): RedirectResponse
@@ -107,23 +119,23 @@ class PackageController extends Controller
         }
 
         $data = $request->validate([
-            'title_en' => ['required', 'string', 'max:255'],
-            'title_ar' => ['required', 'string', 'max:255'],
-            'description_en' => ['nullable', 'string'],
-            'description_ar' => ['nullable', 'string'],
-            'destination_country' => ['required', 'string', 'max:100'],
-            'destination_city' => ['nullable', 'string', 'max:100'],
-            'price_cents' => ['required', 'integer', 'min:1'],
-            'currency' => ['required', 'string', 'size:3'],
-            'duration_days' => ['required', 'integer', 'min:1'],
-            'duration_nights' => ['required', 'integer', 'min:0'],
-            'departure_date' => ['required', 'date'],
-            'return_date' => ['required', 'date', 'after:departure_date'],
-            'available_seats' => ['nullable', 'integer', 'min:1'],
-            'inclusions' => ['nullable', 'array'],
-            'inclusions.*' => ['string'],
-            'media' => ['nullable', 'array', 'max:10'],
-            'media.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'title_en'                      => ['required', 'string', 'max:255'],
+            'title_ar'                      => ['required', 'string', 'max:255'],
+            'description_en'                => ['nullable', 'string'],
+            'description_ar'                => ['nullable', 'string'],
+            'destination_travel_country_id' => ['required', 'uuid', 'exists:travel_countries,id'],
+            'destination_travel_city_id'    => ['nullable', 'uuid', 'exists:travel_cities,id'],
+            'price_cents'                   => ['required', 'integer', 'min:1'],
+            'currency'                      => ['required', 'string', 'size:3', 'exists:currencies,code'],
+            'duration_days'                 => ['required', 'integer', 'min:1'],
+            'duration_nights'               => ['required', 'integer', 'min:0'],
+            'departure_date'                => ['required', 'date'],
+            'return_date'                   => ['required', 'date', 'after:departure_date'],
+            'available_seats'               => ['nullable', 'integer', 'min:1'],
+            'inclusions'                    => ['nullable', 'array'],
+            'inclusions.*'                  => ['string'],
+            'media'                         => ['nullable', 'array', 'max:10'],
+            'media.*'                       => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
         ]);
 
         $package->update($data);
@@ -131,6 +143,18 @@ class PackageController extends Controller
 
         return redirect()->route('travel-agency.packages.show', $package)
             ->with('success', 'Package updated.');
+    }
+
+    // ── Cities for country (AJAX) ─────────────────────────────────────────────
+
+    public function citiesForCountry(string $travelCountryId): JsonResponse
+    {
+        return response()->json(
+            TravelCity::where('travel_country_id', $travelCountryId)
+                ->where('is_active', true)
+                ->orderBy('name_en')
+                ->get(['id', 'name_en', 'name_ar'])
+        );
     }
 
     // ── Submit for review ─────────────────────────────────────────────────────

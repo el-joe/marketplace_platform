@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             BlockTypeSeeder::class,
             CountrySeeder::class,
             CitySeeder::class,
+            TravelCountrySeeder::class,
+            TravelCitySeeder::class,
             CategoryAttributeSeeder::class,
             BrandShippingSeeder::class,
             SettingsSeeder::class,

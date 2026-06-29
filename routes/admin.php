@@ -1007,10 +1007,31 @@ Route::middleware('auth.admin')->group(function () {
 
         Route::prefix('packages')->name('packages.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\TravelPackageController::class, 'index'])->name('index');
+            Route::post('/datatable', [\App\Http\Controllers\Admin\TravelPackageController::class, 'datatable'])->name('datatable');
             Route::get('/{travelPackage}', [\App\Http\Controllers\Admin\TravelPackageController::class, 'show'])->name('show');
             Route::post('/{travelPackage}/approve', [\App\Http\Controllers\Admin\TravelPackageController::class, 'approve'])->name('approve');
             Route::post('/{travelPackage}/reject', [\App\Http\Controllers\Admin\TravelPackageController::class, 'reject'])->name('reject');
             Route::post('/{travelPackage}/expire', [\App\Http\Controllers\Admin\TravelPackageController::class, 'expire'])->name('expire');
+        });
+
+        Route::prefix('bookings')->name('bookings.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelBookingController::class, 'index'])->name('index');
+            Route::post('/datatable', [\App\Http\Controllers\Admin\TravelBookingController::class, 'datatable'])->name('datatable');
+            Route::get('/{travelBooking}', [\App\Http\Controllers\Admin\TravelBookingController::class, 'show'])->name('show');
+        });
+
+        Route::prefix('countries')->name('countries.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelCountryController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Admin\TravelCountryController::class, 'store'])->name('store');
+            Route::put('/{travelCountry}', [\App\Http\Controllers\Admin\TravelCountryController::class, 'update'])->name('update');
+            Route::delete('/{travelCountry}', [\App\Http\Controllers\Admin\TravelCountryController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('cities')->name('cities.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelCityController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Admin\TravelCityController::class, 'store'])->name('store');
+            Route::put('/{travelCity}', [\App\Http\Controllers\Admin\TravelCityController::class, 'update'])->name('update');
+            Route::delete('/{travelCity}', [\App\Http\Controllers\Admin\TravelCityController::class, 'destroy'])->name('destroy');
         });
     });
 

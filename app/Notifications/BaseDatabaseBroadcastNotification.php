@@ -79,5 +79,8 @@ abstract class BaseDatabaseBroadcastNotification extends Notification implements
      * Concrete classes MUST override this to return the correct private channel.
      * Example: return [new PrivateChannel('vendor.' . $this->vendorAdminId)];
      */
-    abstract public function broadcastOn(): array;
+    public function broadcastOn(): array
+    {
+        throw new \LogicException(static::class . ' must implement broadcastOn().');
+    }
 }
