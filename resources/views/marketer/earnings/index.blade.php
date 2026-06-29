@@ -6,21 +6,40 @@
 @section('content')
 
 {{-- ── Summary Cards ────────────────────────────────────────────────────────── --}}
+{{-- Each card may show multiple currency rows when the marketer earns in more than one country. --}}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-gray-100 p-5">
         <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Pending</p>
-        <p class="text-2xl font-extrabold text-yellow-600 mt-1">{{ number_format($summary['pending'] / 100, 2) }}</p>
+        @forelse($summary['pending'] as $currency => $cents)
+            <p class="text-2xl font-extrabold text-yellow-600 mt-1">
+                {{ number_format($cents / 100, 2) }} <span class="text-sm font-normal text-gray-400">{{ $currency }}</span>
+            </p>
+        @empty
+            <p class="text-2xl font-extrabold text-yellow-600 mt-1">—</p>
+        @endforelse
         <p class="text-xs text-gray-400 mt-0.5">Awaiting return window (14 days)</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5">
         <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Approved</p>
-        <p class="text-2xl font-extrabold text-blue-600 mt-1">{{ number_format($summary['approved'] / 100, 2) }}</p>
+        @forelse($summary['approved'] as $currency => $cents)
+            <p class="text-2xl font-extrabold text-blue-600 mt-1">
+                {{ number_format($cents / 100, 2) }} <span class="text-sm font-normal text-gray-400">{{ $currency }}</span>
+            </p>
+        @empty
+            <p class="text-2xl font-extrabold text-blue-600 mt-1">—</p>
+        @endforelse
         <p class="text-xs text-gray-400 mt-0.5">Ready for payout</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5">
         <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Paid Out</p>
-        <p class="text-2xl font-extrabold text-green-600 mt-1">{{ number_format($summary['paid'] / 100, 2) }}</p>
-        <p class="text-xs text-gray-400 mt-0.5">Total received (SAR)</p>
+        @forelse($summary['paid'] as $currency => $cents)
+            <p class="text-2xl font-extrabold text-green-600 mt-1">
+                {{ number_format($cents / 100, 2) }} <span class="text-sm font-normal text-gray-400">{{ $currency }}</span>
+            </p>
+        @empty
+            <p class="text-2xl font-extrabold text-green-600 mt-1">—</p>
+        @endforelse
+        <p class="text-xs text-gray-400 mt-0.5">Total received</p>
     </div>
 </div>
 

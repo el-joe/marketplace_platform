@@ -65,13 +65,21 @@
         </div>
         <div class="kpi-card border-l-4 border-l-yellow-400">
             <p class="label">Pending Earnings</p>
-            <p class="value">{{ number_format($stats['pending_earnings'] / 100, 2) }}</p>
-            <p class="sub">SAR</p>
+            @if($stats['pending_by_currency']->isEmpty())
+                <p class="value">—</p>
+            @else
+                @foreach($stats['pending_by_currency'] as $currency => $cents)
+                    <p class="value" style="font-size:1.3rem">{{ number_format($cents / 100, 2) }}</p>
+                    <p class="sub">{{ $currency }}</p>
+                @endforeach
+            @endif
         </div>
         <div class="kpi-card border-l-4 border-l-green-500">
             <p class="label">Conversion Rate</p>
             <p class="value">{{ $stats['conversion_rate'] }}%</p>
-            <p class="sub">Paid: {{ number_format($stats['paid_earnings'] / 100, 2) }} SAR</p>
+            @foreach($stats['paid_by_currency'] as $currency => $cents)
+                <p class="sub">Paid: {{ number_format($cents / 100, 2) }} {{ $currency }}</p>
+            @endforeach
         </div>
     </div>
 
@@ -189,7 +197,7 @@
             data: {
                 labels: @json($chartLabels),
                 datasets: [{
-                    label: 'Earnings (SAR)',
+                    label: 'Earnings',
                     data: @json($chartData),
                     borderColor: '#facc15',
                     backgroundColor: 'rgba(250,204,21,0.08)',

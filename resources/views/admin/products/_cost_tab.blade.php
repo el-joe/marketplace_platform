@@ -9,10 +9,11 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
 @php
     $canView = auth('admin')->user()?->hasPermissionTo('products.cost_data.view');
     $canEdit = auth('admin')->user()?->hasPermissionTo('products.cost_data.edit');
+    $costCurrency = $product->variants()->first()?->vendorListings()->value('currency') ?? 'EGP';
 @endphp
 
 @if($canView)
-    <div x-data="costReferencePanel('{{ $product->id }}', @js(route('admin.products.cost.show', $product->id)),
+    <div x-data="costReferencePanel('{{ $product->id }}', '{{ $costCurrency }}', @js(route('admin.products.cost.show', $product->id)),
                                                           @js(route('admin.products.cost.save', $product->id)),
                                                           @js(route('admin.products.cost.calculate', $product->id)),
                                                           @js(route('admin.products.cost.check-competitors', $product->id)))"
@@ -103,7 +104,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
             <div class="px-5 py-4 space-y-4">
                 <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                     <x-heroicon name="banknotes" class="w-4 h-4 text-gray-400" />
-                    Cost Breakdown (EGP)
+                    Cost Breakdown
                 </h4>
 
                 @if($canEdit)
@@ -111,16 +112,16 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                         <div>
                             <label class="label-sm">Factory / Purchase Cost (cents)</label>
                             <input type="number" x-model.number="form.manufacturer_cost_cents" min="0"
-                                class="form-input w-full text-sm font-mono" placeholder="e.g. 15000 = 150.00 EGP"
+                                class="form-input w-full text-sm font-mono" :placeholder="'e.g. 15000 = 150.00 ' + currencyCode"
                                 @input="syncLandedCost()">
-                            <p class="text-xs text-gray-400 mt-0.5" x-text="centsToEGP(form.manufacturer_cost_cents)"></p>
+                            <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.manufacturer_cost_cents, currencyCode)"></p>
                         </div>
                         <div>
                             <label class="label-sm">Shipping / Logistics Cost (cents)</label>
                             <input type="number" x-model.number="form.shipping_cost_cents" min="0"
-                                class="form-input w-full text-sm font-mono" placeholder="e.g. 3000 = 30.00 EGP"
+                                class="form-input w-full text-sm font-mono" :placeholder="'e.g. 3000 = 30.00 ' + currencyCode"
                                 @input="syncLandedCost()">
-                            <p class="text-xs text-gray-400 mt-0.5" x-text="centsToEGP(form.shipping_cost_cents)"></p>
+                            <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.shipping_cost_cents, currencyCode)"></p>
                         </div>
                         <div>
                             <label class="label-sm">
@@ -129,7 +130,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                             </label>
                             <input type="number" x-model.number="form.landed_cost_cents" min="0"
                                 class="form-input w-full text-sm font-mono" placeholder="Auto-calculated">
-                            <p class="text-xs text-gray-400 mt-0.5" x-text="centsToEGP(form.landed_cost_cents)"></p>
+                            <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.landed_cost_cents, currencyCode)"></p>
                         </div>
                     </div>
 
@@ -137,15 +138,15 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                     <div class="grid grid-cols-3 gap-3 bg-gray-50 rounded-xl p-3 text-center text-sm">
                         <div>
                             <p class="text-xs text-gray-400 mb-0.5">Factory</p>
-                            <p class="font-semibold text-gray-800" x-text="centsToEGP(form.manufacturer_cost_cents) || '—'"></p>
+                            <p class="font-semibold text-gray-800" x-text="centsToCurrency(form.manufacturer_cost_cents, currencyCode) || '—'"></p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-400 mb-0.5">+ Shipping</p>
-                            <p class="font-semibold text-gray-800" x-text="centsToEGP(form.shipping_cost_cents) || '—'"></p>
+                            <p class="font-semibold text-gray-800" x-text="centsToCurrency(form.shipping_cost_cents, currencyCode) || '—'"></p>
                         </div>
                         <div class="border-l border-gray-200">
                             <p class="text-xs text-gray-400 mb-0.5">= Landed Cost</p>
-                            <p class="font-bold text-indigo-700" x-text="centsToEGP(form.landed_cost_cents) || '—'"></p>
+                            <p class="font-bold text-indigo-700" x-text="centsToCurrency(form.landed_cost_cents, currencyCode) || '—'"></p>
                         </div>
                     </div>
                 @else
@@ -177,14 +178,14 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                     <div>
                         <label class="label-sm">Selling Price (cents)</label>
                         <input type="number" x-model.number="calcPrice" min="1" class="form-input text-sm font-mono w-44"
-                            placeholder="e.g. 25000 = 250 EGP">
-                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToEGP(calcPrice)"></p>
+                            :placeholder="'e.g. 25000 = 250 ' + currencyCode">
+                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(calcPrice, currencyCode)"></p>
                     </div>
                     <div>
                         <label class="label-sm">Landed Cost Override (cents)</label>
                         <input type="number" x-model.number="calcLanded" min="0" class="form-input text-sm font-mono w-44"
                             :placeholder="'Saved: ' + (form.landed_cost_cents || 'none')">
-                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToEGP(calcLanded)"></p>
+                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(calcLanded, currencyCode)"></p>
                     </div>
                     <button type="button" @click="runCalculator()" class="btn btn-secondary btn-sm mb-0.5">
                         Calculate →
@@ -264,7 +265,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                                     class="text-xs text-blue-600 hover:underline flex-1 truncate font-mono"
                                     x-text="comp.url"></a>
                                 <span class="text-xs font-semibold text-gray-800 w-28 flex-shrink-0 text-right"
-                                    x-text="comp.price_cents ? centsToEGP(comp.price_cents) : '—'"></span>
+                                    x-text="comp.price_cents ? centsToCurrency(comp.price_cents, currencyCode) : '—'"></span>
                             @endif
                             <div class="text-[10px] text-gray-400 flex-shrink-0 w-28 text-right leading-tight">
                                 <span x-show="comp.last_checked">
@@ -329,9 +330,9 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
     </div>{{-- /x-data costReferencePanel --}}
 
     <script>
-        function costReferencePanel(productId, showUrl, saveUrl, calcUrl, checkUrl) {
+        function costReferencePanel(productId, currencyCode, showUrl, saveUrl, calcUrl, checkUrl) {
             return {
-                productId, showUrl, saveUrl, calcUrl, checkUrl,
+                productId, currencyCode, showUrl, saveUrl, calcUrl, checkUrl,
                 loading: true,
                 saving: false,
                 checkingPrices: false,
@@ -359,7 +360,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                         const data = await res.json();
                         this.belowCostWarning = data.below_cost_warning;
                         this.lowestPriceFormatted = data.lowest_price_cents
-                            ? this.centsToEGP(data.lowest_price_cents) : '';
+                            ? this.centsToCurrency(data.lowest_price_cents, this.currencyCode) : '';
                         if (data.ref) {
                             this.ref = data.ref;
                             this.form = {
@@ -458,9 +459,9 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                     this.form.competitor_links.splice(idx, 1);
                 },
 
-                centsToEGP(cents) {
+                centsToCurrency(cents, currencyCode) {
                     if (cents === null || cents === undefined || cents === '' || isNaN(cents)) return '';
-                    return (parseInt(cents) / 100).toLocaleString('en-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' EGP';
+                    return (parseInt(cents) / 100).toLocaleString('en-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (currencyCode || '');
                 },
 
                 formatDate(iso) {

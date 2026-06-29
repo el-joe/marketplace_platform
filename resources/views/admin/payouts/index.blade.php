@@ -106,7 +106,10 @@
                 'type' => 'select',
                 'name' => 'currency',
                 'label' => 'Currency',
-                'options' => ['USD' => 'USD', 'SAR' => 'SAR', 'AED' => 'AED', 'KWD' => 'KWD'],
+                'options' => \App\Models\Currency::where('is_active', true)
+                    ->orderBy('code')
+                    ->pluck('code', 'code')
+                    ->toArray(),
             ],
             ['type' => 'date_range', 'name' => 'date', 'label' => 'Period'],
             ['type' => 'text', 'name' => 'min_amount', 'label' => 'Min Net', 'placeholder' => 'e.g. 100'],

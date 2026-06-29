@@ -25,7 +25,7 @@
         ['label' => 'Total Marketers',    'value' => $stats['total'],             'color' => 'gray'],
         ['label' => 'Active',             'value' => $stats['active'],            'color' => 'success'],
         ['label' => 'Pending Approval',   'value' => $stats['pending'],           'color' => 'warning'],
-        ['label' => 'Commissions (MTD)',  'value' => number_format($stats['commissions_month'] / 100, 2) , 'color' => 'primary'],
+        ['label' => 'Commissions (MTD)',  'value' => $stats['commissions_month_by_currency']->map(fn($v, $k) => number_format($v / 100, 2) . ' ' . $k)->join(' / ') ?: '—', 'color' => 'primary'],
     ] as $stat)
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ $stat['label'] }}</p>
@@ -86,7 +86,7 @@
                 <th>Followers</th>
                 <th>Clicks</th>
                 <th>Conv.</th>
-                <th>Earnings (SAR)</th>
+                <th>Earnings</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>

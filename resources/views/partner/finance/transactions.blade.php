@@ -52,7 +52,7 @@
 
 @section('content')
 
-    @php $currency ??= 'SAR' @endphp
+    @php $currency ??= auth()->guard('vendor')->user()->vendor?->country?->currency_code ?? '' @endphp
 
     {{-- Summary stat cards --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

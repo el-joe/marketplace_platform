@@ -81,7 +81,7 @@
                 <th>Status</th>
                 <th>Clicks</th>
                 <th>Conv.</th>
-                <th>Revenue (SAR)</th>
+                <th>Revenue</th>
                 <th>Starts</th>
                 <th>Actions</th>
             </tr>

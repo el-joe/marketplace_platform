@@ -18,6 +18,8 @@
     </script>
 @endpush
 
+@php $vendorCurrency = auth()->guard('vendor')->user()->vendor?->country?->currency_code ?? ''; @endphp
+
 @section('content')
 
     <div class="flex items-center justify-between mb-6">
@@ -157,16 +159,16 @@
                 <div id="wiz-step-4" class="hidden space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">الميزانية الإجمالية (ر.س) <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">الميزانية الإجمالية ({{ $vendorCurrency }}) <span class="text-red-500">*</span></label>
                             <input type="number" id="wiz-budget-total" min="1" step="1" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500" placeholder="مثال: 500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">الميزانية اليومية (ر.س) <span class="text-gray-400 text-xs font-normal">اختياري</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">الميزانية اليومية ({{ $vendorCurrency }}) <span class="text-gray-400 text-xs font-normal">اختياري</span></label>
                             <input type="number" id="wiz-budget-daily" min="1" step="1" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500" placeholder="مثال: 50">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1"><span id="wiz-bid-label">مزايدة النقرة (ر.س)</span> <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><span id="wiz-bid-label">مزايدة النقرة ({{ $vendorCurrency }})</span> <span class="text-red-500">*</span></label>
                         <input type="number" id="wiz-bid" min="0.01" step="0.01" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500" placeholder="مثال: 0.50">
                     </div>
                     <div class="grid grid-cols-2 gap-4">

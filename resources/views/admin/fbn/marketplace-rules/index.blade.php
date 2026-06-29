@@ -91,7 +91,7 @@
                     <label class="label-sm">Commission Type <span class="text-red-500">*</span></label>
                     <select id="rm-commission-type" class="form-select w-full text-sm">
                         <option value="percentage">Percentage (%)</option>
-                        <option value="fixed">Fixed (EGP)</option>
+                        <option value="fixed">Fixed (currency units)</option>
                         <option value="mixed">Mixed</option>
                     </select>
                 </div>
@@ -104,7 +104,7 @@
                 <div>
                     <label class="label-sm">Extra Delivery Fee (cents)</label>
                     <input type="number" id="rm-extra-fee" class="form-input w-full text-sm" min="0" value="0"
-                        placeholder="500 = 5.00 EGP">
+                        placeholder="e.g. 500 = 5.00">
                 </div>
                 <div>
                     <label class="label-sm">Max Weight (kg)</label>

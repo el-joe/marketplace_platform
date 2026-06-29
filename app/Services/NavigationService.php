@@ -276,6 +276,13 @@ class NavigationService
                         'permission' => 'ledger.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => 'Financial Reports',
+                        'route' => 'admin.reports.financial.index',
+                        'icon' => 'chart-bar-square',
+                        'permission' => 'analytics.view',
+                        'badge' => null,
+                    ],
                 ],
             ],
             [

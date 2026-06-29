@@ -218,7 +218,7 @@
                                 <input type="number" id="product-value-input" step="0.01" min="0.01"
                                     class="form-input rounded-r-none w-full border-amber-300 bg-white" placeholder="e.g. 100.00">
                                 <span id="product-value-currency"
-                                    class="inline-flex items-center px-3 bg-amber-100 border border-l-0 border-amber-300 rounded-r-lg text-sm font-semibold text-amber-700">EGP</span>
+                                    class="inline-flex items-center px-3 bg-amber-100 border border-l-0 border-amber-300 rounded-r-lg text-sm font-semibold text-amber-700">—</span>
                             </div>
                             <p class="text-xs text-amber-600 mt-1.5">Actual supplier cost — used for margin analysis only. Never shown to anyone outside admin.</p>
                         </div>

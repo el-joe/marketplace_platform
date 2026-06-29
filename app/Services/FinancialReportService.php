@@ -1,0 +1,226 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Currency;
+use App\Models\DeliveryAgentPayout;
+use App\Models\MarketerConversion;
+use App\Models\MarketerPayout;
+use App\Models\Order;
+use App\Models\PaidAdBooking;
+use App\Models\SubOrder;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
+
+/**
+ * Currency-safe financial aggregations.
+ *
+ * Every method that touches monetary amounts groups results by country AND
+ * currency so no cross-currency blending ever occurs.  The only place where
+ * values from different currencies are combined is consolidatedRevenueUsd(),
+ * which is explicitly labelled as a converted view and must be presented
+ * as such in any UI that uses it.
+ *
+ * Exchange-rate direction: exchange_rate_to_base is the number of local-
+ * currency units per 1 USD (e.g. AED = 3.673, SAR = 3.75).
+ * To convert local → USD: divide by the rate.
+ * To convert USD → local: multiply by the rate.
+ */
+class FinancialReportService
+{
+    // ── Revenue recognition policy ────────────────────────────────────────────
+    //
+    // ACCOUNTING DECISION (flag for finance team): only orders in a terminal
+    // "money received and goods delivered" state are counted as recognised
+    // revenue.  'placed'/'confirmed'/'shipped' are excluded because delivery
+    // has not yet occurred and the order could still be cancelled or returned.
+    // 'cancelled'/'refunded' are excluded because no net revenue was retained.
+    // 'disputed' is excluded until the dispute resolves.
+    //
+    // If the finance team adopts a different recognition policy (e.g. accrual
+    // at shipment rather than delivery), update REVENUE_STATUSES accordingly
+    // and add a note explaining the policy change.
+    private const REVENUE_STATUSES = ['delivered', 'completed'];
+
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Recognised order revenue grouped by country and currency.
+     *
+     * Returns one row per (country, currency) pair.  Rows where country_id is
+     * NULL (orders placed before the backfill migration) are excluded — they
+     * cannot be reliably attributed to a country.
+     */
+    public function revenueByCountry(Carbon $from, Carbon $to): Collection
+    {
+        return Order::query()
+            ->whereBetween('placed_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->whereIn('status', self::REVENUE_STATUSES)
+            ->whereNotNull('orders.country_id')
+            ->join('countries', 'countries.id', '=', 'orders.country_id')
+            ->groupBy('countries.id', 'countries.name_en', 'countries.currency_code')
+            ->selectRaw('
+                countries.id              AS country_id,
+                countries.name_en         AS country_name,
+                countries.currency_code   AS currency_code,
+                SUM(orders.total)         AS total_cents,
+                SUM(orders.subtotal)      AS subtotal_cents,
+                SUM(orders.discount)      AS discount_cents,
+                SUM(orders.shipping)      AS shipping_cents,
+                SUM(orders.tax)           AS tax_cents,
+                COUNT(*)                  AS order_count
+            ')
+            ->get();
+    }
+
+    /**
+     * Consolidated revenue expressed in USD using stored exchange rates.
+     *
+     * IMPORTANT: this is a converted view, not a transaction-accurate figure.
+     * Exchange rates are point-in-time snapshots; actual FX realised at
+     * payment processing may differ.  Always label this as
+     * "Estimated USD equivalent (indicative)" in the UI.
+     */
+    public function consolidatedRevenueUsd(Carbon $from, Carbon $to): array
+    {
+        $byCountry = $this->revenueByCountry($from, $to);
+
+        // exchange_rate_to_base = local units per 1 USD (e.g. AED 3.673 / USD).
+        // Dividing local amount by the rate converts to USD.
+        $rates = Currency::pluck('exchange_rate_to_base', 'code');
+
+        $totalUsd = $byCountry->sum(function ($row) use ($rates) {
+            $rate = $rates[$row->currency_code] ?? null;
+            if (! $rate || $rate == 0) {
+                return 0; // skip unknown currencies rather than dividing by zero
+            }
+            return ($row->total_cents / 100) / $rate;
+        });
+
+        return [
+            'total_usd'  => round($totalUsd, 2),
+            'label'      => 'Estimated USD equivalent (indicative — uses stored exchange rates, not realised FX)',
+            'as_of'      => now()->toIso8601String(),
+            'by_country' => $byCountry,
+        ];
+    }
+
+    /**
+     * Platform commission earned per country/currency (from sub_orders).
+     *
+     * sub_orders carry no currency column; currency is resolved via the parent
+     * order.  Only payable statuses are included (same policy as vendor payouts).
+     */
+    public function commissionByCountry(Carbon $from, Carbon $to): Collection
+    {
+        return SubOrder::query()
+            ->whereIn('sub_orders.status', ['delivered', 'completed'])
+            ->join('orders', 'orders.id', '=', 'sub_orders.order_id')
+            ->whereNotNull('orders.country_id')
+            ->whereBetween('orders.placed_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->join('countries', 'countries.id', '=', 'orders.country_id')
+            ->groupBy('countries.id', 'countries.name_en', 'countries.currency_code')
+            ->selectRaw('
+                countries.id                              AS country_id,
+                countries.name_en                         AS country_name,
+                countries.currency_code                   AS currency_code,
+                SUM(sub_orders.platform_commission)       AS commission_cents,
+                COUNT(DISTINCT sub_orders.id)             AS sub_order_count
+            ')
+            ->get();
+    }
+
+    /**
+     * Marketer payouts disbursed per country/currency.
+     *
+     * Uses the currency stored on each marketer_payout row (which is set from
+     * the conversion currency at payout-generation time, not the marketer's
+     * home country — a marketer can earn in multiple currencies).
+     */
+    public function marketerPayoutsByCountry(Carbon $from, Carbon $to): Collection
+    {
+        return MarketerPayout::query()
+            ->whereBetween('created_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->join('marketers', 'marketers.id', '=', 'marketer_payouts.marketer_id')
+            ->join('countries', 'countries.id', '=', 'marketers.country_id')
+            ->groupBy('countries.id', 'countries.name_en', 'marketer_payouts.currency')
+            ->selectRaw('
+                countries.id                              AS country_id,
+                countries.name_en                         AS country_name,
+                marketer_payouts.currency                 AS currency_code,
+                SUM(marketer_payouts.gross_commission_cents) AS gross_cents,
+                SUM(marketer_payouts.tax_deduction_cents)    AS tax_deducted_cents,
+                SUM(marketer_payouts.net_amount_cents)       AS net_cents,
+                COUNT(*)                                   AS payout_count
+            ')
+            ->get();
+    }
+
+    /**
+     * Paid-ad spend per country/currency (revenue to the platform from advertisers).
+     *
+     * PaidAdBooking has its own country_id and currency columns.
+     * Only 'active'/'completed' bookings represent collected revenue.
+     */
+    public function adSpendByCountry(Carbon $from, Carbon $to): Collection
+    {
+        return PaidAdBooking::query()
+            ->whereIn('status', ['active', 'completed'])
+            ->whereBetween('created_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->whereNotNull('country_id')
+            ->join('countries', 'countries.id', '=', 'paid_ad_bookings.country_id')
+            ->groupBy('countries.id', 'countries.name_en', 'paid_ad_bookings.currency')
+            ->selectRaw('
+                countries.id                          AS country_id,
+                countries.name_en                     AS country_name,
+                paid_ad_bookings.currency             AS currency_code,
+                SUM(paid_ad_bookings.total_price_cents) AS spend_cents,
+                COUNT(*)                              AS booking_count
+            ')
+            ->get();
+    }
+
+    /**
+     * VAT collected per country, cross-checked against expected amounts.
+     *
+     * Returns both the VAT stored on the order (orders.tax) and the amount
+     * that would be expected given the country's current vat_rate applied to
+     * the taxable base (subtotal + shipping, consistent with OrderAssemblerService).
+     *
+     * Discrepancies between collected_vat_cents and expected_vat_cents indicate
+     * either historical miscalculation or a vat_rate change since the order was
+     * placed.  These rows should be reviewed by the finance team.
+     *
+     * NOTE: "taxable base = subtotal + shipping" matches the formula used in
+     * OrderAssemblerService at checkout time.  If this platform ever applies
+     * VAT to subtotal-only (some jurisdictions exempt shipping), update both
+     * here and in the assembler together.
+     */
+    public function vatCollectedByCountry(Carbon $from, Carbon $to): Collection
+    {
+        return Order::query()
+            ->whereBetween('placed_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->whereIn('status', self::REVENUE_STATUSES)
+            ->whereNotNull('orders.country_id')
+            ->join('countries', 'countries.id', '=', 'orders.country_id')
+            ->groupBy('countries.id', 'countries.name_en', 'countries.currency_code', 'countries.vat_rate')
+            ->selectRaw('
+                countries.id                            AS country_id,
+                countries.name_en                       AS country_name,
+                countries.currency_code                 AS currency_code,
+                countries.vat_rate                      AS vat_rate_pct,
+                SUM(orders.tax)                         AS collected_vat_cents,
+                ROUND(
+                    SUM((orders.subtotal - orders.discount + orders.shipping) * (countries.vat_rate / 100))
+                )                                       AS expected_vat_cents,
+                COUNT(*)                                AS order_count
+            ')
+            ->get()
+            ->each(function ($row) {
+                // Flag rows where collected VAT deviates from expected by more
+                // than 1 cent (rounding) per order.
+                $tolerance = $row->order_count;
+                $row->has_vat_discrepancy = abs($row->collected_vat_cents - $row->expected_vat_cents) > $tolerance;
+            });
+    }
+}

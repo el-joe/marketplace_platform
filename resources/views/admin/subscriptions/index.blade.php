@@ -29,7 +29,7 @@
         </div>
         <div class="bg-white rounded-2xl border border-green-50 p-4 text-center bg-green-50">
             <p class="text-xs text-green-600 uppercase tracking-wide mb-1">MRR</p>
-            <p class="text-2xl font-extrabold text-green-700">{{ number_format($stats['mrr_cents'] / 100) }} EGP</p>
+            <p class="text-2xl font-extrabold text-green-700">{{ number_format($stats['mrr_cents'] / 100) }} {{ $stats['mrr_currency'] ?? '' }}</p>
         </div>
     </div>
 

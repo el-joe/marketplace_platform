@@ -17,13 +17,28 @@ class DashboardController extends Controller
 
         $today = today();
 
+        // Earnings are grouped by currency because a marketer can promote products
+        // sold in multiple countries (e.g. SAR orders and AED orders on the same account).
+        // Summing across currencies would produce a meaningless number.
+        $pendingByCurrency = $marketer->conversions()
+            ->whereIn('status', ['pending', 'approved'])
+            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency');
+
+        $paidByCurrency = $marketer->conversions()
+            ->where('status', 'paid')
+            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency');
+
         $stats = [
-            'clicks_today' => $marketer->clicks()->whereDate('clicked_at', $today)->count(),
-            'conversions_today' => $marketer->conversions()->whereDate('created_at', $today)->count(),
-            'conversions_month' => $marketer->conversions()->whereMonth('created_at', $today->month)->count(),
-            'pending_earnings' => $marketer->conversions()->whereIn('status', ['pending', 'approved'])->sum('commission_amount_cents'),
-            'paid_earnings' => $marketer->conversions()->where('status', 'paid')->sum('commission_amount_cents'),
-            'conversion_rate' => $marketer->total_clicks > 0
+            'clicks_today'       => $marketer->clicks()->whereDate('clicked_at', $today)->count(),
+            'conversions_today'  => $marketer->conversions()->whereDate('created_at', $today)->count(),
+            'conversions_month'  => $marketer->conversions()->whereMonth('created_at', $today->month)->count(),
+            'pending_by_currency' => $pendingByCurrency,
+            'paid_by_currency'    => $paidByCurrency,
+            'conversion_rate'    => $marketer->total_clicks > 0
                 ? round(($marketer->total_conversions / $marketer->total_clicks) * 100, 2)
                 : 0,
         ];

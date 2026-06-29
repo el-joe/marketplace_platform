@@ -575,9 +575,21 @@ class FlashSaleController extends Controller
             return response()->json(['message' => 'Sale is not live.'], 422);
         }
 
-        $totals = FlashSaleSubmission::where('flash_sale_id', $flashSale->id)
-            ->selectRaw('SUM(quantity_sold) as units, SUM(flash_price * quantity_sold) as revenue, COUNT(CASE WHEN status="sold_out" THEN 1 END) as sold_out')
-            ->first();
+        // A flash sale is scoped to one country_id and therefore one currency; all submissions
+        // share the same flash_price_currency. GROUP BY currency is added as an explicit
+        // safeguard so that any future schema change allowing multi-currency sales produces
+        // separate rows instead of silently blending amounts.
+        $totalsRows = FlashSaleSubmission::where('flash_sale_id', $flashSale->id)
+            ->selectRaw('flash_price_currency, SUM(quantity_sold) as units, SUM(flash_price * quantity_sold) as revenue, COUNT(CASE WHEN status="sold_out" THEN 1 END) as sold_out')
+            ->groupBy('flash_price_currency')
+            ->get();
+
+        // Collapse to a single row (expected exactly one currency per flash sale).
+        $totals = (object) [
+            'units'    => $totalsRows->sum('units'),
+            'revenue'  => $totalsRows->sum('revenue'),
+            'sold_out' => $totalsRows->sum('sold_out'),
+        ];
 
         $top = FlashSaleSubmission::where('flash_sale_id', $flashSale->id)
             ->with(['vendorListing.productVariant.product'])

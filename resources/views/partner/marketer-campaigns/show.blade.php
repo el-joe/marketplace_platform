@@ -17,7 +17,7 @@
         @foreach([
             ['نقرات', number_format($campaign->total_clicks), 'text-blue-400'],
             ['تحويلات', number_format($campaign->total_conversions), 'text-purple-400'],
-            ['إيراد', number_format($campaign->total_revenue_cents / 100, 2) . ' SAR', 'text-green-400'],
+            ['إيراد', number_format($campaign->total_revenue_cents / 100, 2) . ' ' . ($campaign->vendor?->country?->currency_code ?? ''), 'text-green-400'],
             ['معدل التحويل', $campaign->total_clicks > 0 ? round($campaign->total_conversions / $campaign->total_clicks * 100, 2) . '%' : '0%', 'text-yellow-400'],
         ] as [$label, $value, $color])
             <div class="bg-white/5 border border-white/10 rounded-xl p-4">
@@ -58,7 +58,7 @@
                             {{ $cp->vendorListing?->product?->name_en ?? '—' }}
                         </span>
                         <span class="text-sm text-gray-500">
-                            {{ number_format($cp->vendorListing?->sale_price / 100, 2) }} SAR
+                            {{ number_format($cp->vendorListing?->sale_price / 100, 2) }} {{ $cp->vendorListing?->currency ?? $campaign->vendor?->country?->currency_code ?? '' }}
                         </span>
                     </div>
                 @endforeach

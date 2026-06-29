@@ -222,7 +222,7 @@ function copyTrackingUrl() {
         ['Clicks', number_format($campaign->total_clicks), 'text-blue-600'],
         ['Conversions', number_format($campaign->total_conversions), 'text-purple-600'],
         ['Conv. Rate', $campaign->total_clicks > 0 ? round($campaign->total_conversions / $campaign->total_clicks * 100, 2) . '%' : '0%', 'text-yellow-600'],
-        ['Revenue', number_format($campaign->total_revenue_cents / 100, 2) . ' SAR', 'text-green-600'],
+        ['Revenue', number_format($campaign->total_revenue_cents / 100, 2) . ' ' . ($campaign->vendor?->country?->currency_code ?? ''), 'text-green-600'],
     ] as [$label, $value, $color])
         <div class="bg-white rounded-xl border border-gray-100 p-4">
             <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">{{ $label }}</p>
@@ -267,7 +267,7 @@ function copyTrackingUrl() {
                             {{ $product?->name_en ?? 'Product #' . $cp->id }}
                         </p>
                         @if($listing?->sale_price)
-                            <p class="text-xs text-gray-500 mt-0.5">{{ number_format($listing->sale_price / 100, 2) }} SAR</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ number_format($listing->sale_price / 100, 2) }} {{ $listing->vendor?->country?->currency_code ?? '' }}</p>
                         @endif
                         <div class="link-row">
                             <span class="link-text">{{ $productLink }}</span>
@@ -494,7 +494,7 @@ function copyTrackingUrl() {
                                     <td class="px-4 py-2 text-center text-gray-600">{{ $item->quantity }}</td>
                                     <td class="px-4 py-2 text-right text-gray-600">
                                         @if($unitPrice)
-                                            {{ number_format($unitPrice / 100, 2) }} SAR
+                                            {{ number_format($unitPrice / 100, 2) }} {{ $campaign->vendor?->country?->currency_code ?? '' }}
                                         @else
                                             —
                                         @endif
@@ -609,9 +609,10 @@ function copyTrackingUrl() {
     @endif
     <div class="space-y-3 text-sm">
         @php
+            $campaignCurrency = $campaign->vendor?->country?->currency_code ?? '';
             $budgetDisplay = $campaign->budget_cents
-                ? number_format($campaign->budget_cents / 100, 2) . ' / spent: ' . number_format($campaign->budget_spent_cents / 100, 2) . ' SAR'
-                : 'Unlimited (spent: ' . number_format($campaign->budget_spent_cents / 100, 2) . ' SAR)';
+                ? number_format($campaign->budget_cents / 100, 2) . ' / spent: ' . number_format($campaign->budget_spent_cents / 100, 2) . ' ' . $campaignCurrency
+                : 'Unlimited (spent: ' . number_format($campaign->budget_spent_cents / 100, 2) . ' ' . $campaignCurrency . ')';
 
             $samplesDisplay = $campaign->samples_required > 0
                 ? $campaign->samples_required . ' item(s) — set by platform admin'
@@ -784,6 +785,8 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeSamplesModal();
 });
 
+var campaignCurrency = @json($campaignCurrency ?? '');
+
 document.addEventListener('DOMContentLoaded', function () {
     var inp = document.getElementById('sample-product-search');
     if (inp) inp.addEventListener('keydown', function (e) {
@@ -805,7 +808,7 @@ async function searchSampleProducts() {
         products.forEach(function (p) {
             var li = document.createElement('li');
             li.className = 'px-4 py-2 hover:bg-gray-50 flex items-center justify-between gap-2';
-            li.innerHTML = '<span class="text-sm text-gray-700 flex-1">' + p.text + ' <span class="text-xs text-gray-400">' + p.price + ' SAR</span></span>' +
+            li.innerHTML = '<span class="text-sm text-gray-700 flex-1">' + p.text + ' <span class="text-xs text-gray-400">' + p.price + (campaignCurrency ? ' ' + campaignCurrency : '') + '</span></span>' +
                 '<button type="button" onclick="addSampleProduct(this)"' +
                 ' data-id="' + p.id + '" data-name="' + p.text.replace(/"/g, '&quot;') + '" data-price="' + p.price + '"' +
                 ' class="text-xs bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg px-2 py-0.5 shrink-0">+ Add</button>';
@@ -843,7 +846,7 @@ function renderSampleItems() {
         var item = samplesItems[id];
         return '<div class="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">' +
             '<span class="flex-1 text-sm text-gray-700 font-medium">' + item.name + '</span>' +
-            '<span class="text-xs text-gray-400 shrink-0">' + item.price + ' SAR</span>' +
+            '<span class="text-xs text-gray-400 shrink-0">' + item.price + (campaignCurrency ? ' ' + campaignCurrency : '') + '</span>' +
             '<input type="number" min="1" max="10" value="' + item.quantity + '"' +
             ' onchange="samplesItems[\'' + id + '\'].quantity = Math.min(10, Math.max(1, parseInt(this.value)||1)); this.value = samplesItems[\'' + id + '\'].quantity"' +
             ' class="form-input w-16 text-sm py-1 text-center">' +

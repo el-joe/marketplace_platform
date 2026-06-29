@@ -74,7 +74,7 @@
                     @endif
                     <div class="mt-2 flex flex-wrap gap-4 text-sm text-gray-600">
                         @if ($campaignable->price ?? null)
-                            <span><span class="text-gray-400">Price:</span> {{ number_format($campaignable->price, 2) }} SAR</span>
+                            <span><span class="text-gray-400">Price:</span> {{ number_format($campaignable->price, 2) }} {{ $campaignable->currency ?? '' }}</span>
                         @endif
                         <span><span class="text-gray-400">Status:</span>
                             <span class="font-medium {{ $campaignable->status === 'active' ? 'text-green-600' : 'text-gray-500' }}">
@@ -152,7 +152,7 @@
                     <dt class="text-gray-400">Budget</dt>
                     <dd class="font-medium text-gray-800">
                         @if ($campaign->budget_cents)
-                            {{ number_format($campaign->budget_cents / 100, 2) }} SAR
+                            {{ number_format($campaign->budget_cents / 100, 2) }} {{ $campaign->vendor?->country?->currency_code ?? '' }}
                         @else
                             Unlimited
                         @endif
@@ -197,7 +197,7 @@
                 </div>
                 <div class="bg-gray-50 rounded-lg p-4">
                     <p class="text-2xl font-bold text-gray-900">{{ number_format($campaign->total_revenue_cents / 100, 2) }}</p>
-                    <p class="text-xs text-gray-400 mt-1">Revenue (SAR)</p>
+                    <p class="text-xs text-gray-400 mt-1">Revenue ({{ $campaign->vendor?->country?->currency_code ?? '' }})</p>
                 </div>
             </div>
         </x-card>

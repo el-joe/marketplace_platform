@@ -30,19 +30,49 @@ class EarningsService
         return $query->orderByDesc('created_at')->paginate(20);
     }
 
+    /**
+     * Returns per-currency summaries.  Never sums across currencies — a marketer
+     * may earn in SAR, AED, EGP simultaneously if they promote multi-country listings.
+     *
+     * Shape: ['by_currency' => ['SAR' => [...], 'AED' => [...]], 'currencies' => ['SAR','AED']]
+     */
     public function summary(Marketer $marketer): array
     {
         $base = MarketerConversion::where('marketer_id', $marketer->id);
 
+        $statuses = ['pending', 'approved', 'paid'];
+        $byCurrency = [];
+
+        foreach ($statuses as $status) {
+            $rows = (clone $base)->where('status', $status)
+                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->groupBy('currency')
+                ->pluck('total', 'currency');
+            foreach ($rows as $currency => $total) {
+                $byCurrency[$currency][$status . '_cents'] = (int) $total;
+            }
+        }
+
+        $thisMonth = (clone $base)
+            ->whereIn('status', ['approved', 'paid'])
+            ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
+            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency');
+
+        foreach ($thisMonth as $currency => $total) {
+            $byCurrency[$currency]['this_month_cents'] = (int) $total;
+        }
+
+        // Ensure all statuses exist for every currency to avoid missing-key errors in views
+        foreach ($byCurrency as $currency => &$data) {
+            $data += ['pending_cents' => 0, 'approved_cents' => 0, 'paid_cents' => 0, 'this_month_cents' => 0];
+        }
+        unset($data);
+
         return [
-            'total_pending_cents'      => (int) (clone $base)->where('status', 'pending')->sum('commission_amount_cents'),
-            'total_approved_cents'     => (int) (clone $base)->where('status', 'approved')->sum('commission_amount_cents'),
-            'total_paid_lifetime_cents'=> (int) (clone $base)->where('status', 'paid')->sum('commission_amount_cents'),
-            'this_month_cents'         => (int) (clone $base)
-                ->whereIn('status', ['approved', 'paid'])
-                ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
-                ->sum('commission_amount_cents'),
-            'currency'                 => $marketer->conversions()->value('currency') ?? 'SAR',
+            'by_currency' => $byCurrency,
+            'currencies'  => array_keys($byCurrency),
         ];
     }
 

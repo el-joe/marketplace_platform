@@ -120,10 +120,9 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Currency <span class="text-red-500">*</span></label>
                 <select name="currency" class="form-input w-full" required>
-                    <option value="USD">USD</option>
-                    <option value="EGP">EGP</option>
-                    <option value="SAR">SAR</option>
-                    <option value="AED">AED</option>
+                    @foreach($currencies as $code)
+                        <option value="{{ $code }}">{{ $code }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="pt-4 border-t flex justify-end gap-3">

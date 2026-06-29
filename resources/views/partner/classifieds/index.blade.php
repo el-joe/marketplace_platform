@@ -175,9 +175,11 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">العملة <span class="text-red-500">*</span></label>
                             <select id="cl-currency" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                                <option value="SAR">ريال سعودي (SAR)</option>
-                                <option value="AED">درهم (AED)</option>
-                                <option value="USD">دولار (USD)</option>
+                                @foreach(\App\Models\Currency::where('is_active', true)->orderBy('code')->get() as $cur)
+                                    <option value="{{ $cur->code }}" {{ (auth()->user()?->country?->currency_code === $cur->code) ? 'selected' : '' }}>
+                                        {{ $cur->code }}{{ $cur->name ? ' — ' . $cur->name : '' }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>

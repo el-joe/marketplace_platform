@@ -85,7 +85,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase">Total Earnings</p>
-                    <p class="font-semibold mt-0.5">{{ number_format($marketer->total_earnings_cents / 100, 2) }} SAR</p>
+                    <p class="font-semibold mt-0.5">{{ number_format($marketer->total_earnings_cents / 100, 2) }} {{ $marketer->country?->currency_code ?? '' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase">Samples Used</p>

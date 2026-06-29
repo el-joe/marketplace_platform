@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ShippingZoneController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\FinancialReportController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ShippingMethodController;
 use App\Http\Controllers\Admin\DeliveryAgentController;
@@ -703,6 +704,13 @@ Route::middleware('auth.admin')->group(function () {
     });
 
     // ─── Analytics ───────────────────────────────────────────────────────────────
+    // ─── Financial Reports ────────────────────────────────────────────────────
+    Route::prefix('reports/financial')->name('reports.financial.')->middleware('admin.permission:analytics.view')->group(function () {
+        Route::get('/', [FinancialReportController::class, 'index'])->name('index');
+        Route::get('/data', [FinancialReportController::class, 'data'])->name('data');
+        Route::get('/export', [FinancialReportController::class, 'export'])->name('export');
+    });
+
     Route::prefix('analytics')->name('analytics.')->middleware('admin.permission:analytics.view')->group(function () {
         Route::get('/', [AnalyticsController::class, 'index'])->name('index');
         Route::get('/overview', [AnalyticsController::class, 'overview'])->name('overview');

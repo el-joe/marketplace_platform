@@ -99,11 +99,19 @@
 
         <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
             <p class="text-xs font-medium text-yellow-600 uppercase tracking-wide">Pending Earnings</p>
-            <p class="mt-1 text-2xl font-bold text-yellow-700">{{ number_format($stats['pending_earnings'] / 100, 2) }} SAR</p>
+            @forelse($stats['pending_by_currency'] as $currency => $cents)
+                <p class="mt-1 text-xl font-bold text-yellow-700">{{ number_format($cents / 100, 2) }} {{ $currency }}</p>
+            @empty
+                <p class="mt-1 text-2xl font-bold text-yellow-700">—</p>
+            @endforelse
         </div>
         <div class="bg-green-50 border border-green-200 rounded-xl p-4">
             <p class="text-xs font-medium text-green-600 uppercase tracking-wide">Paid Earnings</p>
-            <p class="mt-1 text-2xl font-bold text-green-700">{{ number_format($stats['paid_earnings'] / 100, 2) }} SAR</p>
+            @forelse($stats['paid_by_currency'] as $currency => $cents)
+                <p class="mt-1 text-xl font-bold text-green-700">{{ number_format($cents / 100, 2) }} {{ $currency }}</p>
+            @empty
+                <p class="mt-1 text-2xl font-bold text-green-700">—</p>
+            @endforelse
         </div>
     </div>
 </div>
@@ -139,7 +147,7 @@
                         <th>Status</th>
                         <th>Clicks</th>
                         <th>Conv.</th>
-                        <th>Revenue (SAR)</th>
+                        <th>Revenue</th>
                         <th>Created</th>
                         <th>Actions</th>
                     </tr>

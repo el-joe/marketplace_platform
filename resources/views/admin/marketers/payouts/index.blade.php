@@ -64,8 +64,8 @@
                 <th>Marketer</th>
                 <th>Period</th>
                 <th>Conv.</th>
-                <th>Gross (SAR)</th>
-                <th>Net (SAR)</th>
+                <th>Gross</th>
+                <th>Net</th>
                 <th>Status</th>
                 <th>Processed</th>
                 <th>Actions</th>

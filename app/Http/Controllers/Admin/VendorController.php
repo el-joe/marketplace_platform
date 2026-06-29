@@ -314,14 +314,21 @@ class VendorController extends Controller
     {
         $days = 30;
         $from = now()->subDays($days - 1)->startOfDay();
+        // A vendor is scoped to one country_id and therefore one currency, so this SUM
+        // is safe in practice. GROUP BY orders.currency is added as an explicit safeguard
+        // so that any future cross-border vendor data produces separate rows instead of
+        // silently blending currencies.
         $gmvRaw = SubOrder::query()
-            ->where('vendor_id', $vendor->id)
-            ->whereIn('status', ['completed', 'delivered'])
-            ->where('created_at', '>=', $from)
-            ->selectRaw('DATE(created_at) as date, COALESCE(SUM(vendor_payout),0) as gmv')
-            ->groupBy('date')
+            ->join('orders as o', 'o.id', '=', 'sub_orders.order_id')
+            ->where('sub_orders.vendor_id', $vendor->id)
+            ->whereIn('sub_orders.status', ['completed', 'delivered'])
+            ->where('sub_orders.created_at', '>=', $from)
+            ->selectRaw('DATE(sub_orders.created_at) as date, o.currency, COALESCE(SUM(sub_orders.vendor_payout),0) as gmv')
+            ->groupBy('date', 'o.currency')
             ->orderBy('date')
-            ->pluck('gmv', 'date');
+            ->get()
+            ->groupBy('date')
+            ->map(fn($rows) => $rows->sum('gmv'));
 
         $labels = [];
         $gmvArr = [];

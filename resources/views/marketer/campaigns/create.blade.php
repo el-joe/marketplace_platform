@@ -206,6 +206,8 @@
 
 @push('scripts')
 <script>
+var marketerCurrency = @json($marketer->country?->currency_code ?? '');
+
 (function () {
     const campaignTypeSelect  = document.getElementById('campaign-type-select');
     const vendorSection       = document.getElementById('vendor-section');
@@ -327,7 +329,7 @@
                             const li = document.createElement('li');
                             li.className = 'px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between';
                             const label = item[labelKey] ?? item.title ?? item.id;
-                            const price = item.price ? ` — ${item.price} SAR` : '';
+                            const price = item.price ? ` — ${item.price} ${marketerCurrency}` : '';
                             li.innerHTML = `
                                 <span>${label}${price}</span>
                                 <button type="button" data-id="${item.id}" data-label="${label}"

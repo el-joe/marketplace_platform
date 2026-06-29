@@ -47,29 +47,29 @@ class PackageController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'title_en'           => ['required', 'string', 'max:255'],
-            'title_ar'           => ['required', 'string', 'max:255'],
-            'description_en'     => ['nullable', 'string'],
-            'description_ar'     => ['nullable', 'string'],
+            'title_en' => ['required', 'string', 'max:255'],
+            'title_ar' => ['required', 'string', 'max:255'],
+            'description_en' => ['nullable', 'string'],
+            'description_ar' => ['nullable', 'string'],
             'destination_country' => ['required', 'string', 'max:100'],
-            'destination_city'   => ['nullable', 'string', 'max:100'],
-            'price_cents'        => ['required', 'integer', 'min:1'],
-            'currency'           => ['required', 'string', 'size:3'],
-            'duration_days'      => ['required', 'integer', 'min:1'],
-            'duration_nights'    => ['required', 'integer', 'min:0'],
-            'departure_date'     => ['required', 'date', 'after:today'],
-            'return_date'        => ['required', 'date', 'after:departure_date'],
-            'available_seats'    => ['nullable', 'integer', 'min:1'],
-            'inclusions'         => ['nullable', 'array'],
-            'inclusions.*'       => ['string'],
-            'media'              => ['nullable', 'array', 'max:10'],
-            'media.*'            => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'destination_city' => ['nullable', 'string', 'max:100'],
+            'price_cents' => ['required', 'integer', 'min:1'],
+            'currency' => ['required', 'string', 'size:3'],
+            'duration_days' => ['required', 'integer', 'min:1'],
+            'duration_nights' => ['required', 'integer', 'min:0'],
+            'departure_date' => ['required', 'date', 'after:today'],
+            'return_date' => ['required', 'date', 'after:departure_date'],
+            'available_seats' => ['nullable', 'integer', 'min:1'],
+            'inclusions' => ['nullable', 'array'],
+            'inclusions.*' => ['string'],
+            'media' => ['nullable', 'array', 'max:10'],
+            'media.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
         ]);
 
         $package = TravelPackage::create([
             ...$data,
             'travel_agency_id' => $this->agencyId(),
-            'status'           => 'draft',
+            'status' => 'draft',
         ]);
 
         $this->handleMediaUploads($request, $package);
@@ -107,23 +107,23 @@ class PackageController extends Controller
         }
 
         $data = $request->validate([
-            'title_en'           => ['required', 'string', 'max:255'],
-            'title_ar'           => ['required', 'string', 'max:255'],
-            'description_en'     => ['nullable', 'string'],
-            'description_ar'     => ['nullable', 'string'],
+            'title_en' => ['required', 'string', 'max:255'],
+            'title_ar' => ['required', 'string', 'max:255'],
+            'description_en' => ['nullable', 'string'],
+            'description_ar' => ['nullable', 'string'],
             'destination_country' => ['required', 'string', 'max:100'],
-            'destination_city'   => ['nullable', 'string', 'max:100'],
-            'price_cents'        => ['required', 'integer', 'min:1'],
-            'currency'           => ['required', 'string', 'size:3'],
-            'duration_days'      => ['required', 'integer', 'min:1'],
-            'duration_nights'    => ['required', 'integer', 'min:0'],
-            'departure_date'     => ['required', 'date'],
-            'return_date'        => ['required', 'date', 'after:departure_date'],
-            'available_seats'    => ['nullable', 'integer', 'min:1'],
-            'inclusions'         => ['nullable', 'array'],
-            'inclusions.*'       => ['string'],
-            'media'              => ['nullable', 'array', 'max:10'],
-            'media.*'            => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'destination_city' => ['nullable', 'string', 'max:100'],
+            'price_cents' => ['required', 'integer', 'min:1'],
+            'currency' => ['required', 'string', 'size:3'],
+            'duration_days' => ['required', 'integer', 'min:1'],
+            'duration_nights' => ['required', 'integer', 'min:0'],
+            'departure_date' => ['required', 'date'],
+            'return_date' => ['required', 'date', 'after:departure_date'],
+            'available_seats' => ['nullable', 'integer', 'min:1'],
+            'inclusions' => ['nullable', 'array'],
+            'inclusions.*' => ['string'],
+            'media' => ['nullable', 'array', 'max:10'],
+            'media.*' => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
         ]);
 
         $package->update($data);
@@ -171,15 +171,15 @@ class PackageController extends Controller
         $position = $package->media()->max('position') ?? 0;
 
         foreach ($request->file('media') as $file) {
-            $ext  = $file->getClientOriginalExtension();
+            $ext = $file->getClientOriginalExtension();
             $type = in_array(strtolower($ext), ['mp4', 'mov']) ? 'video' : 'image';
             $path = $file->store("travel-packages/{$package->id}", 'public');
 
             TravelPackageMedia::create([
                 'travel_package_id' => $package->id,
-                'media_type'        => $type,
-                'file_path'         => $path,
-                'position'          => ++$position,
+                'media_type' => $type,
+                'file_path' => $path,
+                'position' => ++$position,
             ]);
         }
     }

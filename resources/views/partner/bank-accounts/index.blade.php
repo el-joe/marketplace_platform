@@ -203,11 +203,9 @@
                         <select name="currency" required
                                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
                             <option value="">اختر...</option>
-                            <option value="SAR">SAR — ريال سعودي</option>
-                            <option value="AED">AED — درهم إماراتي</option>
-                            <option value="EGP">EGP — جنيه مصري</option>
-                            <option value="USD">USD — دولار أمريكي</option>
-                            <option value="EUR">EUR — يورو</option>
+                            @foreach(\App\Models\Currency::where('is_active', true)->orderBy('code')->get() as $cur)
+                                <option value="{{ $cur->code }}">{{ $cur->code }}{{ $cur->name ? ' — ' . $cur->name : '' }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>

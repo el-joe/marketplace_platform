@@ -168,7 +168,7 @@
                             <div class="p-3">
                                 <p class="text-sm font-medium text-gray-800 line-clamp-2 leading-snug">{{ $product->name_en }}</p>
                                 @if($listing?->sale_price)
-                                    <p class="text-sm font-bold text-gray-900 mt-1">{{ number_format($listing->sale_price / 100, 2) }} SAR</p>
+                                    <p class="text-sm font-bold text-gray-900 mt-1">{{ number_format($listing->sale_price / 100, 2) }} {{ $listing->vendor?->country?->currency_code ?? '' }}</p>
                                 @endif
                             </div>
                         </a>

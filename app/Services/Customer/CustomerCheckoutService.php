@@ -176,6 +176,7 @@ class CustomerCheckoutService
             $order = Order::create([
                 'order_number'              => $orderNumber,
                 'customer_id'               => $customer->id,
+                'country_id'                => $address->country_id,
                 'status'                    => 'placed',
                 'currency'                  => $cart->currency,
                 'subtotal'                  => $subtotal,

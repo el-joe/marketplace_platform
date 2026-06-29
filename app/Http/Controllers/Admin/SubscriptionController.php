@@ -131,6 +131,7 @@ class SubscriptionController extends Controller
                 ->where('status', 'active')
                 ->get()
                 ->sum(fn($s) => $s->plan?->price_cents ?? 0),
+            'mrr_currency' => SubscriptionPlan::active()->value('currency') ?? '',
         ];
 
         $plans = SubscriptionPlan::active()->ordered()->get(['id', 'name_en', 'name_ar', 'price_cents', 'currency']);

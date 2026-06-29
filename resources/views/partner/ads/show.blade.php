@@ -20,6 +20,7 @@
         'rejected'         => ['label' => 'مرفوضة',           'cls' => 'bg-red-100 text-red-700'],
     ];
     $st = $statusMap[$campaign->status] ?? ['label' => $campaign->status, 'cls' => 'bg-gray-100 text-gray-600'];
+    $adCurrency = $campaign->country?->currency_code ?? '';
 @endphp
 
 <div class="px-4 py-6 sm:px-6 lg:px-8 space-y-6">
@@ -102,22 +103,22 @@
         @endphp
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs text-gray-500 mb-1">إجمالي الإنفاق</p>
-            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->budget_spent_total, 2) }} <span class="text-sm font-normal text-gray-400">ر.س</span></p>
+            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->budget_spent_total, 2) }} <span class="text-sm font-normal text-gray-400">{{ $adCurrency }}</span></p>
             <div class="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                 <div class="h-full rounded-full bg-primary-500" style="width: {{ $budgetPct }}%"></div>
             </div>
-            <p class="text-xs text-gray-400 mt-1">من {{ number_format($campaign->budget_total, 2) }} ر.س</p>
+            <p class="text-xs text-gray-400 mt-1">من {{ number_format($campaign->budget_total, 2) }} {{ $adCurrency }}</p>
         </div>
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs text-gray-500 mb-1">إنفاق اليوم</p>
-            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->budget_spent_today, 2) }} <span class="text-sm font-normal text-gray-400">ر.س</span></p>
+            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->budget_spent_today, 2) }} <span class="text-sm font-normal text-gray-400">{{ $adCurrency }}</span></p>
             @if ($campaign->budget_daily)
-                <p class="text-xs text-gray-400 mt-2">حد يومي: {{ number_format($campaign->budget_daily, 2) }} ر.س</p>
+                <p class="text-xs text-gray-400 mt-2">حد يومي: {{ number_format($campaign->budget_daily, 2) }} {{ $adCurrency }}</p>
             @endif
         </div>
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs text-gray-500 mb-1">المزايدة</p>
-            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->bid, 2) }} <span class="text-sm font-normal text-gray-400">ر.س</span></p>
+            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->bid, 2) }} <span class="text-sm font-normal text-gray-400">{{ $adCurrency }}</span></p>
             <p class="text-xs text-gray-400 mt-2">{{ strtoupper($campaign->type) }}</p>
         </div>
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
@@ -240,7 +241,7 @@
                                         {{ ['broad' => 'واسع', 'phrase' => 'عبارة', 'exact' => 'مطابق'][$kw->match_type] }}
                                     </span>
                                     @if ($kw->bid_override)
-                                        <span class="text-xs text-amber-600">{{ number_format($kw->bid_override / 100, 2) }} ر.س</span>
+                                        <span class="text-xs text-amber-600">{{ number_format($kw->bid_override / 100, 2) }} {{ $adCurrency }}</span>
                                     @endif
                                 </div>
                             @empty
@@ -300,7 +301,7 @@
                         </div>
                         @if ($p->vendorListing?->price)
                             <span class="mr-auto text-sm font-semibold text-gray-700">
-                                {{ number_format($p->vendorListing->price, 2) }} ر.س
+                                {{ number_format($p->vendorListing->price, 2) }} {{ $adCurrency }}
                             </span>
                         @endif
                     </div>

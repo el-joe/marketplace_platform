@@ -16,7 +16,7 @@ class FinanceController extends Controller
         $vendorAdmin = Auth::guard('vendor')->user();
         $vendor      = $vendorAdmin->vendor;
         $vendorId    = $vendor->id;
-        $currency    = $vendor->country?->currency_code ?? 'SAR';
+        $currency    = $vendor->country?->currency_code ?? '';
 
         // ── Date range ────────────────────────────────────────────────────────
         $dateFrom = $request->input('date_from')

@@ -53,9 +53,13 @@ class MarketerController extends Controller
             'total' => Marketer::count(),
             'active' => Marketer::where('status', 'active')->count(),
             'pending' => Marketer::where('status', 'pending')->count(),
-            'commissions_month' => MarketerConversion::where('status', 'approved')
+            // Per-currency breakdown for this month's approved commissions.
+            // Returned as a collection keyed by ISO currency code.
+            'commissions_month_by_currency' => MarketerConversion::where('status', 'approved')
                 ->whereBetween('approved_at', [now()->startOfMonth(), now()])
-                ->sum('commission_amount_cents'),
+                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->groupBy('currency')
+                ->pluck('total', 'currency'),
         ];
 
         $countries = Country::orderBy('name_en')->get(['id', 'name_en']);
@@ -137,12 +141,20 @@ class MarketerController extends Controller
     {
         $marketer->load(['country', 'campaigns' => fn($q) => $q->latest()->limit(5)]);
 
+        // Earnings grouped by currency — never sum across currencies.
+        $pendingByCurrency = $marketer->conversions()->where('status', 'pending')
+            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->groupBy('currency')->pluck('total', 'currency');
+        $paidByCurrency = $marketer->conversions()->where('status', 'paid')
+            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->groupBy('currency')->pluck('total', 'currency');
+
         $stats = [
-            'total_campaigns' => $marketer->campaigns()->count(),
-            'active_campaigns' => $marketer->campaigns()->where('status', 'active')->count(),
-            'total_conversions' => $marketer->conversions()->count(),
-            'pending_earnings' => $marketer->conversions()->where('status', 'pending')->sum('commission_amount_cents'),
-            'paid_earnings' => $marketer->conversions()->where('status', 'paid')->sum('commission_amount_cents'),
+            'total_campaigns'    => $marketer->campaigns()->count(),
+            'active_campaigns'   => $marketer->campaigns()->where('status', 'active')->count(),
+            'total_conversions'  => $marketer->conversions()->count(),
+            'pending_by_currency' => $pendingByCurrency,
+            'paid_by_currency'    => $paidByCurrency,
         ];
 
         return view('admin.marketers.show', [
@@ -564,35 +576,45 @@ class MarketerController extends Controller
             return response()->json(['success' => false, 'message' => 'No approved conversions in this period.'], 422);
         }
 
-        $gross = $conversions->sum('commission_amount_cents');
-        $tax = (int) round($gross * 0.05); // 5% tax — configurable
-        $net = $gross - $tax;
+        // Each currency group becomes its own payout row so amounts are never blended.
+        // Tax rate: marketer_withholding_tax_rate is withholding tax on commission income —
+        // a separate statutory concept from vat_rate (which is VAT on the sale).
+        // Defaults to 0 if the marketer has no country linked or the country rate is unset.
+        $taxRate = $marketer->country->marketer_withholding_tax_rate ?? 0;
 
-        $payout = MarketerPayout::create([
-            'marketer_id' => $marketer->id,
-            'period_start' => $request->period_start,
-            'period_end' => $request->period_end,
-            'total_conversions' => $conversions->count(),
-            'gross_commission_cents' => $gross,
-            'tax_deduction_cents' => $tax,
-            'net_amount_cents' => $net,
-            'currency' => $conversions->first()->currency ?? 'SAR',
-            'status' => 'pending',
-            'bank_name' => $marketer->bank_name,
-            'bank_iban' => $marketer->bank_iban,
-        ]);
+        $payoutNumbers = [];
 
-        // Mark conversions as part of this payout
+        foreach ($conversions->groupBy('currency') as $currency => $group) {
+            $gross = $group->sum('commission_amount_cents');
+            $tax   = (int) round($gross * ($taxRate / 100));
+            $net   = $gross - $tax;
+
+            $payout = MarketerPayout::create([
+                'marketer_id'            => $marketer->id,
+                'period_start'           => $request->period_start,
+                'period_end'             => $request->period_end,
+                'total_conversions'      => $group->count(),
+                'gross_commission_cents' => $gross,
+                'tax_deduction_cents'    => $tax,
+                'net_amount_cents'       => $net,
+                'currency'               => $currency,
+                'status'                 => 'pending',
+                'bank_name'              => $marketer->bank_name,
+                'bank_iban'              => $marketer->bank_iban,
+            ]);
+
+            $payoutNumbers[] = $payout->payout_number;
+            $marketer->increment('total_earnings_cents', $net);
+        }
+
+        // Mark all conversions as paid only after all payout rows are committed.
         $conversions->each(fn($c) => $c->update(['status' => 'paid', 'paid_at' => now()]));
-
-        // Update marketer totals
-        $marketer->increment('total_earnings_cents', $net);
 
         Notification::send(
             Admin::permission('marketers.payouts.approve')->get(),
             new PayoutBatchReadyForApproval(
                 batchType: 'marketer',
-                payoutCount: 1,
+                payoutCount: count($payoutNumbers),
                 periodStart: $request->period_start,
                 periodEnd: $request->period_end,
             ),
@@ -600,7 +622,7 @@ class MarketerController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Payout generated: ' . $payout->payout_number,
+            'message' => count($payoutNumbers) . ' payout(s) generated: ' . implode(', ', $payoutNumbers),
         ]);
     }
 
