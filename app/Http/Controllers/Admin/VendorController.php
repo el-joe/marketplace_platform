@@ -165,7 +165,7 @@ class VendorController extends Controller
 
     public function reject(RejectVendorRequest $request, Vendor $vendor): JsonResponse
     {
-        $this->approvalService->reject($vendor, $request->input('reason'), auth('admin')->user());
+        $this->approvalService->reject($vendor, $request->input('rejection_reason'), auth('admin')->user());
 
         return response()->json(['message' => 'Vendor application rejected.']);
     }

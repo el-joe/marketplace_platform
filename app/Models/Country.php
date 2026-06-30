@@ -89,4 +89,29 @@ class Country extends Model
     {
         return $this->hasMany(ShippingZone::class);
     }
+
+    public function documentCountryRequirements(): HasMany
+    {
+        return $this->hasMany(VendorDocumentCountryRequirement::class);
+    }
+
+    // ── Document requirements helper ───────────────────────────────────────
+
+    public function requiredDocumentTypesFor(): \Illuminate\Support\Collection
+    {
+        return VendorDocumentType::where('is_active', true)
+            ->whereHas('countryRequirements', fn ($q) =>
+                $q->where('country_id', $this->id)
+                  ->where('requirement_level', '!=', 'not_applicable')
+            )
+            ->with(['countryRequirements' => fn ($q) =>
+                $q->where('country_id', $this->id)
+            ])
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn ($type) => [
+                'type'              => $type,
+                'requirement_level' => $type->countryRequirements->first()->requirement_level,
+            ]);
+    }
 }

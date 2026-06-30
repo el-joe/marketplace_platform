@@ -749,6 +749,16 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{method}/webhook-logs', [PaymentMethodController::class, 'webhookLogs'])->name('webhook-logs');
     });
 
+    // ─── Vendor Document Types ────────────────────────────────────────────────
+    Route::prefix('vendor-document-types')->name('vendor-document-types.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'store'])->name('store')->middleware('admin.permission:settings.edit');
+        Route::post('/requirements', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'updateRequirement'])->name('requirements.update')->middleware('admin.permission:settings.edit');
+        Route::put('/{type}', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'update'])->name('update')->middleware('admin.permission:settings.edit');
+        Route::delete('/{type}', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'destroy'])->name('destroy')->middleware('admin.permission:settings.edit');
+        Route::post('/{type}/toggle', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'toggleActive'])->name('toggle')->middleware('admin.permission:settings.edit');
+    });
+
     // ─── Shipping Methods ─────────────────────────────────────────────────────
     Route::prefix('shipping-methods')->name('shipping-methods.')->middleware('admin.permission:settings.view')->group(function () {
         Route::get('/', [ShippingMethodController::class, 'index'])->name('index');

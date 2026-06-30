@@ -48,74 +48,40 @@
     <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
         <h3 class="text-xs font-semibold text-yellow-400 uppercase tracking-wider mb-3">الوثائق المرفوعة</h3>
         <ul class="space-y-1.5 text-sm">
-            <li class="flex items-center gap-2">
-                <span :class="documents.business_license ? 'text-green-400' : 'text-red-400'">
-                    <template x-if="documents.business_license"><svg class="w-4 h-4 inline" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg></template>
-                    <template x-if="!documents.business_license"><svg class="w-4 h-4 inline" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg></template>
-                </span>
-                <span class="text-gray-300">السجل التجاري</span>
-                <span x-show="!documents.business_license" class="text-red-400 text-xs">(مطلوب)</span>
-            </li>
-            <li class="flex items-center gap-2">
-                <span :class="documents.owner_id ? 'text-green-400' : 'text-red-400'">
-                    <template x-if="documents.owner_id"><svg class="w-4 h-4 inline" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg></template>
-                    <template x-if="!documents.owner_id"><svg class="w-4 h-4 inline" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg></template>
-                </span>
-                <span class="text-gray-300">هوية المالك</span>
-                <span x-show="!documents.owner_id" class="text-red-400 text-xs">(مطلوب)</span>
-            </li>
-            <li class="flex items-center gap-2">
-                <span :class="documents.tax_certificate ? 'text-green-400' : 'text-gray-500'">
-                    <template x-if="documents.tax_certificate"><svg class="w-4 h-4 inline" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg></template>
-                    <template x-if="!documents.tax_certificate"><svg class="w-4 h-4 inline" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                        </svg></template>
-                </span>
-                <span class="text-gray-400">الشهادة الضريبية</span>
-                <span x-show="!documents.tax_certificate" class="text-gray-500 text-xs">(اختياري)</span>
-            </li>
-            <li class="flex items-center gap-2">
-                <span :class="documents.vat_registration ? 'text-green-400' : 'text-gray-500'">
-                    <template x-if="documents.vat_registration"><svg class="w-4 h-4 inline" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg></template>
-                    <template x-if="!documents.vat_registration"><svg class="w-4 h-4 inline" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                        </svg></template>
-                </span>
-                <span class="text-gray-400">شهادة ضريبة القيمة المضافة</span>
-                <span x-show="!documents.vat_registration" class="text-gray-500 text-xs">(اختياري)</span>
-            </li>
+            <template x-for="doc in docTypes" :key="doc.code">
+                <li class="flex items-center gap-2">
+                    <span :class="documents[doc.code] ? 'text-green-400' : (doc.requirement_level === 'mandatory' ? 'text-red-400' : 'text-gray-500')">
+                        <template x-if="documents[doc.code]">
+                            <svg class="w-4 h-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </template>
+                        <template x-if="!documents[doc.code] && doc.requirement_level === 'mandatory'">
+                            <svg class="w-4 h-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </template>
+                        <template x-if="!documents[doc.code] && doc.requirement_level === 'optional'">
+                            <svg class="w-4 h-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                            </svg>
+                        </template>
+                    </span>
+                    <span :class="doc.requirement_level === 'mandatory' ? 'text-gray-300' : 'text-gray-400'" x-text="doc.name_ar"></span>
+                    <span x-show="!documents[doc.code] && doc.requirement_level === 'mandatory'" class="text-red-400 text-xs">(مطلوب)</span>
+                    <span x-show="!documents[doc.code] && doc.requirement_level === 'optional'" class="text-gray-500 text-xs">(اختياري)</span>
+                </li>
+            </template>
         </ul>
     </div>
 
     {{-- Missing required docs warning --}}
-    <div x-show="!documents.business_license || !documents.owner_id"
+    <div x-show="docTypes.some(d => d.requirement_level === 'mandatory' && !documents[d.code])"
         class="bg-amber-900/30 border border-amber-700 rounded-xl p-3 text-sm text-amber-300 flex items-center gap-2"
         x-cloak>
-        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
         </svg>
         <span>يرجى العودة للخطوة السابقة ورفع الوثائق المطلوبة قبل الإرسال.</span>
     </div>

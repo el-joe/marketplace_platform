@@ -52,25 +52,16 @@ function registrationWizard() {
             terms_agreed: false, privacy_agreed: false,
         },
 
-        // Document state
-        documents: {
-            business_license: null,
-            owner_id: null,
-            tax_certificate: null,
-            vat_registration: null,
-        },
-        docFilenames: {
-            business_license: '', owner_id: '',
-            tax_certificate: '', vat_registration: '',
-        },
-        docUploading: {
-            business_license: false, owner_id: false,
-            tax_certificate: false, vat_registration: false,
-        },
-        docErrors: {
-            business_license: '', owner_id: '',
-            tax_certificate: '', vat_registration: '',
-        },
+        // Dynamic document types loaded from server per country
+        docTypes: [],
+        docTypesLoading: false,
+
+        // Document state (keyed by doc type code, populated dynamically)
+        documents: {},
+        docFilenames: {},
+        docUploading: {},
+        docErrors: {},
+        docExpiries: {},
 
         // Slug check state
         slugStatus: '',    // '' | 'available' | 'taken'
@@ -107,11 +98,26 @@ function registrationWizard() {
                 this.loadCities(this.form.country_id);
             }
 
-            // Watch country_id changes → reload cities
+            // If resuming directly onto step 4+, load doc types immediately
+            if (this.step >= 4 && this.form.country_id) {
+                this.loadDocumentTypes(this.form.country_id);
+            }
+
+            // Watch country_id changes → reload cities and clear doc types
             this.$watch('form.country_id', (id) => {
                 this.form.city_id = '';
                 this.cities = [];
-                if (id) this.loadCities(id);
+                // Clear uploaded docs when country changes (requirements differ)
+                this.docTypes = [];
+                this.documents = {};
+                this.docFilenames = {};
+                this.docUploading = {};
+                this.docErrors = {};
+                this.docExpiries = {};
+                if (id) {
+                    this.loadCities(id);
+                    if (this.step >= 4) this.loadDocumentTypes(id);
+                }
             });
         },
 
@@ -133,10 +139,25 @@ function registrationWizard() {
 
             // Step 4 (documents) — validate locally, no server save
             if (this.step === 4) {
-                if (!this.documents.business_license || !this.documents.owner_id) {
-                    this.globalError = 'يرجى رفع السجل التجاري وهوية المالك قبل المتابعة.';
+                const missingMandatory = this.docTypes
+                    .filter(d => d.requirement_level === 'mandatory' && !this.documents[d.code])
+                    .map(d => d.name_ar);
+
+                if (missingMandatory.length > 0) {
+                    this.globalError = 'يرجى رفع الوثائق المطلوبة: ' + missingMandatory.join('، ');
                     return;
                 }
+
+                // Validate expiry dates are provided for types that require them
+                const missingExpiry = this.docTypes
+                    .filter(d => d.requires_expiry_date && this.documents[d.code] && !this.docExpiries[d.code])
+                    .map(d => d.name_ar);
+
+                if (missingExpiry.length > 0) {
+                    this.globalError = 'يرجى إدخال تاريخ انتهاء الصلاحية لـ: ' + missingExpiry.join('، ');
+                    return;
+                }
+
                 this.step = 5;
                 return;
             }
@@ -167,6 +188,10 @@ function registrationWizard() {
                     }
 
                     this.step = data.next_step;
+                    // Load doc types when landing on step 4 after step 3 validation
+                    if (this.step === 4 && this.form.country_id) {
+                        this.loadDocumentTypes(this.form.country_id);
+                    }
                 } catch (e) {
                     this.globalError = 'حدث خطأ في الشبكة. حاول مجدداً.';
                 } finally {
@@ -241,6 +266,7 @@ function registrationWizard() {
                     body: JSON.stringify({
                         terms_agreed: this.form.terms_agreed ? '1' : '0',
                         privacy_agreed: this.form.privacy_agreed ? '1' : '0',
+                        doc_expiries: this.docExpiries,
                     }),
                 });
 
@@ -302,21 +328,39 @@ function registrationWizard() {
             }
         },
 
+        // ── Document type loading ──────────────────────────────────────────
+        async loadDocumentTypes(countryId) {
+            this.docTypesLoading = true;
+            try {
+                const url = window._routes.docRequirements + '?country_id=' + encodeURIComponent(countryId);
+                const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+                this.docTypes = data.documents || [];
+            } catch {
+                this.docTypes = [];
+            } finally {
+                this.docTypesLoading = false;
+            }
+        },
+
         // ── Document upload ────────────────────────────────────────────────
-        async uploadDocument(event, type) {
+        async uploadDocument(event, type, docTypeMeta) {
             const file = event.target.files?.[0];
             if (!file) return;
 
-            const maxBytes = 5 * 1024 * 1024;
+            const maxKb    = docTypeMeta?.max_file_size_kb ?? 5120;
+            const maxBytes = maxKb * 1024;
             if (file.size > maxBytes) {
-                this.docErrors[type] = 'الملف أكبر من الحد المسموح (5MB).';
+                this.docErrors[type] = `الملف أكبر من الحد المسموح (${Math.round(maxKb / 1024)}MB).`;
                 event.target.value = '';
                 return;
             }
 
-            const allowed = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-            if (!allowed.includes(file.type)) {
-                this.docErrors[type] = 'نوع الملف غير مدعوم. الأنواع المقبولة: PDF، JPG، PNG.';
+            const acceptedExts = docTypeMeta?.accepted_file_types ?? ['pdf', 'jpg', 'jpeg', 'png'];
+            const mimeMap = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' };
+            const allowed = acceptedExts.map(e => mimeMap[e]).filter(Boolean);
+            if (allowed.length && !allowed.includes(file.type)) {
+                this.docErrors[type] = 'نوع الملف غير مدعوم. الأنواع المقبولة: ' + acceptedExts.join('، ').toUpperCase() + '.';
                 event.target.value = '';
                 return;
             }

@@ -132,12 +132,12 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Reason <span
                         class="text-danger-500">*</span></label>
-                <textarea name="reason" class="form-input w-full resize-none" rows="3"
+                <textarea name="rejection_reason" class="form-input w-full resize-none" rows="3"
                     placeholder="Explain why this application is being rejected…" required></textarea>
             </div>
             <x-slot name="footer">
                 <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-                <button type="submit" class="btn btn-danger btn-sm">Confirm Rejection</button>
+                <button type="submit" form="quick-reject-form" class="btn btn-danger btn-sm">Confirm Rejection</button>
             </x-slot>
         </form>
     </x-modal>

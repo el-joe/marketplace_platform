@@ -386,6 +386,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => 'Document Types',
+                        'route' => 'admin.vendor-document-types.index',
+                        'icon' => 'document-check',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => 'Payment Methods',
                         'route' => 'admin.payment-methods.index',
                         'icon' => 'credit-card',

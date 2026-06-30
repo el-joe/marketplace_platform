@@ -105,14 +105,14 @@ function initDocumentUploads() {
             const file = input.files[0];
             if (!file) return;
 
-            const type = input.dataset.type;
-            const statusEl = document.querySelector(`.doc-upload-status-${type}`);
+            const typeId   = input.dataset.typeId;
+            const statusEl = input.closest('.flex')?.querySelector('.doc-upload-status');
 
             if (statusEl) statusEl.classList.remove('hidden');
             input.disabled = true;
 
             const formData = new FormData();
-            formData.append('document_type', type);
+            formData.append('document_type_id', typeId);
             formData.append('file', file);
 
             try {
@@ -126,7 +126,6 @@ function initDocumentUploads() {
                 if (!res.ok) throw new Error(data.message ?? 'فشل الرفع');
 
                 toast(data.message);
-                // Reload page to reflect new status badge
                 setTimeout(() => location.reload(), 1500);
             } catch (err) {
                 toast(err.message, false);

@@ -11,7 +11,7 @@ class DocumentUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'document_type' => ['required', 'in:business_license,tax_certificate,owner_id,bank_proof,vat_registration'],
+            'document_type' => ['required', 'string', 'exists:vendor_document_types,code,is_active,1'],
             'file'          => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
         ];
     }
