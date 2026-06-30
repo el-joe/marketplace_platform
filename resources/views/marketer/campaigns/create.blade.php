@@ -302,7 +302,7 @@ var marketerCurrency = @json($marketer->country?->currency_code ?? '');
             <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs rounded-lg px-2 py-1 font-medium">
                 ${p.name}
                 <button type="button" data-id="${p.id}" class="remove-product-btn ml-1 text-blue-400 hover:text-red-500">✕</button>
-                <input type="hidden" name="product_listing_ids[]" value="${p.id}">
+                <input type="hidden" name="products[]" value="${p.id}">
             </span>
         `).join('');
     }

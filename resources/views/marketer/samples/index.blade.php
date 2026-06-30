@@ -56,7 +56,7 @@ $statusColors = [
                         @endif
                     </td>
                     <td class="px-5 py-3 text-gray-600">
-                        {{ $sr->items->sum('quantity') }} item(s)
+                        {{ $sr->items->sum('marketer_quantity') }} item(s)
                     </td>
                     <td class="px-5 py-3">
                         <span class="text-xs font-semibold rounded-full px-2.5 py-1 {{ $statusColors[$sr->status] ?? 'bg-gray-100 text-gray-600' }}">

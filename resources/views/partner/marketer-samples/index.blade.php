@@ -56,10 +56,23 @@
                                 <p class="text-xs text-gray-400 mt-1 italic">{{ $req->notes }}</p>
                             @endif
 
-                            {{-- Items --}}
+                            {{-- Combined summary --}}
+                            @php
+                                $totalQty   = $req->items->sum('quantity');
+                                $totalCost  = $req->items->sum('sample_cost_cents');
+                                $itemCount  = $req->items->count();
+                            @endphp
+                            <p class="text-sm font-medium text-gray-800 mt-2">
+                                Sample Request #{{ $req->id }} — {{ $totalQty }} unit(s) requested across {{ $itemCount }} item(s)
+                                @if($totalCost > 0)
+                                    &nbsp;·&nbsp; Total cost: {{ number_format($totalCost / 100, 2) }} {{ config('app.currency', 'SAR') }}
+                                @endif
+                            </p>
+
+                            {{-- Items flat list, sorted by listing for picking efficiency --}}
                             @if($req->items->isNotEmpty())
                                 <div class="mt-2 flex flex-wrap gap-2">
-                                    @foreach($req->items as $item)
+                                    @foreach($req->items->sortBy('vendor_listing_id') as $item)
                                         <span class="text-xs bg-gray-100 text-gray-600 rounded-lg px-2 py-1">
                                             {{ $item->vendorListing?->product?->name_en ?? '—' }}
                                             × {{ $item->quantity }}

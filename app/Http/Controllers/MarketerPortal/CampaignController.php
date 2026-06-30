@@ -12,6 +12,7 @@ use App\Models\Vendor;
 use App\Models\VendorListing;
 use App\Notifications\Admin\SampleRequestSubmitted;
 use App\Services\MarketerService;
+use App\Services\SampleQuotaResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -238,6 +239,18 @@ class CampaignController extends Controller
         $vendor = $campaign->campaignable;
         abort_unless($vendor instanceof \App\Models\Vendor, 422, 'Sample requests are only available for vendor campaigns.');
 
+        $listingIds = array_column($validated['items'], 'listing_id');
+        $category = app(SampleQuotaResolver::class)->resolveFromListingIds($listingIds);
+        if ($category && $category->marketer_sample_quota > 0) {
+            $totalRequested = array_sum(array_column($validated['items'], 'quantity'));
+            if ($totalRequested > $category->marketer_sample_quota) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "الحد الأقصى المسموح به لهذه الفئة هو {$category->marketer_sample_quota} عينة.",
+                ], 422);
+            }
+        }
+
         $sampleRequest = $this->service->requestSamples(
             $marketer,
             $vendor,
@@ -265,10 +278,24 @@ class CampaignController extends Controller
         abort_if($campaign->marketer_id !== $marketer->id, 403);
 
         $campaign->load([
-            'products.vendorListing' => fn($q) => $q->with('product'),
+            'products.vendorListing' => fn($q) => $q->with('productVariant.product'),
             'campaignable',
-            'sampleRequests' => fn($q) => $q->with(['items.vendorListing.productVariant.product'])->latest(),
+            'sampleRequests' => fn($q) => $q->with([
+                'items' => fn($iq) => $iq->where('is_mandatory', false)->with('vendorListing.productVariant.product'),
+            ])->latest(),
         ]);
+
+        // Resolve quota for this campaign's category
+        $quotaCategory = null;
+        $quota = 0;
+        if ($campaign->campaignable_type === \App\Models\Vendor::class) {
+            $firstProduct = $campaign->products->first();
+            $listingId = $firstProduct?->vendorListing?->id ?? $campaign->products->first()?->vendor_listing_id;
+            if ($listingId) {
+                $quotaCategory = app(SampleQuotaResolver::class)->resolveFromListingIds([$listingId]);
+            }
+            $quota = $quotaCategory?->marketer_sample_quota ?? 0;
+        }
 
         // Daily chart data: last 30 days
         $clicksData = $this->getDailyStats($campaign, 'marketer_clicks', 'clicked_at');
@@ -282,6 +309,8 @@ class CampaignController extends Controller
             'clicksData' => $clicksData['data'],
             'conversionsData' => $conversionsData['data'],
             'sampleRequests' => $campaign->sampleRequests,
+            'quotaCategory' => $quotaCategory,
+            'quota' => $quota,
         ]);
     }
 

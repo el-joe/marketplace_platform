@@ -10,8 +10,11 @@ use App\Models\MarketerCampaign;
 use App\Models\MarketerCommissionTier;
 use App\Models\MarketerConversion;
 use App\Models\MarketerPayout;
+use App\Models\MarketerSampleItem;
 use App\Models\MarketerSampleRequest;
 use App\Models\MarketerSecretPromotion;
+use App\Models\Category;
+use App\Models\VendorListing;
 use App\Models\ClassifiedListing;
 use App\Models\TravelPackage;
 use App\Models\Vendor;
@@ -1011,22 +1014,64 @@ class MarketerController extends Controller
         ]);
     }
 
-    public function approveSample(MarketerSampleRequest $req): JsonResponse
+    public function approveSample(Request $httpRequest, MarketerSampleRequest $req): JsonResponse
     {
         if ($req->status !== 'requested') {
             return response()->json(['success' => false, 'message' => 'Request is not pending.'], 422);
         }
 
-        $req->update([
-            'status' => 'approved',
-            'admin_approved_by' => auth()->guard('admin')->id(),
-            'approved_at' => now(),
+        $validated = $httpRequest->validate([
+            'items'                    => 'required|array|min:1',
+            'items.*.id'               => 'required|uuid|exists:marketer_sample_items,id',
+            'items.*.marketer_quantity' => 'required|integer|min:0',
+            'items.*.admin_quantity'    => 'required|integer|min:0',
         ]);
+
+        DB::transaction(function () use ($req, $validated) {
+            // Remove any stale mandatory rows from a previous (re-)approval attempt.
+            $req->items()->where('is_mandatory', true)->delete();
+
+            foreach ($validated['items'] as $itemData) {
+                // Keep the marketer's row clean — marketer qty only, no admin blending.
+                $item = $req->items()->where('id', $itemData['id'])->where('is_mandatory', false)->first();
+                if (!$item) continue;
+
+                $mktQty = max(0, (int) $itemData['marketer_quantity']);
+                $admQty = max(0, (int) $itemData['admin_quantity']);
+
+                $item->update([
+                    'marketer_quantity' => $mktQty,
+                    'admin_quantity'    => 0,
+                    'quantity'          => $mktQty,
+                ]);
+
+                // Admin qty becomes its own separate mandatory row so vendor totals are clear.
+                if ($admQty > 0) {
+                    MarketerSampleItem::create([
+                        'sample_request_id' => $req->id,
+                        'vendor_listing_id' => $item->vendor_listing_id,
+                        'quantity'          => $admQty,
+                        'marketer_quantity' => 0,
+                        'admin_quantity'    => $admQty,
+                        'is_mandatory'      => true,
+                        'sample_cost_cents' => 0,
+                        'created_at'        => now(),
+                    ]);
+                }
+            }
+
+            $req->update([
+                'status'            => 'approved',
+                'admin_approved_by' => auth()->guard('admin')->id(),
+                'approved_at'       => now(),
+            ]);
+        });
 
         $req->marketer->notify(new MarketerSampleRequestApproved($req));
 
         return response()->json(['success' => true, 'message' => 'Sample request approved.']);
     }
+
 
     public function dispatchSample(MarketerSampleRequest $req): JsonResponse
     {
@@ -1070,7 +1115,7 @@ class MarketerController extends Controller
             'marketer',
             'vendor',
             'campaign',
-            'items.vendorListing.productVariant.product',
+            'items.vendorListing.productVariant.product.category',
         ]);
 
         return response()->json([
@@ -1083,14 +1128,21 @@ class MarketerController extends Controller
             'rejection_reason' => $req->rejection_reason,
             'created_at'       => $req->created_at->format('d M Y H:i'),
             'items'            => $req->items->map(function ($item) {
-                $variant = $item->vendorListing?->productVariant;
-                $product = $variant?->product;
+                $variant  = $item->vendorListing?->productVariant;
+                $product  = $variant?->product;
+                $category = $product?->category;
                 return [
-                    'product_name'  => $product?->name_en ?? '—',
-                    'variant_name'  => $variant?->variant_name,
-                    'quantity'      => $item->quantity,
-                    'is_mandatory'  => $item->is_mandatory,
-                    'cost'          => $item->sample_cost_cents ? number_format($item->sample_cost_cents / 100, 2) : null,
+                    'id'                => $item->id,
+                    'product_name'      => $product?->name_en ?? '—',
+                    'variant_name'      => $variant?->variant_name,
+                    'category_id'         => $category?->id,
+                    'category_name'       => $category?->name_en ?? 'Uncategorised',
+                    'category_admin_quota' => $category?->admin_sample_quota ?? 0,
+                    'quantity'            => $item->quantity,
+                    'marketer_quantity'   => $item->marketer_quantity,
+                    'admin_quantity'      => $item->admin_quantity,
+                    'is_mandatory'      => $item->is_mandatory,
+                    'cost'              => $item->sample_cost_cents ? number_format($item->sample_cost_cents / 100, 2) : null,
                 ];
             }),
         ]);

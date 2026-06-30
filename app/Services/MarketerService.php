@@ -191,7 +191,7 @@ class MarketerService
                     'sample_request_id' => $request->id,
                     'vendor_listing_id' => $item['listing_id'],
                     'quantity' => $item['quantity'],
-                    'is_mandatory' => 1,
+                    'is_mandatory' => false,
                     'sample_cost_cents' => $item['cost_cents'] ?? 0,
                     'created_at' => now(),
                 ]);

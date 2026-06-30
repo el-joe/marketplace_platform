@@ -15,7 +15,7 @@ class SampleRequestController extends Controller
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
 
-        $sampleRequests = MarketerSampleRequest::with(['campaign', 'items'])
+        $sampleRequests = MarketerSampleRequest::with(['campaign', 'items' => fn($q) => $q->where('is_mandatory', false)])
             ->where('marketer_id', $marketer->id)
             ->orderByDesc('created_at')
             ->paginate(20);

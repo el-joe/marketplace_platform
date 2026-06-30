@@ -424,9 +424,25 @@ function copyTrackingUrl() {
             <h3 class="font-bold text-gray-800">📦 Sample Requests</h3>
             <p class="text-xs text-gray-400 mt-0.5">Request product samples from this vendor to review and promote authentically.</p>
         </div>
-        <button type="button" onclick="openSamplesModal()"
-            class="btn btn-sm btn-secondary">+ Request Samples</button>
+        @if($quota > 0)
+            <button type="button" onclick="openSamplesModal()"
+                class="btn btn-sm btn-secondary">+ Request Samples</button>
+        @else
+            <span class="text-xs text-gray-400 italic">Not available for this category</span>
+        @endif
     </div>
+
+    @if($quotaCategory)
+        @if($quota > 0)
+            <div class="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 mb-4">
+                You may request up to {{ $quota }} sample(s) for this campaign's category ({{ $quotaCategory->name_en }}).
+            </div>
+        @else
+            <div class="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mb-4">
+                Sample requests are not available for this category ({{ $quotaCategory->name_en }}).
+            </div>
+        @endif
+    @endif
 
     @if($campaign->samples_required > 0)
         <div class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-4">
@@ -482,7 +498,7 @@ function copyTrackingUrl() {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
-                            @foreach($req->items as $item)
+                            @foreach($req->items->where('is_mandatory', false) as $item)
                                 @php
                                     $productName = $item->vendorListing?->productVariant?->product?->name_en
                                         ?? $item->vendorListing?->productVariant?->sku
@@ -491,7 +507,7 @@ function copyTrackingUrl() {
                                 @endphp
                                 <tr>
                                     <td class="px-4 py-2 text-gray-700 font-medium">{{ $productName }}</td>
-                                    <td class="px-4 py-2 text-center text-gray-600">{{ $item->quantity }}</td>
+                                    <td class="px-4 py-2 text-center text-gray-600">{{ $item->marketer_quantity ?: $item->quantity }}</td>
                                     <td class="px-4 py-2 text-right text-gray-600">
                                         @if($unitPrice)
                                             {{ number_format($unitPrice / 100, 2) }} {{ $campaign->vendor?->country?->currency_code ?? '' }}
@@ -503,10 +519,11 @@ function copyTrackingUrl() {
                             @endforeach
                         </tbody>
                         <tfoot>
+                            @php $marketerItems = $req->items->where('is_mandatory', false); @endphp
                             <tr class="border-t border-gray-100 bg-gray-50">
-                                <td class="px-4 py-2 text-gray-400">{{ $req->items->count() }} item(s)</td>
+                                <td class="px-4 py-2 text-gray-400">{{ $marketerItems->count() }} item(s)</td>
                                 <td class="px-4 py-2 text-center text-gray-600 font-semibold">
-                                    {{ $req->items->sum('quantity') }}
+                                    {{ $marketerItems->sum(fn($i) => $i->marketer_quantity ?: $i->quantity) }}
                                 </td>
                                 <td class="px-4 py-2 text-right text-gray-700 font-semibold"></td>
                             </tr>
@@ -550,6 +567,7 @@ function copyTrackingUrl() {
 </div>
 
 {{-- ── Sample Request Modal ──────────────────────────────────────────────────── --}}
+@if($quota > 0)
 <div id="samples-modal" class="samples-modal-backdrop" onclick="closeSamplesModalBackdrop(event)">
     <div class="samples-modal-box">
         <div class="samples-modal-header">
@@ -599,6 +617,7 @@ function copyTrackingUrl() {
         </div>
     </div>
 </div>
+@endif {{-- quota > 0 --}}
 @endif
 
 {{-- ── Campaign Details ─────────────────────────────────────────────────────── --}}
@@ -818,12 +837,12 @@ async function searchSampleProducts() {
     document.getElementById('sample-search-results').style.display = 'block';
 }
 
+var categoryQuota = {{ $quota }};
+
 function addSampleProduct(btn) {
     var id = btn.dataset.id;
-    if (samplesItems[id]) {
-        samplesItems[id].quantity = Math.min(10, samplesItems[id].quantity + 1);
-    } else {
-        samplesItems[id] = { listing_id: id, name: btn.dataset.name, price: btn.dataset.price, quantity: 1 };
+    if (!samplesItems[id]) {
+        samplesItems[id] = { listing_id: id, name: btn.dataset.name, price: btn.dataset.price, quantity: categoryQuota || 1 };
     }
     renderSampleItems();
     document.getElementById('sample-search-results').style.display = 'none';
@@ -847,9 +866,7 @@ function renderSampleItems() {
         return '<div class="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">' +
             '<span class="flex-1 text-sm text-gray-700 font-medium">' + item.name + '</span>' +
             '<span class="text-xs text-gray-400 shrink-0">' + item.price + (campaignCurrency ? ' ' + campaignCurrency : '') + '</span>' +
-            '<input type="number" min="1" max="10" value="' + item.quantity + '"' +
-            ' onchange="samplesItems[\'' + id + '\'].quantity = Math.min(10, Math.max(1, parseInt(this.value)||1)); this.value = samplesItems[\'' + id + '\'].quantity"' +
-            ' class="form-input w-16 text-sm py-1 text-center">' +
+            '<span class="inline-block w-16 text-center text-sm font-semibold text-gray-700 bg-gray-200 rounded-lg py-1">' + item.quantity + '</span>' +
             '<button type="button" onclick="removeSampleProduct(\'' + id + '\')" class="text-red-400 hover:text-red-600 text-sm font-bold px-1">✕</button>' +
             '</div>';
     }).join('');

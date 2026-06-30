@@ -25,6 +25,8 @@ class UpdateCategoryRequest extends FormRequest
             'description_ar' => ['nullable', 'string', 'max:2000'],
             'commission_rate' => ['nullable', 'numeric', 'between:0,100'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'marketer_sample_quota' => ['nullable', 'integer', 'min:0'],
+            'admin_sample_quota' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
             'is_visible' => ['boolean'],
             'is_featured' => ['boolean'],

@@ -45,6 +45,8 @@ class Category extends Model
         'is_active',
         'is_visible',
         'is_featured',
+        'marketer_sample_quota',
+        'admin_sample_quota',
         'seo_title_ar',
         'seo_title_en',
         'seo_description_ar',
@@ -58,6 +60,8 @@ class Category extends Model
         'is_active' => 'boolean',
         'is_visible' => 'boolean',
         'is_featured' => 'boolean',
+        'marketer_sample_quota' => 'integer',
+        'admin_sample_quota' => 'integer',
     ];
 
     // ── Accessors ────────────────────────────────────────────────────────────

@@ -143,6 +143,33 @@
                     :value="$val('sort_order', '0')"
                     min="0"
                 />
+
+                {{-- Sample Quotas --}}
+                <div class="border-t border-gray-100 pt-5 space-y-4">
+                    <h4 class="text-sm font-semibold text-gray-700">Sample Quotas</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <x-form.input
+                                name="marketer_sample_quota"
+                                label="Marketer Sample Quota"
+                                type="number"
+                                :value="$val('marketer_sample_quota', '0')"
+                                min="0"
+                            />
+                            <p class="mt-1 text-xs text-gray-500">Maximum samples a marketer may request per campaign targeting this category.</p>
+                        </div>
+                        <div>
+                            <x-form.input
+                                name="admin_sample_quota"
+                                label="Admin Sample Quota"
+                                type="number"
+                                :value="$val('admin_sample_quota', '0')"
+                                min="0"
+                            />
+                            <p class="mt-1 text-xs text-gray-500">Additional mandatory samples automatically added to every approved request in this category — hidden from the marketer, included in the vendor's total fulfillment count.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- TAB: Attributes --}}
