@@ -37,6 +37,9 @@ class TravelPackage extends Model
         'approved_by_admin_id',
         'approved_at',
         'rejection_reason',
+        'contract_file_path',
+        'contract_file_original_name',
+        'contract_uploaded_at',
     ];
 
     protected static function booted(): void

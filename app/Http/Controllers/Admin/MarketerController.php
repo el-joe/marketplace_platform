@@ -33,6 +33,7 @@ use App\Notifications\Marketer\PayoutProcessed as MarketerPayoutProcessed;
 use App\Notifications\Marketer\SampleDispatched as MarketerSampleDispatched;
 use App\Notifications\Marketer\SampleRequestApproved as MarketerSampleRequestApproved;
 use App\Notifications\Marketer\SampleRequestRejected as MarketerSampleRequestRejected;
+use App\Services\SampleQuotaResolver;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -153,11 +154,11 @@ class MarketerController extends Controller
             ->groupBy('currency')->pluck('total', 'currency');
 
         $stats = [
-            'total_campaigns'    => $marketer->campaigns()->count(),
-            'active_campaigns'   => $marketer->campaigns()->where('status', 'active')->count(),
-            'total_conversions'  => $marketer->conversions()->count(),
+            'total_campaigns' => $marketer->campaigns()->count(),
+            'active_campaigns' => $marketer->campaigns()->where('status', 'active')->count(),
+            'total_conversions' => $marketer->conversions()->count(),
             'pending_by_currency' => $pendingByCurrency,
-            'paid_by_currency'    => $paidByCurrency,
+            'paid_by_currency' => $paidByCurrency,
         ];
 
         return view('admin.marketers.show', [
@@ -338,9 +339,9 @@ class MarketerController extends Controller
         }
         if ($targetType = $request->input('filter_target_type')) {
             $map = [
-                'vendor'     => Vendor::class,
+                'vendor' => Vendor::class,
                 'classified' => ClassifiedListing::class,
-                'travel'     => TravelPackage::class,
+                'travel' => TravelPackage::class,
             ];
             if (isset($map[$targetType])) {
                 $query->where('marketer_campaigns.campaignable_type', $map[$targetType]);
@@ -386,11 +387,47 @@ class MarketerController extends Controller
             return response()->json(['success' => false, 'message' => 'Campaign is not in draft status.'], 422);
         }
 
-        $campaign->update([
-            'status' => 'active',
-            'approved_by_admin_id' => auth()->guard('admin')->id(),
-            'approved_at' => now(),
-        ]);
+        DB::transaction(function () use ($campaign) {
+            $campaign->update([
+                'status' => 'active',
+                'approved_by_admin_id' => auth()->guard('admin')->id(),
+                'approved_at' => now(),
+            ]);
+
+            // Auto-create and approve sample requests grouped by vendor
+            // if ($campaign->samples_required > 0) {
+            $campaign->load('products.vendorListing');
+
+            $byVendor = $campaign->products
+                ->filter(fn($p) => $p->vendorListing?->vendor_id)
+                ->groupBy(fn($p) => $p->vendorListing->vendor_id);
+
+            foreach ($byVendor as $vendorId => $products) {
+                $sampleRequest = MarketerSampleRequest::create([
+                    'marketer_id' => $campaign->marketer_id,
+                    'vendor_id' => $vendorId,
+                    'campaign_id' => $campaign->id,
+                    'status' => 'requested',
+                ]);
+
+                $category = app(SampleQuotaResolver::class)->resolveFromRequest($sampleRequest);
+                foreach ($products as $product) {
+
+                    MarketerSampleItem::create([
+                        'sample_request_id' => $sampleRequest->id,
+                        'vendor_listing_id' => $product->vendorListing->id,
+                        'quantity' => $category->marketer_sample_quota,
+                        'marketer_quantity' => $category->marketer_sample_quota,
+                        'admin_quantity' => 0,
+                        'is_mandatory' => false,
+                        'sample_cost_cents' => 0,
+                    ]);
+                }
+
+                \App\Jobs\MarketerAutoApproveJob::dispatch(null, $sampleRequest->id)->afterCommit();
+            }
+            // }
+        });
 
         $campaign->marketer->notify(new MarketerCampaignApproved($campaign));
 
@@ -423,7 +460,7 @@ class MarketerController extends Controller
 
     public function showCampaign(MarketerCampaign $campaign): View
     {
-        $campaign->load(['marketer', 'products.vendorListing.product', 'campaignable']);
+        $campaign->load(['marketer', 'products.vendorListing.productVariant.product', 'campaignable']);
 
         // For travel campaigns, also eager-load the agency on the already-loaded campaignable
         if ($campaign->campaignable instanceof TravelPackage) {
@@ -589,21 +626,21 @@ class MarketerController extends Controller
 
         foreach ($conversions->groupBy('currency') as $currency => $group) {
             $gross = $group->sum('commission_amount_cents');
-            $tax   = (int) round($gross * ($taxRate / 100));
-            $net   = $gross - $tax;
+            $tax = (int) round($gross * ($taxRate / 100));
+            $net = $gross - $tax;
 
             $payout = MarketerPayout::create([
-                'marketer_id'            => $marketer->id,
-                'period_start'           => $request->period_start,
-                'period_end'             => $request->period_end,
-                'total_conversions'      => $group->count(),
+                'marketer_id' => $marketer->id,
+                'period_start' => $request->period_start,
+                'period_end' => $request->period_end,
+                'total_conversions' => $group->count(),
                 'gross_commission_cents' => $gross,
-                'tax_deduction_cents'    => $tax,
-                'net_amount_cents'       => $net,
-                'currency'               => $currency,
-                'status'                 => 'pending',
-                'bank_name'              => $marketer->bank_name,
-                'bank_iban'              => $marketer->bank_iban,
+                'tax_deduction_cents' => $tax,
+                'net_amount_cents' => $net,
+                'currency' => $currency,
+                'status' => 'pending',
+                'bank_name' => $marketer->bank_name,
+                'bank_iban' => $marketer->bank_iban,
             ]);
 
             $payoutNumbers[] = $payout->payout_number;
@@ -1021,49 +1058,34 @@ class MarketerController extends Controller
         }
 
         $validated = $httpRequest->validate([
-            'items'                    => 'required|array|min:1',
-            'items.*.id'               => 'required|uuid|exists:marketer_sample_items,id',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|uuid|exists:marketer_sample_items,id',
             'items.*.marketer_quantity' => 'required|integer|min:0',
-            'items.*.admin_quantity'    => 'required|integer|min:0',
+            'items.*.admin_quantity' => 'required|integer|min:0',
         ]);
 
         DB::transaction(function () use ($req, $validated) {
-            // Remove any stale mandatory rows from a previous (re-)approval attempt.
-            $req->items()->where('is_mandatory', true)->delete();
-
             foreach ($validated['items'] as $itemData) {
-                // Keep the marketer's row clean — marketer qty only, no admin blending.
-                $item = $req->items()->where('id', $itemData['id'])->where('is_mandatory', false)->first();
-                if (!$item) continue;
+                $item = $req->items()->find($itemData['id']);
+                if (!$item)
+                    continue;
 
                 $mktQty = max(0, (int) $itemData['marketer_quantity']);
                 $admQty = max(0, (int) $itemData['admin_quantity']);
 
+                // marketer_quantity and admin_quantity coexist on the same row.
+                // quantity = combined total visible to the vendor.
                 $item->update([
                     'marketer_quantity' => $mktQty,
-                    'admin_quantity'    => 0,
-                    'quantity'          => $mktQty,
+                    'admin_quantity' => $admQty,
+                    'quantity' => $mktQty + $admQty,
                 ]);
-
-                // Admin qty becomes its own separate mandatory row so vendor totals are clear.
-                if ($admQty > 0) {
-                    MarketerSampleItem::create([
-                        'sample_request_id' => $req->id,
-                        'vendor_listing_id' => $item->vendor_listing_id,
-                        'quantity'          => $admQty,
-                        'marketer_quantity' => 0,
-                        'admin_quantity'    => $admQty,
-                        'is_mandatory'      => true,
-                        'sample_cost_cents' => 0,
-                        'created_at'        => now(),
-                    ]);
-                }
             }
 
             $req->update([
-                'status'            => 'approved',
+                'status' => 'approved',
                 'admin_approved_by' => auth()->guard('admin')->id(),
-                'approved_at'       => now(),
+                'approved_at' => now(),
             ]);
         });
 
@@ -1119,30 +1141,30 @@ class MarketerController extends Controller
         ]);
 
         return response()->json([
-            'id'               => $req->id,
-            'marketer'         => $req->marketer->name,
-            'vendor'           => $req->vendor->store_name,
-            'campaign'         => $req->campaign?->name,
-            'status'           => $req->status,
-            'notes'            => $req->notes,
+            'id' => $req->id,
+            'marketer' => $req->marketer->name,
+            'vendor' => $req->vendor->store_name,
+            'campaign' => $req->campaign?->name,
+            'status' => $req->status,
+            'notes' => $req->notes,
             'rejection_reason' => $req->rejection_reason,
-            'created_at'       => $req->created_at->format('d M Y H:i'),
-            'items'            => $req->items->map(function ($item) {
-                $variant  = $item->vendorListing?->productVariant;
-                $product  = $variant?->product;
+            'created_at' => $req->created_at->format('d M Y H:i'),
+            'items' => $req->items->map(function ($item) {
+                $variant = $item->vendorListing?->productVariant;
+                $product = $variant?->product;
                 $category = $product?->category;
                 return [
-                    'id'                => $item->id,
-                    'product_name'      => $product?->name_en ?? '—',
-                    'variant_name'      => $variant?->variant_name,
-                    'category_id'         => $category?->id,
-                    'category_name'       => $category?->name_en ?? 'Uncategorised',
+                    'id' => $item->id,
+                    'product_name' => $product?->name_en ?? '—',
+                    'variant_name' => $variant?->variant_name,
+                    'category_id' => $category?->id,
+                    'category_name' => $category?->name_en ?? 'Uncategorised',
                     'category_admin_quota' => $category?->admin_sample_quota ?? 0,
-                    'quantity'            => $item->quantity,
-                    'marketer_quantity'   => $item->marketer_quantity,
-                    'admin_quantity'      => $item->admin_quantity,
-                    'is_mandatory'      => $item->is_mandatory,
-                    'cost'              => $item->sample_cost_cents ? number_format($item->sample_cost_cents / 100, 2) : null,
+                    'quantity' => $item->quantity,
+                    'marketer_quantity' => $item->marketer_quantity,
+                    'admin_quantity' => $item->admin_quantity,
+                    'is_mandatory' => $item->is_mandatory,
+                    'cost' => $item->sample_cost_cents ? number_format($item->sample_cost_cents / 100, 2) : null,
                 ];
             }),
         ]);

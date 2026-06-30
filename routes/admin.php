@@ -1022,6 +1022,7 @@ Route::middleware('auth.admin')->group(function () {
             Route::post('/{travelPackage}/approve', [\App\Http\Controllers\Admin\TravelPackageController::class, 'approve'])->name('approve');
             Route::post('/{travelPackage}/reject', [\App\Http\Controllers\Admin\TravelPackageController::class, 'reject'])->name('reject');
             Route::post('/{travelPackage}/expire', [\App\Http\Controllers\Admin\TravelPackageController::class, 'expire'])->name('expire');
+            Route::get('/{travelPackage}/contract', [\App\Http\Controllers\Admin\TravelPackageController::class, 'downloadContract'])->name('contract.download');
         });
 
         Route::prefix('bookings')->name('bookings.')->group(function () {

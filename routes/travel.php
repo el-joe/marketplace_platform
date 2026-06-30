@@ -48,6 +48,7 @@ Route::name('travel-agency.')
                 Route::put('/{package}', [PackageController::class, 'update'])->name('update');
                 Route::post('/{package}/submit', [PackageController::class, 'submitForReview'])->name('submit');
                 Route::delete('/{package}/media/{media}', [PackageController::class, 'destroyMedia'])->name('media.destroy');
+                Route::get('/{package}/contract', [PackageController::class, 'downloadContract'])->name('contract.download');
             });
 
             // Bookings (read + status updates — agency confirms/cancels)

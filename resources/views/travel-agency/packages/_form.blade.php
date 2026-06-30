@@ -9,6 +9,43 @@
 </div>
 @endif
 
+{{-- Contract File --}}
+<div class="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+    <div class="flex items-center gap-2">
+        <h3 class="font-bold text-gray-800">عقد الباقة</h3>
+        <span class="text-red-500 text-sm font-medium">*</span>
+    </div>
+
+    @if($pkg?->contract_file_path)
+    <div class="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm">
+        <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+        </svg>
+        <div class="flex-1 min-w-0">
+            <p class="text-gray-700">العقد الحالي: <span class="font-medium">{{ $pkg->contract_file_original_name }}</span></p>
+            @if($pkg->contract_uploaded_at)
+            <p class="text-xs text-gray-400 mt-0.5">رُفع في {{ $pkg->contract_uploaded_at->format('d M Y H:i') }}</p>
+            @endif
+        </div>
+        <a href="{{ route('travel-agency.packages.contract.download', $pkg) }}"
+           class="text-blue-600 hover:text-blue-800 font-medium shrink-0">عرض</a>
+    </div>
+    <p class="text-xs text-gray-400">ارفع ملفاً جديداً فقط إذا كنت تريد استبدال العقد الحالي.</p>
+    @endif
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Package Contract (PDF){{ $pkg?->contract_file_path ? '' : ' *' }}
+        </label>
+        <input type="file" name="contract_file" accept="application/pdf"
+               id="contract-file-input"
+               {{ !$pkg?->contract_file_path ? 'required' : '' }}
+               class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
+        <p class="mt-1 text-xs text-gray-400">PDF فقط — الحد الأقصى 10MB</p>
+        @error('contract_file') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+    </div>
+</div>
+
 {{-- Title (bilingual) --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
     <h3 class="font-bold text-gray-800">عنوان الباقة</h3>

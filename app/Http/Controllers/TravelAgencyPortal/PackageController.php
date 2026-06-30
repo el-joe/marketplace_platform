@@ -76,6 +76,7 @@ class PackageController extends Controller
             'inclusions.*'                  => ['string'],
             'media'                         => ['nullable', 'array', 'max:10'],
             'media.*'                       => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'contract_file'                 => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ]);
 
         $package = TravelPackage::create([
@@ -84,6 +85,7 @@ class PackageController extends Controller
             'status' => 'draft',
         ]);
 
+        $this->storeContractFile($request, $package);
         $this->handleMediaUploads($request, $package);
 
         return redirect()->route('travel-agency.packages.show', $package)
@@ -136,9 +138,18 @@ class PackageController extends Controller
             'inclusions.*'                  => ['string'],
             'media'                         => ['nullable', 'array', 'max:10'],
             'media.*'                       => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'contract_file'                 => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
         ]);
 
         $package->update($data);
+
+        if ($request->hasFile('contract_file')) {
+            if ($package->contract_file_path) {
+                Storage::disk('local')->delete($package->contract_file_path);
+            }
+            $this->storeContractFile($request, $package);
+        }
+
         $this->handleMediaUploads($request, $package);
 
         return redirect()->route('travel-agency.packages.show', $package)
@@ -184,7 +195,33 @@ class PackageController extends Controller
         return back()->with('success', 'Media removed.');
     }
 
+    // ── Download contract ─────────────────────────────────────────────────────
+
+    public function downloadContract(TravelPackage $package): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $this->authorise($package);
+
+        abort_unless($package->contract_file_path && Storage::disk('local')->exists($package->contract_file_path), 404);
+
+        return Storage::disk('local')->download(
+            $package->contract_file_path,
+            $package->contract_file_original_name ?? 'contract.pdf'
+        );
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private function storeContractFile(Request $request, TravelPackage $package): void
+    {
+        $file = $request->file('contract_file');
+        $path = $file->store("travel-packages/{$package->id}/contracts", 'local');
+
+        $package->update([
+            'contract_file_path'          => $path,
+            'contract_file_original_name' => $file->getClientOriginalName(),
+            'contract_uploaded_at'        => now(),
+        ]);
+    }
 
     private function handleMediaUploads(Request $request, TravelPackage $package): void
     {

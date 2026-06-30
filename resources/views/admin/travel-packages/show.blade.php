@@ -193,6 +193,35 @@
         </x-card>
     </div>
 
+    {{-- ─── Contract File ───────────────────────────────────────────────────────────── --}}
+    <x-card>
+        <h3 class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-3">Package Contract</h3>
+        @if($travelPackage->contract_file_path)
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+                <svg class="w-8 h-8 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ $travelPackage->contract_file_original_name }}</p>
+                    @if($travelPackage->contract_uploaded_at)
+                    <p class="text-xs text-gray-400 mt-0.5">Uploaded {{ $travelPackage->contract_uploaded_at->format('d M Y H:i') }}</p>
+                    @endif
+                </div>
+            </div>
+            <a href="{{ route('admin.travel.packages.contract.download', $travelPackage->id) }}"
+               class="btn btn-secondary btn-sm shrink-0">Download PDF</a>
+        </div>
+        @else
+        <p class="text-sm text-amber-600 flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            No contract file uploaded (grandfathered package).
+        </p>
+        @endif
+    </x-card>
+
     {{-- ─── Media Gallery ─────────────────────────────────────────────────────────── --}}
     @if($travelPackage->media->count())
     <x-card>

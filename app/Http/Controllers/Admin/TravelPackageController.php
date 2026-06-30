@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\TravelCountry;
 use App\Models\TravelPackage;
+use Illuminate\Support\Facades\Storage;
 use App\Notifications\TravelAgency\PackageApproved;
 use App\Notifications\TravelAgency\PackageRejected;
 use App\Traits\HasDataTable;
@@ -244,5 +245,23 @@ class TravelPackageController extends Controller
         $travelPackage->update(['status' => 'expired']);
 
         return response()->json(['message' => 'Package marked as expired.']);
+    }
+
+    // ── Download contract ─────────────────────────────────────────────────────
+
+    public function downloadContract(TravelPackage $travelPackage): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('travel.view'), 403);
+
+        abort_unless(
+            $travelPackage->contract_file_path && Storage::disk('local')->exists($travelPackage->contract_file_path),
+            404
+        );
+
+        return Storage::disk('local')->download(
+            $travelPackage->contract_file_path,
+            $travelPackage->contract_file_original_name ?? 'contract.pdf'
+        );
     }
 }

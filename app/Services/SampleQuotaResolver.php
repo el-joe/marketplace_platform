@@ -22,7 +22,7 @@ class SampleQuotaResolver
 
     public function resolveFromRequest(MarketerSampleRequest $req): ?Category
     {
-        $firstListingId = $req->items()->where('is_mandatory', false)->value('vendor_listing_id');
+        $firstListingId = $req->items()->value('vendor_listing_id');
         if (!$firstListingId) {
             return null;
         }
