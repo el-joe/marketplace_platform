@@ -28,12 +28,12 @@ class BlogPostController extends Controller
     {
         $stats = [
             'published' => BlogPost::where('status', 'published')->count(),
-            'draft'     => BlogPost::where('status', 'draft')->count(),
+            'draft' => BlogPost::where('status', 'draft')->count(),
             'scheduled' => BlogPost::where('status', 'scheduled')->count(),
-            'archived'  => BlogPost::where('status', 'archived')->count(),
+            'archived' => BlogPost::where('status', 'archived')->count(),
             'views_month' => BlogPost::whereMonth('updated_at', now()->month)
-                                ->whereYear('updated_at', now()->year)
-                                ->sum('views_count'),
+                ->whereYear('updated_at', now()->year)
+                ->sum('views_count'),
         ];
 
         $categories = BlogCategory::whereNull('parent_id')
@@ -50,10 +50,10 @@ class BlogPostController extends Controller
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
                 ['label' => 'Blog Posts'],
             ],
-            'stats'      => $stats,
+            'stats' => $stats,
             'categories' => $categories,
-            'countries'  => $countries,
-            'authors'    => $authors,
+            'countries' => $countries,
+            'authors' => $authors,
         ]);
     }
 
@@ -69,12 +69,12 @@ class BlogPostController extends Controller
             ->withoutTrashed();
 
         $query = $this->applyFilters($query, $request, [
-            'status'           => fn($q, $v) => $q->where('blog_posts.status', $v),
+            'status' => fn($q, $v) => $q->where('blog_posts.status', $v),
             'blog_category_id' => fn($q, $v) => $q->where('blog_posts.blog_category_id', $v),
-            'country_id'       => fn($q, $v) => $q->where('blog_posts.country_id', $v),
-            'author_admin_id'  => fn($q, $v) => $q->where('blog_posts.author_admin_id', $v),
-            'date_from'        => fn($q, $v) => $q->whereDate('blog_posts.published_at', '>=', $v),
-            'date_to'          => fn($q, $v) => $q->whereDate('blog_posts.published_at', '<=', $v),
+            'country_id' => fn($q, $v) => $q->where('blog_posts.country_id', $v),
+            'author_admin_id' => fn($q, $v) => $q->where('blog_posts.author_admin_id', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('blog_posts.published_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('blog_posts.published_at', '<=', $v),
         ]);
 
         $columns = [
@@ -93,10 +93,10 @@ class BlogPostController extends Controller
         }
 
         $statusColors = [
-            'draft'     => ['bg' => 'bg-gray-100',   'text' => 'text-gray-600',   'label' => 'Draft'],
-            'scheduled' => ['bg' => 'bg-blue-100',   'text' => 'text-blue-700',   'label' => 'Scheduled'],
-            'published' => ['bg' => 'bg-emerald-100','text' => 'text-emerald-700','label' => 'Published'],
-            'archived'  => ['bg' => 'bg-amber-100',  'text' => 'text-amber-700',  'label' => 'Archived'],
+            'draft' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'label' => 'Draft'],
+            'scheduled' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-700', 'label' => 'Scheduled'],
+            'published' => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'label' => 'Published'],
+            'archived' => ['bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'label' => 'Archived'],
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function (BlogPost $row) use ($statusColors) {
@@ -131,10 +131,10 @@ class BlogPostController extends Controller
                 ? '<span class="inline-block text-amber-400" title="Featured">★</span> '
                 : '';
 
-            $editUrl    = route('admin.blog.posts.edit', $row->id);
+            $editUrl = route('admin.blog.posts.edit', $row->id);
             $archiveUrl = route('admin.blog.posts.archive', $row->id);
             $featureUrl = route('admin.blog.posts.feature', $row->id);
-            $deleteUrl  = route('admin.blog.posts.destroy', $row->id);
+            $deleteUrl = route('admin.blog.posts.destroy', $row->id);
 
             $featureLabel = $row->is_featured ? 'Unfeature' : 'Feature';
             $featureClass = $row->is_featured ? 'text-amber-500' : 'text-gray-500';
@@ -149,14 +149,14 @@ class BlogPostController extends Controller
                 . '</div></div>';
 
             return [
-                'image'      => $imgHtml,
-                'title'      => $titleHtml,
-                'author'     => e($row->author?->name ?? '—'),
-                'country'    => $countryHtml,
-                'status'     => $statusBadge,
-                'date'       => $dateHtml,
-                'views'      => number_format($row->views_count),
-                'actions'    => $actionsHtml,
+                'image' => $imgHtml,
+                'title' => $titleHtml,
+                'author' => e($row->author?->name ?? '—'),
+                'country' => $countryHtml,
+                'status' => $statusBadge,
+                'date' => $dateHtml,
+                'views' => number_format($row->views_count),
+                'actions' => $actionsHtml,
             ];
         });
     }
@@ -184,7 +184,7 @@ class BlogPostController extends Controller
         $data = $this->applyStatusLogic($request, $data);
 
         $featuredImagePath = $this->handleImageUpload($request, 'featured_image');
-        $ogImagePath       = $this->handleImageUpload($request, 'og_image');
+        $ogImagePath = $this->handleImageUpload($request, 'og_image');
 
         if ($featuredImagePath) {
             $data['featured_image_path'] = $featuredImagePath;
@@ -232,7 +232,7 @@ class BlogPostController extends Controller
         $data = $this->applyStatusLogic($request, $data, $post);
 
         $featuredImagePath = $this->handleImageUpload($request, 'featured_image');
-        $ogImagePath       = $this->handleImageUpload($request, 'og_image');
+        $ogImagePath = $this->handleImageUpload($request, 'og_image');
 
         if ($featuredImagePath) {
             $data['featured_image_path'] = $featuredImagePath;
@@ -268,7 +268,7 @@ class BlogPostController extends Controller
     public function archive(BlogPost $post): JsonResponse
     {
         $post->update([
-            'status'      => 'archived',
+            'status' => 'archived',
             'archived_at' => now(),
         ]);
 
@@ -335,59 +335,59 @@ class BlogPostController extends Controller
                 ['label' => 'New Post'],
             ],
             'categories' => $categories,
-            'countries'  => $countries,
-            'authors'    => $authors,
+            'countries' => $countries,
+            'authors' => $authors,
         ];
     }
 
     private function validatePost(Request $request, ?string $excludePostId = null): array
     {
         return $request->validate([
-            'blog_category_id'       => 'required|string|exists:blog_categories,id',
-            'country_id'             => 'nullable|string|exists:countries,id',
-            'author_admin_id'        => 'nullable|string|exists:admins,id',
-            'title_en'               => 'required|string|max:255',
-            'title_ar'               => 'required|string|max:255',
-            'slug'                   => 'nullable|string|max:255|unique:blog_posts,slug,' . ($excludePostId ?? 'NULL'),
-            'excerpt_en'             => 'nullable|string|max:500',
-            'excerpt_ar'             => 'nullable|string|max:500',
-            'body_en'                => 'required|string',
-            'body_ar'                => 'required|string',
-            'featured_image'         => 'nullable|image|max:5120',
-            'featured_image_alt_en'  => 'nullable|string|max:255',
-            'featured_image_alt_ar'  => 'nullable|string|max:255',
-            'og_image'               => 'nullable|image|max:5120',
-            'seo_title_en'           => 'nullable|string|max:200',
-            'seo_title_ar'           => 'nullable|string|max:200',
-            'seo_description_en'     => 'nullable|string|max:500',
-            'seo_description_ar'     => 'nullable|string|max:500',
-            'allow_comments'         => 'nullable|boolean',
-            'scheduled_for'          => 'nullable|date',
-            'tags'                   => 'nullable|string',
+            'blog_category_id' => 'required|string|exists:blog_categories,id',
+            'country_id' => 'nullable|string|exists:countries,id',
+            'author_admin_id' => 'nullable|string|exists:admins,id',
+            'title_en' => 'required|string|max:255',
+            'title_ar' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:blog_posts,slug,' . ($excludePostId ?? 'NULL'),
+            'excerpt_en' => 'nullable|string|max:500',
+            'excerpt_ar' => 'nullable|string|max:500',
+            'body_en' => 'required|string',
+            'body_ar' => 'required|string',
+            'featured_image' => 'nullable|image|max:5120',
+            'featured_image_alt_en' => 'nullable|string|max:255',
+            'featured_image_alt_ar' => 'nullable|string|max:255',
+            'og_image' => 'nullable|image|max:5120',
+            'seo_title_en' => 'nullable|string|max:200',
+            'seo_title_ar' => 'nullable|string|max:200',
+            'seo_description_en' => 'nullable|string|max:500',
+            'seo_description_ar' => 'nullable|string|max:500',
+            'allow_comments' => 'nullable|boolean',
+            'scheduled_for' => 'nullable|date',
+            'tags' => 'nullable|string',
         ]);
     }
 
     private function buildPostData(Request $request, array $validated, string $slug): array
     {
         return [
-            'blog_category_id'       => $validated['blog_category_id'],
-            'country_id'             => $validated['country_id'] ?? null,
-            'author_admin_id'        => $validated['author_admin_id'] ?? auth('admin')->id(),
-            'title_en'               => $validated['title_en'],
-            'title_ar'               => $validated['title_ar'],
-            'slug'                   => $slug,
-            'excerpt_en'             => $validated['excerpt_en'] ?? null,
-            'excerpt_ar'             => $validated['excerpt_ar'] ?? null,
-            'body_en'                => $validated['body_en'],
-            'body_ar'                => $validated['body_ar'],
-            'featured_image_alt_en'  => $validated['featured_image_alt_en'] ?? null,
-            'featured_image_alt_ar'  => $validated['featured_image_alt_ar'] ?? null,
-            'seo_title_en'           => $validated['seo_title_en'] ?? null,
-            'seo_title_ar'           => $validated['seo_title_ar'] ?? null,
-            'seo_description_en'     => $validated['seo_description_en'] ?? null,
-            'seo_description_ar'     => $validated['seo_description_ar'] ?? null,
-            'allow_comments'         => $request->boolean('allow_comments', true),
-            'scheduled_for'          => $validated['scheduled_for'] ?? null,
+            'blog_category_id' => $validated['blog_category_id'],
+            'country_id' => $validated['country_id'] ?? null,
+            'author_admin_id' => $validated['author_admin_id'] ?? auth('admin')->id(),
+            'title_en' => $validated['title_en'],
+            'title_ar' => $validated['title_ar'],
+            'slug' => $slug,
+            'excerpt_en' => $validated['excerpt_en'] ?? null,
+            'excerpt_ar' => $validated['excerpt_ar'] ?? null,
+            'body_en' => $validated['body_en'],
+            'body_ar' => $validated['body_ar'],
+            'featured_image_alt_en' => $validated['featured_image_alt_en'] ?? null,
+            'featured_image_alt_ar' => $validated['featured_image_alt_ar'] ?? null,
+            'seo_title_en' => $validated['seo_title_en'] ?? null,
+            'seo_title_ar' => $validated['seo_title_ar'] ?? null,
+            'seo_description_en' => $validated['seo_description_en'] ?? null,
+            'seo_description_ar' => $validated['seo_description_ar'] ?? null,
+            'allow_comments' => $request->boolean('allow_comments', true),
+            'scheduled_for' => $validated['scheduled_for'] ?? null,
         ];
     }
 
@@ -396,14 +396,14 @@ class BlogPostController extends Controller
         $action = $request->input('action', 'draft');
 
         if ($action === 'publish') {
-            $data['status']                = 'published';
-            $data['published_at']          = now();
+            $data['status'] = 'published';
+            $data['published_at'] = now();
             $data['published_by_admin_id'] = auth('admin')->id();
-            $data['archived_at']           = null;
+            $data['archived_at'] = null;
         } elseif ($action === 'schedule' && !empty($data['scheduled_for'])) {
             $data['status'] = 'scheduled';
         } elseif ($action === 'archive') {
-            $data['status']      = 'archived';
+            $data['status'] = 'archived';
             $data['archived_at'] = now();
         } else {
             $data['status'] = 'draft';

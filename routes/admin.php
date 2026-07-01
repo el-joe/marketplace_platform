@@ -139,12 +139,12 @@ Route::middleware('auth.admin')->group(function () {
     Route::prefix('notifications')->name('notifications.')
         ->controller(NotificationController::class)
         ->group(function () {
-            Route::get('/',              'index')->name('index');
-            Route::get('/recent',        'recent')->name('recent');
-            Route::get('/unread-count',  'unreadCount')->name('unread-count');
-            Route::get('/unread',        'unread')->name('unread');
-            Route::post('/mark-all-read','markAllRead')->name('mark-all-read');
-            Route::post('/{id}/read',    'markRead')->name('mark-read');
+            Route::get('/', 'index')->name('index');
+            Route::get('/recent', 'recent')->name('recent');
+            Route::get('/unread-count', 'unreadCount')->name('unread-count');
+            Route::get('/unread', 'unread')->name('unread');
+            Route::post('/mark-all-read', 'markAllRead')->name('mark-all-read');
+            Route::post('/{id}/read', 'markRead')->name('mark-read');
         });
 
 
@@ -228,8 +228,8 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{id}/flag-fraud', [OrderController::class, 'flagFraud'])->name('flag-fraud');
     });
     Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->middleware('admin.permission:orders.view')->name('sub-orders.next-statuses');
-    Route::get('/sub-orders/{subOrder}/shipping-methods', [OrderController::class, 'availableShippingMethods'])->middleware('admin.permission:orders.view')->name('sub-orders.shipping-methods');
-    Route::post('/sub-orders/{subOrder}/assign-shipping', [OrderController::class, 'assignShippingMethod'])->middleware('admin.permission:orders.view')->name('sub-orders.assign-shipping');
+    Route::get('/sub-orders/{subOrder}/shipping-methods', [OrderController::class, 'availableShippingMethods'])->middleware('admin.permission:orders.view')->name('orders.sub-orders.shipping-methods');
+    Route::post('/sub-orders/{subOrder}/assign-shipping', [OrderController::class, 'assignShippingMethod'])->middleware('admin.permission:orders.view')->name('orders.sub-orders.assign-shipping');
     // ─── Payouts ──────────────────────────────────────────────────────────────────
 
     Route::prefix('payouts')->name('payouts.')->middleware('admin.permission:payouts.view')->group(function () {

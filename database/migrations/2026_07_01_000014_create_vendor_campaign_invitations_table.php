@@ -33,9 +33,9 @@ return new class extends Migration
                 ->comment('The marketer_campaigns row auto-created when this invitation is accepted');
             $table->timestamps();
 
-            $table->unique(['vendor_campaign_offer_id', 'marketer_id']);
-            $table->index(['marketer_id', 'status']);
-            $table->index(['vendor_campaign_offer_id', 'status']);
+            $table->unique(['vendor_campaign_offer_id', 'marketer_id'],'v_c_invitations_unique');
+            $table->index(['marketer_id', 'status'],'m_c_invitations_status_index');
+            $table->index(['vendor_campaign_offer_id', 'status'],'v_c_invitations_status_index');
         });
     }
 

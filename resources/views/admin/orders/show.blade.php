@@ -203,12 +203,14 @@
                                                         @php
                                                             $fixedCents = $item->commission_fixed_cents ?? 0;
                                                         @endphp
-                                                        <span class="font-mono">{{ number_format((float) $item->commission_rate_pct, 2) }}%</span>
+                                                        <span
+                                                            class="font-mono">{{ number_format((float) $item->commission_rate_pct, 2) }}%</span>
                                                         @if($fixedCents > 0)
                                                             <span class="text-gray-400"> + {{ $fmt($fixedCents) }}</span>
                                                         @endif
                                                         <br>
-                                                        <span class="text-danger-600 font-medium">= {{ $fmt($item->commission_amount) }}</span>
+                                                        <span class="text-danger-600 font-medium">=
+                                                            {{ $fmt($item->commission_amount) }}</span>
                                                     </td>
                                                     <td class="px-4 py-3 text-center">
                                                         <x-badge color="gray" class="text-xs">
@@ -308,7 +310,8 @@
                             data-sub-order-id="{{ $subOrder->id }}"
                             data-shipping-url="{{ route('admin.orders.sub-orders.shipping-methods', $subOrder->id) }}"
                             data-assign-url="{{ route('admin.orders.sub-orders.assign-shipping', $subOrder->id) }}"
-                            @if(in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) disabled @endif>
+                            @if(in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) disabled
+                            @endif>
                             {{ $subOrder->shippingMethod ? 'Reassign' : 'Assign Shipping Method' }}
                         </button>
                     </div>
@@ -534,7 +537,7 @@
                                         Remitted —
                                         @if($so->codSettlement)
                                             <a href="{{ route('admin.cod-settlements.show', $so->codSettlement) }}"
-                                               class="underline hover:text-green-900">
+                                                class="underline hover:text-green-900">
                                                 Settlement #{{ $so->cod_settlement_id }}
                                             </a>
                                         @endif
@@ -694,16 +697,16 @@
     {{-- 1. Update Order Status --}}
     @php
         $orderStatusTransitions = [
-            'placed'              => ['confirmed', 'cancelled', 'disputed'],
-            'confirmed'           => ['partially_shipped', 'shipped', 'cancelled', 'disputed'],
-            'partially_shipped'   => ['shipped', 'partially_delivered', 'cancelled', 'disputed'],
-            'shipped'             => ['partially_delivered', 'delivered', 'disputed'],
+            'placed' => ['confirmed', 'cancelled', 'disputed'],
+            'confirmed' => ['partially_shipped', 'shipped', 'cancelled', 'disputed'],
+            'partially_shipped' => ['shipped', 'partially_delivered', 'cancelled', 'disputed'],
+            'shipped' => ['partially_delivered', 'delivered', 'disputed'],
             'partially_delivered' => ['delivered', 'cancelled', 'disputed'],
-            'delivered'           => ['completed', 'refunded', 'disputed'],
-            'completed'           => ['refunded', 'disputed'],
-            'cancelled'           => ['refunded'],
-            'refunded'            => [],
-            'disputed'            => ['delivered', 'cancelled', 'refunded', 'completed'],
+            'delivered' => ['completed', 'refunded', 'disputed'],
+            'completed' => ['refunded', 'disputed'],
+            'cancelled' => ['refunded'],
+            'refunded' => [],
+            'disputed' => ['delivered', 'cancelled', 'refunded', 'completed'],
         ];
         $allowedNextStatuses = $orderStatusTransitions[$order->status] ?? [];
     @endphp
@@ -718,7 +721,8 @@
                     </x-badge>
                 </div>
                 <div>
-                    <label class="form-label" for="order-new-status">New Status <span class="text-danger-500">*</span></label>
+                    <label class="form-label" for="order-new-status">New Status <span
+                            class="text-danger-500">*</span></label>
                     @if(empty($allowedNextStatuses))
                         <p class="text-sm text-gray-400 italic">No further status transitions are available for this order.</p>
                     @else
@@ -738,7 +742,8 @@
             </div>
             <x-slot:footer>
                 <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-                <button type="submit" form="update-status-form" class="btn btn-primary" @if(empty($allowedNextStatuses)) disabled @endif>
+                <button type="submit" form="update-status-form" class="btn btn-primary" @if(empty($allowedNextStatuses))
+                disabled @endif>
                     Update Status
                 </button>
             </x-slot:footer>
@@ -917,7 +922,8 @@
 
     {{-- 6. Assign Shipping Method --}}
     <x-modal id="shipping-assign-modal" title="Assign Shipping Method" size="lg">
-        <div id="shipping-assign-zone-warning" class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 mb-4">
+        <div id="shipping-assign-zone-warning"
+            class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 mb-4">
             Cannot determine shipping zone — the delivery address does not contain a resolvable city reference.
             Please assign the shipping method manually below.
         </div>

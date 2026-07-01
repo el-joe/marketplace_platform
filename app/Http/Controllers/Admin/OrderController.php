@@ -357,6 +357,15 @@ class OrderController extends Controller
         $cityId = $snapshot['city_id'] ?? null;
 
         if (!$cityId) {
+            $cityName = $snapshot['city'] ?? $snapshot['city_en'] ?? null;
+            if ($cityName) {
+                $city = City::where('name_en', $cityName)
+                    ->first();
+                $cityId = $city?->id;
+            }
+        }
+
+        if (!$cityId) {
             return response()->json([
                 'destination_zone' => null,
                 'methods' => ShippingMethod::where('is_active', true)
@@ -379,11 +388,13 @@ class OrderController extends Controller
         $methods = ShippingMethod::where('is_active', true)
             ->whereHas('shippingRates', fn($q) =>
                 $q->where('destination_zone_id', $destinationZoneId)
-                  ->where('is_active', true))
-            ->with(['shippingRates' => fn($q) =>
-                $q->where('destination_zone_id', $destinationZoneId)
-                  ->where('is_active', true)
-                  ->with('carrier')])
+                    ->where('is_active', true))
+            ->with([
+                'shippingRates' => fn($q) =>
+                    $q->where('destination_zone_id', $destinationZoneId)
+                        ->where('is_active', true)
+                        ->with('carrier')
+            ])
             ->get()
             ->map(fn($method) => [
                 'id' => $method->id,

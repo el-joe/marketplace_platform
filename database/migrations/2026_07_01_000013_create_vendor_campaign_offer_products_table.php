@@ -19,7 +19,7 @@ return new class extends Migration
                 ->comment('Per-listing commission override — mirrors marketer_campaign_products.commission_override');
             $table->timestamps();
 
-            $table->unique(['vendor_campaign_offer_id', 'vendor_listing_id']);
+            $table->unique(['vendor_campaign_offer_id', 'vendor_listing_id'],'v_c_o_products_unique');
         });
     }
 

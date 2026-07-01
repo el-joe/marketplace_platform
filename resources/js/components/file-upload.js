@@ -87,6 +87,7 @@ function initFilePond(input) {
 
     const pond = FilePond.create(input, {
         name,
+        storeAsFile: true, // Add this line to force standard form submission behavior
         allowMultiple: input.hasAttribute('multiple'),
         maxFiles,
         maxFileSize: maxSizeBytes,
