@@ -238,6 +238,7 @@ class PayoutController extends Controller
             $payout->update([
                 'gross_sales'          => $calc['gross_sales'],
                 'commission'           => $calc['commission'],
+                'gateway_fee_deducted' => $calc['gateway_fee_deducted'],
                 'refunds_deducted'     => $calc['refunds_deducted'],
                 'chargebacks_deducted' => $calc['chargebacks_deducted'],
                 'storage_fees'         => $calc['storage_fees'],

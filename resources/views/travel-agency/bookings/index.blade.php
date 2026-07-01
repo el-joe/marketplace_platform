@@ -6,6 +6,10 @@
 <div class="space-y-5">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-black text-gray-900">الحجوزات</h1>
+        <a href="{{ route('travel-agency.packages.index') }}"
+           class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500">
+            + حجز جديد
+        </a>
     </div>
 
     {{-- Status filter tabs --}}

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Portal\BlogController;
 use App\Http\Controllers\Portal\LandingController;
 use App\Http\Controllers\Portal\RegistrationController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,13 @@ Route::get('/register/document-requirements', [RegistrationController::class, 'd
 Route::post('/register/upload', [RegistrationController::class, 'uploadDocument'])->name('register.upload');
 Route::delete('/register/document', [RegistrationController::class, 'removeDocument'])->name('register.document.remove');
 Route::post('/register/complete', [RegistrationController::class, 'complete'])->name('register.complete');
+
+// Blog
+Route::prefix('blog')->name('blog.')->group(function () {
+    Route::get('/', [BlogController::class, 'index'])->name('index');
+    Route::post('/posts/{post}/increment-views', [BlogController::class, 'incrementViews'])->name('posts.increment-views');
+    Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
+});
 
 // Language switcher
 Route::get('/language/{locale}', function (string $locale) {

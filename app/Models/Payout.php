@@ -26,6 +26,7 @@ class Payout extends Model
         'period_end',
         'gross_sales',
         'commission',
+        'gateway_fee_deducted',
         'refunds_deducted',
         'chargebacks_deducted',
         'storage_fees',

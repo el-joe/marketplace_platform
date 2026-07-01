@@ -93,11 +93,14 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     @foreach($listings as $listing)
                     @php
-                        $variant = $listing->productVariant;
-                        $product = $variant?->product;
-                        $image   = $product?->images->first();
+                        $variant   = $listing->productVariant;
+                        $product   = $variant?->product;
+                        $image     = $product?->images->first();
+                        $locale    = app()->getLocale();
+                        $cardMethod = $shippingMethods[$listing->fulfillment_type] ?? null;
                     @endphp
-                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <a href="{{ route('nawy.show', [$countryModel->slug ?? $countryModel->iso_code_2, $listing]) }}"
+                       class="block bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                         {{-- Product image --}}
                         <div class="relative aspect-square bg-gray-50">
                             @if($image)
@@ -113,24 +116,21 @@
                                 </div>
                             @endif
 
-                            {{-- Fulfillment badge --}}
-                            <div class="absolute top-2 start-2">
-                                @if($listing->fulfillment_type === 'express')
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                                        🚀 إكسبريس
+                            {{-- Shipping method badge --}}
+                            @if($cardMethod)
+                                <div class="absolute top-2 start-2">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold"
+                                        style="background-color: {{ $cardMethod->badge_color_hex }}; color: {{ $cardMethod->badge_text_color_hex }}">
+                                        {{ $locale === 'ar' ? $cardMethod->badge_label_ar : $cardMethod->badge_label_en }}
                                     </span>
-                                @elseif($listing->fulfillment_type === 'global')
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                                        🌍 عالمي
-                                    </span>
-                                @endif
-                            </div>
+                                </div>
+                            @endif
 
-                            {{-- COD badge for global items --}}
+                            {{-- COD badge --}}
                             @if($listing->payment_options === 'cod_only')
                                 <div class="absolute bottom-2 end-2">
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                        دفع عند الاستلام
+                                        {{ $locale === 'ar' ? 'دفع عند الاستلام' : 'Cash on Delivery' }}
                                     </span>
                                 </div>
                             @endif
@@ -139,7 +139,7 @@
                         {{-- Product info --}}
                         <div class="p-3 space-y-1">
                             <p class="text-xs text-gray-500 line-clamp-1">
-                                {{ app()->getLocale() === 'ar'
+                                {{ $locale === 'ar'
                                     ? ($product?->name_ar ?? $product?->name_en)
                                     : ($product?->name_en ?? $product?->name_ar) }}
                             </p>
@@ -147,8 +147,27 @@
                                 {{ number_format($listing->price_cents / 100, 2) }}
                                 <span class="text-xs font-normal text-gray-500">{{ $listing->currency }}</span>
                             </p>
+                            @if($cardMethod && $cardMethod->is_express_type)
+                                <div class="mt-1">
+                                    <span class="text-xs font-bold"
+                                        style="color: {{ $cardMethod->badge_color_hex }}">
+                                        {{ $locale === 'ar' ? $cardMethod->badge_label_ar : $cardMethod->badge_label_en }}
+                                    </span>
+                                    <span class="text-xs text-gray-600 ms-1">
+                                        @if($cardMethod->max_delivery_days === 0)
+                                            {{ $locale === 'ar' ? 'اليوم' : 'Today' }}
+                                        @elseif($cardMethod->max_delivery_days === 1)
+                                            {{ $locale === 'ar' ? 'غداً' : 'Tomorrow' }}
+                                        @else
+                                            {{ $locale === 'ar'
+                                                ? "خلال {$cardMethod->min_delivery_days}-{$cardMethod->max_delivery_days} أيام"
+                                                : "In {$cardMethod->min_delivery_days}-{$cardMethod->max_delivery_days} days" }}
+                                        @endif
+                                    </span>
+                                </div>
+                            @endif
                         </div>
-                    </div>
+                    </a>
                     @endforeach
                 </div>
 

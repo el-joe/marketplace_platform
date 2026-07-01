@@ -34,6 +34,7 @@ class PayoutCalculationService
      *   period_end: string,
      *   gross_sales: int,
      *   commission: int,
+     *   gateway_fee_deducted: int,
      *   refunds_deducted: int,
      *   chargebacks_deducted: int,
      *   storage_fees: int,
@@ -53,11 +54,17 @@ class PayoutCalculationService
                 $q->whereBetween('sub_orders.delivered_at', [$from->startOfDay(), $to->endOfDay()])
                   ->orWhereBetween('sub_orders.created_at', [$from->startOfDay(), $to->endOfDay()]);
             })
+            ->where(function ($q) {
+                // COD sub_orders are blocked until cash has been remitted by the delivery agent.
+                // Non-COD sub_orders are always eligible (cod_remittance_confirmed backfilled to true).
+                $q->where('sub_orders.cod_remittance_confirmed', true);
+            })
             ->join('orders', 'orders.id', '=', 'sub_orders.order_id')
             ->selectRaw('
                 orders.currency                                        AS currency,
                 COALESCE(SUM(sub_orders.subtotal), 0)            AS gross_sales,
                 COALESCE(SUM(sub_orders.platform_commission), 0) AS commission,
+                COALESCE(SUM(sub_orders.gateway_fee), 0)         AS gateway_fee_total,
                 COALESCE(SUM(sub_orders.vendor_payout), 0)       AS vendor_payout_total
             ')
             ->groupBy('orders.currency')
@@ -69,6 +76,7 @@ class PayoutCalculationService
             $currency    = $row->currency;
             $grossSales  = (int) $row->gross_sales;
             $commission  = (int) $row->commission;
+            $gatewayFee  = (int) $row->gateway_fee_total;
 
             // Refunds where the vendor bears the cost — filter by matching currency.
             $refundsDeducted = (int) Refund::whereHas('subOrder', fn($q) => $q->where('vendor_id', $vendor->id))
@@ -86,7 +94,7 @@ class PayoutCalculationService
                 ->whereBetween('processed_at', [$from->startOfDay(), $to->endOfDay()])
                 ->sum('amount');
 
-            $netAmount = $grossSales - $commission - $refundsDeducted - $chargebacksDeducted;
+            $netAmount = $grossSales - $commission - $gatewayFee - $refundsDeducted - $chargebacksDeducted;
 
             $results[$currency] = [
                 'vendor_id'            => $vendor->id,
@@ -94,6 +102,7 @@ class PayoutCalculationService
                 'period_end'           => $to->toDateString(),
                 'gross_sales'          => $grossSales,
                 'commission'           => $commission,
+                'gateway_fee_deducted' => $gatewayFee,
                 'refunds_deducted'     => $refundsDeducted,
                 'chargebacks_deducted' => $chargebacksDeducted,
                 'storage_fees'         => 0,

@@ -36,7 +36,34 @@
     </td>
 
     <td class="px-4 py-2 text-right text-gray-600 text-sm">
-        {{ number_format((float) $category->commission_rate, 2) }}%
+        <div class="text-xs space-y-0.5">
+            <div>
+                <span class="text-blue-500 font-medium">FBP</span>
+                {{ number_format((float) $category->commission_fbp_pct, 2) }}%
+                @if($category->commission_fbp_fixed_cents > 0)
+                    + {{ number_format($category->commission_fbp_fixed_cents / 100, 2) }}
+                @endif
+            </div>
+            <div>
+                <span class="text-green-500 font-medium">FBN</span>
+                {{ number_format((float) $category->commission_fbn_pct, 2) }}%
+                @if($category->commission_fbn_fixed_cents > 0)
+                    + {{ number_format($category->commission_fbn_fixed_cents / 100, 2) }}
+                @endif
+            </div>
+        </div>
+    </td>
+
+    <td class="px-4 py-2">
+        @php $dsm = $defaultShippingByCategory[$category->id] ?? null; @endphp
+        @if($dsm)
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold"
+                style="background:{{ $dsm->badge_color_hex }}; color:{{ $dsm->badge_text_color_hex }}">
+                {{ $dsm->badge_label_en ?: $dsm->name }}
+            </span>
+        @else
+            <span class="text-xs text-gray-300">—</span>
+        @endif
     </td>
 
     <td class="px-4 py-2">
@@ -74,6 +101,6 @@
 
 @if($hasChildren)
     @foreach($category->children as $child)
-        @include('admin.categories._tree_row', ['category' => $child, 'depth' => $depth + 1])
+        @include('admin.categories._tree_row', ['category' => $child, 'depth' => $depth + 1, 'defaultShippingByCategory' => $defaultShippingByCategory])
     @endforeach
 @endif

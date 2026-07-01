@@ -9,8 +9,10 @@ use App\Jobs\NotifyOperationsTeamJob;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentEarning;
 use App\Models\DeliveryAssignment;
+use App\Models\Setting;
 use App\Models\ShipmentTrackingEvent;
 use App\Notifications\Carrier\DeliveryFailed as DeliveryFailedNotification;
+use App\Notifications\Vendor\OrderReturnInTransit;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -119,6 +121,9 @@ class AssignmentService
 
     // ── deliver ───────────────────────────────────────────────────────────────
 
+    // Tolerance in cents below which a COD shortfall is silently accepted (rounding, small change).
+    private const COD_DISCREPANCY_TOLERANCE_CENTS = 100;
+
     public function deliver(
         DeliveryAssignment $assignment,
         DeliveryAgent      $agent,
@@ -127,6 +132,7 @@ class AssignmentService
         float              $latitude,
         float              $longitude,
         ?int               $codAmountCollectedCents,
+        ?string            $discrepancyNote = null,
     ): void {
         if ($assignment->status !== DeliveryAssignment::STATUS_PICKED_UP) {
             throw new \DomainException('Assignment is not in picked_up state.');
@@ -152,9 +158,23 @@ class AssignmentService
 
         $proofFileId = $this->proofService->store($assignment, $proofImage);
 
+        // Detect COD shortfall before entering the transaction.
+        $codDiscrepancyCents = 0;
+        $hasDiscrepancy      = false;
+        if ($isCod && $codAmountCollectedCents !== null) {
+            $expectedCents       = (int) $order->total;
+            $codDiscrepancyCents = $expectedCents - $codAmountCollectedCents;
+            $hasDiscrepancy      = $codDiscrepancyCents > self::COD_DISCREPANCY_TOLERANCE_CENTS;
+
+            if ($hasDiscrepancy && empty($discrepancyNote)) {
+                throw new \DomainException('discrepancy_note_required');
+            }
+        }
+
         DB::transaction(function () use (
             $assignment, $agent, $order, $isCod,
-            $latitude, $longitude, $proofFileId, $codAmountCollectedCents
+            $latitude, $longitude, $proofFileId,
+            $codAmountCollectedCents, $discrepancyNote, $hasDiscrepancy
         ) {
             $assignment->update([
                 'status'                      => DeliveryAssignment::STATUS_DELIVERED,
@@ -164,6 +184,7 @@ class AssignmentService
                 'delivery_latitude'           => $latitude,
                 'delivery_longitude'          => $longitude,
                 'cod_amount_collected_cents'  => $isCod ? $codAmountCollectedCents : null,
+                'discrepancy_note'            => ($isCod && $hasDiscrepancy) ? $discrepancyNote : null,
             ]);
 
             if ($assignment->shipment) {
@@ -244,8 +265,10 @@ class AssignmentService
             throw new \DomainException('Assignment cannot be failed in its current state.');
         }
 
+        $isCodRefused = false;
+
         DB::transaction(function () use (
-            $assignment, $failureReason, $failureNotes, $latitude, $longitude
+            $assignment, $failureReason, $failureNotes, $latitude, $longitude, &$isCodRefused
         ) {
             $assignment->update([
                 'status'             => DeliveryAssignment::STATUS_FAILED,
@@ -261,15 +284,31 @@ class AssignmentService
                 ->count();
 
             $assignment->load('subOrder.order');
+            $order        = $assignment->subOrder->order;
             $isCodRefused = $failureReason === 'customer_refused'
-                && $assignment->subOrder->order->payment_method === 'cod';
+                && $order->payment_method === 'cod';
 
             $triggerRto = $isCodRefused || $cumulativeFails >= self::CUMULATIVE_FAIL_LIMIT;
 
             if ($triggerRto) {
                 $this->rtoService->createReturnAssignment($assignment);
             }
+
+            // Customer refused a COD order = implicit cancellation; no cash changed hands.
+            if ($isCodRefused) {
+                $order->update([
+                    'status'       => 'cancelled',
+                    'cancelled_at' => now(),
+                    // payment_status stays 'pending' — nothing was collected.
+                ]);
+
+                $assignment->subOrder->update(['status' => 'cancelled']);
+            }
         });
+
+        if ($isCodRefused) {
+            $this->notifyVendorsOfReturn($assignment);
+        }
 
         NotifyCustomerFailedDeliveryJob::dispatch($assignment->sub_order_id);
         NotifyOperationsTeamJob::dispatch($assignment->id);
@@ -291,6 +330,20 @@ class AssignmentService
 
         if ($supervisors->isNotEmpty()) {
             Notification::send($supervisors, $notification);
+        }
+    }
+
+    private function notifyVendorsOfReturn(DeliveryAssignment $assignment): void
+    {
+        $assignment->loadMissing('subOrder.items.vendor');
+
+        $vendors = $assignment->subOrder->items
+            ->map(fn($item) => $item->vendor)
+            ->filter()
+            ->unique('id');
+
+        if ($vendors->isNotEmpty()) {
+            Notification::send($vendors, new OrderReturnInTransit($assignment->subOrder));
         }
     }
 }

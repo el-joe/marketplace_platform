@@ -4,6 +4,7 @@ use App\Http\Controllers\TravelAgencyPortal\AuthController;
 use App\Http\Controllers\TravelAgencyPortal\BookingController;
 use App\Http\Controllers\TravelAgencyPortal\DashboardController;
 use App\Http\Controllers\TravelAgencyPortal\PackageController;
+use App\Http\Controllers\TravelAgencyPortal\PackageInquiryController;
 use App\Http\Controllers\TravelAgencyPortal\ProfileController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
@@ -51,11 +52,24 @@ Route::name('travel-agency.')
                 Route::get('/{package}/contract', [PackageController::class, 'downloadContract'])->name('contract.download');
             });
 
-            // Bookings (read + status updates — agency confirms/cancels)
+            // Bookings
             Route::prefix('bookings')->name('bookings.')->group(function () {
                 Route::get('/', [BookingController::class, 'index'])->name('index');
+                Route::get('/customer-search', [BookingController::class, 'customerSearch'])->name('customer-search');
                 Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
                 Route::patch('/{booking}/status', [BookingController::class, 'updateStatus'])->name('status');
+            });
+
+            // Create booking scoped to a package
+            Route::get('/packages/{package}/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+            Route::post('/packages/{package}/bookings', [BookingController::class, 'store'])->name('bookings.store');
+
+            // Package Inquiries (lead management)
+            Route::prefix('inquiries')->name('inquiries.')->group(function () {
+                Route::get('/', [PackageInquiryController::class, 'index'])->name('index');
+                Route::post('/{inquiry}/contacted', [PackageInquiryController::class, 'markContacted'])->name('contacted');
+                Route::post('/{inquiry}/convert', [PackageInquiryController::class, 'convertToBooking'])->name('convert');
+                Route::post('/{inquiry}/close', [PackageInquiryController::class, 'close'])->name('close');
             });
 
             // Profile

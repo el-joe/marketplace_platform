@@ -56,10 +56,10 @@ class TravelPackage extends Model
     protected function casts(): array
     {
         return [
-            'inclusions'    => 'array',
+            'inclusions' => 'array',
             'departure_date' => 'date',
-            'return_date'   => 'date',
-            'approved_at'   => 'datetime',
+            'return_date' => 'date',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -85,6 +85,11 @@ class TravelPackage extends Model
         return $this->hasMany(TravelBooking::class);
     }
 
+    public function inquiries(): HasMany
+    {
+        return $this->hasMany(TravelPackageInquiry::class);
+    }
+
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(TravelCategory::class, 'travel_package_categories');
@@ -104,7 +109,7 @@ class TravelPackage extends Model
 
     public function priceFormatted(): string
     {
-        return $this->currency . ' ' . number_format($this->price_cents / 100, 2);
+        return $this->currency . ' ' . number_format($this->price_cents, 2);
     }
 
     public function seatsRemaining(): ?int

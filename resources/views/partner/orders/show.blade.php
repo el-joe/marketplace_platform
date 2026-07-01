@@ -107,6 +107,11 @@
                                     {{ number_format($item->unit_price / 100, 2) }} {{ $currency }}</p>
                                 <p class="font-semibold text-gray-900 mt-0.5">{{ number_format($item->line_total / 100, 2) }}
                                     {{ $currency }}</p>
+                                @if(($item->commission_amount ?? 0) > 0)
+                                    <p class="text-xs text-red-500 mt-0.5">
+                                        عمولة: −{{ number_format($item->commission_amount / 100, 2) }} {{ $currency }}
+                                    </p>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -237,6 +242,18 @@
                         <span class="text-red-500">- {{ number_format($subOrder->platform_commission / 100, 2) }}
                             {{ $currency }}</span>
                     </div>
+                    @if($subOrder->gateway_fee > 0)
+                        <div class="flex justify-between text-gray-600">
+                            <span class="inline-flex items-center gap-1">
+                                رسوم معالجة الدفع
+                                <span class="cursor-help text-gray-400" title="يتحمل التاجر رسوم بوابة الدفع وفقًا لسياسة المنصة.">
+                                    <x-heroicon name="information-circle" class="w-3.5 h-3.5" />
+                                </span>
+                            </span>
+                            <span class="text-red-500">- {{ number_format($subOrder->gateway_fee / 100, 2) }}
+                                {{ $currency }}</span>
+                        </div>
+                    @endif
                     <div class="border-t border-gray-100 pt-2 flex justify-between font-semibold text-gray-900">
                         <span>صافي المدفوعات</span>
                         <span class="text-green-600">{{ number_format($subOrder->vendor_payout / 100, 2) }}
@@ -244,6 +261,14 @@
                     </div>
                 </div>
             </div>
+
+            @if(!$subOrder->cod_remittance_confirmed && $order->payment_method === 'cod')
+                <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
+                    <strong>تنبيه:</strong> مبلغ تحويل هذا الطلب ({{ number_format($subOrder->vendor_payout / 100, 2) }} {{ $currency }})
+                    في انتظار تأكيد تحصيل الدفع النقدي (COD) من المندوب.
+                    سيتم إضافته لدورة المدفوعات التالية عند التأكيد.
+                </div>
+            @endif
 
             {{-- SLA card --}}
             @if($subOrder->sla_ship_deadline && !in_array($subOrder->status, ['shipped', 'delivered', 'completed', 'cancelled']))
@@ -290,11 +315,17 @@
                     @endif
 
                     @if(in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'packed']))
-                        <button id="btn-ship"
-                            class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
-                            <x-heroicon name="truck" class="w-4 h-4" />
-                            شحن الطلب
-                        </button>
+                        @if($subOrder->shipping_method_id)
+                            <button id="btn-ship"
+                                class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+                                <x-heroicon name="truck" class="w-4 h-4" />
+                                شحن الطلب
+                            </button>
+                        @else
+                            <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-center">
+                                بانتظار تعيين طريقة الشحن من قبل الإدارة
+                            </p>
+                        @endif
                     @endif
 
                     @if($subOrder->status === 'shipped')
@@ -336,6 +367,12 @@
                         معلومات الشحن
                     </h4>
                     <div class="space-y-2 text-sm">
+                        @if($subOrder->shippingMethod)
+                            <div class="flex justify-between text-gray-600">
+                                <span>طريقة الشحن</span>
+                                <span class="font-medium">{{ $subOrder->shippingMethod->name }}</span>
+                            </div>
+                        @endif
                         @if($subOrder->carrier)
                             <div class="flex justify-between text-gray-600">
                                 <span>شركة الشحن</span>
@@ -370,16 +407,14 @@
                 </button>
             </div>
             <form id="ship-form" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">شركة الشحن</label>
-                    <select name="carrier_id" required
-                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
-                        <option value="">اختر الشركة...</option>
-                        @foreach($carriers as $carrier)
-                            <option value="{{ $carrier->id }}">{{ $carrier->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @if($subOrder->shippingMethod)
+                    <div class="text-sm text-gray-600 bg-gray-50 rounded-xl px-3 py-2.5">
+                        طريقة الشحن المعينة: <span class="font-medium text-gray-800">{{ $subOrder->shippingMethod->name }}</span>
+                        @if($subOrder->carrier)
+                            عبر <span class="font-medium text-gray-800">{{ $subOrder->carrier->name }}</span>
+                        @endif
+                    </div>
+                @endif
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">رقم التتبع</label>
                     <input type="text" name="tracking_number" required

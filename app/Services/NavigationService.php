@@ -133,6 +133,13 @@ class NavigationService
                         'permission' => 'ad_campaigns.view',
                         'badge' => null,
                     ],
+                    [
+                        'label'      => 'Vendor Campaigns',
+                        'route'      => 'admin.vendor-campaign-offers.index',
+                        'icon'       => 'rectangle-group',
+                        'permission' => 'campaign_offers.view',
+                        'badge'      => $this->cachedBadge('pending_campaign_offers', fn() => $this->countPendingCampaignOffers()),
+                    ],
                 ],
             ],
             [
@@ -318,6 +325,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => 'COD Settlements',
+                        'route' => 'admin.delivery.cod-settlements.index',
+                        'icon' => 'banknotes',
+                        'permission' => 'payouts.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => 'Financial Reports',
                         'route' => 'admin.reports.financial.index',
                         'icon' => 'chart-bar-square',
@@ -342,6 +356,20 @@ class NavigationService
                         'route' => 'admin.reviews.index',
                         'icon' => 'star',
                         'permission' => 'reviews.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Blog Categories',
+                        'route' => 'admin.blog.categories.index',
+                        'icon' => 'rectangle-stack',
+                        'permission' => 'pages.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => 'Blog Posts',
+                        'route' => 'admin.blog.posts.index',
+                        'icon' => 'pencil-square',
+                        'permission' => 'pages.view',
                         'badge' => null,
                     ],
                 ],
@@ -536,6 +564,15 @@ class NavigationService
     {
         try {
             return (int) \App\Models\SupportTicket::query()->where('status', 'open')->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingCampaignOffers(): int
+    {
+        try {
+            return (int) \App\Models\VendorCampaignOffer::query()->where('status', 'pending_admin')->count();
         } catch (\Throwable) {
             return 0;
         }

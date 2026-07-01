@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class VendorCampaignInvitation extends Model
+{
+    use HasUuids;
+
+    protected $fillable = [
+        'vendor_campaign_offer_id',
+        'marketer_id',
+        'status',
+        'marketer_note',
+        'vendor_note',
+        'responded_at',
+        'expires_at',
+        'resulting_campaign_id',
+    ];
+
+    protected $casts = [
+        'responded_at' => 'datetime',
+        'expires_at' => 'datetime',
+    ];
+
+    public function offer(): BelongsTo
+    {
+        return $this->belongsTo(VendorCampaignOffer::class, 'vendor_campaign_offer_id');
+    }
+
+    public function marketer(): BelongsTo
+    {
+        return $this->belongsTo(Marketer::class);
+    }
+
+    public function resultingCampaign(): BelongsTo
+    {
+        return $this->belongsTo(MarketerCampaign::class, 'resulting_campaign_id');
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->status === 'pending'
+            && $this->expires_at !== null
+            && $this->expires_at->isPast();
+    }
+}

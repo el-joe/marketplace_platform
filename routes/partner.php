@@ -19,6 +19,7 @@ use App\Http\Controllers\Partner\MarketerSampleController as PartnerMarketerSamp
 use App\Http\Controllers\Partner\TeamController;
 use App\Http\Controllers\Partner\WarehouseController;
 use App\Http\Controllers\Partner\AdsController;
+use App\Http\Controllers\Partner\CampaignOfferController;
 use App\Http\Controllers\Partner\ClassifiedListingController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
@@ -282,6 +283,20 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
     // ─── Finance / Transactions ───────────────────────────────────────────────
     Route::prefix('finance')->name('finance.')->group(function () {
         Route::get('/transactions', [\App\Http\Controllers\Partner\FinanceController::class, 'transactions'])->name('transactions');
+    });
+
+    // ─── Campaign Offers (Vendor → Marketer) ─────────────────────────────────
+    Route::prefix('campaign-offers')->name('campaign-offers.')->group(function () {
+        Route::get('/',                                        [CampaignOfferController::class, 'index'])->name('index');
+        Route::get('/create',                                  [CampaignOfferController::class, 'create'])->name('create');
+        Route::post('/',                                       [CampaignOfferController::class, 'store'])->name('store');
+        Route::get('/marketers/search',                        [CampaignOfferController::class, 'searchMarketers'])->name('marketers.search');
+        Route::get('/{offer}',                                 [CampaignOfferController::class, 'show'])->name('show');
+        Route::post('/{offer}/submit',                         [CampaignOfferController::class, 'submitForReview'])->name('submit');
+        Route::post('/{offer}/pause',                          [CampaignOfferController::class, 'pauseOffer'])->name('pause');
+        Route::post('/{offer}/resume',                         [CampaignOfferController::class, 'resumeOffer'])->name('resume');
+        Route::post('/{offer}/invite',                         [CampaignOfferController::class, 'invite'])->name('invite');
+        Route::delete('/invitations/{invitation}/revoke',      [CampaignOfferController::class, 'revokeInvitation'])->name('invitations.revoke');
     });
 
     // ─── Ads ─────────────────────────────────────────────────────────────────

@@ -22,6 +22,7 @@
                 <a href="{{ route('travel-agency.dashboard') }}" class="text-gray-600 hover:text-blue-600 font-medium">الرئيسية</a>
                 <a href="{{ route('travel-agency.packages.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">الباقات</a>
                 <a href="{{ route('travel-agency.bookings.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">الحجوزات</a>
+                <a href="{{ route('travel-agency.inquiries.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">العملاء المهتمون</a>
                 <a href="{{ route('travel-agency.profile.edit') }}" class="text-gray-600 hover:text-blue-600 font-medium">الملف الشخصي</a>
                 <form method="POST" action="{{ route('travel-agency.logout') }}" class="inline">
                     @csrf

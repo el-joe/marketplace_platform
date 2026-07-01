@@ -149,5 +149,66 @@
             </div>
         </div>
     </div>
+
+    {{-- Interest / Lead Inquiry Form --}}
+    <div class="bg-white rounded-2xl border border-blue-100 shadow-sm p-6 max-w-lg">
+        @if(session('inquiry_sent'))
+        <div class="flex items-center gap-3 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-sm font-medium">
+            <span>✓</span>
+            <span>شكراً! تم استلام طلبك وستتواصل معك الوكالة قريباً.</span>
+        </div>
+        @else
+        <h3 class="text-lg font-bold text-gray-900 mb-1">أنا مهتم بهذه الباقة</h3>
+        <p class="text-sm text-gray-500 mb-4">اترك بياناتك وستتواصل معك الوكالة — لا يلزم حجز أو دفع الآن.</p>
+
+        @if($errors->has('name') || $errors->has('phone') || $errors->has('email') || $errors->has('travelers_count') || $errors->has('message'))
+        <div class="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 space-y-1">
+            @foreach(['name','phone','email','travelers_count','message'] as $f)
+                @error($f)<p>{{ $message }}</p>@enderror
+            @endforeach
+        </div>
+        @endif
+
+        <form method="POST"
+              action="{{ route('travel.packages.inquire', [request()->route('country'), $package]) }}"
+              class="space-y-3">
+            @csrf
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">الاسم <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" value="{{ old('name') }}" required
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none @error('name') border-red-400 @enderror">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">رقم الهاتف <span class="text-red-500">*</span></label>
+                    <input type="text" name="phone" value="{{ old('phone') }}" required
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none @error('phone') border-red-400 @enderror">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">البريد الإلكتروني</label>
+                    <input type="email" name="email" value="{{ old('email') }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none @error('email') border-red-400 @enderror">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">عدد المسافرين (تقريبي)</label>
+                    <input type="number" name="travelers_count" value="{{ old('travelers_count') }}" min="1"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none @error('travelers_count') border-red-400 @enderror">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">ملاحظة (اختياري)</label>
+                <textarea name="message" rows="2" maxlength="1000"
+                          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none resize-none @error('message') border-red-400 @enderror">{{ old('message') }}</textarea>
+            </div>
+            <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                أرسل طلب الاهتمام
+            </button>
+        </form>
+        @endif
+    </div>
+
 </div>
 @endsection

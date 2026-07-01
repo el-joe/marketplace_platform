@@ -131,6 +131,32 @@ class FinancialReportService
     }
 
     /**
+     * Payment gateway fees deducted from vendors per country/currency (from sub_orders).
+     *
+     * This is a real money flow the platform should track for reconciliation against
+     * what the payment gateway actually invoices — the fee is vendor-borne, never
+     * platform revenue, but the platform remits it to the gateway on the vendor's behalf.
+     */
+    public function gatewayFeeByCountry(Carbon $from, Carbon $to): Collection
+    {
+        return SubOrder::query()
+            ->whereIn('sub_orders.status', ['delivered', 'completed'])
+            ->join('orders', 'orders.id', '=', 'sub_orders.order_id')
+            ->whereNotNull('orders.country_id')
+            ->whereBetween('orders.placed_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->join('countries', 'countries.id', '=', 'orders.country_id')
+            ->groupBy('countries.id', 'countries.name_en', 'countries.currency_code')
+            ->selectRaw('
+                countries.id                              AS country_id,
+                countries.name_en                         AS country_name,
+                countries.currency_code                   AS currency_code,
+                SUM(sub_orders.gateway_fee)               AS gateway_fee_cents,
+                COUNT(DISTINCT sub_orders.id)              AS sub_order_count
+            ')
+            ->get();
+    }
+
+    /**
      * Marketer payouts disbursed per country/currency.
      *
      * Uses the currency stored on each marketer_payout row (which is set from

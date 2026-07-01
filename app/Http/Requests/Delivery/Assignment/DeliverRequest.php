@@ -19,6 +19,7 @@ class DeliverRequest extends FormRequest
             'latitude'                   => ['required', 'numeric', 'between:-90,90'],
             'longitude'                  => ['required', 'numeric', 'between:-180,180'],
             'cod_amount_collected_cents' => ['nullable', 'integer', 'min:1'],
+            'discrepancy_note'           => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

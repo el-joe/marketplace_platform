@@ -64,6 +64,12 @@
                         <span class="text-gray-500">Platform Commission</span>
                         <span class="text-danger-600">−{{ $fmt($payout->commission) }}</span>
                     </div>
+                    @if($payout->gateway_fee_deducted > 0)
+                        <div class="flex items-center justify-between py-3 text-sm">
+                            <span class="text-gray-500">Payment Gateway Fee (vendor-borne)</span>
+                            <span class="text-danger-600">−{{ $fmt($payout->gateway_fee_deducted) }}</span>
+                        </div>
+                    @endif
                     @if($payout->refunds_deducted > 0)
                         <div class="flex items-center justify-between py-3 text-sm">
                             <span class="text-gray-500">Refunds Deducted</span>

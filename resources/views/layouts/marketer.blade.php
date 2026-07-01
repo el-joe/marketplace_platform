@@ -198,6 +198,35 @@
                 Earnings
             </a>
 
+            @auth('marketer')
+            @php
+                $invitationPendingCount = \App\Models\VendorCampaignInvitation::where('marketer_id', auth()->guard('marketer')->id())
+                    ->where('status', 'pending')
+                    ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                    ->count();
+            @endphp
+            <a href="{{ route('marketer.invitations.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.invitations') ? 'active' : '' }}"
+                style="position:relative;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Invitations
+                @if($invitationPendingCount > 0)
+                    <span style="
+                        position:absolute; top:6px; right:10px;
+                        background:#f59e0b; color:#fff;
+                        font-size:0.6rem; font-weight:700;
+                        min-width:1.1rem; height:1.1rem;
+                        border-radius:999px;
+                        display:inline-flex; align-items:center; justify-content:center;
+                        padding:0 3px; line-height:1;
+                    ">{{ $invitationPendingCount > 99 ? '99+' : $invitationPendingCount }}</span>
+                @endif
+            </a>
+            @endauth
+
             <a href="{{ route('marketer.profile.edit') }}"
                 class="{{ Str::startsWith($route, 'marketer.profile') ? 'active' : '' }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">

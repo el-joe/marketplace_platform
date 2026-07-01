@@ -43,6 +43,7 @@ class FinancialReportController extends Controller
         // Fetch all data sets
         $revenue    = $this->reports->revenueByCountry($from, $to);
         $commission = $this->reports->commissionByCountry($from, $to);
+        $gatewayFee = $this->reports->gatewayFeeByCountry($from, $to);
         $vat        = $this->reports->vatCollectedByCountry($from, $to);
         $marketer   = $this->reports->marketerPayoutsByCountry($from, $to);
         $ads        = $this->reports->adSpendByCountry($from, $to);
@@ -55,9 +56,10 @@ class FinancialReportController extends Controller
         $countries = $countriesQuery->orderBy('name_en')->get(['id', 'name_en', 'iso_code_2', 'flag_emoji', 'currency_code', 'is_launched']);
 
         // Build one row per country
-        $rows = $countries->map(function ($country) use ($revenue, $commission, $vat, $marketer, $ads) {
+        $rows = $countries->map(function ($country) use ($revenue, $commission, $gatewayFee, $vat, $marketer, $ads) {
             $rev  = $revenue->firstWhere('country_id', $country->id);
             $com  = $commission->firstWhere('country_id', $country->id);
+            $gwf  = $gatewayFee->firstWhere('country_id', $country->id);
             $vatR = $vat->firstWhere('country_id', $country->id);
             $mkt  = $marketer->firstWhere('country_id', $country->id);
             $ad   = $ads->firstWhere('country_id', $country->id);
@@ -74,6 +76,7 @@ class FinancialReportController extends Controller
                 'order_count'     => $rev ? (int) $rev->order_count : 0,
                 'revenue_cents'   => $rev ? (int) $rev->total_cents : 0,
                 'commission_cents'=> $com ? (int) $com->commission_cents : 0,
+                'gateway_fee_cents'=> $gwf ? (int) $gwf->gateway_fee_cents : 0,
                 'vat_cents'       => $vatR ? (int) $vatR->collected_vat_cents : 0,
                 'vat_discrepancy' => $vatR?->has_vat_discrepancy ?? false,
                 'marketer_cents'  => $mkt ? (int) $mkt->net_cents : 0,
@@ -87,6 +90,7 @@ class FinancialReportController extends Controller
             $rate = $rates[$row['currency_code']] ?? null;
             $row['revenue_usd']    = ($rate && $rate > 0) ? round(($row['revenue_cents'] / 100) / $rate, 2) : null;
             $row['commission_usd'] = ($rate && $rate > 0) ? round(($row['commission_cents'] / 100) / $rate, 2) : null;
+            $row['gateway_fee_usd'] = ($rate && $rate > 0) ? round(($row['gateway_fee_cents'] / 100) / $rate, 2) : null;
             $row['vat_usd']        = ($rate && $rate > 0) ? round(($row['vat_cents'] / 100) / $rate, 2) : null;
             $row['marketer_usd']   = ($rate && $rate > 0) ? round(($row['marketer_cents'] / 100) / $rate, 2) : null;
             $row['ad_revenue_usd'] = ($rate && $rate > 0) ? round(($row['ad_revenue_cents'] / 100) / $rate, 2) : null;
@@ -116,6 +120,7 @@ class FinancialReportController extends Controller
 
         $revenue    = $this->reports->revenueByCountry($from, $to);
         $commission = $this->reports->commissionByCountry($from, $to);
+        $gatewayFee = $this->reports->gatewayFeeByCountry($from, $to);
         $vat        = $this->reports->vatCollectedByCountry($from, $to);
         $marketer   = $this->reports->marketerPayoutsByCountry($from, $to);
         $ads        = $this->reports->adSpendByCountry($from, $to);
@@ -135,6 +140,7 @@ class FinancialReportController extends Controller
             'Orders',
             'Revenue', 'Revenue (USD est.)',
             'Commission', 'Commission (USD est.)',
+            'Gateway Fees (vendor-borne)', 'Gateway Fees (USD est.)',
             'VAT Collected', 'VAT (USD est.)', 'VAT Discrepancy?',
             'Marketer Payouts (net)', 'Marketer Payouts (USD est.)',
             'Ad Revenue', 'Ad Revenue (USD est.)',
@@ -146,6 +152,7 @@ class FinancialReportController extends Controller
         foreach ($countries as $country) {
             $rev  = $revenue->firstWhere('country_id', $country->id);
             $com  = $commission->firstWhere('country_id', $country->id);
+            $gwf  = $gatewayFee->firstWhere('country_id', $country->id);
             $vatR = $vat->firstWhere('country_id', $country->id);
             $mkt  = $marketer->firstWhere('country_id', $country->id);
             $ad   = $ads->firstWhere('country_id', $country->id);
@@ -164,6 +171,7 @@ class FinancialReportController extends Controller
 
             $revCents = $rev ? (int) $rev->total_cents : 0;
             $comCents = $com ? (int) $com->commission_cents : 0;
+            $gwfCents = $gwf ? (int) $gwf->gateway_fee_cents : 0;
             $vatCents = $vatR ? (int) $vatR->collected_vat_cents : 0;
             $mktCents = $mkt ? (int) $mkt->net_cents : 0;
             $adCents  = $ad ? (int) $ad->spend_cents : 0;
@@ -178,6 +186,8 @@ class FinancialReportController extends Controller
                 $toUsd($revCents),
                 $fmt($comCents) . ' ' . $ccy,
                 $toUsd($comCents),
+                $fmt($gwfCents) . ' ' . $ccy,
+                $toUsd($gwfCents),
                 $fmt($vatCents) . ' ' . $ccy,
                 $toUsd($vatCents),
                 ($vatR?->has_vat_discrepancy ? 'YES' : 'no'),

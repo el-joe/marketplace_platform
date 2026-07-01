@@ -247,6 +247,33 @@
             </div>
         </header>
 
+        {{-- ── COD Pending Remittance Alert ────────────────────────────────────── --}}
+        @auth('delivery')
+            @php
+                $pendingCodSettlement = \App\Models\DeliveryAgentCodSettlement::where('agent_id', auth('delivery')->id())
+                    ->where('status', 'pending')
+                    ->where('net_to_remit_cents', '>', 0)
+                    ->orderByDesc('period_end')
+                    ->first();
+            @endphp
+            @if($pendingCodSettlement)
+                <div dir="rtl" class="bg-yellow-500/10 border-b border-yellow-500/30 px-4 py-3 text-right">
+                    <a href="{{ route('delivery.cod-settlements.index') }}" class="flex items-start gap-2 text-yellow-300 text-sm leading-snug">
+                        <svg class="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                        </svg>
+                        <span>
+                            لديك مبلغ نقدي مستحق للتسليم:
+                            <strong class="font-bold">
+                                {{ number_format($pendingCodSettlement->net_to_remit_cents / 100, 2) }} ر.س
+                            </strong>
+                            — يرجى التواصل مع المشرف لتسوية الحساب.
+                        </span>
+                    </a>
+                </div>
+            @endif
+        @endauth
+
         {{-- ── Page Content ───────────────────────────────────────────────────── --}}
         <main id="page-content" class="px-4 pt-4">
             @if(session('success'))
@@ -305,6 +332,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         Earnings
+                    </a>
+
+                    <a href="{{ route('delivery.cod-settlements.index') }}"
+                       class="nav-item {{ navActive('delivery.cod-settlements', $current) }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        COD
                     </a>
 
                     <a href="{{ route('delivery.profile.index') }}"

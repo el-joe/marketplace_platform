@@ -115,11 +115,19 @@ class AssignmentController extends Controller
             return response()->json(['message' => 'Assignment is not in picked-up state.'], 422);
         }
 
+        $assignment->load('subOrder.order');
+        $order = $assignment->subOrder?->order;
+        $isCod = $order && $order->payment_method === 'cod';
+
         $validated = $request->validate([
-            'otp_code' => ['required', 'digits:6'],
-            'proof_image' => ['nullable', 'image', 'max:5120'],
-            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'otp_code'             => ['required', 'digits:6'],
+            'proof_image'          => ['nullable', 'image', 'max:5120'],
+            'latitude'             => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude'            => ['nullable', 'numeric', 'between:-180,180'],
+            'cod_amount_collected' => $isCod
+                ? ['required', 'integer', 'min:1']
+                : ['nullable', 'integer', 'min:1'],
+            'discrepancy_note'     => ['nullable', 'string', 'max:500'],
         ]);
 
         // OTP validation (max 3 attempts)
@@ -140,10 +148,31 @@ class AssignmentController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($assignment, $validated, $request) {
+        // COD amount validation — expected = order total (which includes cod_fee)
+        if ($isCod && $order) {
+            $expectedCents = (int) $order->total;
+            $collectedCents = (int) $validated['cod_amount_collected'];
+            $diffCents = abs($collectedCents - $expectedCents);
+            $diffPct = $expectedCents > 0 ? ($diffCents / $expectedCents) : 0;
+
+            if ($diffCents > 5 && $diffPct > 0.05) {
+                // More than 5% discrepancy — require a note
+                if (empty($validated['discrepancy_note'])) {
+                    $expectedFormatted = number_format($expectedCents / 100, 2);
+                    $collectedFormatted = number_format($collectedCents / 100, 2);
+                    return response()->json([
+                        'message' => "المبلغ المُدخل ({$collectedFormatted}) لا يتطابق مع المبلغ المتوقع ({$expectedFormatted}). يرجى التأكد.",
+                        'requires_discrepancy_note' => true,
+                        'expected_cents' => $expectedCents,
+                        'collected_cents' => $collectedCents,
+                    ], 422);
+                }
+            }
+        }
+
+        DB::transaction(function () use ($assignment, $validated, $request, $order, $isCod) {
             $proofFileId = null;
 
-            // Store proof photo
             if ($request->hasFile('proof_image')) {
                 $file = $this->fileService->store(
                     $request->file('proof_image'),
@@ -154,45 +183,68 @@ class AssignmentController extends Controller
                 $proofFileId = $file->id;
             }
 
-            $assignment->update([
-                'status' => DeliveryAssignment::STATUS_DELIVERED,
-                'delivered_at' => now(),
-                'otp_verified' => true,
-                'proof_file_id' => $proofFileId,
-                'delivery_latitude' => $validated['latitude'] ?? null,
+            $assignmentData = [
+                'status'             => DeliveryAssignment::STATUS_DELIVERED,
+                'delivered_at'       => now(),
+                'otp_verified'       => true,
+                'proof_file_id'      => $proofFileId,
+                'delivery_latitude'  => $validated['latitude'] ?? null,
                 'delivery_longitude' => $validated['longitude'] ?? null,
-            ]);
+            ];
 
-            // Update shipment
+            if ($isCod && isset($validated['cod_amount_collected'])) {
+                $assignmentData['cod_amount_collected_cents'] = (int) $validated['cod_amount_collected'];
+            }
+
+            $assignment->update($assignmentData);
+
             if ($assignment->shipment) {
                 $assignment->shipment->update([
-                    'status' => 'delivered',
+                    'status'       => 'delivered',
                     'delivered_at' => now(),
                 ]);
             }
 
-            // Transition sub-order and parent order
             if ($assignment->subOrder) {
                 $assignment->subOrder->update([
-                    'status' => 'delivered',
+                    'status'       => 'delivered',
                     'delivered_at' => now(),
                 ]);
             }
 
-            // Increment agent delivery counter
+            // Virtual capture for COD — cash physically changed hands
+            if ($isCod && $order) {
+                $order->update(['payment_status' => 'captured']);
+            }
+
             $assignment->agent?->increment('total_deliveries');
 
-            // Create per-delivery earning record
             $agent = Auth::guard('delivery')->user();
+            $currency = $order?->currency ?? 'USD';
+
             DeliveryAgentEarning::create([
-                'agent_id' => $agent->id,
-                'delivery_assignment_id' => $assignment->id,
-                'order_id' => $assignment->subOrder?->order_id,
-                'earning_type' => 'base_fee',
-                'amount_cents' => $agent->per_delivery_fee_cents,
-                'currency' => 'USD',
-                'status' => 'pending',
+                'agent_id'                => $agent->id,
+                'delivery_assignment_id'  => $assignment->id,
+                'order_id'                => $assignment->subOrder?->order_id,
+                'earning_type'            => 'base_fee',
+                'amount_cents'            => $agent->per_delivery_fee_cents,
+                'currency'                => $currency,
+                'status'                  => 'pending',
             ]);
+
+            // COD handling bonus — the agent earns the cod_fee the customer paid
+            if ($isCod && $order && $order->cod_fee > 0) {
+                DeliveryAgentEarning::create([
+                    'agent_id'                => $agent->id,
+                    'delivery_assignment_id'  => $assignment->id,
+                    'order_id'                => $assignment->subOrder?->order_id,
+                    'earning_type'            => 'cod_handling',
+                    'amount_cents'            => (int) $order->cod_fee,
+                    'currency'                => $currency,
+                    'status'                  => 'pending',
+                    'notes'                   => $validated['discrepancy_note'] ?? null,
+                ]);
+            }
         });
 
         return response()->json(['success' => true, 'message' => 'Delivery confirmed!']);

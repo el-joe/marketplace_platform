@@ -57,7 +57,7 @@ class TravelBooking extends Model
     {
         $currency = $this->package?->currency ?? '';
 
-        return $currency . ' ' . number_format($this->total_price_cents / 100, 2);
+        return $currency . ' ' . number_format($this->total_price_cents, 2);
     }
 
     public function isContractSigned(): bool

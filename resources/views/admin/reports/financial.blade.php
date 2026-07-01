@@ -103,6 +103,7 @@
                     <th class="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">Orders</th>
                     <th class="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">Revenue</th>
                     <th class="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">Commission</th>
+                    <th class="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap" title="Payment gateway fees deducted from vendor payouts — not platform revenue">Gateway Fees</th>
                     <th class="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">VAT Collected</th>
                     <th class="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">Marketer Payouts</th>
                     <th class="px-4 py-3 text-right font-semibold text-gray-600 whitespace-nowrap">Ad Revenue</th>
@@ -345,6 +346,7 @@
                 <td class="px-4 py-3 text-right tabular-nums text-gray-700">${row.order_count.toLocaleString()}</td>
                 <td class="px-4 py-3 text-right tabular-nums text-gray-900 font-medium">${fmt(row.revenue_cents)} ${ccy}</td>
                 <td class="px-4 py-3 text-right tabular-nums text-gray-700">${fmt(row.commission_cents)} ${ccy}</td>
+                <td class="px-4 py-3 text-right tabular-nums text-gray-500">${fmt(row.gateway_fee_cents)} ${ccy}</td>
                 <td class="px-4 py-3 text-right tabular-nums text-gray-700">${fmt(row.vat_cents)} ${ccy}${vatWarn}</td>
                 <td class="px-4 py-3 text-right tabular-nums text-gray-700">${fmt(row.marketer_cents)} ${ccy}</td>
                 <td class="px-4 py-3 text-right tabular-nums text-gray-700">${fmt(row.ad_revenue_cents)} ${ccy}</td>

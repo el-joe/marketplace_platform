@@ -30,7 +30,7 @@ class TravelBookingCancelled extends BaseCustomerNotification
         return [
             'title'          => 'Booking Cancelled',
             'message'        => "Your travel booking #{$this->booking->booking_number} for \"{$this->booking->package->title}\" has been cancelled {$byWhom}.",
-            'url'            => route('customer.account.travel-bookings.show', $this->booking->id),
+            'url'            => route('customer.account.travel-bookings.show', ['country' => $notifiable->country?->site_code, 'id' => $this->booking->id]),
             'booking_id'     => $this->booking->id,
             'booking_number' => $this->booking->booking_number,
             'package_title'  => $this->booking->package->title,

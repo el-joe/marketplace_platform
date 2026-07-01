@@ -162,6 +162,8 @@
                                                     Unit</th>
                                                 <th class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase">
                                                     Total</th>
+                                                <th class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase">
+                                                    Commission</th>
                                                 <th class="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase">
                                                     Status</th>
                                             </tr>
@@ -197,6 +199,17 @@
                                                     <td class="px-4 py-3 text-center font-medium">{{ $item->quantity }}</td>
                                                     <td class="px-4 py-3 text-right text-sm">{{ $fmt($item->unit_price) }}</td>
                                                     <td class="px-4 py-3 text-right font-medium">{{ $fmt($item->line_total) }}</td>
+                                                    <td class="px-4 py-3 text-right text-xs text-gray-500">
+                                                        @php
+                                                            $fixedCents = $item->commission_fixed_cents ?? 0;
+                                                        @endphp
+                                                        <span class="font-mono">{{ number_format((float) $item->commission_rate_pct, 2) }}%</span>
+                                                        @if($fixedCents > 0)
+                                                            <span class="text-gray-400"> + {{ $fmt($fixedCents) }}</span>
+                                                        @endif
+                                                        <br>
+                                                        <span class="text-danger-600 font-medium">= {{ $fmt($item->commission_amount) }}</span>
+                                                    </td>
                                                     <td class="px-4 py-3 text-center">
                                                         <x-badge color="gray" class="text-xs">
                                                             {{ ucfirst(str_replace('_', ' ', $item->fulfillment_status)) }}
@@ -240,8 +253,65 @@
                                     @endif
                                 </div>
 
+                                {{-- Financial breakdown (admin-only) --}}
+                                <div class="px-4 py-3 border-t border-gray-100 space-y-1 text-xs">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-500">Platform Commission</span>
+                                        <span class="text-danger-600">−{{ $fmt($subOrder->platform_commission) }}</span>
+                                    </div>
+                                    @if($subOrder->gateway_fee > 0)
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-gray-500">Payment Processing Fee (vendor-borne)</span>
+                                            <span class="text-danger-600">−{{ $fmt($subOrder->gateway_fee) }}</span>
+                                        </div>
+                                    @endif
+                                    <div class="flex items-center justify-between font-medium text-gray-700">
+                                        <span>Vendor Payout</span>
+                                        <span>{{ $fmt($subOrder->vendor_payout) }}</span>
+                                    </div>
+                                </div>
+
                             </div>{{-- /sub-order-body --}}
                         </div>
+                @empty
+                    <p class="text-sm text-gray-400 italic py-4 text-center">No sub-orders found.</p>
+                @endforelse
+            </x-card>
+
+            {{-- ──────────────────────────────────── --}}
+            {{-- Shipping Assignment --}}
+            {{-- ──────────────────────────────────── --}}
+            <x-card title="Shipping Assignment">
+                @forelse($order->subOrders as $subOrder)
+                    <div class="border border-gray-200 rounded-xl mb-3 last:mb-0 p-4 flex items-center justify-between gap-4"
+                        data-shipping-sub-order-id="{{ $subOrder->id }}">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-semibold text-gray-800">
+                                    {{ $subOrder->vendor->store_name ?? $subOrder->vendor->name ?? 'Unknown Seller' }}
+                                </span>
+                                <span class="text-xs text-gray-400">{{ $subOrder->sub_order_number }}</span>
+                            </div>
+                            @if($subOrder->shippingMethod)
+                                <p class="text-sm text-gray-600 shipping-assignment-summary">
+                                    Assigned: <span class="font-medium text-gray-900">{{ $subOrder->shippingMethod->name }}</span>
+                                    @if($subOrder->carrier)
+                                        via <span class="font-medium text-gray-900">{{ $subOrder->carrier->name }}</span>
+                                    @endif
+                                </p>
+                            @else
+                                <p class="text-sm font-medium text-amber-600 shipping-assignment-summary">Not yet assigned</p>
+                            @endif
+                        </div>
+                        <button type="button"
+                            class="btn-assign-shipping border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            data-sub-order-id="{{ $subOrder->id }}"
+                            data-shipping-url="{{ route('admin.orders.sub-orders.shipping-methods', $subOrder->id) }}"
+                            data-assign-url="{{ route('admin.orders.sub-orders.assign-shipping', $subOrder->id) }}"
+                            @if(in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) disabled @endif>
+                            {{ $subOrder->shippingMethod ? 'Reassign' : 'Assign Shipping Method' }}
+                        </button>
+                    </div>
                 @empty
                     <p class="text-sm text-gray-400 italic py-4 text-center">No sub-orders found.</p>
                 @endforelse
@@ -439,6 +509,41 @@
                         {{ ucwords(str_replace('_', ' ', $order->payment_status)) }}
                     </x-badge>
                 </div>
+
+                @if($order->payment_method === 'cod')
+                    <div class="border-t border-gray-100 mt-3 pt-3 space-y-1 text-xs">
+                        <p class="text-gray-500 font-medium uppercase tracking-wide">COD Remittance</p>
+                        @php $firstSubOrder = $order->subOrders->first(); @endphp
+                        @foreach($order->subOrders as $so)
+                            @if(!$so->cod_remittance_confirmed)
+                                <div class="flex items-start gap-1.5 text-amber-700">
+                                    <x-heroicon name="clock" class="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
+                                    <span>
+                                        Sub-order #{{ $so->sub_order_number }}:
+                                        Pending remittance
+                                        @if($so->codSettlement && $so->codSettlement->agent)
+                                            from {{ $so->codSettlement->agent->name }}
+                                        @endif
+                                    </span>
+                                </div>
+                            @else
+                                <div class="flex items-start gap-1.5 text-green-700">
+                                    <x-heroicon name="check-circle" class="w-3.5 h-3.5 mt-0.5 shrink-0 text-green-500" />
+                                    <span>
+                                        Sub-order #{{ $so->sub_order_number }}:
+                                        Remitted —
+                                        @if($so->codSettlement)
+                                            <a href="{{ route('admin.cod-settlements.show', $so->codSettlement) }}"
+                                               class="underline hover:text-green-900">
+                                                Settlement #{{ $so->cod_settlement_id }}
+                                            </a>
+                                        @endif
+                                    </span>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
             </x-card>
 
             {{-- Customer --}}
@@ -808,6 +913,22 @@
                 <button type="submit" form="fraud-form" class="btn btn-danger">Flag Fraud</button>
             </x-slot:footer>
         </form>
+    </x-modal>
+
+    {{-- 6. Assign Shipping Method --}}
+    <x-modal id="shipping-assign-modal" title="Assign Shipping Method" size="lg">
+        <div id="shipping-assign-zone-warning" class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 mb-4">
+            Cannot determine shipping zone — the delivery address does not contain a resolvable city reference.
+            Please assign the shipping method manually below.
+        </div>
+        <div id="shipping-assign-loading" class="text-sm text-gray-500 py-8 text-center">Loading available methods…</div>
+        <div id="shipping-assign-methods" class="space-y-3 hidden"></div>
+        <div id="shipping-assign-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3 mt-4"></div>
+
+        <x-slot:footer>
+            <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
+            <button type="button" id="shipping-assign-confirm" class="btn btn-primary" disabled>Confirm Assignment</button>
+        </x-slot:footer>
     </x-modal>
 
 @endsection

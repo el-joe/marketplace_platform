@@ -17,6 +17,22 @@
         ];
     @endphp
 
+    {{-- ── Cash in Hand (COD Liability) ───────────────────────────────────────── --}}
+    @if($cashInHandCents > 0)
+        <div class="d-card mb-4 border border-red-500/50 bg-red-500/5">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                    <span class="text-red-400 text-lg">💵</span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs font-bold text-red-400 uppercase tracking-wider mb-0.5">نقد في عهدتك</p>
+                    <p class="text-2xl font-extrabold text-red-300">{{ number_format($cashInHandCents / 100, 2) }}</p>
+                    <p class="text-xs text-slate-400 mt-1">يجب تسليمه للمنصة — هذا المبلغ غير مُسوَّى بعد</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- ── Balance Cards ────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 gap-3 mb-5">
         <div class="d-card text-center py-5 border border-yellow-500/30">

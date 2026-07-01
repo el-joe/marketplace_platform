@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
+use App\Jobs\RecomputeListingShippingMethodsJob;
 use App\Models\Activity;
 use App\Models\Attribute;
 use App\Models\Category;
+use App\Models\ShippingMethod;
 use App\Services\CategoryService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
@@ -39,12 +41,26 @@ class CategoryController extends Controller
             ->orderBy('name_en')
             ->get();
 
+        // Single query for default shipping method per category (for the table column)
+        $defaultShippingByCategory = DB::table('category_shipping_methods as csm')
+            ->join('shipping_methods as sm', 'sm.id', '=', 'csm.shipping_method_id')
+            ->where('csm.is_default', true)
+            ->get([
+                'csm.category_id',
+                'sm.badge_label_en',
+                'sm.badge_color_hex',
+                'sm.badge_text_color_hex',
+                'sm.name',
+            ])
+            ->keyBy('category_id');
+
         return view('admin.categories.index', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
                 ['label' => 'Categories'],
             ],
             'roots' => $roots,
+            'defaultShippingByCategory' => $defaultShippingByCategory,
         ]);
     }
 
@@ -82,6 +98,10 @@ class CategoryController extends Controller
                 'description_en' => $request->description_en ?: null,
                 'description_ar' => $request->description_ar ?: null,
                 'commission_rate' => $request->commission_rate ?? $parent->commission_rate ?? 0,
+                'commission_fbp_pct' => $request->commission_fbp_pct ?? $parent->commission_fbp_pct ?? 0,
+                'commission_fbp_fixed_cents' => (int) ($request->commission_fbp_fixed_cents ?? $parent->commission_fbp_fixed_cents ?? 0),
+                'commission_fbn_pct' => $request->commission_fbn_pct ?? $parent->commission_fbn_pct ?? 0,
+                'commission_fbn_fixed_cents' => (int) ($request->commission_fbn_fixed_cents ?? $parent->commission_fbn_fixed_cents ?? 0),
                 'sort_order' => (int) ($request->sort_order ?? 0),
                 'is_active' => $request->boolean('is_active', true),
                 'is_visible' => $request->boolean('is_visible', true),
@@ -107,6 +127,10 @@ class CategoryController extends Controller
                 'description_en' => $request->description_en ?: null,
                 'description_ar' => $request->description_ar ?: null,
                 'commission_rate' => $request->commission_rate ?? 0,
+                'commission_fbp_pct' => $request->commission_fbp_pct ?? 0,
+                'commission_fbp_fixed_cents' => (int) ($request->commission_fbp_fixed_cents ?? 0),
+                'commission_fbn_pct' => $request->commission_fbn_pct ?? 0,
+                'commission_fbn_fixed_cents' => (int) ($request->commission_fbn_fixed_cents ?? 0),
                 'sort_order' => (int) ($request->sort_order ?? 0),
                 'is_active' => $request->boolean('is_active', true),
                 'is_visible' => $request->boolean('is_visible', true),
@@ -183,6 +207,10 @@ class CategoryController extends Controller
             'description_en' => $request->description_en ?: null,
             'description_ar' => $request->description_ar ?: null,
             'commission_rate' => $request->commission_rate ?? $categoryModel->commission_rate,
+            'commission_fbp_pct' => $request->commission_fbp_pct ?? $categoryModel->commission_fbp_pct ?? 0,
+            'commission_fbp_fixed_cents' => (int) ($request->commission_fbp_fixed_cents ?? $categoryModel->commission_fbp_fixed_cents ?? 0),
+            'commission_fbn_pct' => $request->commission_fbn_pct ?? $categoryModel->commission_fbn_pct ?? 0,
+            'commission_fbn_fixed_cents' => (int) ($request->commission_fbn_fixed_cents ?? $categoryModel->commission_fbn_fixed_cents ?? 0),
             'sort_order' => (int) ($request->sort_order ?? 0),
             'is_active' => $request->boolean('is_active'),
             'is_visible' => $request->boolean('is_visible'),
@@ -340,6 +368,90 @@ class CategoryController extends Controller
         $this->service->syncAttributes($categoryModel, $request->input('attributes', []));
 
         return response()->json(['success' => true, 'message' => 'Attributes synced.']);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Shipping Methods Configuration
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function shippingMethods(Category $category): JsonResponse
+    {
+        $existing = DB::table('category_shipping_methods')
+            ->where('category_id', $category->id)
+            ->get()
+            ->keyBy('shipping_method_id');
+
+        $methods = ShippingMethod::query()
+            ->where('is_active', true)
+            ->orderBy('display_priority')
+            ->get()
+            ->map(function (ShippingMethod $sm) use ($existing) {
+                $row = $existing->get($sm->id);
+                return [
+                    'id'                           => $sm->id,
+                    'name'                         => $sm->name,
+                    'code'                         => $sm->code,
+                    'badge_label_en'               => $sm->badge_label_en,
+                    'badge_color_hex'              => $sm->badge_color_hex ?? '#1a1a2e',
+                    'badge_text_color_hex'         => $sm->badge_text_color_hex ?? '#FFFFFF',
+                    'delivery_label_en'            => $sm->delivery_label_en,
+                    'enabled'                      => $row !== null,
+                    'is_default'                   => $row?->is_default ?? false,
+                    'is_available_for_express_fbn' => $row?->is_available_for_express_fbn ?? true,
+                    'is_available_for_merchant_fbp'=> $row?->is_available_for_merchant_fbp ?? false,
+                ];
+            });
+
+        return response()->json(['methods' => $methods]);
+    }
+
+    public function updateShippingMethods(Request $request, Category $category): JsonResponse
+    {
+        $request->validate([
+            'methods'                                  => 'required|array|min:1',
+            'methods.*.shipping_method_id'             => 'required|uuid|exists:shipping_methods,id',
+            'methods.*.enabled'                        => 'required|boolean',
+            'methods.*.is_default'                     => 'required|boolean',
+            'methods.*.is_available_for_express_fbn'   => 'required|boolean',
+            'methods.*.is_available_for_merchant_fbp'  => 'required|boolean',
+        ]);
+
+        $defaults = collect($request->methods)->where('is_default', true);
+        if ($defaults->count() !== 1) {
+            return response()->json(['message' => 'Exactly one method must be set as the default.'], 422);
+        }
+
+        DB::transaction(function () use ($request, $category) {
+            foreach ($request->methods as $item) {
+                DB::table('category_shipping_methods')->upsert(
+                    [
+                        'id'                            => (string) Str::uuid(),
+                        'category_id'                   => $category->id,
+                        'shipping_method_id'            => $item['shipping_method_id'],
+                        'is_default'                    => (bool) $item['is_default'],
+                        'is_available_for_express_fbn'  => (bool) $item['is_available_for_express_fbn'],
+                        'is_available_for_merchant_fbp' => (bool) $item['is_available_for_merchant_fbp'],
+                        'created_at'                    => now(),
+                        'updated_at'                    => now(),
+                    ],
+                    ['category_id', 'shipping_method_id'],
+                    ['is_default', 'is_available_for_express_fbn', 'is_available_for_merchant_fbp', 'updated_at']
+                );
+            }
+        });
+
+        // Dispatch job to recompute listings (created in Prompt 3)
+        if (class_exists(RecomputeListingShippingMethodsJob::class)) {
+            $listingIds = DB::table('vendor_listings')
+                ->where('category_id', $category->id)
+                ->pluck('id');
+
+            foreach ($listingIds as $listingId) {
+                dispatch(new RecomputeListingShippingMethodsJob($listingId));
+            }
+        }
+
+        return response()->json(['success' => true, 'message' => 'Delivery options saved.']);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

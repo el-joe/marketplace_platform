@@ -125,15 +125,185 @@
                     />
                 </div>
 
-                {{-- Commission Rate --}}
-                <x-form.input
-                    name="commission_rate"
-                    label="Commission Rate (%)"
-                    type="number"
-                    :value="$val('commission_rate', '0.00')"
-                    min="0" max="100" step="0.01"
-                    placeholder="0.00"
-                />
+                {{-- Commission Rates (FBP / FBN) --}}
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">
+                        Commission Rates
+                        <span class="text-xs font-normal text-gray-400 ml-2">Applied per item at order creation time</span>
+                    </h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- FBP block --}}
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <p class="text-xs font-bold uppercase tracking-wide text-blue-600 mb-3">FBP — Merchant Fulfilled</p>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Percentage Rate (%)</label>
+                                    <input type="number" name="commission_fbp_pct"
+                                        step="0.01" min="0" max="100"
+                                        value="{{ old('commission_fbp_pct', $category->commission_fbp_pct ?? 0) }}"
+                                        class="input w-full text-sm commission-fbp-input">
+                                    <p class="text-xs text-gray-400 mt-1">e.g. 8.00 = 8% of item sale price</p>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Fixed Fee (per unit, in cents)</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" name="commission_fbp_fixed_cents"
+                                            step="1" min="0"
+                                            value="{{ old('commission_fbp_fixed_cents', $category->commission_fbp_fixed_cents ?? 0) }}"
+                                            class="input w-full text-sm commission-fbp-input">
+                                        <span class="text-xs text-gray-400 whitespace-nowrap">cents</span>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1">e.g. 500 = 5.00 per unit sold</p>
+                                </div>
+                                <div class="bg-blue-50 rounded-lg p-2.5 text-xs text-blue-700">
+                                    <strong>Example:</strong> 100.00 item × 2 qty:<br>
+                                    <span id="fbp-preview">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- FBN block --}}
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <p class="text-xs font-bold uppercase tracking-wide text-green-600 mb-3">FBN — Platform Fulfilled</p>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Percentage Rate (%)</label>
+                                    <input type="number" name="commission_fbn_pct"
+                                        step="0.01" min="0" max="100"
+                                        value="{{ old('commission_fbn_pct', $category->commission_fbn_pct ?? 0) }}"
+                                        class="input w-full text-sm commission-fbn-input">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Fixed Fee (per unit, in cents)</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" name="commission_fbn_fixed_cents"
+                                            step="1" min="0"
+                                            value="{{ old('commission_fbn_fixed_cents', $category->commission_fbn_fixed_cents ?? 0) }}"
+                                            class="input w-full text-sm commission-fbn-input">
+                                        <span class="text-xs text-gray-400 whitespace-nowrap">cents</span>
+                                    </div>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-2.5 text-xs text-green-700">
+                                    <strong>Example:</strong> 100.00 item × 2 qty:<br>
+                                    <span id="fbn-preview">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-400 mt-3">
+                        Commission per item = (unit_price × %) + fixed_fee. Snapshotted at order time — changing these does not affect existing orders.
+                        Subcategories inherit the nearest ancestor's rates when their own rates are zero.
+                    </p>
+                </div>
+
+                <script>
+                    (function () {
+                        function updatePreview(type) {
+                            const pct = parseFloat(document.querySelector('[name="commission_' + type + '_pct"]').value) || 0;
+                            const fixed = parseInt(document.querySelector('[name="commission_' + type + '_fixed_cents"]').value) || 0;
+                            const examplePrice = 10000;
+                            const exampleQty = 2;
+                            const commissionPerUnit = Math.round(examplePrice * pct / 100) + fixed;
+                            const total = commissionPerUnit * exampleQty;
+                            document.getElementById(type + '-preview').textContent =
+                                '(' + (examplePrice / 100).toFixed(2) + ' × ' + pct + '%) + ' + (fixed / 100).toFixed(2) +
+                                ' = ' + (commissionPerUnit / 100).toFixed(2) + ' per unit × ' + exampleQty +
+                                ' = ' + (total / 100).toFixed(2) + ' total';
+                        }
+                        document.addEventListener('DOMContentLoaded', function () {
+                            ['fbp', 'fbn'].forEach(function (t) {
+                                document.querySelectorAll('.commission-' + t + '-input')
+                                    .forEach(function (el) { el.addEventListener('input', function () { updatePreview(t); }); });
+                                updatePreview(t);
+                            });
+                        });
+                    })();
+                </script>
+
+                {{-- Delivery Options (edit mode only — requires a category ID) --}}
+                @if($isEdit)
+                <div class="border border-gray-200 rounded-xl overflow-hidden mt-1"
+                    x-data="categoryShippingMethods('{{ route('admin.categories.shipping-methods', $category->id) }}', '{{ route('admin.categories.shipping-methods.update', $category->id) }}')">
+                    <button type="button" @click="toggle"
+                        class="w-full flex items-center justify-between p-4 bg-gray-50 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
+                        <span>🚚 Delivery Options</span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}"
+                            fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                        </svg>
+                    </button>
+                    <div x-show="open" x-cloak class="p-4 space-y-3">
+                        <p class="text-xs text-gray-500 mb-3">
+                            Configure which delivery methods are available for products in this category.
+                            The <strong>Default</strong> method appears as the highlighted badge on listing cards.
+                        </p>
+                        <div id="shipping-methods-matrix">
+                            <template x-if="loading">
+                                <div class="text-center text-sm text-gray-400 py-4">Loading…</div>
+                            </template>
+                            <template x-if="!loading && methods.length === 0">
+                                <div class="text-center text-sm text-gray-400 py-4">No shipping methods configured.</div>
+                            </template>
+                            <template x-if="!loading && methods.length > 0">
+                                <div class="divide-y divide-gray-100">
+                                    <template x-for="m in methods" :key="m.id">
+                                        <div class="grid gap-3 items-center py-2.5"
+                                            style="grid-template-columns: auto 1fr auto auto auto">
+                                            {{-- Enable toggle --}}
+                                            <input type="checkbox" class="rounded border-gray-300 text-primary-600 cursor-pointer"
+                                                :checked="m.enabled"
+                                                @change="m.enabled = $event.target.checked">
+                                            {{-- Badge + name --}}
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap"
+                                                    :style="'background:' + m.badge_color_hex + '; color:' + m.badge_text_color_hex"
+                                                    x-text="m.badge_label_en || m.name"></span>
+                                                <span class="text-sm font-medium text-gray-700 truncate" x-text="m.name"></span>
+                                                <span class="text-xs text-gray-400 whitespace-nowrap" x-text="m.delivery_label_en"></span>
+                                            </div>
+                                            {{-- Default radio --}}
+                                            <label class="flex items-center gap-1 text-xs text-gray-500 cursor-pointer whitespace-nowrap">
+                                                <input type="radio" name="sm_default_method"
+                                                    :value="m.id"
+                                                    :checked="m.is_default"
+                                                    @change="setDefault(m.id)"
+                                                    class="text-primary-600">
+                                                Default
+                                            </label>
+                                            {{-- FBN --}}
+                                            <label class="flex items-center gap-1 text-xs text-gray-500 cursor-pointer whitespace-nowrap">
+                                                <input type="checkbox" class="rounded border-gray-300 text-primary-600"
+                                                    :checked="m.is_available_for_express_fbn"
+                                                    @change="m.is_available_for_express_fbn = $event.target.checked">
+                                                FBN
+                                            </label>
+                                            {{-- FBP --}}
+                                            <label class="flex items-center gap-1 text-xs text-gray-500 cursor-pointer whitespace-nowrap">
+                                                <input type="checkbox" class="rounded border-gray-300 text-primary-600"
+                                                    :checked="m.is_available_for_merchant_fbp"
+                                                    @change="m.is_available_for_merchant_fbp = $event.target.checked">
+                                                FBP
+                                            </label>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="flex items-center gap-3 mt-3">
+                            <button type="button" @click="save"
+                                :disabled="saving"
+                                class="btn btn-primary btn-sm"
+                                :class="{'opacity-60 cursor-not-allowed': saving}">
+                                <span x-text="saving ? 'Saving…' : 'Save Delivery Options'"></span>
+                            </button>
+                            <span x-show="savedMsg" x-cloak class="text-xs text-green-600 font-medium">✓ Saved</span>
+                            <span x-show="errorMsg" x-cloak class="text-xs text-red-600 font-medium" x-text="errorMsg"></span>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 {{-- Sort Order --}}
                 <x-form.input
@@ -299,3 +469,81 @@
     </div>{{-- /flex row --}}
 
 </div>{{-- /x-data root --}}
+
+@if($isEdit)
+<script>
+function categoryShippingMethods(getUrl, postUrl) {
+    return {
+        open: false,
+        loaded: false,
+        loading: false,
+        saving: false,
+        savedMsg: false,
+        errorMsg: '',
+        methods: [],
+
+        toggle() {
+            this.open = !this.open;
+            if (this.open && !this.loaded) this.load();
+        },
+
+        async load() {
+            this.loading = true;
+            try {
+                const r = await fetch(getUrl, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await r.json();
+                this.methods = data.methods.map(m => ({...m}));
+                this.loaded = true;
+            } catch (e) {
+                this.errorMsg = 'Failed to load methods.';
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        setDefault(id) {
+            this.methods.forEach(m => m.is_default = (m.id === id));
+        },
+
+        async save() {
+            this.saving = true;
+            this.savedMsg = false;
+            this.errorMsg = '';
+            try {
+                const r = await fetch(postUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({
+                        methods: this.methods.map(m => ({
+                            shipping_method_id: m.id,
+                            enabled: m.enabled,
+                            is_default: m.is_default,
+                            is_available_for_express_fbn: m.is_available_for_express_fbn,
+                            is_available_for_merchant_fbp: m.is_available_for_merchant_fbp,
+                        }))
+                    }),
+                });
+                const data = await r.json();
+                if (!r.ok) {
+                    this.errorMsg = data.message || 'Save failed.';
+                } else {
+                    this.savedMsg = true;
+                    setTimeout(() => { this.savedMsg = false; }, 3000);
+                }
+            } catch (e) {
+                this.errorMsg = 'Network error.';
+            } finally {
+                this.saving = false;
+            }
+        },
+    };
+}
+</script>
+@endif

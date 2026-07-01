@@ -20,15 +20,32 @@ class ShippingMethod extends Model
         'min_delivery_days',
         'max_delivery_days',
         'is_active',
+        'badge_label_en',
+        'badge_label_ar',
+        'badge_color_hex',
+        'badge_text_color_hex',
+        'delivery_label_en',
+        'delivery_label_ar',
+        'is_express_type',
+        'show_estimated_price',
+        'display_priority',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'min_delivery_days' => 'integer',
-        'max_delivery_days' => 'integer',
+        'is_active'            => 'boolean',
+        'is_express_type'      => 'boolean',
+        'show_estimated_price' => 'boolean',
+        'min_delivery_days'    => 'integer',
+        'max_delivery_days'    => 'integer',
+        'display_priority'     => 'integer',
     ];
 
     public function rates(): HasMany
+    {
+        return $this->hasMany(ShippingRate::class);
+    }
+
+    public function shippingRates(): HasMany
     {
         return $this->hasMany(ShippingRate::class);
     }

@@ -33,6 +33,7 @@
                         <th class="px-4 py-3">Category</th>
                         <th class="px-4 py-3 text-right">Products</th>
                         <th class="px-4 py-3 text-right">Commission</th>
+                        <th class="px-4 py-3">Default Delivery</th>
                         <th class="px-4 py-3">Status</th>
                         <th class="px-4 py-3">Featured</th>
                         <th class="px-4 py-3 text-right"></th>
@@ -40,10 +41,10 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($roots as $root)
-                        @include('admin.categories._tree_row', ['category' => $root, 'depth' => 0])
+                        @include('admin.categories._tree_row', ['category' => $root, 'depth' => 0, 'defaultShippingByCategory' => $defaultShippingByCategory])
                     @empty
                         <tr>
-                            <td colspan="7" class="px-4 py-12 text-center text-gray-400">
+                            <td colspan="8" class="px-4 py-12 text-center text-gray-400">
                                 No categories yet.
                                 <a href="{{ route('admin.categories.create') }}" class="text-primary-600 underline ml-1">Add the
                                     first one</a>

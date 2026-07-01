@@ -25,6 +25,12 @@
                         </button>
                     </form>
                 @endif
+                @if($package->status === 'active' && ($package->seatsRemaining() === null || $package->seatsRemaining() > 0))
+                    <a href="{{ route('travel-agency.bookings.create', $package) }}"
+                        class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500">
+                        + حجز جديد
+                    </a>
+                @endif
                 <a href="{{ route('travel-agency.packages.index') }}"
                     class="px-4 py-2 border border-gray-300 rounded-lg text-sm">← رجوع</a>
             </div>

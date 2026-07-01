@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\DeliveryAgentCodSettlement;
 
 class SubOrder extends Model
 {
@@ -61,6 +62,9 @@ class SubOrder extends Model
             'estimated_delivery_date' => 'date',
             'sla_ship_deadline' => 'datetime',
             'sla_breached' => 'boolean',
+            'gateway_fee_rate' => 'decimal:6',
+            'cod_remittance_confirmed' => 'boolean',
+            'cod_remittance_confirmed_at' => 'datetime',
         ];
     }
 
@@ -76,6 +80,8 @@ class SubOrder extends Model
         'shipping',
         'tax',
         'platform_commission',
+        'gateway_fee',
+        'gateway_fee_rate',
         'vendor_payout',
         'shipping_method_id',
         'carrier_id',
@@ -87,6 +93,9 @@ class SubOrder extends Model
         'cancellation_reason',
         'sla_ship_deadline',
         'sla_breached',
+        'cod_remittance_confirmed',
+        'cod_remittance_confirmed_at',
+        'cod_settlement_id',
     ];
 
     public function order(): BelongsTo
@@ -132,6 +141,11 @@ class SubOrder extends Model
     public function refunds(): HasMany
     {
         return $this->hasMany(Refund::class);
+    }
+
+    public function codSettlement(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryAgentCodSettlement::class, 'cod_settlement_id');
     }
 
     public function statusHistories(): HasMany

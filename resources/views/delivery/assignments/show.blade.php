@@ -20,6 +20,8 @@
         $order = $assignment->subOrder?->order;
         $items = $assignment->subOrder?->items ?? collect();
         $customer = $order?->customer;
+        $isCod = $order?->payment_method === 'cod';
+        $expectedCodCents = $isCod ? (int) ($order->total ?? 0) : 0;
     @endphp
 
     {{-- ── Status + Order Number ───────────────────────────────────────────────── --}}
@@ -146,8 +148,49 @@
                 </button>
             @endif
 
-            {{-- PICKED_UP: OTP + Deliver --}}
+            {{-- PICKED_UP: COD Card + OTP + Deliver --}}
             @if($assignment->status === 'picked_up')
+
+                {{-- COD Collection Card --}}
+                @if($isCod)
+                    <div class="d-card mb-3 border border-yellow-500/40 bg-yellow-500/5">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-yellow-400 text-lg">💵</span>
+                            <p class="text-sm font-bold text-yellow-300">تحصيل الدفع النقدي (COD)</p>
+                        </div>
+                        <div class="bg-slate-800 rounded-xl p-4 mb-3 text-center">
+                            <p class="text-xs text-slate-400 mb-1">المبلغ المطلوب تحصيله</p>
+                            <p class="text-3xl font-extrabold text-yellow-300">
+                                {{ number_format($expectedCodCents / 100, 2) }}
+                                <span class="text-sm font-normal text-slate-400">{{ $order->currency }}</span>
+                            </p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1">
+                                المبلغ المُحصَّل فعلياً
+                            </label>
+                            <input type="number" id="cod-amount-input" x-model.number="codAmountCollected"
+                                min="0" step="1"
+                                placeholder="{{ number_format($expectedCodCents / 100, 2) }}"
+                                class="w-full bg-slate-700 text-slate-100 rounded-xl p-3 text-center text-xl font-bold border-2 border-slate-600 focus:border-yellow-400 focus:outline-none transition-colors"
+                                inputmode="decimal">
+                            <p class="text-xs text-slate-500 mt-1 text-center">
+                                أدخل المبلغ بالقرش ({{ $order->currency === 'EGP' ? 'مليم' : 'سنت' }})، مثال: {{ number_format($expectedCodCents / 100, 2) }}
+                            </p>
+                        </div>
+
+                        {{-- Discrepancy note — shown when amount differs by more than 5% --}}
+                        <div x-show="showDiscrepancyNote" x-cloak class="mt-3 border-t border-yellow-500/30 pt-3">
+                            <label class="text-xs font-semibold text-yellow-400 block mb-1">
+                                سبب الاختلاف في المبلغ (مطلوب)
+                            </label>
+                            <textarea x-model="discrepancyNote" rows="2"
+                                class="w-full bg-slate-700 text-slate-100 rounded-xl p-3 text-sm border-2 border-yellow-500/50 focus:border-yellow-400 focus:outline-none resize-none"
+                                placeholder="مثال: العميل لم يكن معه فكّة كافية، دفع أقل بمقدار 2 جنيه…"></textarea>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="d-card mb-3">
                     <p class="text-sm font-semibold mb-4 text-center">Enter Delivery OTP</p>
                     <div class="flex justify-center gap-2 mb-4" id="otp-inputs">
@@ -186,9 +229,11 @@
                     </div>
                 </div>
 
-                <button type="button" id="deliver-form" @click="deliver()" :disabled="loading || !otp || otp.length < 6"
-                    class="btn-action btn-yellow" :class="{ 'opacity-50': !otp || otp.length < 6 }">
-                    <span x-text="loading ? 'Confirming…' : '✓ Confirm Delivery'"></span>
+                <button type="button" id="deliver-form" @click="deliver()"
+                    :disabled="loading || !otp || otp.length < 6 || (isCod && !codAmountCollected)"
+                    class="btn-action btn-yellow"
+                    :class="{ 'opacity-50': !otp || otp.length < 6 || (isCod && !codAmountCollected) }">
+                    <span x-text="loading ? 'Confirming…' : (isCod ? '✓ تأكيد التسليم وتحصيل النقد' : '✓ Confirm Delivery')"></span>
                 </button>
             @endif
 
@@ -271,6 +316,17 @@
                 toastMsg: '',
                 toastError: false,
                 _toastTimer: null,
+                isCod: @json($isCod),
+                expectedCodCents: @json($expectedCodCents),
+                codAmountCollected: @json($isCod ? number_format($expectedCodCents / 100, 2) : 'null'),
+                discrepancyNote: '',
+                get showDiscrepancyNote() {
+                    if (!this.isCod || !this.codAmountCollected) return false;
+                    const collectedCents = Math.round(parseFloat(this.codAmountCollected) * 100);
+                    const diff = Math.abs(collectedCents - this.expectedCodCents);
+                    const pct = this.expectedCodCents > 0 ? diff / this.expectedCodCents : 0;
+                    return diff > 5 && pct > 0.05;
+                },
 
                 toast(msg, error = false) {
                     this.toastMsg = msg;
@@ -336,6 +392,14 @@
 
                 async deliver() {
                     if (!this.otp || this.otp.length < 6) return;
+                    if (this.isCod && !this.codAmountCollected) {
+                        this.toast('يرجى إدخال المبلغ المُحصَّل.', true);
+                        return;
+                    }
+                    if (this.showDiscrepancyNote && !this.discrepancyNote.trim()) {
+                        this.toast('يرجى إدخال سبب الاختلاف في المبلغ.', true);
+                        return;
+                    }
                     this.loading = true;
                     const loc = await this.getLocation();
                     const form = new FormData();
@@ -344,6 +408,14 @@
                     if (loc.latitude) form.append('latitude', loc.latitude);
                     if (loc.longitude) form.append('longitude', loc.longitude);
                     if (this.proofFile) form.append('proof_image', this.proofFile);
+                    if (this.isCod && this.codAmountCollected) {
+                        // Convert display value (e.g. 125.50) to cents integer
+                        const cents = Math.round(parseFloat(this.codAmountCollected) * 100);
+                        form.append('cod_amount_collected', cents);
+                    }
+                    if (this.discrepancyNote.trim()) {
+                        form.append('discrepancy_note', this.discrepancyNote.trim());
+                    }
 
                     try {
                         const res = await fetch(@json(route('delivery.assignments.deliver', $assignment->id)), {
@@ -353,10 +425,15 @@
                         });
                         const data = await res.json();
                         if (data.success) {
-                            this.toast('Delivery confirmed! 🎉');
+                            this.toast(this.isCod ? 'تم تأكيد التسليم وتحصيل النقد! 🎉' : 'Delivery confirmed! 🎉');
                             setTimeout(() => window.location.href = @json(route('delivery.assignments.index')), 1200);
                         } else {
-                            this.toast(data.message || 'Invalid OTP.', true);
+                            if (data.requires_discrepancy_note) {
+                                this.toast(data.message, true);
+                                // Force show the note field
+                            } else {
+                                this.toast(data.message || 'Invalid OTP.', true);
+                            }
                             if (data.remaining === 0) {
                                 setTimeout(() => location.reload(), 1500);
                             }

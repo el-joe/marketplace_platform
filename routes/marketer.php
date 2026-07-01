@@ -4,6 +4,7 @@ use App\Http\Controllers\MarketerPortal\AuthController;
 use App\Http\Controllers\MarketerPortal\CampaignController;
 use App\Http\Controllers\MarketerPortal\DashboardController;
 use App\Http\Controllers\MarketerPortal\EarningsController;
+use App\Http\Controllers\MarketerPortal\InvitationController;
 use App\Http\Controllers\MarketerPortal\ProfileController;
 use App\Http\Controllers\MarketerPortal\QrCodeController;
 use App\Http\Controllers\MarketerPortal\SampleRequestController;
@@ -84,6 +85,14 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             // Wallet
             Route::get('/wallet', [\App\Http\Controllers\MarketerPortal\WalletController::class, 'index'])->name('wallet.index');
             Route::post('/wallet/withdraw', [\App\Http\Controllers\MarketerPortal\WalletController::class, 'requestWithdrawal'])->name('wallet.withdraw');
+
+            // Invitations
+            Route::prefix('invitations')->name('invitations.')->group(function () {
+                Route::get('/', [InvitationController::class, 'index'])->name('index');
+                Route::get('/{invitation}', [InvitationController::class, 'show'])->name('show');
+                Route::post('/{invitation}/accept', [InvitationController::class, 'accept'])->name('accept');
+                Route::post('/{invitation}/decline', [InvitationController::class, 'decline'])->name('decline');
+            });
         });
     });
 

@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Jobs\AutoAssignShippingMethodJob;
 use App\Jobs\FraudDetectionJob;
 use App\Jobs\NotifyVendorJob;
 use App\Jobs\OrderConfirmationEmailJob;
@@ -166,6 +167,14 @@ class CustomerCheckoutService
         $codFee = $isCod ? $this->computeCodFee($blueprints) : 0;
         $grandTotal = max(0, $subtotal - $discount + $totalShipping + $totalTax + $codFee);
 
+        // Gateway fees are borne by the vendor, never the platform or customer (policy).
+        // COD has no electronic payment processing fee, so methodConfig stays null for COD.
+        $methodConfig = $isCod ? null : \App\Models\CountryPaymentMethod::where('method_type', $paymentMethod)
+            ->where('country_id', $address->country_id)
+            ->where('is_active', true)
+            ->first();
+        $blueprints = $this->assembler->applyGatewayFee($blueprints, $grandTotal, $methodConfig);
+
         $order = DB::transaction(function () use (
             $cart, $customer, $params, $idempKey, $blueprints,
             $address, $paymentMethod, $isCod,
@@ -209,12 +218,19 @@ class CustomerCheckoutService
                     'shipping'           => $blueprint['shipping'],
                     'tax'                => $blueprint['tax'],
                     'platform_commission' => $blueprint['platform_commission'],
+                    'gateway_fee'        => $blueprint['gateway_fee'],
+                    'gateway_fee_rate'   => $blueprint['gateway_fee_rate'],
                     'vendor_payout'      => $blueprint['vendor_payout'],
-                    'shipping_method_id' => $params['shipping_method_id'],
+                    // shipping_method_id is intentionally left unset here — the admin
+                    // assigns it post-placement (filtered by destination zone), with
+                    // AutoAssignShippingMethodJob falling back to the cheapest eligible
+                    // method after 12 hours if the admin hasn't acted.
                     'sla_ship_deadline'  => now()->addHours(48),
                 ]);
 
                 $subOrderSuffix++;
+
+                AutoAssignShippingMethodJob::dispatch($subOrder->id)->delay(now()->addHours(12));
 
                 Notification::send($subOrder->vendor->vendorAdmins, new NewOrderReceived($subOrder));
 
@@ -225,32 +241,35 @@ class CustomerCheckoutService
 
                     $lineSubtotal = $cartItem->unit_price * $cartItem->quantity;
                     $lineTax = (int) round($lineSubtotal * ($blueprint['tax'] / max(1, $blueprint['subtotal'])));
-                    $lineCommission = (int) round($lineSubtotal * ($blueprint['commission_rate_pct'] / 100));
+
+                    $commissionData = $blueprint['items_commission_data'][$cartItem->id];
 
                     OrderItem::create([
-                        'order_id'           => $order->id,
-                        'sub_order_id'       => $subOrder->id,
-                        'product_variant_id' => $variant->id,
-                        'product_snapshot'   => [
-                            'name'         => $product->name_en ?? $product->name_ar ?? '',
-                            'sku'          => $variant->sku ?? $listing->vendor_sku ?? '',
-                            'image'        => $product->images?->where('is_primary', true)->first()?->path ?? null,
-                            'variant'      => $variant->option_values ?? [],
-                            'seller_name'  => $listing->vendor?->store_name ?? '',
+                        'order_id'                => $order->id,
+                        'sub_order_id'            => $subOrder->id,
+                        'product_variant_id'      => $variant->id,
+                        'product_snapshot'        => [
+                            'name'        => $product->name_en ?? $product->name_ar ?? '',
+                            'sku'         => $variant->sku ?? $listing->vendor_sku ?? '',
+                            'image'       => $product->images?->where('is_primary', true)->first()?->path ?? null,
+                            'variant'     => $variant->option_values ?? [],
+                            'seller_name' => $listing->vendor?->store_name ?? '',
                         ],
-                        'vendor_id'          => $blueprint['vendor_id'],
-                        'sku'                => $variant->sku ?? $listing->vendor_sku ?? '',
-                        'quantity'           => $cartItem->quantity,
-                        'unit_price'         => $cartItem->unit_price,
-                        'unit_cost_price'    => $listing->cost_price,
-                        'line_subtotal'      => $lineSubtotal,
-                        'line_discount'      => 0,
-                        'line_tax'           => $lineTax,
-                        'line_total'         => $lineSubtotal + $lineTax,
-                        'commission_rate_pct' => $blueprint['commission_rate_pct'],
-                        'commission_amount'  => $lineCommission,
-                        'fulfillment_status' => 'pending',
-                        'return_eligible_until' => now()->addDays(14)->toDateString(),
+                        'vendor_id'               => $blueprint['vendor_id'],
+                        'sku'                     => $variant->sku ?? $listing->vendor_sku ?? '',
+                        'quantity'                => $cartItem->quantity,
+                        'unit_price'              => $cartItem->unit_price,
+                        'unit_cost_price'         => $listing->cost_price,
+                        'line_subtotal'           => $lineSubtotal,
+                        'line_discount'           => 0,
+                        'line_tax'                => $lineTax,
+                        'line_total'              => $lineSubtotal + $lineTax,
+                        'commission_rate_pct'     => $commissionData['rate_pct'],
+                        'commission_fixed_cents'  => $commissionData['fixed_cents'],
+                        'commission_amount'       => $commissionData['amount'],
+                        'commission_category_id'  => $commissionData['category_id'],
+                        'fulfillment_status'      => 'pending',
+                        'return_eligible_until'   => now()->addDays(14)->toDateString(),
                     ]);
                 }
             }
@@ -337,8 +356,12 @@ class CustomerCheckoutService
     private function recordLedgerEntries(Order $order, array $blueprints, int $grandTotal, bool $isCod): void
     {
         $groupId = $this->ledgerService->newGroupId();
+        // vendor_payout on each blueprint is already net of gateway_fee (see applyGatewayFee()).
+        // The gateway fee is a pass-through to the payment gateway, not platform revenue, so we
+        // add it back here to get the gross vendor payout for the platform revenue formula.
         $totalVendorPayout = array_sum(array_column($blueprints, 'vendor_payout'));
-        $platformRevenue = $grandTotal - $totalVendorPayout - $order->tax;
+        $totalGatewayFee = array_sum(array_column($blueprints, 'gateway_fee'));
+        $platformRevenue = $grandTotal - ($totalVendorPayout + $totalGatewayFee) - $order->tax;
 
         $entries = [
             [
@@ -376,7 +399,7 @@ class CustomerCheckoutService
             ],
         ];
 
-        // Per-vendor payable entries
+        // Per-vendor payable entries (vendor_payout here is already net of gateway_fee)
         foreach ($blueprints as $bp) {
             $entries[] = [
                 'account_type'        => 'seller_payable',
@@ -389,6 +412,20 @@ class CustomerCheckoutService
                 'reference_id'        => $order->id,
                 'description'         => "Vendor payout for sub-order (vendor {$bp['vendor_id']})",
             ];
+
+            if ($bp['gateway_fee'] > 0) {
+                $entries[] = [
+                    'account_type'        => 'gateway_fee',
+                    'account_holder_type' => 'vendors',
+                    'account_holder_id'   => $bp['vendor_id'],
+                    'debit'               => 0,
+                    'credit'              => $bp['gateway_fee'],
+                    'currency'            => $order->currency,
+                    'reference_type'      => 'order',
+                    'reference_id'        => $order->id,
+                    'description'         => "Payment gateway fee, vendor-borne (vendor {$bp['vendor_id']})",
+                ];
+            }
         }
 
         // Balance check: the record() method in LedgerService will throw if unbalanced.

@@ -54,6 +54,9 @@ class DatabaseSeeder extends Seeder
                 // ── Travel categories starter set ─────────────────────────────
             TravelCategorySeeder::class,
 
+                // ── Blog module starter content ────────────────────────────────
+            BlogSeeder::class,
+
                 // ── Light cross-reference demo data (run last) ─────────────────
             DemoDataSeeder::class,
         ]);

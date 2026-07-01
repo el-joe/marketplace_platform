@@ -49,6 +49,7 @@ use App\Models\PaidAdSlot;
 use App\Policies\AdSlotPolicy;
 use App\Policies\ClassifiedListingPolicy;
 use App\Policies\ClassifiedInquiryPolicy;
+use App\Observers\VendorListingObserver;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -96,6 +97,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ClassifiedListing::class, ClassifiedListingPolicy::class);
         Gate::policy(ClassifiedInquiry::class, ClassifiedInquiryPolicy::class);
         Gate::policy(PaidAdSlot::class, AdSlotPolicy::class);
+
+        VendorListing::observe(VendorListingObserver::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);
