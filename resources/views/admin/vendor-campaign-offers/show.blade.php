@@ -128,7 +128,7 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                                <tr class="text-start text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
                                     <th class="pb-2 pr-4">#</th>
                                     <th class="pb-2 pr-4">Product</th>
                                     <th class="pb-2 pr-4">Commission Override</th>
@@ -161,7 +161,7 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                                <tr class="text-start text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
                                     <th class="pb-2 pr-4">Marketer</th>
                                     <th class="pb-2 pr-4">Status</th>
                                     <th class="pb-2 pr-4">Responded</th>

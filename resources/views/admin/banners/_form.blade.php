@@ -69,18 +69,18 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-xl font-semibold text-gray-900">
-                {{ $isEdit ? 'Edit Banner: ' . e($banner->name) : 'New Banner' }}
+                {{ $isEdit ? __('admin.banners.edit_banner_name_title', ['name' => $banner->name]) : __('admin.banners.new_banner_title') }}
             </h1>
             @if($isEdit)
                 <p class="text-sm text-gray-500 mt-1">
-                    Last updated: {{ $banner->updated_at ? $banner->updated_at->diffForHumans() : 'never' }}
+                    {{ __('admin.banners.last_updated', ['time' => $banner->updated_at ? $banner->updated_at->diffForHumans() : __('admin.banners.never')]) }}
                 </p>
             @endif
         </div>
         <div class="flex gap-2">
-            <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary">Cancel</a>
+            <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
             <button type="submit" id="save-btn" class="btn btn-primary">
-                {{ $isEdit ? 'Save Changes' : 'Create Banner' }}
+                {{ $isEdit ? __('admin.banners.save_changes') : __('admin.banners.create_banner') }}
             </button>
         </div>
     </div>
@@ -91,26 +91,26 @@
         <div class="lg:col-span-2 space-y-6">
 
             {{-- Banner Content card ─────────────────────────────────────────── --}}
-            <x-card title="Banner Content">
+            <x-card title="{{ __('admin.banners.banner_content') }}">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                     {{-- Name --}}
                     <div class="sm:col-span-2">
                         <x-form-input
                             name="name"
-                            label="Internal Name *"
+                            label="{{ __('admin.banners.internal_name') }} *"
                             :value="$val('name')"
-                            placeholder="e.g. Ramadan Sale – Homepage Hero 2025"
+                            placeholder="{{ __('admin.banners.internal_name_placeholder') }}"
                             required />
                     </div>
 
                     {{-- Placement --}}
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Placement <span class="text-red-500">*</span>
+                            {{ __('admin.banners.placement') }} <span class="text-red-500">*</span>
                         </label>
                         <select name="placement_code" x-model="placement" class="form-input w-full" required>
-                            <option value="">— Select a placement —</option>
+                            <option value="">{{ __('admin.banners.select_placement') }}</option>
                             @foreach($placements as $p)
                                 <option value="{{ $p->code }}" @selected($val('placement_code') === $p->code)>
                                     {{ $p->name }}
@@ -124,12 +124,12 @@
             </x-card>
 
             {{-- Image Upload card ───────────────────────────────────────────── --}}
-            <x-card title="Creative Images">
+            <x-card title="{{ __('admin.banners.creative_images') }}">
 
                 {{-- Desktop image --}}
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Desktop Image
+                        {{ __('admin.banners.desktop_image') }}
                         <span class="text-xs text-gray-400 font-normal"
                             x-text="currentPlacement ? '(' + currentPlacement.width_px + '×' + currentPlacement.height_px + 'px)' : ''">
                         </span>
@@ -152,10 +152,10 @@
                                 data-slot="desktop"
                                 data-file-id="{{ $desktopImage->id }}"
                                 data-delete-url="{{ route('admin.banners.delete-image') }}"
-                                title="Remove">✕</button>
+                                title="{{ __('admin.banners.remove') }}">✕</button>
                         @else
                             <img id="desktop-preview-img" src="" alt="" class="max-w-full max-h-full object-contain hidden" />
-                            <span id="desktop-upload-placeholder" class="text-sm text-gray-400">No image yet</span>
+                            <span id="desktop-upload-placeholder" class="text-sm text-gray-400">{{ __('admin.banners.no_image_yet') }}</span>
                         @endif
                     </div>
 
@@ -170,8 +170,8 @@
                 {{-- Mobile image --}}
                 <div x-show="showMobileUpload" x-transition>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Mobile Image
-                        <span class="text-xs text-gray-400 font-normal">(Optional — shown on mobile devices)</span>
+                        {{ __('admin.banners.mobile_image') }}
+                        <span class="text-xs text-gray-400 font-normal">{{ __('admin.banners.mobile_image_optional') }}</span>
                     </label>
 
                     <div
@@ -190,10 +190,10 @@
                                 data-slot="mobile"
                                 data-file-id="{{ $mobileImage->id }}"
                                 data-delete-url="{{ route('admin.banners.delete-image') }}"
-                                title="Remove">✕</button>
+                                title="{{ __('admin.banners.remove') }}">✕</button>
                         @else
                             <img id="mobile-preview-img" src="" alt="" class="max-w-full max-h-full object-contain hidden" />
-                            <span id="mobile-upload-placeholder" class="text-sm text-gray-400">No image yet</span>
+                            <span id="mobile-upload-placeholder" class="text-sm text-gray-400">{{ __('admin.banners.no_image_yet') }}</span>
                         @endif
                     </div>
 
@@ -208,49 +208,49 @@
             </x-card>
 
             {{-- Text Content card ───────────────────────────────────────────── --}}
-            <x-card title="Text Content" subtitle="All fields are optional">
+            <x-card title="{{ __('admin.banners.text_content') }}" subtitle="{{ __('admin.banners.all_fields_optional') }}">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <x-form-input name="title_en"    label="Title (English)"    :value="$val('title_en')" />
-                    <x-form-input name="title_ar"    label="Title (Arabic)"     :value="$val('title_ar')" dir="rtl" />
-                    <x-form-input name="subtitle_en" label="Subtitle (English)" :value="$val('subtitle_en')" />
-                    <x-form-input name="subtitle_ar" label="Subtitle (Arabic)"  :value="$val('subtitle_ar')" dir="rtl" />
-                    <x-form-input name="cta_label_en" label="CTA Label (English)" :value="$val('cta_label_en')" placeholder="e.g. Shop Now" />
-                    <x-form-input name="cta_label_ar" label="CTA Label (Arabic)"  :value="$val('cta_label_ar')" placeholder="تسوق الآن" dir="rtl" />
+                    <x-form-input name="title_en"    label="{{ __('admin.banners.title_en') }}"    :value="$val('title_en')" dir="ltr" />
+                    <x-form-input name="title_ar"    label="{{ __('admin.banners.title_ar') }}"     :value="$val('title_ar')" dir="rtl" />
+                    <x-form-input name="subtitle_en" label="{{ __('admin.banners.subtitle_en') }}" :value="$val('subtitle_en')" dir="ltr" />
+                    <x-form-input name="subtitle_ar" label="{{ __('admin.banners.subtitle_ar') }}"  :value="$val('subtitle_ar')" dir="rtl" />
+                    <x-form-input name="cta_label_en" label="{{ __('admin.banners.cta_label_en') }}" :value="$val('cta_label_en')" placeholder="{{ __('admin.banners.cta_label_en_placeholder') }}" dir="ltr" />
+                    <x-form-input name="cta_label_ar" label="{{ __('admin.banners.cta_label_ar') }}"  :value="$val('cta_label_ar')" placeholder="{{ __('admin.banners.cta_label_ar_placeholder') }}" dir="rtl" />
                 </div>
             </x-card>
 
             {{-- Link card ───────────────────────────────────────────────────── --}}
-            <x-card title="Link & Target">
+            <x-card title="{{ __('admin.banners.link_and_target') }}">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Link Type</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.banners.link_type') }}</label>
                         <select name="link_type" x-model="linkType" class="form-input w-full">
-                            <option value="">— None —</option>
-                            <option value="url" @selected($val('link_type') === 'url')>External URL</option>
-                            <option value="product" @selected($val('link_type') === 'product')>Product</option>
-                            <option value="category" @selected($val('link_type') === 'category')>Category</option>
-                            <option value="brand" @selected($val('link_type') === 'brand')>Brand</option>
-                            <option value="flash_sale" @selected($val('link_type') === 'flash_sale')>Flash Sale</option>
-                            <option value="page" @selected($val('link_type') === 'page')>Page</option>
-                            <option value="none" @selected($val('link_type') === 'none')>No link</option>
+                            <option value="">{{ __('admin.banners.none_option') }}</option>
+                            <option value="url" @selected($val('link_type') === 'url')>{{ __('admin.banners.external_url') }}</option>
+                            <option value="product" @selected($val('link_type') === 'product')>{{ __('admin.banners.product') }}</option>
+                            <option value="category" @selected($val('link_type') === 'category')>{{ __('admin.banners.category') }}</option>
+                            <option value="brand" @selected($val('link_type') === 'brand')>{{ __('admin.banners.brand') }}</option>
+                            <option value="flash_sale" @selected($val('link_type') === 'flash_sale')>{{ __('admin.banners.flash_sale') }}</option>
+                            <option value="page" @selected($val('link_type') === 'page')>{{ __('admin.banners.page') }}</option>
+                            <option value="none" @selected($val('link_type') === 'none')>{{ __('admin.banners.no_link') }}</option>
                         </select>
                     </div>
 
                     <div>
                         <x-form-input
                             name="cta_url"
-                            label="URL"
+                            label="{{ __('admin.banners.url') }}"
                             :value="$val('cta_url')"
-                            placeholder="https://…" />
+                            placeholder="{{ __('admin.banners.url_placeholder') }}" />
                     </div>
 
                     <div x-show="showLinkRef" x-transition class="sm:col-span-2">
                         <x-form-input
                             name="link_reference_id"
-                            label="Reference ID"
+                            label="{{ __('admin.banners.reference_id') }}"
                             :value="$val('link_reference_id')"
-                            placeholder="UUID of product / category / brand / flash sale / page" />
+                            placeholder="{{ __('admin.banners.reference_id_placeholder') }}" />
                     </div>
 
                 </div>
@@ -261,13 +261,13 @@
         <div class="space-y-6">
 
             {{-- Settings card ───────────────────────────────────────────────── --}}
-            <x-card title="Settings">
+            <x-card title="{{ __('admin.banners.settings') }}">
                 <div class="space-y-4">
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.banners.country') }}</label>
                         <select name="country_id" class="form-input w-full">
-                            <option value="">— All Countries —</option>
+                            <option value="">{{ __('admin.banners.all_countries_option') }}</option>
                             @foreach($countries as $c)
                                 <option value="{{ $c->id }}" @selected($val('country_id') === $c->id)>
                                     {{ $c->flag_emoji ? $c->flag_emoji . ' ' : '' }}{{ $c->name_en }}
@@ -277,48 +277,48 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Device Target</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.banners.device_target') }}</label>
                         <select name="device_target" x-model="deviceTarget" class="form-input w-full">
-                            <option value="all"     @selected($val('device_target', 'all') === 'all')>All Devices</option>
-                            <option value="desktop" @selected($val('device_target', 'all') === 'desktop')>Desktop Only</option>
-                            <option value="mobile"  @selected($val('device_target', 'all') === 'mobile')>Mobile Only</option>
-                            <option value="app"     @selected($val('device_target', 'all') === 'app')>App Only</option>
+                            <option value="all"     @selected($val('device_target', 'all') === 'all')>{{ __('admin.banners.all_devices_option') }}</option>
+                            <option value="desktop" @selected($val('device_target', 'all') === 'desktop')>{{ __('admin.banners.desktop_only') }}</option>
+                            <option value="mobile"  @selected($val('device_target', 'all') === 'mobile')>{{ __('admin.banners.mobile_only') }}</option>
+                            <option value="app"     @selected($val('device_target', 'all') === 'app')>{{ __('admin.banners.app_only') }}</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Audience</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.banners.audience') }}</label>
                         <select name="audience" class="form-input w-full">
-                            <option value="all"       @selected($val('audience', 'all') === 'all')>Everyone</option>
-                            <option value="guest"     @selected($val('audience', 'all') === 'guest')>Guests Only</option>
-                            <option value="logged_in" @selected($val('audience', 'all') === 'logged_in')>Logged In</option>
-                            <option value="vip"       @selected($val('audience', 'all') === 'vip')>VIP Members</option>
-                            <option value="new_user"  @selected($val('audience', 'all') === 'new_user')>New Users</option>
+                            <option value="all"       @selected($val('audience', 'all') === 'all')>{{ __('admin.banners.everyone') }}</option>
+                            <option value="guest"     @selected($val('audience', 'all') === 'guest')>{{ __('admin.banners.guests_only') }}</option>
+                            <option value="logged_in" @selected($val('audience', 'all') === 'logged_in')>{{ __('admin.banners.logged_in') }}</option>
+                            <option value="vip"       @selected($val('audience', 'all') === 'vip')>{{ __('admin.banners.vip_members') }}</option>
+                            <option value="new_user"  @selected($val('audience', 'all') === 'new_user')>{{ __('admin.banners.new_users') }}</option>
                         </select>
                     </div>
 
                     <div>
                         <x-form-input
                             name="priority"
-                            label="Priority"
+                            label="{{ __('admin.banners.priority') }}"
                             type="number"
                             :value="$val('priority', 0)"
                             min="0"
-                            placeholder="0 = lowest" />
-                        <p class="text-xs text-gray-400 mt-1">Higher number = shown first when multiple banners share a slot.</p>
+                            placeholder="{{ __('admin.banners.priority_placeholder') }}" />
+                        <p class="text-xs text-gray-400 mt-1">{{ __('admin.banners.priority_help') }}</p>
                     </div>
 
                 </div>
             </x-card>
 
             {{-- Schedule card ───────────────────────────────────────────────── --}}
-            <x-card title="Schedule">
+            <x-card title="{{ __('admin.banners.schedule') }}">
                 <div class="space-y-4">
 
                     <div>
                         <x-form-input
                             name="starts_at"
-                            label="Starts At *"
+                            label="{{ __('admin.banners.starts_at') }} *"
                             type="datetime-local"
                             :value="$val('starts_at', $isEdit ? optional($banner->starts_at)->format('Y-m-d\TH:i') : '')"
                             required />
@@ -327,11 +327,11 @@
                     <div>
                         <x-form-input
                             name="ends_at"
-                            label="Ends At *"
+                            label="{{ __('admin.banners.ends_at') }} *"
                             type="datetime-local"
                             :value="$val('ends_at', $isEdit ? optional($banner->ends_at)->format('Y-m-d\TH:i') : '')"
                             required />
-                        <p class="text-xs text-red-500 mt-1 hidden" id="date-error">End date must be after start date.</p>
+                        <p class="text-xs text-red-500 mt-1 hidden" id="date-error">{{ __('admin.banners.end_after_start_error') }}</p>
                     </div>
 
                     <div class="rounded bg-gray-50 px-3 py-2 text-xs text-gray-600" id="duration-preview">
@@ -342,9 +342,9 @@
             </x-card>
 
             {{-- Status card ─────────────────────────────────────────────────── --}}
-            <x-card title="Status">
+            <x-card title="{{ __('admin.banners.status') }}">
                 <div class="space-y-2">
-                    @foreach(['active' => 'Active', 'inactive' => 'Inactive', 'scheduled' => 'Scheduled'] as $statusVal => $statusLabel)
+                    @foreach(['active' => __('admin.banners.active'), 'inactive' => __('admin.banners.inactive'), 'scheduled' => __('admin.banners.scheduled')] as $statusVal => $statusLabel)
                         <label class="flex items-center gap-2.5 cursor-pointer">
                             <input
                                 type="radio"
@@ -356,25 +356,25 @@
                         </label>
                     @endforeach
                     <p class="text-xs text-gray-400 mt-1">
-                        If you choose Active but the start date is in the future, the banner will be set to Scheduled automatically.
+                        {{ __('admin.banners.if_active_but_future_note') }}
                     </p>
                 </div>
             </x-card>
 
             {{-- Stats card (edit only) ──────────────────────────────────────── --}}
             @if($isEdit)
-                <x-card title="Performance Stats">
+                <x-card title="{{ __('admin.banners.performance_stats') }}">
                     <dl class="space-y-2 text-sm">
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Impressions</dt>
+                            <dt class="text-gray-500">{{ __('admin.banners.impressions_today') }}</dt>
                             <dd class="font-semibold text-gray-800">{{ number_format($banner->impressions_count) }}</dd>
                         </div>
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Clicks</dt>
+                            <dt class="text-gray-500">{{ __('admin.banners.clicks') }}</dt>
                             <dd class="font-semibold text-gray-800">{{ number_format($banner->clicks_count) }}</dd>
                         </div>
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">CTR</dt>
+                            <dt class="text-gray-500">{{ __('admin.banners.ctr') }}</dt>
                             <dd class="font-semibold text-gray-800">
                                 @if($banner->impressions_count > 0)
                                     {{ round($banner->clicks_count / $banner->impressions_count * 100, 2) }}%
@@ -384,7 +384,7 @@
                             </dd>
                         </div>
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Created</dt>
+                            <dt class="text-gray-500">{{ __('admin.banners.created') }}</dt>
                             <dd class="text-gray-700">{{ $banner->created_at?->format('d M Y') }}</dd>
                         </div>
                     </dl>

@@ -271,7 +271,7 @@
                                         readonly value="0.00 %">
                                     <input type="hidden" id="admin-pct-hidden" value="0">
                                 </div>
-                                <div class="text-right shrink-0">
+                                <div class="text-end shrink-0">
                                     <p id="admin-per-sale-preview" class="text-lg font-bold text-amber-700">—</p>
                                     <p class="text-xs text-amber-500">{{ __('admin.secret_promotions.per_sale') }}</p>
                                 </div>

@@ -4,15 +4,15 @@
     @vite('resources/js/admin/analytics.js')
 @endpush
 
-@section('title', 'Analytics')
+@section('title', __('admin.analytics.title'))
 
 @section('content')
 
     {{-- ─── Page Header ──────────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Analytics</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Platform-wide performance metrics and insights.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.analytics.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.analytics.subtitle') }}</p>
         </div>
 
         {{-- ─── Filters ─────────────────────────────────────────────────────────── --}}
@@ -20,7 +20,7 @@
 
             {{-- Country filter --}}
             <select id="filter-country" class="form-input py-1.5 text-sm w-36">
-                <option value="">All Countries</option>
+                <option value="">{{ __('admin.analytics.all_countries') }}</option>
                 @foreach ($countries as $country)
                     <option value="{{ $country->id }}">{{ $country->name_en }} ({{ $country->iso_code_2 }})</option>
                 @endforeach
@@ -29,12 +29,12 @@
             {{-- Period tabs --}}
             <div class="inline-flex rounded-lg shadow-sm border border-gray-300 overflow-hidden" role="group" id="period-tabs">
                 @foreach ([
-                    'today'   => 'Today',
+                    'today'   => __('admin.analytics.today'),
                     'week'    => '7D',
                     'month'   => '30D',
                     'quarter' => '90D',
                     'year'    => '1Y',
-                    'custom'  => 'Custom',
+                    'custom'  => __('admin.analytics.custom'),
                 ] as $key => $label)
                     <button
                         type="button"
@@ -51,7 +51,7 @@
                 <input type="date" id="date-from" class="form-input py-1.5 text-sm w-36" />
                 <span class="text-gray-500 text-sm">–</span>
                 <input type="date" id="date-to" class="form-input py-1.5 text-sm w-36" />
-                <button id="apply-custom" type="button" class="btn btn-primary btn-sm">Apply</button>
+                <button id="apply-custom" type="button" class="btn btn-primary btn-sm">{{ __('admin.analytics.apply') }}</button>
             </div>
         </div>
     </div>
@@ -59,34 +59,34 @@
     {{-- ─── Section 1: KPI Cards ─────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6" id="kpi-grid">
         <div id="kpi-gmv">
-            <x-stat-card title="Gross Merchandise Value" value="—" icon="banknotes" iconBg="bg-primary-100 text-primary-600" :loading="true" />
+            <x-stat-card title="{{ __('admin.analytics.gmv') }}" value="—" icon="banknotes" iconBg="bg-primary-100 text-primary-600" :loading="true" />
         </div>
         <div id="kpi-revenue">
-            <x-stat-card title="Platform Revenue" value="—" icon="chart-bar" iconBg="bg-success-100 text-success-600" :loading="true" />
+            <x-stat-card title="{{ __('admin.analytics.platform_revenue') }}" value="—" icon="chart-bar" iconBg="bg-success-100 text-success-600" :loading="true" />
         </div>
         <div id="kpi-orders">
-            <x-stat-card title="Total Orders" value="—" icon="shopping-bag" iconBg="bg-blue-100 text-blue-600" :loading="true" />
+            <x-stat-card title="{{ __('admin.analytics.total_orders') }}" value="—" icon="shopping-bag" iconBg="bg-blue-100 text-blue-600" :loading="true" />
         </div>
         <div id="kpi-aov">
-            <x-stat-card title="Avg. Order Value" value="—" icon="currency-dollar" iconBg="bg-indigo-100 text-indigo-600" :loading="true" />
+            <x-stat-card title="{{ __('admin.analytics.avg_order_value') }}" value="—" icon="currency-dollar" iconBg="bg-indigo-100 text-indigo-600" :loading="true" />
         </div>
         <div id="kpi-new-customers">
-            <x-stat-card title="New Customers" value="—" icon="user-plus" iconBg="bg-teal-100 text-teal-600" :loading="true" />
+            <x-stat-card title="{{ __('admin.analytics.new_customers') }}" value="—" icon="user-plus" iconBg="bg-teal-100 text-teal-600" :loading="true" />
         </div>
         <div id="kpi-active-vendors">
-            <x-stat-card title="Active Vendors" value="—" icon="building-storefront" iconBg="bg-orange-100 text-orange-600" :loading="true" />
+            <x-stat-card title="{{ __('admin.analytics.active_vendors') }}" value="—" icon="building-storefront" iconBg="bg-orange-100 text-orange-600" :loading="true" />
         </div>
         <div id="kpi-sla">
-            <x-stat-card title="SLA Compliance" value="—" icon="check-badge" iconBg="bg-green-100 text-green-600" :loading="true" />
+            <x-stat-card title="{{ __('admin.analytics.sla_compliance') }}" value="—" icon="check-badge" iconBg="bg-green-100 text-green-600" :loading="true" />
         </div>
         <div id="kpi-return-rate">
-            <x-stat-card title="Return Rate" value="—" icon="arrow-uturn-left" iconBg="bg-red-100 text-red-600" :loading="true" />
+            <x-stat-card title="{{ __('admin.analytics.return_rate') }}" value="—" icon="arrow-uturn-left" iconBg="bg-red-100 text-red-600" :loading="true" />
         </div>
     </div>
 
     {{-- ─── Section 2: Revenue Chart ─────────────────────────────────────────────── --}}
     <x-card class="mb-6">
-        <x-slot:title>Revenue Overview</x-slot:title>
+        <x-slot:title>{{ __('admin.analytics.revenue_overview') }}</x-slot:title>
         <x-slot:actions>
             <div class="inline-flex rounded-lg shadow-sm border border-gray-300 overflow-hidden" id="revenue-range-tabs">
                 @foreach (['week' => '7D', 'month' => '30D', 'quarter' => '90D', 'year' => '1Y'] as $k => $l)
@@ -108,7 +108,7 @@
 
         {{-- Orders by Status --}}
         <x-card>
-            <x-slot:title>Orders by Status</x-slot:title>
+            <x-slot:title>{{ __('admin.analytics.orders_by_status') }}</x-slot:title>
             <div class="p-6">
                 <canvas id="status-chart" height="220"></canvas>
             </div>
@@ -116,7 +116,7 @@
 
         {{-- Payment Methods --}}
         <x-card>
-            <x-slot:title>Payment Methods</x-slot:title>
+            <x-slot:title>{{ __('admin.analytics.payment_methods') }}</x-slot:title>
             <div class="p-6">
                 <canvas id="payment-chart" height="220"></canvas>
             </div>
@@ -124,7 +124,7 @@
 
         {{-- Top Categories --}}
         <x-card>
-            <x-slot:title>Revenue by Category</x-slot:title>
+            <x-slot:title>{{ __('admin.analytics.revenue_by_category') }}</x-slot:title>
             <div class="p-6">
                 <canvas id="category-chart" height="220"></canvas>
             </div>
@@ -136,16 +136,16 @@
 
         {{-- Top Products --}}
         <x-card>
-            <x-slot:title>Top Products</x-slot:title>
-            <x-slot:subtitle>By units sold in period</x-slot:subtitle>
+            <x-slot:title>{{ __('admin.analytics.top_products') }}</x-slot:title>
+            <x-slot:subtitle>{{ __('admin.analytics.top_products_subtitle') }}</x-slot:subtitle>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-4 py-3 text-left font-medium text-gray-500">#</th>
-                            <th class="px-4 py-3 text-left font-medium text-gray-500">Product</th>
-                            <th class="px-4 py-3 text-right font-medium text-gray-500">Units</th>
-                            <th class="px-4 py-3 text-right font-medium text-gray-500">Revenue</th>
+                            <th class="px-4 py-3 text-start font-medium text-gray-500">#</th>
+                            <th class="px-4 py-3 text-start font-medium text-gray-500">{{ __('admin.analytics.product') }}</th>
+                            <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.analytics.units') }}</th>
+                            <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.analytics.revenue') }}</th>
                         </tr>
                     </thead>
                     <tbody id="top-products-body" class="divide-y divide-gray-100">
@@ -159,16 +159,16 @@
 
         {{-- Top Vendors --}}
         <x-card>
-            <x-slot:title>Top Vendors</x-slot:title>
-            <x-slot:subtitle>By GMV in period</x-slot:subtitle>
+            <x-slot:title>{{ __('admin.analytics.top_vendors') }}</x-slot:title>
+            <x-slot:subtitle>{{ __('admin.analytics.top_vendors_subtitle') }}</x-slot:subtitle>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-4 py-3 text-left font-medium text-gray-500">#</th>
-                            <th class="px-4 py-3 text-left font-medium text-gray-500">Store</th>
-                            <th class="px-4 py-3 text-right font-medium text-gray-500">Orders</th>
-                            <th class="px-4 py-3 text-right font-medium text-gray-500">GMV</th>
+                            <th class="px-4 py-3 text-start font-medium text-gray-500">#</th>
+                            <th class="px-4 py-3 text-start font-medium text-gray-500">{{ __('admin.analytics.store') }}</th>
+                            <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.analytics.orders') }}</th>
+                            <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.analytics.gmv_col') }}</th>
                         </tr>
                     </thead>
                     <tbody id="top-vendors-body" class="divide-y divide-gray-100">
@@ -186,16 +186,16 @@
 
         {{-- Customer Acquisition --}}
         <x-card>
-            <x-slot:title>Customer Acquisition</x-slot:title>
+            <x-slot:title>{{ __('admin.analytics.customer_acquisition') }}</x-slot:title>
             <div class="p-6 space-y-4">
                 <canvas id="customer-acq-chart" height="160"></canvas>
                 <div class="grid grid-cols-2 gap-4 mt-4">
                     <div class="text-center p-3 bg-gray-50 rounded-lg">
-                        <p class="text-xs text-gray-500">New Buyers</p>
+                        <p class="text-xs text-gray-500">{{ __('admin.analytics.new_buyers') }}</p>
                         <p id="new-buyers-count" class="text-2xl font-bold text-gray-900">—</p>
                     </div>
                     <div class="text-center p-3 bg-gray-50 rounded-lg">
-                        <p class="text-xs text-gray-500">Returning Buyers</p>
+                        <p class="text-xs text-gray-500">{{ __('admin.analytics.returning_buyers') }}</p>
                         <p id="returning-buyers-count" class="text-2xl font-bold text-gray-900">—</p>
                     </div>
                 </div>
@@ -204,18 +204,18 @@
 
         {{-- Search Analytics --}}
         <x-card>
-            <x-slot:title>Search Analytics</x-slot:title>
+            <x-slot:title>{{ __('admin.analytics.search_analytics') }}</x-slot:title>
             <div class="p-4 grid grid-cols-3 gap-3 border-b border-gray-100">
                 <div class="text-center">
-                    <p class="text-xs text-gray-500">Total Searches</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.total_searches') }}</p>
                     <p id="total-searches" class="text-xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-xs text-gray-500">Avg. CTR</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.avg_ctr') }}</p>
                     <p id="search-avg-ctr" class="text-xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-xs text-gray-500">Zero Results</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.zero_results') }}</p>
                     <p id="zero-result-rate" class="text-xl font-bold text-gray-900">—</p>
                 </div>
             </div>
@@ -223,13 +223,13 @@
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                     <thead class="bg-gray-50 sticky top-0">
                         <tr>
-                            <th class="px-4 py-2 text-left font-medium text-gray-500">Query</th>
-                            <th class="px-4 py-2 text-right font-medium text-gray-500">Searches</th>
-                            <th class="px-4 py-2 text-right font-medium text-gray-500">CTR</th>
+                            <th class="px-4 py-2 text-start font-medium text-gray-500">{{ __('admin.analytics.query') }}</th>
+                            <th class="px-4 py-2 text-end font-medium text-gray-500">{{ __('admin.analytics.searches') }}</th>
+                            <th class="px-4 py-2 text-end font-medium text-gray-500">{{ __('admin.analytics.ctr') }}</th>
                         </tr>
                     </thead>
                     <tbody id="search-table-body" class="divide-y divide-gray-100">
-                        <tr><td colspan="3" class="px-4 py-6 text-center text-gray-400 text-xs">Loading…</td></tr>
+                        <tr><td colspan="3" class="px-4 py-6 text-center text-gray-400 text-xs">{{ __('admin.analytics.loading') }}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -242,11 +242,11 @@
         <div class="border-b border-gray-200 px-6">
             <nav class="-mb-px flex gap-1 overflow-x-auto" id="ops-tabs">
                 @foreach ([
-                    'sla'     => 'SLA Metrics',
-                    'ads'     => 'Ad Performance',
-                    'flash'   => 'Flash Sales',
-                    'returns' => 'Returns',
-                    'support' => 'Support',
+                    'sla'     => __('admin.analytics.tab_sla'),
+                    'ads'     => __('admin.analytics.tab_ads'),
+                    'flash'   => __('admin.analytics.tab_flash'),
+                    'returns' => __('admin.analytics.tab_returns'),
+                    'support' => __('admin.analytics.tab_support'),
                 ] as $tab => $label)
                     <button type="button" data-tab="{{ $tab }}"
                         class="ops-tab-btn whitespace-nowrap py-3 px-4 text-sm font-medium border-b-2 transition-colors
@@ -263,37 +263,37 @@
         <div id="ops-sla" class="p-6">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6" id="sla-kpi-row">
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Breach Rate</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.breach_rate') }}</p>
                     <p id="sla-breach-rate" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Compliance</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.compliance') }}</p>
                     <p id="sla-compliance" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Avg. Ship Time</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.avg_ship_time') }}</p>
                     <p id="sla-avg-ship" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Avg. Delivery Time</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.avg_delivery_time') }}</p>
                     <p id="sla-avg-delivery" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Breach Rate Trend</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.breach_rate_trend') }}</h4>
                     <canvas id="sla-trend-chart" height="160"></canvas>
                 </div>
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Breach by Vendor (Top 10)</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.breach_by_vendor') }}</h4>
                     <div class="overflow-x-auto max-h-48">
                         <table class="min-w-full text-sm">
                             <thead>
                                 <tr class="text-xs text-gray-500">
-                                    <th class="text-left pb-2">Store</th>
-                                    <th class="text-right pb-2">Orders</th>
-                                    <th class="text-right pb-2">Breached</th>
-                                    <th class="text-right pb-2">Rate</th>
+                                    <th class="text-start pb-2">{{ __('admin.analytics.store') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.orders') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.breached') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.rate') }}</th>
                                 </tr>
                             </thead>
                             <tbody id="sla-vendor-table" class="divide-y divide-gray-100"></tbody>
@@ -307,37 +307,37 @@
         <div id="ops-ads" class="p-6 hidden">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Impressions</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.impressions') }}</p>
                     <p id="ads-impressions" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Clicks</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.clicks') }}</p>
                     <p id="ads-clicks" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Total Spend</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.total_spend') }}</p>
                     <p id="ads-spend" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Attributed Revenue</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.attributed_revenue') }}</p>
                     <p id="ads-revenue" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Performance Trend</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.performance_trend') }}</h4>
                     <canvas id="ads-perf-chart" height="160"></canvas>
                 </div>
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Top Campaigns</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.top_campaigns') }}</h4>
                     <div class="overflow-x-auto max-h-48">
                         <table class="min-w-full text-sm">
                             <thead>
                                 <tr class="text-xs text-gray-500">
-                                    <th class="text-left pb-2">Campaign</th>
-                                    <th class="text-right pb-2">Spend</th>
-                                    <th class="text-right pb-2">Revenue</th>
-                                    <th class="text-right pb-2">CTR</th>
+                                    <th class="text-start pb-2">{{ __('admin.analytics.campaign') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.spend') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.revenue') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.ctr') }}</th>
                                 </tr>
                             </thead>
                             <tbody id="ads-campaigns-table" class="divide-y divide-gray-100"></tbody>
@@ -351,33 +351,33 @@
         <div id="ops-flash" class="p-6 hidden">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Units Sold</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.units_sold') }}</p>
                     <p id="flash-units" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Total Revenue</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.total_revenue') }}</p>
                     <p id="flash-revenue" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Discount Given</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.discount_given') }}</p>
                     <p id="flash-discount" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Avg. Conversion</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.avg_conversion') }}</p>
                     <p id="flash-cvr" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Top Flash Sales</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.top_flash_sales') }}</h4>
                     <div class="overflow-x-auto max-h-56">
                         <table class="min-w-full text-sm">
                             <thead>
                                 <tr class="text-xs text-gray-500">
-                                    <th class="text-left pb-2">Sale</th>
-                                    <th class="text-right pb-2">Units</th>
-                                    <th class="text-right pb-2">Revenue</th>
-                                    <th class="text-right pb-2">CVR</th>
+                                    <th class="text-start pb-2">{{ __('admin.analytics.sale') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.units') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.revenue') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.cvr') }}</th>
                                 </tr>
                             </thead>
                             <tbody id="flash-sales-table" class="divide-y divide-gray-100"></tbody>
@@ -385,14 +385,14 @@
                     </div>
                 </div>
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Top Vendors in Flash Sales</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.top_vendors_flash') }}</h4>
                     <div class="overflow-x-auto max-h-56">
                         <table class="min-w-full text-sm">
                             <thead>
                                 <tr class="text-xs text-gray-500">
-                                    <th class="text-left pb-2">Store</th>
-                                    <th class="text-right pb-2">Units</th>
-                                    <th class="text-right pb-2">Revenue</th>
+                                    <th class="text-start pb-2">{{ __('admin.analytics.store') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.units') }}</th>
+                                    <th class="text-end pb-2">{{ __('admin.analytics.revenue') }}</th>
                                 </tr>
                             </thead>
                             <tbody id="flash-vendors-table" class="divide-y divide-gray-100"></tbody>
@@ -406,25 +406,25 @@
         <div id="ops-returns" class="p-6 hidden">
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Total Returns</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.total_returns') }}</p>
                     <p id="ret-total" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Return Rate</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.return_rate') }}</p>
                     <p id="ret-rate" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl col-span-2 sm:col-span-1">
-                    <p class="text-xs text-gray-500">Most Common Reason</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.most_common_reason') }}</p>
                     <p id="ret-top-reason" class="text-lg font-bold text-gray-900">—</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Returns by Reason</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.returns_by_reason') }}</h4>
                     <canvas id="returns-reason-chart" height="180"></canvas>
                 </div>
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Monthly Trend</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.monthly_trend') }}</h4>
                     <canvas id="returns-trend-chart" height="180"></canvas>
                 </div>
             </div>
@@ -434,29 +434,29 @@
         <div id="ops-support" class="p-6 hidden">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Open Tickets</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.open_tickets') }}</p>
                     <p id="sup-open" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Avg. First Response</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.avg_first_response') }}</p>
                     <p id="sup-first-resp" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Avg. Resolution</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.avg_resolution') }}</p>
                     <p id="sup-resolution" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl">
-                    <p class="text-xs text-gray-500">Satisfaction Score</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.analytics.satisfaction_score') }}</p>
                     <p id="sup-satisfaction" class="text-2xl font-bold text-gray-900">—</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Tickets by Category</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.tickets_by_category') }}</h4>
                     <canvas id="sup-category-chart" height="180"></canvas>
                 </div>
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Resolution Trend</h4>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.analytics.resolution_trend') }}</h4>
                     <canvas id="sup-trend-chart" height="180"></canvas>
                 </div>
             </div>

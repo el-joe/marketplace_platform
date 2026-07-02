@@ -3,12 +3,11 @@
     @csrf
 
     <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-        No specific config UI exists for <strong>{{ $blockType->label_en }}</strong> yet.
-        Edit raw JSON below.
+        {!! str_replace(':label', '<strong>' . e($blockType->label_en) . '</strong>', __('admin.page_builder.config_forms.generic.no_config_ui')) !!}
     </div>
 
     <x-form.textarea name="__raw_json"
-                     label="Raw config (JSON)"
+                     label="{{ __('admin.page_builder.config_forms.generic.raw_config_json') }}"
                      rows="10"
                      :value="json_encode($config, JSON_PRETTY_PRINT)" />
 

@@ -4,21 +4,21 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 @endpush
 
-@section('title', $shippingCompany->name . ' — Scorecard')
+@section('title', $shippingCompany->name . ' — ' . __('admin.carriers_section.scorecard_title'))
 
 @section('content')
 
     <div class="mb-6 flex items-center gap-3">
-        <a href="{{ route('admin.carrier-scorecard.index') }}" class="text-gray-400 hover:text-gray-600">&larr; Scorecards</a>
+        <a href="{{ route('admin.carrier-scorecard.index') }}" class="text-gray-400 hover:text-gray-600">{{ __('admin.carriers_section.back_to_scorecards') }}</a>
         <span class="text-gray-300">/</span>
         <h1 class="text-xl font-bold text-gray-900">{{ $shippingCompany->name }}</h1>
     </div>
 
     {{-- Period switcher --}}
     <form method="GET" class="flex gap-2 items-center mb-6">
-        <label class="text-sm text-gray-600">Period:</label>
+        <label class="text-sm text-gray-600">{{ __('admin.carriers_section.period_label') }}</label>
         <select name="period" onchange="this.form.submit()" class="input-sm">
-            @foreach(['week' => 'This Week', 'month' => 'This Month', 'quarter' => 'This Quarter', 'year' => 'This Year'] as $val => $label)
+            @foreach(['week' => __('admin.carriers_section.this_week'), 'month' => __('admin.carriers_section.this_month'), 'quarter' => __('admin.carriers_section.this_quarter'), 'year' => __('admin.carriers_section.this_year')] as $val => $label)
                 <option value="{{ $val }}" @selected($period === $val)>{{ $label }}</option>
             @endforeach
         </select>
@@ -26,13 +26,13 @@
 
     {{-- ─── KPI Cards ────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <x-stat-card title="Avg Rating" :value="$scorecard['avg_rating'] ? $scorecard['avg_rating'] . ' ★' : '—'"
+        <x-stat-card title="{{ __('admin.carriers_section.avg_rating_stat') }}" :value="$scorecard['avg_rating'] ? $scorecard['avg_rating'] . ' ★' : '—'"
             iconBg="bg-yellow-100 text-yellow-600" />
-        <x-stat-card title="On-Time %" :value="$scorecard['on_time_pct'] !== null ? $scorecard['on_time_pct'] . '%' : '—'"
+        <x-stat-card title="{{ __('admin.carriers_section.on_time_pct_stat') }}" :value="$scorecard['on_time_pct'] !== null ? $scorecard['on_time_pct'] . '%' : '—'"
             iconBg="bg-green-100 text-green-600" />
-        <x-stat-card title="Claims" :value="$scorecard['total_claims']"
+        <x-stat-card title="{{ __('admin.carriers_section.claims_stat') }}" :value="$scorecard['total_claims']"
             iconBg="bg-orange-100 text-orange-600" />
-        <x-stat-card title="Total Compensated" :value="number_format($scorecard['total_compensated'] / 100, 2)"
+        <x-stat-card title="{{ __('admin.carriers_section.total_compensated_stat') }}" :value="number_format($scorecard['total_compensated'] / 100, 2)"
             iconBg="bg-red-100 text-red-600" />
     </div>
 
@@ -40,14 +40,14 @@
 
         {{-- ─── Rating trend chart ───────────────────────────────────────── --}}
         <div class="card p-5">
-            <h2 class="text-sm font-semibold text-gray-700 mb-4">Rating Trend (6 months)</h2>
+            <h2 class="text-sm font-semibold text-gray-700 mb-4">{{ __('admin.carriers_section.rating_trend') }}</h2>
             <canvas id="ratingChart" height="180"></canvas>
         </div>
 
         {{-- ─── Recent ratings ───────────────────────────────────────────── --}}
         <div class="card overflow-hidden">
             <div class="px-5 py-3 border-b border-gray-100">
-                <h2 class="text-sm font-semibold text-gray-700">Recent Ratings</h2>
+                <h2 class="text-sm font-semibold text-gray-700">{{ __('admin.carriers_section.recent_ratings') }}</h2>
             </div>
             <ul class="divide-y divide-gray-100 text-sm max-h-72 overflow-y-auto">
                 @forelse($recentRatings as $r)
@@ -64,7 +64,7 @@
                         </div>
                     </li>
                 @empty
-                    <li class="px-5 py-6 text-center text-gray-400">No ratings yet.</li>
+                    <li class="px-5 py-6 text-center text-gray-400">{{ __('admin.carriers_section.no_ratings') }}</li>
                 @endforelse
             </ul>
         </div>

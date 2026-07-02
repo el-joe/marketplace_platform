@@ -1,31 +1,31 @@
 @extends('layouts.admin')
 
-@section('title', 'Payment Methods')
+@section('title', __('admin.payment_section.title'))
 
 @section('content')
 
     {{-- ─── Header ─────────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Payment Methods</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Configure payment options per country.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.payment_section.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.payment_section.methods_desc') }}</p>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.payment-methods.gateway-config') }}"
                 class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
                 <x-heroicon name="cog-6-tooth" class="w-4 h-4" />
-                Gateway Config
+                {{ __('admin.payment_section.gateway_config') }}
             </a>
             <button type="button" id="btn-add-method"
                 class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
                 <x-heroicon name="plus" class="w-4 h-4" />
-                Add Method
+                {{ __('admin.payment_section.add_method') }}
             </button>
         </div>
     </div>
 
     {{-- ─── Gateway Status Bar ─────────────────────────────────────────────── --}}
-    <x-card title="Gateway Status" class="mb-6">
+    <x-card title="{{ __('admin.payment_section.gateway_status') }}" class="mb-6">
         <div class="flex flex-wrap gap-3">
             @foreach($gateways as $code => $gateway)
                 <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
@@ -33,7 +33,7 @@
                     <button type="button"
                         class="btn-test-gateway rounded px-2 py-0.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 border border-primary-200"
                         data-provider="{{ $code }}">
-                        Test
+                        {{ __('admin.payment_section.test') }}
                     </button>
                     <span class="gateway-status text-xs" id="gateway-status-{{ $code }}">—</span>
                 </div>
@@ -49,7 +49,7 @@
                     class="btn-add-country-method inline-flex items-center gap-1 rounded-lg bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-100"
                     data-country-id="{{ $country->id }}" data-country-name="{{ $country->name_en }}">
                     <x-heroicon name="plus" class="w-3.5 h-3.5" />
-                    Add
+                    {{ __('admin.payment_section.add') }}
                 </button>
             </x-slot:actions>
 
@@ -59,19 +59,19 @@
                         {{ $country->name_en }}
                         <span class="text-sm font-normal text-gray-400 ml-1">({{ $country->currency_code }})</span>
                     </h3>
-                    <p class="text-xs text-gray-500 mt-0.5">{{ $country->countryPaymentMethods->count() }} method(s)</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ __('admin.payment_section.method_count', ['count' => $country->countryPaymentMethods->count()]) }}</p>
                 </div>
                 <button type="button"
                     class="btn-add-country-method inline-flex items-center gap-1 rounded-lg bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-100"
                     data-country-id="{{ $country->id }}" data-country-name="{{ $country->name_en }}">
                     <x-heroicon name="plus" class="w-3.5 h-3.5" />
-                    Add
+                    {{ __('admin.payment_section.add') }}
                 </button>
             </div>
 
             <div class="p-4">
                 @if($country->countryPaymentMethods->isEmpty())
-                    <p class="text-sm text-gray-400 italic">No payment methods configured for this country.</p>
+                    <p class="text-sm text-gray-400 italic">{{ __('admin.payment_section.no_methods_for_country') }}</p>
                 @else
                     <ul class="divide-y divide-gray-100" id="sortable-{{ $country->id }}">
                         @foreach($country->countryPaymentMethods as $method)
@@ -106,7 +106,7 @@
                                     class="btn-toggle-method rounded-full px-2 py-0.5 text-xs font-semibold transition
                                                                                                {{ $method->is_active ? 'bg-success-50 text-success-700 hover:bg-success-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}"
                                     data-id="{{ $method->id }}" data-active="{{ $method->is_active ? '1' : '0' }}">
-                                    {{ $method->is_active ? 'Active' : 'Inactive' }}
+                                    {{ $method->is_active ? __('common.active') : __('common.inactive') }}
                                 </button>
                                 {{-- Actions --}}
                                 <button type="button" class="btn-edit-method text-gray-400 hover:text-primary-600 p-1 rounded"
@@ -124,11 +124,11 @@
             </div>
         </x-card>
     @empty
-        <x-empty-state title="No active countries" description="Activate countries first to configure payment methods." />
+        <x-empty-state title="{{ __('admin.payment_section.no_active_countries_title') }}" description="{{ __('admin.payment_section.no_active_countries_desc') }}" />
     @endforelse
 
     {{-- ─── Add / Edit Modal ───────────────────────────────────────────────── --}}
-    <x-modal id="method-modal" title="Payment Method" size="lg">
+    <x-modal id="method-modal" title="{{ __('admin.payment_section.method_modal_title') }}" size="lg">
         <form id="method-form" novalidate>
             @csrf
             <input type="hidden" id="method-id">
@@ -137,74 +137,74 @@
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                    <x-form-select name="method_type" label="Method Type" required>
-                        <option value="">— Select type —</option>
+                    <x-form-select name="method_type" label="{{ __('admin.payment_section.method_type') }}" required>
+                        <option value="">{{ __('admin.payment_section.select_type_placeholder') }}</option>
                         @foreach($methodTypes as $key => $info)
                             <option value="{{ $key }}">{{ $info['label'] }}</option>
                         @endforeach
                     </x-form-select>
                 </div>
                 <div>
-                    <x-form-select name="provider" label="Provider / Gateway">
-                        <option value="">— None (manual) —</option>
+                    <x-form-select name="provider" label="{{ __('admin.payment_section.provider_gateway') }}">
+                        <option value="">{{ __('admin.payment_section.none_manual') }}</option>
                         @foreach($gateways as $code => $gateway)
                             <option value="{{ $code }}">{{ $gateway->getName() }}</option>
                         @endforeach
                     </x-form-select>
                 </div>
                 <div>
-                    <x-form-input name="display_name_en" label="Display Name (EN)" placeholder="e.g. Credit Card"
+                    <x-form-input name="display_name_en" label="{{ __('admin.payment_section.display_name_en') }}" placeholder="{{ __('admin.payment_section.display_name_en_placeholder') }}"
                         required />
                 </div>
                 <div>
-                    <x-form-input name="display_name_ar" label="Display Name (AR)" placeholder="e.g. بطاقة ائتمان" />
+                    <x-form-input name="display_name_ar" label="{{ __('admin.payment_section.display_name_ar') }}" placeholder="{{ __('admin.payment_section.display_name_ar_placeholder') }}" dir="rtl" />
                 </div>
                 <div>
-                    <x-form-input name="fee_pct" label="Fee %" type="number" placeholder="0.00" />
+                    <x-form-input name="fee_pct" label="{{ __('admin.payment_section.fee_pct') }}" type="number" placeholder="0.00" />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Fee Fixed (currency units)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.payment_section.fee_fixed') }}</label>
                     <input type="number" name="fee_fixed_display" id="fee_fixed_display" placeholder="0.00" min="0"
                         step="0.01"
                         class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
                     <input type="hidden" name="fee_fixed_cents" id="fee_fixed_cents" />
-                    <p class="text-xs text-gray-400 mt-1">Stored as cents internally.</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ __('admin.payment_section.fee_fixed_hint') }}</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Min Order Amount</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.payment_section.min_order_amount') }}</label>
                     <input type="number" name="min_order_display" id="min_order_display" placeholder="0.00" min="0"
                         step="0.01"
                         class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
                     <input type="hidden" name="min_order_cents" id="min_order_cents" />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Max Order Amount</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.payment_section.max_order_amount') }}</label>
                     <input type="number" name="max_order_display" id="max_order_display" placeholder="0.00" min="0"
                         step="0.01"
                         class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
                     <input type="hidden" name="max_order_cents" id="max_order_cents" />
                 </div>
                 <div class="sm:col-span-2 flex items-center gap-6">
-                    <x-form-toggle name="is_active" label="Active" :checked="true" />
+                    <x-form-toggle name="is_active" label="{{ __('common.active') }}" :checked="true" />
                 </div>
             </div>
 
             <x-slot:footer>
-                <button type="button" data-modal-close class="btn-secondary">Cancel</button>
-                <button type="submit" form="method-form" class="btn-primary">Save Method</button>
+                <button type="button" data-modal-close class="btn-secondary">{{ __('common.cancel') }}</button>
+                <button type="submit" form="method-form" class="btn-primary">{{ __('admin.payment_section.save_method') }}</button>
             </x-slot:footer>
         </form>
     </x-modal>
 
     {{-- ─── Confirm Delete Modal ───────────────────────────────────────────── --}}
-    <x-modal id="delete-method-modal" title="Remove Payment Method" size="sm">
+    <x-modal id="delete-method-modal" title="{{ __('admin.payment_section.remove_method_title') }}" size="sm">
         <p class="text-sm text-gray-600" id="delete-method-message">
-            Remove this payment method? This action cannot be undone.
+            {{ __('admin.payment_section.remove_method_confirm') }}
         </p>
         <input type="hidden" id="delete-method-id" />
         <x-slot:footer>
-            <button type="button" data-modal-close class="btn-secondary">Cancel</button>
-            <button type="button" id="btn-confirm-delete-method" class="btn-danger">Remove</button>
+            <button type="button" data-modal-close class="btn-secondary">{{ __('common.cancel') }}</button>
+            <button type="button" id="btn-confirm-delete-method" class="btn-danger">{{ __('admin.payment_section.remove') }}</button>
         </x-slot:footer>
     </x-modal>
 
@@ -212,4 +212,11 @@
 
 @push('scripts')
     @vite(['resources/js/admin/payment-methods.js'])
+    <script type="module">
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            active: @json(__('common.active')),
+            inactive: @json(__('common.inactive')),
+        });
+    </script>
 @endpush

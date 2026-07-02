@@ -33,14 +33,14 @@
                 'data' => 'gross_formatted',
                 'name' => 'gross_formatted',
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
             ],
             [
                 'title' => __('admin.payouts.net_amount'),
                 'data' => 'net_formatted',
                 'name' => 'net_formatted',
                 'searchable' => false,
-                'className' => 'text-right font-semibold',
+                'className' => 'text-end font-semibold',
             ],
             [
                 'title' => __('admin.payouts.method'),
@@ -80,7 +80,7 @@
                 'name' => 'actions',
                 'orderable' => false,
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'Renderers.actions([
                             { type: "link", label: "' . __('common.view') . '", url: ":show_url", class: "btn-primary btn-sm" }
                         ])',

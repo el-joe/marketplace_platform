@@ -4,7 +4,7 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'FBN Inbound Requests')
+@section('title', __('admin.fbn_section.inbound_requests_title'))
 
 @section('content')
 
@@ -12,13 +12,13 @@
 {{-- ─── Stats ───────────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3 mb-6">
     @foreach([
-        ['label' => 'Total',     'value' => $stats['total'],     'color' => 'text-gray-700'],
-        ['label' => 'Draft',     'value' => $stats['draft'],     'color' => 'text-gray-400'],
-        ['label' => 'Submitted', 'value' => $stats['submitted'], 'color' => 'text-yellow-600'],
-        ['label' => 'Approved',  'value' => $stats['approved'],  'color' => 'text-blue-600'],
-        ['label' => 'Shipped',   'value' => $stats['shipped'],   'color' => 'text-purple-600'],
-        ['label' => 'Received',  'value' => $stats['received'],  'color' => 'text-green-600'],
-        ['label' => 'Rejected',  'value' => $stats['rejected'],  'color' => 'text-red-500'],
+        ['label' => __('admin.fbn_section.total'),     'value' => $stats['total'],     'color' => 'text-gray-700'],
+        ['label' => __('admin.fbn_section.draft'),     'value' => $stats['draft'],     'color' => 'text-gray-400'],
+        ['label' => __('admin.fbn_section.submitted'), 'value' => $stats['submitted'], 'color' => 'text-yellow-600'],
+        ['label' => __('admin.fbn_section.approved'),  'value' => $stats['approved'],  'color' => 'text-blue-600'],
+        ['label' => __('admin.fbn_section.shipped'),   'value' => $stats['shipped'],   'color' => 'text-purple-600'],
+        ['label' => __('admin.fbn_section.received'),  'value' => $stats['received'],  'color' => 'text-green-600'],
+        ['label' => __('admin.fbn_section.rejected'),  'value' => $stats['rejected'],  'color' => 'text-red-500'],
     ] as $s)
     <div class="bg-white rounded-2xl border border-gray-100 p-3 text-center">
         <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{{ $s['label'] }}</p>
@@ -30,21 +30,21 @@
 {{-- ─── Filters ─────────────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-4 flex flex-wrap gap-3 items-end">
     <div>
-        <label class="label-sm">Status</label>
+        <label class="label-sm">{{ __('admin.fbn_section.status') }}</label>
         <select id="filter-status" class="form-select text-sm py-1.5 pr-8">
-            <option value="">All Statuses</option>
-            <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
-            <option value="approved">Approved</option>
-            <option value="shipped">Shipped</option>
-            <option value="received">Received</option>
-            <option value="rejected">Rejected</option>
+            <option value="">{{ __('admin.fbn_section.all_statuses') }}</option>
+            <option value="draft">{{ __('admin.fbn_section.draft') }}</option>
+            <option value="submitted">{{ __('admin.fbn_section.submitted') }}</option>
+            <option value="approved">{{ __('admin.fbn_section.approved') }}</option>
+            <option value="shipped">{{ __('admin.fbn_section.shipped') }}</option>
+            <option value="received">{{ __('admin.fbn_section.received') }}</option>
+            <option value="rejected">{{ __('admin.fbn_section.rejected') }}</option>
         </select>
     </div>
     <div>
-        <label class="label-sm">Warehouse</label>
+        <label class="label-sm">{{ __('admin.fbn_section.warehouse') }}</label>
         <select id="filter-warehouse" class="form-select text-sm py-1.5 pr-8">
-            <option value="">All Warehouses</option>
+            <option value="">{{ __('admin.fbn_section.all_warehouses') }}</option>
             @foreach($warehouses as $wh)
                 <option value="{{ $wh->id }}">{{ $wh->name }} ({{ $wh->code }})</option>
             @endforeach
@@ -57,16 +57,16 @@
     <table id="tbl-inbound" class="w-full text-sm">
         <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
             <tr>
-                <th class="px-4 py-3 text-left">Request #</th>
-                <th class="px-4 py-3 text-left">Vendor</th>
-                <th class="px-4 py-3 text-left">Product</th>
-                <th class="px-4 py-3 text-left">Warehouse</th>
-                <th class="px-4 py-3 text-left">Qty (Req / Rcvd)</th>
-                <th class="px-4 py-3 text-left">Status</th>
-                <th class="px-4 py-3 text-left">Expected</th>
-                <th class="px-4 py-3 text-left">Tracking</th>
-                <th class="px-4 py-3 text-left">Created</th>
-                <th class="px-4 py-3 text-left">Actions</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.request_number') }}</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.vendor') }}</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.product') }}</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.warehouse') }}</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.qty_req_rcvd') }}</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.status') }}</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.expected') }}</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.tracking') }}</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.created') }}</th>
+                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.actions') }}</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -76,16 +76,16 @@
 {{-- ─── Approve Modal ───────────────────────────────────────────────────────── --}}
 <div id="approve-modal" class="modal" style="display:none;">
     <div class="modal-box max-w-sm">
-        <h3 class="font-bold text-lg mb-4">Approve Inbound Request</h3>
+        <h3 class="font-bold text-lg mb-4">{{ __('admin.fbn_section.approve_inbound_request') }}</h3>
         <input type="hidden" id="approve-id">
         <div>
-            <label class="label-sm">Expected Arrival (optional)</label>
+            <label class="label-sm">{{ __('admin.fbn_section.expected_arrival_optional') }}</label>
             <input type="date" id="approve-expected" class="form-input w-full text-sm"
                    min="{{ now()->toDateString() }}">
         </div>
         <div class="flex gap-3 justify-end mt-5 pt-4 border-t">
-            <button type="button" id="approve-close" class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="button" id="approve-confirm" class="btn btn-success btn-sm">Approve</button>
+            <button type="button" id="approve-close" class="btn btn-ghost btn-sm">{{ __('admin.fbn_section.cancel') }}</button>
+            <button type="button" id="approve-confirm" class="btn btn-success btn-sm">{{ __('admin.fbn_section.approve') }}</button>
         </div>
     </div>
 </div>
@@ -93,16 +93,16 @@
 {{-- ─── Reject Modal ────────────────────────────────────────────────────────── --}}
 <div id="reject-modal" class="modal" style="display:none;">
     <div class="modal-box max-w-sm">
-        <h3 class="font-bold text-lg mb-4">Reject Inbound Request</h3>
+        <h3 class="font-bold text-lg mb-4">{{ __('admin.fbn_section.reject_inbound_request') }}</h3>
         <input type="hidden" id="reject-id">
         <div>
-            <label class="label-sm">Rejection Reason <span class="text-red-500">*</span></label>
+            <label class="label-sm">{{ __('admin.fbn_section.rejection_reason') }} <span class="text-red-500">*</span></label>
             <textarea id="reject-reason" rows="3" class="form-input w-full text-sm"
-                placeholder="Provide reason for rejection..."></textarea>
+                placeholder="{{ __('admin.fbn_section.rejection_reason_placeholder') }}"></textarea>
         </div>
         <div class="flex gap-3 justify-end mt-5 pt-4 border-t">
-            <button type="button" id="reject-close" class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="button" id="reject-confirm" class="btn btn-danger btn-sm">Reject</button>
+            <button type="button" id="reject-close" class="btn btn-ghost btn-sm">{{ __('admin.fbn_section.cancel') }}</button>
+            <button type="button" id="reject-confirm" class="btn btn-danger btn-sm">{{ __('admin.fbn_section.reject') }}</button>
         </div>
     </div>
 </div>
@@ -110,21 +110,21 @@
 {{-- ─── Tracking Modal ──────────────────────────────────────────────────────── --}}
 <div id="tracking-modal" class="modal" style="display:none;">
     <div class="modal-box max-w-sm">
-        <h3 class="font-bold text-lg mb-4">Update Tracking</h3>
+        <h3 class="font-bold text-lg mb-4">{{ __('admin.fbn_section.update_tracking') }}</h3>
         <input type="hidden" id="tracking-id">
         <div class="space-y-3">
             <div>
-                <label class="label-sm">Tracking Number <span class="text-red-500">*</span></label>
-                <input type="text" id="tracking-number" class="form-input w-full text-sm" placeholder="e.g. FEDEX-123456">
+                <label class="label-sm">{{ __('admin.fbn_section.tracking_number') }} <span class="text-red-500">*</span></label>
+                <input type="text" id="tracking-number" class="form-input w-full text-sm" placeholder="{{ __('admin.fbn_section.tracking_number_placeholder') }}">
             </div>
             <div>
-                <label class="label-sm">Expected Arrival</label>
+                <label class="label-sm">{{ __('admin.fbn_section.expected_arrival') }}</label>
                 <input type="date" id="tracking-expected" class="form-input w-full text-sm">
             </div>
         </div>
         <div class="flex gap-3 justify-end mt-5 pt-4 border-t">
-            <button type="button" id="tracking-close" class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="button" id="tracking-confirm" class="btn btn-primary btn-sm">Save & Mark Shipped</button>
+            <button type="button" id="tracking-close" class="btn btn-ghost btn-sm">{{ __('admin.fbn_section.cancel') }}</button>
+            <button type="button" id="tracking-confirm" class="btn btn-primary btn-sm">{{ __('admin.fbn_section.save_mark_shipped') }}</button>
         </div>
     </div>
 </div>
@@ -132,16 +132,16 @@
 {{-- ─── Receive Modal ───────────────────────────────────────────────────────── --}}
 <div id="receive-modal" class="modal" style="display:none;">
     <div class="modal-box max-w-sm">
-        <h3 class="font-bold text-lg mb-4">Mark as Received</h3>
+        <h3 class="font-bold text-lg mb-4">{{ __('admin.fbn_section.mark_as_received') }}</h3>
         <input type="hidden" id="receive-id">
         <div>
-            <label class="label-sm">Quantity Received <span class="text-red-500">*</span></label>
+            <label class="label-sm">{{ __('admin.fbn_section.quantity_received') }} <span class="text-red-500">*</span></label>
             <input type="number" id="receive-qty" class="form-input w-full text-sm" min="1">
-            <p class="text-xs text-gray-400 mt-1">Max: <span id="receive-max"></span> units requested</p>
+            <p class="text-xs text-gray-400 mt-1">{{ str_replace(':max', '<span id="receive-max"></span>', __('admin.fbn_section.max_units_requested')) }}</p>
         </div>
         <div class="flex gap-3 justify-end mt-5 pt-4 border-t">
-            <button type="button" id="receive-close" class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="button" id="receive-confirm" class="btn btn-success btn-sm">Confirm Receipt</button>
+            <button type="button" id="receive-close" class="btn btn-ghost btn-sm">{{ __('admin.fbn_section.cancel') }}</button>
+            <button type="button" id="receive-confirm" class="btn btn-success btn-sm">{{ __('admin.fbn_section.confirm_receipt') }}</button>
         </div>
     </div>
 </div>
@@ -150,8 +150,18 @@
 
 @push('scripts')
 <script>
+    window.TRANSLATIONS = window.TRANSLATIONS || {};
+    Object.assign(window.TRANSLATIONS, {
+        loading: @json(__('admin.fbn_section.loading')),
+        error: @json(__('admin.fbn_section.error')),
+        enterRejectionReason: @json(__('admin.fbn_section.enter_rejection_reason')),
+        enterTrackingNumber: @json(__('admin.fbn_section.enter_tracking_number')),
+        enterQuantityReceived: @json(__('admin.fbn_section.enter_quantity_received')),
+    });
+
 $(function () {
     const tok = '{{ csrf_token() }}';
+    const T = window.TRANSLATIONS;
 
     const tbl = $('#tbl-inbound').DataTable({
         serverSide: true,
@@ -179,7 +189,7 @@ $(function () {
             { data: 'created_at',     orderable: true  },
             { data: 'actions',        orderable: false },
         ],
-        language: { processing: 'Loading…' },
+        language: { processing: T.loading },
     });
 
     $('#filter-status, #filter-warehouse').on('change', () => tbl.ajax.reload());
@@ -191,7 +201,7 @@ $(function () {
             body: JSON.stringify(body),
         }).then(r => r.json()).then(data => {
             if (data.success) { window.Toast.success(data.message); onSuccess?.(); tbl.ajax.reload(); }
-            else { window.Toast.error(data.message ?? 'Error'); }
+            else { window.Toast.error(data.message ?? T.error); }
         });
     }
 
@@ -218,7 +228,7 @@ $(function () {
     $('#reject-confirm').on('click', () => {
         const id = $('#reject-id').val();
         const reason = $('#reject-reason').val().trim();
-        if (!reason) { window.Toast.error('Please enter a rejection reason.'); return; }
+        if (!reason) { window.Toast.error(T.enterRejectionReason); return; }
         jsonPost(`/admin/fbn/inbound/${id}/reject`, { rejection_reason: reason },
             () => $('#reject-modal').hide());
     });
@@ -234,7 +244,7 @@ $(function () {
     $('#tracking-confirm').on('click', () => {
         const id = $('#tracking-id').val();
         const tn = $('#tracking-number').val().trim();
-        if (!tn) { window.Toast.error('Please enter a tracking number.'); return; }
+        if (!tn) { window.Toast.error(T.enterTrackingNumber); return; }
         jsonPost(`/admin/fbn/inbound/${id}/tracking`, { tracking_number: tn, expected_arrival: $('#tracking-expected').val() || null },
             () => $('#tracking-modal').hide());
     });
@@ -251,7 +261,7 @@ $(function () {
     $('#receive-confirm').on('click', () => {
         const id = $('#receive-id').val();
         const qty = parseInt($('#receive-qty').val());
-        if (!qty || qty < 1) { window.Toast.error('Please enter quantity received.'); return; }
+        if (!qty || qty < 1) { window.Toast.error(T.enterQuantityReceived); return; }
         jsonPost(`/admin/fbn/inbound/${id}/receive`, { quantity_received: qty },
             () => $('#receive-modal').hide());
     });

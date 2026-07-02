@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Page Builder')
-@section('page-title', 'Page Builder')
+@section('title', __('admin.page_builder.title'))
+@section('page-title', __('admin.page_builder.title'))
 
 @push('styles')
     <style>
@@ -64,8 +64,8 @@
     {{-- LEFT: Block palette --}}
     <aside class="pb-panel border-r border-gray-200">
         <div class="px-4 py-3 border-b border-gray-200">
-            <h2 class="text-sm font-semibold text-gray-900">Blocks</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Click to add to page</p>
+            <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.page_builder.blocks') }}</h2>
+            <p class="text-xs text-gray-500 mt-0.5">{{ __('admin.page_builder.click_to_add') }}</p>
         </div>
 
         @foreach($blockTypes as $group => $items)
@@ -95,9 +95,9 @@
     <main class="pb-canvas flex flex-col">
 
         <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white">
-            <label class="text-sm font-medium text-gray-700">Page:</label>
+            <label class="text-sm font-medium text-gray-700">{{ __('admin.page_builder.page') }}</label>
             <select id="page-select" class="w-72 rounded-lg border-gray-300 text-sm">
-                <option value="">— Select a page —</option>
+                <option value="">{{ __('admin.page_builder.select_page_placeholder') }}</option>
                 @foreach($pages as $p)
                     <option value="{{ $p->id }}">
                         {{ $p->name }} ({{ $p->page_type }} · {{ optional($countries->firstWhere('id', $p->country_id))->site_code ?? '—' }})
@@ -107,7 +107,7 @@
 
             <button type="button" id="create-page-btn"
                     class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700">
-                <x-heroicon name="plus" class="w-4 h-4" /> New page
+                <x-heroicon name="plus" class="w-4 h-4" /> {{ __('admin.page_builder.new_page') }}
             </button>
 
             <span id="save-indicator"></span>
@@ -116,24 +116,24 @@
 
             <button type="button" id="version-history-btn"
                     class="hidden inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                <x-heroicon name="clock" class="w-4 h-4" /> Version history
+                <x-heroicon name="clock" class="w-4 h-4" /> {{ __('admin.page_builder.version_history') }}
             </button>
 
             <a href="#" id="preview-btn" target="_blank"
                class="hidden inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                <x-heroicon name="eye" class="w-4 h-4" /> Preview
+                <x-heroicon name="eye" class="w-4 h-4" /> {{ __('admin.page_builder.preview') }}
             </a>
 
             <button type="button" id="publish-btn"
                     class="hidden inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg">
-                <x-heroicon name="check-circle" class="w-4 h-4" /> Publish
+                <x-heroicon name="check-circle" class="w-4 h-4" /> {{ __('admin.page_builder.publish') }}
             </button>
         </div>
 
         <div class="block-canvas flex-1">
             <div id="canvas-empty" class="text-center text-gray-400 py-20">
                 <x-heroicon name="squares-2x2" class="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p class="text-sm">Pick a page from the dropdown, or click <span class="font-medium">New page</span>.</p>
+                <p class="text-sm">{!! str_replace(':new_page', '<span class="font-medium">' . __('admin.page_builder.new_page') . '</span>', __('admin.page_builder.canvas_empty_hint')) !!}</p>
             </div>
             <div id="block-canvas" class="hidden"></div>
         </div>
@@ -144,12 +144,12 @@
         <div id="config-panel" class="hidden flex-col h-full">
             <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                    <h3 id="config-title" class="text-sm font-semibold text-gray-900">Block settings</h3>
+                    <h3 id="config-title" class="text-sm font-semibold text-gray-900">{{ __('admin.page_builder.block_settings') }}</h3>
                     <p id="config-save-status" class="text-xs text-gray-500 mt-0.5"></p>
                 </div>
                 <button type="button" id="close-config-btn"
                         class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100"
-                        aria-label="Close">
+                        aria-label="{{ __('common.close') }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -160,7 +160,7 @@
         <div id="config-empty" class="flex items-center justify-center h-full text-center text-gray-400 px-6">
             <div>
                 <x-heroicon name="adjustments-horizontal" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
-                <p class="text-sm">Select a block to edit its settings.</p>
+                <p class="text-sm">{{ __('admin.page_builder.select_block_hint') }}</p>
             </div>
         </div>
     </aside>

@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
-@section('title', 'Now Nawy Preview')
+@section('title', __('admin.admin_product_listings.preview_title'))
 
 @section('content')
 <div class="p-6 max-w-sm mx-auto">
 
     <div class="mb-4 flex items-center gap-2 text-sm text-gray-500">
         <x-heroicon name="device-phone-mobile" class="w-4 h-4" />
-        Now Nawy card preview
+        {{ __('admin.admin_product_listings.card_preview_label') }}
     </div>
 
     {{-- Simulated mobile card --}}
@@ -62,26 +62,26 @@
     {{-- Meta info --}}
     <dl class="mt-6 space-y-2 text-sm">
         <div class="flex gap-3">
-            <dt class="text-gray-500 w-32 shrink-0">Fulfillment</dt>
+            <dt class="text-gray-500 w-32 shrink-0">{{ __('admin.admin_product_listings.fulfillment_label') }}</dt>
             <dd class="font-medium text-gray-900">{{ ucfirst($listing->fulfillment_type) }}</dd>
         </div>
         <div class="flex gap-3">
-            <dt class="text-gray-500 w-32 shrink-0">Payment options</dt>
+            <dt class="text-gray-500 w-32 shrink-0">{{ __('admin.admin_product_listings.payment_options_label') }}</dt>
             <dd class="font-medium text-gray-900">{{ str_replace('_', ' ', $listing->payment_options) }}</dd>
         </div>
         <div class="flex gap-3">
-            <dt class="text-gray-500 w-32 shrink-0">Nawy category</dt>
+            <dt class="text-gray-500 w-32 shrink-0">{{ __('admin.admin_product_listings.nawy_category_label') }}</dt>
             <dd class="font-medium text-gray-900">{{ $listing->nawyCategory?->name_en ?? '—' }}</dd>
         </div>
         <div class="flex gap-3">
-            <dt class="text-gray-500 w-32 shrink-0">Featured</dt>
+            <dt class="text-gray-500 w-32 shrink-0">{{ __('admin.admin_product_listings.featured_label') }}</dt>
             <dd class="font-medium">
                 @if($listing->featured_in_nawy)
                     <span class="text-primary-700 flex items-center gap-1">
-                        <x-heroicon name="sparkles" class="w-4 h-4" /> Yes
+                        <x-heroicon name="sparkles" class="w-4 h-4" /> {{ __('admin.admin_product_listings.yes') }}
                     </span>
                 @else
-                    <span class="text-gray-400">No</span>
+                    <span class="text-gray-400">{{ __('admin.admin_product_listings.no') }}</span>
                 @endif
             </dd>
         </div>
@@ -91,7 +91,7 @@
         <a href="{{ route('admin.admin-product-listings.edit', $listing) }}"
            class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
             <x-heroicon name="pencil-square" class="w-4 h-4" />
-            Edit listing
+            {{ __('admin.admin_product_listings.edit_listing') }}
         </a>
     </div>
 </div>

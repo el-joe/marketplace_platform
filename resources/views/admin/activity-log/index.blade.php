@@ -109,7 +109,7 @@
         <div class="overflow-x-auto">
             <table id="activity-log-table" data-url="{{ route('admin.activity-log.datatable') }}" class="w-full text-sm">
                 <thead>
-                    <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
+                    <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
                         <th class="pb-3 pr-4 whitespace-nowrap">{{ __('admin.activity_log_section.time') }}</th>
                         <th class="pb-3 pr-4 whitespace-nowrap">{{ __('admin.activity_log_section.causer') }}</th>
                         <th class="pb-3 pr-4 whitespace-nowrap">{{ __('admin.activity_log_section.event') }}</th>
@@ -142,31 +142,31 @@
                     <dl class="text-sm space-y-1.5">
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">Causer</dt>
-                            <dd id="detail-causer-name" class="text-gray-900 font-medium text-right"></dd>
+                            <dd id="detail-causer-name" class="text-gray-900 font-medium text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">Type</dt>
-                            <dd id="detail-causer-type" class="text-gray-700 text-right"></dd>
+                            <dd id="detail-causer-type" class="text-gray-700 text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">Email</dt>
-                            <dd id="detail-causer-email" class="text-gray-700 text-right break-all"></dd>
+                            <dd id="detail-causer-email" class="text-gray-700 text-end break-all"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">When</dt>
-                            <dd id="detail-created-at" class="text-gray-700 text-right"></dd>
+                            <dd id="detail-created-at" class="text-gray-700 text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">IP</dt>
-                            <dd id="detail-ip" class="text-gray-700 font-mono text-xs text-right"></dd>
+                            <dd id="detail-ip" class="text-gray-700 font-mono text-xs text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">Log name</dt>
-                            <dd id="detail-log-name" class="text-gray-700 text-right"></dd>
+                            <dd id="detail-log-name" class="text-gray-700 text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">Batch</dt>
-                            <dd id="detail-batch" class="text-gray-700 font-mono text-xs text-right break-all"></dd>
+                            <dd id="detail-batch" class="text-gray-700 font-mono text-xs text-end break-all"></dd>
                         </div>
                     </dl>
                     <details class="mt-2">
@@ -180,15 +180,15 @@
                     <dl class="text-sm space-y-1.5">
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">Type</dt>
-                            <dd id="detail-subject-type" class="text-gray-700 text-right"></dd>
+                            <dd id="detail-subject-type" class="text-gray-700 text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">Name</dt>
-                            <dd id="detail-subject-name" class="text-gray-900 font-medium text-right break-all"></dd>
+                            <dd id="detail-subject-name" class="text-gray-900 font-medium text-end break-all"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-gray-500">ID</dt>
-                            <dd id="detail-subject-id" class="text-gray-500 font-mono text-xs text-right break-all"></dd>
+                            <dd id="detail-subject-id" class="text-gray-500 font-mono text-xs text-end break-all"></dd>
                         </div>
                     </dl>
                     <a id="detail-subject-link" href="#" target="_blank" class="hidden btn btn-secondary btn-xs">Open
@@ -202,7 +202,7 @@
                 <div class="overflow-x-auto border border-gray-200 rounded-lg">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50">
-                            <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
+                            <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
                                 <th class="px-3 py-2">Field</th>
                                 <th class="px-3 py-2">Old</th>
                                 <th class="px-3 py-2">New</th>

@@ -1,22 +1,22 @@
 @extends('layouts.admin')
 
-@section('title', 'Activity Log Entry')
+@section('title', __('admin.activity_log_section.entry_title'))
 
 @section('content')
 
     {{-- ─── Breadcrumb ──────────────────────────────────────────────────────── --}}
     <nav class="mb-5 text-sm text-gray-500 flex items-center gap-1.5">
-        <a href="{{ route('admin.activity-log.index') }}" class="hover:text-primary-600">Activity Log</a>
+        <a href="{{ route('admin.activity-log.index') }}" class="hover:text-primary-600">{{ __('admin.activity_log_section.title') }}</a>
         <span>/</span>
-        <span class="text-gray-800 font-medium">Entry Detail</span>
+        <span class="text-gray-800 font-medium">{{ __('admin.activity_log_section.entry_detail') }}</span>
     </nav>
 
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Activity Detail</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.activity_log_section.activity_detail') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5 font-mono">{{ $entry->id }}</p>
         </div>
-        <a href="{{ route('admin.activity-log.index') }}" class="btn btn-secondary btn-sm">← Back</a>
+        <a href="{{ route('admin.activity-log.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.activity_log_section.back') }}</a>
     </div>
 
     @php
@@ -36,7 +36,7 @@
 
         {{-- ─── Who ──────────────────────────────────────────────────────────── --}}
         <x-card>
-            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Actor</h3>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">{{ __('admin.activity_log_section.actor') }}</h3>
             <div class="space-y-2">
                 @if($entry->causer_type)
                     <div class="flex items-center gap-2">
@@ -52,14 +52,14 @@
                     </div>
                     <p class="text-sm text-gray-700 font-mono break-all">{{ $entry->causer_id }}</p>
                 @else
-                    <p class="text-sm text-gray-400 italic">System / automated</p>
+                    <p class="text-sm text-gray-400 italic">{{ __('admin.activity_log_section.system_automated') }}</p>
                 @endif
             </div>
         </x-card>
 
         {{-- ─── What ─────────────────────────────────────────────────────────── --}}
         <x-card>
-            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Action</h3>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">{{ __('admin.activity_log_section.action') }}</h3>
             <div class="space-y-2">
                 @if($entry->event)
                     <span class="inline-flex items-center px-2 py-0.5 rounded border text-sm font-semibold {{ $eventColor }}">
@@ -68,14 +68,14 @@
                 @endif
                 <p class="text-sm text-gray-700">{{ $entry->description }}</p>
                 @if($entry->log_name)
-                    <p class="text-xs text-gray-400 font-mono">Log: {{ $entry->log_name }}</p>
+                    <p class="text-xs text-gray-400 font-mono">{{ __('admin.activity_log_section.log') }}: {{ $entry->log_name }}</p>
                 @endif
             </div>
         </x-card>
 
         {{-- ─── When / Subject ──────────────────────────────────────────────── --}}
         <x-card>
-            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Subject &amp; Time</h3>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">{!! __('admin.activity_log_section.subject_and_time') !!}</h3>
             <div class="space-y-2">
                 @if($entry->subject_type)
                     <div class="flex items-center gap-1.5">
@@ -88,7 +88,7 @@
                 <p class="text-sm text-gray-700">{{ $entry->created_at->format('M d, Y H:i:s') }}</p>
                 <p class="text-xs text-gray-400">{{ $entry->created_at->diffForHumans() }}</p>
                 @if($entry->ip_address)
-                    <p class="text-xs font-mono text-gray-400">IP: {{ $entry->ip_address }}</p>
+                    <p class="text-xs font-mono text-gray-400">{{ __('admin.activity_log_section.ip_label') }}: {{ $entry->ip_address }}</p>
                 @endif
             </div>
         </x-card>
@@ -99,22 +99,22 @@
     @if($newData || $oldData)
         <x-card>
             <h3 class="text-sm font-semibold text-gray-800 mb-4">
-                @if($entry->event === 'created') Created Data
-                @elseif($entry->event === 'deleted') Deleted Data
-                @else Changes
+                @if($entry->event === 'created') {{ __('admin.activity_log_section.created_data') }}
+                @elseif($entry->event === 'deleted') {{ __('admin.activity_log_section.deleted_data') }}
+                @else {{ __('admin.activity_log_section.changes') }}
                 @endif
             </h3>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
-                            <th class="pb-2 pr-6 w-1/4">Field</th>
+                        <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
+                            <th class="pb-2 pr-6 w-1/4">{{ __('admin.activity_log_section.field') }}</th>
                             @if($entry->event === 'updated' && $oldData)
-                                <th class="pb-2 pr-6 w-5/12">Before</th>
-                                <th class="pb-2 w-5/12">After</th>
+                                <th class="pb-2 pr-6 w-5/12">{{ __('admin.activity_log_section.before') }}</th>
+                                <th class="pb-2 w-5/12">{{ __('admin.activity_log_section.after') }}</th>
                             @else
-                                <th class="pb-2 w-3/4">Value</th>
+                                <th class="pb-2 w-3/4">{{ __('admin.activity_log_section.value') }}</th>
                             @endif
                         </tr>
                     </thead>
@@ -181,7 +181,7 @@
     {{-- ─── Raw properties (for non-diff entries) ───────────────────────────── --}}
     @if($entry->properties && !$newData && !$oldData)
         <x-card>
-            <h3 class="text-sm font-semibold text-gray-800 mb-4">Properties</h3>
+            <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('admin.activity_log_section.properties') }}</h3>
             <pre class="text-xs text-gray-600 bg-gray-50 rounded p-4 overflow-x-auto">{{ json_encode($entry->properties, JSON_PRETTY_PRINT) }}</pre>
         </x-card>
     @endif

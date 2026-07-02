@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Add Administrator')
+@section('title', __('admin.admins_section.add_administrator'))
 
 @push('styles')
     @vite(['resources/js/components/select2.js', 'resources/js/admin/admins.js'])

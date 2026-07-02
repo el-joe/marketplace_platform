@@ -322,10 +322,10 @@
                                     <td class="px-5 py-3">
                                         <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
                                     </td>
-                                    <td class="px-5 py-3 text-right">
+                                    <td class="px-5 py-3 text-end">
                                         <div class="h-4 w-20 bg-gray-200 rounded animate-pulse ml-auto"></div>
                                     </td>
-                                    <td class="px-5 py-3 text-right">
+                                    <td class="px-5 py-3 text-end">
                                         <div class="h-4 w-8 bg-gray-200 rounded animate-pulse ml-auto"></div>
                                     </td>
                                 </tr>
@@ -369,7 +369,7 @@
                                     <td class="px-5 py-3">
                                         <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                                     </td>
-                                    <td class="px-5 py-3 text-right">
+                                    <td class="px-5 py-3 text-end">
                                         <div class="h-5 w-10 bg-gray-200 rounded-full animate-pulse ml-auto"></div>
                                     </td>
                                 </tr>

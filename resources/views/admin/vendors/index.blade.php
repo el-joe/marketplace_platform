@@ -125,13 +125,13 @@
             class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">Edit</a> -->
         <div id="vrd-divider" class="hidden border-t border-gray-100 my-1"></div>
         <button id="vrd-approve" type="button"
-            class="hidden w-full text-left px-3 py-2 text-sm text-success-600 hover:bg-gray-50">{{ __('admin.vendors.approve_vendor_action') }}</button>
+            class="hidden w-full text-start px-3 py-2 text-sm text-success-600 hover:bg-gray-50">{{ __('admin.vendors.approve_vendor_action') }}</button>
         <button id="vrd-reject" type="button"
-            class="hidden w-full text-left px-3 py-2 text-sm text-danger-600 hover:bg-gray-50">{{ __('admin.vendors.reject_vendor_action') }}</button>
+            class="hidden w-full text-start px-3 py-2 text-sm text-danger-600 hover:bg-gray-50">{{ __('admin.vendors.reject_vendor_action') }}</button>
         <button id="vrd-suspend" type="button"
-            class="hidden w-full text-left px-3 py-2 text-sm text-danger-600 hover:bg-gray-50">{{ __('admin.vendors.suspend_vendor_action') }}</button>
+            class="hidden w-full text-start px-3 py-2 text-sm text-danger-600 hover:bg-gray-50">{{ __('admin.vendors.suspend_vendor_action') }}</button>
         <button id="vrd-reactivate" type="button"
-            class="hidden w-full text-left px-3 py-2 text-sm text-success-600 hover:bg-gray-50">{{ __('admin.vendors.reactivate_vendor_action') }}</button>
+            class="hidden w-full text-start px-3 py-2 text-sm text-success-600 hover:bg-gray-50">{{ __('admin.vendors.reactivate_vendor_action') }}</button>
     </div>
 
     {{-- ─── Suspend vendor modal ─────────────────────────────────────────────── --}}

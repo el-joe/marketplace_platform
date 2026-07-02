@@ -349,14 +349,14 @@ Object.assign(window.TRANSLATIONS, {
                     <span class="ml-1.5 text-xs text-gray-400">${row.iso_code_2}</span>
                     ${launched}
                 </td>
-                <td class="px-4 py-3 text-right tabular-nums text-gray-700">${row.order_count.toLocaleString()}</td>
-                <td class="px-4 py-3 text-right tabular-nums text-gray-900 font-medium">${fmt(row.revenue_cents)} ${ccy}</td>
-                <td class="px-4 py-3 text-right tabular-nums text-gray-700">${fmt(row.commission_cents)} ${ccy}</td>
-                <td class="px-4 py-3 text-right tabular-nums text-gray-500">${fmt(row.gateway_fee_cents)} ${ccy}</td>
-                <td class="px-4 py-3 text-right tabular-nums text-gray-700">${fmt(row.vat_cents)} ${ccy}${vatWarn}</td>
-                <td class="px-4 py-3 text-right tabular-nums text-gray-700">${fmt(row.marketer_cents)} ${ccy}</td>
-                <td class="px-4 py-3 text-right tabular-nums text-gray-700">${fmt(row.ad_revenue_cents)} ${ccy}</td>
-                ${showUsd ? `<td class="px-4 py-3 text-right tabular-nums font-medium text-blue-700 bg-blue-50">${fmtUsd(row.revenue_usd)}</td>` : ''}
+                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${row.order_count.toLocaleString()}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-900 font-medium">${fmt(row.revenue_cents)} ${ccy}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.commission_cents)} ${ccy}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-500">${fmt(row.gateway_fee_cents)} ${ccy}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.vat_cents)} ${ccy}${vatWarn}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.marketer_cents)} ${ccy}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.ad_revenue_cents)} ${ccy}</td>
+                ${showUsd ? `<td class="px-4 py-3 text-end tabular-nums font-medium text-blue-700 bg-blue-50">${fmtUsd(row.revenue_usd)}</td>` : ''}
             </tr>`;
         }).join('');
 

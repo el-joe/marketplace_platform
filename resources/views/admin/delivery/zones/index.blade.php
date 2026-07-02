@@ -1,28 +1,28 @@
 @extends('layouts.admin')
 
-@section('title', 'Delivery Zones')
+@section('title', __('admin.delivery_section.zones'))
 
 @section('content')
 
     {{-- ─── Header ──────────────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Delivery Zones</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Define geographic zones and assign agents.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.delivery_section.zones') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.delivery_section.zones_desc') }}</p>
         </div>
-        <button type="button" id="add-zone-btn" class="btn btn-primary btn-sm">+ Add Zone</button>
+        <button type="button" id="add-zone-btn" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.add_zone') }}</button>
     </div>
 
     {{-- ─── Zone Cards ──────────────────────────────────────────────────────────── --}}
     @php
-        $byCountry = $zones->groupBy(fn($z) => $z->country?->name_en ?? 'Unknown');
+        $byCountry = $zones->groupBy(fn($z) => $z->country?->name_en ?? __('admin.delivery_section.unknown_country'));
     @endphp
 
     @forelse($byCountry as $countryName => $countryZones)
         <div class="mb-8">
             <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <span>{{ $countryName }}</span>
-                <span class="text-xs font-normal text-gray-400">({{ $countryZones->count() }} zones)</span>
+                <span class="text-xs font-normal text-gray-400">({{ __('admin.delivery_section.zones_count', ['count' => $countryZones->count()]) }})</span>
             </h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 @foreach($countryZones as $zone)
@@ -35,31 +35,31 @@
                             <div class="flex items-center gap-1">
                                 @if($zone->is_active)
                                     <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-                                    <span class="text-xs text-green-600">Active</span>
+                                    <span class="text-xs text-green-600">{{ __('common.active') }}</span>
                                 @else
                                     <span class="inline-block w-2 h-2 rounded-full bg-gray-400"></span>
-                                    <span class="text-xs text-gray-500">Inactive</span>
+                                    <span class="text-xs text-gray-500">{{ __('common.inactive') }}</span>
                                 @endif
                             </div>
                         </div>
 
                         <div class="space-y-1.5 text-sm mb-4">
                             <div class="flex justify-between">
-                                <span class="text-gray-500">Agents</span>
+                                <span class="text-gray-500">{{ __('admin.delivery_section.agents_count_label') }}</span>
                                 <span class="font-medium text-gray-800">{{ $zone->agents_count }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-500">Delivery Fee</span>
+                                <span class="text-gray-500">{{ __('admin.delivery_section.delivery_fee_label') }}</span>
                                 <span
                                     class="font-medium text-gray-800">{{ number_format($zone->base_delivery_fee_cents / 100, 2) }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-500">COD Fee</span>
+                                <span class="text-gray-500">{{ __('admin.delivery_section.cod_fee_label') }}</span>
                                 <span class="font-medium text-gray-800">{{ number_format($zone->cod_fee_cents / 100, 2) }}</span>
                             </div>
                             @if($zone->max_active_agents)
                                 <div class="flex justify-between">
-                                    <span class="text-gray-500">Max Agents</span>
+                                    <span class="text-gray-500">{{ __('admin.delivery_section.max_agents_label') }}</span>
                                     <span class="font-medium text-gray-800">{{ $zone->max_active_agents }}</span>
                                 </div>
                             @endif
@@ -67,11 +67,11 @@
 
                         <div class="flex gap-2">
                             <button type="button" class="edit-zone-btn btn btn-xs btn-secondary flex-1" data-zone='@json($zone)'>
-                                Edit
+                                {{ __('admin.delivery_section.edit') }}
                             </button>
                             <button type="button" class="delete-zone-btn btn btn-xs btn-danger" data-zone-id="{{ $zone->id }}"
                                 data-zone-name="{{ $zone->name }}">
-                                Delete
+                                {{ __('common.delete') }}
                             </button>
                         </div>
                     </div>
@@ -80,8 +80,8 @@
         </div>
     @empty
         <div class="text-center py-16 text-gray-400">
-            <p class="text-lg font-medium">No delivery zones configured.</p>
-            <p class="text-sm mt-1">Add your first zone to start assigning agents.</p>
+            <p class="text-lg font-medium">{{ __('admin.delivery_section.no_delivery_zones') }}</p>
+            <p class="text-sm mt-1">{{ __('admin.delivery_section.no_zones_hint') }}</p>
         </div>
     @endforelse
 
@@ -89,7 +89,7 @@
     <div id="zone-modal" class="modal-backdrop hidden">
         <div class="modal-box w-full max-w-lg">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold" id="zone-modal-title">Add Zone</h3>
+                <h3 class="text-lg font-semibold" id="zone-modal-title">{{ __('admin.delivery_section.add_zone') }}</h3>
                 <button type="button" onclick="document.getElementById('zone-modal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
             </div>
@@ -100,54 +100,54 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Country <span
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.country_required_zone') }} <span
                                 class="text-red-500">*</span></label>
                         <select name="country_id" id="zone-country" class="form-input w-full" required>
-                            <option value="">Select country</option>
+                            <option value="">{{ __('admin.delivery_section.select_country_option') }}</option>
                             @foreach($countries as $c)
                                 <option value="{{ $c->id }}">{{ $c->name_en }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Zone Name <span
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.zone_name_required') }} <span
                                 class="text-red-500">*</span></label>
                         <input type="text" name="name" id="zone-name" class="form-input w-full" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Code <span
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.code_required') }} <span
                                 class="text-red-500">*</span></label>
                         <input type="text" name="code" id="zone-code" class="form-input w-full font-mono uppercase" required
-                            placeholder="e.g. EG-CAI-1">
-                        <p class="text-xs text-gray-400 mt-1">Uppercase, letters/numbers/dashes only</p>
+                            placeholder="{{ __('admin.delivery_section.code_placeholder') }}">
+                        <p class="text-xs text-gray-400 mt-1">{{ __('admin.delivery_section.code_hint') }}</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Active Agents</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.max_active_agents') }}</label>
                         <input type="number" name="max_active_agents" id="zone-max-agents" class="form-input w-full"
                             min="1">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Fee (cents) <span
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.delivery_fee_cents_required') }} <span
                                 class="text-red-500">*</span></label>
                         <input type="number" name="base_delivery_fee_cents" id="zone-delivery-fee" class="form-input w-full"
                             required min="0">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">COD Fee (cents) <span
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.cod_fee_cents_required') }} <span
                                 class="text-red-500">*</span></label>
                         <input type="number" name="cod_fee_cents" id="zone-cod-fee" class="form-input w-full" required
                             min="0">
                     </div>
                     <div class="col-span-2 flex items-center gap-2">
                         <input type="checkbox" name="is_active" id="zone-active" value="1" class="rounded" checked>
-                        <label for="zone-active" class="text-sm font-medium text-gray-700">Active</label>
+                        <label for="zone-active" class="text-sm font-medium text-gray-700">{{ __('common.active') }}</label>
                     </div>
                 </div>
 
                 <div class="pt-4 border-t flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('zone-modal').classList.add('hidden')"
-                        class="btn btn-ghost btn-sm">Cancel</button>
-                    <button type="submit" id="zone-submit-btn" class="btn btn-primary btn-sm">Create Zone</button>
+                        class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+                    <button type="submit" id="zone-submit-btn" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.create_zone') }}</button>
                 </div>
             </form>
         </div>
@@ -157,6 +157,17 @@
 
 @push('scripts')
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            addZone: @json(__('admin.delivery_section.add_zone')),
+            editZoneTitle: @json(__('admin.delivery_section.edit_zone_title')),
+            createZone: @json(__('admin.delivery_section.create_zone')),
+            saveChanges: @json(__('admin.delivery_section.save_changes')),
+            saveZoneFailed: @json(__('admin.delivery_section.save_zone_failed')),
+            deleteZoneConfirm: @json(__('admin.delivery_section.delete_zone_confirm')),
+            deleteZoneFailed: @json(__('admin.delivery_section.delete_zone_failed')),
+        });
+
         (function () {
             const STORE_URL = @json(route('admin.delivery.zones.store'));
             const BASE_URL = @json(url('admin/delivery/zones'));
@@ -165,8 +176,8 @@
             // ── Open Add Modal ────────────────────────────────────────────────────────
             $('#add-zone-btn').on('click', () => {
                 resetForm();
-                $('#zone-modal-title').text('Add Zone');
-                $('#zone-submit-btn').text('Create Zone');
+                $('#zone-modal-title').text(window.TRANSLATIONS.addZone);
+                $('#zone-submit-btn').text(window.TRANSLATIONS.createZone);
                 $('#zone-id').val('');
                 $('#zone-method').val('POST');
                 document.getElementById('zone-modal').classList.remove('hidden');
@@ -176,8 +187,8 @@
             $(document).on('click', '.edit-zone-btn', function () {
                 const zone = $(this).data('zone');
                 resetForm();
-                $('#zone-modal-title').text('Edit Zone');
-                $('#zone-submit-btn').text('Save Changes');
+                $('#zone-modal-title').text(window.TRANSLATIONS.editZoneTitle);
+                $('#zone-submit-btn').text(window.TRANSLATIONS.saveChanges);
                 $('#zone-id').val(zone.id);
                 $('#zone-method').val('PUT');
                 $('#zone-country').val(zone.country_id);
@@ -212,7 +223,7 @@
                             setTimeout(() => location.reload(), 800);
                         }
                     },
-                    error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed to save zone.'),
+                    error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.saveZoneFailed),
                 });
             });
 
@@ -220,7 +231,7 @@
             $(document).on('click', '.delete-zone-btn', function () {
                 const id = $(this).data('zone-id');
                 const name = $(this).data('zone-name');
-                if (!confirm(`Delete zone "${name}"? This cannot be undone.`)) return;
+                if (!confirm(window.TRANSLATIONS.deleteZoneConfirm.replace(':name', name))) return;
                 $.ajax({
                     url: `${BASE_URL}/${id}`,
                     method: 'POST',
@@ -231,7 +242,7 @@
                             setTimeout(() => location.reload(), 800);
                         }
                     },
-                    error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Cannot delete zone.'),
+                    error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.deleteZoneFailed),
                 });
             });
 

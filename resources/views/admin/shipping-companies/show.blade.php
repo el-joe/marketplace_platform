@@ -146,10 +146,10 @@
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
-                            <th class="px-6 py-3 text-left font-semibold">Name</th>
-                            <th class="px-6 py-3 text-left font-semibold">Phone</th>
-                            <th class="px-6 py-3 text-left font-semibold">Status</th>
-                            <th class="px-6 py-3 text-left font-semibold">Rating</th>
+                            <th class="px-6 py-3 text-start font-semibold">Name</th>
+                            <th class="px-6 py-3 text-start font-semibold">Phone</th>
+                            <th class="px-6 py-3 text-start font-semibold">Status</th>
+                            <th class="px-6 py-3 text-start font-semibold">Rating</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">

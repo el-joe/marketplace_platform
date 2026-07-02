@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'New Banner')
+@section('title', __('admin.banners.new_banner_title'))
 
 @push('styles')
     @vite(['resources/js/admin/banners.js'])

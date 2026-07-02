@@ -5,26 +5,26 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9/dist/leaflet.css" />
 @endpush
 
-@section('title', 'Delivery Assignments')
+@section('title', __('admin.delivery_section.assignments'))
 
 @section('content')
 
     {{-- ─── Header ──────────────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Delivery Assignments</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Monitor live agent positions and manage assignments.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.delivery_section.assignments') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.delivery_section.assignments_desc') }}</p>
         </div>
         <div class="flex gap-2">
-            <button type="button" id="manual-assign-btn" class="btn btn-secondary btn-sm">Manual Assign</button>
-            <button type="button" id="auto-assign-btn" class="btn btn-primary btn-sm">Auto Assign</button>
+            <button type="button" id="manual-assign-btn" class="btn btn-secondary btn-sm">{{ __('admin.delivery_section.manual_assign') }}</button>
+            <button type="button" id="auto-assign-btn" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.auto_assign') }}</button>
         </div>
     </div>
 
     <div x-data="{ tab: 'map' }">
 
         <div class="flex gap-1 border-b border-gray-200 pb-px mb-6">
-            @foreach(['map' => 'Live Map', 'assignments' => 'All Assignments'] as $key => $label)
+            @foreach(['map' => __('admin.delivery_section.tab_live_map'), 'assignments' => __('admin.delivery_section.tab_all_assignments')] as $key => $label)
                 <button type="button" @click="tab = '{{ $key }}'" :class="tab === '{{ $key }}'
                                 ? 'border-b-2 border-primary-600 text-primary-700 font-semibold'
                                 : 'text-gray-500 hover:text-gray-700'"
@@ -40,16 +40,16 @@
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-4 text-xs text-gray-600">
                         <span class="flex items-center gap-1">
-                            <span class="inline-block w-3 h-3 rounded-full bg-green-500"></span> Available
+                            <span class="inline-block w-3 h-3 rounded-full bg-green-500"></span> {{ __('admin.delivery_section.available_legend') }}
                         </span>
                         <span class="flex items-center gap-1">
-                            <span class="inline-block w-3 h-3 rounded-full bg-blue-500"></span> On Delivery
+                            <span class="inline-block w-3 h-3 rounded-full bg-blue-500"></span> {{ __('admin.delivery_section.on_delivery_legend') }}
                         </span>
                         <span class="flex items-center gap-1">
-                            <span class="inline-block w-3 h-3 rounded-full bg-gray-400"></span> Offline
+                            <span class="inline-block w-3 h-3 rounded-full bg-gray-400"></span> {{ __('admin.delivery_section.offline_legend') }}
                         </span>
                     </div>
-                    <button type="button" id="refresh-map-btn" class="btn btn-xs btn-ghost">↻ Refresh</button>
+                    <button type="button" id="refresh-map-btn" class="btn btn-xs btn-ghost">{{ __('admin.delivery_section.refresh_map') }}</button>
                 </div>
                 <div id="live-map" style="height: 480px;" class="rounded-lg z-0"></div>
             </x-card>
@@ -60,43 +60,43 @@
             <x-card class="mb-4">
                 <div class="flex flex-wrap gap-3 items-end">
                     <div class="w-40">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.status') }}</label>
                         <select id="filter-status" class="form-input w-full text-sm">
-                            <option value="">All</option>
-                            <option value="assigned">Assigned</option>
-                            <option value="accepted">Accepted</option>
-                            <option value="picked_up">Picked Up</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="failed">Failed</option>
+                            <option value="">{{ __('common.all') }}</option>
+                            <option value="assigned">{{ __('admin.delivery_section.assigned') }}</option>
+                            <option value="accepted">{{ __('admin.delivery_section.accepted') }}</option>
+                            <option value="picked_up">{{ __('admin.delivery_section.picked_up') }}</option>
+                            <option value="delivered">{{ __('admin.delivery_section.delivered') }}</option>
+                            <option value="failed">{{ __('admin.delivery_section.failed') }}</option>
                         </select>
                     </div>
                     <div class="w-48">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Agent</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.agent_col') }}</label>
                         <select id="filter-agent" class="form-input w-full text-sm">
-                            <option value="">All agents</option>
+                            <option value="">{{ __('admin.delivery_section.all_agents') }}</option>
                             @foreach($agents as $ag)
                                 <option value="{{ $ag->id }}">{{ $ag->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="w-44">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Zone</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.zone_col') }}</label>
                         <select id="filter-zone" class="form-input w-full text-sm">
-                            <option value="">All zones</option>
+                            <option value="">{{ __('admin.delivery_section.all_zones') }}</option>
                             @foreach($zones as $zone)
                                 <option value="{{ $zone->id }}">{{ $zone->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">From</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.from_label') }}</label>
                         <input type="date" id="filter-date-from" class="form-input text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">To</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.to_label') }}</label>
                         <input type="date" id="filter-date-to" class="form-input text-sm">
                     </div>
-                    <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">Reset</button>
+                    <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('admin.delivery_section.reset') }}</button>
                 </div>
             </x-card>
 
@@ -104,14 +104,14 @@
                 <table id="assignments-table" class="w-full text-sm" style="width:100%">
                     <thead>
                         <tr>
-                            <th>Order #</th>
-                            <th>Agent</th>
-                            <th>Zone</th>
-                            <th>Status</th>
-                            <th>Assigned At</th>
-                            <th>Delivered At</th>
-                            <th>Duration</th>
-                            <th>Attempts</th>
+                            <th>{{ __('admin.delivery_section.order_number_col') }}</th>
+                            <th>{{ __('admin.delivery_section.agent_col') }}</th>
+                            <th>{{ __('admin.delivery_section.zone_col') }}</th>
+                            <th>{{ __('common.status') }}</th>
+                            <th>{{ __('admin.delivery_section.assigned_at_col') }}</th>
+                            <th>{{ __('admin.delivery_section.delivered_at_col') }}</th>
+                            <th>{{ __('admin.delivery_section.duration_col') }}</th>
+                            <th>{{ __('admin.delivery_section.attempts_col') }}</th>
                         </tr>
                     </thead>
                 </table>
@@ -124,36 +124,36 @@
     <div id="auto-assign-modal" class="modal-backdrop hidden">
         <div class="modal-box max-w-sm">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold">Auto Assign</h3>
+                <h3 class="text-lg font-semibold">{{ __('admin.delivery_section.auto_assign') }}</h3>
                 <button type="button" onclick="document.getElementById('auto-assign-modal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
             </div>
             <form id="auto-assign-form" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Sub Order ID <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.sub_order_id_required') }} <span
                             class="text-red-500">*</span></label>
                     <input type="text" name="sub_order_id" class="form-input w-full" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Shipment ID <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.shipment_id_required') }} <span
                             class="text-red-500">*</span></label>
                     <input type="text" name="shipment_id" class="form-input w-full" required>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Latitude</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.pickup_latitude') }}</label>
                         <input type="number" name="pickup_latitude" class="form-input w-full" step="any">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Longitude</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.pickup_longitude') }}</label>
                         <input type="number" name="pickup_longitude" class="form-input w-full" step="any">
                     </div>
                 </div>
                 <div class="pt-4 border-t flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('auto-assign-modal').classList.add('hidden')"
-                        class="btn btn-ghost btn-sm">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-sm">Auto Assign</button>
+                        class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.auto_assign') }}</button>
                 </div>
             </form>
         </div>
@@ -163,27 +163,27 @@
     <div id="manual-assign-modal" class="modal-backdrop hidden">
         <div class="modal-box max-w-sm">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold">Manual Assign</h3>
+                <h3 class="text-lg font-semibold">{{ __('admin.delivery_section.manual_assign') }}</h3>
                 <button type="button" onclick="document.getElementById('manual-assign-modal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
             </div>
             <form id="manual-assign-form" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Sub Order ID <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.sub_order_id_required') }} <span
                             class="text-red-500">*</span></label>
                     <input type="text" name="sub_order_id" class="form-input w-full" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Shipment ID <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.shipment_id_required') }} <span
                             class="text-red-500">*</span></label>
                     <input type="text" name="shipment_id" class="form-input w-full" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Agent <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.agent_required') }} <span
                             class="text-red-500">*</span></label>
                     <select name="agent_id" class="form-input w-full" required>
-                        <option value="">Select agent</option>
+                        <option value="">{{ __('admin.delivery_section.select_agent_option') }}</option>
                         @foreach($agents as $ag)
                             <option value="{{ $ag->id }}">{{ $ag->name }}</option>
                         @endforeach
@@ -191,8 +191,8 @@
                 </div>
                 <div class="pt-4 border-t flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('manual-assign-modal').classList.add('hidden')"
-                        class="btn btn-ghost btn-sm">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+                        class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.assign') }}</button>
                 </div>
             </form>
         </div>
@@ -203,6 +203,12 @@
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9/dist/leaflet-src.min.js"></script>
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            autoAssignFailed: @json(__('admin.delivery_section.auto_assign_failed')),
+            assignmentFailed: @json(__('admin.delivery_section.assignment_failed')),
+        });
+
         (function () {
             const DATATABLE_URL = @json(route('admin.delivery.assignments.datatable'));
             const AUTO_ASSIGN_URL = @json(route('admin.delivery.assignments.auto-assign'));
@@ -336,7 +342,7 @@
                             loadMapData();
                         }
                     },
-                    error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Auto-assign failed.'),
+                    error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.autoAssignFailed),
                 });
             });
 
@@ -359,7 +365,7 @@
                             loadMapData();
                         }
                     },
-                    error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Assignment failed.'),
+                    error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.assignmentFailed),
                 });
             });
         })();

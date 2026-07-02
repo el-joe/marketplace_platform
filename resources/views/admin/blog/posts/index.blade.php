@@ -191,7 +191,7 @@ window.TRANSLATIONS = {
                     { data: 'status',  orderable: true },
                     { data: 'date',    orderable: true },
                     { data: 'views',   orderable: true },
-                    { data: 'actions', orderable: false, className: 'text-right' },
+                    { data: 'actions', orderable: false, className: 'text-end' },
                 ],
                 order: [[5, 'desc']],
                 pageLength: 25,

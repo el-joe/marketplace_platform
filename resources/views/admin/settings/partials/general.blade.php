@@ -17,8 +17,8 @@
 
 <x-card class="mb-6">
     <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">General</h2>
-        <p class="text-sm text-gray-500">Core platform identity and behavior.</p>
+        <h2 class="text-base font-semibold text-gray-900">{{ __('admin.settings_section.general') }}</h2>
+        <p class="text-sm text-gray-500">{{ __('admin.settings_section.core_platform') }}</p>
     </div>
     <div class="divide-y divide-gray-100">
 
@@ -31,8 +31,7 @@
         @if($countrySetting)
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-2 py-5">
                 <div class="sm:col-span-1">
-                    <label for="setting-default_country_code" class="block text-sm font-medium text-gray-800">Default
-                        Country</label>
+                    <label for="setting-default_country_code" class="block text-sm font-medium text-gray-800">{{ __('admin.settings_section.default_country') }}</label>
                     <p class="mt-1 text-xs text-gray-500">{{ $countrySetting->description }}</p>
                     <p class="mt-1 text-xs font-mono text-gray-400">default_country_code</p>
                 </div>

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Wallet — ' . ($wallet->owner?->name ?? $wallet->owner_id))
+@section('title', __('admin.wallets.wallet_title_prefix', ['name' => $wallet->owner?->name ?? $wallet->owner_id]))
 
 @section('content')
 <div class="space-y-6">
@@ -26,68 +26,68 @@
     {{-- Balance Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white rounded-xl border border-gray-200 p-5">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Balance</p>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{{ __('admin.wallets.balance') }}</p>
             <p class="text-3xl font-extrabold text-gray-900">{{ number_format($wallet->balance_cents / 100, 2) }} <span class="text-base font-normal text-gray-500">{{ $wallet->currency }}</span></p>
         </div>
         <div class="bg-white rounded-xl border border-amber-200 p-5">
-            <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Pending</p>
+            <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">{{ __('admin.wallets.pending') }}</p>
             <p class="text-3xl font-extrabold text-amber-700">{{ number_format($wallet->pending_balance_cents / 100, 2) }} <span class="text-base font-normal text-amber-500">{{ $wallet->currency }}</span></p>
         </div>
         <div class="bg-white rounded-xl border {{ $wallet->is_frozen ? 'border-red-300' : 'border-green-200' }} p-5 flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Status</p>
-                <p class="text-lg font-bold {{ $wallet->is_frozen ? 'text-red-600' : 'text-green-600' }}">{{ $wallet->is_frozen ? 'Frozen' : 'Active' }}</p>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{{ __('admin.wallets.status') }}</p>
+                <p class="text-lg font-bold {{ $wallet->is_frozen ? 'text-red-600' : 'text-green-600' }}">{{ $wallet->is_frozen ? __('admin.wallets.frozen') : __('admin.wallets.active') }}</p>
                 @if($wallet->frozen_reason)<p class="text-xs text-gray-500 mt-1">{{ $wallet->frozen_reason }}</p>@endif
             </div>
             @if($wallet->is_frozen)
                 <form method="POST" action="{{ route('admin.wallets.unfreeze', $wallet) }}">
                     @csrf @method('PATCH')
-                    <button class="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700">Unfreeze</button>
+                    <button class="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700">{{ __('admin.wallets.unfreeze') }}</button>
                 </form>
             @else
-                <button onclick="document.getElementById('freeze-modal').classList.remove('hidden')" class="text-xs px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">Freeze</button>
+                <button onclick="document.getElementById('freeze-modal').classList.remove('hidden')" class="text-xs px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">{{ __('admin.wallets.freeze') }}</button>
             @endif
         </div>
     </div>
 
     {{-- Adjust Balance --}}
     <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h2 class="font-semibold text-gray-800 mb-4">Manual Adjustment</h2>
+        <h2 class="font-semibold text-gray-800 mb-4">{{ __('admin.wallets.manual_adjustment') }}</h2>
         <form method="POST" action="{{ route('admin.wallets.adjust', $wallet) }}" class="flex flex-wrap gap-3 items-end">
             @csrf
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.wallets.type') }}</label>
                 <select name="type" class="form-select text-sm rounded-lg border-gray-300">
-                    <option value="credit">Credit</option>
-                    <option value="debit">Debit</option>
+                    <option value="credit">{{ __('admin.wallets.credit') }}</option>
+                    <option value="debit">{{ __('admin.wallets.debit') }}</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Amount ({{ $wallet->currency }})</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.wallets.amount') }} ({{ $wallet->currency }})</label>
                 <input type="number" name="amount" min="0.01" step="0.01" required class="form-input text-sm rounded-lg border-gray-300 w-36" placeholder="0.00">
             </div>
             <div class="flex-1 min-w-48">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
-                <input type="text" name="description" required maxlength="255" class="form-input text-sm rounded-lg border-gray-300 w-full" placeholder="Reason for adjustment">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.wallets.description') }}</label>
+                <input type="text" name="description" required maxlength="255" class="form-input text-sm rounded-lg border-gray-300 w-full" placeholder="{{ __('admin.wallets.reason_for_adjustment') }}">
             </div>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">Apply</button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">{{ __('admin.wallets.apply') }}</button>
         </form>
     </div>
 
     {{-- Transaction Ledger --}}
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100">
-            <h2 class="font-semibold text-gray-800">Transaction History</h2>
+            <h2 class="font-semibold text-gray-800">{{ __('admin.wallets.transaction_history') }}</h2>
         </div>
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b border-gray-100">
                 <tr>
-                    <th class="px-4 py-3 text-left font-medium text-gray-600">Date</th>
-                    <th class="px-4 py-3 text-left font-medium text-gray-600">Type</th>
-                    <th class="px-4 py-3 text-left font-medium text-gray-600">Source</th>
-                    <th class="px-4 py-3 text-left font-medium text-gray-600">Description</th>
-                    <th class="px-4 py-3 text-right font-medium text-gray-600">Amount</th>
-                    <th class="px-4 py-3 text-right font-medium text-gray-600">Balance After</th>
+                    <th class="px-4 py-3 text-start font-medium text-gray-600">{{ __('admin.wallets.date') }}</th>
+                    <th class="px-4 py-3 text-start font-medium text-gray-600">{{ __('admin.wallets.type') }}</th>
+                    <th class="px-4 py-3 text-start font-medium text-gray-600">{{ __('admin.wallets.source') }}</th>
+                    <th class="px-4 py-3 text-start font-medium text-gray-600">{{ __('admin.wallets.description') }}</th>
+                    <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.amount') }}</th>
+                    <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.balance_after') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -96,20 +96,20 @@
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $tx->created_at->format('d M Y H:i') }}</td>
                         <td class="px-4 py-3">
                             @if($tx->type === 'credit')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">+ Credit</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">+ {{ __('admin.wallets.credit') }}</span>
                             @else
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">− Debit</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">− {{ __('admin.wallets.debit') }}</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-gray-600 text-xs">{{ str_replace('_',' ', $tx->source_type) }}</td>
                         <td class="px-4 py-3 text-gray-700">{{ $tx->description }}</td>
-                        <td class="px-4 py-3 text-right font-semibold {{ $tx->type === 'credit' ? 'text-green-700' : 'text-red-600' }}">
+                        <td class="px-4 py-3 text-end font-semibold {{ $tx->type === 'credit' ? 'text-green-700' : 'text-red-600' }}">
                             {{ $tx->type === 'credit' ? '+' : '−' }}{{ number_format($tx->amount_cents / 100, 2) }}
                         </td>
-                        <td class="px-4 py-3 text-right text-gray-700">{{ number_format($tx->balance_after_cents / 100, 2) }}</td>
+                        <td class="px-4 py-3 text-end text-gray-700">{{ number_format($tx->balance_after_cents / 100, 2) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">No transactions yet.</td></tr>
+                    <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">{{ __('admin.wallets.no_transactions_yet') }}</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -121,13 +121,13 @@
 {{-- Freeze Modal --}}
 <div id="freeze-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-bold text-gray-900 mb-4">Freeze Wallet</h3>
+        <h3 class="text-lg font-bold text-gray-900 mb-4">{{ __('admin.wallets.freeze_wallet') }}</h3>
         <form method="POST" action="{{ route('admin.wallets.freeze', $wallet) }}">
             @csrf @method('PATCH')
-            <textarea name="reason" required rows="3" placeholder="Reason for freezing..." class="w-full form-textarea text-sm rounded-lg border-gray-300 mb-4"></textarea>
+            <textarea name="reason" required rows="3" placeholder="{{ __('admin.wallets.freeze_reason_placeholder') }}" class="w-full form-textarea text-sm rounded-lg border-gray-300 mb-4"></textarea>
             <div class="flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('freeze-modal').classList.add('hidden')" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700">Freeze</button>
+                <button type="button" onclick="document.getElementById('freeze-modal').classList.add('hidden')" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">{{ __('admin.wallets.cancel') }}</button>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700">{{ __('admin.wallets.freeze') }}</button>
             </div>
         </form>
     </div>

@@ -4,36 +4,35 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Marketplace Shipping Rules')
+@section('title', __('admin.fbn_section.marketplace_rules_title'))
 
 @section('content')
 
 
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Marketplace Shipping Rules</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Configure special shipping requirements and commission overrides per
-                marketplace listing.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.fbn_section.marketplace_rules_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.fbn_section.marketplace_rules_desc') }}</p>
         </div>
-        <button type="button" id="btn-create-rule" class="btn btn-primary btn-sm">+ New Rule</button>
+        <button type="button" id="btn-create-rule" class="btn btn-primary btn-sm">{{ __('admin.fbn_section.new_rule') }}</button>
     </div>
 
     {{-- ─── Stats ───────────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <div class="bg-white rounded-2xl border border-gray-100 p-3 text-center">
-            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Rules</p>
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.total_rules') }}</p>
             <p class="text-xl font-extrabold text-gray-700">{{ number_format($stats['total']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-3 text-center">
-            <p class="text-xs text-orange-400 uppercase tracking-wide mb-1">Special Vehicle</p>
+            <p class="text-xs text-orange-400 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.special_vehicle') }}</p>
             <p class="text-xl font-extrabold text-orange-600">{{ number_format($stats['special_vehicle']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-3 text-center">
-            <p class="text-xs text-blue-400 uppercase tracking-wide mb-1">Refrigerated</p>
+            <p class="text-xs text-blue-400 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.refrigerated') }}</p>
             <p class="text-xl font-extrabold text-blue-600">{{ number_format($stats['refrigerated']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-3 text-center">
-            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Fixed Commission</p>
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.fixed_commission') }}</p>
             <p class="text-xl font-extrabold text-gray-700">{{ number_format($stats['fixed_commission']) }}</p>
         </div>
     </div>
@@ -42,12 +41,12 @@
     <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
         <div class="flex flex-wrap gap-3 items-end">
             <div>
-                <label class="label-sm">Commission Type</label>
+                <label class="label-sm">{{ __('admin.fbn_section.commission_type') }}</label>
                 <select id="filter-commission-type" class="form-select text-sm py-1.5 pr-8">
-                    <option value="">All</option>
-                    <option value="fixed">Fixed</option>
-                    <option value="percentage">Percentage</option>
-                    <option value="mixed">Mixed</option>
+                    <option value="">{{ __('admin.fbn_section.all') }}</option>
+                    <option value="fixed">{{ __('admin.fbn_section.fixed') }}</option>
+                    <option value="percentage">{{ __('admin.fbn_section.percentage') }}</option>
+                    <option value="mixed">{{ __('admin.fbn_section.mixed') }}</option>
                 </select>
             </div>
         </div>
@@ -58,14 +57,14 @@
         <table id="tbl-rules" class="w-full text-sm">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                 <tr>
-                    <th class="px-4 py-3 text-left">Listing ID</th>
-                    <th class="px-4 py-3 text-left">Vendor</th>
-                    <th class="px-4 py-3 text-left">Product</th>
-                    <th class="px-4 py-3 text-left">Requirements</th>
-                    <th class="px-4 py-3 text-left">Max Weight</th>
-                    <th class="px-4 py-3 text-left">Commission</th>
-                    <th class="px-4 py-3 text-left">Extra Fee</th>
-                    <th class="px-4 py-3 text-left">Actions</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.listing_id') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.vendor') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.product') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.requirements') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.max_weight') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.commission') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.extra_fee') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.actions') }}</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -75,68 +74,66 @@
     {{-- ─── Create / Edit Modal ─────────────────────────────────────────────────── --}}
     <div id="rule-modal" class="modal" style="display:none;">
         <div class="modal-box max-w-xl">
-            <h3 class="font-bold text-lg mb-5" id="rule-modal-title">New Marketplace Rule</h3>
+            <h3 class="font-bold text-lg mb-5" id="rule-modal-title">{{ __('admin.fbn_section.new_marketplace_rule') }}</h3>
             <input type="hidden" id="rm-id">
 
             <div class="grid grid-cols-2 gap-4">
                 <div class="col-span-2">
-                    <label class="label-sm">Vendor Listing ID <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.fbn_section.vendor_listing_id') }} <span class="text-red-500">*</span></label>
                     <input type="text" id="rm-listing-id" class="form-input w-full text-sm font-mono"
-                        placeholder="UUID of the vendor_listing">
-                    <p id="rm-listing-note" class="text-xs text-gray-400 mt-1">Listing must have global_system_type =
-                        marketplace.</p>
+                        placeholder="{{ __('admin.fbn_section.listing_uuid_placeholder') }}">
+                    <p id="rm-listing-note" class="text-xs text-gray-400 mt-1">{{ __('admin.fbn_section.listing_must_be_marketplace') }}</p>
                 </div>
 
                 <div>
-                    <label class="label-sm">Commission Type <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.fbn_section.commission_type') }} <span class="text-red-500">*</span></label>
                     <select id="rm-commission-type" class="form-select w-full text-sm">
-                        <option value="percentage">Percentage (%)</option>
-                        <option value="fixed">Fixed (currency units)</option>
-                        <option value="mixed">Mixed</option>
+                        <option value="percentage">{{ __('admin.fbn_section.percentage_pct') }}</option>
+                        <option value="fixed">{{ __('admin.fbn_section.fixed_currency') }}</option>
+                        <option value="mixed">{{ __('admin.fbn_section.mixed') }}</option>
                     </select>
                 </div>
                 <div>
-                    <label class="label-sm">Commission Value <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.fbn_section.commission_value') }} <span class="text-red-500">*</span></label>
                     <input type="number" id="rm-commission-value" class="form-input w-full text-sm" min="0" step="0.01"
-                        placeholder="e.g. 15 or 50">
+                        placeholder="{{ __('admin.fbn_section.commission_value_placeholder') }}">
                 </div>
 
                 <div>
-                    <label class="label-sm">Extra Delivery Fee (cents)</label>
+                    <label class="label-sm">{{ __('admin.fbn_section.extra_delivery_fee_cents') }}</label>
                     <input type="number" id="rm-extra-fee" class="form-input w-full text-sm" min="0" value="0"
-                        placeholder="e.g. 500 = 5.00">
+                        placeholder="{{ __('admin.fbn_section.extra_fee_placeholder') }}">
                 </div>
                 <div>
-                    <label class="label-sm">Max Weight (kg)</label>
+                    <label class="label-sm">{{ __('admin.fbn_section.max_weight_kg') }}</label>
                     <input type="number" id="rm-weight" class="form-input w-full text-sm" min="0" step="0.01"
-                        placeholder="e.g. 120">
+                        placeholder="{{ __('admin.fbn_section.max_weight_placeholder') }}">
                 </div>
 
                 <div class="col-span-2">
-                    <label class="label-sm">Max Dimensions (LxWxH cm)</label>
-                    <input type="text" id="rm-dimensions" class="form-input w-full text-sm" placeholder="e.g. 200x100x80">
+                    <label class="label-sm">{{ __('admin.fbn_section.max_dimensions') }}</label>
+                    <input type="text" id="rm-dimensions" class="form-input w-full text-sm" placeholder="{{ __('admin.fbn_section.max_dimensions_placeholder') }}">
                 </div>
 
                 <div class="flex items-center gap-3">
                     <input type="checkbox" id="rm-special-vehicle" class="w-4 h-4">
-                    <label for="rm-special-vehicle" class="text-sm font-medium text-gray-700">Requires Special
-                        Vehicle</label>
+                    <label for="rm-special-vehicle" class="text-sm font-medium text-gray-700">{{ __('admin.fbn_section.requires_special_vehicle') }}</label>
                 </div>
                 <div class="flex items-center gap-3">
                     <input type="checkbox" id="rm-refrigeration" class="w-4 h-4">
-                    <label for="rm-refrigeration" class="text-sm font-medium text-gray-700">Requires Refrigeration</label>
+                    <label for="rm-refrigeration" class="text-sm font-medium text-gray-700">{{ __('admin.fbn_section.requires_refrigeration') }}</label>
                 </div>
 
                 <div class="col-span-2">
-                    <label class="label-sm">Special Handling Notes</label>
+                    <label class="label-sm">{{ __('admin.fbn_section.special_handling_notes') }}</label>
                     <textarea id="rm-notes" rows="2" class="form-input w-full text-sm"
-                        placeholder="e.g. Must use refrigerated truck. Handle with care."></textarea>
+                        placeholder="{{ __('admin.fbn_section.special_handling_placeholder') }}"></textarea>
                 </div>
             </div>
 
             <div class="flex gap-3 justify-end mt-5 pt-4 border-t">
-                <button type="button" id="rule-modal-cancel" class="btn btn-ghost btn-sm">Cancel</button>
-                <button type="button" id="rule-modal-save" class="btn btn-primary btn-sm px-8">Save Rule</button>
+                <button type="button" id="rule-modal-cancel" class="btn btn-ghost btn-sm">{{ __('admin.fbn_section.cancel') }}</button>
+                <button type="button" id="rule-modal-save" class="btn btn-primary btn-sm px-8">{{ __('admin.fbn_section.save_rule') }}</button>
             </div>
         </div>
     </div>
@@ -145,8 +142,19 @@
 
 @push('scripts')
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            loading: @json(__('admin.fbn_section.loading')),
+            newMarketplaceRule: @json(__('admin.fbn_section.new_marketplace_rule')),
+            editMarketplaceRule: @json(__('admin.fbn_section.edit_marketplace_rule')),
+            deleteRuleTitle: @json(__('admin.fbn_section.delete_rule_title')),
+            deleteRuleText: @json(__('admin.fbn_section.delete_rule_text')),
+            error: @json(__('admin.fbn_section.error')),
+        });
+
         $(function () {
             const tok = '{{ csrf_token() }}';
+            const T = window.TRANSLATIONS;
 
             const tbl = $('#tbl-rules').DataTable({
                 serverSide: true,
@@ -169,7 +177,7 @@
                     { data: 'extra_fee', orderable: false },
                     { data: 'actions', orderable: false },
                 ],
-                language: { processing: 'Loading…' },
+                language: { processing: T.loading },
             });
 
             $('#filter-commission-type').on('change', () => tbl.ajax.reload());
@@ -191,7 +199,7 @@
             // ── Create ──────────────────────────────────────────────────────────────────
             $('#btn-create-rule').on('click', () => {
                 clearModal();
-                $('#rule-modal-title').text('New Marketplace Rule');
+                $('#rule-modal-title').text(T.newMarketplaceRule);
                 $('#rule-modal').show();
             });
 
@@ -199,7 +207,7 @@
             $(document).on('click', '.btn-edit-rule', function () {
                 const r = $(this).data('rule');
                 $('#rm-id').val(r.id);
-                $('#rule-modal-title').text('Edit Marketplace Rule');
+                $('#rule-modal-title').text(T.editMarketplaceRule);
                 $('#rm-listing-id').val(r.vendor_listing_id).prop('disabled', true);
                 $('#rm-listing-note').hide();
                 $('#rm-commission-type').val(r.commission_type);
@@ -239,7 +247,7 @@
                     body: JSON.stringify(payload),
                 }).then(r => r.json()).then(data => {
                     if (data.success) { window.Toast.success(data.message); $('#rule-modal').hide(); tbl.ajax.reload(); }
-                    else { window.Toast.error(data.message ?? 'Error'); }
+                    else { window.Toast.error(data.message ?? T.error); }
                 });
             });
 
@@ -247,8 +255,8 @@
             $(document).on('click', '.btn-delete-rule', function () {
                 const id = $(this).data('id');
                 window.confirmDelete({
-                    title: 'Delete rule?',
-                    text: 'This will remove the special shipping configuration for this listing.',
+                    title: T.deleteRuleTitle,
+                    text: T.deleteRuleText,
                     onConfirm: () => {
                         fetch(`/admin/fbn/marketplace/${id}`, {
                             method: 'DELETE',

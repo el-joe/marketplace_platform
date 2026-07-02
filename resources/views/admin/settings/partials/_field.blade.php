@@ -33,13 +33,13 @@ Renders the appropriate input type based on the setting's decoded PHP value.
             @if($setting->is_encrypted)
                 <span
                     class="ml-1 inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700">
-                    encrypted
+                    {{ __('admin.settings_section.encrypted') }}
                 </span>
             @endif
             @if(!$setting->is_public)
                 <span
                     class="ml-1 inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-500">
-                    private
+                    {{ __('admin.settings_section.private') }}
                 </span>
             @endif
         </label>
@@ -58,11 +58,11 @@ Renders the appropriate input type based on the setting's decoded PHP value.
                 <div class="relative flex-1">
                     <input :type="show ? 'text' : 'password'" id="{{ $inputId }}" name="{{ $inputName }}"
                         value="{{ $display }}" autocomplete="new-password"
-                        placeholder="{{ $display === '●●●●●●●●' ? 'Leave blank to keep current value' : 'Enter value…' }}"
+                        placeholder="{{ $display === '●●●●●●●●' ? __('admin.settings_section.leave_blank_keep_current') : __('admin.settings_section.enter_value') }}"
                         class="form-input w-full pr-10 text-sm font-mono">
                     <button type="button" @click="show = !show"
                         class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
-                        :title="show ? 'Hide' : 'Show'">
+                        :title="show ? '{{ __('admin.settings_section.hide_value') }}' : '{{ __('admin.settings_section.show_value') }}'">
                         <x-heroicon name="eye" class="w-4 h-4" />
                     </button>
                 </div>
@@ -78,7 +78,7 @@ Renders the appropriate input type based on the setting's decoded PHP value.
                     <span :class="enabled ? 'translate-x-5' : 'translate-x-0'"
                         class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform"></span>
                 </button>
-                <span x-text="enabled ? 'Enabled' : 'Disabled'" class="text-sm text-gray-600"></span>
+                <span x-text="enabled ? '{{ __('admin.settings_section.enabled_label') }}' : '{{ __('admin.settings_section.disabled_label') }}'" class="text-sm text-gray-600"></span>
                 <input type="hidden" name="{{ $inputName }}" :value="enabled ? '1' : '0'">
             </div>
 
@@ -110,15 +110,14 @@ Renders the appropriate input type based on the setting's decoded PHP value.
                 @if($isCents)
                     <span class="text-xs text-gray-500">
                         = <strong class="js-cents-display"
-                            data-cents="{{ $display }}">{{ number_format(($display ?? 0) / 100, 2) }}</strong> (in EGP/currency
-                        units)
+                            data-cents="{{ $display }}">{{ number_format(($display ?? 0) / 100, 2) }}</strong> ({{ __('admin.settings_section.currency_units_suffix') }})
                     </span>
                 @endif
             </div>
 
         @elseif($isArray)
             <textarea id="{{ $inputId }}" name="{{ $inputName }}" rows="4" class="form-input w-full font-mono text-xs"
-                placeholder="JSON array or object…">{{ json_encode($raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</textarea>
+                placeholder="{{ __('admin.settings_section.json_placeholder') }}">{{ json_encode($raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</textarea>
 
         @else
             {{-- Default: text input --}}

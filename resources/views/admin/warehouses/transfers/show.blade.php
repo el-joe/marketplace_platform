@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
-@section('title', $transfer->transfer_number . ' — Transfer')
+@section('title', $transfer->transfer_number . ' — ' . __('admin.warehouses_section.transfers'))
 
 @section('content')
 
     {{-- ─── Breadcrumb ──────────────────────────────────────────────────────── --}}
     <nav class="mb-5 text-sm text-gray-500 flex items-center gap-1.5">
-        <a href="{{ route('admin.warehouses.index') }}" class="hover:text-primary-600">Warehouses</a>
+        <a href="{{ route('admin.warehouses.index') }}" class="hover:text-primary-600">{{ __('admin.warehouses_section.title') }}</a>
         <span>/</span>
-        <a href="{{ route('admin.warehouses.transfers.index') }}" class="hover:text-primary-600">Transfers</a>
+        <a href="{{ route('admin.warehouses.transfers.index') }}" class="hover:text-primary-600">{{ __('admin.warehouses_section.transfers') }}</a>
         <span>/</span>
         <span class="text-gray-800 font-mono font-medium">{{ $transfer->transfer_number }}</span>
     </nav>
@@ -34,9 +34,9 @@
         <div class="flex items-center gap-2">
             @if($transfer->status === 'pending')
                 <form action="{{ route('admin.warehouses.transfers.cancel', $transfer->id) }}" method="POST"
-                    onsubmit="return confirm('Cancel this transfer?')">
+                    onsubmit="return confirm('{{ __('admin.warehouses_section.cancel_transfer_confirm') }}')">
                     @csrf @method('POST')
-                    <button type="submit" class="btn btn-ghost btn-sm text-red-500">Cancel Transfer</button>
+                    <button type="submit" class="btn btn-ghost btn-sm text-red-500">{{ __('admin.warehouses_section.cancel_transfer') }}</button>
                 </form>
             @endif
         </div>
@@ -60,16 +60,16 @@
 
             {{-- Items --}}
             <x-card>
-                <h3 class="text-sm font-semibold text-gray-800 mb-4">Transfer Items</h3>
+                <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('admin.warehouses_section.transfer_items') }}</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead>
-                            <tr class="text-left text-xs font-medium text-gray-500 border-b border-gray-200">
-                                <th class="pb-3 pr-4">Listing</th>
-                                <th class="pb-3 pr-4 text-right">Requested</th>
-                                <th class="pb-3 pr-4 text-right">Received</th>
-                                <th class="pb-3 pr-4 text-right">Damaged</th>
-                                <th class="pb-3">Notes</th>
+                            <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
+                                <th class="pb-3 pr-4">{{ __('admin.warehouses_section.listing') }}</th>
+                                <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.requested') }}</th>
+                                <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.received') }}</th>
+                                <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.damaged') }}</th>
+                                <th class="pb-3">{{ __('admin.warehouses_section.notes') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -83,14 +83,14 @@
                                             {{ $item->vendor_listing_id }}
                                         </span>
                                     </td>
-                                    <td class="py-2.5 pr-4 text-right tabular-nums text-gray-700">
+                                    <td class="py-2.5 pr-4 text-end tabular-nums text-gray-700">
                                         {{ number_format($item->quantity_requested) }}
                                     </td>
-                                    <td class="py-2.5 pr-4 text-right tabular-nums text-green-700">
+                                    <td class="py-2.5 pr-4 text-end tabular-nums text-green-700">
                                         {{ $item->quantity_received !== null ? number_format($item->quantity_received) : '—' }}
                                     </td>
                                     <td
-                                        class="py-2.5 pr-4 text-right tabular-nums {{ $item->damaged_quantity > 0 ? 'text-red-600' : 'text-gray-400' }}">
+                                        class="py-2.5 pr-4 text-end tabular-nums {{ $item->damaged_quantity > 0 ? 'text-red-600' : 'text-gray-400' }}">
                                         {{ $item->damaged_quantity > 0 ? number_format($item->damaged_quantity) : '—' }}
                                     </td>
                                     <td class="py-2.5 text-xs text-gray-400">
@@ -99,7 +99,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="py-8 text-center text-sm text-gray-400">No items.</td>
+                                    <td colspan="5" class="py-8 text-center text-sm text-gray-400">{{ __('admin.warehouses_section.no_items') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -110,26 +110,26 @@
             {{-- Ship action --}}
             @if($transfer->status === 'pending')
                 <x-card>
-                    <h3 class="text-sm font-semibold text-gray-800 mb-4">Mark as Shipped</h3>
+                    <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('admin.warehouses_section.mark_as_shipped') }}</h3>
                     <form action="{{ route('admin.warehouses.transfers.ship', $transfer->id) }}" method="POST"
                         class="space-y-4">
                         @csrf
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Carrier</label>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.warehouses_section.carrier') }}</label>
                                 <input type="text" name="carrier" class="form-input w-full text-sm" placeholder="e.g. FedEx"
                                     value="{{ old('carrier') }}">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Tracking Number</label>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.warehouses_section.tracking_number') }}</label>
                                 <input type="text" name="tracking_number" class="form-input w-full text-sm"
-                                    placeholder="Optional" value="{{ old('tracking_number') }}">
+                                    placeholder="{{ __('admin.warehouses_section.optional') }}" value="{{ old('tracking_number') }}">
                             </div>
                         </div>
                         <div>
                             <button type="submit" class="btn btn-primary btn-sm"
-                                onclick="return confirm('Mark this transfer as shipped? Stock will be deducted from source warehouse.')">
-                                Ship Transfer
+                                onclick="return confirm('{{ __('admin.warehouses_section.ship_transfer_confirm') }}')">
+                                {{ __('admin.warehouses_section.ship_transfer') }}
                             </button>
                         </div>
                     </form>
@@ -139,7 +139,7 @@
             {{-- Receive action --}}
             @if($transfer->status === 'in_transit')
                 <x-card>
-                    <h3 class="text-sm font-semibold text-gray-800 mb-4">Receive Transfer</h3>
+                    <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('admin.warehouses_section.receive_transfer') }}</h3>
                     <form action="{{ route('admin.warehouses.transfers.receive', $transfer->id) }}" method="POST"
                         class="space-y-4">
                         @csrf
@@ -147,34 +147,34 @@
                             <div class="border border-gray-100 rounded-lg p-4">
                                 <p class="text-sm font-medium text-gray-800 mb-3">
                                     {{ $item->vendorListing?->productVariant?->product?->name_en ?? $item->vendor_listing_id }}
-                                    <span class="text-xs text-gray-400 ml-2">(requested: {{ $item->quantity_requested }})</span>
+                                    <span class="text-xs text-gray-400 ml-2">{{ __('admin.warehouses_section.requested_qty_hint', ['qty' => $item->quantity_requested]) }}</span>
                                 </p>
                                 <input type="hidden" name="items[{{ $loop->index }}][inventory_transfer_item_id]"
                                     value="{{ $item->id }}">
                                 <div class="grid grid-cols-3 gap-3">
                                     <div>
-                                        <label class="block text-xs text-gray-500 mb-1">Qty Received</label>
+                                        <label class="block text-xs text-gray-500 mb-1">{{ __('admin.warehouses_section.qty_received') }}</label>
                                         <input type="number" name="items[{{ $loop->index }}][quantity_received]"
                                             class="form-input w-full text-sm" min="0" value="{{ $item->quantity_requested }}"
                                             required>
                                     </div>
                                     <div>
-                                        <label class="block text-xs text-gray-500 mb-1">Damaged</label>
+                                        <label class="block text-xs text-gray-500 mb-1">{{ __('admin.warehouses_section.damaged') }}</label>
                                         <input type="number" name="items[{{ $loop->index }}][damaged_quantity]"
                                             class="form-input w-full text-sm" min="0" value="0">
                                     </div>
                                     <div>
-                                        <label class="block text-xs text-gray-500 mb-1">Notes</label>
+                                        <label class="block text-xs text-gray-500 mb-1">{{ __('admin.warehouses_section.notes') }}</label>
                                         <input type="text" name="items[{{ $loop->index }}][condition_notes]"
-                                            class="form-input w-full text-sm" placeholder="Optional">
+                                            class="form-input w-full text-sm" placeholder="{{ __('admin.warehouses_section.optional') }}">
                                     </div>
                                 </div>
                             </div>
                         @endforeach
                         <div>
                             <button type="submit" class="btn btn-primary btn-sm"
-                                onclick="return confirm('Receive this transfer? Inventory will be added to destination warehouse.')">
-                                Confirm Receipt
+                                onclick="return confirm('{{ __('admin.warehouses_section.confirm_receipt_confirm') }}')">
+                                {{ __('admin.warehouses_section.confirm_receipt') }}
                             </button>
                         </div>
                     </form>
@@ -186,10 +186,10 @@
         {{-- ─── Sidebar ─────────────────────────────────────────────────── --}}
         <div class="space-y-5">
             <x-card>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Transfer Info</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">{{ __('admin.warehouses_section.transfer_info') }}</h3>
                 <dl class="space-y-3 text-sm">
                     <div>
-                        <dt class="text-xs text-gray-500">From</dt>
+                        <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.from') }}</dt>
                         <dd class="mt-0.5 font-medium">
                             <a href="{{ route('admin.warehouses.show', $transfer->sourceWarehouse?->id) }}"
                                 class="text-primary-600 hover:underline">
@@ -198,7 +198,7 @@
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-500">To</dt>
+                        <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.to') }}</dt>
                         <dd class="mt-0.5 font-medium">
                             <a href="{{ route('admin.warehouses.show', $transfer->destinationWarehouse?->id) }}"
                                 class="text-primary-600 hover:underline">
@@ -208,27 +208,27 @@
                     </div>
                     @if($transfer->vendor)
                         <div>
-                            <dt class="text-xs text-gray-500">Vendor</dt>
+                            <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.vendor_column') }}</dt>
                             <dd class="mt-0.5">{{ $transfer->vendor->store_name }}</dd>
                         </div>
                     @endif
                     <div>
-                        <dt class="text-xs text-gray-500">Initiated By</dt>
+                        <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.initiated_by_label') }}</dt>
                         <dd class="mt-0.5">{{ $transfer->initiatedBy?->name ?? '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-500">Created</dt>
+                        <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.created_column') }}</dt>
                         <dd class="mt-0.5">{{ $transfer->created_at?->format('M d, Y H:i') }}</dd>
                     </div>
                     @if($transfer->expected_arrival_date)
                         <div>
-                            <dt class="text-xs text-gray-500">Expected Arrival</dt>
+                            <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.expected_arrival') }}</dt>
                             <dd class="mt-0.5">{{ $transfer->expected_arrival_date->format('M d, Y') }}</dd>
                         </div>
                     @endif
                     @if($transfer->carrier || $transfer->tracking_number)
                         <div>
-                            <dt class="text-xs text-gray-500">Carrier / Tracking</dt>
+                            <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.carrier_tracking') }}</dt>
                             <dd class="mt-0.5">
                                 {{ $transfer->carrier ?? '—' }}
                                 @if($transfer->tracking_number)
@@ -239,19 +239,19 @@
                     @endif
                     @if($transfer->shipped_at)
                         <div>
-                            <dt class="text-xs text-gray-500">Shipped</dt>
+                            <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.shipped') }}</dt>
                             <dd class="mt-0.5">{{ $transfer->shipped_at->format('M d, Y H:i') }}</dd>
                         </div>
                     @endif
                     @if($transfer->received_at)
                         <div>
-                            <dt class="text-xs text-gray-500">Received</dt>
+                            <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.received') }}</dt>
                             <dd class="mt-0.5">{{ $transfer->received_at->format('M d, Y H:i') }}</dd>
                         </div>
                     @endif
                     @if($transfer->notes)
                         <div>
-                            <dt class="text-xs text-gray-500">Notes</dt>
+                            <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.notes') }}</dt>
                             <dd class="mt-0.5 text-gray-600">{{ $transfer->notes }}</dd>
                         </div>
                     @endif

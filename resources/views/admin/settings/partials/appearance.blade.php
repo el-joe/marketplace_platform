@@ -3,8 +3,8 @@
 {{-- Brand Colors --}}
 <x-card class="mb-6">
     <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Brand Colors</h2>
-        <p class="text-sm text-gray-500">Primary and secondary brand colors used across the storefront.</p>
+        <h2 class="text-base font-semibold text-gray-900">{{ __('admin.settings_section.brand_colors') }}</h2>
+        <p class="text-sm text-gray-500">{{ __('admin.settings_section.brand_colors_desc') }}</p>
     </div>
     <div class="divide-y divide-gray-100">
 
@@ -18,8 +18,8 @@
 {{-- Footer Text --}}
 <x-card class="mb-6">
     <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Footer</h2>
-        <p class="text-sm text-gray-500">Footer copyright text in English and Arabic.</p>
+        <h2 class="text-base font-semibold text-gray-900">{{ __('admin.settings_section.footer') }}</h2>
+        <p class="text-sm text-gray-500">{{ __('admin.settings_section.footer_desc') }}</p>
     </div>
     <div class="divide-y divide-gray-100">
 
@@ -33,8 +33,8 @@
 {{-- Announcement Bar --}}
 <x-card>
     <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Announcement Bar</h2>
-        <p class="text-sm text-gray-500">Top-of-page banner shown across the storefront.</p>
+        <h2 class="text-base font-semibold text-gray-900">{{ __('admin.settings_section.announcement_bar') }}</h2>
+        <p class="text-sm text-gray-500">{{ __('admin.settings_section.announcement_bar_desc') }}</p>
     </div>
     <div class="divide-y divide-gray-100">
 
@@ -50,13 +50,13 @@
     </div>
     {{-- Live preview --}}
     <div class="mt-5 pt-5 border-t border-gray-100">
-<p class="text-xs font-medium text-gray-500 mb-2">Live Preview</p>
+<p class="text-xs font-medium text-gray-500 mb-2">{{ __('admin.settings_section.live_preview') }}</p>
         <div
             id="announcement-preview"
             class="rounded-lg px-4 py-2 text-center text-sm text-white font-medium transition-colors"
             style="background-color: {{ $settings->firstWhere('key', 'announcement_bar_color')?->value ?? '#0284c7' }}"
         >
-            {{ $settings->firstWhere('key', 'announcement_bar_text_en')?->value ?? 'Announcement text' }}
+            {{ $settings->firstWhere('key', 'announcement_bar_text_en')?->value ?? __('admin.settings_section.announcement_placeholder') }}
         </div>
     </div>
 </x-card>

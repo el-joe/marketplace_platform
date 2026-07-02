@@ -180,10 +180,10 @@ $(function () {
 
                 const itemTable = (items, emptyMsg) => items.length
                     ? `<table class="w-full text-sm">
-                        <thead><tr class="text-left text-gray-500 text-xs">
+                        <thead><tr class="text-start text-gray-500 text-xs">
                             <th class="pb-1 pr-3">${T.product}</th>
                             <th class="pb-1 pr-3 text-center">${T.qty}</th>
-                            <th class="pb-1 text-right">${T.cost}</th>
+                            <th class="pb-1 text-end">${T.cost}</th>
                         </tr></thead>
                         <tbody>${items.map(i => `
                             <tr class="border-t border-gray-100">
@@ -192,7 +192,7 @@ $(function () {
                                     <div class="text-xs text-gray-400">${i.category_name}</div>
                                 </td>
                                 <td class="py-2 pr-3 text-center font-medium">${i.quantity}</td>
-                                <td class="py-2 text-right">${i.cost ? i.cost : '—'}</td>
+                                <td class="py-2 text-end">${i.cost ? i.cost : '—'}</td>
                             </tr>`).join('')}
                         </tbody>
                        </table>`
@@ -266,7 +266,7 @@ $(function () {
                     html += `<div class="mb-5">
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2 border-b border-gray-100 pb-1">${cat}</p>
                         <table class="w-full text-sm">
-                            <thead><tr class="text-left text-gray-400 text-xs">
+                            <thead><tr class="text-start text-gray-400 text-xs">
                                 <th class="pb-2 pr-3 w-1/2">${T.product}</th>
                                 <th class="pb-2 pr-3 text-center">${T.marketerQty}</th>
                                 <th class="pb-2 text-center">${T.adminQtySecret}</th>

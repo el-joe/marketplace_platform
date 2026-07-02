@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Listing')
+@section('title', __('admin.admin_product_listings.edit_listing_title'))
 
 @section('content')
 <div class="p-6">

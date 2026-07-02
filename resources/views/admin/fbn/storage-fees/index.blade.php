@@ -4,45 +4,45 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'FBN Storage Fees')
+@section('title', __('admin.fbn_section.storage_fees_title'))
 
 @section('content')
 
 
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">FBN Storage Fees</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Monthly warehouse storage charges per vendor.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.fbn_section.storage_fees_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.fbn_section.storage_fees_desc') }}</p>
         </div>
         <button type="button" id="btn-generate-fees" class="btn btn-primary btn-sm">
-            ⚡ Generate Monthly Fees
+            {{ __('admin.fbn_section.generate_monthly_fees') }}
         </button>
     </div>
 
     {{-- ─── Stats ───────────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
         <div class="bg-white rounded-2xl border border-gray-100 p-3 text-center">
-            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Records</p>
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.total_records') }}</p>
             <p class="text-xl font-extrabold text-gray-700">{{ number_format($stats['total']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-3 text-center">
-            <p class="text-xs text-yellow-500 uppercase tracking-wide mb-1">Pending</p>
+            <p class="text-xs text-yellow-500 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.pending') }}</p>
             <p class="text-xl font-extrabold text-yellow-600">{{ number_format($stats['pending']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-3 text-center">
-            <p class="text-xs text-blue-500 uppercase tracking-wide mb-1">Invoiced</p>
+            <p class="text-xs text-blue-500 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.invoiced') }}</p>
             <p class="text-xl font-extrabold text-blue-600">{{ number_format($stats['invoiced']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-3 text-center">
-            <p class="text-xs text-green-500 uppercase tracking-wide mb-1">Paid</p>
+            <p class="text-xs text-green-500 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.paid') }}</p>
             <p class="text-xl font-extrabold text-green-600">{{ number_format($stats['paid']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-yellow-50 bg-yellow-50 p-3 text-center">
-            <p class="text-xs text-yellow-600 uppercase tracking-wide mb-1">Pending Revenue</p>
+            <p class="text-xs text-yellow-600 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.pending_revenue') }}</p>
             <p class="text-xl font-extrabold text-yellow-700">{{ number_format($stats['pending_cents'] / 100) }} {{ $stats['currency'] ?? '' }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-green-50 bg-green-50 p-3 text-center">
-            <p class="text-xs text-green-600 uppercase tracking-wide mb-1">Paid Revenue</p>
+            <p class="text-xs text-green-600 uppercase tracking-wide mb-1">{{ __('admin.fbn_section.paid_revenue') }}</p>
             <p class="text-xl font-extrabold text-green-700">{{ number_format($stats['paid_cents'] / 100) }} {{ $stats['currency'] ?? '' }}</p>
         </div>
     </div>
@@ -50,18 +50,18 @@
     {{-- ─── Filters ─────────────────────────────────────────────────────────────── --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-4 flex flex-wrap gap-3 items-end">
         <div>
-            <label class="label-sm">Status</label>
+            <label class="label-sm">{{ __('admin.fbn_section.status') }}</label>
             <select id="filter-status" class="form-select text-sm py-1.5 pr-8">
-                <option value="">All</option>
-                <option value="pending">Pending</option>
-                <option value="invoiced">Invoiced</option>
-                <option value="paid">Paid</option>
+                <option value="">{{ __('admin.fbn_section.all') }}</option>
+                <option value="pending">{{ __('admin.fbn_section.pending') }}</option>
+                <option value="invoiced">{{ __('admin.fbn_section.invoiced') }}</option>
+                <option value="paid">{{ __('admin.fbn_section.paid') }}</option>
             </select>
         </div>
         <div>
-            <label class="label-sm">Month</label>
+            <label class="label-sm">{{ __('admin.fbn_section.month') }}</label>
             <select id="filter-month" class="form-select text-sm py-1.5 pr-8">
-                <option value="">All Months</option>
+                <option value="">{{ __('admin.fbn_section.all_months') }}</option>
                 @foreach($months as $m)
                     <option value="{{ $m->month_key }}">{{ $m->month_label }}</option>
                 @endforeach
@@ -74,13 +74,13 @@
         <table id="tbl-fees" class="w-full text-sm">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                 <tr>
-                    <th class="px-4 py-3 text-left">Vendor</th>
-                    <th class="px-4 py-3 text-left">Month</th>
-                    <th class="px-4 py-3 text-left">Units Stored</th>
-                    <th class="px-4 py-3 text-left">Rate / Unit</th>
-                    <th class="px-4 py-3 text-left">Total Fee</th>
-                    <th class="px-4 py-3 text-left">Status</th>
-                    <th class="px-4 py-3 text-left">Actions</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.vendor') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.month') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.units_stored') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.rate_per_unit') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.total_fee') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.status') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.actions') }}</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -90,18 +90,17 @@
     {{-- ─── Generate Modal ──────────────────────────────────────────────────────── --}}
     <div id="generate-modal" class="modal" style="display:none;">
         <div class="modal-box max-w-sm">
-            <h3 class="font-bold text-lg mb-4">Generate Monthly Storage Fees</h3>
+            <h3 class="font-bold text-lg mb-4">{{ __('admin.fbn_section.generate_monthly_storage_fees') }}</h3>
             <p class="text-sm text-gray-500 mb-3">
-                This will calculate storage fees for all vendors with FBN inventory in platform warehouses.
-                Existing records for the same month will be updated (not duplicated).
+                {{ __('admin.fbn_section.generate_fees_desc') }}
             </p>
             <div>
-                <label class="label-sm">Month <span class="text-red-500">*</span></label>
+                <label class="label-sm">{{ __('admin.fbn_section.month') }} <span class="text-red-500">*</span></label>
                 <input type="month" id="gen-month" class="form-input w-full text-sm" value="{{ now()->format('Y-m') }}">
             </div>
             <div class="flex gap-3 justify-end mt-5 pt-4 border-t">
-                <button type="button" id="gen-close" class="btn btn-ghost btn-sm">Cancel</button>
-                <button type="button" id="gen-confirm" class="btn btn-primary btn-sm">Queue Job</button>
+                <button type="button" id="gen-close" class="btn btn-ghost btn-sm">{{ __('admin.fbn_section.cancel') }}</button>
+                <button type="button" id="gen-confirm" class="btn btn-primary btn-sm">{{ __('admin.fbn_section.queue_job') }}</button>
             </div>
         </div>
     </div>
@@ -110,8 +109,16 @@
 
 @push('scripts')
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            loading: @json(__('admin.fbn_section.loading')),
+            error: @json(__('admin.fbn_section.error')),
+            selectMonth: @json(__('admin.fbn_section.select_month')),
+        });
+
         $(function () {
             const tok = '{{ csrf_token() }}';
+            const T = window.TRANSLATIONS;
 
             const tbl = $('#tbl-fees').DataTable({
                 serverSide: true,
@@ -136,7 +143,7 @@
                     { data: 'status', orderable: false },
                     { data: 'actions', orderable: false },
                 ],
-                language: { processing: 'Loading…' },
+                language: { processing: T.loading },
             });
 
             $('#filter-status, #filter-month').on('change', () => tbl.ajax.reload());
@@ -148,7 +155,7 @@
                     body: JSON.stringify(body),
                 }).then(r => r.json()).then(data => {
                     if (data.success) { window.Toast.success(data.message); onSuccess?.(); tbl.ajax.reload(); }
-                    else { window.Toast.error(data.message ?? 'Error'); }
+                    else { window.Toast.error(data.message ?? T.error); }
                 });
             }
 
@@ -165,7 +172,7 @@
             $('#gen-close').on('click', () => $('#generate-modal').hide());
             $('#gen-confirm').on('click', () => {
                 const month = $('#gen-month').val();
-                if (!month) { window.Toast.error('Please select a month.'); return; }
+                if (!month) { window.Toast.error(T.selectMonth); return; }
                 jsonPost('{{ route('admin.fbn.storage-fees.generate') }}', { month },
                     () => $('#generate-modal').hide());
             });
