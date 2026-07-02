@@ -30,6 +30,50 @@ import 'datatables.net-buttons-dt/css/buttons.dataTables.css';
 // Registry: tableId → DataTable instance
 const registry = {};
 
+// Locale helpers derived from the <html> element set by SetLocale middleware
+const _isRtl = document.documentElement.dir === 'rtl';
+const _isAr  = document.documentElement.lang === 'ar';
+
+const _dtLanguage = _isAr
+    ? {
+        processing:  '<div class="flex items-center justify-center gap-2 py-6 text-sm text-gray-500">'
+            + '<svg class="w-5 h-5 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24">'
+            + '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>'
+            + '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>'
+            + '</svg>جاري التحميل…</div>',
+        emptyTable:  '<div class="py-12 text-center text-sm text-gray-400">لا توجد سجلات</div>',
+        zeroRecords: '<div class="py-12 text-center text-sm text-gray-400">لا توجد نتائج مطابقة</div>',
+        info:        'عرض _START_ إلى _END_ من _TOTAL_ سجل',
+        infoEmpty:   'عرض 0 إلى 0 من 0 سجل',
+        infoFiltered:'(مصفّاة من _MAX_ سجل)',
+        search:      'بحث:',
+        lengthMenu:  'عرض _MENU_ سجل',
+        paginate: {
+            first:    'الأول',
+            last:     'الأخير',
+            next:     '‹',
+            previous: '›',
+        },
+    }
+    : {
+        processing:  '<div class="flex items-center justify-center gap-2 py-6 text-sm text-gray-500">'
+            + '<svg class="w-5 h-5 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24">'
+            + '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>'
+            + '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>'
+            + '</svg>Loading…</div>',
+        emptyTable:  '<div class="py-12 text-center text-sm text-gray-400">No records found</div>',
+        zeroRecords: '<div class="py-12 text-center text-sm text-gray-400">No matching records found</div>',
+        info:        'Showing _START_ to _END_ of _TOTAL_ entries',
+        infoEmpty:   'Showing 0 to 0 of 0 entries',
+        infoFiltered:'(filtered from _MAX_ total)',
+        paginate: {
+            first:    '«',
+            last:     '»',
+            next:     '›',
+            previous: '‹',
+        },
+    };
+
 /* =========================================================
    HELPERS
    ========================================================= */
@@ -72,7 +116,7 @@ function initSelectableRows(tableId, table) {
         const n = getSelectedIds(tableId).length;
         if (n > 0) {
             $bar.removeClass('hidden').addClass('flex');
-            $count.text(`${n} selected`);
+            $count.text(_isAr ? `${n} محدد` : `${n} selected`);
         } else {
             $bar.addClass('hidden').removeClass('flex');
             $allChk.prop('checked', false).prop('indeterminate', false);
@@ -128,7 +172,9 @@ $(document).on('click', '[data-bulk-action]', async function () {
     const ids = getSelectedIds(tableId);
 
     if (!ids.length) {
-        window.Toast && window.Toast.warning('Please select at least one row.');
+        window.Toast && window.Toast.warning(
+            _isAr ? 'يرجى تحديد صف واحد على الأقل.' : 'Please select at least one row.'
+        );
         return;
     }
 
@@ -195,24 +241,7 @@ window.initDataTable = function (tableId, options) {
         responsive: options.responsive !== false,
         pageLength: options.pageLength || 25,
         order: options.order || [[0, 'desc']],
-        language: {
-            processing: '<div class="flex items-center justify-center gap-2 py-6 text-sm text-gray-500">'
-                + '<svg class="w-5 h-5 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24">'
-                + '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>'
-                + '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>'
-                + '</svg>Loading…</div>',
-            emptyTable: '<div class="py-12 text-center text-sm text-gray-400">No records found</div>',
-            zeroRecords: '<div class="py-12 text-center text-sm text-gray-400">No matching records found</div>',
-            info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-            infoEmpty: 'Showing 0 to 0 of 0 entries',
-            infoFiltered: '(filtered from _MAX_ total)',
-            paginate: {
-                first: '«',
-                last: '»',
-                next: '›',
-                previous: '‹',
-            },
-        },
+        language: _dtLanguage,
         // Custom DOM layout — we render info + paginator only; search/filter is handled manually
         dom: 'rt<"dt-footer flex items-center justify-between px-4 py-3 border-t border-gray-100"<"text-sm text-gray-500"i><"flex items-center gap-1"p>>',
         ajax: {

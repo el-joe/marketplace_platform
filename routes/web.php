@@ -1,6 +1,22 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Locale switcher — works across all panels and the portal
+|--------------------------------------------------------------------------
+*/
+Route::post('/locale/switch', function (Request $request) {
+    $locale = $request->input('locale');
+    abort_unless(in_array($locale, config('app.available_locales', ['ar', 'en'])), 422);
+    $request->session()->put('locale', $locale);
+    $request->session()->put('dir', $locale === 'ar' ? 'rtl' : 'ltr');
+    \Carbon\Carbon::setLocale($locale);
+    \Illuminate\Support\Facades\App::setLocale($locale);
+    return back();
+})->name('locale.switch')->middleware('web');
 
 
 /*

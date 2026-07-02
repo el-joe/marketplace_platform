@@ -1,0 +1,81 @@
+@extends('layouts.admin')
+
+@section('title', 'Packaging Supply Requests')
+
+@section('content')
+
+    <div class="mb-6 flex items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Packaging Supply Requests</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Review and approve vendor packaging requests.</p>
+        </div>
+        <a href="{{ route('admin.packaging-supplies.index') }}" class="btn btn-secondary">← Catalog</a>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success mb-4">{{ session('success') }}</div>
+    @endif
+
+    {{-- ─── Stats ───────────────────────────────────────────────────────────── --}}
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+        <x-stat-card title="Pending"   :value="number_format($stats['pending'])"   iconBg="bg-yellow-100 text-yellow-600" />
+        <x-stat-card title="Approved"  :value="number_format($stats['approved'])"  iconBg="bg-blue-100 text-blue-600" />
+        <x-stat-card title="Shipped"   :value="number_format($stats['shipped'])"   iconBg="bg-indigo-100 text-indigo-600" />
+        <x-stat-card title="Delivered" :value="number_format($stats['delivered'])" iconBg="bg-green-100 text-green-600" />
+        <x-stat-card title="Rejected"  :value="number_format($stats['rejected'])"  iconBg="bg-red-100 text-red-600" />
+    </div>
+
+    {{-- ─── Filter ──────────────────────────────────────────────────────────── --}}
+    <form method="GET" class="flex flex-wrap gap-3 mb-5">
+        <select name="status" class="input-sm">
+            <option value="">All statuses</option>
+            @foreach(['pending','approved','shipped','delivered','rejected'] as $s)
+                <option value="{{ $s }}" @selected(request('status') === $s)>{{ ucfirst($s) }}</option>
+            @endforeach
+        </select>
+        <button type="submit" class="btn-sm btn-primary">Filter</button>
+        <a href="{{ route('admin.packaging-supplies.requests') }}" class="btn-sm btn-secondary">Reset</a>
+    </form>
+
+    {{-- ─── Table ───────────────────────────────────────────────────────────── --}}
+    <div class="card overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="th">Request #</th>
+                    <th class="th">Vendor</th>
+                    <th class="th">Warehouse</th>
+                    <th class="th">Total</th>
+                    <th class="th">Status</th>
+                    <th class="th">Date</th>
+                    <th class="th"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                @forelse($supplyRequests as $req)
+                    <tr class="hover:bg-gray-50">
+                        <td class="td font-mono text-xs">{{ $req->request_number }}</td>
+                        <td class="td font-medium text-gray-900">{{ $req->vendor->store_name }}</td>
+                        <td class="td text-gray-500">{{ $req->warehouse?->name ?? '—' }}</td>
+                        <td class="td">{{ $req->total_cost_formatted }}</td>
+                        <td class="td">
+                            <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status) }}</span>
+                        </td>
+                        <td class="td text-gray-500 text-xs">{{ $req->created_at->format('d M Y') }}</td>
+                        <td class="td text-right">
+                            <a href="{{ route('admin.packaging-supplies.show-request', $req) }}"
+                               class="text-primary-600 hover:underline text-xs font-medium">View</a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="td text-center text-gray-400 py-10">No requests found.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">{{ $supplyRequests->links() }}</div>
+
+@endsection
