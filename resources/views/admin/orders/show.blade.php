@@ -4,7 +4,7 @@
     @vite(['resources/js/admin/orders.js'])
 @endpush
 
-@section('title', 'Order #' . $order->order_number)
+@section('title', __('admin.orders.order_number') . ' ' . $order->order_number)
 
 @section('content')
     @php
@@ -60,34 +60,34 @@
         $riskText = $riskScore >= 70 ? 'text-red-700' : ($riskScore >= 40 ? 'text-amber-700' : 'text-green-700');
 
         $payMethodLabels = [
-            'card' => 'Credit / Debit Card',
-            'wallet' => 'Wallet',
-            'cod' => 'Cash on Delivery',
-            'bnpl' => 'Buy Now Pay Later',
-            'bank_transfer' => 'Bank Transfer',
+            'card' => __('admin.orders.payment_card'),
+            'wallet' => __('admin.orders.payment_wallet'),
+            'cod' => __('admin.orders.payment_cod'),
+            'bnpl' => __('admin.orders.payment_bnpl'),
+            'bank_transfer' => __('admin.orders.payment_bank_transfer'),
         ];
 
         $disputeReasonLabels = [
-            'item_not_received' => 'Item Not Received',
-            'item_damaged' => 'Item Damaged',
-            'item_not_as_described' => 'Not as Described',
-            'counterfeit' => 'Counterfeit Item',
-            'wrong_item' => 'Wrong Item Sent',
-            'quality_issue' => 'Quality Issue',
-            'seller_unresponsive' => 'Seller Unresponsive',
-            'refund_not_received' => 'Refund Not Received',
-            'other' => 'Other',
+            'item_not_received' => __('admin.disputes.reason_item_not_received'),
+            'item_damaged' => __('admin.disputes.reason_item_damaged'),
+            'item_not_as_described' => __('admin.disputes.reason_not_as_described'),
+            'counterfeit' => __('admin.disputes.reason_counterfeit'),
+            'wrong_item' => __('admin.disputes.reason_wrong_item_sent'),
+            'quality_issue' => __('admin.disputes.reason_quality_issue'),
+            'seller_unresponsive' => __('admin.disputes.reason_seller_unresponsive'),
+            'refund_not_received' => __('admin.disputes.reason_refund_not_received'),
+            'other' => __('admin.disputes.reason_other'),
         ];
 
         $refundReasonLabels = [
-            'customer_request' => 'Customer Request',
-            'out_of_stock' => 'Out of Stock',
-            'damaged' => 'Damaged',
-            'wrong_item' => 'Wrong Item',
-            'not_as_described' => 'Not as Described',
-            'late_delivery' => 'Late Delivery',
-            'duplicate_order' => 'Duplicate Order',
-            'other' => 'Other',
+            'customer_request' => __('admin.orders.refund_reason_customer_request'),
+            'out_of_stock' => __('admin.orders.refund_reason_out_of_stock'),
+            'damaged' => __('admin.orders.refund_reason_damaged'),
+            'wrong_item' => __('admin.orders.refund_reason_wrong_item'),
+            'not_as_described' => __('admin.orders.refund_reason_not_as_described'),
+            'late_delivery' => __('admin.orders.refund_reason_late_delivery'),
+            'duplicate_order' => __('admin.orders.refund_reason_duplicate_order'),
+            'other' => __('admin.orders.refund_reason_other'),
         ];
     @endphp
 
@@ -103,9 +103,9 @@
             {{-- ──────────────────────────────────── --}}
             {{-- Order Items (Sub-orders accordion) --}}
             {{-- ──────────────────────────────────── --}}
-            <x-card title="Order Items">
+            <x-card title="{{ __('admin.orders.order_items') }}">
                 <x-slot:actions>
-                    <span class="text-sm text-gray-500">{{ $order->subOrders->count() }} seller(s)</span>
+                    <span class="text-sm text-gray-500">{{ $order->subOrders->count() }} {{ __('admin.orders.sellers_count') }}</span>
                 </x-slot:actions>
 
                 @forelse($order->subOrders as $subOrder)
@@ -124,7 +124,7 @@
                                     </button>
                                     <div>
                                         <span class="text-sm font-semibold text-gray-800">
-                                            {{ $subOrder->vendor->store_name ?? $subOrder->vendor->name ?? 'Unknown Seller' }}
+                                            {{ $subOrder->vendor->store_name ?? $subOrder->vendor->name ?? __('admin.orders.unknown_seller') }}
                                         </span>
                                         <span class="text-xs text-gray-400 ml-2">{{ $subOrder->sub_order_number }}</span>
                                     </div>
@@ -132,12 +132,12 @@
                                         {{ ucwords(str_replace('_', ' ', $subOrder->status)) }}
                                     </x-badge>
                                     @if($subOrder->fulfillment_model === 'fbn')
-                                        <x-badge color="primary">FBN</x-badge>
+                                        <x-badge color="primary">{{ __('admin.orders.fbn') }}</x-badge>
                                     @else
-                                        <x-badge color="gray">FBM</x-badge>
+                                        <x-badge color="gray">{{ __('admin.orders.fbm') }}</x-badge>
                                     @endif
                                     @if($subOrder->sla_breached)
-                                        <x-badge color="danger">SLA Breached</x-badge>
+                                        <x-badge color="danger">{{ __('admin.orders.sla_breached') }}</x-badge>
                                     @endif
                                 </div>
                                 <span class="text-sm font-medium text-gray-700">{{ $fmt($subOrder->subtotal) }}</span>
@@ -151,21 +151,21 @@
                                     <table class="min-w-full text-sm">
                                         <thead class="bg-gray-50/50 border-b border-gray-100">
                                             <tr>
-                                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase">
-                                                    Product</th>
-                                                <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase">SKU
+                                                <th class="px-4 py-2.5 text-start text-xs font-semibold text-gray-500 uppercase">
+                                                    {{ __('admin.orders.product') }}</th>
+                                                <th class="px-4 py-2.5 text-start text-xs font-semibold text-gray-500 uppercase">{{ __('common.sku') }}
                                                 </th>
                                                 <th
                                                     class="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase w-16">
-                                                    Qty</th>
-                                                <th class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase">
-                                                    Unit</th>
-                                                <th class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase">
-                                                    Total</th>
-                                                <th class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase">
-                                                    Commission</th>
+                                                    {{ __('admin.orders.qty') }}</th>
+                                                <th class="px-4 py-2.5 text-end text-xs font-semibold text-gray-500 uppercase">
+                                                    {{ __('admin.orders.unit_price') }}</th>
+                                                <th class="px-4 py-2.5 text-end text-xs font-semibold text-gray-500 uppercase">
+                                                    {{ __('common.total') }}</th>
+                                                <th class="px-4 py-2.5 text-end text-xs font-semibold text-gray-500 uppercase">
+                                                    {{ __('admin.orders.commission_amount') }}</th>
                                                 <th class="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase">
-                                                    Status</th>
+                                                    {{ __('common.status') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
@@ -187,7 +187,7 @@
                                                             @endif
                                                             <div>
                                                                 <p class="font-medium text-gray-900 text-sm">
-                                                                    {{ $snap['name_en'] ?? $snap['name'] ?? 'Product #' . $item->sku }}
+                                                                    {{ $snap['name_en'] ?? $snap['name'] ?? __('admin.orders.product') . ' #' . $item->sku }}
                                                                 </p>
                                                                 @if(!empty($snap['variant_label']))
                                                                     <p class="text-xs text-gray-400">{{ $snap['variant_label'] }}</p>
@@ -197,9 +197,9 @@
                                                     </td>
                                                     <td class="px-4 py-3 text-xs text-gray-500 font-mono">{{ $item->sku }}</td>
                                                     <td class="px-4 py-3 text-center font-medium">{{ $item->quantity }}</td>
-                                                    <td class="px-4 py-3 text-right text-sm">{{ $fmt($item->unit_price) }}</td>
-                                                    <td class="px-4 py-3 text-right font-medium">{{ $fmt($item->line_total) }}</td>
-                                                    <td class="px-4 py-3 text-right text-xs text-gray-500">
+                                                    <td class="px-4 py-3 text-end text-sm">{{ $fmt($item->unit_price) }}</td>
+                                                    <td class="px-4 py-3 text-end font-medium">{{ $fmt($item->line_total) }}</td>
+                                                    <td class="px-4 py-3 text-end text-xs text-gray-500">
                                                         @php
                                                             $fixedCents = $item->commission_fixed_cents ?? 0;
                                                         @endphp
@@ -227,11 +227,11 @@
                                 <div
                                     class="px-4 py-3 bg-gray-50/50 border-t border-gray-100 grid grid-cols-3 gap-4 text-xs text-gray-500">
                                     <div>
-                                        <span class="font-medium text-gray-700">Carrier:</span>
+                                        <span class="font-medium text-gray-700">{{ __('admin.orders.carrier') }}:</span>
                                         {{ $subOrder->carrier->name ?? '—' }}
                                     </div>
                                     <div>
-                                        <span class="font-medium text-gray-700">Tracking:</span>
+                                        <span class="font-medium text-gray-700">{{ __('admin.orders.tracking_number') }}:</span>
                                         @if($subOrder->tracking_number)
                                             <span class="font-mono text-gray-800">{{ $subOrder->tracking_number }}</span>
                                         @else
@@ -239,17 +239,17 @@
                                         @endif
                                     </div>
                                     <div>
-                                        <span class="font-medium text-gray-700">Est. Delivery:</span>
+                                        <span class="font-medium text-gray-700">{{ __('admin.orders.est_delivery') }}:</span>
                                         {{ $subOrder->estimated_delivery_date
                     ? \Carbon\Carbon::parse($subOrder->estimated_delivery_date)->format('M j, Y')
                     : '—' }}
                                     </div>
                                     @if($subOrder->sla_ship_deadline)
                                         <div class="col-span-3 {{ $subOrder->sla_breached ? 'text-red-600 font-medium' : '' }}">
-                                            <span class="font-medium">SLA Ship Deadline:</span>
+                                            <span class="font-medium">{{ __('admin.orders.sla_ship_deadline') }}:</span>
                                             {{ \Carbon\Carbon::parse($subOrder->sla_ship_deadline)->format('M j, Y H:i') }}
                                             @if($subOrder->sla_breached)
-                                                <x-badge color="danger" class="ml-1">BREACHED</x-badge>
+                                                <x-badge color="danger" class="ml-1">{{ __('admin.orders.breached') }}</x-badge>
                                             @endif
                                         </div>
                                     @endif
@@ -258,17 +258,17 @@
                                 {{-- Financial breakdown (admin-only) --}}
                                 <div class="px-4 py-3 border-t border-gray-100 space-y-1 text-xs">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-gray-500">Platform Commission</span>
+                                        <span class="text-gray-500">{{ __('admin.orders.platform_commission') }}</span>
                                         <span class="text-danger-600">−{{ $fmt($subOrder->platform_commission) }}</span>
                                     </div>
                                     @if($subOrder->gateway_fee > 0)
                                         <div class="flex items-center justify-between">
-                                            <span class="text-gray-500">Payment Processing Fee (vendor-borne)</span>
+                                            <span class="text-gray-500">{{ __('admin.orders.gateway_fee_vendor_borne') }}</span>
                                             <span class="text-danger-600">−{{ $fmt($subOrder->gateway_fee) }}</span>
                                         </div>
                                     @endif
                                     <div class="flex items-center justify-between font-medium text-gray-700">
-                                        <span>Vendor Payout</span>
+                                        <span>{{ __('admin.orders.vendor_payout') }}</span>
                                         <span>{{ $fmt($subOrder->vendor_payout) }}</span>
                                     </div>
                                 </div>
@@ -276,33 +276,33 @@
                             </div>{{-- /sub-order-body --}}
                         </div>
                 @empty
-                    <p class="text-sm text-gray-400 italic py-4 text-center">No sub-orders found.</p>
+                    <p class="text-sm text-gray-400 italic py-4 text-center">{{ __('admin.orders.no_sub_orders_found') }}</p>
                 @endforelse
             </x-card>
 
             {{-- ──────────────────────────────────── --}}
             {{-- Shipping Assignment --}}
             {{-- ──────────────────────────────────── --}}
-            <x-card title="Shipping Assignment">
+            <x-card title="{{ __('admin.orders.shipping_assignment') }}">
                 @forelse($order->subOrders as $subOrder)
                     <div class="border border-gray-200 rounded-xl mb-3 last:mb-0 p-4 flex items-center justify-between gap-4"
                         data-shipping-sub-order-id="{{ $subOrder->id }}">
                         <div>
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="text-sm font-semibold text-gray-800">
-                                    {{ $subOrder->vendor->store_name ?? $subOrder->vendor->name ?? 'Unknown Seller' }}
+                                    {{ $subOrder->vendor->store_name ?? $subOrder->vendor->name ?? __('admin.orders.unknown_seller') }}
                                 </span>
                                 <span class="text-xs text-gray-400">{{ $subOrder->sub_order_number }}</span>
                             </div>
                             @if($subOrder->shippingMethod)
                                 <p class="text-sm text-gray-600 shipping-assignment-summary">
-                                    Assigned: <span class="font-medium text-gray-900">{{ $subOrder->shippingMethod->name }}</span>
+                                    {{ __('admin.orders.assigned') }}: <span class="font-medium text-gray-900">{{ $subOrder->shippingMethod->name }}</span>
                                     @if($subOrder->carrier)
-                                        via <span class="font-medium text-gray-900">{{ $subOrder->carrier->name }}</span>
+                                        {{ __('admin.orders.via') }} <span class="font-medium text-gray-900">{{ $subOrder->carrier->name }}</span>
                                     @endif
                                 </p>
                             @else
-                                <p class="text-sm font-medium text-amber-600 shipping-assignment-summary">Not yet assigned</p>
+                                <p class="text-sm font-medium text-amber-600 shipping-assignment-summary">{{ __('admin.orders.not_yet_assigned') }}</p>
                             @endif
                         </div>
                         <button type="button"
@@ -312,18 +312,18 @@
                             data-assign-url="{{ route('admin.orders.sub-orders.assign-shipping', $subOrder->id) }}"
                             @if(in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) disabled
                             @endif>
-                            {{ $subOrder->shippingMethod ? 'Reassign' : 'Assign Shipping Method' }}
+                            {{ $subOrder->shippingMethod ? __('admin.orders.reassign') : __('admin.orders.assign_shipping') }}
                         </button>
                     </div>
                 @empty
-                    <p class="text-sm text-gray-400 italic py-4 text-center">No sub-orders found.</p>
+                    <p class="text-sm text-gray-400 italic py-4 text-center">{{ __('admin.orders.no_sub_orders_found') }}</p>
                 @endforelse
             </x-card>
 
             {{-- ──────────────────────────────────── --}}
             {{-- Payment Transactions --}}
             {{-- ──────────────────────────────────── --}}
-            <x-card title="Payment Transactions">
+            <x-card title="{{ __('admin.orders.payment_transactions') }}">
                 @forelse($order->transactions as $tx)
                     <div class="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
                         <div class="flex-shrink-0 mt-0.5">
@@ -352,14 +352,14 @@
                         </div>
                     </div>
                 @empty
-                    <p class="text-sm text-gray-400 italic py-4 text-center">No transactions recorded.</p>
+                    <p class="text-sm text-gray-400 italic py-4 text-center">{{ __('admin.orders.no_transactions_recorded') }}</p>
                 @endforelse
             </x-card>
 
             {{-- ──────────────────────────────────── --}}
             {{-- Status History --}}
             {{-- ──────────────────────────────────── --}}
-            <x-card title="Status History">
+            <x-card title="{{ __('admin.orders.status_history') }}">
                 @forelse($order->statusHistories->sortByDesc('created_at') as $history)
                     <div class="relative pl-6 pb-4 last:pb-0">
                         {{-- Timeline dot --}}
@@ -375,7 +375,7 @@
                                 <div class="flex items-center gap-2 flex-wrap">
                                     @if($history->sub_order_id)
                                         <span class="text-xs font-mono text-gray-400">
-                                            sub-order
+                                            {{ __('admin.orders.sub_order') }}
                                         </span>
                                     @endif
                                     <x-badge :color="$subStatusColors[$history->from_status] ?? 'gray'">
@@ -394,7 +394,7 @@
                                 @endif
                                 @if($history->changedByAdmin)
                                     <p class="text-xs text-gray-400 mt-0.5">
-                                        by {{ $history->changedByAdmin->name ?? 'Admin' }}
+                                        {{ __('admin.orders.by_admin', ['name' => $history->changedByAdmin->name ?? __('admin.orders.admin_fallback')]) }}
                                     </p>
                                 @endif
                             </div>
@@ -404,7 +404,7 @@
                         </div>
                     </div>
                 @empty
-                    <p class="text-sm text-gray-400 italic py-4 text-center">No history recorded.</p>
+                    <p class="text-sm text-gray-400 italic py-4 text-center">{{ __('admin.orders.no_history_recorded') }}</p>
                 @endforelse
             </x-card>
 
@@ -412,7 +412,7 @@
             {{-- Disputes (if any) --}}
             {{-- ──────────────────────────────────── --}}
             @if($order->disputes->isNotEmpty())
-                <x-card title="Disputes">
+                <x-card title="{{ __('admin.nav.disputes') }}">
                     @foreach($order->disputes as $dispute)
                         <div class="border border-gray-200 rounded-xl p-4 mb-3 last:mb-0">
                             <div class="flex items-center justify-between mb-2">
@@ -428,12 +428,12 @@
                                 </span>
                             </div>
                             <p class="text-xs font-medium text-gray-500 mb-1">
-                                Reason: {{ $disputeReasonLabels[$dispute->reason] ?? $dispute->reason }}
+                                {{ __('admin.disputes.reason') }}: {{ $disputeReasonLabels[$dispute->reason] ?? $dispute->reason }}
                             </p>
                             <p class="text-sm text-gray-700">{{ $dispute->description }}</p>
                             @if($dispute->resolution_notes)
                                 <div class="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-600">
-                                    <span class="font-medium">Resolution:</span> {{ $dispute->resolution_notes }}
+                                    <span class="font-medium">{{ __('admin.disputes.resolution') }}:</span> {{ $dispute->resolution_notes }}
                                 </div>
                             @endif
                         </div>
@@ -449,26 +449,26 @@
         <div class="w-80 flex-shrink-0 space-y-4 sticky top-20">
 
             {{-- Order Summary --}}
-            <x-card title="Order Summary">
+            <x-card title="{{ __('admin.orders.order_summary') }}">
                 <div class="space-y-1 text-sm">
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500">Order #</span>
+                        <span class="text-gray-500">{{ __('admin.orders.order_number') }}</span>
                         <span class="font-semibold font-mono text-gray-900">{{ $order->order_number }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500">Placed</span>
+                        <span class="text-gray-500">{{ __('admin.orders.placed') }}</span>
                         <span class="text-gray-700">
                             {{ \Carbon\Carbon::parse($order->placed_at)->format('M j, Y H:i') }}
                         </span>
                     </div>
                     @if(!empty($addr['country']) || !empty($addr['country_en']))
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500">Country</span>
+                            <span class="text-gray-500">{{ __('common.country') }}</span>
                             <span class="text-gray-700">{{ $addr['country'] ?? $addr['country_en'] ?? '' }}</span>
                         </div>
                     @endif
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500">Status</span>
+                        <span class="text-gray-500">{{ __('common.status') }}</span>
                         <x-badge :color="$statusColors[$order->status] ?? 'gray'">
                             {{ ucwords(str_replace('_', ' ', $order->status)) }}
                         </x-badge>
@@ -477,31 +477,31 @@
 
                 <div class="border-t border-gray-100 mt-3 pt-3 space-y-1.5 text-sm">
                     <div class="flex justify-between text-gray-600">
-                        <span>Subtotal</span><span>{{ $fmt($order->subtotal) }}</span>
+                        <span>{{ __('common.subtotal') }}</span><span>{{ $fmt($order->subtotal) }}</span>
                     </div>
                     @if($order->discount > 0)
                         <div class="flex justify-between text-success-600">
-                            <span>Discount</span><span>−{{ $fmt($order->discount) }}</span>
+                            <span>{{ __('common.discount') }}</span><span>−{{ $fmt($order->discount) }}</span>
                         </div>
                     @endif
                     <div class="flex justify-between text-gray-600">
-                        <span>Shipping</span><span>{{ $fmt($order->shipping) }}</span>
+                        <span>{{ __('admin.orders.shipping_cost') }}</span><span>{{ $fmt($order->shipping) }}</span>
                     </div>
                     <div class="flex justify-between text-gray-600">
-                        <span>Tax</span><span>{{ $fmt($order->tax) }}</span>
+                        <span>{{ __('common.tax') }}</span><span>{{ $fmt($order->tax) }}</span>
                     </div>
                     @if($order->cod_fee > 0)
                         <div class="flex justify-between text-gray-600">
-                            <span>COD Fee</span><span>{{ $fmt($order->cod_fee) }}</span>
+                            <span>{{ __('admin.orders.cod_fee') }}</span><span>{{ $fmt($order->cod_fee) }}</span>
                         </div>
                     @endif
                     @if($order->coupon_code_used)
                         <div class="flex justify-between text-gray-500 text-xs">
-                            <span>Coupon</span><span class="font-mono">{{ $order->coupon_code_used }}</span>
+                            <span>{{ __('admin.orders.coupon') }}</span><span class="font-mono">{{ $order->coupon_code_used }}</span>
                         </div>
                     @endif
                     <div class="flex justify-between font-semibold text-gray-900 text-base pt-1 border-t border-gray-100">
-                        <span>Total</span><span>{{ $fmt($order->total) }}</span>
+                        <span>{{ __('common.total') }}</span><span>{{ $fmt($order->total) }}</span>
                     </div>
                 </div>
 
@@ -515,17 +515,17 @@
 
                 @if($order->payment_method === 'cod')
                     <div class="border-t border-gray-100 mt-3 pt-3 space-y-1 text-xs">
-                        <p class="text-gray-500 font-medium uppercase tracking-wide">COD Remittance</p>
+                        <p class="text-gray-500 font-medium uppercase tracking-wide">{{ __('admin.orders.cod_remittance') }}</p>
                         @php $firstSubOrder = $order->subOrders->first(); @endphp
                         @foreach($order->subOrders as $so)
                             @if(!$so->cod_remittance_confirmed)
                                 <div class="flex items-start gap-1.5 text-amber-700">
                                     <x-heroicon name="clock" class="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
                                     <span>
-                                        Sub-order #{{ $so->sub_order_number }}:
-                                        Pending remittance
+                                        {{ __('admin.orders.sub_order') }} #{{ $so->sub_order_number }}:
+                                        {{ __('admin.orders.cod_pending') }}
                                         @if($so->codSettlement && $so->codSettlement->agent)
-                                            from {{ $so->codSettlement->agent->name }}
+                                            {{ __('admin.orders.from_agent') }} {{ $so->codSettlement->agent->name }}
                                         @endif
                                     </span>
                                 </div>
@@ -533,12 +533,12 @@
                                 <div class="flex items-start gap-1.5 text-green-700">
                                     <x-heroicon name="check-circle" class="w-3.5 h-3.5 mt-0.5 shrink-0 text-green-500" />
                                     <span>
-                                        Sub-order #{{ $so->sub_order_number }}:
-                                        Remitted —
+                                        {{ __('admin.orders.sub_order') }} #{{ $so->sub_order_number }}:
+                                        {{ __('admin.orders.cod_remitted') }} —
                                         @if($so->codSettlement)
                                             <a href="{{ route('admin.cod-settlements.show', $so->codSettlement) }}"
                                                 class="underline hover:text-green-900">
-                                                Settlement #{{ $so->cod_settlement_id }}
+                                                {{ __('admin.orders.settlement') }} #{{ $so->cod_settlement_id }}
                                             </a>
                                         @endif
                                     </span>
@@ -550,7 +550,7 @@
             </x-card>
 
             {{-- Customer --}}
-            <x-card title="Customer">
+            <x-card title="{{ __('admin.orders.customer') }}">
                 @if($order->customer)
                     <div class="space-y-2 text-sm">
                         <p class="font-semibold text-gray-900">{{ $order->customer->name }}</p>
@@ -565,7 +565,7 @@
 
                 @if(!empty($addr))
                     <div class="mt-3 pt-3 border-t border-gray-100">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Delivery Address</p>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{{ __('admin.orders.delivery_address') }}</p>
                         <address class="not-italic text-sm text-gray-700 space-y-0.5">
                             @if(!empty($addr['name']))
                             <p class="font-medium">{{ $addr['name'] }}</p>@endif
@@ -587,7 +587,7 @@
             </x-card>
 
             {{-- Risk Assessment --}}
-            <x-card title="Risk Assessment">
+            <x-card title="{{ __('admin.dashboard.risk_assessment') }}">
                 <div class="flex items-center gap-4 mb-3">
                     @if($riskScore !== null)
                         <div
@@ -596,23 +596,23 @@
                         </div>
                         <div>
                             <p class="font-semibold {{ $riskText }}">
-                                {{ $riskScore >= 70 ? 'High Risk' : ($riskScore >= 40 ? 'Medium Risk' : 'Low Risk') }}
+                                {{ $riskScore >= 70 ? __('admin.orders.risk_high_label') : ($riskScore >= 40 ? __('admin.orders.risk_medium_label') : __('admin.orders.risk_low_label')) }}
                             </p>
-                            <p class="text-xs text-gray-400">Score out of 100</p>
+                            <p class="text-xs text-gray-400">{{ __('admin.orders.score_out_of_100') }}</p>
                         </div>
                     @else
-                        <p class="text-sm text-gray-400 italic">No risk data.</p>
+                        <p class="text-sm text-gray-400 italic">{{ __('admin.orders.no_risk_data') }}</p>
                     @endif
                 </div>
 
                 <div class="space-y-2 text-xs">
                     <div class="flex items-start gap-2">
-                        <span class="text-gray-400 flex-shrink-0 w-20">IP Address</span>
+                        <span class="text-gray-400 flex-shrink-0 w-20">{{ __('admin.orders.ip_address') }}</span>
                         <span class="font-mono text-gray-700 break-all">{{ $order->ip_address ?? '—' }}</span>
                     </div>
                     @if($order->device_fingerprint)
                         <div class="flex items-start gap-2">
-                            <span class="text-gray-400 flex-shrink-0 w-20">Device</span>
+                            <span class="text-gray-400 flex-shrink-0 w-20">{{ __('admin.orders.device') }}</span>
                             <span
                                 class="font-mono text-gray-600 break-all text-xs">{{ Str::limit($order->device_fingerprint, 40) }}</span>
                         </div>
@@ -627,7 +627,7 @@
                 @endphp
                 @if($fraudFlags->isNotEmpty())
                     <div class="mt-3 pt-3 border-t border-gray-100">
-                        <p class="text-xs font-semibold text-danger-600 uppercase tracking-wider mb-2">Fraud Flags</p>
+                        <p class="text-xs font-semibold text-danger-600 uppercase tracking-wider mb-2">{{ __('admin.orders.fraud_flags') }}</p>
                         @foreach($fraudFlags as $flag)
                             <div class="text-xs text-gray-600 py-1">
                                 <p class="text-red-600">{{ $flag->reason }}</p>
@@ -640,7 +640,7 @@
 
             {{-- Refunds (summary) --}}
             @if($order->refunds->isNotEmpty())
-                <x-card title="Refunds">
+                <x-card title="{{ __('common.refunds') }}">
                     @foreach($order->refunds as $refund)
                         <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 text-sm">
                             <div>
@@ -656,32 +656,32 @@
             @endif
 
             {{-- Actions --}}
-            <x-card title="Actions">
+            <x-card title="{{ __('common.actions') }}">
                 <div class="space-y-2">
                     <button type="button" data-modal-open="update-status-modal"
                         class="btn btn-primary w-full justify-center">
                         <x-heroicon name="arrow-path" class="w-4 h-4 mr-1.5" />
-                        Update Status
+                        {{ __('admin.orders.update_status') }}
                     </button>
                     <button type="button" data-modal-open="refund-modal" class="btn btn-secondary w-full justify-center">
                         <x-heroicon name="arrow-uturn-left" class="w-4 h-4 mr-1.5" />
-                        Process Refund
+                        {{ __('admin.orders.process_refund') }}
                     </button>
                     @if(!in_array($order->status, ['cancelled', 'refunded', 'completed']))
                         <button type="button" data-modal-open="force-cancel-modal"
                             class="btn btn-ghost w-full justify-center text-danger-600 hover:bg-danger-50">
                             <x-heroicon name="x-circle" class="w-4 h-4 mr-1.5" />
-                            Force Cancel
+                            {{ __('admin.orders.force_cancel') }}
                         </button>
                     @endif
                     <button type="button" data-modal-open="dispute-modal" class="btn btn-ghost w-full justify-center">
                         <x-heroicon name="scale" class="w-4 h-4 mr-1.5" />
-                        Escalate Dispute
+                        {{ __('admin.orders.escalate_dispute') }}
                     </button>
                     <button type="button" data-modal-open="fraud-modal"
                         class="btn btn-ghost w-full justify-center text-warning-700 hover:bg-warning-50">
                         <x-heroicon name="shield-exclamation" class="w-4 h-4 mr-1.5" />
-                        Flag Fraud
+                        {{ __('admin.orders.flag_fraud') }}
                     </button>
                 </div>
             </x-card>
@@ -710,24 +710,24 @@
         ];
         $allowedNextStatuses = $orderStatusTransitions[$order->status] ?? [];
     @endphp
-    <x-modal id="update-status-modal" title="Update Order Status" size="md">
+    <x-modal id="update-status-modal" title="{{ __('admin.orders.update_status') }}" size="md">
         <form id="update-status-form">
             @csrf
             <div class="space-y-4">
                 <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-sm text-gray-700">
-                    Current status:
+                    {{ __('admin.orders.current_status') }}:
                     <x-badge :color="$statusColors[$order->status] ?? 'gray'" class="ml-1">
                         {{ ucwords(str_replace('_', ' ', $order->status)) }}
                     </x-badge>
                 </div>
                 <div>
-                    <label class="form-label" for="order-new-status">New Status <span
+                    <label class="form-label" for="order-new-status">{{ __('admin.orders.new_status') }} <span
                             class="text-danger-500">*</span></label>
                     @if(empty($allowedNextStatuses))
-                        <p class="text-sm text-gray-400 italic">No further status transitions are available for this order.</p>
+                        <p class="text-sm text-gray-400 italic">{{ __('admin.orders.no_transitions_available') }}</p>
                     @else
                         <select id="order-new-status" name="new_status" class="form-select w-full">
-                            <option value="">Select new status…</option>
+                            <option value="">{{ __('admin.orders.select_new_status') }}</option>
                             @foreach($allowedNextStatuses as $s)
                                 <option value="{{ $s }}">{{ ucwords(str_replace('_', ' ', $s)) }}</option>
                             @endforeach
@@ -735,61 +735,61 @@
                     @endif
                 </div>
                 <div>
-                    <label class="form-label" for="order-status-reason">Reason / Notes</label>
+                    <label class="form-label" for="order-status-reason">{{ __('admin.orders.reason_notes') }}</label>
                     <textarea id="order-status-reason" name="reason" rows="3" class="form-textarea w-full"
-                        placeholder="Briefly explain this status change…"></textarea>
+                        placeholder="{{ __('admin.orders.status_change_placeholder') }}"></textarea>
                 </div>
             </div>
             <x-slot:footer>
-                <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
+                <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
                 <button type="submit" form="update-status-form" class="btn btn-primary" @if(empty($allowedNextStatuses))
                 disabled @endif>
-                    Update Status
+                    {{ __('admin.orders.update_status') }}
                 </button>
             </x-slot:footer>
         </form>
     </x-modal>
 
     {{-- 2. Process Refund --}}
-    <x-modal id="refund-modal" title="Process Refund" size="md">
+    <x-modal id="refund-modal" title="{{ __('admin.orders.process_refund') }}" size="md">
         <form id="refund-form">
             @csrf
             <div class="space-y-4">
                 {{-- Refund type --}}
                 <div>
-                    <label class="form-label">Refund Type</label>
+                    <label class="form-label">{{ __('admin.orders.refund_type') }}</label>
                     <div class="space-y-2 mt-1">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="refund_type" value="full" class="text-primary-600"
                                 @if($order->payment_status !== 'refunded') checked @endif>
-                            <span class="text-sm">Full order — <strong>{{ $fmt($order->total) }}</strong></span>
+                            <span class="text-sm">{{ __('admin.orders.full_order') }} — <strong>{{ $fmt($order->total) }}</strong></span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="refund_type" value="shipping_only" class="text-primary-600">
-                            <span class="text-sm">Shipping only — <strong>{{ $fmt($order->shipping) }}</strong></span>
+                            <span class="text-sm">{{ __('admin.orders.shipping_only') }} — <strong>{{ $fmt($order->shipping) }}</strong></span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="refund_type" value="partial" class="text-primary-600">
-                            <span class="text-sm">Partial amount</span>
+                            <span class="text-sm">{{ __('admin.orders.partial_amount') }}</span>
                         </label>
                     </div>
                 </div>
 
                 {{-- Partial amount (shown/hidden by JS) --}}
                 <div id="partial-amount-field" class="hidden">
-                    <label class="form-label">Amount ({{ $currency }})</label>
+                    <label class="form-label">{{ __('common.amount') }} ({{ $currency }})</label>
                     <input type="number" name="amount" min="0.01" step="0.01" max="{{ $order->total / 100 }}"
                         class="form-input w-full" placeholder="0.00">
                 </div>
 
                 {{-- Sub-order (optional) --}}
                 <div>
-                    <label class="form-label">Sub-order (optional)</label>
+                    <label class="form-label">{{ __('admin.orders.sub_order_optional') }}</label>
                     <select name="sub_order_id" class="form-select w-full">
-                        <option value="">Entire order</option>
+                        <option value="">{{ __('admin.orders.entire_order') }}</option>
                         @foreach($order->subOrders as $so)
                             <option value="{{ $so->id }}">
-                                {{ $so->sub_order_number }} — {{ $so->vendor->store_name ?? 'Seller' }}
+                                {{ $so->sub_order_number }} — {{ $so->vendor->store_name ?? __('admin.orders.seller_fallback') }}
                             </option>
                         @endforeach
                     </select>
@@ -797,7 +797,7 @@
 
                 {{-- Reason --}}
                 <div>
-                    <label class="form-label">Reason <span class="text-danger-500">*</span></label>
+                    <label class="form-label">{{ __('common.reason') }} <span class="text-danger-500">*</span></label>
                     <select name="reason" class="form-select w-full">
                         @foreach($refundReasonLabels as $val => $label)
                             <option value="{{ $val }}">{{ $label }}</option>
@@ -807,9 +807,9 @@
 
                 {{-- Notes --}}
                 <div>
-                    <label class="form-label">Notes</label>
+                    <label class="form-label">{{ __('common.notes') }}</label>
                     <textarea name="reason_notes" rows="2" class="form-textarea w-full"
-                        placeholder="Additional context…"></textarea>
+                        placeholder="{{ __('admin.orders.additional_context_placeholder') }}"></textarea>
                 </div>
 
                 {{-- Vendor chargeback --}}
@@ -817,66 +817,66 @@
                     <input type="hidden" name="vendor_charged_back" value="0">
                     <input type="checkbox" name="vendor_charged_back" value="1"
                         class="rounded text-primary-600 border-gray-300">
-                    <span class="text-sm text-gray-700">Charge back to seller</span>
+                    <span class="text-sm text-gray-700">{{ __('admin.orders.charge_back_to_seller') }}</span>
                 </label>
             </div>
 
             <x-slot:footer>
-                <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-                <button type="submit" form="refund-form" class="btn btn-secondary">Process Refund</button>
+                <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
+                <button type="submit" form="refund-form" class="btn btn-secondary">{{ __('admin.orders.process_refund') }}</button>
             </x-slot:footer>
         </form>
     </x-modal>
 
     {{-- 3. Force Cancel --}}
-    <x-modal id="force-cancel-modal" title="Force Cancel Order" size="sm">
+    <x-modal id="force-cancel-modal" title="{{ __('admin.orders.force_cancel_order') }}" size="sm">
         <form id="force-cancel-form">
             @csrf
             <div class="space-y-4">
                 <div
                     class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 flex items-start gap-2">
                     <x-heroicon name="exclamation-triangle" class="w-5 h-5 flex-shrink-0 mt-0.5" />
-                    <span>This will cancel <strong>all sub-orders</strong>. This cannot be undone.</span>
+                    <span>{{ __('admin.orders.force_cancel_warning') }}</span>
                 </div>
 
                 <div>
-                    <label class="form-label">Cancellation Reason <span class="text-danger-500">*</span></label>
+                    <label class="form-label">{{ __('admin.orders.cancel_reason') }} <span class="text-danger-500">*</span></label>
                     <textarea name="reason" rows="3" class="form-textarea w-full"
-                        placeholder="Why is this order being force-cancelled?"></textarea>
+                        placeholder="{{ __('admin.orders.force_cancel_placeholder') }}"></textarea>
                 </div>
 
                 <label class="flex items-center gap-2 cursor-pointer" id="force-override-toggle">
                     <input type="hidden" name="force" value="0">
                     <input type="checkbox" name="force" value="1" class="rounded text-danger-600 border-gray-300">
-                    <span class="text-sm text-gray-700">Force cancel even shipped / delivered sub-orders</span>
+                    <span class="text-sm text-gray-700">{{ __('admin.orders.force_cancel_override') }}</span>
                 </label>
             </div>
 
             <x-slot:footer>
-                <button type="button" data-modal-close class="btn btn-ghost">Abort</button>
-                <button type="submit" form="force-cancel-form" class="btn btn-danger">Force Cancel</button>
+                <button type="button" data-modal-close class="btn btn-ghost">{{ __('admin.orders.abort') }}</button>
+                <button type="submit" form="force-cancel-form" class="btn btn-danger">{{ __('admin.orders.force_cancel') }}</button>
             </x-slot:footer>
         </form>
     </x-modal>
 
     {{-- 4. Escalate Dispute --}}
-    <x-modal id="dispute-modal" title="Escalate Dispute" size="md">
+    <x-modal id="dispute-modal" title="{{ __('admin.orders.escalate_dispute') }}" size="md">
         <form id="dispute-form">
             @csrf
             <div class="space-y-4">
                 <div>
-                    <label class="form-label">Sub-order <span class="text-danger-500">*</span></label>
+                    <label class="form-label">{{ __('admin.orders.sub_order') }} <span class="text-danger-500">*</span></label>
                     <select name="sub_order_id" class="form-select w-full">
-                        <option value="">Select sub-order…</option>
+                        <option value="">{{ __('admin.orders.select_sub_order') }}</option>
                         @foreach($order->subOrders as $so)
                             <option value="{{ $so->id }}">
-                                {{ $so->sub_order_number }} — {{ $so->vendor->store_name ?? 'Seller' }}
+                                {{ $so->sub_order_number }} — {{ $so->vendor->store_name ?? __('admin.orders.seller_fallback') }}
                             </option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">Reason <span class="text-danger-500">*</span></label>
+                    <label class="form-label">{{ __('common.reason') }} <span class="text-danger-500">*</span></label>
                     <select name="reason" class="form-select w-full">
                         @foreach($disputeReasonLabels as $val => $label)
                             <option value="{{ $val }}">{{ $label }}</option>
@@ -884,57 +884,72 @@
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">Description <span class="text-danger-500">*</span></label>
+                    <label class="form-label">{{ __('common.description') }} <span class="text-danger-500">*</span></label>
                     <textarea name="description" rows="4" class="form-textarea w-full"
-                        placeholder="Detailed description of the issue…"></textarea>
+                        placeholder="{{ __('admin.orders.dispute_description_placeholder') }}"></textarea>
                 </div>
             </div>
 
             <x-slot:footer>
-                <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-                <button type="submit" form="dispute-form" class="btn btn-danger">Escalate Dispute</button>
+                <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
+                <button type="submit" form="dispute-form" class="btn btn-danger">{{ __('admin.orders.escalate_dispute') }}</button>
             </x-slot:footer>
         </form>
     </x-modal>
 
     {{-- 5. Flag Fraud --}}
-    <x-modal id="fraud-modal" title="Flag as Potential Fraud" size="sm">
+    <x-modal id="fraud-modal" title="{{ __('admin.orders.flag_as_potential_fraud') }}" size="sm">
         <form id="fraud-form">
             @csrf
             <div class="space-y-4">
                 <div class="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-800 flex items-start gap-2">
                     <x-heroicon name="shield-exclamation" class="w-5 h-5 flex-shrink-0 mt-0.5" />
-                    <span>This will set the risk score to <strong>100</strong> and log a fraud flag for review.</span>
+                    <span>{{ __('admin.orders.flag_fraud_warning') }}</span>
                 </div>
                 <div>
-                    <label class="form-label">Reason <span class="text-danger-500">*</span></label>
+                    <label class="form-label">{{ __('common.reason') }} <span class="text-danger-500">*</span></label>
                     <textarea name="reason" rows="3" class="form-textarea w-full"
-                        placeholder="Describe the fraud indicators…"></textarea>
+                        placeholder="{{ __('admin.orders.fraud_indicators_placeholder') }}"></textarea>
                 </div>
             </div>
 
             <x-slot:footer>
-                <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-                <button type="submit" form="fraud-form" class="btn btn-danger">Flag Fraud</button>
+                <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
+                <button type="submit" form="fraud-form" class="btn btn-danger">{{ __('admin.orders.flag_fraud') }}</button>
             </x-slot:footer>
         </form>
     </x-modal>
 
     {{-- 6. Assign Shipping Method --}}
-    <x-modal id="shipping-assign-modal" title="Assign Shipping Method" size="lg">
+    <x-modal id="shipping-assign-modal" title="{{ __('admin.orders.assign_shipping') }}" size="lg">
         <div id="shipping-assign-zone-warning"
             class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 mb-4">
-            Cannot determine shipping zone — the delivery address does not contain a resolvable city reference.
-            Please assign the shipping method manually below.
+            {{ __('admin.orders.cannot_determine_zone') }}
         </div>
-        <div id="shipping-assign-loading" class="text-sm text-gray-500 py-8 text-center">Loading available methods…</div>
+        <div id="shipping-assign-loading" class="text-sm text-gray-500 py-8 text-center">{{ __('admin.orders.loading_methods') }}</div>
         <div id="shipping-assign-methods" class="space-y-3 hidden"></div>
         <div id="shipping-assign-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3 mt-4"></div>
 
         <x-slot:footer>
-            <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-            <button type="button" id="shipping-assign-confirm" class="btn btn-primary" disabled>Confirm Assignment</button>
+            <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
+            <button type="button" id="shipping-assign-confirm" class="btn btn-primary" disabled>{{ __('admin.orders.confirm_assignment') }}</button>
         </x-slot:footer>
     </x-modal>
 
 @endsection
+
+@push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            action_completed: @json(__('admin.orders.action_completed')),
+            generic_error: @json(__('admin.orders.generic_error')),
+            no_eligible_shipping_methods: @json(__('admin.orders.no_eligible_shipping_methods')),
+            any_carrier: @json(__('admin.orders.any_carrier')),
+            no_carrier_rate_data: @json(__('admin.orders.no_carrier_rate_data')),
+            failed_load_shipping_methods: @json(__('admin.orders.failed_load_shipping_methods')),
+            shipping_method_assigned: @json(__('admin.orders.shipping_method_assigned')),
+            failed_assign_shipping_method: @json(__('admin.orders.failed_assign_shipping_method')),
+        });
+    </script>
+@endpush

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'New Category')
+@section('title', __('admin.categories.new_category'))
 
 @push('styles')
 @vite([

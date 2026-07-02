@@ -26,12 +26,12 @@
                     {{ ucfirst($post->status) }}
                 </span>
                 @if($post->published_at)
-                    <span class="text-xs text-gray-400">Published {{ $post->published_at->format('d M Y') }}</span>
+                    <span class="text-xs text-gray-400">{{ __('admin.blog.published_at') }} {{ $post->published_at->format('d M Y') }}</span>
                 @endif
-                <span class="text-xs text-gray-400">{{ number_format($post->views_count) }} views</span>
+                <span class="text-xs text-gray-400">{{ number_format($post->views_count) }} {{ __('admin.blog.views') }}</span>
             </div>
         </div>
-        <a href="{{ route('admin.blog.posts.index') }}" class="btn btn-secondary btn-sm">← Back to Posts</a>
+        <a href="{{ route('admin.blog.posts.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.blog.back_to_posts') }}</a>
     </div>
 
     @if(session('success'))
@@ -59,19 +59,19 @@
             <div class="flex-1 min-w-0 space-y-5">
 
                 {{-- Content --}}
-                <x-card title="Post Content">
+                <x-card title="{{ __('admin.blog.title') }}">
                     <div class="p-6 space-y-5">
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="form-label">Title (English) <span class="text-red-500">*</span></label>
+                                <label class="form-label">{{ __('admin.blog.title_en') }} <span class="text-red-500">*</span></label>
                                 <input type="text" name="title_en" id="title-en" required maxlength="255"
                                        value="{{ old('title_en', $post->title_en) }}"
                                        class="form-input w-full @error('title_en') is-invalid @enderror">
                                 @error('title_en') <p class="form-error">{{ $message }}</p> @enderror
                             </div>
                             <div>
-                                <label class="form-label">العنوان (عربي) <span class="text-red-500">*</span></label>
+                                <label class="form-label">{{ __('admin.blog.title_ar') }} <span class="text-red-500">*</span></label>
                                 <input type="text" name="title_ar" id="title-ar" required maxlength="255" dir="rtl"
                                        value="{{ old('title_ar', $post->title_ar) }}"
                                        class="form-input w-full @error('title_ar') is-invalid @enderror">
@@ -80,7 +80,7 @@
                         </div>
 
                         <div>
-                            <label class="form-label">Slug</label>
+                            <label class="form-label">{{ __('admin.blog.slug') }}</label>
                             <div class="flex items-center gap-2">
                                 <span class="text-xs text-gray-400 whitespace-nowrap">portal.com/blog/</span>
                                 <input type="text" name="slug" id="slug-input" maxlength="255"
@@ -93,7 +93,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <label class="form-label">Excerpt (EN)</label>
+                                    <label class="form-label">{{ __('admin.blog.excerpt_en') }}</label>
                                     <span class="text-xs text-gray-400" data-char-counter="excerpt_en" data-max="300">0 / 300</span>
                                 </div>
                                 <textarea name="excerpt_en" rows="3" maxlength="300"
@@ -102,7 +102,7 @@
                             </div>
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <label class="form-label">مقتطف (AR)</label>
+                                    <label class="form-label">{{ __('admin.blog.excerpt_ar') }}</label>
                                     <span class="text-xs text-gray-400" data-char-counter="excerpt_ar" data-max="300">0 / 300</span>
                                 </div>
                                 <textarea name="excerpt_ar" rows="3" maxlength="300" dir="rtl"

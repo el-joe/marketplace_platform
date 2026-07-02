@@ -31,11 +31,11 @@
         </div>
     </td>
 
-    <td class="px-4 py-2 text-right text-gray-600 text-sm">
+    <td class="px-4 py-2 text-end text-gray-600 text-sm">
         {{ number_format($category->product_count ?? 0) }}
     </td>
 
-    <td class="px-4 py-2 text-right text-gray-600 text-sm">
+    <td class="px-4 py-2 text-end text-gray-600 text-sm">
         <div class="text-xs space-y-0.5">
             <div>
                 <span class="text-blue-500 font-medium">FBP</span>
@@ -68,11 +68,11 @@
 
     <td class="px-4 py-2">
         @if($category->is_active && $category->is_visible)
-            <x-badge color="success">Active</x-badge>
+            <x-badge color="success">{{ __('common.active') }}</x-badge>
         @elseif($category->is_active && !$category->is_visible)
-            <x-badge color="warning">Hidden</x-badge>
+            <x-badge color="warning">{{ __('admin.categories.hidden') }}</x-badge>
         @else
-            <x-badge color="gray">Inactive</x-badge>
+            <x-badge color="gray">{{ __('common.inactive') }}</x-badge>
         @endif
     </td>
 
@@ -83,17 +83,17 @@
             data-id="{{ $category->id }}" data-featured="{{ $category->is_featured ? '1' : '0' }}"
             data-url="{{ route('admin.categories.toggle-featured', $category->id) }}">
             <x-heroicon name="star" class="w-3.5 h-3.5" />
-            <span>{{ $category->is_featured ? 'Featured' : 'Add' }}</span>
+            <span>{{ $category->is_featured ? __('admin.categories.featured') : __('admin.add') }}</span>
         </button>
     </td>
 
-    <td class="px-4 py-2 text-right">
+    <td class="px-4 py-2 text-end">
         <div class="flex items-center justify-end gap-1">
-            <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-ghost btn-xs">Edit</a>
+            <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-ghost btn-xs">{{ __('common.edit') }}</a>
             <button type="button" class="btn btn-ghost btn-xs text-red-600 hover:bg-red-50 delete-cat-btn"
                 data-id="{{ $category->id }}" data-name="{{ addslashes($category->name_en) }}"
                 data-url="{{ route('admin.categories.destroy', $category->id) }}">
-                Delete
+                {{ __('common.delete') }}
             </button>
         </div>
     </td>

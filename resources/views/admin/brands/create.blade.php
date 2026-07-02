@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Add Brand')
+@section('title', __('admin.brands.add_brand'))
 
 @push('styles')
     @vite(['resources/js/components/slug-input.js', 'resources/js/admin/brands.js'])

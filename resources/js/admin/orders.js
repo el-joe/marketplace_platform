@@ -47,7 +47,7 @@ $(function () {
             success: function (res) {
                 $form.closest('[id$="-modal"]').find('[data-modal-close]').first().trigger('click');
                 if (window.Toast) {
-                    window.Toast.success(res.message || 'Action completed.');
+                    window.Toast.success(res.message || (window.TRANSLATIONS && window.TRANSLATIONS.action_completed) || 'Action completed.');
                 }
                 if (typeof onSuccess === 'function') {
                     onSuccess(res);
@@ -58,7 +58,7 @@ $(function () {
                 const json = xhr.responseJSON || {};
                 const message = typeof json.message === 'string'
                     ? json.message
-                    : 'An error occurred. Please try again.';
+                    : ((window.TRANSLATIONS && window.TRANSLATIONS.generic_error) || 'An error occurred. Please try again.');
 
                 if (xhr.status === 422 && json.errors) {
                     Object.entries(json.errors).forEach(function ([field, msgs]) {
@@ -129,7 +129,8 @@ $(function () {
         $container.empty();
 
         if (!methods || methods.length === 0) {
-            $container.append('<p class="text-sm text-gray-400 italic text-center py-4">No eligible shipping methods found.</p>');
+            const noMethodsText = (window.TRANSLATIONS && window.TRANSLATIONS.no_eligible_shipping_methods) || 'No eligible shipping methods found.';
+            $container.append('<p class="text-sm text-gray-400 italic text-center py-4">' + noMethodsText + '</p>');
             return;
         }
 
@@ -154,7 +155,7 @@ $(function () {
             if (rates.length) {
                 const $carrierSelect = $('<select>', { class: 'form-select w-full text-sm shipping-carrier-select' });
                 rates.forEach(function (rate) {
-                    const label = (rate.carrier_name || 'Any carrier') + ' — ' + centsToAmount(rate.base_fee_cents)
+                    const label = (rate.carrier_name || (window.TRANSLATIONS && window.TRANSLATIONS.any_carrier) || 'Any carrier') + ' — ' + centsToAmount(rate.base_fee_cents)
                         + (rate.cod_extra_fee_cents ? ' (+' + centsToAmount(rate.cod_extra_fee_cents) + ' COD)' : '');
                     $carrierSelect.append($('<option>', {
                         value: rate.carrier_id || '',
@@ -165,7 +166,8 @@ $(function () {
                 });
                 $card.append($carrierSelect);
             } else {
-                $card.append('<p class="text-xs text-gray-400">No carrier rate data available for this method.</p>');
+                const noCarrierRateText = (window.TRANSLATIONS && window.TRANSLATIONS.no_carrier_rate_data) || 'No carrier rate data available for this method.';
+                $card.append('<p class="text-xs text-gray-400">' + noCarrierRateText + '</p>');
             }
 
             $card.on('click', function (e) {
@@ -217,7 +219,7 @@ $(function () {
             error: function (xhr) {
                 $('#shipping-assign-loading').addClass('hidden');
                 const json = xhr.responseJSON || {};
-                $('#shipping-assign-error').removeClass('hidden').text(json.message || 'Failed to load shipping methods.');
+                $('#shipping-assign-error').removeClass('hidden').text(json.message || (window.TRANSLATIONS && window.TRANSLATIONS.failed_load_shipping_methods) || 'Failed to load shipping methods.');
             },
         });
     });
@@ -239,14 +241,14 @@ $(function () {
             success: function () {
                 $('[data-modal-close]').first().trigger('click');
                 if (window.Toast) {
-                    window.Toast.success('Shipping method assigned.');
+                    window.Toast.success((window.TRANSLATIONS && window.TRANSLATIONS.shipping_method_assigned) || 'Shipping method assigned.');
                 }
                 location.reload();
             },
             error: function (xhr) {
                 $btn.prop('disabled', false);
                 const json = xhr.responseJSON || {};
-                $('#shipping-assign-error').removeClass('hidden').text(json.message || 'Failed to assign shipping method.');
+                $('#shipping-assign-error').removeClass('hidden').text(json.message || (window.TRANSLATIONS && window.TRANSLATIONS.failed_assign_shipping_method) || 'Failed to assign shipping method.');
             },
         });
     });

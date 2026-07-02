@@ -6,7 +6,7 @@
 <header id="topbar" class="bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center gap-4">
     {{-- Mobile hamburger --}}
     <button id="mobile-menu-btn" type="button" class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-        aria-label="Open menu">
+        aria-label="{{ __('admin.nav.open_menu') }}">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -60,7 +60,7 @@
                 class="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
                 @foreach(['EG' => 'Egypt', 'SA' => 'Saudi Arabia', 'AE' => 'UAE'] as $code => $name)
                 <button type="button" data-country="{{ $code }}"
-                    class="country-switch w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50">
+                    class="country-switch w-full text-start px-3 py-1.5 text-sm hover:bg-gray-50">
                     {{ $name }} <span class="text-gray-400 text-xs">({{ $code }})</span>
                 </button>
                 @endforeach
@@ -115,7 +115,7 @@
                 <x-heroicon name="chevron-down" class="w-4 h-4 text-gray-400" />
             </button>
             <div x-show="open" @click.outside="open = false" x-cloak
-                class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                class="absolute end-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
                 <div class="px-3 py-2 border-b border-gray-100">
                     <div class="text-sm font-medium text-gray-900 truncate">{{ $user?->name ?? 'Admin' }}</div>
                     <div class="text-xs text-gray-500 truncate">{{ $user?->email ?? '' }}</div>

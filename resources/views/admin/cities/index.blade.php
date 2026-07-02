@@ -4,16 +4,16 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Cities')
+@section('title', __('admin.geography.cities_title'))
 
 @section('content')
     @php
         $columns = [
-            ['title' => 'City', 'data' => 'name', 'name' => 'name'],
-            ['title' => 'Country', 'data' => 'country_name', 'name' => 'country_name', 'orderable_column' => 'countries.name_en'],
-            ['title' => 'Zone', 'data' => 'shipping_zone', 'name' => 'shipping_zone', 'orderable' => false, 'searchable' => false],
+            ['title' => __('admin.geography.city_name'), 'data' => 'name', 'name' => 'name'],
+            ['title' => __('admin.geography.country_name'), 'data' => 'country_name', 'name' => 'country_name', 'orderable_column' => 'countries.name_en'],
+            ['title' => __('admin.geography.zone_col'), 'data' => 'shipping_zone', 'name' => 'shipping_zone', 'orderable' => false, 'searchable' => false],
             [
-                'title' => 'COD',
+                'title' => __('admin.geography.cod_col_city'),
                 'data' => 'cod_available',
                 'name' => 'cod_available',
                 'orderable' => false,
@@ -21,12 +21,12 @@
                 'className' => 'text-center w-12'
             ],
             [
-                'title' => 'Status',
+                'title' => __('admin.geography.status_col'),
                 'data' => 'is_active',
                 'name' => 'is_active',
                 'searchable' => false,
                 'className' => 'text-center',
-                'render' => 'Renderers.badge({true:{label:"Active",color:"success"},false:{label:"Inactive",color:"gray"}})'
+                'render' => 'Renderers.badge({true:{label:"' . __('common.active') . '",color:"success"},false:{label:"' . __('admin.geography.inactive') . '",color:"gray"}})'
             ],
             [
                 'title' => '',
@@ -34,30 +34,30 @@
                 'name' => 'actions',
                 'orderable' => false,
                 'searchable' => false,
-                'className' => 'text-right',
-                'render' => 'Renderers.actions([{type:"link",label:"Edit",url:":edit_url",class:"btn-ghost btn-sm"}])'
+                'className' => 'text-end',
+                'render' => 'Renderers.actions([{type:"link",label:"' . __('admin.geography.edit_link') . '",url:":edit_url",class:"btn-ghost btn-sm"}])'
             ],
         ];
 
         $filters = [
-            ['type' => 'text', 'name' => 'search', 'label' => 'Name'],
+            ['type' => 'text', 'name' => 'search', 'label' => __('admin.geography.name_col')],
             [
                 'type' => 'select',
                 'name' => 'country_id',
-                'label' => 'Country',
-                'options' => array_merge(['' => 'All Countries'], $countries->toArray())
+                'label' => __('admin.geography.country_name'),
+                'options' => array_merge(['' => __('admin.geography.all_countries')], $countries->toArray())
             ],
             [
                 'type' => 'select',
                 'name' => 'is_active',
-                'label' => 'Status',
-                'options' => ['' => 'All', '1' => 'Active', '0' => 'Inactive']
+                'label' => __('admin.geography.status_col'),
+                'options' => ['' => __('common.all'), '1' => __('common.active'), '0' => __('admin.geography.inactive')]
             ],
             [
                 'type' => 'select',
                 'name' => 'no_zone',
-                'label' => 'Zone',
-                'options' => ['' => 'All', '1' => 'No zone ⚠']
+                'label' => __('admin.geography.zone_label'),
+                'options' => ['' => __('common.all'), '1' => __('admin.geography.no_zone_warning')]
             ],
         ];
     @endphp
@@ -67,11 +67,11 @@
         <div class="flex gap-2">
             <button type="button" id="btn-bulk-import" class="btn btn-secondary">
                 <x-heroicon name="arrow-up-tray" class="w-4 h-4" />
-                Bulk Import CSV
+                {{ __('admin.geography.bulk_import_csv') }}
             </button>
             <a href="{{ route('admin.cities.create') }}" class="btn btn-primary">
                 <x-heroicon name="plus" class="w-4 h-4" />
-                Add City
+                {{ __('admin.geography.add_city') }}
             </a>
         </div>
     </div>
@@ -80,18 +80,17 @@
         :page-length="50" :order="[[1, 'asc'], [0, 'asc']]" />
 
     {{-- Bulk Import Modal --}}
-    <x-modal id="bulk-import-modal" title="Bulk Import Cities from CSV">
+    <x-modal id="bulk-import-modal" title="{{ __('admin.geography.bulk_import_cities_title') }}">
         <div class="p-4 space-y-4">
             <div class="bg-blue-50 rounded-lg p-3 text-sm text-blue-800">
-                <p class="font-semibold mb-1">CSV Format (header row required):</p>
+                <p class="font-semibold mb-1">{{ __('admin.geography.csv_format_title') }}</p>
                 <code
                     class="text-xs block font-mono">name_en, name_ar, country_id_or_iso2, latitude, longitude, shipping_zone_id, is_active (0/1), cod_available (0/1)</code>
-                <p class="mt-1 text-xs text-blue-600">shipping_zone_id, is_active, and cod_available are optional (defaults:
-                    no zone, 1, 0)</p>
+                <p class="mt-1 text-xs text-blue-600">{{ __('admin.geography.csv_optional_note') }}</p>
             </div>
             <form id="bulk-import-form" enctype="multipart/form-data" novalidate>
                 @csrf
-                <x-form.input name="file" label="CSV File" type="file" accept=".csv,.txt" required />
+                <x-form.input name="file" label="{{ __('admin.geography.csv_file_label') }}" type="file" accept=".csv,.txt" required />
             </form>
             <div id="import-progress" class="hidden">
                 <div class="flex items-center gap-2 text-sm text-gray-600">
@@ -99,14 +98,14 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                     </svg>
-                    Importing…
+                    {{ __('admin.geography.importing') }}
                 </div>
             </div>
             <div id="import-result" class="hidden text-sm"></div>
         </div>
         <div class="flex justify-end gap-2 px-4 pb-4">
-            <button type="button" class="btn btn-ghost" data-modal-close="bulk-import-modal">Close</button>
-            <button type="submit" form="bulk-import-form" id="btn-start-import" class="btn btn-primary">Import</button>
+            <button type="button" class="btn btn-ghost" data-modal-close="bulk-import-modal">{{ __('common.close') }}</button>
+            <button type="submit" form="bulk-import-form" id="btn-start-import" class="btn btn-primary">{{ __('admin.geography.import') }}</button>
         </div>
     </x-modal>
 @endsection

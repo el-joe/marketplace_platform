@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Blog Categories')
+@section('title', __('admin.blog.categories'))
 
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
@@ -12,22 +12,22 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Blog Categories</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Manage the category tree for blog posts.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.blog.categories') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.blog.category_tree_desc') }}</p>
         </div>
         <button type="button" id="btn-new-category"
                 class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
             <x-heroicon name="plus" class="w-4 h-4" />
-            New Category
+            {{ __('admin.blog.new_category') }}
         </button>
     </div>
 
     {{-- Stats --}}
     <div class="grid grid-cols-3 gap-4">
-        <x-stat-card title="Total Categories" :value="$stats['total']" icon="rectangle-stack" iconBg="bg-primary-100 text-primary-600" />
-        <x-stat-card title="Active" :value="$stats['active']" icon="check-circle" iconBg="bg-emerald-100 text-emerald-600" />
+        <x-stat-card title="{{ __('admin.blog.total_categories') }}" :value="$stats['total']" icon="rectangle-stack" iconBg="bg-primary-100 text-primary-600" />
+        <x-stat-card title="{{ __('common.active') }}" :value="$stats['active']" icon="check-circle" iconBg="bg-emerald-100 text-emerald-600" />
         <x-stat-card
-            title="Most Posts"
+            title="{{ __('admin.blog.most_posts') }}"
             :value="$stats['top_category'] ? $stats['top_category']->name_en . ' (' . $stats['top_category']->posts_count . ')' : '—'"
             icon="pencil-square"
             iconBg="bg-amber-100 text-amber-600" />
@@ -39,12 +39,12 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="w-8 px-3 py-3"></th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Name</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Slug</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Parent</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Color</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Posts</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Active</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.blog.name') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.blog.slug') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.blog.parent') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.blog.color') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.blog.posts') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -59,7 +59,7 @@
                             <span class="block text-xs text-gray-400" dir="rtl">{{ $root->name_ar }}</span>
                         </td>
                         <td class="px-4 py-3 text-xs text-gray-400 font-mono">{{ $root->slug }}</td>
-                        <td class="px-4 py-3 text-xs text-gray-400">Top Level</td>
+                        <td class="px-4 py-3 text-xs text-gray-400">{{ __('admin.blog.top_level') }}</td>
                         <td class="px-4 py-3 text-center">
                             @if($root->color_hex)
                                 <span class="inline-block w-5 h-5 rounded-full border border-gray-200" style="background:{{ $root->color_hex }}" title="{{ $root->color_hex }}"></span>
@@ -81,11 +81,11 @@
                         <td class="px-4 py-3 text-end whitespace-nowrap">
                             <button type="button" class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
                                     data-category="{{ json_encode($root->only(['id','name_en','name_ar','slug','parent_id','color_hex','icon_name','description_en','description_ar','seo_title_en','seo_title_ar','seo_description_en','seo_description_ar','sort_order','is_active'])) }}">
-                                Edit
+                                {{ __('common.edit') }}
                             </button>
                             <button type="button" class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"
                                     data-id="{{ $root->id }}" data-name="{{ $root->name_en }}">
-                                Delete
+                                {{ __('common.delete') }}
                             </button>
                         </td>
                     </tr>
@@ -120,18 +120,18 @@
                         <td class="px-4 py-3 text-end whitespace-nowrap">
                             <button type="button" class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
                                     data-category="{{ json_encode($child->only(['id','name_en','name_ar','slug','parent_id','color_hex','icon_name','description_en','description_ar','seo_title_en','seo_title_ar','seo_description_en','seo_description_ar','sort_order','is_active'])) }}">
-                                Edit
+                                {{ __('common.edit') }}
                             </button>
                             <button type="button" class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"
                                     data-id="{{ $child->id }}" data-name="{{ $child->name_en }}">
-                                Delete
+                                {{ __('common.delete') }}
                             </button>
                         </td>
                     </tr>
                     @endforeach
                 @empty
                     <tr>
-                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">No categories yet. Create the first one.</td>
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">{{ __('admin.blog.no_categories_yet') }}</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -140,19 +140,19 @@
 </div>
 
 {{-- Category Modal --}}
-<x-modal id="category-modal" title="Category" size="lg">
+<x-modal id="category-modal" title="{{ __('admin.blog.category_label') }}" size="lg">
     <form id="category-form" class="space-y-4">
         @csrf
         <input type="hidden" id="form-category-id" value="">
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Name (English) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.name_en') }} <span class="text-red-500">*</span></label>
                 <input type="text" name="name_en" id="f-name-en" required maxlength="150"
                        class="form-input w-full text-sm" placeholder="Travel Tips">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">الاسم (عربي) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.name_ar') }} <span class="text-red-500">*</span></label>
                 <input type="text" name="name_ar" id="f-name-ar" required maxlength="150" dir="rtl"
                        class="form-input w-full text-sm" placeholder="نصائح السفر">
             </div>
@@ -160,14 +160,14 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Slug</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.slug') }}</label>
                 <input type="text" name="slug" id="f-slug" maxlength="150"
                        class="form-input w-full text-sm font-mono" placeholder="auto-generated">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Parent Category</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.parent') }}</label>
                 <select name="parent_id" id="f-parent-id" class="form-input w-full text-sm">
-                    <option value="">— Top-level —</option>
+                    <option value="">{{ __('admin.blog.top_level') }}</option>
                     @foreach($roots as $root)
                         <option value="{{ $root->id }}">{{ $root->name_en }}</option>
                     @endforeach
@@ -177,7 +177,7 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Color</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.color') }}</label>
                 <div class="flex items-center gap-2">
                     <input type="color" id="f-color-picker" class="h-9 w-12 rounded border border-gray-300 cursor-pointer p-0.5">
                     <input type="text" name="color_hex" id="f-color-hex" maxlength="7"
@@ -185,7 +185,7 @@
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Icon Name</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.icon_name') }}</label>
                 <input type="text" name="icon_name" id="f-icon-name" maxlength="50"
                        class="form-input w-full text-sm" placeholder="e.g. globe-alt">
             </div>
@@ -193,12 +193,12 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Description (EN)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.description') }} (EN)</label>
                 <textarea name="description_en" id="f-desc-en" rows="3"
                           class="form-input w-full text-sm" placeholder="Category description…"></textarea>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">الوصف (AR)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.description') }} (AR)</label>
                 <textarea name="description_ar" id="f-desc-ar" rows="3" dir="rtl"
                           class="form-input w-full text-sm" placeholder="وصف الفئة…"></textarea>
             </div>
@@ -206,35 +206,35 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">SEO Title (EN)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.seo_title') }} (EN)</label>
                 <input type="text" name="seo_title_en" id="f-seo-title-en" maxlength="200" class="form-input w-full text-sm">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">SEO Title (AR)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.seo_title') }} (AR)</label>
                 <input type="text" name="seo_title_ar" id="f-seo-title-ar" maxlength="200" class="form-input w-full text-sm" dir="rtl">
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">SEO Description (EN)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.seo_description') }} (EN)</label>
                 <textarea name="seo_description_en" id="f-seo-desc-en" rows="2" class="form-input w-full text-sm"></textarea>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">SEO Description (AR)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.seo_description') }} (AR)</label>
                 <textarea name="seo_description_ar" id="f-seo-desc-ar" rows="2" class="form-input w-full text-sm" dir="rtl"></textarea>
             </div>
         </div>
 
         <div class="flex items-center gap-6">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Sort Order</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.sort_order') }}</label>
                 <input type="number" name="sort_order" id="f-sort-order" value="0" min="0"
                        class="form-input w-28 text-sm">
             </div>
             <label class="flex items-center gap-2 cursor-pointer select-none mt-4">
                 <input type="checkbox" name="is_active" id="f-is-active" value="1" class="rounded text-primary-600" checked>
-                <span class="text-sm text-gray-700">Active</span>
+                <span class="text-sm text-gray-700">{{ __('common.active') }}</span>
             </label>
         </div>
 
@@ -242,24 +242,30 @@
     </form>
 
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-save-category" class="btn btn-primary">Save Category</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" id="btn-save-category" class="btn btn-primary">{{ __('common.save') }} {{ __('admin.blog.category_label') }}</button>
     </x-slot:footer>
 </x-modal>
 
 {{-- Delete confirmation modal --}}
-<x-modal id="delete-modal" title="Delete Category" size="sm">
-    <p class="text-sm text-gray-700">Delete <strong id="delete-cat-name"></strong>? This cannot be undone.</p>
+<x-modal id="delete-modal" title="{{ __('admin.blog.delete_category') }}" size="sm">
+    <p class="text-sm text-gray-700">{!! __('admin.blog.delete_category_confirm', ['name' => '<strong id="delete-cat-name"></strong>']) !!}</p>
     <input type="hidden" id="delete-cat-id">
     <div id="delete-error" class="hidden mt-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"></div>
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-confirm-delete" class="btn btn-danger">Delete</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" id="btn-confirm-delete" class="btn btn-danger">{{ __('common.delete') }}</button>
     </x-slot:footer>
 </x-modal>
 
 @push('scripts')
 <script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    new_category: @json(__('admin.blog.new_category')),
+    edit_category: @json(__('admin.blog.edit_category')),
+    could_not_delete: @json(__('admin.blog.could_not_delete')),
+});
 (function () {
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const base = '{{ rtrim(route("admin.blog.categories.index"), "/") }}';
@@ -310,7 +316,7 @@
     // ── New Category ──────────────────────────────────────────────────────────
     document.getElementById('btn-new-category').addEventListener('click', () => {
         resetForm();
-        document.querySelector('#category-modal [id$="-title"]').textContent = 'New Category';
+        document.querySelector('#category-modal [id$="-title"]').textContent = window.TRANSLATIONS.new_category;
         openModal('category-modal');
     });
 
@@ -350,7 +356,7 @@
             document.getElementById('f-sort-order').value     = cat.sort_order ?? 0;
             document.getElementById('f-is-active').checked    = !!cat.is_active;
             slugManual = true;
-            document.querySelector('#category-modal [id$="-title"]').textContent = 'Edit Category';
+            document.querySelector('#category-modal [id$="-title"]').textContent = window.TRANSLATIONS.edit_category;
             openModal('category-modal');
         });
     });
@@ -407,7 +413,7 @@
             window.location.reload();
         } else {
             const errEl = document.getElementById('delete-error');
-            errEl.textContent = data.message ?? 'Could not delete.';
+            errEl.textContent = data.message ?? window.TRANSLATIONS.could_not_delete;
             errEl.classList.remove('hidden');
         }
     });

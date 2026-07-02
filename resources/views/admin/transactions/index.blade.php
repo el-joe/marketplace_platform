@@ -4,17 +4,17 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/transactions.js'])
 @endpush
 
-@section('title', 'Payment Transactions')
+@section('title', __('admin.transactions.title'))
 
 @section('content')
 
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Payment Transactions</h1>
-            <p class="text-sm text-gray-500 mt-0.5">View and search all gateway transactions.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.transactions.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.transactions.subtitle') }}</p>
         </div>
         <a href="{{ route('admin.transactions.refunds.index') }}" class="btn btn-secondary btn-sm">
-            Refund Queue
+            {{ __('admin.transactions.refund_queue') }}
             @if($stats['pending_refunds'] > 0)
                 <span
                     class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-warning-100 text-warning-700">{{ $stats['pending_refunds'] }}</span>
@@ -24,13 +24,13 @@
 
     {{-- ─── Stats ──────────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
-        <x-stat-card title="Volume Today" :value="'$' . number_format($stats['volume_today'] / 100, 2)"
+        <x-stat-card title="{{ __('admin.transactions.volume_today') }}" :value="'$' . number_format($stats['volume_today'] / 100, 2)"
             iconBg="bg-green-100 text-green-600" />
-        <x-stat-card title="Succeeded Today" :value="number_format($stats['succeeded_today'])"
+        <x-stat-card title="{{ __('admin.transactions.succeeded_today') }}" :value="number_format($stats['succeeded_today'])"
             iconBg="bg-success-100 text-success-600" />
-        <x-stat-card title="Failed Today" :value="number_format($stats['failed_today'])"
+        <x-stat-card title="{{ __('admin.transactions.failed_today') }}" :value="number_format($stats['failed_today'])"
             iconBg="{{ $stats['failed_today'] > 0 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400' }}" />
-        <x-stat-card title="Pending Refunds" :value="number_format($stats['pending_refunds'])"
+        <x-stat-card title="{{ __('admin.transactions.pending_refunds') }}" :value="number_format($stats['pending_refunds'])"
             iconBg="{{ $stats['pending_refunds'] > 0 ? 'bg-warning-100 text-warning-600' : 'bg-gray-100 text-gray-400' }}" />
     </div>
 
@@ -45,8 +45,8 @@
             </svg>
             <span>
                 <strong>{{ number_format($stats['pending_refunds']) }}</strong>
-                refund{{ $stats['pending_refunds'] !== 1 ? 's' : '' }} pending approval —
-                <a href="{{ route('admin.transactions.refunds.index') }}" class="underline font-medium">review now</a>
+                {{ trans_choice('admin.transactions.refunds_pending_approval', $stats['pending_refunds']) }}
+                <a href="{{ route('admin.transactions.refunds.index') }}" class="underline font-medium">{{ __('admin.transactions.review_now') }}</a>
             </span>
         </div>
     @endif
@@ -55,61 +55,61 @@
     <x-card class="mb-5">
         <div class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[160px]">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Search gateway ID / order</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.transactions.search_gateway_order') }}</label>
                 <input type="text" id="search-input" class="form-input w-full text-sm"
-                    placeholder="Gateway TX ID, order number…">
+                    placeholder="{{ __('admin.transactions.search_gateway_order_placeholder') }}">
             </div>
             <div class="w-40">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.type') }}</label>
                 <select id="filter-type" class="form-input w-full text-sm">
-                    <option value="">All types</option>
-                    <option value="authorization">Authorization</option>
-                    <option value="capture">Capture</option>
-                    <option value="sale">Sale</option>
-                    <option value="refund">Refund</option>
-                    <option value="void">Void</option>
-                    <option value="chargeback">Chargeback</option>
+                    <option value="">{{ __('admin.transactions.all_types') }}</option>
+                    <option value="authorization">{{ __('admin.transactions.authorization') }}</option>
+                    <option value="capture">{{ __('admin.transactions.capture') }}</option>
+                    <option value="sale">{{ __('admin.transactions.sale') }}</option>
+                    <option value="refund">{{ __('admin.transactions.refund') }}</option>
+                    <option value="void">{{ __('admin.transactions.void') }}</option>
+                    <option value="chargeback">{{ __('admin.transactions.chargeback') }}</option>
                 </select>
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.status') }}</label>
                 <select id="filter-status" class="form-input w-full text-sm">
-                    <option value="">All statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="succeeded">Succeeded</option>
-                    <option value="failed">Failed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="">{{ __('admin.transactions.all_statuses') }}</option>
+                    <option value="pending">{{ __('common.pending') }}</option>
+                    <option value="succeeded">{{ __('admin.transactions.succeeded') }}</option>
+                    <option value="failed">{{ __('admin.finance.failed') }}</option>
+                    <option value="cancelled">{{ __('common.cancelled') }}</option>
                 </select>
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Gateway</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.transactions.gateway') }}</label>
                 <select id="filter-gateway" class="form-input w-full text-sm">
-                    <option value="">All gateways</option>
+                    <option value="">{{ __('admin.transactions.all_gateways') }}</option>
                     @foreach($gateways as $gw)
                         <option value="{{ $gw }}">{{ $gw }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Amount min ($)</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.transactions.amount_min') }}</label>
                 <input type="number" step="0.01" min="0" id="filter-amount-min" class="form-input w-full text-sm"
-                    placeholder="0.00">
+                    placeholder="0.00" dir="ltr">
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Amount max ($)</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.transactions.amount_max') }}</label>
                 <input type="number" step="0.01" min="0" id="filter-amount-max" class="form-input w-full text-sm"
-                    placeholder="9999.00">
+                    placeholder="9999.00" dir="ltr">
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Date from</label>
-                <input type="date" id="filter-date-from" class="form-input w-full text-sm">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.from') }}</label>
+                <input type="date" id="filter-date-from" class="form-input w-full text-sm" dir="ltr">
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Date to</label>
-                <input type="date" id="filter-date-to" class="form-input w-full text-sm">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.to') }}</label>
+                <input type="date" id="filter-date-to" class="form-input w-full text-sm" dir="ltr">
             </div>
             <div>
-                <button type="button" id="clear-filters" class="btn btn-secondary btn-sm">Clear</button>
+                <button type="button" id="clear-filters" class="btn btn-secondary btn-sm">{{ __('common.clear') }}</button>
             </div>
         </div>
     </x-card>
@@ -119,16 +119,16 @@
         <table id="transactions-table" class="w-full" style="width:100%">
             <thead>
                 <tr>
-                    <th>Gateway TX ID</th>
-                    <th>Order</th>
-                    <th>Customer</th>
-                    <th>Type</th>
-                    <th>Gateway</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Failure Code</th>
-                    <th>Processed At</th>
-                    <th>Created At</th>
+                    <th>{{ __('admin.transactions.gateway_tx_id') }}</th>
+                    <th>{{ __('admin.transactions.order') }}</th>
+                    <th>{{ __('admin.transactions.customer') }}</th>
+                    <th>{{ __('common.type') }}</th>
+                    <th>{{ __('admin.transactions.gateway') }}</th>
+                    <th>{{ __('common.amount') }}</th>
+                    <th>{{ __('common.status') }}</th>
+                    <th>{{ __('admin.transactions.failure_code') }}</th>
+                    <th>{{ __('admin.transactions.processed_at') }}</th>
+                    <th>{{ __('common.created_at') }}</th>
                     <th class="no-sort"></th>
                 </tr>
             </thead>

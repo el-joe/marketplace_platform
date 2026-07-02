@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Attributes')
+@section('title', __('admin.attributes_section.title'))
 
 @push('styles')
     @vite([
@@ -13,60 +13,60 @@
 @section('content')
     @php
         $columns = [
-            ['title' => 'Name', 'data' => 'name_en', 'name' => 'name_en'],
-            ['title' => 'Code', 'data' => 'code', 'name' => 'code'],
+            ['title' => __('common.name'), 'data' => 'name_en', 'name' => 'name_en'],
+            ['title' => __('admin.attributes_section.code'), 'data' => 'code', 'name' => 'code'],
             [
-                'title' => 'Type',
+                'title' => __('admin.attributes_section.type'),
                 'data' => 'type',
                 'name' => 'type',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                                                text:        { label: "Text",         color: "gray"    },
-                                                number:      { label: "Number",       color: "gray"    },
-                                                select:      { label: "Select",       color: "primary" },
-                                                multi_select:{ label: "Multi-select", color: "primary" },
-                                                boolean:     { label: "Boolean",      color: "warning" },
-                                                color:       { label: "Color",        color: "danger"  },
-                                                date:        { label: "Date",         color: "gray"    }
+                                                text:        { label: "' . __('admin.attributes_section.type_text') . '",         color: "gray"    },
+                                                number:      { label: "' . __('admin.attributes_section.type_number') . '",       color: "gray"    },
+                                                select:      { label: "' . __('admin.attributes_section.type_select') . '",       color: "primary" },
+                                                multi_select:{ label: "' . __('admin.attributes_section.type_multi_select') . '", color: "primary" },
+                                                boolean:     { label: "' . __('admin.attributes_section.type_boolean') . '",      color: "warning" },
+                                                color:       { label: "' . __('admin.attributes_section.type_color') . '",        color: "danger"  },
+                                                date:        { label: "' . __('admin.attributes_section.type_date') . '",         color: "gray"    }
                                             })'
             ],
-            ['title' => 'Unit', 'data' => 'unit', 'name' => 'unit', 'searchable' => false],
-            ['title' => 'Created', 'data' => 'created_at', 'name' => 'created_at', 'searchable' => false, 'render' => 'Renderers.dateAgo'],
+            ['title' => __('admin.attributes_section.unit_col'), 'data' => 'unit', 'name' => 'unit', 'searchable' => false],
+            ['title' => __('admin.created_at'), 'data' => 'created_at', 'name' => 'created_at', 'searchable' => false, 'render' => 'Renderers.dateAgo'],
             [
                 'title' => '',
                 'data' => 'actions',
                 'name' => 'actions',
                 'orderable' => false,
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'Renderers.actions([
-                                                { type: "link",   label: "Edit",   url: ":edit_url" },
-                                                { type: "button", label: "Delete", id: "delete", class: "btn-danger" }
+                                                { type: "link",   label: "' . __('common.edit') . '",   url: ":edit_url" },
+                                                { type: "button", label: "' . __('common.delete') . '", id: "delete", class: "btn-danger" }
                                             ])'
             ],
         ];
 
         $filters = [
-            ['type' => 'text', 'name' => 'search', 'label' => 'Name / Code', 'placeholder' => 'Search…'],
+            ['type' => 'text', 'name' => 'search', 'label' => __('admin.attributes_section.name_code_placeholder'), 'placeholder' => __('admin.attributes_section.search_placeholder')],
             [
                 'type' => 'select',
                 'name' => 'type',
-                'label' => 'Type',
+                'label' => __('admin.attributes_section.type'),
                 'options' => [
-                    'text' => 'Text',
-                    'number' => 'Number',
-                    'select' => 'Select',
-                    'multi_select' => 'Multi-select',
-                    'boolean' => 'Boolean',
-                    'color' => 'Color',
-                    'date' => 'Date',
+                    'text' => __('admin.attributes_section.type_text'),
+                    'number' => __('admin.attributes_section.type_number'),
+                    'select' => __('admin.attributes_section.type_select'),
+                    'multi_select' => __('admin.attributes_section.type_multi_select'),
+                    'boolean' => __('admin.attributes_section.type_boolean'),
+                    'color' => __('admin.attributes_section.type_color'),
+                    'date' => __('admin.attributes_section.type_date'),
                 ],
             ],
         ];
     @endphp
 
     <x-table.datatable id="attributes-table" url="{{ route('admin.attributes.datatable') }}" :columns="$columns"
-        :filters="$filters" :create-action="['url' => route('admin.attributes.create'), 'label' => 'New Attribute']" />
+        :filters="$filters" :create-action="['url' => route('admin.attributes.create'), 'label' => __('admin.attributes_section.new_attribute')]" />
 
     <script>
         window.ROUTES_ATTR = {

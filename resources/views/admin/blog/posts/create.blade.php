@@ -4,7 +4,7 @@
     @vite(['resources/js/components/rich-editor.js', 'resources/js/components/file-upload.js'])
 @endpush
 
-@section('title', 'New Blog Post')
+@section('title', __('admin.blog.new_blog_post'))
 
 @section('content')
 <div class="p-6">
@@ -12,10 +12,10 @@
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">New Blog Post</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Fill in the content below and publish when ready.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.blog.new_blog_post') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.blog.fill_content_below') }}</p>
         </div>
-        <a href="{{ route('admin.blog.posts.index') }}" class="btn btn-secondary btn-sm">← Back to Posts</a>
+        <a href="{{ route('admin.blog.posts.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.blog.back_to_posts') }}</a>
     </div>
 
     @if(session('success'))
@@ -32,12 +32,12 @@
             <div class="flex-1 min-w-0 space-y-5">
 
                 {{-- Content section --}}
-                <x-card title="Post Content">
+                <x-card title="{{ __('admin.blog.title') }}">
                     <div class="p-6 space-y-5">
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="form-label">Title (English) <span class="text-red-500">*</span></label>
+                                <label class="form-label">{{ __('admin.blog.title_en') }} <span class="text-red-500">*</span></label>
                                 <input type="text" name="title_en" id="title-en" required maxlength="255"
                                        value="{{ old('title_en') }}"
                                        class="form-input w-full @error('title_en') is-invalid @enderror"
@@ -45,7 +45,7 @@
                                 @error('title_en') <p class="form-error">{{ $message }}</p> @enderror
                             </div>
                             <div>
-                                <label class="form-label">العنوان (عربي) <span class="text-red-500">*</span></label>
+                                <label class="form-label">{{ __('admin.blog.title_ar') }} <span class="text-red-500">*</span></label>
                                 <input type="text" name="title_ar" id="title-ar" required maxlength="255" dir="rtl"
                                        value="{{ old('title_ar') }}"
                                        class="form-input w-full @error('title_ar') is-invalid @enderror"
@@ -55,7 +55,7 @@
                         </div>
 
                         <div>
-                            <label class="form-label">Slug</label>
+                            <label class="form-label">{{ __('admin.blog.slug') }}</label>
                             <div class="flex items-center gap-2">
                                 <span class="text-xs text-gray-400 whitespace-nowrap">portal.com/blog/</span>
                                 <input type="text" name="slug" id="slug-input" maxlength="255"
@@ -69,22 +69,22 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <label class="form-label">Excerpt (EN)</label>
+                                    <label class="form-label">{{ __('admin.blog.excerpt_en') }}</label>
                                     <span class="text-xs text-gray-400" data-char-counter="excerpt_en" data-max="300">0 / 300</span>
                                 </div>
                                 <textarea name="excerpt_en" id="excerpt_en" rows="3" maxlength="300"
                                           class="form-textarea w-full @error('excerpt_en') is-invalid @enderror"
-                                          placeholder="Brief summary for listings and meta…">{{ old('excerpt_en') }}</textarea>
+                                          placeholder="{{ __('admin.blog.excerpt_placeholder_en') }}">{{ old('excerpt_en') }}</textarea>
                                 @error('excerpt_en') <p class="form-error">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <div class="flex justify-between mb-1">
-                                    <label class="form-label">مقتطف (AR)</label>
+                                    <label class="form-label">{{ __('admin.blog.excerpt_ar') }}</label>
                                     <span class="text-xs text-gray-400" data-char-counter="excerpt_ar" data-max="300">0 / 300</span>
                                 </div>
                                 <textarea name="excerpt_ar" id="excerpt_ar" rows="3" maxlength="300" dir="rtl"
                                           class="form-textarea w-full @error('excerpt_ar') is-invalid @enderror"
-                                          placeholder="ملخص مختصر…">{{ old('excerpt_ar') }}</textarea>
+                                          placeholder="{{ __('admin.blog.excerpt_placeholder_ar') }}">{{ old('excerpt_ar') }}</textarea>
                                 @error('excerpt_ar') <p class="form-error">{{ $message }}</p> @enderror
                             </div>
                         </div>
@@ -93,17 +93,17 @@
                         <div>
                             <div class="flex border-b border-gray-200 mb-4">
                                 <button type="button" class="lang-tab px-4 py-2 text-sm font-medium border-b-2 border-primary-500 text-primary-600 -mb-px" data-lang="en">
-                                    English
+                                    {{ __('common.english') }}
                                 </button>
                                 <button type="button" class="lang-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 -mb-px" data-lang="ar">
-                                    العربية
+                                    {{ __('common.arabic') }}
                                 </button>
                             </div>
 
                             <div id="body-en-section">
                                 <x-form.rich-editor
                                     name="body_en"
-                                    label="Body (English)"
+                                    label="{{ __('admin.blog.body_en') }}"
                                     :required="true"
                                     profile="full"
                                     :minHeight="350"
@@ -115,7 +115,7 @@
                             <div id="body-ar-section" class="hidden">
                                 <x-form.rich-editor
                                     name="body_ar"
-                                    label="محتوى المقال (عربي)"
+                                    label="{{ __('admin.blog.body_ar') }}"
                                     :required="true"
                                     profile="full"
                                     :minHeight="350"
@@ -126,20 +126,20 @@
                         </div>
 
                         <div>
-                            <label class="form-label">Tags</label>
+                            <label class="form-label">{{ __('admin.blog.tags') }}</label>
                             <input type="text" name="tags" id="tags-input"
                                    value="{{ old('tags') }}"
                                    class="form-input w-full text-sm"
                                    placeholder="travel, tips, budget (comma-separated)">
-                            <p class="text-xs text-gray-400 mt-0.5">Comma-separated. Will be stored as JSON array.</p>
+                            <p class="text-xs text-gray-400 mt-0.5">{{ __('admin.blog.tags_hint') }}</p>
                         </div>
                     </div>
                 </x-card>
 
                 {{-- Bottom action buttons --}}
                 <div class="flex items-center gap-3">
-                    <button type="button" class="btn btn-secondary" onclick="submitForm('draft')">Save Draft</button>
-                    <button type="button" class="btn bg-emerald-600 text-white hover:bg-emerald-700" onclick="submitForm('publish')">Publish Now</button>
+                    <button type="button" class="btn btn-secondary" onclick="submitForm('draft')">{{ __('admin.blog.save_draft') }}</button>
+                    <button type="button" class="btn bg-emerald-600 text-white hover:bg-emerald-700" onclick="submitForm('publish')">{{ __('admin.blog.publish_now') }}</button>
                 </div>
 
             </div>
@@ -148,43 +148,43 @@
             <div class="w-80 flex-shrink-0 space-y-4">
 
                 {{-- Publish Settings --}}
-                <x-card title="Publish Settings">
+                <x-card title="{{ __('admin.blog.publish_settings') }}">
                     <div class="p-4 space-y-4">
                         <div class="flex flex-col gap-2">
                             <button type="button" class="btn btn-secondary w-full text-sm" onclick="submitForm('draft')">
-                                Save Draft
+                                {{ __('admin.blog.save_draft') }}
                             </button>
                             <button type="button" id="btn-schedule" class="btn btn-secondary w-full text-sm text-blue-600 border-blue-300">
-                                Schedule…
+                                {{ __('admin.blog.schedule') }}…
                             </button>
                             <button type="button" class="btn bg-emerald-600 text-white hover:bg-emerald-700 w-full text-sm" onclick="submitForm('publish')">
-                                Publish Now
+                                {{ __('admin.blog.publish_now') }}
                             </button>
                         </div>
 
                         <div id="schedule-panel" class="hidden space-y-2 pt-2 border-t border-gray-100">
-                            <label class="form-label text-xs">Scheduled For</label>
+                            <label class="form-label text-xs">{{ __('admin.blog.scheduled_for') }}</label>
                             <input type="datetime-local" name="scheduled_for" id="scheduled-for"
                                    value="{{ old('scheduled_for') }}"
                                    class="form-input w-full text-sm">
                             <button type="button" class="btn btn-primary w-full text-sm" onclick="submitForm('schedule')">
-                                Set Schedule
+                                {{ __('admin.blog.set_schedule') }}
                             </button>
                         </div>
 
                         <div class="pt-2 border-t border-gray-100">
-                            <div class="text-xs text-gray-500">Reading time: <span id="reading-time-display" class="font-medium text-gray-700">~1 min read</span></div>
+                            <div class="text-xs text-gray-500">{{ __('admin.blog.reading_time') }}: <span id="reading-time-display" class="font-medium text-gray-700">~1 min read</span></div>
                         </div>
                     </div>
                 </x-card>
 
                 {{-- Organization --}}
-                <x-card title="Organization">
+                <x-card title="{{ __('admin.blog.organization') }}">
                     <div class="p-4 space-y-4">
                         <div>
-                            <label class="form-label text-xs">Category <span class="text-red-500">*</span></label>
+                            <label class="form-label text-xs">{{ __('admin.blog.category_label') }} <span class="text-red-500">*</span></label>
                             <select name="blog_category_id" class="form-input w-full text-sm @error('blog_category_id') is-invalid @enderror">
-                                <option value="">— Select category —</option>
+                                <option value="">{{ __('admin.blog.select_category') }}</option>
                                 @foreach($categories as $parent)
                                     <optgroup label="{{ $parent->name_en }}">
                                         <option value="{{ $parent->id }}" {{ old('blog_category_id') == $parent->id ? 'selected' : '' }}>
@@ -202,9 +202,9 @@
                         </div>
 
                         <div>
-                            <label class="form-label text-xs">Country</label>
+                            <label class="form-label text-xs">{{ __('common.country') }}</label>
                             <select name="country_id" class="form-input w-full text-sm">
-                                <option value="">All Countries</option>
+                                <option value="">{{ __('common.all') }} {{ __('common.country') }}</option>
                                 @foreach($countries as $c)
                                     <option value="{{ $c->id }}" {{ old('country_id') == $c->id ? 'selected' : '' }}>
                                         {{ $c->flag_emoji ? $c->flag_emoji . ' ' : '' }}{{ $c->name_en }}
@@ -214,7 +214,7 @@
                         </div>
 
                         <div>
-                            <label class="form-label text-xs">Author</label>
+                            <label class="form-label text-xs">{{ __('admin.blog.author') }}</label>
                             <select name="author_admin_id" class="form-input w-full text-sm">
                                 @foreach($authors as $a)
                                     <option value="{{ $a->id }}" {{ old('author_admin_id', auth('admin')->id()) == $a->id ? 'selected' : '' }}>
@@ -228,28 +228,28 @@
                             <input type="checkbox" name="allow_comments" value="1"
                                    class="rounded text-primary-600"
                                    {{ old('allow_comments', '1') ? 'checked' : '' }}>
-                            <span class="text-sm text-gray-700">Allow Comments</span>
+                            <span class="text-sm text-gray-700">{{ __('admin.blog.allow_comments') }}</span>
                         </label>
                     </div>
                 </x-card>
 
                 {{-- Featured Image --}}
-                <x-card title="Featured Image">
+                <x-card title="{{ __('admin.blog.featured_image') }}">
                     <div class="p-4 space-y-4">
                         <x-form.file-upload
                             name="featured_image"
-                            label="Featured Image"
+                            label="{{ __('admin.blog.featured_image') }}"
                             accept="image/*"
                             :maxSizeMb="5"
                         />
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="form-label text-xs">Alt Text (EN)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.alt_text_en') }}</label>
                                 <input type="text" name="featured_image_alt_en" value="{{ old('featured_image_alt_en') }}"
                                        class="form-input w-full text-sm" placeholder="Image description…">
                             </div>
                             <div>
-                                <label class="form-label text-xs">النص البديل (AR)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.alt_text_ar') }}</label>
                                 <input type="text" name="featured_image_alt_ar" value="{{ old('featured_image_alt_ar') }}" dir="rtl"
                                        class="form-input w-full text-sm">
                             </div>
@@ -257,11 +257,11 @@
                         <div class="border-t border-gray-100 pt-3">
                             <x-form.file-upload
                                 name="og_image"
-                                label="Social Share Image (optional)"
+                                label="{{ __('admin.blog.social_share_optional') }}"
                                 accept="image/*"
                                 :maxSizeMb="5"
                             />
-                            <p class="text-xs text-gray-400 mt-1">Uses Featured Image if not set.</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ __('admin.blog.uses_featured_if_not_set') }}</p>
                         </div>
                     </div>
                 </x-card>
@@ -271,7 +271,7 @@
                     <div class="p-4 space-y-4">
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="form-label text-xs">SEO Title (EN)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.seo_title') }} (EN)</label>
                                 <span class="text-xs text-gray-400" data-char-counter="seo_title_en" data-max="60">0 / 60</span>
                             </div>
                             <input type="text" name="seo_title_en" id="seo-title-en" maxlength="200"
@@ -280,7 +280,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="form-label text-xs">SEO Title (AR)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.seo_title') }} (AR)</label>
                                 <span class="text-xs text-gray-400" data-char-counter="seo_title_ar" data-max="60">0 / 60</span>
                             </div>
                             <input type="text" name="seo_title_ar" maxlength="200" dir="rtl"
@@ -289,7 +289,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="form-label text-xs">SEO Description (EN)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.seo_description') }} (EN)</label>
                                 <span class="text-xs text-gray-400" data-char-counter="seo_description_en" data-max="160">0 / 160</span>
                             </div>
                             <textarea name="seo_description_en" id="seo-desc-en" rows="2" maxlength="500"
@@ -297,7 +297,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="form-label text-xs">SEO Description (AR)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.seo_description') }} (AR)</label>
                                 <span class="text-xs text-gray-400" data-char-counter="seo_description_ar" data-max="160">0 / 160</span>
                             </div>
                             <textarea name="seo_description_ar" rows="2" maxlength="500" dir="rtl"
@@ -306,10 +306,10 @@
 
                         {{-- Google snippet preview --}}
                         <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-0.5">
-                            <p class="text-xs text-gray-400 mb-2 font-medium uppercase">Preview</p>
-                            <div id="seo-preview-title" class="text-blue-700 text-sm font-medium leading-snug truncate">Your SEO title will appear here</div>
+                            <p class="text-xs text-gray-400 mb-2 font-medium uppercase">{{ __('admin.blog.seo_preview') }}</p>
+                            <div id="seo-preview-title" class="text-blue-700 text-sm font-medium leading-snug truncate">{{ __('admin.blog.seo_title_placeholder') }}</div>
                             <div class="text-green-700 text-xs truncate">portal.com/blog/<span id="seo-preview-slug">slug</span></div>
-                            <div id="seo-preview-desc" class="text-gray-500 text-xs leading-relaxed line-clamp-2">Your SEO description will appear here as a snippet in search results.</div>
+                            <div id="seo-preview-desc" class="text-gray-500 text-xs leading-relaxed line-clamp-2">{{ __('admin.blog.seo_desc_placeholder') }}</div>
                         </div>
                     </div>
                 </x-card>
@@ -321,6 +321,11 @@
 
 @push('scripts')
 <script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    seo_title_placeholder: @json(__('admin.blog.seo_title_placeholder')),
+    seo_desc_placeholder: @json(__('admin.blog.seo_desc_placeholder')),
+});
 (function () {
     // ── Slug auto-generate ────────────────────────────────────────────────────
     const titleEn  = document.getElementById('title-en');
@@ -340,10 +345,10 @@
     const seoTitle = document.getElementById('seo-title-en');
     const seoDesc  = document.getElementById('seo-desc-en');
     seoTitle.addEventListener('input', () => {
-        document.getElementById('seo-preview-title').textContent = seoTitle.value || 'Your SEO title will appear here';
+        document.getElementById('seo-preview-title').textContent = seoTitle.value || window.TRANSLATIONS.seo_title_placeholder;
     });
     seoDesc.addEventListener('input', () => {
-        document.getElementById('seo-preview-desc').textContent = seoDesc.value || 'Your SEO description will appear here as a snippet in search results.';
+        document.getElementById('seo-preview-desc').textContent = seoDesc.value || window.TRANSLATIONS.seo_desc_placeholder;
     });
     slugInput.addEventListener('input', () => {
         document.getElementById('seo-preview-slug').textContent = slugInput.value || 'slug';

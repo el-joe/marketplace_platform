@@ -41,7 +41,7 @@
                         class="btn btn-success {{ count($launchErrors ?? []) > 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
                     >
                         <x-heroicon name="rocket-launch" class="w-4 h-4" />
-                        Launch
+                        {{ __('admin.geography.launch') }}
                     </button>
                 @elseif ($country->is_active)
                     <button
@@ -51,7 +51,7 @@
                         data-url="{{ route('admin.countries.deactivate', $country->id) }}"
                         class="btn btn-ghost"
                     >
-                        Deactivate
+                        {{ __('admin.geography.deactivate') }}
                     </button>
                 @else
                     <button
@@ -61,7 +61,7 @@
                         data-url="{{ route('admin.countries.reactivate', $country->id) }}"
                         class="btn btn-secondary"
                     >
-                        Reactivate
+                        {{ __('admin.geography.reactivate') }}
                     </button>
                 @endif
 
@@ -81,7 +81,7 @@
 
             <button type="submit" class="btn btn-primary">
                 <x-heroicon name="check" class="w-4 h-4" />
-                Save Country
+                {{ __('admin.geography.save_country') }}
             </button>
         </div>
     </div>
@@ -97,7 +97,7 @@
     {{-- Launch prerequisite warnings (edit mode only) --}}
     @if ($isEdit && count($launchErrors ?? []) > 0 && !$country->is_launched)
         <div class="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">
-            <strong class="block mb-1">Not ready to launch:</strong>
+            <strong class="block mb-1">{{ __('admin.geography.not_ready_to_launch') }}</strong>
             <ul class="list-disc list-inside space-y-0.5">
                 @foreach ($launchErrors as $err)
                     <li>{{ $err }}</li>
@@ -112,14 +112,14 @@
     @if ($isEdit)
         <div class="flex items-center gap-3 text-sm text-gray-600">
             @if ($country->is_launched)
-                <x-badge color="success">Launched</x-badge>
-                <span class="text-gray-400">since {{ $country->launched_at?->format('d M Y') ?? '—' }}</span>
+                <x-badge color="success">{{ __('admin.geography.launched') }}</x-badge>
+                <span class="text-gray-400">{{ __('admin.geography.since') }} {{ $country->launched_at?->format('d M Y') ?? '—' }}</span>
             @else
-                <x-badge color="gray">Draft</x-badge>
+                <x-badge color="gray">{{ __('admin.geography.draft') }}</x-badge>
             @endif
 
             @if (!$country->is_active)
-                <x-badge color="warning">Inactive</x-badge>
+                <x-badge color="warning">{{ __('admin.geography.inactive') }}</x-badge>
             @endif
         </div>
     @endif
@@ -131,10 +131,10 @@
         <nav class="flex overflow-x-auto border-b border-gray-100" aria-label="Country form tabs">
             @php
                 $tabs = [
-                    ['id' => 'general',   'label' => 'General',           'icon' => 'globe-alt',        'editOnly' => false],
-                    ['id' => 'payment',   'label' => 'Payment Methods',   'icon' => 'credit-card',      'editOnly' => true],
-                    ['id' => 'shipping',  'label' => 'Shipping',          'icon' => 'truck',            'editOnly' => true],
-                    ['id' => 'categories','label' => 'Category Overrides','icon' => 'tag',              'editOnly' => true],
+                    ['id' => 'general',   'label' => __('admin.geography.general_tab'),           'icon' => 'globe-alt',        'editOnly' => false],
+                    ['id' => 'payment',   'label' => __('admin.geography.payment_methods_tab'),   'icon' => 'credit-card',      'editOnly' => true],
+                    ['id' => 'shipping',  'label' => __('admin.geography.shipping_tab'),          'icon' => 'truck',            'editOnly' => true],
+                    ['id' => 'categories','label' => __('admin.geography.category_overrides_tab'),'icon' => 'tag',              'editOnly' => true],
                 ];
             @endphp
 
@@ -166,14 +166,14 @@
         <div class="grid grid-cols-2 gap-4">
             <x-form.input
                 name="name_en"
-                label="Name (English)"
+                label="{{ __('admin.geography.name_en_label') }}"
                 :value="$val('name_en')"
                 required
                 dir="ltr"
             />
             <x-form.input
                 name="name_ar"
-                label="Name (Arabic)"
+                label="{{ __('admin.geography.name_ar_label') }}"
                 :value="$val('name_ar')"
                 required
                 dir="rtl"
@@ -183,7 +183,7 @@
         <div class="grid grid-cols-3 gap-4">
             <x-form.input
                 name="iso_code_2"
-                label="ISO-2 Code"
+                label="{{ __('admin.geography.iso2_code') }}"
                 :value="$val('iso_code_2')"
                 maxlength="2"
                 placeholder="SA"
@@ -192,7 +192,7 @@
             />
             <x-form.input
                 name="iso_code_3"
-                label="ISO-3 Code"
+                label="{{ __('admin.geography.iso3_code') }}"
                 :value="$val('iso_code_3')"
                 maxlength="3"
                 placeholder="SAU"
@@ -200,7 +200,7 @@
             />
             <x-form.input
                 name="phone_prefix"
-                label="Phone Prefix"
+                label="{{ __('admin.geography.phone_prefix') }}"
                 :value="$val('phone_prefix')"
                 maxlength="5"
                 placeholder="+966"
@@ -210,44 +210,44 @@
         <div class="grid grid-cols-3 gap-4">
             <x-form.input
                 name="site_code"
-                label="Site Code"
+                label="{{ __('admin.geography.site_code') }}"
                 :value="$val('site_code')"
                 maxlength="20"
                 placeholder="sa"
-                hint="Lowercase letters only, unique"
+                hint="{{ __('admin.geography.site_code_hint') }}"
             />
             <x-form.input
                 name="site_domain"
-                label="Site Domain"
+                label="{{ __('admin.geography.site_domain') }}"
                 :value="$val('site_domain')"
                 maxlength="100"
                 placeholder="noon.com"
             />
             <x-form.select
                 name="currency_code"
-                label="Currency"
+                label="{{ __('admin.geography.currency') }}"
                 :options="$currencies"
                 :value="$val('currency_code')"
-                :empty-option="'— Select —'"
+                :empty-option="__('admin.geography.select_currency')"
             />
         </div>
 
         <div class="grid grid-cols-3 gap-4">
             <x-form.select
                 name="default_locale"
-                label="Default Locale"
+                label="{{ __('admin.geography.default_locale') }}"
                 :options="$locales"
                 :value="$val('default_locale', 'en')"
             />
             <x-form.select
                 name="timezone"
-                label="Timezone"
+                label="{{ __('admin.geography.timezone') }}"
                 :options="$timezones"
                 :value="$val('timezone', 'UTC')"
             />
             <x-form.input
                 name="vat_rate"
-                label="VAT Rate (%)"
+                label="{{ __('admin.geography.vat_rate') }}"
                 type="number"
                 step="0.01"
                 min="0"
@@ -260,12 +260,12 @@
         <div class="flex items-center gap-6 pt-2">
             <x-form.toggle
                 name="cod_available"
-                label="Cash on Delivery Available"
+                label="{{ __('admin.geography.cod_available') }}"
                 :checked="$bool('cod_available')"
             />
             <x-form.toggle
                 name="is_active"
-                label="Active"
+                label="{{ __('admin.geography.is_active') }}"
                 :checked="$bool('is_active', true)"
             />
         </div>
@@ -281,14 +281,14 @@
         class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm"
     >
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-700">Payment Methods for {{ $country->name_en }}</h3>
+            <h3 class="text-sm font-semibold text-gray-700">{{ __('admin.geography.payment_methods_for', ['name' => $country->name_en]) }}</h3>
             <button
                 type="button"
                 id="btn-add-payment-method"
                 class="btn btn-secondary btn-sm"
             >
                 <x-heroicon name="plus" class="w-4 h-4" />
-                Add Method
+                {{ __('admin.geography.add_method') }}
             </button>
         </div>
 
@@ -298,17 +298,17 @@
                     <span class="w-28 text-xs font-mono bg-gray-200 rounded px-1.5 py-0.5">{{ $pm->method_type }}</span>
                     <span class="flex-1 text-sm font-medium text-gray-800">{{ $pm->display_name_en }}</span>
                     <span class="text-xs text-gray-500">{{ $pm->provider }}</span>
-                    <span class="text-xs text-gray-500">Fee: {{ $pm->fee_pct }}%</span>
+                    <span class="text-xs text-gray-500">{{ __('admin.geography.fee_label', ['pct' => $pm->fee_pct]) }}</span>
                     @if ($pm->is_active)
-                        <x-badge color="success" size="xs">Active</x-badge>
+                        <x-badge color="success" size="xs">{{ __('common.active') }}</x-badge>
                     @else
-                        <x-badge color="gray" size="xs">Inactive</x-badge>
+                        <x-badge color="gray" size="xs">{{ __('admin.geography.inactive') }}</x-badge>
                     @endif
                     <button
                         type="button"
                         class="btn-edit-pm btn btn-ghost btn-xs"
                         data-pm='@json($pm)'
-                    >Edit</button>
+                    >{{ __('common.edit') }}</button>
                     <button
                         type="button"
                         class="btn-delete-pm btn btn-danger-ghost btn-xs"
@@ -319,7 +319,7 @@
                     </button>
                 </div>
             @empty
-                <p class="text-sm text-gray-400 py-4 text-center">No payment methods configured yet.</p>
+                <p class="text-sm text-gray-400 py-4 text-center">{{ __('admin.geography.no_payment_methods_configured') }}</p>
             @endforelse
         </div>
 
@@ -336,7 +336,7 @@
         class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm"
     >
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-700">Shipping Methods for {{ $country->name_en }}</h3>
+            <h3 class="text-sm font-semibold text-gray-700">{{ __('admin.geography.shipping_methods_for', ['name' => $country->name_en]) }}</h3>
             <button
                 type="button"
                 id="btn-save-shipping"
@@ -344,7 +344,7 @@
                 class="btn btn-primary btn-sm"
             >
                 <x-heroicon name="check" class="w-4 h-4" />
-                Save Shipping Settings
+                {{ __('admin.geography.save_shipping_settings') }}
             </button>
         </div>
 
@@ -365,17 +365,17 @@
 
                         <x-form.toggle
                             name="settings[{{ $loop->index }}][is_active]"
-                            label="Enabled"
+                            label="{{ __('admin.geography.enabled') }}"
                             :checked="(bool) ($setting?->is_active)"
                         />
 
                         <x-form.input
                             name="settings[{{ $loop->index }}][free_shipping_threshold_cents]"
-                            label="Free Shipping at ({{ $country?->currency?->symbol ?? $country?->currency_code ?? 'cents' }})"
+                            label="{{ __('admin.geography.free_shipping_at', ['currency' => $country?->currency?->symbol ?? $country?->currency_code ?? 'cents']) }}"
                             type="number"
                             min="0"
                             :value="$setting?->free_shipping_threshold_cents"
-                            placeholder="0 = never free"
+                            placeholder="{{ __('admin.geography.never_free') }}"
                             class="w-48"
                         />
                     </div>
@@ -395,24 +395,23 @@
         class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm"
     >
         <p class="text-sm text-gray-500 mb-4">
-            Override per-category availability and commission rates for <strong>{{ $country->name_en }}</strong>.
-            Leave commission blank to inherit the global category rate.
+            {{ __('admin.geography.category_overrides_desc', ['name' => $country->name_en]) }}
         </p>
 
         @php
             $catColumns = [
-                ['title' => 'Category',          'data' => 'name_en',         'name' => 'name_en'],
-                ['title' => 'Available',          'data' => 'is_available',    'name' => 'is_available',   'searchable' => false, 'render' => 'Renderers.badge({true:{label:"Yes",color:"success"},false:{label:"No",color:"danger"}})'],
-                ['title' => 'Commission',         'data' => 'commission_rate', 'name' => 'commission_rate','searchable' => false],
-                ['title' => 'Override Reason',    'data' => 'unavailable_reason', 'name' => 'unavailable_reason', 'orderable' => false, 'searchable' => false],
+                ['title' => __('admin.geography.category_col'),          'data' => 'name_en',         'name' => 'name_en'],
+                ['title' => __('admin.geography.available_col'),          'data' => 'is_available',    'name' => 'is_available',   'searchable' => false, 'render' => 'Renderers.badge({true:{label:"' . __('common.yes') . '",color:"success"},false:{label:"' . __('common.no') . '",color:"danger"}})'],
+                ['title' => __('admin.geography.commission_col'),         'data' => 'commission_rate', 'name' => 'commission_rate','searchable' => false],
+                ['title' => __('admin.geography.override_reason_col'),    'data' => 'unavailable_reason', 'name' => 'unavailable_reason', 'orderable' => false, 'searchable' => false],
                 ['title' => '',                   'data' => 'actions',         'name' => 'actions',         'orderable' => false, 'searchable' => false,
-                 'render' => 'Renderers.actions([{type:"button",label:"Edit Override",id:"editCatOverride",class:"btn-ghost btn-sm"}])'],
+                 'render' => 'Renderers.actions([{type:"button",label:"' . __('admin.geography.edit_override') . '",id:"editCatOverride",class:"btn-ghost btn-sm"}])'],
             ];
 
             $catFilters = [
-                ['type' => 'text',   'name' => 'search',       'label' => 'Category name'],
-                ['type' => 'select', 'name' => 'is_available', 'label' => 'Available',
-                 'options' => ['' => 'All', '1' => 'Yes', '0' => 'No']],
+                ['type' => 'text',   'name' => 'search',       'label' => __('admin.geography.category_name_label')],
+                ['type' => 'select', 'name' => 'is_available', 'label' => __('admin.geography.available_label'),
+                 'options' => ['' => __('common.all'), '1' => __('common.yes'), '0' => __('common.no')]],
             ];
         @endphp
 
@@ -432,7 +431,7 @@
 @if ($isEdit)
 @push('modals')
     {{-- Add/Edit Payment Method Modal --}}
-    <x-modal id="pm-modal" title="Payment Method">
+    <x-modal id="pm-modal" title="{{ __('admin.geography.payment_method_modal_title') }}">
         <form id="pm-form" novalidate>
             @csrf
             <input type="hidden" id="pm-id" name="pm_id">
@@ -440,70 +439,70 @@
                 <div class="grid grid-cols-2 gap-4">
                     <x-form.select
                         name="method_type"
-                        label="Type"
+                        label="{{ __('admin.geography.type_label') }}"
                         id="pm-method-type"
                         :options="['card' => 'Card', 'wallet' => 'Wallet', 'cod' => 'COD', 'bnpl' => 'BNPL', 'bank_transfer' => 'Bank Transfer']"
                     />
-                    <x-form.input name="provider" label="Provider" id="pm-provider" placeholder="e.g. Visa, Mada, Tamara" />
+                    <x-form.input name="provider" label="{{ __('admin.geography.provider_label') }}" id="pm-provider" placeholder="{{ __('admin.geography.provider_placeholder') }}" />
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <x-form.input name="display_name_en" label="Display Name (EN)" id="pm-display-en" required />
-                    <x-form.input name="display_name_ar" label="Display Name (AR)" id="pm-display-ar" dir="rtl" />
+                    <x-form.input name="display_name_en" label="{{ __('admin.geography.display_name_en') }}" id="pm-display-en" required />
+                    <x-form.input name="display_name_ar" label="{{ __('admin.geography.display_name_ar') }}" id="pm-display-ar" dir="rtl" />
                 </div>
                 <div class="grid grid-cols-3 gap-4">
-                    <x-form.input name="fee_pct" label="Fee %" id="pm-fee-pct" type="number" step="0.01" min="0" value="0" />
-                    <x-form.input name="fee_fixed_cents" label="Fixed Fee (cents)" id="pm-fee-fixed" type="number" min="0" value="0" />
-                    <x-form.input name="sort_order" label="Sort Order" id="pm-sort-order" type="number" min="0" value="0" />
+                    <x-form.input name="fee_pct" label="{{ __('admin.geography.fee_pct') }}" id="pm-fee-pct" type="number" step="0.01" min="0" value="0" />
+                    <x-form.input name="fee_fixed_cents" label="{{ __('admin.geography.fixed_fee_cents') }}" id="pm-fee-fixed" type="number" min="0" value="0" />
+                    <x-form.input name="sort_order" label="{{ __('admin.geography.sort_order') }}" id="pm-sort-order" type="number" min="0" value="0" />
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <x-form.input name="min_order_cents" label="Min Order (cents)" id="pm-min-order" type="number" min="0" value="0" />
-                    <x-form.input name="max_order_cents" label="Max Order (cents, blank = unlimited)" id="pm-max-order" type="number" min="0" />
+                    <x-form.input name="min_order_cents" label="{{ __('admin.geography.min_order_cents') }}" id="pm-min-order" type="number" min="0" value="0" />
+                    <x-form.input name="max_order_cents" label="{{ __('admin.geography.max_order_cents') }}" id="pm-max-order" type="number" min="0" />
                 </div>
-                <x-form.toggle name="is_active" label="Active" id="pm-is-active" :checked="true" />
+                <x-form.toggle name="is_active" label="{{ __('common.active') }}" id="pm-is-active" :checked="true" />
             </div>
             <div class="flex justify-end gap-2 px-4 pb-4">
-                <button type="button" class="btn btn-ghost" data-modal-close="pm-modal">Cancel</button>
-                <button type="submit" id="pm-submit-btn" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-ghost" data-modal-close="pm-modal">{{ __('common.cancel') }}</button>
+                <button type="submit" id="pm-submit-btn" class="btn btn-primary">{{ __('common.save') }}</button>
             </div>
         </form>
     </x-modal>
 
     {{-- Edit Category Override Modal --}}
-    <x-modal id="cat-override-modal" title="Edit Category Override">
+    <x-modal id="cat-override-modal" title="{{ __('admin.geography.edit_category_override_title') }}">
         <form id="cat-override-form" novalidate>
             @csrf
             <input type="hidden" id="cat-category-id" name="overrides[0][category_id]">
             <div class="space-y-4 p-4">
                 <p class="font-medium text-gray-800" id="cat-name-display"></p>
-                <x-form.toggle name="overrides[0][is_available]" label="Available in this country" id="cat-is-available" :checked="true" />
+                <x-form.toggle name="overrides[0][is_available]" label="{{ __('admin.geography.available_in_country') }}" id="cat-is-available" :checked="true" />
                 <x-form.input
                     name="overrides[0][commission_rate]"
-                    label="Commission Rate Override (%)"
+                    label="{{ __('admin.geography.commission_rate_override') }}"
                     id="cat-commission-rate"
                     type="number" step="0.01" min="0" max="100"
-                    placeholder="Leave blank to use global rate"
+                    placeholder="{{ __('admin.geography.commission_rate_placeholder') }}"
                 />
                 <x-form.input
                     name="overrides[0][unavailable_reason]"
-                    label="Reason (if unavailable)"
+                    label="{{ __('admin.geography.reason_if_unavailable') }}"
                     id="cat-unavailable-reason"
                     maxlength="100"
                 />
                 <x-form.textarea
                     name="overrides[0][notes]"
-                    label="Internal Notes"
+                    label="{{ __('admin.geography.internal_notes') }}"
                     id="cat-notes"
                     rows="2"
                 />
             </div>
             <div class="flex justify-end gap-2 px-4 pb-4">
-                <button type="button" class="btn btn-ghost" data-modal-close="cat-override-modal">Cancel</button>
+                <button type="button" class="btn btn-ghost" data-modal-close="cat-override-modal">{{ __('common.cancel') }}</button>
                 <button
                     type="submit"
                     id="cat-override-submit"
                     data-url="{{ route('admin.countries.category-overrides.update', $country->id) }}"
                     class="btn btn-primary"
-                >Save</button>
+                >{{ __('common.save') }}</button>
             </div>
         </form>
     </x-modal>
