@@ -4,7 +4,7 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Vendor Subscriptions')
+@section('title', __('admin.subscriptions.title'))
 
 @section('content')
 
@@ -12,23 +12,23 @@
     {{-- ─── Stats ───────────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total</p>
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{{ __('admin.subscriptions.total') }}</p>
             <p class="text-2xl font-extrabold text-gray-800">{{ number_format($stats['total']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-            <p class="text-xs text-green-500 uppercase tracking-wide mb-1">Active</p>
+            <p class="text-xs text-green-500 uppercase tracking-wide mb-1">{{ __('admin.subscriptions.active') }}</p>
             <p class="text-2xl font-extrabold text-green-600">{{ number_format($stats['active']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Expired</p>
+            <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">{{ __('admin.subscriptions.expired') }}</p>
             <p class="text-2xl font-extrabold text-gray-600">{{ number_format($stats['expired']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-            <p class="text-xs text-red-400 uppercase tracking-wide mb-1">Cancelled</p>
+            <p class="text-xs text-red-400 uppercase tracking-wide mb-1">{{ __('admin.subscriptions.cancelled') }}</p>
             <p class="text-2xl font-extrabold text-red-500">{{ number_format($stats['cancelled']) }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-green-50 p-4 text-center bg-green-50">
-            <p class="text-xs text-green-600 uppercase tracking-wide mb-1">MRR</p>
+            <p class="text-xs text-green-600 uppercase tracking-wide mb-1">{{ __('admin.subscriptions.mrr') }}</p>
             <p class="text-2xl font-extrabold text-green-700">{{ number_format($stats['mrr_cents'] / 100) }} {{ $stats['mrr_currency'] ?? '' }}</p>
         </div>
     </div>
@@ -37,27 +37,27 @@
     <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-4 flex flex-wrap gap-3 items-end justify-between">
         <div class="flex flex-wrap gap-3 items-end">
             <div>
-                <label class="label-sm">Status</label>
+                <label class="label-sm">{{ __('admin.subscriptions.status') }}</label>
                 <select id="filter-status" class="form-select text-sm py-1.5 pr-8">
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="trialing">Trialing</option>
-                    <option value="past_due">Past Due</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="expired">Expired</option>
+                    <option value="">{{ __('admin.subscriptions.all_statuses') }}</option>
+                    <option value="active">{{ __('admin.subscriptions.active') }}</option>
+                    <option value="trialing">{{ __('admin.subscriptions.trialing') }}</option>
+                    <option value="past_due">{{ __('admin.subscriptions.past_due') }}</option>
+                    <option value="cancelled">{{ __('admin.subscriptions.cancelled') }}</option>
+                    <option value="expired">{{ __('admin.subscriptions.expired') }}</option>
                 </select>
             </div>
             <div>
-                <label class="label-sm">Plan</label>
+                <label class="label-sm">{{ __('admin.subscriptions.plan') }}</label>
                 <select id="filter-plan" class="form-select text-sm py-1.5 pr-8">
-                    <option value="">All Plans</option>
+                    <option value="">{{ __('admin.subscriptions.all_plans') }}</option>
                     @foreach($plans as $plan)
                         <option value="{{ $plan->id }}">{{ $plan->name_en }}</option>
                     @endforeach
                 </select>
             </div>
         </div>
-        <button type="button" id="btn-subscribe-vendor" class="btn btn-primary btn-sm">+ Subscribe Vendor</button>
+        <button type="button" id="btn-subscribe-vendor" class="btn btn-primary btn-sm">+ {{ __('admin.subscriptions.subscribe_vendor') }}</button>
     </div>
 
     {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
@@ -65,13 +65,13 @@
         <table id="tbl-subscriptions" class="w-full text-sm">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                 <tr>
-                    <th class="px-4 py-3 text-left">Vendor</th>
-                    <th class="px-4 py-3 text-left">Plan</th>
-                    <th class="px-4 py-3 text-left">Status</th>
-                    <th class="px-4 py-3 text-left">Period</th>
-                    <th class="px-4 py-3 text-left">Listings</th>
-                    <th class="px-4 py-3 text-left">Auto-Renew</th>
-                    <th class="px-4 py-3 text-left">Actions</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.vendor') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.plan') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.status') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.period') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.listings') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.auto_renew') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.actions') }}</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -81,18 +81,18 @@
     {{-- ─── Subscribe Vendor Modal ──────────────────────────────────────────────── --}}
     <div id="subscribe-modal" class="modal" style="display:none;">
         <div class="modal-box max-w-sm">
-            <h3 class="font-bold text-lg mb-4">Subscribe a Vendor</h3>
+            <h3 class="font-bold text-lg mb-4">{{ __('admin.subscriptions.subscribe_a_vendor') }}</h3>
 
             <div class="space-y-3">
                 <div>
-                    <label class="label-sm">Vendor ID or search <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.subscriptions.vendor_id_or_search') }} <span class="text-red-500">*</span></label>
                     <input type="text" id="sv-vendor-id" class="form-input w-full text-sm"
-                        placeholder="Paste vendor UUID...">
+                        placeholder="{{ __('admin.subscriptions.vendor_id_placeholder') }}">
                 </div>
                 <div>
-                    <label class="label-sm">Plan <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.subscriptions.plan') }} <span class="text-red-500">*</span></label>
                     <select id="sv-plan-id" class="form-select w-full text-sm">
-                        <option value="">— select plan —</option>
+                        <option value="">{{ __('admin.subscriptions.select_plan') }}</option>
                         @foreach($plans as $plan)
                             <option value="{{ $plan->id }}">{{ $plan->name_en }} — {{ number_format($plan->price_cents / 100) }}
                                 {{ $plan->currency }}/mo</option>
@@ -102,8 +102,8 @@
             </div>
 
             <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-gray-100">
-                <button type="button" id="subscribe-modal-cancel" class="btn btn-ghost btn-sm">Cancel</button>
-                <button type="button" id="subscribe-modal-save" class="btn btn-primary btn-sm px-8">Subscribe</button>
+                <button type="button" id="subscribe-modal-cancel" class="btn btn-ghost btn-sm">{{ __('admin.subscriptions.cancel') }}</button>
+                <button type="button" id="subscribe-modal-save" class="btn btn-primary btn-sm px-8">{{ __('admin.subscriptions.subscribe') }}</button>
             </div>
         </div>
     </div>
@@ -111,17 +111,16 @@
     {{-- ─── Cancel Subscription Modal ───────────────────────────────────────────── --}}
     <div id="cancel-sub-modal" class="modal" style="display:none;">
         <div class="modal-box max-w-sm">
-            <h3 class="font-bold text-lg mb-4">Cancel Subscription</h3>
+            <h3 class="font-bold text-lg mb-4">{{ __('admin.subscriptions.cancel_subscription') }}</h3>
             <input type="hidden" id="cancel-sub-id">
             <div>
-                <label class="label-sm">Reason (optional)</label>
+                <label class="label-sm">{{ __('admin.subscriptions.reason_optional') }}</label>
                 <textarea id="cancel-sub-reason" rows="3" class="form-input w-full text-sm"
-                    placeholder="Reason for cancellation..."></textarea>
+                    placeholder="{{ __('admin.subscriptions.cancellation_reason_placeholder') }}"></textarea>
             </div>
             <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-gray-100">
-                <button type="button" id="cancel-sub-modal-close" class="btn btn-ghost btn-sm">Close</button>
-                <button type="button" id="cancel-sub-modal-confirm" class="btn btn-danger btn-sm">Cancel
-                    Subscription</button>
+                <button type="button" id="cancel-sub-modal-close" class="btn btn-ghost btn-sm">{{ __('admin.subscriptions.close') }}</button>
+                <button type="button" id="cancel-sub-modal-confirm" class="btn btn-danger btn-sm">{{ __('admin.subscriptions.cancel_subscription') }}</button>
             </div>
         </div>
     </div>
@@ -130,6 +129,12 @@
 
 @push('scripts')
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            loading: @json(__('admin.subscriptions.loading')),
+            error: @json(__('admin.subscriptions.error')),
+        });
+
         $(function () {
             const tok = '{{ csrf_token() }}';
 
@@ -156,7 +161,7 @@
                     { data: 'auto_renew', orderable: false },
                     { data: 'actions', orderable: false },
                 ],
-                language: { processing: 'Loading…' },
+                language: { processing: window.TRANSLATIONS.loading },
             });
 
             $('#filter-status, #filter-plan').on('change', () => tbl.ajax.reload());
@@ -178,7 +183,7 @@
                     }),
                 }).then(r => r.json()).then(data => {
                     if (data.success) { window.Toast.success(data.message); $('#subscribe-modal').hide(); tbl.ajax.reload(); }
-                    else { window.Toast.error(data.message ?? 'Error'); }
+                    else { window.Toast.error(data.message ?? window.TRANSLATIONS.error); }
                 });
             });
 

@@ -1,23 +1,23 @@
 @extends('layouts.admin')
 
-@section('title', 'Travel Cities')
+@section('title', __('admin.travel.travel_cities'))
 
 @section('content')
 <div class="p-6 space-y-4">
     <div class="flex items-center justify-between">
-        <h1 class="text-xl font-bold text-gray-900">Travel Cities</h1>
+        <h1 class="text-xl font-bold text-gray-900">{{ __('admin.travel.travel_cities') }}</h1>
         <button onclick="openAddModal()"
                 class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700">
-            <x-heroicon name="plus" class="w-4 h-4" /> Add City
+            <x-heroicon name="plus" class="w-4 h-4" /> {{ __('admin.travel.add_city') }}
         </button>
     </div>
 
     {{-- Filters --}}
     <form method="GET" class="flex flex-wrap gap-3">
-        <input name="q" value="{{ request('q') }}" placeholder="Search city name…"
+        <input name="q" value="{{ request('q') }}" placeholder="{{ __('admin.travel.search_city_name') }}"
                class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
         <select name="country_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <option value="">All Countries</option>
+            <option value="">{{ __('admin.all_countries') }}</option>
             @foreach($countries as $c)
             <option value="{{ $c->id }}" {{ request('country_id') == $c->id ? 'selected' : '' }}>
                 {{ $c->flag_emoji }} {{ $c->name_en }}
@@ -25,23 +25,23 @@
             @endforeach
         </select>
         <select name="active" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <option value="">All Statuses</option>
-            <option value="1" {{ request('active') === '1' ? 'selected' : '' }}>Active</option>
-            <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>Hidden</option>
+            <option value="">{{ __('admin.travel.all_statuses') }}</option>
+            <option value="1" {{ request('active') === '1' ? 'selected' : '' }}>{{ __('common.active') }}</option>
+            <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>{{ __('admin.hidden') }}</option>
         </select>
-        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">Filter</button>
-        <a href="{{ route('admin.travel.cities.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">Reset</a>
+        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">{{ __('admin.filter') }}</button>
+        <a href="{{ route('admin.travel.cities.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">{{ __('common.reset') }}</a>
     </form>
 
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">City</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Country</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Coordinates</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Packages</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Status</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.city') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.country') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.coordinates') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.travel.packages') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.status') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -50,7 +50,7 @@
                 <tr class="hover:bg-gray-50" id="city-row-{{ $city->id }}">
                     <td class="px-4 py-3">
                         <div class="font-medium text-gray-900">{{ $city->name_en }}</div>
-                        <div class="text-gray-400 text-xs">{{ $city->name_ar }}</div>
+                        <div class="text-gray-400 text-xs" dir="rtl">{{ $city->name_ar }}</div>
                     </td>
                     <td class="px-4 py-3 text-gray-600">
                         {{ $city->country?->flag_emoji }} {{ $city->country?->name_en }}
@@ -65,21 +65,21 @@
                     <td class="px-4 py-3 text-center text-gray-600">{{ number_format($city->packages_count) }}</td>
                     <td class="px-4 py-3 text-center">
                         @if($city->is_active)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{{ __('common.active') }}</span>
                         @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Hidden</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">{{ __('admin.hidden') }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 text-end whitespace-nowrap">
                         <button onclick="openEditModal({{ json_encode($city) }})"
-                                class="text-primary-600 hover:underline text-xs mr-3">Edit</button>
+                                class="text-primary-600 hover:underline text-xs mr-3">{{ __('common.edit') }}</button>
                         <button onclick="deleteCity('{{ $city->id }}', '{{ addslashes($city->name_en) }}')"
-                                class="text-red-600 hover:underline text-xs">Delete</button>
+                                class="text-red-600 hover:underline text-xs">{{ __('common.delete') }}</button>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-10 text-center text-gray-400">No cities found.</td>
+                    <td colspan="6" class="px-4 py-10 text-center text-gray-400">{{ __('admin.travel.no_cities_found') }}</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -94,7 +94,7 @@
 <div id="city-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h2 id="modal-title" class="font-semibold text-gray-900">Add City</h2>
+            <h2 id="modal-title" class="font-semibold text-gray-900">{{ __('admin.travel.add_city_title') }}</h2>
             <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
                 <x-heroicon name="x-mark" class="w-5 h-5" />
             </button>
@@ -102,9 +102,9 @@
         <form id="city-form" class="px-6 py-4 space-y-4">
             <input type="hidden" id="city-id">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Country *</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('common.country') }} *</label>
                 <select id="f-country" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                    <option value="">— Select country —</option>
+                    <option value="">{{ __('admin.travel.select_country') }}</option>
                     @foreach($countries as $c)
                     <option value="{{ $c->id }}">{{ $c->flag_emoji }} {{ $c->name_en }}</option>
                     @endforeach
@@ -112,35 +112,35 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Name (EN) *</label>
-                    <input id="f-name-en" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Dubai">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.name_en') }} *</label>
+                    <input id="f-name-en" dir="ltr" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Dubai">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Name (AR) *</label>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.name_ar') }} *</label>
                     <input id="f-name-ar" dir="rtl" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="دبي">
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Latitude</label>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.travel.latitude') }}</label>
                     <input id="f-lat" type="number" step="any" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="25.2048">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Longitude</label>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.travel.longitude') }}</label>
                     <input id="f-lng" type="number" step="any" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="55.2708">
                 </div>
             </div>
             <div class="flex items-center gap-2">
                 <input type="checkbox" id="f-active" class="rounded border-gray-300">
-                <label for="f-active" class="text-sm text-gray-700">Active</label>
+                <label for="f-active" class="text-sm text-gray-700">{{ __('common.active') }}</label>
             </div>
             <div id="form-error" class="text-red-600 text-sm hidden"></div>
         </form>
         <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
-            <button onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">Cancel</button>
+            <button onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">{{ __('common.cancel') }}</button>
             <button onclick="saveCity()" id="save-btn"
                     class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700">
-                Save
+                {{ __('common.save') }}
             </button>
         </div>
     </div>
@@ -149,11 +149,18 @@
 
 @push('scripts')
 <script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    add_city_title: "{{ __('admin.travel.add_city_title') }}",
+    edit_city_title: "{{ __('admin.travel.edit_city_title') }}",
+    delete_city_confirm: "{{ __('admin.travel.delete_city_confirm', ['name' => '__NAME__']) }}",
+});
+
 const modal = document.getElementById('city-modal');
 const errEl = document.getElementById('form-error');
 
 function openAddModal() {
-    document.getElementById('modal-title').textContent = 'Add City';
+    document.getElementById('modal-title').textContent = window.TRANSLATIONS.add_city_title;
     document.getElementById('city-id').value = '';
     document.getElementById('f-country').value = '';
     ['name-en','name-ar'].forEach(k => document.getElementById('f-'+k).value = '');
@@ -165,7 +172,7 @@ function openAddModal() {
 }
 
 function openEditModal(c) {
-    document.getElementById('modal-title').textContent = 'Edit City';
+    document.getElementById('modal-title').textContent = window.TRANSLATIONS.edit_city_title;
     document.getElementById('city-id').value          = c.id;
     document.getElementById('f-country').value        = c.travel_country_id;
     document.getElementById('f-name-en').value        = c.name_en;
@@ -224,7 +231,7 @@ async function saveCity() {
 }
 
 async function deleteCity(id, name) {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    if (!confirm(window.TRANSLATIONS.delete_city_confirm.replace('__NAME__', name))) return;
 
     const res = await fetch(`/admin/travel/cities/${id}`, {
         method: 'DELETE',

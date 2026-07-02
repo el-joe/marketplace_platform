@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
-@section('title', isset($channel) ? 'Edit Radio Channel' : 'New Radio Channel')
+@section('title', isset($channel) ? __('admin.radio.edit_channel_title') : __('admin.radio.new_channel_title'))
 
 @section('content')
 <div class="p-6 max-w-2xl">
 
     <div class="mb-6">
-        <a href="{{ route('admin.radio.channels.index') }}" class="text-sm text-gray-500 hover:text-gray-700">← Channels</a>
+        <a href="{{ route('admin.radio.channels.index') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('admin.radio.back_to_channels') }}</a>
         <h1 class="text-xl font-bold text-gray-900 mt-1">
-            {{ isset($channel) ? 'Edit Channel' : 'New Radio Channel' }}
+            {{ isset($channel) ? __('admin.radio.edit_channel') : __('admin.radio.new_channel_title') }}
         </h1>
     </div>
 
@@ -28,12 +28,12 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Name (English) <span class="text-red-500">*</span></label>
-                <input name="name_en" value="{{ old('name_en', $channel->name_en ?? '') }}" required
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.name_en') }} <span class="text-red-500">*</span></label>
+                <input name="name_en" value="{{ old('name_en', $channel->name_en ?? '') }}" required dir="ltr"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Name (Arabic) <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.name_ar') }} <span class="text-red-500">*</span></label>
                 <input name="name_ar" value="{{ old('name_ar', $channel->name_ar ?? '') }}" required dir="rtl"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent">
             </div>
@@ -41,19 +41,19 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.type') }} <span class="text-red-500">*</span></label>
                 <select name="type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     @foreach(['audio','video'] as $t)
                     <option value="{{ $t }}" {{ old('type', $channel->type ?? '') === $t ? 'selected' : '' }}>
-                        {{ ucfirst($t) }}
+                        {{ __('admin.radio.' . $t) }}
                     </option>
                     @endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('common.country') }}</label>
                 <select name="country_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    <option value="">All Countries</option>
+                    <option value="">{{ __('admin.radio.all_countries') }}</option>
                     @foreach($countries as $c)
                     <option value="{{ $c->id }}" {{ old('country_id', $channel->country_id ?? '') == $c->id ? 'selected' : '' }}>
                         {{ $c->name_en }}
@@ -64,23 +64,23 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Live Stream URL</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.live_stream_url') }}</label>
             <input name="stream_url" type="url" value="{{ old('stream_url', $channel->stream_url ?? '') }}"
                    placeholder="https://stream.example.com/live/channel.m3u8"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-primary-500">
-            <p class="text-xs text-gray-400 mt-1">HLS (.m3u8) or RTMP URL — used when a schedule slot is active</p>
+            <p class="text-xs text-gray-400 mt-1">{{ __('admin.radio.stream_url_hint') }}</p>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Fallback Media Path</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.fallback_media_path') }}</label>
             <input name="fallback_media_path" value="{{ old('fallback_media_path', $channel->fallback_media_path ?? '') }}"
                    placeholder="radio/fallback/channel-loop.mp3"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-primary-500">
-            <p class="text-xs text-gray-400 mt-1">Played when no live slot is active (storage path or URL)</p>
+            <p class="text-xs text-gray-400 mt-1">{{ __('admin.radio.fallback_media_hint') }}</p>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Thumbnail Path</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.thumbnail_path') }}</label>
             <input name="thumbnail_path" value="{{ old('thumbnail_path', $channel->thumbnail_path ?? '') }}"
                    placeholder="radio/thumbnails/channel.jpg"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-primary-500">
@@ -91,16 +91,16 @@
             <input type="checkbox" name="is_active" value="1" id="is_active"
                    {{ old('is_active', $channel->is_active ?? true) ? 'checked' : '' }}
                    class="rounded border-gray-300 text-primary-600">
-            <label for="is_active" class="text-sm text-gray-700">Channel is active (visible to customers)</label>
+            <label for="is_active" class="text-sm text-gray-700">{{ __('admin.radio.channel_active_hint') }}</label>
         </div>
 
         <div class="flex gap-3 pt-2">
             <button type="submit" class="px-5 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700">
-                {{ isset($channel) ? 'Update Channel' : 'Create Channel' }}
+                {{ isset($channel) ? __('admin.radio.update_channel') : __('admin.radio.create_channel') }}
             </button>
             <a href="{{ route('admin.radio.channels.index') }}"
                class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">
-                Cancel
+                {{ __('common.cancel') }}
             </a>
         </div>
     </form>

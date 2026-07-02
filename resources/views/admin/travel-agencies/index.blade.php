@@ -67,7 +67,7 @@
                 confirm_action: "{{ __('common.confirm') }}",
                 success: "{{ __('common.success') }}",
                 error: "{{ __('common.error') }}",
-                no_agencies_found: "{{ __('admin.vendors.no_vendors') }}",
+                no_agencies_found: "{{ __('admin.travel.no_agencies_found') }}",
                 view: "{{ __('common.view') }}",
                 page_of: "{{ __('common.page') }} %s {{ __('common.of') }} %s",
                 agencies_label: "{{ __('admin.travel.agencies') }}",
@@ -97,7 +97,7 @@
 
                 const tbody = document.getElementById('agencies-tbody');
                 tbody.innerHTML = json.data.length === 0
-                    ? `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">No agencies found.</td></tr>`
+                    ? `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">${window.TRANSLATIONS.no_agencies_found}</td></tr>`
                     : json.data.map(a => `
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium text-gray-900">${a.name}</td>
@@ -118,7 +118,8 @@
                 // Pagination
                 const pg = json.meta;
                 const div = document.getElementById('agencies-pagination');
-                div.innerHTML = `Page ${pg.current_page} of ${pg.last_page} &nbsp;·&nbsp; ${pg.total} agencies`;
+                const pageOf = window.TRANSLATIONS.page_of.replace('%s', pg.current_page).replace('%s', pg.last_page);
+                div.innerHTML = `${pageOf} &nbsp;·&nbsp; ${pg.total} ${window.TRANSLATIONS.agencies_label}`;
             }
 
             document.addEventListener('DOMContentLoaded', () => loadAgencies());

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Roles & Permissions')
+@section('title', __('admin.roles_section.roles_permissions_title'))
 
 @push('styles')
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
@@ -9,28 +9,28 @@
 @section('content')
     @php
         $columns = [
-            ['title' => 'Role Name', 'data' => 'name', 'name' => 'name'],
-            ['title' => 'Guard', 'data' => 'guard_name', 'name' => 'guard_name', 'searchable' => false],
+            ['title' => __('admin.roles_section.role_name'), 'data' => 'name', 'name' => 'name'],
+            ['title' => __('admin.roles_section.guard_column'), 'data' => 'guard_name', 'name' => 'guard_name', 'searchable' => false],
             [
-                'title' => 'Admins',
+                'title' => __('admin.roles_section.admins_column'),
                 'data' => 'admin_count',
                 'name' => 'admin_count',
                 'searchable' => false,
                 'orderable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'function(data) { return "<span class=\"font-mono text-sm\">" + data + "</span>"; }',
             ],
             [
-                'title' => 'Permissions',
+                'title' => __('admin.roles_section.permissions_column'),
                 'data' => 'permissions_count',
                 'name' => 'permissions_count',
                 'searchable' => false,
                 'orderable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'function(data) { return "<span class=\"font-mono text-sm\">" + data + "</span>"; }',
             ],
             [
-                'title' => 'Created',
+                'title' => __('admin.roles_section.created_column'),
                 'data' => 'created_at',
                 'name' => 'created_at',
                 'searchable' => false,
@@ -42,39 +42,48 @@
                 'name' => 'actions',
                 'orderable' => false,
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'Renderers.actions([
-                            { type: "link",   label: "Edit",   url: ":edit_url",   class: "btn-secondary" },
-                            { type: "button", label: "Delete", id: "delete",       class: "btn-danger",  condition: (row) => !row.is_super_admin },
+                            { type: "link",   label: "' . __('common.edit') . '",   url: ":edit_url",   class: "btn-secondary" },
+                            { type: "button", label: "' . __('admin.roles_section.delete') . '", id: "delete",       class: "btn-danger",  condition: (row) => !row.is_super_admin },
                         ])',
             ],
         ];
 
         $filters = [
-            ['type' => 'text', 'name' => 'search', 'label' => 'Role Name', 'placeholder' => 'Search…'],
+            ['type' => 'text', 'name' => 'search', 'label' => __('admin.roles_section.role_name_label'), 'placeholder' => __('common.search') . '…'],
         ];
     @endphp
 
     <x-table.datatable id="roles-table" url="{{ route('admin.roles.datatable') }}" :columns="$columns" :filters="$filters"
-        :create-action="['url' => route('admin.roles.create'), 'label' => 'Create Role']" :page-length="25" :order="[[0, 'asc']]" />
+        :create-action="['url' => route('admin.roles.create'), 'label' => __('admin.roles_section.create_role')]" :page-length="25" :order="[[0, 'asc']]" />
 @endsection
 
 @push('scripts')
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            deleteRoleConfirm: @json(__('admin.roles_section.delete_role_confirm')),
+            deleteRoleTitle: @json(__('admin.roles_section.delete_role_title')),
+            roleDeleted: @json(__('admin.roles_section.role_deleted')),
+            deleteFailed: @json(__('admin.roles_section.delete_failed')),
+        });
+
         window.tableActions = window.tableActions || {};
 
         window.tableActions.delete = async function (id, row) {
+            const message = window.TRANSLATIONS.deleteRoleConfirm.replace(':name', row.name);
             const confirmed = window.confirmDelete
-                ? await window.confirmDelete('Delete role "' + row.name + '"? This cannot be undone.', { title: 'Delete Role?' })
-                : confirm('Delete role "' + row.name + '"?');
+                ? await window.confirmDelete(message, { title: window.TRANSLATIONS.deleteRoleTitle })
+                : confirm(message);
             if (!confirmed) return;
 
             $.ajax({
                 url: row.delete_url, method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             })
-                .done(() => { window.Toast?.success('Role deleted.'); window.reloadDataTable('roles-table'); })
-                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || 'Delete failed.'); });
+                .done(() => { window.Toast?.success(window.TRANSLATIONS.roleDeleted); window.reloadDataTable('roles-table'); })
+                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || window.TRANSLATIONS.deleteFailed); });
         };
     </script>
 @endpush

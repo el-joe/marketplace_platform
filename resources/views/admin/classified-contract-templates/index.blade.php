@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Contract Templates')
+@section('title', __('admin.classifieds.contract_templates_title'))
 
 @section('content')
 <div class="p-6 space-y-5">
@@ -8,13 +8,13 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Contract Templates</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Legal contract bodies displayed to sellers at listing time.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.classifieds.contract_templates_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.classifieds.contract_templates_desc') }}</p>
         </div>
         <button type="button" data-modal-open="template-modal" data-mode="create"
                 class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
             <x-heroicon name="plus" class="w-4 h-4" />
-            New Template
+            {{ __('admin.classifieds.new_template') }}
         </button>
     </div>
 
@@ -22,10 +22,10 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Name</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Version</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Active</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Created</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.name') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.version') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.created') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -40,9 +40,9 @@
                     </td>
                     <td class="px-4 py-3 text-center">
                         @if($tpl->is_active)
-                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Active</span>
+                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ __('common.active') }}</span>
                         @else
-                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">Inactive</span>
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{{ __('common.inactive') }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 text-gray-500">{{ $tpl->created_at->format('Y-m-d') }}</td>
@@ -50,18 +50,18 @@
                         <button type="button"
                                 class="btn-edit-template text-xs text-primary-600 font-medium hover:underline"
                                 data-template="{{ json_encode(['id' => $tpl->id, 'name' => $tpl->name, 'content_en' => $tpl->content_en, 'content_ar' => $tpl->content_ar, 'is_active' => $tpl->is_active]) }}">
-                            Edit
+                            {{ __('common.edit') }}
                         </button>
                         <button type="button"
                                 class="btn-delete-template ms-2 text-xs text-red-500 hover:underline"
                                 data-id="{{ $tpl->id }}" data-name="{{ $tpl->name }}">
-                            Delete
+                            {{ __('common.delete') }}
                         </button>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="px-4 py-10 text-center text-gray-400">No contract templates yet.</td>
+                    <td colspan="5" class="px-4 py-10 text-center text-gray-400">{{ __('admin.classifieds.no_templates') }}</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -70,61 +70,69 @@
 </div>
 
 {{-- Template Modal --}}
-<x-modal id="template-modal" title="Contract Template" size="xl">
+<x-modal id="template-modal" title="{{ __('admin.classifieds.contract_template') }}" size="xl">
     <form id="template-form" class="space-y-4">
         @csrf
         <input type="hidden" id="ft-id" value="">
 
         <div class="flex items-center gap-4">
             <div class="flex-1">
-                <label class="block text-xs font-medium text-gray-700 mb-1">Template Name <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.template_name') }} <span class="text-red-500">*</span></label>
                 <input type="text" name="name" id="ft-name" required maxlength="200"
                        class="form-input w-full text-sm" placeholder="Real Estate Sale Contract">
             </div>
             <label class="flex items-center gap-2 cursor-pointer mt-5 select-none">
                 <input type="checkbox" name="is_active" id="ft-is-active" value="1" class="rounded text-primary-600" checked>
-                <span class="text-sm text-gray-700">Active</span>
+                <span class="text-sm text-gray-700">{{ __('common.active') }}</span>
             </label>
         </div>
 
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Contract Body (English) <span class="text-red-500">*</span></label>
-            <textarea name="content_en" id="ft-content-en" rows="10" required
+            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.contract_body_en') }} <span class="text-red-500">*</span></label>
+            <textarea name="content_en" id="ft-content-en" rows="10" required dir="ltr"
                       class="form-input w-full text-sm font-mono" placeholder="Enter the full English contract text…"></textarea>
         </div>
 
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">نص العقد (عربي) <span class="text-red-500">*</span></label>
+            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.contract_body_ar') }} <span class="text-red-500">*</span></label>
             <textarea name="content_ar" id="ft-content-ar" rows="10" required dir="rtl"
                       class="form-input w-full text-sm font-mono" placeholder="أدخل نص العقد باللغة العربية…"></textarea>
         </div>
 
         <p id="ft-version-note" class="hidden text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            <strong>Note:</strong> Editing the contract body will create a new version row to preserve the audit trail for listings that were already signed under the previous version.
+            <strong>{{ __('admin.classifieds.note_label') }}</strong> {{ __('admin.classifieds.version_note') }}
         </p>
 
         <div id="ft-error" class="hidden rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"></div>
     </form>
 
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-save-template" class="btn btn-primary">Save Template</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" id="btn-save-template" class="btn btn-primary">{{ __('common.save') }}</button>
     </x-slot:footer>
 </x-modal>
 
 {{-- Delete confirmation modal --}}
-<x-modal id="delete-template-modal" title="Delete Template" size="sm">
-    <p class="text-sm text-gray-700">Delete <strong id="del-tpl-name"></strong>? This cannot be undone.</p>
+<x-modal id="delete-template-modal" title="{{ __('admin.classifieds.delete_template') }}" size="sm">
+    <p class="text-sm text-gray-700">{!! str_replace(':name', '<strong id="del-tpl-name"></strong>', __('admin.classifieds.delete_template_confirm', ['name' => ':name'])) !!}</p>
     <input type="hidden" id="del-tpl-id">
     <div id="del-tpl-error" class="hidden mt-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"></div>
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-confirm-del-tpl" class="btn btn-danger">Delete</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" id="btn-confirm-del-tpl" class="btn btn-danger">{{ __('common.delete') }}</button>
     </x-slot:footer>
 </x-modal>
 
 @push('scripts')
 <script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    new_template: "{{ __('admin.classifieds.new_template') }}",
+    edit_template_title: "{{ __('admin.classifieds.edit_template_modal_title') }}",
+    error_occurred: "{{ __('common.error') }}",
+    delete_failed: "{{ __('admin.classifieds.delete_failed') }}",
+});
+
 (function () {
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const base = '{{ rtrim(route("admin.classifieds.contract-templates.index"), "/") }}';
@@ -165,7 +173,7 @@
 
     document.querySelector('[data-mode="create"]')?.addEventListener('click', () => {
         resetForm();
-        document.querySelector('#template-modal [id$="-title"]').textContent = 'New Template';
+        document.querySelector('#template-modal [id$="-title"]').textContent = window.TRANSLATIONS.new_template;
         openModal('template-modal');
     });
 
@@ -191,7 +199,7 @@
             originalContentAr = tpl.content_ar ?? '';
             document.getElementById('ft-error').classList.add('hidden');
             document.getElementById('ft-version-note').classList.add('hidden');
-            document.querySelector('#template-modal [id$="-title"]').textContent = 'Edit Template';
+            document.querySelector('#template-modal [id$="-title"]').textContent = window.TRANSLATIONS.edit_template_title;
             openModal('template-modal');
         });
     });
@@ -214,7 +222,7 @@
             location.reload();
         } else {
             const errEl = document.getElementById('ft-error');
-            errEl.textContent = data.message ?? (data.errors ? Object.values(data.errors).flat().join(' ') : 'An error occurred.');
+            errEl.textContent = data.message ?? (data.errors ? Object.values(data.errors).flat().join(' ') : window.TRANSLATIONS.error_occurred);
             errEl.classList.remove('hidden');
         }
     });
@@ -236,7 +244,7 @@
             location.reload();
         } else {
             const errEl = document.getElementById('del-tpl-error');
-            errEl.textContent = data.message ?? 'Delete failed.';
+            errEl.textContent = data.message ?? window.TRANSLATIONS.delete_failed;
             errEl.classList.remove('hidden');
         }
     });

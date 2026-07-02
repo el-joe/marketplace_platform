@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit: ' . e($coupon->code))
+@section('title', __('admin.coupons_section.edit_coupon') . ': ' . e($coupon->code))
 
 @push('styles')
     @vite(['resources/js/components/flatpickr.js', 'resources/js/components/select2.js', 'resources/js/admin/coupons.js'])

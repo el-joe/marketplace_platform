@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Offer: ' . $offer->name)
+@section('title', __('admin.vendor_campaign_offers.offer_title_prefix', ['name' => $offer->name]))
 
 @section('content')
 
@@ -8,15 +8,13 @@
     <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
             <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <a href="{{ route('admin.vendor-campaign-offers.index') }}" class="hover:text-primary-600">Vendor Campaign Offers</a>
+                <a href="{{ route('admin.vendor-campaign-offers.index') }}" class="hover:text-primary-600">{{ __('admin.vendor_campaign_offers.title') }}</a>
                 <span>/</span>
                 <span class="text-gray-800 font-medium truncate max-w-xs">{{ $offer->name }}</span>
             </div>
             <h1 class="text-2xl font-bold text-gray-900">{{ $offer->name }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">
-                By <strong>{{ $offer->vendor?->store_name ?? '—' }}</strong>
-                · {{ ucwords(str_replace('_', ' ', $offer->campaign_type)) }}
-                · {{ number_format($offer->offered_commission_rate, 1) }}% commission
+                {{ \Illuminate\Support\Str::before(__('admin.vendor_campaign_offers.by_vendor_type_commission'), ':vendor') }}<strong>{{ $offer->vendor?->store_name ?? '—' }}</strong>{{ str_replace([':type', ':rate'], [ucwords(str_replace('_', ' ', $offer->campaign_type)), number_format($offer->offered_commission_rate, 1)], \Illuminate\Support\Str::after(__('admin.vendor_campaign_offers.by_vendor_type_commission'), ':vendor')) }}
             </p>
         </div>
 
@@ -26,15 +24,15 @@
                     class="btn btn-success js-approve-btn"
                     data-url="{{ route('admin.vendor-campaign-offers.approve', $offer->id) }}"
                     data-name="{{ e($offer->name) }}">
-                    Approve Offer
+                    {{ __('admin.vendor_campaign_offers.approve_offer_btn') }}
                 </button>
                 <button type="button"
                     class="btn btn-danger"
                     id="open-reject-modal">
-                    Reject Offer
+                    {{ __('admin.vendor_campaign_offers.reject_offer_btn') }}
                 </button>
             @endif
-            <a href="{{ route('admin.vendor-campaign-offers.index') }}" class="btn btn-secondary">← Back</a>
+            <a href="{{ route('admin.vendor-campaign-offers.index') }}" class="btn btn-secondary">← {{ __('admin.vendor_campaign_offers.back') }}</a>
         </div>
     </div>
 

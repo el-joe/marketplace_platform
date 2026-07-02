@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Administrators')
+@section('title', __('admin.admins_section.administrators'))
 
 @push('styles')
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/admins.js'])
@@ -17,15 +17,13 @@
                         d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                 </svg>
                 <span class="text-sm font-medium">
-                    You are impersonating
-                    <strong>{{ auth('admin')->user()->name }}</strong>.
-                    All actions are performed as this user.
+                    {!! __('admin.admins_section.impersonating_banner', ['name' => '<strong>' . e(auth('admin')->user()->name) . '</strong>']) !!}
                 </span>
             </div>
             <form method="POST" action="{{ route('admin.admins.stop-impersonating') }}">
                 @csrf
                 <button type="submit" class="btn btn-xs bg-white text-amber-700 hover:bg-amber-50 font-semibold">
-                    Stop Impersonating
+                    {{ __('admin.admins_section.stop_impersonating') }}
                 </button>
             </form>
         </div>
@@ -33,11 +31,11 @@
 
     @php
         $columns = [
-            ['title' => 'Name', 'data' => 'name', 'name' => 'name'],
-            ['title' => 'Email', 'data' => 'email', 'name' => 'email', 'searchable' => false],
-            ['title' => 'Country', 'data' => 'country_name', 'name' => 'country_name', 'searchable' => false, 'orderable' => false],
+            ['title' => __('admin.admins_section.name_column'), 'data' => 'name', 'name' => 'name'],
+            ['title' => __('admin.admins_section.email_column'), 'data' => 'email', 'name' => 'email', 'searchable' => false],
+            ['title' => __('admin.admins_section.country_column'), 'data' => 'country_name', 'name' => 'country_name', 'searchable' => false, 'orderable' => false],
             [
-                'title' => 'Roles',
+                'title' => __('admin.admins_section.roles_column'),
                 'data' => 'roles',
                 'name' => 'roles',
                 'searchable' => false,
@@ -50,24 +48,24 @@
                         }',
             ],
             [
-                'title' => 'Status',
+                'title' => __('admin.admins_section.status_column'),
                 'data' => 'status',
                 'name' => 'status',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                            active:   { label: "Active",   color: "success" },
-                            inactive: { label: "Inactive", color: "gray"    }
+                            active:   { label: "' . __('common.active') . '",   color: "success" },
+                            inactive: { label: "' . __('common.inactive') . '", color: "gray"    }
                         })',
             ],
             [
-                'title' => 'Last Login',
+                'title' => __('admin.admins_section.last_login_column'),
                 'data' => 'last_login_at',
                 'name' => 'last_login_at',
                 'searchable' => false,
                 'render' => 'Renderers.dateAgo',
             ],
             [
-                'title' => 'Created',
+                'title' => __('admin.admins_section.created_column'),
                 'data' => 'created_at',
                 'name' => 'created_at',
                 'searchable' => false,
@@ -79,44 +77,44 @@
                 'name' => 'actions',
                 'orderable' => false,
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'Renderers.actions([
-                            { type: "link",   label: "Edit",        url: ":edit_url",   class: "btn-secondary" },
-                            { type: "button", label: "Sessions",    id: "sessions",     class: "btn-ghost" },
-                            { type: "button", label: "Reset Pwd",   id: "reset-pwd",    class: "btn-ghost" },
-                            { type: "button", label: "Impersonate", id: "impersonate",  class: "btn-warning",   condition: (row) => row.can_impersonate },
-                            { type: "button", label: "Deactivate",  id: "deactivate",   class: "btn-secondary", condition: (row) => !row.is_self && row.status === "active" },
-                            { type: "button", label: "Activate",    id: "activate",     class: "btn-success",   condition: (row) => !row.is_self && row.status === "inactive" },
-                            { type: "button", label: "Delete",      id: "delete",       class: "btn-danger",    condition: (row) => row.can_delete },
+                            { type: "link",   label: "' . __('common.edit') . '",        url: ":edit_url",   class: "btn-secondary" },
+                            { type: "button", label: "' . __('admin.admins_section.sessions') . '",    id: "sessions",     class: "btn-ghost" },
+                            { type: "button", label: "' . __('admin.admins_section.reset_pwd') . '",   id: "reset-pwd",    class: "btn-ghost" },
+                            { type: "button", label: "' . __('admin.admins_section.impersonate') . '", id: "impersonate",  class: "btn-warning",   condition: (row) => row.can_impersonate },
+                            { type: "button", label: "' . __('admin.admins_section.deactivate') . '",  id: "deactivate",   class: "btn-secondary", condition: (row) => !row.is_self && row.status === "active" },
+                            { type: "button", label: "' . __('admin.admins_section.activate') . '",    id: "activate",     class: "btn-success",   condition: (row) => !row.is_self && row.status === "inactive" },
+                            { type: "button", label: "' . __('admin.admins_section.delete') . '",      id: "delete",       class: "btn-danger",    condition: (row) => row.can_delete },
                         ])',
             ],
         ];
 
         $filters = [
-            ['type' => 'text', 'name' => 'search', 'label' => 'Name / Email', 'placeholder' => 'Search…'],
+            ['type' => 'text', 'name' => 'search', 'label' => __('admin.admins_section.name_email_label'), 'placeholder' => __('common.search') . '…'],
             [
                 'type' => 'select',
                 'name' => 'status',
-                'label' => 'Status',
-                'options' => ['' => 'All Statuses', 'active' => 'Active', 'inactive' => 'Inactive'],
+                'label' => __('admin.admins_section.status_column'),
+                'options' => ['' => __('admin.admins_section.all_statuses'), 'active' => __('common.active'), 'inactive' => __('common.inactive')],
             ],
             [
                 'type' => 'select',
                 'name' => 'role',
-                'label' => 'Role',
-                'options' => ['' => 'All Roles'] + $roles->pluck('name', 'name')->toArray(),
+                'label' => __('admin.admins_section.role'),
+                'options' => ['' => __('admin.admins_section.all_roles')] + $roles->pluck('name', 'name')->toArray(),
             ],
             [
                 'type' => 'select',
                 'name' => 'country_id',
-                'label' => 'Country',
-                'options' => ['' => 'All Countries'] + $countries->pluck('name_en', 'id')->toArray(),
+                'label' => __('admin.admins_section.country_column'),
+                'options' => ['' => __('admin.admins_section.all_countries')] + $countries->pluck('name_en', 'id')->toArray(),
             ],
         ];
     @endphp
 
     <x-table.datatable id="admins-table" url="{{ route('admin.admins.datatable') }}" :columns="$columns" :filters="$filters"
-        :create-action="['url' => route('admin.admins.create'), 'label' => 'Add Administrator']" :page-length="25"
+        :create-action="['url' => route('admin.admins.create'), 'label' => __('admin.admins_section.add_administrator')]" :page-length="25"
         :order="[[6, 'desc']]" />
 
     {{-- ── Login Sessions Modal ──────────────────────────────────────────── --}}
@@ -124,9 +122,9 @@
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" id="sessions-backdrop"></div>
             <div
-                class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+                class="relative transform overflow-hidden rounded-xl bg-white text-start shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-base font-semibold text-gray-900" id="sessions-modal-title">Login Sessions</h3>
+                    <h3 class="text-base font-semibold text-gray-900" id="sessions-modal-title">{{ __('admin.admins_section.login_sessions') }}</h3>
                     <button type="button" id="sessions-modal-close" class="text-gray-400 hover:text-gray-500">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -135,7 +133,7 @@
                     </button>
                 </div>
                 <div class="px-6 py-4 max-h-96 overflow-y-auto">
-                    <div id="sessions-loading" class="text-center py-8 text-gray-500 text-sm">Loading…</div>
+                    <div id="sessions-loading" class="text-center py-8 text-gray-500 text-sm">{{ __('common.loading') }}</div>
                     <div id="sessions-list" class="hidden space-y-2"></div>
                 </div>
             </div>
@@ -145,36 +143,59 @@
 
 @push('scripts')
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            deleteAdministratorConfirm: @json(__('admin.admins_section.delete_administrator_confirm')),
+            deleteAdministratorTitle: @json(__('admin.admins_section.delete_administrator_title')),
+            administratorDeleted: @json(__('admin.admins_section.administrator_deleted')),
+            deleteFailed: @json(__('admin.admins_section.delete_failed')),
+            deactivateConfirm: @json(__('admin.admins_section.deactivate_confirm')),
+            deactivateTitle: @json(__('admin.admins_section.deactivate_title')),
+            administratorDeactivated: @json(__('admin.admins_section.administrator_deactivated')),
+            administratorActivated: @json(__('admin.admins_section.administrator_activated')),
+            actionFailed: @json(__('admin.admins_section.action_failed')),
+            resetPwdConfirm: @json(__('admin.admins_section.reset_pwd_confirm')),
+            resetPwdTitle: @json(__('admin.admins_section.reset_pwd_title')),
+            passwordResetDone: @json(__('admin.admins_section.password_reset_done')),
+            resetFailed: @json(__('admin.admins_section.reset_failed')),
+            impersonateConfirm: @json(__('admin.admins_section.impersonate_confirm')),
+            impersonateTitle: @json(__('admin.admins_section.impersonate_title')),
+            noSessionsFound: @json(__('admin.admins_section.no_sessions_found')),
+            failedLoadSessions: @json(__('admin.admins_section.failed_load_sessions')),
+            sessionsModalTitle: @json(__('admin.admins_section.sessions_modal_title')),
+            impersonationBadge: @json(__('admin.admins_section.impersonation_badge')),
+        });
+
         window.tableActions = window.tableActions || {};
 
         // ── Delete ─────────────────────────────────────────────────────────────────
         window.tableActions.delete = async function (id, row) {
             const confirmed = window.confirmDelete
-                ? await window.confirmDelete('Delete administrator "' + row.name + '"?', { title: 'Delete Administrator?' })
-                : confirm('Delete "' + row.name + '"?');
+                ? await window.confirmDelete(window.TRANSLATIONS.deleteAdministratorConfirm.replace(':name', row.name), { title: window.TRANSLATIONS.deleteAdministratorTitle })
+                : confirm(window.TRANSLATIONS.deleteAdministratorConfirm.replace(':name', row.name));
             if (!confirmed) return;
 
             $.ajax({
                 url: row.delete_url, method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             })
-                .done(() => { window.Toast?.success('Administrator deleted.'); window.reloadDataTable('admins-table'); })
-                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || 'Delete failed.'); });
+                .done(() => { window.Toast?.success(window.TRANSLATIONS.administratorDeleted); window.reloadDataTable('admins-table'); })
+                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || window.TRANSLATIONS.deleteFailed); });
         };
 
         // ── Deactivate ─────────────────────────────────────────────────────────────
         window.tableActions.deactivate = async function (id, row) {
             const confirmed = window.confirmBulkAction
-                ? await window.confirmBulkAction('Deactivate "' + row.name + '"?', { title: 'Deactivate Administrator?' })
-                : confirm('Deactivate "' + row.name + '"?');
+                ? await window.confirmBulkAction(window.TRANSLATIONS.deactivateConfirm.replace(':name', row.name), { title: window.TRANSLATIONS.deactivateTitle })
+                : confirm(window.TRANSLATIONS.deactivateConfirm.replace(':name', row.name));
             if (!confirmed) return;
 
             $.ajax({
                 url: row.toggle_url, method: 'POST',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             })
-                .done(() => { window.Toast?.success('Administrator deactivated.'); window.reloadDataTable('admins-table'); })
-                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || 'Action failed.'); });
+                .done(() => { window.Toast?.success(window.TRANSLATIONS.administratorDeactivated); window.reloadDataTable('admins-table'); })
+                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || window.TRANSLATIONS.actionFailed); });
         };
 
         // ── Activate ───────────────────────────────────────────────────────────────
@@ -183,30 +204,30 @@
                 url: row.toggle_url, method: 'POST',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             })
-                .done(() => { window.Toast?.success('Administrator activated.'); window.reloadDataTable('admins-table'); })
-                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || 'Action failed.'); });
+                .done(() => { window.Toast?.success(window.TRANSLATIONS.administratorActivated); window.reloadDataTable('admins-table'); })
+                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || window.TRANSLATIONS.actionFailed); });
         };
 
         // ── Reset Password ─────────────────────────────────────────────────────────
         window.tableActions['reset-pwd'] = async function (id, row) {
             const confirmed = window.confirmBulkAction
-                ? await window.confirmBulkAction('Reset password for "' + row.name + '"? They will receive a new password by email.', { title: 'Reset Password?' })
-                : confirm('Reset password for "' + row.name + '"?');
+                ? await window.confirmBulkAction(window.TRANSLATIONS.resetPwdConfirm.replace(':name', row.name), { title: window.TRANSLATIONS.resetPwdTitle })
+                : confirm(window.TRANSLATIONS.resetPwdConfirm.replace(':name', row.name));
             if (!confirmed) return;
 
             $.ajax({
                 url: row.reset_pwd_url, method: 'POST',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             })
-                .done(data => { window.Toast?.success(data.message || 'Password reset.'); })
-                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || 'Reset failed.'); });
+                .done(data => { window.Toast?.success(data.message || window.TRANSLATIONS.passwordResetDone); })
+                .fail(xhr => { window.Toast?.error(xhr.responseJSON?.message || window.TRANSLATIONS.resetFailed); });
         };
 
         // ── Impersonate ────────────────────────────────────────────────────────────
         window.tableActions.impersonate = async function (id, row) {
             const confirmed = window.confirmBulkAction
-                ? await window.confirmBulkAction('You will act as ' + row.name + '. All actions will be performed as this user.', { title: 'Impersonate Administrator?' })
-                : confirm('Impersonate "' + row.name + '"?');
+                ? await window.confirmBulkAction(window.TRANSLATIONS.impersonateConfirm.replace(':name', row.name), { title: window.TRANSLATIONS.impersonateTitle })
+                : confirm(window.TRANSLATIONS.impersonateConfirm.replace(':name', row.name));
             if (!confirmed) return;
 
             const form = document.createElement('form');
@@ -224,7 +245,7 @@
             const loading = document.getElementById('sessions-loading');
             const list = document.getElementById('sessions-list');
 
-            title.textContent = 'Login Sessions — ' + row.name;
+            title.textContent = window.TRANSLATIONS.sessionsModalTitle.replace(':name', row.name);
             loading.classList.remove('hidden');
             list.classList.add('hidden');
             list.innerHTML = '';
@@ -234,11 +255,11 @@
                 .done(function (data) {
                     loading.classList.add('hidden');
                     if (!data.data || !data.data.length) {
-                        list.innerHTML = '<p class="text-sm text-gray-500 py-4 text-center">No sessions found.</p>';
+                        list.innerHTML = '<p class="text-sm text-gray-500 py-4 text-center">' + window.TRANSLATIONS.noSessionsFound + '</p>';
                     } else {
                         list.innerHTML = data.data.map(function (s) {
                             const impersonationBadge = s.is_impersonation
-                                ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700 ml-2">Impersonation</span>'
+                                ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700 ml-2">' + window.TRANSLATIONS.impersonationBadge + '</span>'
                                 : '';
                             return '<div class="border border-gray-200 rounded-lg px-4 py-3 text-sm">'
                                 + '<div class="flex items-start justify-between gap-2">'
@@ -247,7 +268,7 @@
                                 + impersonationBadge
                                 + '<p class="text-xs text-gray-500 mt-0.5 truncate max-w-xs" title="' + s.user_agent + '">' + (s.user_agent || '—') + '</p>'
                                 + '</div>'
-                                + '<div class="text-right shrink-0">'
+                                + '<div class="text-end shrink-0">'
                                 + '<p class="text-xs text-gray-500">' + (s.started_at ? new Date(s.started_at).toLocaleString() : '—') + '</p>'
                                 + (s.duration ? '<p class="text-xs text-gray-400">' + s.duration + '</p>' : '')
                                 + '</div>'
@@ -258,7 +279,7 @@
                     list.classList.remove('hidden');
                 })
                 .fail(function () {
-                    loading.textContent = 'Failed to load sessions.';
+                    loading.textContent = window.TRANSLATIONS.failedLoadSessions;
                 });
         };
 

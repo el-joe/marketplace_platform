@@ -4,7 +4,7 @@
     @vite(['resources/js/components/datatable.js'])
 @endpush
 
-@section('title', $customer->name . ' — Customer')
+@section('title', $customer->name . ' — ' . __('admin.customers_section.customer_name'))
 
 @section('content')
 
@@ -36,12 +36,12 @@
                     {{ ucfirst($customer->status) }}
                 </x-badge>
                 @if($customer->email_verified_at)
-                    <x-badge color="success">Email Verified</x-badge>
+                    <x-badge color="success">{{ __('admin.customers_section.email_verified') }}</x-badge>
                 @endif
             </div>
         </div>
     </div>
-    <a href="{{ route('admin.customers.index') }}" class="text-sm text-gray-500 hover:text-gray-700 flex-shrink-0 mt-1">← Back</a>
+    <a href="{{ route('admin.customers.index') }}" class="text-sm text-gray-500 hover:text-gray-700 flex-shrink-0 mt-1">← {{ __('admin.customers_section.back') }}</a>
 </div>
 
 {{-- ─── Two-column layout ───────────────────────────────────────────────────── --}}
@@ -54,14 +54,14 @@
             {{-- Tab bar --}}
             <div class="flex gap-1 border-b border-gray-200 overflow-x-auto pb-px mb-6">
                 @foreach([
-                    'orders'          => 'Orders',
-                    'addresses'       => 'Addresses',
-                    'reviews'         => 'Reviews',
-                    'returns'         => 'Returns',
-                    'disputes'        => 'Disputes',
-                    'tickets'         => 'Tickets',
-                    'payment_methods' => 'Payment Methods',
-                    'activity'        => 'Activity',
+                    'orders'          => __('admin.customers_section.tab_orders'),
+                    'addresses'       => __('admin.customers_section.tab_addresses'),
+                    'reviews'         => __('admin.customers_section.tab_reviews'),
+                    'returns'         => __('admin.customers_section.tab_returns'),
+                    'disputes'        => __('admin.customers_section.tab_disputes'),
+                    'tickets'         => __('admin.customers_section.tab_tickets'),
+                    'payment_methods' => __('admin.customers_section.tab_payment_methods'),
+                    'activity'        => __('admin.customers_section.tab_activity'),
                 ] as $key => $label)
                     <button type="button"
                             @click="tab = '{{ $key }}'"
@@ -74,23 +74,23 @@
 
             {{-- ── Orders ─────────────────────────────────────────────────── --}}
             <div x-show="tab === 'orders'">
-                <x-card title="Recent Orders" subtitle="Latest 20 orders">
+                <x-card title="{{ __('admin.customers_section.recent_orders') }}" subtitle="{{ __('admin.customers_section.latest_20_orders') }}">
                     <x-slot name="actions">
                         <button type="button" id="show-orders-datatable-btn"
                             data-url="{{ route('admin.customers.orders.datatable', $customer->id) }}"
-                            class="text-xs text-primary-600 hover:underline">Full list (DataTable)</button>
+                            class="text-xs text-primary-600 hover:underline">{{ __('admin.customers_section.full_list_datatable') }}</button>
                     </x-slot>
                     @if($orders->isEmpty())
-                        <p class="text-sm text-gray-500 py-4 text-center">No orders yet.</p>
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_orders_yet') }}</p>
                     @else
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead>
-                                    <tr class="border-b border-gray-100 text-left text-xs text-gray-500 uppercase">
-                                        <th class="py-2 pr-4">Order #</th>
-                                        <th class="py-2 pr-4">Total</th>
-                                        <th class="py-2 pr-4">Status</th>
-                                        <th class="py-2 pr-4">Placed</th>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.order_number_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.total_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.status_col') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.placed_column') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
@@ -128,16 +128,16 @@
                 </x-card>
 
                 <div id="orders-datatable-section" class="mt-4 hidden">
-                    <x-card title="All Orders">
+                    <x-card title="{{ __('admin.customers_section.all_orders') }}">
                         <div class="overflow-x-auto">
                             <table id="orders-datatable" class="w-full text-sm">
                                 <thead>
-                                    <tr class="border-b border-gray-100 text-left text-xs text-gray-500 uppercase">
-                                        <th class="py-2 pr-4">Order #</th>
-                                        <th class="py-2 pr-4">Total</th>
-                                        <th class="py-2 pr-4">Status</th>
-                                        <th class="py-2 pr-4">Items</th>
-                                        <th class="py-2 pr-4">Placed</th>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.order_number_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.total_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.status_col') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.items_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.placed_column') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -149,17 +149,17 @@
 
             {{-- ── Addresses ───────────────────────────────────────────────── --}}
             <div x-show="tab === 'addresses'">
-                <x-card title="Saved Addresses">
+                <x-card title="{{ __('admin.customers_section.saved_addresses') }}">
                     @if($customer->addresses->isEmpty())
-                        <p class="text-sm text-gray-500 py-4 text-center">No addresses saved.</p>
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_addresses_saved') }}</p>
                     @else
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             @foreach($customer->addresses as $address)
                             <div class="rounded-lg border border-gray-200 p-4 text-sm space-y-1">
                                 <div class="flex items-center justify-between gap-2 mb-2">
-                                    <span class="font-semibold text-gray-800">{{ $address->label ?: ucfirst($address->address_type ?? 'Address') }}</span>
+                                    <span class="font-semibold text-gray-800">{{ $address->label ?: ucfirst($address->address_type ?? __('admin.customers_section.address_fallback')) }}</span>
                                     @if($address->is_default)
-                                        <x-badge color="primary">Default</x-badge>
+                                        <x-badge color="primary">{{ __('admin.customers_section.default_badge') }}</x-badge>
                                     @endif
                                 </div>
                                 <p class="text-gray-700">{{ $address->recipient_name }}</p>
@@ -170,8 +170,8 @@
                                     {{ implode(', ', array_filter([
                                         $address->street_address,
                                         $address->building,
-                                        $address->floor ? 'Floor ' . $address->floor : null,
-                                        $address->apartment ? 'Apt ' . $address->apartment : null,
+                                        $address->floor ? __('admin.customers_section.floor_label') . ' ' . $address->floor : null,
+                                        $address->apartment ? __('admin.customers_section.apartment_label') . ' ' . $address->apartment : null,
                                         $address->area,
                                         $address->city?->name_en ?? null,
                                         $address->country?->name_en ?? null,
@@ -187,19 +187,19 @@
 
             {{-- ── Reviews ─────────────────────────────────────────────────── --}}
             <div x-show="tab === 'reviews'">
-                <x-card title="Reviews" subtitle="Latest 20">
+                <x-card title="{{ __('admin.customers_section.tab_reviews') }}" subtitle="{{ __('admin.customers_section.latest_20') }}">
                     @if($reviews->isEmpty())
-                        <p class="text-sm text-gray-500 py-4 text-center">No reviews yet.</p>
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_reviews_yet') }}</p>
                     @else
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead>
-                                    <tr class="border-b border-gray-100 text-left text-xs text-gray-500 uppercase">
-                                        <th class="py-2 pr-4">Product</th>
-                                        <th class="py-2 pr-4">Rating</th>
-                                        <th class="py-2 pr-4">Status</th>
-                                        <th class="py-2 pr-4">Verified</th>
-                                        <th class="py-2 pr-4">Date</th>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.product_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.rating_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.status_col') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.verified_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.date_column') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
@@ -221,7 +221,7 @@
                                         </td>
                                         <td class="py-2 pr-4">
                                             @if($review->is_verified_purchase)
-                                                <x-badge color="success">Verified</x-badge>
+                                                <x-badge color="success">{{ __('admin.customers_section.verified_column') }}</x-badge>
                                             @else
                                                 <span class="text-gray-400">—</span>
                                             @endif
@@ -238,18 +238,18 @@
 
             {{-- ── Returns ─────────────────────────────────────────────────── --}}
             <div x-show="tab === 'returns'">
-                <x-card title="Return Requests" subtitle="Latest 20">
+                <x-card title="{{ __('admin.customers_section.return_requests') }}" subtitle="{{ __('admin.customers_section.latest_20') }}">
                     @if($returnRequests->isEmpty())
-                        <p class="text-sm text-gray-500 py-4 text-center">No return requests.</p>
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_return_requests') }}</p>
                     @else
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead>
-                                    <tr class="border-b border-gray-100 text-left text-xs text-gray-500 uppercase">
-                                        <th class="py-2 pr-4">Return #</th>
-                                        <th class="py-2 pr-4">Type</th>
-                                        <th class="py-2 pr-4">Status</th>
-                                        <th class="py-2 pr-4">Created</th>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.return_number_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.type_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.status_col') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.created_column') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
@@ -272,18 +272,18 @@
 
             {{-- ── Disputes ────────────────────────────────────────────────── --}}
             <div x-show="tab === 'disputes'">
-                <x-card title="Disputes" subtitle="Latest 20">
+                <x-card title="{{ __('admin.customers_section.tab_disputes') }}" subtitle="{{ __('admin.customers_section.latest_20') }}">
                     @if($disputes->isEmpty())
-                        <p class="text-sm text-gray-500 py-4 text-center">No disputes.</p>
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_disputes') }}</p>
                     @else
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead>
-                                    <tr class="border-b border-gray-100 text-left text-xs text-gray-500 uppercase">
-                                        <th class="py-2 pr-4">Dispute #</th>
-                                        <th class="py-2 pr-4">Reason</th>
-                                        <th class="py-2 pr-4">Status</th>
-                                        <th class="py-2 pr-4">Created</th>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.dispute_number_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.reason_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.status_col') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.created_column') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
@@ -306,20 +306,20 @@
 
             {{-- ── Tickets ─────────────────────────────────────────────────── --}}
             <div x-show="tab === 'tickets'">
-                <x-card title="Support Tickets" subtitle="Latest 20">
+                <x-card title="{{ __('admin.customers_section.support_tickets') }}" subtitle="{{ __('admin.customers_section.latest_20') }}">
                     @if($tickets->isEmpty())
-                        <p class="text-sm text-gray-500 py-4 text-center">No support tickets.</p>
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_support_tickets') }}</p>
                     @else
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead>
-                                    <tr class="border-b border-gray-100 text-left text-xs text-gray-500 uppercase">
-                                        <th class="py-2 pr-4">Ticket #</th>
-                                        <th class="py-2 pr-4">Subject</th>
-                                        <th class="py-2 pr-4">Category</th>
-                                        <th class="py-2 pr-4">Priority</th>
-                                        <th class="py-2 pr-4">Status</th>
-                                        <th class="py-2 pr-4">Created</th>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.ticket_number_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.subject_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.category_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.priority_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.status_col') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.created_column') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
@@ -352,9 +352,9 @@
 
             {{-- ── Payment Methods ──────────────────────────────────────────── --}}
             <div x-show="tab === 'payment_methods'">
-                <x-card title="Payment Methods">
+                <x-card title="{{ __('admin.customers_section.payment_methods_title') }}">
                     @if($paymentMethods->isEmpty())
-                        <p class="text-sm text-gray-500 py-4 text-center">No saved payment methods.</p>
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_saved_payment_methods') }}</p>
                     @else
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             @foreach($paymentMethods as $pm)
@@ -365,14 +365,14 @@
                                             {{ strtoupper($pm->card_brand ?? $pm->type ?? 'Card') }}
                                         </span>
                                         @if($pm->is_default)
-                                            <x-badge color="primary">Default</x-badge>
+                                            <x-badge color="primary">{{ __('admin.customers_section.default_badge') }}</x-badge>
                                         @endif
                                     </div>
                                     @if($pm->card_last4)
                                         <p class="text-gray-600 font-mono">•••• •••• •••• {{ $pm->card_last4 }}</p>
                                     @endif
                                     @if($pm->card_exp_month && $pm->card_exp_year)
-                                        <p class="text-gray-500 text-xs">Expires {{ str_pad($pm->card_exp_month, 2, '0', STR_PAD_LEFT) }}/{{ $pm->card_exp_year }}</p>
+                                        <p class="text-gray-500 text-xs">{{ __('admin.customers_section.expires_label') }} {{ str_pad($pm->card_exp_month, 2, '0', STR_PAD_LEFT) }}/{{ $pm->card_exp_year }}</p>
                                     @endif
                                     <p class="text-gray-400 text-xs">{{ ucfirst($pm->gateway ?? $pm->type ?? '') }}</p>
                                 </div>
@@ -381,7 +381,7 @@
                                     class="btn btn-xs btn-ghost text-danger-600 js-remove-payment-method flex-shrink-0"
                                     data-id="{{ $pm->id }}"
                                     data-customer="{{ $customer->id }}">
-                                    Remove
+                                    {{ __('admin.customers_section.remove') }}
                                 </button>
                                 @endif
                             </div>
@@ -393,9 +393,9 @@
 
             {{-- ── Activity ─────────────────────────────────────────────────── --}}
             <div x-show="tab === 'activity'">
-                <x-card title="Activity Log" subtitle="Showing last 50 entries">
+                <x-card title="{{ __('admin.customers_section.activity_log') }}" subtitle="{{ __('admin.customers_section.showing_last_50') }}">
                     @if($activityLog->isEmpty())
-                        <p class="text-sm text-gray-500 py-4 text-center">No activity recorded.</p>
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_activity_recorded') }}</p>
                     @else
                         <ol class="relative border-l border-gray-200 ml-3 space-y-4 py-2">
                             @foreach($activityLog as $entry)
@@ -437,7 +437,7 @@
     <div class="col-span-12 lg:col-span-4 space-y-5">
 
         {{-- Customer Info card --}}
-        <x-card title="Customer Info">
+        <x-card title="{{ __('admin.customers_section.customer_info') }}">
             <div class="space-y-3 text-sm">
                 <div class="flex flex-col items-center py-2">
                     <div class="w-16 h-16 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-2xl font-bold select-none mb-2">
@@ -450,37 +450,37 @@
                 <div class="border-t border-gray-100 pt-3 space-y-2.5">
                     {{-- Email --}}
                     <div class="flex items-start justify-between gap-2">
-                        <span class="text-gray-500 shrink-0">Email</span>
-                        <div class="text-right min-w-0">
+                        <span class="text-gray-500 shrink-0">{{ __('admin.customers_section.email_column') }}</span>
+                        <div class="text-end min-w-0">
                             <button type="button"
                                 class="text-gray-900 hover:text-primary-600 font-mono text-xs truncate js-copy"
                                 data-value="{{ $customer->email }}"
-                                title="Click to copy">
+                                title="{{ __('admin.customers_section.click_to_copy') }}">
                                 {{ $customer->email }}
                             </button>
                             @if($customer->email_verified_at)
                                 <x-badge color="success" class="ml-1">✓</x-badge>
                             @else
-                                <x-badge color="warning" class="ml-1">Unverified</x-badge>
+                                <x-badge color="warning" class="ml-1">{{ __('admin.customers_section.unverified') }}</x-badge>
                             @endif
                         </div>
                     </div>
 
                     {{-- Phone --}}
                     <div class="flex items-start justify-between gap-2">
-                        <span class="text-gray-500 shrink-0">Phone</span>
-                        <div class="text-right min-w-0">
+                        <span class="text-gray-500 shrink-0">{{ __('admin.customers_section.phone_column') }}</span>
+                        <div class="text-end min-w-0">
                             @if($customer->phone)
                                 <button type="button"
                                     class="text-gray-900 hover:text-primary-600 font-mono text-xs js-copy"
                                     data-value="{{ $customer->phone }}"
-                                    title="Click to copy">
+                                    title="{{ __('admin.customers_section.click_to_copy') }}">
                                     {{ $customer->phone }}
                                 </button>
                                 @if($customer->phone_verified_at)
                                     <x-badge color="success" class="ml-1">✓</x-badge>
                                 @else
-                                    <x-badge color="warning" class="ml-1">Unverified</x-badge>
+                                    <x-badge color="warning" class="ml-1">{{ __('admin.customers_section.unverified') }}</x-badge>
                                 @endif
                             @else
                                 <span class="text-gray-400">—</span>
@@ -490,7 +490,7 @@
 
                     {{-- Country --}}
                     <div class="flex items-center justify-between gap-2">
-                        <span class="text-gray-500">Country</span>
+                        <span class="text-gray-500">{{ __('admin.customers_section.country_column') }}</span>
                         <span class="text-gray-900">
                             @if($customer->country)
                                 {{ $customer->country->flag_emoji ?? '' }} {{ $customer->country->name_en }}
@@ -502,14 +502,14 @@
 
                     {{-- Joined --}}
                     <div class="flex items-center justify-between gap-2">
-                        <span class="text-gray-500">Joined</span>
+                        <span class="text-gray-500">{{ __('admin.customers_section.joined_column') }}</span>
                         <span class="text-gray-900">{{ $customer->created_at->format('d M Y') }}</span>
                     </div>
 
                     {{-- Last login --}}
                     <div class="flex items-start justify-between gap-2">
-                        <span class="text-gray-500 shrink-0">Last Login</span>
-                        <div class="text-right">
+                        <span class="text-gray-500 shrink-0">{{ __('admin.customers_section.last_login') }}</span>
+                        <div class="text-end">
                             <span class="text-gray-900 block">{{ $customer->last_login_at?->format('d M Y, H:i') ?? '—' }}</span>
                             @if($customer->last_login_ip)
                                 <span class="text-xs text-gray-400 font-mono">{{ $customer->last_login_ip }}</span>
@@ -520,7 +520,7 @@
                     {{-- DOB --}}
                     @if($customer->date_of_birth)
                     <div class="flex items-center justify-between gap-2">
-                        <span class="text-gray-500">Date of Birth</span>
+                        <span class="text-gray-500">{{ __('admin.customers_section.date_of_birth') }}</span>
                         <span class="text-gray-900">{{ $customer->date_of_birth }}</span>
                     </div>
                     @endif
@@ -529,27 +529,27 @@
         </x-card>
 
         {{-- Stats card --}}
-        <x-card title="Stats">
+        <x-card title="{{ __('admin.customers_section.stats') }}">
             <div class="space-y-2.5 text-sm">
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-gray-500">Total Orders</span>
+                    <span class="text-gray-500">{{ __('admin.customers_section.total_orders') }}</span>
                     <span class="font-semibold text-gray-900">{{ number_format($customer->total_orders) }}</span>
                 </div>
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-gray-500">Total Spent</span>
+                    <span class="text-gray-500">{{ __('admin.customers_section.total_spent') }}</span>
                     <span class="font-semibold text-gray-900">{{ number_format((float) $customer->total_spent, 2) }}</span>
                 </div>
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-gray-500">Loyalty Points</span>
+                    <span class="text-gray-500">{{ __('admin.customers_section.loyalty_points') }}</span>
                     <span class="font-semibold text-primary-700" id="loyalty-balance-display">{{ number_format((float) $customer->loyalty_points, 2) }}</span>
                 </div>
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-gray-500">Referral Code</span>
+                    <span class="text-gray-500">{{ __('admin.customers_section.referral_code') }}</span>
                     @if($customer->referral_code)
                         <button type="button"
                             class="text-gray-900 hover:text-primary-600 font-mono text-xs js-copy"
                             data-value="{{ $customer->referral_code }}"
-                            title="Click to copy">
+                            title="{{ __('admin.customers_section.click_to_copy') }}">
                             {{ $customer->referral_code }}
                         </button>
                     @else
@@ -558,7 +558,7 @@
                 </div>
                 @if($customer->referredBy)
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-gray-500">Referred By</span>
+                    <span class="text-gray-500">{{ __('admin.customers_section.referred_by') }}</span>
                     <a href="{{ route('admin.customers.show', $customer->referredBy->id) }}"
                        class="text-primary-600 hover:underline text-xs">
                         {{ $customer->referredBy->name }}
@@ -569,7 +569,7 @@
         </x-card>
 
         {{-- Status & Actions card --}}
-        <x-card title="Status & Actions">
+        <x-card title="{{ __('admin.customers_section.status_actions') }}">
             <div class="space-y-4">
                 <div class="flex items-center gap-3">
                     <x-badge :color="$statusColor" size="md">{{ ucfirst($customer->status) }}</x-badge>
@@ -584,35 +584,35 @@
                             data-url="{{ route('admin.customers.suspend', $customer->id) }}"
                             data-name="{{ $customer->name }}"
                             data-modal="suspend-modal">
-                            Suspend Customer
+                            {{ __('admin.customers_section.suspend_customer') }}
                         </button>
                         <button type="button"
                             class="btn btn-danger btn-sm w-full js-ban-btn"
                             data-url="{{ route('admin.customers.ban', $customer->id) }}"
                             data-name="{{ $customer->name }}"
                             data-modal="ban-modal">
-                            Ban Customer
+                            {{ __('admin.customers_section.ban_customer_btn') }}
                         </button>
                     @elseif($customer->status === 'suspended')
                         <button type="button"
                             class="btn btn-success btn-sm w-full js-reactivate-btn"
                             data-url="{{ route('admin.customers.reactivate', $customer->id) }}"
                             data-name="{{ $customer->name }}">
-                            Reactivate
+                            {{ __('admin.customers_section.reactivate') }}
                         </button>
                         <button type="button"
                             class="btn btn-danger btn-sm w-full js-ban-btn"
                             data-url="{{ route('admin.customers.ban', $customer->id) }}"
                             data-name="{{ $customer->name }}"
                             data-modal="ban-modal">
-                            Escalate to Ban
+                            {{ __('admin.customers_section.escalate_to_ban') }}
                         </button>
                     @elseif($customer->status === 'banned')
                         <button type="button"
                             class="btn btn-success btn-sm w-full js-reactivate-btn"
                             data-url="{{ route('admin.customers.reactivate', $customer->id) }}"
                             data-name="{{ $customer->name }}">
-                            Reactivate
+                            {{ __('admin.customers_section.reactivate') }}
                         </button>
                     @endif
                 </div>
@@ -623,12 +623,12 @@
                     <button type="button"
                         id="open-loyalty-modal"
                         class="btn btn-secondary btn-sm w-full">
-                        Adjust Loyalty Points
+                        {{ __('admin.customers_section.adjust_loyalty_points') }}
                     </button>
                     <button type="button"
                         id="open-notification-modal"
                         class="btn btn-ghost btn-sm w-full">
-                        Send Notification
+                        {{ __('admin.customers_section.send_notification') }}
                     </button>
                 </div>
                 @endif
@@ -638,7 +638,7 @@
                     <a href="{{ route('admin.customers.export', $customer->id) }}"
                        class="btn btn-ghost btn-sm w-full text-center"
                        target="_blank">
-                        Export Data (GDPR)
+                        {{ __('admin.customers_section.export_data_gdpr') }}
                     </a>
                 </div>
                 @endif
@@ -653,110 +653,110 @@
 ══════════════════════════════════════════════════════════════════════════════ --}}
 
 {{-- ─── Suspend modal ──────────────────────────────────────────────────────── --}}
-<x-modal id="suspend-modal" title="Suspend Customer" size="sm">
-    <p class="text-sm text-gray-600 mb-3">You are about to suspend <strong>{{ $customer->name }}</strong>.</p>
+<x-modal id="suspend-modal" title="{{ __('admin.customers_section.suspend_customer') }}" size="sm">
+    <p class="text-sm text-gray-600 mb-3">{{ \Illuminate\Support\Str::before(__('admin.customers_section.suspend_customer_confirm'), ':name') }}<strong>{{ $customer->name }}</strong>{{ \Illuminate\Support\Str::after(__('admin.customers_section.suspend_customer_confirm'), ':name') }}</p>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Reason <span class="text-danger-500">*</span></label>
-        <textarea id="suspend-reason" class="form-input w-full resize-none" rows="3" placeholder="Enter reason…"></textarea>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.reason_label') }} <span class="text-danger-500">*</span></label>
+        <textarea id="suspend-reason" class="form-input w-full resize-none" rows="3" placeholder="{{ __('admin.customers_section.enter_reason_placeholder') }}"></textarea>
     </div>
     <x-slot name="footer">
-        <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+        <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.customers_section.cancel') }}</button>
         <button type="button" id="suspend-confirm-btn"
             class="btn btn-warning btn-sm"
             data-url="{{ route('admin.customers.suspend', $customer->id) }}">
-            Suspend
+            {{ __('admin.customers_section.suspend') }}
         </button>
     </x-slot>
 </x-modal>
 
 {{-- ─── Ban modal ───────────────────────────────────────────────────────────── --}}
-<x-modal id="ban-modal" title="Ban Customer" size="sm" :persistent="true">
-    <p class="text-sm text-gray-600 mb-3">You are about to <strong class="text-danger-700">permanently ban</strong> <strong>{{ $customer->name }}</strong>. This will revoke all active sessions.</p>
+<x-modal id="ban-modal" title="{{ __('admin.customers_section.ban_customer') }}" size="sm" :persistent="true">
+    <p class="text-sm text-gray-600 mb-3">{{ \Illuminate\Support\Str::before(__('admin.customers_section.ban_customer_confirm'), ':name') }}<strong>{{ $customer->name }}</strong>{{ \Illuminate\Support\Str::after(__('admin.customers_section.ban_customer_confirm'), ':name') }}</p>
     <div class="mb-3">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Reason <span class="text-danger-500">*</span></label>
-        <textarea id="ban-reason" class="form-input w-full resize-none" rows="3" placeholder="Enter reason…"></textarea>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.reason_label') }} <span class="text-danger-500">*</span></label>
+        <textarea id="ban-reason" class="form-input w-full resize-none" rows="3" placeholder="{{ __('admin.customers_section.enter_reason_placeholder') }}"></textarea>
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Type <code class="bg-gray-100 px-1 rounded text-xs">CONFIRM</code> to proceed</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.type_confirm_hint') }} <code class="bg-gray-100 px-1 rounded text-xs">CONFIRM</code></label>
         <input type="text" id="ban-confirm-input" class="form-input w-full" placeholder="CONFIRM" autocomplete="off">
     </div>
     <x-slot name="footer">
-        <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+        <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.customers_section.cancel') }}</button>
         <button type="button" id="ban-confirm-btn"
             class="btn btn-danger btn-sm"
             disabled
             data-url="{{ route('admin.customers.ban', $customer->id) }}">
-            Ban Customer
+            {{ __('admin.customers_section.ban_customer_btn') }}
         </button>
     </x-slot>
 </x-modal>
 
 {{-- ─── Adjust loyalty points modal ────────────────────────────────────────── --}}
-<x-modal id="adjust-loyalty-modal" title="Adjust Loyalty Points" size="sm">
+<x-modal id="adjust-loyalty-modal" title="{{ __('admin.customers_section.adjust_loyalty_points') }}" size="sm">
     <div class="space-y-4">
         <div class="rounded-lg bg-primary-50 border border-primary-100 px-4 py-3 text-sm">
             <div class="flex items-center justify-between">
-                <span class="text-primary-700">Current balance</span>
+                <span class="text-primary-700">{{ __('admin.customers_section.current_balance') }}</span>
                 <span class="font-bold text-primary-800" id="current-loyalty">{{ number_format((float) $customer->loyalty_points, 2) }}</span>
             </div>
             <div class="flex items-center justify-between mt-1">
-                <span class="text-primary-700">New balance</span>
+                <span class="text-primary-700">{{ __('admin.customers_section.new_balance') }}</span>
                 <span class="font-bold text-primary-900" id="preview-loyalty">{{ number_format((float) $customer->loyalty_points, 2) }}</span>
             </div>
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
-                Adjustment <span class="text-danger-500">*</span>
-                <span class="font-normal text-gray-400">(use negative to deduct)</span>
+                {{ __('admin.customers_section.adjustment_label') }} <span class="text-danger-500">*</span>
+                <span class="font-normal text-gray-400">{{ __('admin.customers_section.adjustment_hint') }}</span>
             </label>
             <input type="number" id="adjustment-input"
                 class="form-input w-full"
-                placeholder="e.g. 100 or -50"
+                placeholder="{{ __('admin.customers_section.adjustment_placeholder') }}"
                 data-current="{{ (float) $customer->loyalty_points }}">
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Reason <span class="text-danger-500">*</span></label>
-            <input type="text" id="loyalty-reason" class="form-input w-full" placeholder="e.g. Manual compensation">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.reason_label') }} <span class="text-danger-500">*</span></label>
+            <input type="text" id="loyalty-reason" class="form-input w-full" placeholder="{{ __('admin.customers_section.reason_placeholder_compensation') }}">
         </div>
     </div>
     <x-slot name="footer">
-        <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+        <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.customers_section.cancel') }}</button>
         <button type="button" id="loyalty-confirm-btn"
             class="btn btn-primary btn-sm"
             data-url="{{ route('admin.customers.adjust-loyalty', $customer->id) }}">
-            Apply
+            {{ __('admin.customers_section.apply') }}
         </button>
     </x-slot>
 </x-modal>
 
 {{-- ─── Send notification modal ─────────────────────────────────────────────── --}}
-<x-modal id="send-notification-modal" title="Send Notification" size="sm">
+<x-modal id="send-notification-modal" title="{{ __('admin.customers_section.send_notification') }}" size="sm">
     <div class="space-y-4">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Channel <span class="text-danger-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.channel_label') }} <span class="text-danger-500">*</span></label>
             <select id="notif-channel" class="form-input w-full">
-                <option value="database">In-App (Database)</option>
-                <option value="email">Email</option>
-                <option value="sms">SMS</option>
+                <option value="database">{{ __('admin.customers_section.in_app_database') }}</option>
+                <option value="email">{{ __('admin.customers_section.email_channel') }}</option>
+                <option value="sms">{{ __('admin.customers_section.sms_channel') }}</option>
             </select>
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-danger-500">*</span></label>
-            <input type="text" id="notif-title" class="form-input w-full" placeholder="Notification title">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.title_label') }} <span class="text-danger-500">*</span></label>
+            <input type="text" id="notif-title" class="form-input w-full" placeholder="{{ __('admin.customers_section.notification_title_placeholder') }}">
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Message <span class="text-danger-500">*</span></label>
-            <textarea id="notif-message" class="form-input w-full resize-none" rows="4" placeholder="Message body…"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.customers_section.message_label') }} <span class="text-danger-500">*</span></label>
+            <textarea id="notif-message" class="form-input w-full resize-none" rows="4" placeholder="{{ __('admin.customers_section.message_body_placeholder') }}"></textarea>
         </div>
     </div>
     <x-slot name="footer">
-        <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+        <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.customers_section.cancel') }}</button>
         <button type="button" id="notif-send-btn"
             class="btn btn-primary btn-sm"
             data-url="{{ route('admin.customers.send-notification', $customer->id) }}">
-            Send
+            {{ __('admin.customers_section.send') }}
         </button>
     </x-slot>
 </x-modal>

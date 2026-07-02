@@ -4,7 +4,7 @@
     @vite(['resources/js/admin/ad-campaigns.js'])
 @endpush
 
-@section('title', 'Campaign: ' . $campaign->name)
+@section('title', __('admin.ad_campaigns.campaign_title', ['name' => $campaign->name]))
 
 @section('content')
 
@@ -12,13 +12,13 @@
     <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
             <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <a href="{{ route('admin.ad-campaigns.index') }}" class="hover:text-primary-600">Ad Campaigns</a>
+                <a href="{{ route('admin.ad-campaigns.index') }}" class="hover:text-primary-600">{{ __('admin.ad_campaigns.title') }}</a>
                 <span>/</span>
                 <span class="text-gray-800 font-medium truncate max-w-xs">{{ $campaign->name }}</span>
             </div>
             <h1 class="text-2xl font-bold text-gray-900">{{ $campaign->name }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">
-                By <strong>{{ $campaign->vendor?->store_name ?? '—' }}</strong>
+                {{ __('admin.ad_campaigns.by') }} <strong>{{ $campaign->vendor?->store_name ?? '—' }}</strong>
                 @if($campaign->country)
                     · {{ $campaign->country->flag_emoji ?? '' }} {{ $campaign->country->name_en }}
                 @endif
@@ -31,37 +31,37 @@
                     class="btn btn-success js-approve-btn"
                     data-url="{{ route('admin.ad-campaigns.approve', $campaign->id) }}"
                     data-name="{{ e($campaign->name) }}">
-                    Approve Campaign
+                    {{ __('admin.ad_campaigns.approve_campaign_btn') }}
                 </button>
                 <button type="button"
                     class="btn btn-danger js-reject-btn"
                     data-url="{{ route('admin.ad-campaigns.reject', $campaign->id) }}"
                     data-name="{{ e($campaign->name) }}">
-                    Reject Campaign
+                    {{ __('admin.ad_campaigns.reject_campaign_btn') }}
                 </button>
             @elseif($campaign->status === 'active')
                 <button type="button"
                     class="btn btn-warning js-pause-btn"
                     data-url="{{ route('admin.ad-campaigns.pause', $campaign->id) }}"
                     data-name="{{ e($campaign->name) }}">
-                    Pause Campaign
+                    {{ __('admin.ad_campaigns.pause_campaign_btn') }}
                 </button>
             @elseif($campaign->status === 'paused')
                 <button type="button"
                     class="btn btn-success js-resume-btn"
                     data-url="{{ route('admin.ad-campaigns.resume', $campaign->id) }}"
                     data-name="{{ e($campaign->name) }}">
-                    Resume Campaign
+                    {{ __('admin.ad_campaigns.resume_campaign_btn') }}
                 </button>
             @endif
-            <a href="{{ route('admin.ad-campaigns.index') }}" class="btn btn-secondary">← Back</a>
+            <a href="{{ route('admin.ad-campaigns.index') }}" class="btn btn-secondary">{{ __('admin.ad_campaigns.back') }}</a>
         </div>
     </div>
 
     {{-- ─── Status banner for rejected campaigns ──────────────────────────────── --}}
     @if($campaign->status === 'rejected' && $campaign->rejection_reason)
         <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            <strong>Rejection reason:</strong> {{ $campaign->rejection_reason }}
+            <strong>{{ __('admin.ad_campaigns.rejection_reason_shown') }}</strong> {{ $campaign->rejection_reason }}
         </div>
     @endif
 
@@ -73,12 +73,12 @@
         {{-- Tab bar --}}
         <div class="flex border-b border-gray-200 gap-1 overflow-x-auto">
             @foreach([
-                'overview'    => 'Overview',
-                'products'    => 'Products (' . $campaign->products->count() . ')',
-                'keywords'    => 'Keywords (' . $campaign->keywords->count() . ')',
-                'categories'  => 'Categories (' . $campaign->categoryTargets->count() . ')',
-                'performance' => 'Performance',
-                'fraud'       => 'Fraud Alerts (' . $campaign->fraudPatterns->count() . ')',
+                'overview'    => __('admin.ad_campaigns.tab_overview'),
+                'products'    => __('admin.ad_campaigns.tab_products', ['n' => $campaign->products->count()]),
+                'keywords'    => __('admin.ad_campaigns.tab_keywords', ['n' => $campaign->keywords->count()]),
+                'categories'  => __('admin.ad_campaigns.tab_categories', ['n' => $campaign->categoryTargets->count()]),
+                'performance' => __('admin.ad_campaigns.tab_performance'),
+                'fraud'       => __('admin.ad_campaigns.tab_fraud', ['n' => $campaign->fraudPatterns->count()]),
             ] as $tab => $label)
                 <button
                     type="button"
@@ -97,10 +97,10 @@
                 {{-- Campaign details --}}
                 <div class="lg:col-span-2 space-y-5">
 
-                    <x-card title="Campaign Details">
+                    <x-card title="{{ __('admin.ad_campaigns.campaign_details') }}">
                         <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm">
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Type</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.type') }}</dt>
                                 <dd>
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-100 text-primary-700">
                                         {{ strtoupper($campaign->type) }}
@@ -108,7 +108,7 @@
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Status</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.status') }}</dt>
                                 <dd>
                                     @php
                                         $statusColors = ['active'=>'success','pending_review'=>'warning','paused'=>'gray','rejected'=>'danger','ended'=>'gray','draft'=>'gray'];
@@ -120,33 +120,33 @@
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Targeting</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.targeting_type') }}</dt>
                                 <dd class="font-medium">{{ ucfirst($campaign->targeting_type) }}</dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Total Budget</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.total_budget') }}</dt>
                                 <dd class="font-semibold">${{ number_format($campaign->budget_total / 100, 2) }}</dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Daily Budget</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.daily_budget') }}</dt>
                                 <dd class="font-semibold">
                                     {{ $campaign->budget_daily ? '$' . number_format($campaign->budget_daily / 100, 2) : '—' }}
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Bid</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.bid') }}</dt>
                                 <dd class="font-semibold">${{ number_format($campaign->bid / 100, 4) }}</dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Spent Total</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.spent_total') }}</dt>
                                 <dd class="font-semibold text-orange-600">${{ number_format($campaign->budget_spent_total / 100, 2) }}</dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Spent Today</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.spent_today') }}</dt>
                                 <dd class="font-semibold">${{ number_format($campaign->budget_spent_today / 100, 2) }}</dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Utilization</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.utilization') }}</dt>
                                 @php
                                     $util = $campaign->budget_total > 0 ? min(100, round($campaign->budget_spent_total / $campaign->budget_total * 100, 1)) : 0;
                                     $barClass = $util >= 90 ? 'bg-red-500' : ($util >= 70 ? 'bg-yellow-500' : 'bg-green-500');
@@ -161,16 +161,16 @@
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Starts At</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.starts_at') }}</dt>
                                 <dd>{{ $campaign->starts_at ? $campaign->starts_at->format('d M Y H:i') : '—' }}</dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Ends At</dt>
+                                <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.ends_at') }}</dt>
                                 <dd>{{ $campaign->ends_at ? $campaign->ends_at->format('d M Y H:i') : '—' }}</dd>
                             </div>
                             @if($campaign->approvedByAdmin)
                                 <div>
-                                    <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">Approved By</dt>
+                                    <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.approved_by') }}</dt>
                                     <dd>{{ $campaign->approvedByAdmin->name ?? '—' }}</dd>
                                 </div>
                             @endif
@@ -178,7 +178,7 @@
                     </x-card>
 
                     {{-- 7-day performance summary --}}
-                    <x-card title="Performance (Last 7 Days)">
+                    <x-card title="{{ __('admin.ad_campaigns.performance_7d') }}">
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             @php
                                 $ctr7 = $perfSummary['ctr'] ?? 0;
@@ -186,31 +186,31 @@
                             @endphp
                             <div class="text-center p-3 rounded-lg bg-gray-50">
                                 <div class="text-2xl font-bold text-gray-800">{{ number_format($perfSummary['impressions']) }}</div>
-                                <div class="text-xs text-gray-500 mt-1">Impressions</div>
+                                <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.impressions') }}</div>
                             </div>
                             <div class="text-center p-3 rounded-lg bg-gray-50">
                                 <div class="text-2xl font-bold text-gray-800">{{ number_format($perfSummary['clicks']) }}</div>
-                                <div class="text-xs text-gray-500 mt-1">Clicks</div>
+                                <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.clicks') }}</div>
                             </div>
                             <div class="text-center p-3 rounded-lg bg-gray-50">
                                 <div class="text-2xl font-bold text-gray-800">{{ number_format($perfSummary['conversions']) }}</div>
-                                <div class="text-xs text-gray-500 mt-1">Conversions</div>
+                                <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.conversions') }}</div>
                             </div>
                             <div class="text-center p-3 rounded-lg bg-gray-50">
                                 <div class="text-2xl font-bold text-primary-600">${{ number_format($perfSummary['spend_cents'] / 100, 2) }}</div>
-                                <div class="text-xs text-gray-500 mt-1">Spend</div>
+                                <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.spend') }}</div>
                             </div>
                             <div class="text-center p-3 rounded-lg bg-gray-50">
                                 <div class="text-2xl font-bold text-gray-800">{{ number_format((float)$ctr7 * 100, 2) }}%</div>
-                                <div class="text-xs text-gray-500 mt-1">CTR</div>
+                                <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.ctr') }}</div>
                             </div>
                             <div class="text-center p-3 rounded-lg bg-gray-50">
                                 <div class="text-2xl font-bold text-gray-800">{{ number_format((float)$acos7 * 100, 2) }}%</div>
-                                <div class="text-xs text-gray-500 mt-1">ACOS</div>
+                                <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.acos') }}</div>
                             </div>
                             <div class="text-center p-3 rounded-lg bg-gray-50 sm:col-span-2">
                                 <div class="text-2xl font-bold text-success-600">${{ number_format($perfSummary['revenue_attributed_cents'] / 100, 2) }}</div>
-                                <div class="text-xs text-gray-500 mt-1">Revenue Attributed</div>
+                                <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.revenue_attributed') }}</div>
                             </div>
                         </div>
                     </x-card>
@@ -218,15 +218,15 @@
 
                 {{-- Quality score sidebar --}}
                 <div class="space-y-5">
-                    <x-card title="Quality Score">
+                    <x-card title="{{ __('admin.ad_campaigns.quality_score_title') }}">
                         @if($qualityScore)
                             @php
                                 $scores = [
-                                    'Overall'    => $qualityScore->score,
-                                    'CTR Score'  => $qualityScore->ctr_score,
-                                    'Relevance'  => $qualityScore->relevance_score,
-                                    'Landing'    => $qualityScore->landing_score,
-                                    'Vendor'     => $qualityScore->vendor_score,
+                                    __('admin.ad_campaigns.quality_overall')   => $qualityScore->score,
+                                    __('admin.ad_campaigns.quality_ctr')       => $qualityScore->ctr_score,
+                                    __('admin.ad_campaigns.quality_relevance') => $qualityScore->relevance_score,
+                                    __('admin.ad_campaigns.quality_landing')   => $qualityScore->landing_score,
+                                    __('admin.ad_campaigns.quality_vendor')    => $qualityScore->vendor_score,
                                 ];
                             @endphp
                             <div class="space-y-3">
@@ -245,10 +245,10 @@
                                         </div>
                                     </div>
                                 @endforeach
-                                <p class="text-xs text-gray-400 mt-2">Last calculated: {{ $qualityScore->calculated_at ? \Carbon\Carbon::parse($qualityScore->calculated_at)->diffForHumans() : '—' }}</p>
+                                <p class="text-xs text-gray-400 mt-2">{{ __('admin.ad_campaigns.last_calculated') }}: {{ $qualityScore->calculated_at ? \Carbon\Carbon::parse($qualityScore->calculated_at)->diffForHumans() : '—' }}</p>
                             </div>
                         @else
-                            <p class="text-sm text-gray-400 py-4 text-center">No quality score data yet.</p>
+                            <p class="text-sm text-gray-400 py-4 text-center">{{ __('admin.ad_campaigns.no_quality_score') }}</p>
                         @endif
                     </x-card>
                 </div>
@@ -257,17 +257,17 @@
 
         {{-- ═══════════ TAB: PRODUCTS ═══════════ --}}
         <div x-show="activeTab === 'products'" x-transition>
-            <x-card title="Promoted Products">
+            <x-card title="{{ __('admin.ad_campaigns.promoted_products') }}">
                 @if($campaign->products->isEmpty())
-                    <p class="text-sm text-gray-400 py-6 text-center">No products assigned to this campaign.</p>
+                    <p class="text-sm text-gray-400 py-6 text-center">{{ __('admin.ad_campaigns.no_products_assigned') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b border-gray-100 text-left">
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Product / Listing</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Variant</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Active</th>
+                                <tr class="border-b border-gray-100 text-start">
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.product_listing') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.variant') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.active') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -281,9 +281,9 @@
                                         </td>
                                         <td class="py-2">
                                             @if($product->is_active)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">Active</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">{{ __('admin.ad_campaigns.active') }}</span>
                                             @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Inactive</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{{ __('admin.ad_campaigns.inactive') }}</span>
                                             @endif
                                         </td>
                                     </tr>
@@ -297,19 +297,19 @@
 
         {{-- ═══════════ TAB: KEYWORDS ═══════════ --}}
         <div x-show="activeTab === 'keywords'" x-transition>
-            <x-card title="Keyword Targeting">
+            <x-card title="{{ __('admin.ad_campaigns.keyword_targeting') }}">
                 @if($campaign->keywords->isEmpty())
-                    <p class="text-sm text-gray-400 py-6 text-center">No keywords configured.</p>
+                    <p class="text-sm text-gray-400 py-6 text-center">{{ __('admin.ad_campaigns.no_keywords') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b border-gray-100 text-left">
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Keyword</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Match Type</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Bid Override</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Negative</th>
-                                    <th class="py-2 text-xs font-medium text-gray-500 uppercase">Active</th>
+                                <tr class="border-b border-gray-100 text-start">
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.keyword') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.match_type') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.bid_override') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.negative') }}</th>
+                                    <th class="py-2 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.active') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -330,16 +330,16 @@
                                         </td>
                                         <td class="py-2 pr-4">
                                             @if($kw->is_negative)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Negative</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{{ __('admin.ad_campaigns.negative') }}</span>
                                             @else
                                                 <span class="text-gray-400 text-xs">—</span>
                                             @endif
                                         </td>
                                         <td class="py-2">
                                             @if($kw->is_active)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">Active</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">{{ __('admin.ad_campaigns.active') }}</span>
                                             @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Off</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{{ __('admin.ad_campaigns.off') }}</span>
                                             @endif
                                         </td>
                                     </tr>
@@ -353,17 +353,17 @@
 
         {{-- ═══════════ TAB: CATEGORIES ═══════════ --}}
         <div x-show="activeTab === 'categories'" x-transition>
-            <x-card title="Category Targeting">
+            <x-card title="{{ __('admin.ad_campaigns.category_targeting') }}">
                 @if($campaign->categoryTargets->isEmpty())
-                    <p class="text-sm text-gray-400 py-6 text-center">No category targets configured.</p>
+                    <p class="text-sm text-gray-400 py-6 text-center">{{ __('admin.ad_campaigns.no_category_targets') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b border-gray-100 text-left">
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Category</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Bid Override</th>
-                                    <th class="py-2 text-xs font-medium text-gray-500 uppercase">Active</th>
+                                <tr class="border-b border-gray-100 text-start">
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.category') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.bid_override') }}</th>
+                                    <th class="py-2 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.active') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -377,9 +377,9 @@
                                         </td>
                                         <td class="py-2">
                                             @if($ct->is_active)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">Active</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">{{ __('admin.ad_campaigns.active') }}</span>
                                             @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Off</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{{ __('admin.ad_campaigns.off') }}</span>
                                             @endif
                                         </td>
                                     </tr>
@@ -395,7 +395,7 @@
         <div x-show="activeTab === 'performance'" x-transition>
 
             {{-- Chart --}}
-            <x-card title="Impressions & Clicks (Last 30 Days)" class="mb-5">
+            <x-card title="{{ __('admin.ad_campaigns.impressions_clicks_30d') }}" class="mb-5">
                 <div style="position:relative; height:280px;">
                     <canvas id="performance-chart"
                         data-labels="{{ json_encode($chartLabels) }}"
@@ -406,18 +406,18 @@
             </x-card>
 
             {{-- Daily stats table --}}
-            <x-card title="Daily Breakdown">
+            <x-card title="{{ __('admin.ad_campaigns.daily_breakdown') }}">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead>
-                            <tr class="border-b border-gray-100 text-left">
-                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Date</th>
-                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Impressions</th>
-                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Clicks</th>
-                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">CTR%</th>
-                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Conversions</th>
-                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Spend</th>
-                                <th class="py-2 text-xs font-medium text-gray-500 uppercase">ACOS%</th>
+                            <tr class="border-b border-gray-100 text-start">
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.marketers.date') }}</th>
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.impressions') }}</th>
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.clicks') }}</th>
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.ctr') }}%</th>
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.conversions') }}</th>
+                                <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.spend') }}</th>
+                                <th class="py-2 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.acos') }}%</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -433,7 +433,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-6 text-center text-gray-400 text-sm">No performance data yet.</td>
+                                    <td colspan="7" class="py-6 text-center text-gray-400 text-sm">{{ __('admin.ad_campaigns.no_performance_data') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -444,21 +444,21 @@
 
         {{-- ═══════════ TAB: FRAUD ALERTS ═══════════ --}}
         <div x-show="activeTab === 'fraud'" x-transition>
-            <x-card title="Fraud Patterns">
+            <x-card title="{{ __('admin.ad_campaigns.fraud_patterns') }}">
                 @if($campaign->fraudPatterns->isEmpty())
-                    <p class="text-sm text-gray-400 py-6 text-center">No fraud patterns detected for this campaign.</p>
+                    <p class="text-sm text-gray-400 py-6 text-center">{{ __('admin.ad_campaigns.no_fraud_patterns') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b border-gray-100 text-left">
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">IP Address</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Clicks/Hour</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Clicks/24h</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Blocked At</th>
-                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Reason</th>
-                                    <th class="py-2 text-xs font-medium text-gray-500 uppercase">Action</th>
+                                <tr class="border-b border-gray-100 text-start">
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.ip_address') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.clicks_per_hour') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.clicks_per_24h') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.status') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.blocked_at') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.reason_col') }}</th>
+                                    <th class="py-2 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.action') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -469,9 +469,9 @@
                                         <td class="py-2 pr-4 {{ $fp->clicks_last_24h >= 100 ? 'text-red-600 font-semibold' : '' }}">{{ $fp->clicks_last_24h }}</td>
                                         <td class="py-2 pr-4">
                                             @if($fp->is_blocked)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Blocked</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{{ __('admin.ad_campaigns.blocked') }}</span>
                                             @else
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Suspicious</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">{{ __('admin.ad_campaigns.suspicious') }}</span>
                                             @endif
                                         </td>
                                         <td class="py-2 pr-4 text-gray-500">{{ $fp->blocked_at ? \Carbon\Carbon::parse($fp->blocked_at)->format('d M Y H:i') : '—' }}</td>
@@ -482,7 +482,7 @@
                                                     class="btn btn-xs btn-danger js-block-ip-btn"
                                                     data-url="{{ route('admin.ad-campaigns.fraud.block', $fp->id) }}"
                                                     data-ip="{{ $fp->ip_address }}">
-                                                    Block IP
+                                                    {{ __('admin.ad_campaigns.block_ip_btn') }}
                                                 </button>
                                             @else
                                                 <span class="text-xs text-gray-400">—</span>
@@ -500,48 +500,48 @@
     </div>{{-- end x-data tabs --}}
 
     {{-- ─── Shared Modals ──────────────────────────────────────────────────────── --}}
-    <x-modal id="approve-modal" title="Approve Campaign" size="sm">
-        <p class="text-sm text-gray-600">Approve <strong id="approve-campaign-name"></strong>? It will become active immediately.</p>
+    <x-modal id="approve-modal" title="{{ __('admin.ad_campaigns.approve_campaign_title') }}" size="sm">
+        <p class="text-sm text-gray-600">{{ __('admin.marketers.approve') }} <strong id="approve-campaign-name"></strong>? {{ __('admin.ad_campaigns.will_become_active_immediately') }}</p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#approve-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-approve-btn" class="btn btn-success">Approve</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#approve-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-approve-btn" class="btn btn-success">{{ __('admin.marketers.approve') }}</button>
         </div>
     </x-modal>
 
-    <x-modal id="reject-modal" title="Reject Campaign" size="md">
-        <p class="text-sm text-gray-600 mb-3">Reject <strong id="reject-campaign-name"></strong>.</p>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Rejection Reason <span class="text-red-500">*</span></label>
-        <textarea id="reject-reason-input" rows="3" class="form-input w-full text-sm" placeholder="Explain why this campaign is being rejected…"></textarea>
-        <p class="text-xs text-red-500 hidden mt-1" id="reject-reason-error">Reason is required.</p>
+    <x-modal id="reject-modal" title="{{ __('admin.ad_campaigns.reject_campaign_title') }}" size="md">
+        <p class="text-sm text-gray-600 mb-3">{{ __('admin.marketers.reject') }} <strong id="reject-campaign-name"></strong>.</p>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.ad_campaigns.rejection_reason') }} <span class="text-red-500">*</span></label>
+        <textarea id="reject-reason-input" rows="3" class="form-input w-full text-sm" placeholder="{{ __('admin.marketers.reject_campaign_reason_placeholder') }}"></textarea>
+        <p class="text-xs text-red-500 hidden mt-1" id="reject-reason-error">{{ __('admin.ad_campaigns.reason_required') }}</p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#reject-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-reject-btn" class="btn btn-danger">Reject</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#reject-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-reject-btn" class="btn btn-danger">{{ __('admin.marketers.reject') }}</button>
         </div>
     </x-modal>
 
-    <x-modal id="pause-modal" title="Pause Campaign" size="sm">
-        <p class="text-sm text-gray-600">Pause <strong id="pause-campaign-name"></strong>? The campaign will stop serving ads.</p>
+    <x-modal id="pause-modal" title="{{ __('admin.ad_campaigns.pause_campaign_title') }}" size="sm">
+        <p class="text-sm text-gray-600">{{ __('admin.ad_campaigns.pause') }} <strong id="pause-campaign-name"></strong>? {{ __('admin.ad_campaigns.will_stop_serving_ads') }}</p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#pause-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-pause-btn" class="btn btn-warning">Pause</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#pause-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-pause-btn" class="btn btn-warning">{{ __('admin.ad_campaigns.pause') }}</button>
         </div>
     </x-modal>
 
-    <x-modal id="resume-modal" title="Resume Campaign" size="sm">
-        <p class="text-sm text-gray-600">Resume <strong id="resume-campaign-name"></strong>? It will start serving ads again.</p>
+    <x-modal id="resume-modal" title="{{ __('admin.ad_campaigns.resume_campaign_title') }}" size="sm">
+        <p class="text-sm text-gray-600">{{ __('admin.ad_campaigns.resume') }} <strong id="resume-campaign-name"></strong>? {{ __('admin.ad_campaigns.will_start_serving_ads_again') }}</p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#resume-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-resume-btn" class="btn btn-success">Resume</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#resume-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-resume-btn" class="btn btn-success">{{ __('admin.ad_campaigns.resume') }}</button>
         </div>
     </x-modal>
 
-    <x-modal id="block-ip-modal" title="Block IP Address" size="md">
-        <p class="text-sm text-gray-600 mb-3">Block IP <strong id="block-ip-address" class="font-mono"></strong>?</p>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Block Reason</label>
-        <input type="text" id="block-reason-input" class="form-input w-full text-sm" placeholder="e.g. Suspicious click pattern">
+    <x-modal id="block-ip-modal" title="{{ __('admin.ad_campaigns.block_ip_title') }}" size="md">
+        <p class="text-sm text-gray-600 mb-3">{{ __('admin.ad_campaigns.block_ip') }} <strong id="block-ip-address" class="font-mono"></strong>?</p>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.ad_campaigns.block_reason') }}</label>
+        <input type="text" id="block-reason-input" class="form-input w-full text-sm" placeholder="{{ __('admin.ad_campaigns.block_reason_placeholder') }}">
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#block-ip-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-block-btn" class="btn btn-danger">Block IP</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#block-ip-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-block-btn" class="btn btn-danger">{{ __('admin.ad_campaigns.block_ip_btn') }}</button>
         </div>
     </x-modal>
 

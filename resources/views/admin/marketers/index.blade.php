@@ -4,28 +4,28 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Marketers')
+@section('title', __('admin.marketers.title'))
 
 @section('content')
 
 {{-- ─── Page Header ─────────────────────────────────────────────────────────── --}}
 <div class="mb-6 flex items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Marketers & Influencers</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Manage marketer accounts, approvals and commissions.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.marketers.marketers_influencers') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.marketers.manage_desc') }}</p>
     </div>
     <button type="button" id="create-marketer-btn" class="btn btn-primary btn-sm">
-        + Add Marketer
+        {{ __('admin.marketers.add_new_marketer') }}
     </button>
 </div>
 
 {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
     @foreach([
-        ['label' => 'Total Marketers',    'value' => $stats['total'],             'color' => 'gray'],
-        ['label' => 'Active',             'value' => $stats['active'],            'color' => 'success'],
-        ['label' => 'Pending Approval',   'value' => $stats['pending'],           'color' => 'warning'],
-        ['label' => 'Commissions (MTD)',  'value' => $stats['commissions_month_by_currency']->map(fn($v, $k) => number_format($v / 100, 2) . ' ' . $k)->join(' / ') ?: '—', 'color' => 'primary'],
+        ['label' => __('admin.marketers.total_marketers'),    'value' => $stats['total'],             'color' => 'gray'],
+        ['label' => __('admin.marketers.active'),             'value' => $stats['active'],            'color' => 'success'],
+        ['label' => __('admin.marketers.pending_approval'),   'value' => $stats['pending'],           'color' => 'warning'],
+        ['label' => __('admin.marketers.commissions_mtd'),  'value' => $stats['commissions_month_by_currency']->map(fn($v, $k) => number_format($v / 100, 2) . ' ' . $k)->join(' / ') ?: '—', 'color' => 'primary'],
     ] as $stat)
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ $stat['label'] }}</p>
@@ -36,10 +36,10 @@
 
 {{-- ─── Type Tabs ───────────────────────────────────────────────────────────── --}}
 <div class="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5 w-fit" id="type-tabs">
-    @foreach(['', 'influencer', 'celebrity', 'affiliate', 'brand_ambassador'] as $type)
+    @foreach(['' => __('admin.marketers.all'), 'influencer' => __('admin.marketers.influencer'), 'celebrity' => __('admin.marketers.celebrity'), 'affiliate' => __('admin.marketers.affiliate'), 'brand_ambassador' => __('admin.marketers.brand_ambassador')] as $type => $typeLabel)
         <button type="button" data-type="{{ $type }}"
                 class="type-tab px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors {{ $type === '' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
-            {{ $type === '' ? 'All' : ucfirst(str_replace('_', ' ', $type)) }}
+            {{ $typeLabel }}
         </button>
     @endforeach
 </div>
@@ -48,29 +48,29 @@
 <x-card class="mb-5">
     <form id="filter-form" class="flex flex-wrap gap-3 items-end">
         <div class="flex-1 min-w-[180px]">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Search</label>
-            <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="Name, email…">
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.marketers.search') }}</label>
+            <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="{{ __('admin.marketers.search_placeholder') }}">
         </div>
         <div class="w-36">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.status') }}</label>
             <select id="filter-status" class="form-input w-full text-sm">
-                <option value="">All statuses</option>
-                <option value="pending">Pending</option>
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-                <option value="rejected">Rejected</option>
+                <option value="">{{ __('admin.marketers.all_statuses') }}</option>
+                <option value="pending">{{ __('admin.marketers.pending') }}</option>
+                <option value="active">{{ __('admin.marketers.active') }}</option>
+                <option value="suspended">{{ __('admin.marketers.suspended') }}</option>
+                <option value="rejected">{{ __('admin.marketers.rejected') }}</option>
             </select>
         </div>
         <div class="w-44">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Country</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.marketers.country') }}</label>
             <select id="filter-country" class="form-input w-full text-sm">
-                <option value="">All countries</option>
+                <option value="">{{ __('admin.marketers.all_countries') }}</option>
                 @foreach($countries as $country)
                     <option value="{{ $country->id }}">{{ $country->name_en }}</option>
                 @endforeach
             </select>
         </div>
-        <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">Reset</button>
+        <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('admin.marketers.reset') }}</button>
     </form>
 </x-card>
 
@@ -79,16 +79,16 @@
     <table id="marketers-table" class="w-full text-sm" style="width:100%">
         <thead>
             <tr>
-                <th>Photo</th>
-                <th>Name / Email</th>
-                <th>Type</th>
-                <th>Country</th>
-                <th>Followers</th>
-                <th>Clicks</th>
-                <th>Conv.</th>
-                <th>Earnings</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>{{ __('admin.marketers.photo') }}</th>
+                <th>{{ __('admin.marketers.name_email') }}</th>
+                <th>{{ __('admin.marketers.type') }}</th>
+                <th>{{ __('admin.marketers.country') }}</th>
+                <th>{{ __('admin.marketers.followers') }}</th>
+                <th>{{ __('admin.marketers.clicks') }}</th>
+                <th>{{ __('admin.marketers.conv') }}</th>
+                <th>{{ __('admin.marketers.earnings') }}</th>
+                <th>{{ __('admin.status') }}</th>
+                <th>{{ __('admin.marketers.actions') }}</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -100,8 +100,8 @@
     <div class="modal-box max-w-2xl">
         <div class="flex items-center justify-between mb-5">
             <div>
-                <h3 class="text-lg font-semibold text-gray-900">Add New Marketer</h3>
-                <p class="text-xs text-gray-500 mt-0.5">Account will be created immediately and can log in to the marketer portal.</p>
+                <h3 class="text-lg font-semibold text-gray-900">{{ __('admin.marketers.add_marketer_title') }}</h3>
+                <p class="text-xs text-gray-500 mt-0.5">{{ __('admin.marketers.add_marketer_desc') }}</p>
             </div>
             <button type="button" data-modal-close class="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1">&times;</button>
         </div>
@@ -109,80 +109,80 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="col-span-2 grid grid-cols-2 gap-4">
                     <div>
-                        <label class="form-label">Full name <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" class="form-input w-full" placeholder="e.g. Sara Ahmed" required autocomplete="off">
+                        <label class="form-label">{{ __('admin.marketers.full_name') }} <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" class="form-input w-full" placeholder="{{ __('admin.marketers.name_placeholder') }}" required autocomplete="off">
                     </div>
                     <div>
-                        <label class="form-label">Email <span class="text-red-500">*</span></label>
-                        <input type="email" name="email" class="form-input w-full" placeholder="marketer@example.com" required autocomplete="off">
+                        <label class="form-label">{{ __('admin.marketers.email_label') }} <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" class="form-input w-full" placeholder="{{ __('admin.marketers.email_placeholder') }}" required autocomplete="off">
                     </div>
                 </div>
                 <div>
-                    <label class="form-label">Password <span class="text-red-500">*</span></label>
-                    <input type="password" name="password" class="form-input w-full" placeholder="Min. 8 characters" required autocomplete="new-password" minlength="8">
+                    <label class="form-label">{{ __('admin.marketers.password') }} <span class="text-red-500">*</span></label>
+                    <input type="password" name="password" class="form-input w-full" placeholder="{{ __('admin.marketers.password_placeholder') }}" required autocomplete="new-password" minlength="8">
                 </div>
                 <div>
-                    <label class="form-label">Phone</label>
-                    <input type="text" name="phone" class="form-input w-full" placeholder="+20 10 0000 0000">
+                    <label class="form-label">{{ __('admin.marketers.phone_label') }}</label>
+                    <input type="text" name="phone" class="form-input w-full" placeholder="{{ __('admin.marketers.phone_placeholder') }}">
                 </div>
                 <div>
-                    <label class="form-label">Type <span class="text-red-500">*</span></label>
+                    <label class="form-label">{{ __('admin.marketers.type') }} <span class="text-red-500">*</span></label>
                     <select name="type" class="form-input w-full" required>
-                        <option value="">Select type…</option>
-                        <option value="influencer">Influencer</option>
-                        <option value="celebrity">Celebrity</option>
-                        <option value="affiliate">Affiliate</option>
-                        <option value="brand_ambassador">Brand Ambassador</option>
+                        <option value="">{{ __('admin.marketers.select_type') }}</option>
+                        <option value="influencer">{{ __('admin.marketers.influencer') }}</option>
+                        <option value="celebrity">{{ __('admin.marketers.celebrity') }}</option>
+                        <option value="affiliate">{{ __('admin.marketers.affiliate') }}</option>
+                        <option value="brand_ambassador">{{ __('admin.marketers.brand_ambassador') }}</option>
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">Country</label>
+                    <label class="form-label">{{ __('admin.marketers.country_label') }}</label>
                     <select name="country_id" class="form-input w-full">
-                        <option value="">Select country…</option>
+                        <option value="">{{ __('admin.marketers.select_country') }}</option>
                         @foreach($countries as $country)
                             <option value="{{ $country->id }}">{{ $country->name_en }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">Niche</label>
-                    <input type="text" name="niche" class="form-input w-full" placeholder="e.g. fashion, beauty, tech">
+                    <label class="form-label">{{ __('admin.marketers.niche_label') }}</label>
+                    <input type="text" name="niche" class="form-input w-full" placeholder="{{ __('admin.marketers.niche_placeholder') }}">
                 </div>
                 <div>
-                    <label class="form-label">Followers count</label>
+                    <label class="form-label">{{ __('admin.marketers.followers_count') }}</label>
                     <input type="number" name="followers_count" class="form-input w-full" min="0" placeholder="0">
                 </div>
                 <div>
-                    <label class="form-label">Commission rate %</label>
-                    <input type="number" name="commission_rate" class="form-input w-full" step="0.01" min="0" max="100" placeholder="e.g. 10.00">
+                    <label class="form-label">{{ __('admin.marketers.commission_rate') }}</label>
+                    <input type="number" name="commission_rate" class="form-input w-full" step="0.01" min="0" max="100" placeholder="{{ __('admin.marketers.commission_rate_placeholder') }}">
                 </div>
                 <div>
-                    <label class="form-label">Status</label>
+                    <label class="form-label">{{ __('admin.status') }}</label>
                     <select name="status" class="form-input w-full">
-                        <option value="active" selected>Active (approved immediately)</option>
-                        <option value="pending">Pending (require approval)</option>
+                        <option value="active" selected>{{ __('admin.marketers.status_active_approved') }}</option>
+                        <option value="pending">{{ __('admin.marketers.status_pending_approval') }}</option>
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">WhatsApp number</label>
-                    <input type="text" name="whatsapp_number" class="form-input w-full" placeholder="+20 10 0000 0000">
+                    <label class="form-label">{{ __('admin.marketers.whatsapp_number') }}</label>
+                    <input type="text" name="whatsapp_number" class="form-input w-full" placeholder="{{ __('admin.marketers.phone_placeholder') }}">
                 </div>
                 <div>
-                    <label class="form-label">Instagram URL</label>
+                    <label class="form-label">{{ __('admin.marketers.instagram_url') }}</label>
                     <input type="url" name="social_instagram" class="form-input w-full" placeholder="https://instagram.com/…">
                 </div>
                 <div>
-                    <label class="form-label">TikTok URL</label>
+                    <label class="form-label">{{ __('admin.marketers.tiktok_url') }}</label>
                     <input type="url" name="social_tiktok" class="form-input w-full" placeholder="https://tiktok.com/@…">
                 </div>
                 <div class="col-span-2">
-                    <label class="form-label">Bio</label>
-                    <textarea name="bio" rows="2" class="form-input w-full" placeholder="Short bio about the marketer…"></textarea>
+                    <label class="form-label">{{ __('admin.marketers.bio') }}</label>
+                    <textarea name="bio" rows="2" class="form-input w-full" placeholder="{{ __('admin.marketers.bio_placeholder') }}"></textarea>
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-gray-100">
-                <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-                <button type="submit" id="create-marketer-submit" class="btn btn-primary btn-sm">Create marketer</button>
+                <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+                <button type="submit" id="create-marketer-submit" class="btn btn-primary btn-sm">{{ __('admin.marketers.create_marketer') }}</button>
             </div>
         </form>
     </div>
@@ -191,16 +191,16 @@
 {{-- ─── Reject Modal ────────────────────────────────────────────────────────── --}}
 <div id="reject-marketer-modal" class="modal" style="display:none;">
     <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">Reject Marketer</h3>
+        <h3 class="font-bold text-lg mb-4">{{ __('admin.marketers.reject_marketer_title') }}</h3>
         <input type="hidden" id="reject-marketer-id">
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.marketers.reason') }}</label>
             <textarea id="reject-reason" rows="3" class="form-input w-full text-sm"
-                placeholder="Explain why this marketer is rejected…"></textarea>
+                placeholder="{{ __('admin.marketers.reject_reason_placeholder') }}"></textarea>
         </div>
         <div class="flex gap-3 justify-end">
-            <button type="button" id="cancel-reject-marketer" class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="button" id="confirm-reject-marketer" class="btn btn-danger btn-sm">Reject</button>
+            <button type="button" id="cancel-reject-marketer" class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-reject-marketer" class="btn btn-danger btn-sm">{{ __('admin.marketers.reject') }}</button>
         </div>
     </div>
 </div>
@@ -209,6 +209,23 @@
 
 @push('scripts')
 
+<script>
+    window.TRANSLATIONS = window.TRANSLATIONS || {};
+    Object.assign(window.TRANSLATIONS, {
+        approveMarketerTitle: @json(__('admin.marketers.approve_marketer_confirm_title')),
+        approveMarketerText: @json(__('admin.marketers.approve_marketer_confirm_text')),
+        approve: @json(__('admin.marketers.approve')),
+        suspendMarketerTitle: @json(__('admin.marketers.suspend_marketer_confirm_title')),
+        suspend: @json(__('admin.marketers.suspend')),
+        activateMarketerTitle: @json(__('admin.marketers.activate_marketer_confirm_title')),
+        activate: @json(__('admin.marketers.activate')),
+        pleaseEnterReason: @json(__('admin.marketers.please_enter_reason')),
+        errorGeneric: @json(__('admin.marketers.error_generic')),
+        creating: @json(__('admin.marketers.creating')),
+        createMarketer: @json(__('admin.marketers.create_marketer')),
+        failedCreateMarketer: @json(__('admin.marketers.failed_create_marketer')),
+    });
+</script>
 <script type="module">
 $(function () {
     let currentType = '';
@@ -266,14 +283,14 @@ $(function () {
     $(document).on('click', '.btn-approve-marketer', function () {
         const id = $(this).data('id');
         window.confirmDialog({
-            title: 'Approve Marketer?',
-            text: 'The marketer will be notified and gain access to the portal.',
-            confirmButtonText: 'Approve',
+            title: window.TRANSLATIONS.approveMarketerTitle,
+            text: window.TRANSLATIONS.approveMarketerText,
+            confirmButtonText: window.TRANSLATIONS.approve,
         }).then(confirmed => {
             if (!confirmed) return;
             $.post('{{ url('/marketers') }}/' + id + '/approve', { _token: '{{ csrf_token() }}' })
                 .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
-                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
         });
     });
 
@@ -287,23 +304,23 @@ $(function () {
     $('#confirm-reject-marketer').on('click', function () {
         const id = $('#reject-marketer-id').val();
         const reason = $('#reject-reason').val().trim();
-        if (!reason) { window.Toast.warning('Please enter a reason.'); return; }
+        if (!reason) { window.Toast.warning(window.TRANSLATIONS.pleaseEnterReason); return; }
         $.post('{{ url('/marketers') }}/' + id + '/reject', { _token: '{{ csrf_token() }}', reason })
             .done(r => { window.Toast.success(r.message); $('#reject-marketer-modal').hide(); table.ajax.reload(); })
-            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
     });
 
     // Suspend
     $(document).on('click', '.btn-suspend-marketer', function () {
         const id = $(this).data('id');
         window.confirmDialog({
-            title: 'Suspend Marketer?',
-            confirmButtonText: 'Suspend',
+            title: window.TRANSLATIONS.suspendMarketerTitle,
+            confirmButtonText: window.TRANSLATIONS.suspend,
         }).then(confirmed => {
             if (!confirmed) return;
             $.post('{{ url('/marketers') }}/' + id + '/suspend', { _token: '{{ csrf_token() }}' })
                 .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
-                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
         });
     });
 
@@ -311,13 +328,13 @@ $(function () {
     $(document).on('click', '.btn-activate-marketer', function () {
         const id = $(this).data('id');
         window.confirmDialog({
-            title: 'Activate Marketer?',
-            confirmButtonText: 'Activate',
+            title: window.TRANSLATIONS.activateMarketerTitle,
+            confirmButtonText: window.TRANSLATIONS.activate,
         }).then(confirmed => {
             if (!confirmed) return;
             $.post('{{ url('/marketers') }}/' + id + '/activate', { _token: '{{ csrf_token() }}' })
                 .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
-                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
         });
     });
 
@@ -335,7 +352,7 @@ $(function () {
     $('#create-marketer-form').on('submit', function (e) {
         e.preventDefault();
         const $btn = $('#create-marketer-submit');
-        $btn.prop('disabled', true).text('Creating…');
+        $btn.prop('disabled', true).text(window.TRANSLATIONS.creating);
 
         $.ajax({
             url:  '{{ route('admin.marketers.all.store') }}',
@@ -356,10 +373,10 @@ $(function () {
                 const errors = xhr.responseJSON?.errors ?? {};
                 Object.values(errors).flat().forEach(m => window.Toast.error(m));
             } else {
-                window.Toast.error(xhr.responseJSON?.message ?? 'Failed to create marketer.');
+                window.Toast.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.failedCreateMarketer);
             }
         })
-        .always(() => $btn.prop('disabled', false).text('Create marketer'));
+        .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS.createMarketer));
     });
 });
 </script>

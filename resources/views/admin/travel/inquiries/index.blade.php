@@ -1,19 +1,19 @@
 @extends('layouts.admin')
 
-@section('title', 'Travel Package Inquiries')
+@section('title', __('admin.travel.inquiries_title'))
 
 @section('content')
 <div class="space-y-5">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Travel Package Inquiries</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Read-only lead volume overview across all agencies.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.travel.inquiries_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.travel.inquiries_desc') }}</p>
         </div>
     </div>
 
     {{-- Filters --}}
     @php
-    $statuses = ['' => 'All', 'new' => 'New', 'contacted' => 'Contacted', 'converted' => 'Converted', 'closed' => 'Closed'];
+    $statuses = ['' => __('common.all'), 'new' => __('admin.travel.status_new'), 'contacted' => __('admin.travel.status_contacted'), 'converted' => __('admin.travel.status_converted'), 'closed' => __('admin.travel.status_closed')];
     $currentStatus = request('status', '');
     @endphp
     <div class="flex gap-2 flex-wrap">
@@ -30,13 +30,13 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Name</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Phone</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Package</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Agency</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Travelers</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Status</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Submitted</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.name') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.phone') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.package') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.agency') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.travelers') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.status') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.submitted') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -64,7 +64,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-4 py-10 text-center text-gray-400 text-sm">No inquiries yet.</td>
+                    <td colspan="7" class="px-4 py-10 text-center text-gray-400 text-sm">{{ __('admin.travel.no_inquiries_yet') }}</td>
                 </tr>
                 @endforelse
             </tbody>

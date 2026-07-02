@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Booking ' . $travelBooking->booking_number)
+@section('title', __('admin.travel.booking_title', ['number' => $travelBooking->booking_number]))
 
 @section('content')
 <div class="p-6 space-y-6 max-w-4xl">
@@ -8,9 +8,9 @@
     {{-- ─── Header ──────────────────────────────────────────────────────────────── --}}
     <div class="flex items-start justify-between gap-4">
         <div>
-            <a href="{{ route('admin.travel.bookings.index') }}" class="text-xs text-gray-400 hover:text-gray-600 mb-1 inline-block">← Travel Bookings</a>
+            <a href="{{ route('admin.travel.bookings.index') }}" class="text-xs text-gray-400 hover:text-gray-600 mb-1 inline-block">{{ __('admin.travel.back_to_bookings') }}</a>
             <h1 class="text-2xl font-bold text-gray-900 font-mono">{{ $travelBooking->booking_number }}</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Booked {{ $travelBooking->created_at->format('d M Y H:i') }}</p>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.travel.booked_at', ['date' => $travelBooking->created_at->format('d M Y H:i')]) }}</p>
         </div>
         @php
         $statusColors = [
@@ -30,43 +30,43 @@
 
         {{-- Customer --}}
         <x-card>
-            <h3 class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-3">Customer</h3>
+            <h3 class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-3">{{ __('admin.travel.customer') }}</h3>
             @php $customer = $travelBooking->customer; @endphp
             @if($customer)
             <dl class="space-y-2 text-sm">
-                <div class="flex justify-between"><dt class="text-gray-500">Name</dt><dd class="text-gray-900 font-medium">{{ $customer->name }}</dd></div>
-                <div class="flex justify-between"><dt class="text-gray-500">Email</dt><dd class="text-gray-900">{{ $customer->email }}</dd></div>
+                <div class="flex justify-between"><dt class="text-gray-500">{{ __('common.name') }}</dt><dd class="text-gray-900 font-medium">{{ $customer->name }}</dd></div>
+                <div class="flex justify-between"><dt class="text-gray-500">{{ __('common.email') }}</dt><dd class="text-gray-900">{{ $customer->email }}</dd></div>
                 @if($customer->phone)
-                <div class="flex justify-between"><dt class="text-gray-500">Phone</dt><dd class="text-gray-900">{{ $customer->phone }}</dd></div>
+                <div class="flex justify-between"><dt class="text-gray-500">{{ __('common.phone') }}</dt><dd class="text-gray-900">{{ $customer->phone }}</dd></div>
                 @endif
             </dl>
             @else
-                <p class="text-sm text-gray-400">Customer not found.</p>
+                <p class="text-sm text-gray-400">{{ __('admin.travel.customer_not_found') }}</p>
             @endif
         </x-card>
 
         {{-- Booking Details --}}
         <x-card>
-            <h3 class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-3">Booking Details</h3>
+            <h3 class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-3">{{ __('admin.travel.booking_details') }}</h3>
             @php $package = $travelBooking->package; @endphp
             <dl class="space-y-2 text-sm">
-                <div class="flex justify-between"><dt class="text-gray-500">Travelers</dt><dd class="text-gray-900 font-semibold">{{ $travelBooking->travelers_count }}</dd></div>
+                <div class="flex justify-between"><dt class="text-gray-500">{{ __('admin.travel.travelers') }}</dt><dd class="text-gray-900 font-semibold">{{ $travelBooking->travelers_count }}</dd></div>
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Total Amount</dt>
+                    <dt class="text-gray-500">{{ __('admin.travel.total_amount') }}</dt>
                     <dd class="text-gray-900 font-semibold">
                         {{ $package?->currency ?? '' }} {{ number_format($travelBooking->total_price_cents / 100, 2) }}
                     </dd>
                 </div>
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Contract Signed</dt>
+                    <dt class="text-gray-500">{{ __('admin.travel.contract_signed') }}</dt>
                     <dd class="text-gray-900">
                         {{ $travelBooking->contract_signed_at ? $travelBooking->contract_signed_at->format('d M Y H:i') : '—' }}
                     </dd>
                 </div>
                 @if($travelBooking->passport_file_path)
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Passport</dt>
-                    <dd><a href="/storage/{{ $travelBooking->passport_file_path }}" target="_blank" class="text-primary-600 text-xs hover:underline">View file</a></dd>
+                    <dt class="text-gray-500">{{ __('admin.travel.passport') }}</dt>
+                    <dd><a href="/storage/{{ $travelBooking->passport_file_path }}" target="_blank" class="text-primary-600 text-xs hover:underline">{{ __('admin.travel.view_file') }}</a></dd>
                 </div>
                 @endif
             </dl>
@@ -77,7 +77,7 @@
     {{-- ─── Package ──────────────────────────────────────────────────────────────── --}}
     @if($package)
     <x-card>
-        <h3 class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-3">Package</h3>
+        <h3 class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-3">{{ __('admin.travel.package') }}</h3>
         <div class="flex items-start gap-4">
             @php $cover = $package->media->where('media_type', 'image')->first(); @endphp
             @if($cover)
@@ -87,13 +87,13 @@
                 <p class="font-semibold text-gray-900">{{ $package->title_en }}</p>
                 <p class="text-sm text-gray-500 mt-0.5">{{ $package->agency?->name }}</p>
                 <dl class="mt-2 grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
-                    <div class="flex justify-between"><dt class="text-gray-500">Departure</dt><dd class="text-gray-900">{{ $package->departure_date->format('d M Y') }}</dd></div>
-                    <div class="flex justify-between"><dt class="text-gray-500">Return</dt><dd class="text-gray-900">{{ $package->return_date->format('d M Y') }}</dd></div>
-                    <div class="flex justify-between"><dt class="text-gray-500">Duration</dt><dd class="text-gray-900">{{ $package->duration_days }}d / {{ $package->duration_nights }}n</dd></div>
-                    <div class="flex justify-between"><dt class="text-gray-500">Price/seat</dt><dd class="text-gray-900">{{ $package->priceFormatted() }}</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">{{ __('admin.travel.departure') }}</dt><dd class="text-gray-900">{{ $package->departure_date->format('d M Y') }}</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">{{ __('admin.travel.return') }}</dt><dd class="text-gray-900">{{ $package->return_date->format('d M Y') }}</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">{{ __('admin.travel.duration') }}</dt><dd class="text-gray-900">{{ $package->duration_days }}d / {{ $package->duration_nights }}n</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">{{ __('admin.travel.price_per_seat') }}</dt><dd class="text-gray-900">{{ $package->priceFormatted() }}</dd></div>
                 </dl>
                 <div class="mt-3">
-                    <a href="{{ route('admin.travel.packages.show', $package->id) }}" class="btn btn-secondary btn-sm">View Package</a>
+                    <a href="{{ route('admin.travel.packages.show', $package->id) }}" class="btn btn-secondary btn-sm">{{ __('admin.travel.view_package') }}</a>
                 </div>
             </div>
         </div>
@@ -102,7 +102,7 @@
 
     {{-- ─── Read-only note ──────────────────────────────────────────────────────── --}}
     <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
-        This is a read-only oversight view. Booking modifications and cancellations are handled through documented agency and customer support processes, not direct status edits.
+        {{ __('admin.travel.readonly_note') }}
     </div>
 
 </div>

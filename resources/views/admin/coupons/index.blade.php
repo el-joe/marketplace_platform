@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Coupons')
+@section('title', __('admin.coupons_section.title'))
 
 @push('styles')
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/coupons.js'])
@@ -10,61 +10,61 @@
     @php
         $columns = [
             [
-                'title' => 'Code',
+                'title' => __('admin.coupons_section.code'),
                 'data' => 'code',
                 'name' => 'code',
                 'render' => 'function(data){ return "<code class=\"font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded\">" + data + "</code>"; }',
             ],
-            ['title' => 'Name', 'data' => 'name', 'name' => 'name'],
+            ['title' => __('admin.coupons_section.name'), 'data' => 'name', 'name' => 'name'],
             [
-                'title' => 'Type',
+                'title' => __('admin.coupons_section.type'),
                 'data' => 'type',
                 'name' => 'type',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                            percentage:   { label: "Percentage",   color: "blue"   },
-                            fixed_amount: { label: "Fixed Amount", color: "purple" },
-                            free_shipping:{ label: "Free Shipping",color: "teal"   },
-                            bogo:         { label: "BOGO",         color: "orange" }
+                            percentage:   { label: "' . __('admin.coupons_section.percentage') . '",   color: "blue"   },
+                            fixed_amount: { label: "' . __('admin.coupons_section.fixed_amount') . '", color: "purple" },
+                            free_shipping:{ label: "' . __('admin.coupons_section.free_shipping') . '",color: "teal"   },
+                            bogo:         { label: "' . __('admin.coupons_section.bogo') . '",         color: "orange" }
                         })',
             ],
             [
-                'title' => 'Value',
+                'title' => __('admin.coupons_section.value'),
                 'data' => 'value',
                 'name' => 'value',
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'function(data, type, row){ return row.type === "percentage" ? data + "%" : (row.type === "free_shipping" ? "—" : data); }',
             ],
             [
-                'title' => 'Scope',
+                'title' => __('admin.coupons_section.scope'),
                 'data' => 'scope',
                 'name' => 'scope',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                            platform: { label: "Platform", color: "gray"   },
-                            vendor:   { label: "Vendor",   color: "indigo" },
-                            category: { label: "Category", color: "yellow" },
-                            product:  { label: "Product",  color: "pink"   }
+                            platform: { label: "' . __('admin.coupons_section.platform') . '", color: "gray"   },
+                            vendor:   { label: "' . __('admin.coupons_section.vendor') . '",   color: "indigo" },
+                            category: { label: "' . __('admin.coupons_section.category') . '", color: "yellow" },
+                            product:  { label: "' . __('admin.coupons_section.product') . '",  color: "pink"   }
                         })',
             ],
             [
-                'title' => 'Used',
+                'title' => __('admin.coupons_section.used'),
                 'data' => 'times_used',
                 'name' => 'times_used',
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'function(data, type, row){ var limit = row.usage_limit_total ? row.usage_limit_total : "∞"; return data + " / " + limit; }',
             ],
             [
-                'title' => 'Active',
+                'title' => __('admin.coupons_section.active'),
                 'data' => 'is_active',
                 'name' => 'is_active',
                 'searchable' => false,
-                'render' => 'Renderers.badge({ true: { label: "Active", color: "success" }, false: { label: "Inactive", color: "gray" } })',
+                'render' => 'Renderers.badge({ true: { label: "' . __('admin.coupons_section.active') . '", color: "success" }, false: { label: "' . __('admin.coupons_section.inactive') . '", color: "gray" } })',
             ],
             [
-                'title' => 'Valid Until',
+                'title' => __('admin.coupons_section.valid_until'),
                 'data' => 'valid_until',
                 'name' => 'valid_until',
                 'searchable' => false,
@@ -76,62 +76,71 @@
                 'name' => 'actions',
                 'orderable' => false,
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'Renderers.actions([
-                            { type: "link",   label: "Edit",   url: ":edit_url" },
-                            { type: "button", label: "Delete", id: "delete", class: "btn-danger" }
+                            { type: "link",   label: "' . __('admin.coupons_section.edit') . '",   url: ":edit_url" },
+                            { type: "button", label: "' . __('admin.coupons_section.delete') . '", id: "delete", class: "btn-danger" }
                         ])',
             ],
         ];
 
         $filters = [
-            ['type' => 'text', 'name' => 'search', 'label' => 'Code / Name', 'placeholder' => 'Search…'],
+            ['type' => 'text', 'name' => 'search', 'label' => __('admin.coupons_section.code_name'), 'placeholder' => __('admin.coupons_section.search_placeholder')],
             [
                 'type' => 'select',
                 'name' => 'is_active',
-                'label' => 'Status',
-                'options' => ['' => 'All', '1' => 'Active', '0' => 'Inactive'],
+                'label' => __('admin.coupons_section.status'),
+                'options' => ['' => __('admin.coupons_section.all'), '1' => __('admin.coupons_section.active'), '0' => __('admin.coupons_section.inactive')],
             ],
             [
                 'type' => 'select',
                 'name' => 'type',
-                'label' => 'Type',
-                'options' => ['' => 'All', 'percentage' => 'Percentage', 'fixed_amount' => 'Fixed Amount', 'free_shipping' => 'Free Shipping', 'bogo' => 'BOGO'],
+                'label' => __('admin.coupons_section.type'),
+                'options' => ['' => __('admin.coupons_section.all'), 'percentage' => __('admin.coupons_section.percentage'), 'fixed_amount' => __('admin.coupons_section.fixed_amount'), 'free_shipping' => __('admin.coupons_section.free_shipping'), 'bogo' => __('admin.coupons_section.bogo')],
             ],
             [
                 'type' => 'select',
                 'name' => 'scope',
-                'label' => 'Scope',
-                'options' => ['' => 'All', 'platform' => 'Platform', 'vendor' => 'Vendor', 'category' => 'Category', 'product' => 'Product'],
+                'label' => __('admin.coupons_section.scope'),
+                'options' => ['' => __('admin.coupons_section.all'), 'platform' => __('admin.coupons_section.platform'), 'vendor' => __('admin.coupons_section.vendor'), 'category' => __('admin.coupons_section.category'), 'product' => __('admin.coupons_section.product')],
             ],
             [
                 'type' => 'select',
                 'name' => 'expired',
-                'label' => 'Expiry',
-                'options' => ['' => 'All', '0' => 'Valid', '1' => 'Expired'],
+                'label' => __('admin.coupons_section.expiry'),
+                'options' => ['' => __('admin.coupons_section.all'), '0' => __('admin.coupons_section.valid'), '1' => __('admin.coupons_section.expired')],
             ],
         ];
 
         $bulkActions = [
-            ['value' => 'activate', 'label' => 'Activate'],
-            ['value' => 'deactivate', 'label' => 'Deactivate'],
-            ['value' => 'delete', 'label' => 'Delete', 'class' => 'text-red-600'],
+            ['value' => 'activate', 'label' => __('admin.coupons_section.activate')],
+            ['value' => 'deactivate', 'label' => __('admin.coupons_section.deactivate')],
+            ['value' => 'delete', 'label' => __('admin.coupons_section.delete'), 'class' => 'text-red-600'],
         ];
     @endphp
 
     <x-table.datatable id="coupons-table" url="{{ route('admin.coupons.datatable') }}" :columns="$columns"
         :filters="$filters" :bulk-actions="$bulkActions" bulk-url="{{ route('admin.coupons.bulk') }}"
-        :create-action="['url' => route('admin.coupons.create'), 'label' => 'Add Coupon']" :page-length="25" :order="[[7, 'desc']]" />
+        :create-action="['url' => route('admin.coupons.create'), 'label' => __('admin.coupons_section.add_coupon')]" :page-length="25" :order="[[7, 'desc']]" />
 @endsection
 
 @push('scripts')
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            deleteCouponTitle: @json(__('admin.coupons_section.delete_coupon_title')),
+            couponDeleted: @json(__('admin.coupons_section.coupon_deleted')),
+            deleteFailed: @json(__('admin.coupons_section.delete_failed')),
+            defaultCouponLabel: @json(__('admin.coupons_section.title')),
+        });
+
         window.tableActions = window.tableActions || {};
 
         window.tableActions.delete = async function (id, row) {
-            const message = 'Delete coupon "' + (row.code || 'this coupon') + '"?';
+            const code = row.code || window.TRANSLATIONS.defaultCouponLabel;
+            const message = @json(__('admin.coupons_section.delete_coupon_confirm', ['code' => '%CODE%'])).replace('%CODE%', code);
             const confirmed = window.confirmDelete
-                ? await window.confirmDelete(message, { title: 'Delete coupon?' })
+                ? await window.confirmDelete(message, { title: window.TRANSLATIONS.deleteCouponTitle })
                 : confirm(message);
             if (!confirmed) return;
 
@@ -141,11 +150,11 @@
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             })
                 .done(function () {
-                    window.Toast && window.Toast.success('Coupon deleted.');
+                    window.Toast && window.Toast.success(window.TRANSLATIONS.couponDeleted);
                     window.reloadDataTable('coupons-table');
                 })
                 .fail(function (xhr) {
-                    window.Toast && window.Toast.error(xhr.responseJSON?.message || 'Delete failed.');
+                    window.Toast && window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.deleteFailed);
                 });
         };
     </script>

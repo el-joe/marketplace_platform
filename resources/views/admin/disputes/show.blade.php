@@ -4,7 +4,7 @@
     @vite(['resources/js/admin/disputes.js'])
 @endpush
 
-@section('title', $dispute->dispute_number . ' — Dispute')
+@section('title', $dispute->dispute_number . ' — ' . __('admin.disputes_section.title'))
 
 @section('content')
 
@@ -29,7 +29,7 @@
 
     {{-- ─── Breadcrumb ──────────────────────────────────────────────────────── --}}
     <nav class="mb-5 text-sm text-gray-500 flex items-center gap-1.5">
-        <a href="{{ route('admin.disputes.index') }}" class="hover:text-primary-600">Disputes</a>
+        <a href="{{ route('admin.disputes.index') }}" class="hover:text-primary-600">{{ __('admin.disputes_section.title') }}</a>
         <span>/</span>
         <span class="text-gray-800 font-medium font-mono">{{ $dispute->dispute_number }}</span>
     </nav>
@@ -54,7 +54,7 @@
                         {{ $reasonLabel }}
                     </span>
                 </div>
-                <h1 class="text-lg font-semibold text-gray-900">Dispute case</h1>
+                <h1 class="text-lg font-semibold text-gray-900">{{ __('admin.disputes_section.dispute_case') }}</h1>
                 @if($dispute->description)
                     <p class="mt-2 text-sm text-gray-600 whitespace-pre-wrap">{{ $dispute->description }}</p>
                 @endif
@@ -79,9 +79,9 @@
                         $alignClass = $isAdmin ? 'ml-8' : 'mr-8';
 
                         $authorLabel = match ($role) {
-                            'admin' => 'Support Agent',
-                            'seller' => $dispute->vendor->store_name ?? 'Vendor',
-                            default => $dispute->customer->name ?? 'Customer',
+                            'admin' => __('admin.disputes_section.support_agent'),
+                            'seller' => $dispute->vendor->store_name ?? __('admin.disputes_section.vendor'),
+                            default => $dispute->customer->name ?? __('admin.disputes_section.customer'),
                         };
                     @endphp
                     <div class="message-bubble {{ $alignClass }}" data-message-id="{{ $msg->id }}">
@@ -90,8 +90,7 @@
                                 <span class="text-xs font-semibold text-gray-700">{{ $authorLabel }}</span>
                                 @if($isInternal)
                                     <span
-                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">Internal
-                                        note</span>
+                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">{{ __('admin.disputes_section.internal_note_badge') }}</span>
                                 @endif
                                 <span class="text-xs text-gray-400 ml-auto">
                                     {{ $msg->created_at ? \Carbon\Carbon::parse($msg->created_at)->format('M d, Y H:i') : '' }}
@@ -103,7 +102,7 @@
                 @endforeach
 
                 @if($dispute->messages->isEmpty())
-                    <div class="text-center py-8 text-sm text-gray-400">No messages yet.</div>
+                    <div class="text-center py-8 text-sm text-gray-400">{{ __('admin.disputes_section.no_messages') }}</div>
                 @endif
             </div>
 
@@ -113,7 +112,7 @@
                     <form id="reply-form" data-url="{{ route('admin.disputes.reply', $dispute->id) }}" novalidate>
                         @csrf
                         <div id="reply-form-bg" class="mb-3 rounded-lg border border-gray-200 p-0.5 transition-colors">
-                            <textarea id="reply-message" name="message" rows="4" placeholder="Write a message to both parties…"
+                            <textarea id="reply-message" name="message" rows="4" placeholder="{{ __('admin.disputes_section.write_message_placeholder') }}"
                                 class="w-full text-sm p-3 rounded-md resize-none focus:outline-none bg-transparent"
                                 required></textarea>
                         </div>
@@ -122,63 +121,63 @@
                             <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600">
                                 <input type="checkbox" id="is-internal-note" name="is_internal_note" value="1"
                                     class="rounded border-gray-300 text-yellow-500 focus:ring-yellow-400">
-                                Internal note (admins only)
+                                {{ __('admin.disputes_section.internal_note_checkbox') }}
                             </label>
                             <button type="submit" id="btn-reply" class="btn btn-primary btn-sm">
-                                Send Reply
+                                {{ __('admin.disputes_section.send_reply') }}
                             </button>
                         </div>
                     </form>
                 </div>
             @else
                 <div class="text-center text-sm text-gray-400 py-4">
-                    Dispute is {{ $dispute->status }}. Reopen via status to reply.
+                    {{ __('admin.disputes_section.dispute_status_reopen', ['status' => $dispute->status]) }}
                 </div>
             @endif
 
             {{-- Resolve panel --}}
             @if(!$isClosed)
                 <x-card>
-                    <h3 class="text-sm font-semibold text-gray-800 mb-1">Resolve Dispute</h3>
-                    <p class="text-xs text-gray-500 mb-4">Record the final outcome and optional compensation.</p>
+                    <h3 class="text-sm font-semibold text-gray-800 mb-1">{{ __('admin.disputes_section.resolve') }}</h3>
+                    <p class="text-xs text-gray-500 mb-4">{{ __('admin.disputes_section.resolve_dispute_desc') }}</p>
 
                     <form id="resolve-form" data-url="{{ route('admin.disputes.resolve', $dispute->id) }}"
                         class="grid grid-cols-1 md:grid-cols-2 gap-3" novalidate>
                         @csrf
 
                         <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Outcome</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.disputes_section.outcome') }}</label>
                             <select name="resolution" required class="form-input w-full text-sm">
-                                <option value="">Select…</option>
-                                <option value="favor_customer">Favor customer</option>
-                                <option value="favor_seller">Favor seller</option>
-                                <option value="split">Split</option>
-                                <option value="no_action">No action</option>
+                                <option value="">{{ __('admin.disputes_section.select_placeholder') }}</option>
+                                <option value="favor_customer">{{ __('admin.disputes_section.favor_customer') }}</option>
+                                <option value="favor_seller">{{ __('admin.disputes_section.favor_seller') }}</option>
+                                <option value="split">{{ __('admin.disputes_section.split') }}</option>
+                                <option value="no_action">{{ __('admin.disputes_section.no_action') }}</option>
                             </select>
                         </div>
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">
-                                Compensation ({{ $currency }})
+                                {{ __('admin.disputes_section.compensation', ['currency' => $currency]) }}
                             </label>
                             <input type="number" name="compensation" step="0.01" min="0" class="form-input w-full text-sm"
                                 placeholder="0.00">
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Resolution notes</label>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.disputes_section.resolution_notes') }}</label>
                             <textarea name="resolution_notes" rows="3" class="form-input w-full text-sm"
-                                placeholder="Internal record of the decision rationale…"></textarea>
+                                placeholder="{{ __('admin.disputes_section.resolution_notes_placeholder') }}"></textarea>
                         </div>
 
                         <div class="md:col-span-2 flex items-center justify-between gap-3">
                             <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600">
                                 <input type="checkbox" name="close" value="1"
                                     class="rounded border-gray-300 text-primary-600 focus:ring-primary-400">
-                                Close thread after resolving
+                                {{ __('admin.disputes_section.close_thread_checkbox') }}
                             </label>
                             <button type="submit" id="btn-resolve" class="btn btn-primary btn-sm">
-                                Resolve Dispute
+                                {{ __('admin.disputes_section.resolve') }}
                             </button>
                         </div>
                     </form>
@@ -194,11 +193,11 @@
 
             {{-- Dispute Info --}}
             <x-card>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Dispute Info</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">{{ __('admin.disputes_section.dispute_info') }}</h3>
                 <dl class="space-y-3 text-sm">
 
                     <div class="flex items-center justify-between gap-2">
-                        <dt class="text-xs text-gray-500 shrink-0">Status</dt>
+                        <dt class="text-xs text-gray-500 shrink-0">{{ __('admin.status') }}</dt>
                         <dd>
                             <select id="status-select" data-url="{{ route('admin.disputes.update-status', $dispute->id) }}"
                                 class="form-input text-xs py-1 pr-7">
@@ -212,7 +211,7 @@
                     </div>
 
                     <div>
-                        <dt class="text-xs text-gray-500 mb-0.5">Reason</dt>
+                        <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.reason') }}</dt>
                         <dd>
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
@@ -223,7 +222,7 @@
 
                     @if($dispute->resolution)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Resolution</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.resolution') }}</dt>
                             <dd>
                                 <span
                                     class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
@@ -235,7 +234,7 @@
 
                     @if($compensation)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Compensation</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.compensation_col') }}</dt>
                             <dd class="text-sm font-medium text-gray-800">
                                 {{ $compensation }} {{ $currency }}
                             </dd>
@@ -244,13 +243,13 @@
 
                     @if($dispute->resolution_notes)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Resolution Notes</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.resolution_notes') }}</dt>
                             <dd class="text-sm text-gray-700 whitespace-pre-wrap">{{ $dispute->resolution_notes }}</dd>
                         </div>
                     @endif
 
                     <div>
-                        <dt class="text-xs text-gray-500 mb-0.5">Customer</dt>
+                        <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.customer') }}</dt>
                         <dd>
                             <a href="{{ route('admin.customers.show', $dispute->customer_id) }}"
                                 class="text-sm text-primary-600 hover:underline">
@@ -260,7 +259,7 @@
                     </div>
 
                     <div>
-                        <dt class="text-xs text-gray-500 mb-0.5">Vendor</dt>
+                        <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.vendor') }}</dt>
                         <dd>
                             <a href="{{ route('admin.vendors.show', $dispute->vendor_id) }}"
                                 class="text-sm text-primary-600 hover:underline">
@@ -271,7 +270,7 @@
 
                     @if($dispute->order)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Order</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.order') }}</dt>
                             <dd>
                                 <a href="{{ route('admin.orders.show', $dispute->order_id) }}"
                                     class="text-sm text-primary-600 hover:underline font-mono">
@@ -283,7 +282,7 @@
 
                     @if($dispute->subOrder)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Sub-Order</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.sub_order') }}</dt>
                             <dd class="text-sm font-mono text-gray-700">
                                 {{ $dispute->subOrder->sub_order_number }}
                             </dd>
@@ -292,7 +291,7 @@
 
                     @if($dispute->returnRequest)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Related Return</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.related_return') }}</dt>
                             <dd class="text-sm font-mono text-gray-700">
                                 {{ $dispute->returnRequest->return_number }}
                             </dd>
@@ -300,13 +299,13 @@
                     @endif
 
                     <div>
-                        <dt class="text-xs text-gray-500 mb-0.5">Opened</dt>
+                        <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.opened') }}</dt>
                         <dd class="text-sm text-gray-700">{{ $dispute->created_at->format('M d, Y H:i') }}</dd>
                     </div>
 
                     @if($dispute->resolved_at)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Resolved</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.disputes_section.resolved_at') }}</dt>
                             <dd class="text-sm text-green-700">
                                 {{ \Carbon\Carbon::parse($dispute->resolved_at)->format('M d, Y H:i') }}
                             </dd>
@@ -318,21 +317,21 @@
 
             {{-- Assigned to --}}
             <x-card>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Assigned To</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{{ __('admin.disputes_section.assigned_to_title') }}</h3>
 
                 <p id="assignee-name" class="text-sm font-medium text-gray-800 mb-3">
-                    {{ $dispute->assignedToAdmin?->name ?? 'Unassigned' }}
+                    {{ $dispute->assignedToAdmin?->name ?? __('admin.disputes_section.unassigned') }}
                 </p>
 
                 <div class="flex flex-col gap-2">
                     <button id="btn-assign-me" data-url="{{ route('admin.disputes.assign-me', $dispute->id) }}"
                         data-my-name="{{ $admin->name }}" class="btn btn-secondary btn-sm w-full">
-                        Assign to me
+                        {{ __('admin.disputes_section.assign_to_me') }}
                     </button>
 
                     <div class="flex gap-2">
                         <select id="reassign-select" class="form-input flex-1 text-xs py-1">
-                            <option value="">Reassign to…</option>
+                            <option value="">{{ __('admin.disputes_section.reassign_to') }}</option>
                             @foreach($admins as $a)
                                 <option value="{{ $a->id }}" {{ $dispute->assigned_to_admin_id === $a->id ? 'selected' : '' }}>
                                     {{ $a->name }}
@@ -341,7 +340,7 @@
                         </select>
                         <button id="btn-reassign" data-url="{{ route('admin.disputes.assign', $dispute->id) }}"
                             class="btn btn-primary btn-sm shrink-0">
-                            Save
+                            {{ __('admin.disputes_section.save') }}
                         </button>
                     </div>
                 </div>

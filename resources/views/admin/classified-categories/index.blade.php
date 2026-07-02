@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Classified Categories')
+@section('title', __('admin.classifieds.category_tree_title'))
 
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
@@ -12,13 +12,13 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Classified Categories</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Manage the category tree for classified listings.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.classifieds.category_tree_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.classifieds.category_tree_desc') }}</p>
         </div>
         <button type="button" data-modal-open="category-modal" data-mode="create"
                 class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
             <x-heroicon name="plus" class="w-4 h-4" />
-            New Category
+            {{ __('admin.classifieds.new_category') }}
         </button>
     </div>
 
@@ -28,14 +28,14 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="w-8 px-3 py-3"></th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Name</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Icon</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Contract Template</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Map</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Sketch</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Attachments</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Listings</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Active</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.name') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.icon') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.contract_template') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.map') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.sketch') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.attachments') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.listings') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -60,16 +60,16 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             @if($root->requires_location_map)
-                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Yes</span>
+                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ __('common.yes') }}</span>
                             @else
-                                <span class="text-gray-300 text-xs">No</span>
+                                <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-center">
                             @if($root->requires_sketch_upload)
-                                <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">Yes</span>
+                                <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{{ __('common.yes') }}</span>
                             @else
-                                <span class="text-gray-300 text-xs">No</span>
+                                <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-center">
@@ -97,12 +97,12 @@
                             <button type="button"
                                     class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
                                     data-category="{{ json_encode(['id' => $root->id, 'name_en' => $root->name_en, 'name_ar' => $root->name_ar, 'slug' => $root->slug, 'icon' => $root->icon, 'parent_id' => $root->parent_id, 'requires_location_map' => $root->requires_location_map, 'requires_sketch_upload' => $root->requires_sketch_upload, 'contract_template_id' => $root->contract_template_id, 'required_attachment_types' => $root->required_attachment_types ?? [], 'is_active' => $root->is_active, 'sort_order' => $root->sort_order]) }}">
-                                Edit
+                                {{ __('common.edit') }}
                             </button>
                             <button type="button"
                                     class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"
                                     data-id="{{ $root->id }}" data-name="{{ $root->name_en }}">
-                                Delete
+                                {{ __('common.delete') }}
                             </button>
                         </td>
                     </tr>
@@ -125,16 +125,16 @@
                         </td>
                         <td class="px-4 py-3 text-center">
                             @if($child->requires_location_map)
-                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Yes</span>
+                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ __('common.yes') }}</span>
                             @else
-                                <span class="text-gray-300 text-xs">No</span>
+                                <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-center">
                             @if($child->requires_sketch_upload)
-                                <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">Yes</span>
+                                <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{{ __('common.yes') }}</span>
                             @else
-                                <span class="text-gray-300 text-xs">No</span>
+                                <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
                             @endif
                         </td>
                         <td class="px-4 py-3 text-center">
@@ -162,19 +162,19 @@
                             <button type="button"
                                     class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
                                     data-category="{{ json_encode(['id' => $child->id, 'name_en' => $child->name_en, 'name_ar' => $child->name_ar, 'slug' => $child->slug, 'icon' => $child->icon, 'parent_id' => $child->parent_id, 'requires_location_map' => $child->requires_location_map, 'requires_sketch_upload' => $child->requires_sketch_upload, 'contract_template_id' => $child->contract_template_id, 'required_attachment_types' => $child->required_attachment_types ?? [], 'is_active' => $child->is_active, 'sort_order' => $child->sort_order]) }}">
-                                Edit
+                                {{ __('common.edit') }}
                             </button>
                             <button type="button"
                                     class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"
                                     data-id="{{ $child->id }}" data-name="{{ $child->name_en }}">
-                                Delete
+                                {{ __('common.delete') }}
                             </button>
                         </td>
                     </tr>
                     @endforeach
                 @empty
                     <tr>
-                        <td colspan="10" class="px-4 py-10 text-center text-gray-400">No categories yet. Create the first one.</td>
+                        <td colspan="10" class="px-4 py-10 text-center text-gray-400">{{ __('admin.classifieds.no_categories_yet') }}</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -183,19 +183,19 @@
 </div>
 
 {{-- Category Modal --}}
-<x-modal id="category-modal" title="Category" size="lg">
+<x-modal id="category-modal" title="{{ __('admin.classifieds.category_modal_title') }}" size="lg">
     <form id="category-form" class="space-y-4">
         @csrf
         <input type="hidden" id="form-category-id" value="">
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Name (English) <span class="text-red-500">*</span></label>
-                <input type="text" name="name_en" id="f-name-en" required maxlength="150"
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.name_en_label') }} <span class="text-red-500">*</span></label>
+                <input type="text" name="name_en" id="f-name-en" required maxlength="150" dir="ltr"
                        class="form-input w-full text-sm" placeholder="Real Estate">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">الاسم (عربي) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.name_ar_label') }} <span class="text-red-500">*</span></label>
                 <input type="text" name="name_ar" id="f-name-ar" required maxlength="150" dir="rtl"
                        class="form-input w-full text-sm" placeholder="عقارات">
             </div>
@@ -203,12 +203,12 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Slug</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.slug_field') }}</label>
                 <input type="text" name="slug" id="f-slug" maxlength="150"
-                       class="form-input w-full text-sm font-mono" placeholder="auto-generated from English name">
+                       class="form-input w-full text-sm font-mono" placeholder="{{ __('admin.classifieds.slug_auto_generated') }}">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Icon (emoji or code)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.icon_field') }}</label>
                 <input type="text" name="icon" id="f-icon" maxlength="50"
                        class="form-input w-full text-sm" placeholder="🏠">
             </div>
@@ -216,18 +216,18 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Parent Category</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.parent_category') }}</label>
                 <select name="parent_id" id="f-parent-id" class="form-input w-full text-sm">
-                    <option value="">— Top-level —</option>
+                    <option value="">{{ __('admin.classifieds.top_level') }}</option>
                     @foreach($roots as $root)
                         <option value="{{ $root->id }}">{{ $root->name_en }}</option>
                     @endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Contract Template</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.contract_template') }}</label>
                 <select name="contract_template_id" id="f-template-id" class="form-input w-full text-sm">
-                    <option value="">— None —</option>
+                    <option value="">{{ __('admin.classifieds.no_template') }}</option>
                     @foreach($templates as $tpl)
                         <option value="{{ $tpl->id }}">{{ $tpl->name }} (v{{ $tpl->version }})</option>
                     @endforeach
@@ -236,41 +236,41 @@
         </div>
 
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Required Attachment Types</label>
+            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.required_attachment_types') }}</label>
             <select id="f-attach-select" multiple
                     class="form-input w-full text-sm" style="height:130px;">
-                <option value="ownership_deed">Ownership Deed</option>
-                <option value="id_copy">ID Copy</option>
-                <option value="floor_plan">Floor Plan</option>
-                <option value="title_deed">Title Deed</option>
-                <option value="noc_letter">NOC Letter</option>
-                <option value="trade_license">Trade License</option>
-                <option value="passport_copy">Passport Copy</option>
-                <option value="utility_bill">Utility Bill</option>
-                <option value="photos">Photos</option>
-                <option value="sketch">Sketch / كروكي</option>
+                <option value="ownership_deed">{{ __('admin.classifieds.attach_ownership_deed') }}</option>
+                <option value="id_copy">{{ __('admin.classifieds.attach_id_copy') }}</option>
+                <option value="floor_plan">{{ __('admin.classifieds.attach_floor_plan') }}</option>
+                <option value="title_deed">{{ __('admin.classifieds.attach_title_deed') }}</option>
+                <option value="noc_letter">{{ __('admin.classifieds.attach_noc_letter') }}</option>
+                <option value="trade_license">{{ __('admin.classifieds.attach_trade_license') }}</option>
+                <option value="passport_copy">{{ __('admin.classifieds.attach_passport_copy') }}</option>
+                <option value="utility_bill">{{ __('admin.classifieds.attach_utility_bill') }}</option>
+                <option value="photos">{{ __('admin.classifieds.attach_photos') }}</option>
+                <option value="sketch">{{ __('admin.classifieds.attach_sketch') }}</option>
             </select>
-            <p class="text-xs text-gray-400 mt-0.5">Hold Ctrl / Cmd to select multiple. Each selection becomes a required upload field on the listing form.</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('admin.classifieds.attachment_hint') }}</p>
             <div id="f-attach-hidden"></div>
         </div>
 
         <div class="flex flex-wrap items-center gap-6">
             <label class="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" name="requires_location_map" id="f-req-map" value="1" class="rounded text-primary-600">
-                <span class="text-sm text-gray-700">Requires Location Map</span>
+                <span class="text-sm text-gray-700">{{ __('admin.classifieds.requires_location_map') }}</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" name="requires_sketch_upload" id="f-req-sketch" value="1" class="rounded text-primary-600">
-                <span class="text-sm text-gray-700">Requires Sketch Upload (كروكي)</span>
+                <span class="text-sm text-gray-700">{{ __('admin.classifieds.requires_sketch_upload_ar') }}</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" name="is_active" id="f-is-active" value="1" class="rounded text-primary-600" checked>
-                <span class="text-sm text-gray-700">Active</span>
+                <span class="text-sm text-gray-700">{{ __('common.active') }}</span>
             </label>
         </div>
 
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Sort Order</label>
+            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.sort_order') }}</label>
             <input type="number" name="sort_order" id="f-sort-order" value="0" min="0"
                    class="form-input w-28 text-sm">
         </div>
@@ -279,24 +279,34 @@
     </form>
 
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-save-category" class="btn btn-primary">Save Category</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" id="btn-save-category" class="btn btn-primary">{{ __('common.save') }}</button>
     </x-slot:footer>
 </x-modal>
 
 {{-- Delete confirmation modal --}}
-<x-modal id="delete-modal" title="Delete Category" size="sm">
-    <p class="text-sm text-gray-700">Delete <strong id="delete-cat-name"></strong>? This cannot be undone.</p>
+<x-modal id="delete-modal" title="{{ __('admin.classifieds.delete_category_title') }}" size="sm">
+    <p class="text-sm text-gray-700">{!! str_replace(':name', '<strong id="delete-cat-name"></strong>', __('admin.classifieds.delete_category_confirm', ['name' => ':name'])) !!}</p>
     <input type="hidden" id="delete-cat-id">
     <div id="delete-error" class="hidden mt-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"></div>
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-confirm-delete" class="btn btn-danger">Delete</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" id="btn-confirm-delete" class="btn btn-danger">{{ __('common.delete') }}</button>
     </x-slot:footer>
 </x-modal>
 
 @push('scripts')
 <script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    new_category: "{{ __('admin.classifieds.new_category') }}",
+    edit_category_title: "{{ __('admin.classifieds.edit_category_modal_title') }}",
+    deactivate_parent_warning: "{{ __('admin.classifieds.deactivate_parent_warning') }}",
+    toggle_failed: "{{ __('admin.classifieds.toggle_failed') }}",
+    delete_failed: "{{ __('admin.classifieds.delete_failed') }}",
+    error_occurred: "{{ __('common.error') }}",
+});
+
 (function () {
     const CSRF  = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const base  = '{{ rtrim(route("admin.classifieds.categories.index"), "/") }}';
@@ -343,7 +353,7 @@
     // ── Open "New Category" ───────────────────────────────────────────────────
     document.querySelector('[data-mode="create"]')?.addEventListener('click', () => {
         resetForm();
-        document.querySelector('#category-modal [id$="-title"]').textContent = 'New Category';
+        document.querySelector('#category-modal [id$="-title"]').textContent = window.TRANSLATIONS.new_category;
         openModal('category-modal');
     });
 
@@ -380,7 +390,7 @@
             Array.from(attachSelect.options).forEach(o => o.selected = selected.has(o.value));
             syncAttach();
             document.getElementById('form-error').classList.add('hidden');
-            document.querySelector('#category-modal [id$="-title"]').textContent = 'Edit Category';
+            document.querySelector('#category-modal [id$="-title"]').textContent = window.TRANSLATIONS.edit_category_title;
             openModal('category-modal');
         });
     });
@@ -414,7 +424,7 @@
             location.reload();
         } else {
             const errEl = document.getElementById('form-error');
-            errEl.textContent = data.message ?? (data.errors ? Object.values(data.errors).flat().join(' ') : 'An error occurred.');
+            errEl.textContent = data.message ?? (data.errors ? Object.values(data.errors).flat().join(' ') : window.TRANSLATIONS.error_occurred);
             errEl.classList.remove('hidden');
         }
     });
@@ -427,7 +437,7 @@
             const hasChildren = btn.dataset.hasChildren === '1';
 
             if (isActive && hasChildren) {
-                if (!confirm('Deactivating this parent category will NOT automatically deactivate its children. Each child can be toggled independently. Continue?')) {
+                if (!confirm(window.TRANSLATIONS.deactivate_parent_warning)) {
                     return;
                 }
             }
@@ -442,7 +452,7 @@
                 knob.classList.toggle('translate-x-4', nowActive);
                 knob.classList.toggle('translate-x-0.5', !nowActive);
             } else {
-                alert(data.message ?? 'Failed to toggle.');
+                alert(data.message ?? window.TRANSLATIONS.toggle_failed);
             }
         });
     });
@@ -465,7 +475,7 @@
             location.reload();
         } else {
             const errEl = document.getElementById('delete-error');
-            errEl.textContent = data.message ?? 'Delete failed.';
+            errEl.textContent = data.message ?? window.TRANSLATIONS.delete_failed;
             errEl.classList.remove('hidden');
         }
     });
