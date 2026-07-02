@@ -4,7 +4,7 @@
     @vite(['resources/js/components/datatable.js'])
 @endpush
 
-@section('title', 'Blog Posts')
+@section('title', __('admin.blog.posts'))
 
 @section('content')
 <div class="p-6 space-y-5">
@@ -12,46 +12,46 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Blog Posts</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Manage all blog content across country portals.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.blog.posts') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.blog.manage_all_content') }}</p>
         </div>
         <a href="{{ route('admin.blog.posts.create') }}"
            class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
             <x-heroicon name="plus" class="w-4 h-4" />
-            New Post
+            {{ __('admin.blog.new_post') }}
         </a>
     </div>
 
     {{-- Stats --}}
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        <x-stat-card title="Published"    :value="number_format($stats['published'])" icon="check-circle"   iconBg="bg-emerald-100 text-emerald-600" />
-        <x-stat-card title="Draft"        :value="number_format($stats['draft'])"     icon="pencil"         iconBg="bg-gray-100 text-gray-600" />
-        <x-stat-card title="Scheduled"    :value="number_format($stats['scheduled'])" icon="clock"          iconBg="bg-blue-100 text-blue-600" />
-        <x-stat-card title="Archived"     :value="number_format($stats['archived'])"  icon="archive-box"    iconBg="bg-amber-100 text-amber-600" />
-        <x-stat-card title="Views (Month" :value="number_format($stats['views_month'])" icon="eye"          iconBg="bg-primary-100 text-primary-600" />
+        <x-stat-card title="{{ __('admin.blog.published_posts') }}"    :value="number_format($stats['published'])" icon="check-circle"   iconBg="bg-emerald-100 text-emerald-600" />
+        <x-stat-card title="{{ __('admin.blog.draft_posts') }}"        :value="number_format($stats['draft'])"     icon="pencil"         iconBg="bg-gray-100 text-gray-600" />
+        <x-stat-card title="{{ __('admin.blog.scheduled_posts') }}"    :value="number_format($stats['scheduled'])" icon="clock"          iconBg="bg-blue-100 text-blue-600" />
+        <x-stat-card title="{{ __('admin.blog.archived_posts') }}"     :value="number_format($stats['archived'])"  icon="archive-box"    iconBg="bg-amber-100 text-amber-600" />
+        <x-stat-card title="{{ __('admin.blog.total_views') }}" :value="number_format($stats['views_month'])" icon="eye"          iconBg="bg-primary-100 text-primary-600" />
     </div>
 
     {{-- Filter bar --}}
     <x-card>
         <form id="posts-filter-form" class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[160px]">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Search</label>
-                <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="Title…">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.search') }}</label>
+                <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="{{ __('admin.blog.search_placeholder') }}">
             </div>
             <div class="w-40">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.status') }}</label>
                 <select id="filter-status" class="form-input w-full text-sm">
-                    <option value="">All statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
+                    <option value="">{{ __('admin.blog.all_statuses') }}</option>
+                    <option value="draft">{{ __('common.draft') }}</option>
+                    <option value="scheduled">{{ __('admin.blog.scheduled_posts') }}</option>
+                    <option value="published">{{ __('common.published') }}</option>
+                    <option value="archived">{{ __('common.archived') }}</option>
                 </select>
             </div>
             <div class="w-44">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.category') }}</label>
                 <select id="filter-category" class="form-input w-full text-sm">
-                    <option value="">All categories</option>
+                    <option value="">{{ __('admin.blog.all_categories') }}</option>
                     @foreach($categories as $cat)
                         <optgroup label="{{ $cat->name_en }}">
                             <option value="{{ $cat->id }}">{{ $cat->name_en }}</option>
@@ -63,32 +63,32 @@
                 </select>
             </div>
             <div class="w-40">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Country</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.country') }}</label>
                 <select id="filter-country" class="form-input w-full text-sm">
-                    <option value="">All countries</option>
+                    <option value="">{{ __('admin.blog.all_countries') }}</option>
                     @foreach($countries as $c)
                         <option value="{{ $c->id }}">{{ $c->flag_emoji ? $c->flag_emoji . ' ' : '' }}{{ $c->name_en }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="w-40">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Author</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.blog.author') }}</label>
                 <select id="filter-author" class="form-input w-full text-sm">
-                    <option value="">All authors</option>
+                    <option value="">{{ __('admin.blog.all_authors') }}</option>
                     @foreach($authors as $a)
                         <option value="{{ $a->id }}">{{ $a->name }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Published from</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.blog.published_from') }}</label>
                 <input type="date" id="filter-date-from" class="form-input w-full text-sm">
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Published to</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.blog.published_to') }}</label>
                 <input type="date" id="filter-date-to" class="form-input w-full text-sm">
             </div>
-            <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">Reset</button>
+            <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('common.reset') }}</button>
         </form>
     </x-card>
 
@@ -97,15 +97,15 @@
         <div class="overflow-x-auto">
             <table id="posts-table" class="w-full text-sm" style="width:100%">
                 <thead>
-                    <tr class="border-b border-gray-100 text-left">
+                    <tr class="border-b border-gray-100 text-start">
                         <th class="py-2 pr-3 text-xs font-medium text-gray-500 uppercase w-12"></th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Title</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Author</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Country</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Published</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Views</th>
-                        <th class="py-2 text-xs font-medium text-gray-500 uppercase text-right">Actions</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.blog.post_title') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.blog.author') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('common.country') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('common.status') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('common.published') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.blog.views') }}</th>
+                        <th class="py-2 text-xs font-medium text-gray-500 uppercase text-end">{{ __('common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -116,18 +116,26 @@
 </div>
 
 {{-- Delete confirmation modal --}}
-<x-modal id="delete-post-modal" title="Delete Post" size="sm">
-    <p class="text-sm text-gray-700">Soft-delete this post? It can be restored from the database.</p>
+<x-modal id="delete-post-modal" title="{{ __('admin.blog.delete_post') }}" size="sm">
+    <p class="text-sm text-gray-700">{{ __('admin.blog.soft_delete_post_confirm') }}</p>
     <input type="hidden" id="delete-post-id">
     <div id="delete-post-error" class="hidden mt-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"></div>
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-confirm-delete-post" class="btn btn-danger">Delete</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" id="btn-confirm-delete-post" class="btn btn-danger">{{ __('common.delete') }}</button>
     </x-slot:footer>
 </x-modal>
 
 @push('scripts')
 <script>
+window.TRANSLATIONS = {
+    loading: "{{ __('common.loading') }}",
+    no_posts: "{{ __('admin.blog.no_posts') }}",
+    archive_post_confirm: "{{ __('admin.blog.archive_post_confirm') }}",
+    could_not_delete: "{{ __('admin.blog.could_not_delete') }}",
+    success: "{{ __('common.success') }}",
+    error: "{{ __('common.error') }}",
+};
 (function () {
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
@@ -248,7 +256,7 @@
         }
 
         if (archiveBtn) {
-            if (!confirm('Archive this post?')) return;
+            if (!confirm(window.TRANSLATIONS.archive_post_confirm)) return;
             const { ok } = await req(archiveBtn.dataset.url, 'POST');
             if (ok) dtInstance?.ajax?.reload?.() ?? dtInstance?.draw?.();
         }
@@ -270,7 +278,7 @@
             dtInstance?.ajax?.reload?.() ?? dtInstance?.draw?.();
         } else {
             const errEl = document.getElementById('delete-post-error');
-            errEl.textContent = data.message ?? 'Could not delete.';
+            errEl.textContent = data.message ?? window.TRANSLATIONS.could_not_delete;
             errEl.classList.remove('hidden');
         }
     });
