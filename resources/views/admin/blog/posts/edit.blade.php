@@ -115,17 +115,17 @@
                         <div>
                             <div class="flex border-b border-gray-200 mb-4">
                                 <button type="button" class="lang-tab px-4 py-2 text-sm font-medium border-b-2 border-primary-500 text-primary-600 -mb-px" data-lang="en">
-                                    English
+                                    {{ __('common.english') }}
                                 </button>
                                 <button type="button" class="lang-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 -mb-px" data-lang="ar">
-                                    العربية
+                                    {{ __('common.arabic') }}
                                 </button>
                             </div>
 
                             <div id="body-en-section">
                                 <x-form.rich-editor
                                     name="body_en"
-                                    label="Body (English)"
+                                    label="{{ __('admin.blog.body_en') }}"
                                     :required="true"
                                     profile="full"
                                     :minHeight="350"
@@ -137,7 +137,7 @@
                             <div id="body-ar-section" class="hidden">
                                 <x-form.rich-editor
                                     name="body_ar"
-                                    label="محتوى المقال (عربي)"
+                                    label="{{ __('admin.blog.body_ar') }}"
                                     :required="true"
                                     profile="full"
                                     :minHeight="350"
@@ -148,7 +148,7 @@
                         </div>
 
                         <div>
-                            <label class="form-label">Tags</label>
+                            <label class="form-label">{{ __('admin.blog.tags') }}</label>
                             <input type="text" name="tags" id="tags-input"
                                    value="{{ old('tags', is_array($post->tags) ? implode(', ', $post->tags) : $post->tags) }}"
                                    class="form-input w-full text-sm"
@@ -159,13 +159,13 @@
 
                 {{-- Bottom action buttons --}}
                 <div class="flex items-center gap-3 flex-wrap">
-                    <button type="button" class="btn btn-secondary" onclick="submitForm('draft')">Save Draft</button>
+                    <button type="button" class="btn btn-secondary" onclick="submitForm('draft')">{{ __('admin.blog.save_draft') }}</button>
                     <button type="button" class="btn bg-emerald-600 text-white hover:bg-emerald-700" onclick="submitForm('publish')">
-                        {{ $post->status === 'archived' ? 'Re-publish' : 'Publish Now' }}
+                        {{ $post->status === 'archived' ? __('admin.blog.republish') : __('admin.blog.publish_now') }}
                     </button>
                     @if(in_array($post->status, ['published', 'scheduled']))
                         <button type="button" class="btn bg-amber-500 text-white hover:bg-amber-600" onclick="submitForm('archive')">
-                            Archive
+                            {{ __('admin.blog.archive') }}
                         </button>
                     @endif
                 </div>
@@ -176,56 +176,56 @@
             <div class="w-80 flex-shrink-0 space-y-4">
 
                 {{-- Publish Settings --}}
-                <x-card title="Publish Settings">
+                <x-card title="{{ __('admin.blog.publish_settings') }}">
                     <div class="p-4 space-y-4">
                         <div class="text-xs text-gray-500">
-                            Current status:
+                            {{ __('admin.blog.current_status') }}
                             <span class="font-semibold text-gray-800">{{ ucfirst($post->status) }}</span>
                         </div>
 
                         <div class="flex flex-col gap-2">
                             <button type="button" class="btn btn-secondary w-full text-sm" onclick="submitForm('draft')">
-                                Save Draft
+                                {{ __('admin.blog.save_draft') }}
                             </button>
                             <button type="button" id="btn-schedule" class="btn btn-secondary w-full text-sm text-blue-600 border-blue-300">
-                                Schedule…
+                                {{ __('admin.blog.schedule') }}…
                             </button>
                             <button type="button" class="btn bg-emerald-600 text-white hover:bg-emerald-700 w-full text-sm" onclick="submitForm('publish')">
-                                {{ $post->status === 'archived' ? 'Re-publish' : 'Publish Now' }}
+                                {{ $post->status === 'archived' ? __('admin.blog.republish') : __('admin.blog.publish_now') }}
                             </button>
                             @if(in_array($post->status, ['published', 'scheduled']))
                                 <button type="button" class="btn bg-amber-500 text-white hover:bg-amber-600 w-full text-sm" onclick="submitForm('archive')">
-                                    Archive
+                                    {{ __('admin.blog.archive') }}
                                 </button>
                             @endif
                         </div>
 
                         <div id="schedule-panel" class="{{ $post->status === 'scheduled' ? '' : 'hidden' }} space-y-2 pt-2 border-t border-gray-100">
-                            <label class="form-label text-xs">Scheduled For</label>
+                            <label class="form-label text-xs">{{ __('admin.blog.scheduled_for') }}</label>
                             <input type="datetime-local" name="scheduled_for" id="scheduled-for"
                                    value="{{ old('scheduled_for', $post->scheduled_for?->format('Y-m-d\TH:i')) }}"
                                    class="form-input w-full text-sm">
                             <button type="button" class="btn btn-primary w-full text-sm" onclick="submitForm('schedule')">
-                                Update Schedule
+                                {{ __('admin.blog.update_schedule') }}
                             </button>
                         </div>
 
                         <div class="pt-2 border-t border-gray-100 space-y-1">
-                            <div class="text-xs text-gray-500">Reading time: <span id="reading-time-display" class="font-medium text-gray-700">~{{ $post->reading_time_minutes ?? 1 }} min read</span></div>
+                            <div class="text-xs text-gray-500">{{ __('admin.blog.reading_time') }}: <span id="reading-time-display" class="font-medium text-gray-700">~{{ $post->reading_time_minutes ?? 1 }} min read</span></div>
                             @if($post->published_at)
-                                <div class="text-xs text-gray-500">Published: <span class="font-medium text-gray-700">{{ $post->published_at->format('d M Y H:i') }}</span></div>
+                                <div class="text-xs text-gray-500">{{ __('admin.blog.published_at') }}: <span class="font-medium text-gray-700">{{ $post->published_at->format('d M Y H:i') }}</span></div>
                             @endif
                         </div>
                     </div>
                 </x-card>
 
                 {{-- Organization --}}
-                <x-card title="Organization">
+                <x-card title="{{ __('admin.blog.organization') }}">
                     <div class="p-4 space-y-4">
                         <div>
-                            <label class="form-label text-xs">Category <span class="text-red-500">*</span></label>
+                            <label class="form-label text-xs">{{ __('admin.blog.category_label') }} <span class="text-red-500">*</span></label>
                             <select name="blog_category_id" class="form-input w-full text-sm @error('blog_category_id') is-invalid @enderror">
-                                <option value="">— Select category —</option>
+                                <option value="">{{ __('admin.blog.select_category') }}</option>
                                 @foreach($categories as $parent)
                                     <optgroup label="{{ $parent->name_en }}">
                                         <option value="{{ $parent->id }}" {{ old('blog_category_id', $post->blog_category_id) == $parent->id ? 'selected' : '' }}>
@@ -243,9 +243,9 @@
                         </div>
 
                         <div>
-                            <label class="form-label text-xs">Country</label>
+                            <label class="form-label text-xs">{{ __('common.country') }}</label>
                             <select name="country_id" class="form-input w-full text-sm">
-                                <option value="">All Countries</option>
+                                <option value="">{{ __('common.all') }} {{ __('common.country') }}</option>
                                 @foreach($countries as $c)
                                     <option value="{{ $c->id }}" {{ old('country_id', $post->country_id) == $c->id ? 'selected' : '' }}>
                                         {{ $c->flag_emoji ? $c->flag_emoji . ' ' : '' }}{{ $c->name_en }}
@@ -255,7 +255,7 @@
                         </div>
 
                         <div>
-                            <label class="form-label text-xs">Author</label>
+                            <label class="form-label text-xs">{{ __('admin.blog.author') }}</label>
                             <select name="author_admin_id" class="form-input w-full text-sm">
                                 @foreach($authors as $a)
                                     <option value="{{ $a->id }}" {{ old('author_admin_id', $post->author_admin_id) == $a->id ? 'selected' : '' }}>
@@ -270,44 +270,44 @@
                                 <input type="checkbox" name="allow_comments" value="1"
                                        class="rounded text-primary-600"
                                        {{ old('allow_comments', $post->allow_comments) ? 'checked' : '' }}>
-                                <span class="text-sm text-gray-700">Allow Comments</span>
+                                <span class="text-sm text-gray-700">{{ __('admin.blog.allow_comments') }}</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer select-none">
                                 <input type="checkbox" name="is_featured" value="1" id="is-featured-cb"
                                        class="rounded text-amber-500"
                                        {{ old('is_featured', $post->is_featured) ? 'checked' : '' }}>
-                                <span class="text-sm text-gray-700">Featured ★</span>
+                                <span class="text-sm text-gray-700">{{ __('admin.blog.featured_star') }}</span>
                             </label>
                         </div>
                     </div>
                 </x-card>
 
                 {{-- Featured Image --}}
-                <x-card title="Featured Image">
+                <x-card title="{{ __('admin.blog.featured_image') }}">
                     <div class="p-4 space-y-4">
                         @if($post->featured_image_path)
                             <div class="mb-2">
                                 <img src="{{ Storage::disk('public')->url($post->featured_image_path) }}"
                                      alt="{{ $post->featured_image_alt_en }}"
                                      class="w-full h-40 object-cover rounded-lg border border-gray-200">
-                                <p class="text-xs text-gray-400 mt-1">Upload a new image to replace.</p>
+                                <p class="text-xs text-gray-400 mt-1">{{ __('admin.blog.upload_new_replace') }}</p>
                             </div>
                         @endif
                         <x-form.file-upload
                             name="featured_image"
-                            label="{{ $post->featured_image_path ? 'Replace Featured Image' : 'Featured Image' }}"
+                            label="{{ $post->featured_image_path ? __('admin.blog.replace_featured_image') : __('admin.blog.featured_image') }}"
                             accept="image/*"
                             :maxSizeMb="5"
                         />
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="form-label text-xs">Alt Text (EN)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.alt_text_en') }}</label>
                                 <input type="text" name="featured_image_alt_en"
                                        value="{{ old('featured_image_alt_en', $post->featured_image_alt_en) }}"
                                        class="form-input w-full text-sm">
                             </div>
                             <div>
-                                <label class="form-label text-xs">النص البديل (AR)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.alt_text_ar') }}</label>
                                 <input type="text" name="featured_image_alt_ar" dir="rtl"
                                        value="{{ old('featured_image_alt_ar', $post->featured_image_alt_ar) }}"
                                        class="form-input w-full text-sm">
@@ -318,16 +318,16 @@
                                 <div class="mb-2">
                                     <img src="{{ Storage::disk('public')->url($post->og_image_path) }}"
                                          class="w-full h-28 object-cover rounded-lg border border-gray-200">
-                                    <p class="text-xs text-gray-400 mt-1">Current OG image. Upload to replace.</p>
+                                    <p class="text-xs text-gray-400 mt-1">{{ __('admin.blog.current_og_replace') }}</p>
                                 </div>
                             @endif
                             <x-form.file-upload
                                 name="og_image"
-                                label="Social Share Image (optional)"
+                                label="{{ __('admin.blog.social_share_optional') }}"
                                 accept="image/*"
                                 :maxSizeMb="5"
                             />
-                            <p class="text-xs text-gray-400 mt-1">Uses Featured Image if not set.</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ __('admin.blog.uses_featured_if_not_set') }}</p>
                         </div>
                     </div>
                 </x-card>
@@ -337,7 +337,7 @@
                     <div class="p-4 space-y-4">
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="form-label text-xs">SEO Title (EN)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.seo_title') }} (EN)</label>
                                 <span class="text-xs text-gray-400" data-char-counter="seo_title_en" data-max="60">0 / 60</span>
                             </div>
                             <input type="text" name="seo_title_en" id="seo-title-en" maxlength="200"
@@ -346,7 +346,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="form-label text-xs">SEO Title (AR)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.seo_title') }} (AR)</label>
                                 <span class="text-xs text-gray-400" data-char-counter="seo_title_ar" data-max="60">0 / 60</span>
                             </div>
                             <input type="text" name="seo_title_ar" maxlength="200" dir="rtl"
@@ -355,7 +355,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="form-label text-xs">SEO Description (EN)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.seo_description') }} (EN)</label>
                                 <span class="text-xs text-gray-400" data-char-counter="seo_description_en" data-max="160">0 / 160</span>
                             </div>
                             <textarea name="seo_description_en" id="seo-desc-en" rows="2" maxlength="500"
@@ -363,7 +363,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="form-label text-xs">SEO Description (AR)</label>
+                                <label class="form-label text-xs">{{ __('admin.blog.seo_description') }} (AR)</label>
                                 <span class="text-xs text-gray-400" data-char-counter="seo_description_ar" data-max="160">0 / 160</span>
                             </div>
                             <textarea name="seo_description_ar" rows="2" maxlength="500" dir="rtl"
@@ -372,13 +372,13 @@
 
                         {{-- Google snippet preview --}}
                         <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-0.5">
-                            <p class="text-xs text-gray-400 mb-2 font-medium uppercase">Preview</p>
+                            <p class="text-xs text-gray-400 mb-2 font-medium uppercase">{{ __('admin.blog.seo_preview') }}</p>
                             <div id="seo-preview-title" class="text-blue-700 text-sm font-medium leading-snug truncate">
                                 {{ $post->seo_title_en ?: $post->title_en }}
                             </div>
                             <div class="text-green-700 text-xs truncate">portal.com/blog/<span id="seo-preview-slug">{{ $post->slug }}</span></div>
                             <div id="seo-preview-desc" class="text-gray-500 text-xs leading-relaxed line-clamp-2">
-                                {{ $post->seo_description_en ?: ($post->excerpt_en ?: 'Your SEO description will appear here.') }}
+                                {{ $post->seo_description_en ?: ($post->excerpt_en ?: __('admin.blog.seo_desc_placeholder')) }}
                             </div>
                         </div>
                     </div>

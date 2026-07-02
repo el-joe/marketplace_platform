@@ -264,7 +264,7 @@
                                 @foreach($variants ?? [] as $vi => $variant)
                                 <tr class="variant-row hover:bg-gray-50">
                                     <td class="px-4 py-3 font-medium text-gray-800">
-                                        {{ $variant->name ?? 'Default variant' }}
+                                        {{ $variant->name ?? __('admin.products.default_variant') }}
                                         <input type="hidden" name="variants[{{ $vi }}][id]" value="{{ $variant->id }}" />
                                     </td>
                                     <td class="px-4 py-3">
@@ -295,7 +295,7 @@
                                             {{ $variant->is_active ? 'checked' : '' }} />
                                     </td>
                                     <td class="px-4 py-3">
-                                        <button type="button" class="remove-variant-row text-gray-400 hover:text-red-600 transition-colors" title="Remove">
+                                        <button type="button" class="remove-variant-row text-gray-400 hover:text-red-600 transition-colors" title="{{ __('admin.products.remove') }}">
                                             <x-heroicon name="x-circle" class="w-4 h-4" />
                                         </button>
                                     </td>
@@ -305,7 +305,7 @@
                             </tbody>
                         </table>
                         <div id="no-variants-msg" class="{{ ($isEdit && count($variants ?? []) > 0) ? 'hidden' : '' }} px-4 py-6 text-center text-sm text-gray-400">
-                            No variants yet. Select attributes above and click <em>Generate combinations</em>.
+                            {{ __('admin.products.no_variants_yet', ['action' => __('admin.products.generate_combinations')]) }}
                         </div>
                     </div>
                 </div>
@@ -319,8 +319,7 @@
                 class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-4"
             >
                 <p class="text-sm text-gray-500">
-                    Upload product images. The <strong>first image</strong> will be set as the primary image.
-                    Drag to reorder. Max 5 MB per image.
+                    {{ __('admin.products.upload_images_hint', ['primary' => __('admin.products.primary_image')]) }}
                 </p>
 
                 {{-- FilePond mount point — initialized in products.js --}}
@@ -361,15 +360,15 @@
                 class="bg-white rounded-b-xl border border-t-0 border-gray-200 shadow-sm"
             >
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <h4 class="text-sm font-semibold text-gray-700">Country Availability</h4>
+                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.products.country_availability') }}</h4>
                     <div class="flex gap-2">
                         <button type="button" id="enable-all-countries"
                             class="text-xs px-3 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 font-medium">
-                            Enable all
+                            {{ __('admin.products.enable_all') }}
                         </button>
                         <button type="button" id="disable-all-countries"
                             class="text-xs px-3 py-1.5 rounded-md border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-medium">
-                            Disable all
+                            {{ __('admin.products.disable_all') }}
                         </button>
                     </div>
                 </div>
@@ -378,10 +377,10 @@
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Country</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Available</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name Override</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Cert Required</th>
+                                <th class="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.country_column') }}</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">{{ __('admin.products.available_column') }}</th>
+                                <th class="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.name_override_column') }}</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">{{ __('admin.products.cert_required_column') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">

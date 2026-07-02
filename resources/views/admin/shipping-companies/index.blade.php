@@ -77,18 +77,18 @@
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             <a href="{{ route('admin.shipping-companies.show', $company->id) }}"
-                               class="text-indigo-600 hover:underline text-xs font-medium">View</a>
+                               class="text-indigo-600 hover:underline text-xs font-medium">{{ __('admin.shipping_section.view') }}</a>
                             @if($company->status === 'pending')
                             <form method="POST" action="{{ route('admin.shipping-companies.approve', $company->id) }}">
                                 @csrf
-                                <button class="text-emerald-600 hover:underline text-xs font-medium">Approve</button>
+                                <button class="text-emerald-600 hover:underline text-xs font-medium">{{ __('admin.shipping_section.approve') }}</button>
                             </form>
                             @endif
                             @if($company->status !== 'suspended')
                             <form method="POST" action="{{ route('admin.shipping-companies.suspend', $company->id) }}"
-                                  onsubmit="return confirm('Suspend this company?')">
+                                  onsubmit="return confirm('{{ __('admin.shipping_section.suspend_confirm') }}')">
                                 @csrf
-                                <button class="text-red-500 hover:underline text-xs font-medium">Suspend</button>
+                                <button class="text-red-500 hover:underline text-xs font-medium">{{ __('admin.shipping_section.suspend') }}</button>
                             </form>
                             @endif
                         </div>
@@ -96,7 +96,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-gray-400 text-sm">No shipping companies registered yet.</td>
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-400 text-sm">{{ __('admin.no_shipping_companies') }}</td>
                 </tr>
                 @endforelse
             </tbody>
