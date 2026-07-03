@@ -27,4 +27,38 @@ return [
     'manage_agents'     => 'Manage Agents',
     'financial_access'  => 'Financial Access',
     'sign_out'          => 'Sign Out',
+
+    'nav' => [
+        'home'          => 'Home',
+        'assignments'   => 'Assignments',
+        'agents'        => 'Agents',
+        'supervisors'   => 'Supervisors',
+        'unassigned'    => 'Unassigned',
+        'logout'        => 'Logout',
+    ],
+
+    'assignments' => [
+        'title'                     => 'Delivery Assignments',
+        'all_assignments'           => 'All assignments for your company\'s agents',
+        'assign_agent'              => 'Assign Agent',
+        'reassign_agent'            => 'Reassign Agent',
+        'reassign_title'            => 'Reassign Assignment',
+        'cannot_reassign_picked_up' => 'This assignment cannot be reassigned in its current status.',
+        'reassigned_success'        => 'Assignment reassigned successfully.',
+        'unassigned_title'          => 'Unassigned Shipments',
+        'assign_success'            => 'Agent assigned to the order successfully.',
+        'available_agents'          => 'Available Agents',
+        'no_available_agents'       => 'No agents are currently available.',
+        'destination_zone'          => 'Destination Zone',
+    ],
+
+    'agents' => [
+        'title'             => 'Agents',
+        'active'            => 'Active',
+        'on_shift'          => 'On Shift',
+        'available'         => 'Available',
+        'vehicle_type'      => 'Vehicle Type',
+        'rating'            => 'Rating',
+        'deliveries_today'  => 'Deliveries Today',
+    ],
 ];

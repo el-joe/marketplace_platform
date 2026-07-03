@@ -27,4 +27,38 @@ return [
     'manage_agents'     => 'إدارة المناديب',
     'financial_access'  => 'الوصول المالي',
     'sign_out'          => 'خروج',
+
+    'nav' => [
+        'home'          => 'الرئيسية',
+        'assignments'   => 'الطلبات',
+        'agents'        => 'المناديب',
+        'supervisors'   => 'المشرفون',
+        'unassigned'    => 'غير معيّنة',
+        'logout'        => 'خروج',
+    ],
+
+    'assignments' => [
+        'title'                     => 'طلبات التوصيل',
+        'all_assignments'           => 'جميع الطلبات المعيّنة لمناديب شركتك',
+        'assign_agent'              => 'تعيين مندوب',
+        'reassign_agent'            => 'إعادة تعيين المندوب',
+        'reassign_title'            => 'إعادة تعيين الطلب',
+        'cannot_reassign_picked_up' => 'لا يمكن إعادة تعيين هذا الطلب في حالته الحالية.',
+        'reassigned_success'        => 'تم إعادة تعيين الطلب بنجاح.',
+        'unassigned_title'          => 'شحنات غير معيّنة',
+        'assign_success'            => 'تم تعيين مندوب للطلب بنجاح.',
+        'available_agents'          => 'المناديب المتاحون',
+        'no_available_agents'       => 'لا يوجد مناديب متاحون حالياً.',
+        'destination_zone'          => 'منطقة الوجهة',
+    ],
+
+    'agents' => [
+        'title'             => 'المناديب',
+        'active'            => 'نشط',
+        'on_shift'          => 'في الوردية',
+        'available'         => 'متاح',
+        'vehicle_type'      => 'نوع المركبة',
+        'rating'            => 'التقييم',
+        'deliveries_today'  => 'توصيلات اليوم',
+    ],
 ];
