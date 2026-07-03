@@ -165,7 +165,7 @@
 <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
     <div>
         <div class="flex items-center gap-2 mb-1">
-            <a href="{{ route('marketer.campaigns.index') }}" class="text-sm text-gray-400 hover:text-gray-600">← Campaigns</a>
+            <a href="{{ route('marketer.campaigns.index') }}" class="text-sm text-gray-400 hover:text-gray-600">{{ __('marketer.campaigns.back_to_campaigns') }}</a>
         </div>
         <h1 class="text-xl font-bold text-gray-800">{{ $campaign->name }}</h1>
         <p class="text-sm text-gray-500 mt-0.5">{{ ucfirst(str_replace('_', ' ', $campaign->campaign_type)) }}</p>
@@ -178,13 +178,13 @@
 {{-- ── Tracking Link ────────────────────────────────────────────────────────── --}}
 @if($isActive)
 <div class="bg-slate-800 rounded-2xl p-5 mb-6">
-    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Tracking Link</p>
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">{{ __('marketer.campaigns.tracking_link') }}</p>
     <div class="flex gap-2">
         <input id="tracking-url-input" type="text" value="{{ $trackingUrl }}" readonly
                class="flex-1 bg-slate-700 text-slate-200 font-mono text-sm rounded-xl px-3 py-2.5 border border-slate-600 focus:outline-none focus:border-yellow-400">
         <button id="copy-url-btn" onclick="copyTrackingUrl()"
                 class="flex-shrink-0 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold text-sm rounded-xl px-4 py-2.5 transition-colors">
-            <span id="copy-btn-text">📋 Copy</span>
+            <span id="copy-btn-text">{{ __('marketer.campaigns.copy') }}</span>
         </button>
     </div>
 
@@ -192,15 +192,15 @@
     <div class="flex gap-2 mt-3">
         <a id="whatsapp-share-btn" href="https://wa.me/?text={{ urlencode("Check this out: $trackingUrl") }}" target="_blank"
            class="flex-1 text-center bg-green-600 hover:bg-green-500 text-white text-xs font-semibold rounded-xl py-2 transition-colors">
-            📱 WhatsApp
+            {{ __('marketer.campaigns.whatsapp') }}
         </a>
-        <button onclick="navigator.clipboard.writeText({{ json_encode($trackingUrl) }}).then(() => alert('Copied for Instagram bio!'))"
+        <button onclick="navigator.clipboard.writeText({{ json_encode($trackingUrl) }}).then(() => alert({{ json_encode(__('marketer.campaigns.instagram_bio_copied')) }}))"
                 class="flex-1 text-center bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white text-xs font-semibold rounded-xl py-2 transition-colors">
-            📸 Instagram Bio
+            {{ __('marketer.campaigns.instagram_bio') }}
         </button>
         <a href="https://twitter.com/intent/tweet?url={{ urlencode($trackingUrl) }}" target="_blank"
            class="flex-1 text-center bg-sky-500 hover:bg-sky-400 text-white text-xs font-semibold rounded-xl py-2 transition-colors">
-            🐦 Twitter
+            {{ __('marketer.campaigns.twitter') }}
         </a>
     </div>
 </div>
@@ -209,8 +209,8 @@ function copyTrackingUrl() {
     var url = document.getElementById('tracking-url-input').value;
     var btn = document.getElementById('copy-btn-text');
     navigator.clipboard.writeText(url).then(function() {
-        btn.textContent = '✓ Copied!';
-        setTimeout(function() { btn.textContent = '📋 Copy'; }, 2000);
+        btn.textContent = @json(__('marketer.campaigns.copied'));
+        setTimeout(function() { btn.textContent = @json(__('marketer.campaigns.copy')); }, 2000);
     });
 }
 </script>
@@ -219,10 +219,10 @@ function copyTrackingUrl() {
 {{-- ── Stats Grid ───────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
     @foreach([
-        ['Clicks', number_format($campaign->total_clicks), 'text-blue-600'],
-        ['Conversions', number_format($campaign->total_conversions), 'text-purple-600'],
-        ['Conv. Rate', $campaign->total_clicks > 0 ? round($campaign->total_conversions / $campaign->total_clicks * 100, 2) . '%' : '0%', 'text-yellow-600'],
-        ['Revenue', number_format($campaign->total_revenue_cents / 100, 2) . ' ' . ($campaign->vendor?->country?->currency_code ?? ''), 'text-green-600'],
+        [__('marketer.campaigns.clicks'), number_format($campaign->total_clicks), 'text-blue-600'],
+        [__('marketer.dashboard.conversions'), number_format($campaign->total_conversions), 'text-purple-600'],
+        [__('marketer.campaigns.conv_rate'), $campaign->total_clicks > 0 ? round($campaign->total_conversions / $campaign->total_clicks * 100, 2) . '%' : '0%', 'text-yellow-600'],
+        [__('marketer.dashboard.revenue'), number_format($campaign->total_revenue_cents / 100, 2) . ' ' . ($campaign->vendor?->country?->currency_code ?? ''), 'text-green-600'],
     ] as [$label, $value, $color])
         <div class="bg-white rounded-xl border border-gray-100 p-4">
             <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">{{ $label }}</p>
@@ -234,8 +234,8 @@ function copyTrackingUrl() {
 {{-- ── Daily Analytics Chart ────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
     <div class="flex items-center justify-between mb-4">
-        <h3 class="font-bold text-gray-800">Daily Performance</h3>
-        <span class="text-xs text-gray-400">Last 30 days</span>
+        <h3 class="font-bold text-gray-800">{{ __('marketer.campaigns.daily_performance') }}</h3>
+        <span class="text-xs text-gray-400">{{ __('marketer.dashboard.last_30_days') }}</span>
     </div>
     <canvas id="campaign-chart" height="80"></canvas>
 </div>
@@ -244,13 +244,13 @@ function copyTrackingUrl() {
 @if($campaign->campaignable_type === \App\Models\Vendor::class && $campaign->campaignable)
     {{-- Promoted Store header --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-        <h3 class="font-bold text-gray-800 mb-2">Promoted Store</h3>
+        <h3 class="font-bold text-gray-800 mb-2">{{ __('marketer.campaigns.promoted_store') }}</h3>
         <p class="text-sm text-gray-700">{{ $campaign->campaignable->store_name }}</p>
     </div>
     {{-- Products grid (only when products are linked) --}}
     @if($campaign->products->isNotEmpty())
     <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-        <h3 class="font-bold text-gray-800 mb-4">Campaign Products ({{ $campaign->products->count() }})</h3>
+        <h3 class="font-bold text-gray-800 mb-4">{{ __('marketer.campaigns.campaign_products', ['count' => $campaign->products->count()]) }}</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             @foreach($campaign->products as $cpIndex => $cp)
                 @php
@@ -264,7 +264,7 @@ function copyTrackingUrl() {
                 <div class="product-card">
                     <div class="flex-1 min-w-0">
                         <p class="font-semibold text-sm text-gray-800 truncate">
-                            {{ $product?->name_en ?? 'Product #' . $cp->id }}
+                            {{ $product?->name_en ?? __('marketer.campaigns.product_number', ['id' => $cp->id]) }}
                         </p>
                         @if($listing?->sale_price)
                             <p class="text-xs text-gray-500 mt-0.5">{{ number_format($listing->sale_price / 100, 2) }} {{ $listing->vendor?->country?->currency_code ?? '' }}</p>
@@ -273,7 +273,7 @@ function copyTrackingUrl() {
                             <span class="link-text">{{ $productLink }}</span>
                             <button onclick="copyProductLink(this, {{ json_encode($productLink) }})"
                                     class="shrink-0 text-xs bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg px-2 py-1 transition-colors">
-                                Copy
+                                {{ __('marketer.campaigns.copy_plain') }}
                             </button>
                         </div>
                     </div>
@@ -286,7 +286,7 @@ function copyTrackingUrl() {
 @elseif($campaign->campaignable_type === \App\Models\ClassifiedListing::class && $campaign->campaignable)
     @php $listing = $campaign->campaignable; @endphp
     <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-        <h3 class="font-bold text-gray-800 mb-3">Classified Listing</h3>
+        <h3 class="font-bold text-gray-800 mb-3">{{ __('marketer.campaigns.classified_listing') }}</h3>
         <div class="product-card">
             @if($listing->thumbnail_path ?? null)
                 <img src="{{ \Illuminate\Support\Facades\Storage::url($listing->thumbnail_path) }}"
@@ -306,7 +306,7 @@ function copyTrackingUrl() {
 @elseif($campaign->campaignable_type === \App\Models\TravelPackage::class && $campaign->campaignable)
     @php $package = $campaign->campaignable; @endphp
     <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-        <h3 class="font-bold text-gray-800 mb-3">Travel Package</h3>
+        <h3 class="font-bold text-gray-800 mb-3">{{ __('marketer.campaigns.travel_package') }}</h3>
         <div class="product-card">
             @if($package->thumbnail_path ?? null)
                 <img src="{{ \Illuminate\Support\Facades\Storage::url($package->thumbnail_path) }}"
@@ -334,44 +334,44 @@ function copyTrackingUrl() {
 <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
     <div class="flex items-center justify-between mb-4">
         <div>
-            <h3 class="font-bold text-gray-800">📱 WhatsApp Links</h3>
-            <p class="text-xs text-gray-400 mt-0.5">Generate incentive links with discount coupons for WhatsApp sharing</p>
+            <h3 class="font-bold text-gray-800">{{ __('marketer.campaigns.whatsapp_links') }}</h3>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('marketer.campaigns.whatsapp_links_desc') }}</p>
         </div>
         <button type="button" onclick="toggleWhatsappForm()"
             class="btn btn-sm bg-green-500 hover:bg-green-400 text-white font-semibold">
-            <span id="wa-toggle-text">Generate</span>
+            <span id="wa-toggle-text">{{ __('marketer.campaigns.generate') }}</span>
         </button>
     </div>
 
     <div id="wa-form" style="display:none" class="border-t border-gray-100 pt-4 mt-2">
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
-                <label class="form-label text-xs">Link Type</label>
+                <label class="form-label text-xs">{{ __('marketer.campaigns.link_type') }}</label>
                 <select id="wa-link-type" onchange="toggleDiscountField()" class="form-input text-sm py-1.5">
-                    <option value="discount">Discount %</option>
-                    <option value="free_shipping">Free Shipping</option>
-                    <option value="both">Discount + Free Shipping</option>
+                    <option value="discount">{{ __('marketer.campaigns.discount_pct') }}</option>
+                    <option value="free_shipping">{{ __('marketer.campaigns.free_shipping') }}</option>
+                    <option value="both">{{ __('marketer.campaigns.discount_and_free_shipping') }}</option>
                 </select>
             </div>
             <div id="wa-discount-field">
-                <label class="form-label text-xs">Discount %</label>
+                <label class="form-label text-xs">{{ __('marketer.campaigns.discount_pct') }}</label>
                 <input type="number" id="wa-discount-pct" value="10" class="form-input text-sm py-1.5"
                     min="1" max="100" step="0.5" placeholder="e.g. 10">
             </div>
         </div>
         <button type="button" id="wa-generate-btn" onclick="generateWhatsappLink()"
-            class="btn btn-success w-full">Generate WhatsApp Link</button>
+            class="btn btn-success w-full">{{ __('marketer.campaigns.generate_whatsapp_link') }}</button>
 
         <div id="wa-result" style="display:none" class="mt-4 bg-green-50 border border-green-200 rounded-xl p-4 space-y-2">
-            <p class="text-xs text-gray-500">Coupon: <strong id="wa-coupon-code"></strong></p>
+            <p class="text-xs text-gray-500">{{ __('marketer.campaigns.coupon') }}: <strong id="wa-coupon-code"></strong></p>
             <div class="flex gap-2">
                 <input type="text" id="wa-result-url" readonly class="form-input flex-1 text-xs py-1.5 font-mono">
                 <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('wa-result-url').value)"
-                    class="btn btn-xs btn-secondary">Copy</button>
+                    class="btn btn-xs btn-secondary">{{ __('marketer.campaigns.copy_plain') }}</button>
             </div>
             <a id="wa-share-link" href="#" target="_blank"
                 class="block text-center bg-green-600 hover:bg-green-500 text-white text-sm font-semibold rounded-xl py-2 transition-colors">
-                Share on WhatsApp 🚀
+                {{ __('marketer.campaigns.share_on_whatsapp') }}
             </a>
         </div>
     </div>
@@ -380,15 +380,15 @@ function copyTrackingUrl() {
     @php $waLinks = $campaign->whatsappLinks()->where('marketer_id', $marketer->id)->orderByDesc('created_at')->limit(5)->get(); @endphp
     @if($waLinks->isNotEmpty())
         <div class="mt-4 border-t border-gray-100 pt-4">
-            <p class="text-xs text-gray-400 font-medium mb-2">Recent Links</p>
+            <p class="text-xs text-gray-400 font-medium mb-2">{{ __('marketer.campaigns.recent_links') }}</p>
             @foreach($waLinks as $wl)
                 <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                     <div class="text-sm">
                         <span class="font-mono text-xs bg-gray-100 rounded px-1.5 py-0.5">{{ $wl->coupon_code }}</span>
-                        <span class="ml-2 text-xs text-gray-400">{{ number_format($wl->total_uses) }} uses</span>
+                        <span class="ml-2 text-xs text-gray-400">{{ __('marketer.campaigns.uses', ['count' => number_format($wl->total_uses)]) }}</span>
                     </div>
                     <a href="https://wa.me/?text={{ urlencode($wl->tracking_url) }}" target="_blank"
-                        class="text-xs text-green-600 hover:underline">Share</a>
+                        class="text-xs text-green-600 hover:underline">{{ __('marketer.campaigns.share') }}</a>
                 </div>
             @endforeach
         </div>
@@ -401,17 +401,17 @@ function copyTrackingUrl() {
 <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
     <div class="flex items-center justify-between mb-4">
         <div>
-            <h3 class="font-bold text-gray-800">🔲 QR Code</h3>
-            <p class="text-xs text-gray-400 mt-0.5">Generate a scannable QR code for offline promotions</p>
+            <h3 class="font-bold text-gray-800">{{ __('marketer.campaigns.qr_code') }}</h3>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('marketer.campaigns.qr_code_desc') }}</p>
         </div>
         <button type="button" id="qr-generate-btn" onclick="generateQr()"
-            class="btn btn-sm btn-primary">Generate QR</button>
+            class="btn btn-sm btn-primary">{{ __('marketer.campaigns.generate_qr') }}</button>
     </div>
 
     <div id="qr-result" style="display:none" class="text-center">
         <img id="qr-img" src="" alt="QR Code" class="w-40 h-40 mx-auto rounded-xl border border-gray-200 mb-3">
-        <a id="qr-download" href="#" target="_blank" class="btn btn-sm btn-secondary">⬇ Download PNG</a>
-        <p class="text-xs text-gray-400 mt-2">Scan with any camera → opens tracking link</p>
+        <a id="qr-download" href="#" target="_blank" class="btn btn-sm btn-secondary">{{ __('marketer.campaigns.download_png') }}</a>
+        <p class="text-xs text-gray-400 mt-2">{{ __('marketer.campaigns.scan_hint') }}</p>
     </div>
 </div>
 @endif
@@ -421,32 +421,32 @@ function copyTrackingUrl() {
 <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
     <div class="flex items-center justify-between mb-4">
         <div>
-            <h3 class="font-bold text-gray-800">📦 Sample Requests</h3>
-            <p class="text-xs text-gray-400 mt-0.5">Request product samples from this vendor to review and promote authentically.</p>
+            <h3 class="font-bold text-gray-800">{{ __('marketer.campaigns.sample_request_panel') }}</h3>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('marketer.campaigns.request_samples_desc') }}</p>
         </div>
         @if($quota > 0)
             <button type="button" onclick="openSamplesModal()"
-                class="btn btn-sm btn-secondary">+ Request Samples</button>
+                class="btn btn-sm btn-secondary">{{ __('marketer.campaigns.request_samples_btn') }}</button>
         @else
-            <span class="text-xs text-gray-400 italic">Not available for this category</span>
+            <span class="text-xs text-gray-400 italic">{{ __('marketer.campaigns.no_samples_for_category') }}</span>
         @endif
     </div>
 
     @if($quotaCategory)
         @if($quota > 0)
             <div class="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 mb-4">
-                You may request up to {{ $quota }} sample(s) for this campaign's category ({{ $quotaCategory->name_en }}).
+                {{ __('marketer.campaigns.max_samples_allowed', ['count' => $quota, 'category' => $quotaCategory->name_en]) }}
             </div>
         @else
             <div class="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mb-4">
-                Sample requests are not available for this category ({{ $quotaCategory->name_en }}).
+                {{ __('marketer.campaigns.samples_not_available', ['category' => $quotaCategory->name_en]) }}
             </div>
         @endif
     @endif
 
     @if($campaign->samples_required > 0)
         <div class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-4">
-            This vendor requires you to review {{ $campaign->samples_required }} sample item(s) before promoting.
+            {{ __('marketer.campaigns.samples_required_admin', ['count' => $campaign->samples_required]) }}
         </div>
     @endif
 
@@ -481,7 +481,7 @@ function copyTrackingUrl() {
                                 <button type="button"
                                     onclick="confirmSampleReceived('{{ $req->id }}')"
                                     class="text-xs font-semibold text-white bg-green-500 hover:bg-green-400 rounded-lg px-2.5 py-0.5 transition-colors">
-                                    Mark Received
+                                    {{ __('marketer.campaigns.mark_received') }}
                                 </button>
                             @endif
                         </div>
@@ -492,9 +492,9 @@ function copyTrackingUrl() {
                     <table class="w-full text-xs">
                         <thead>
                             <tr class="border-b border-gray-100">
-                                <th class="text-left px-4 py-2 text-gray-400 font-medium">Product</th>
-                                <th class="text-center px-4 py-2 text-gray-400 font-medium w-20">Qty</th>
-                                <th class="text-right px-4 py-2 text-gray-400 font-medium w-28">Unit Price</th>
+                                <th class="text-left px-4 py-2 text-gray-400 font-medium">{{ __('marketer.campaigns.product') }}</th>
+                                <th class="text-center px-4 py-2 text-gray-400 font-medium w-20">{{ __('marketer.campaigns.qty') }}</th>
+                                <th class="text-right px-4 py-2 text-gray-400 font-medium w-28">{{ __('marketer.campaigns.unit_price') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -521,7 +521,7 @@ function copyTrackingUrl() {
                         <tfoot>
                             @php $marketerItems = $req->items->where('is_mandatory', false); @endphp
                             <tr class="border-t border-gray-100 bg-gray-50">
-                                <td class="px-4 py-2 text-gray-400">{{ $marketerItems->count() }} item(s)</td>
+                                <td class="px-4 py-2 text-gray-400">{{ __('marketer.campaigns.items_count', ['count' => $marketerItems->count()]) }}</td>
                                 <td class="px-4 py-2 text-center text-gray-600 font-semibold">
                                     {{ $marketerItems->sum(fn($i) => $i->marketer_quantity ?: $i->quantity) }}
                                 </td>
@@ -533,7 +533,7 @@ function copyTrackingUrl() {
 
                     {{-- Timeline dots --}}
                     <div class="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center gap-1.5">
-                        @foreach(['requested' => 'Requested', 'approved' => 'Approved', 'dispatched' => 'Dispatched', 'received' => 'Received'] as $step => $label)
+                        @foreach(['requested' => __('marketer.campaigns.step_requested'), 'approved' => __('marketer.campaigns.step_approved'), 'dispatched' => __('marketer.campaigns.step_dispatched'), 'received' => __('marketer.campaigns.step_received')] as $step => $label)
                             @php
                                 $steps = ['requested', 'approved', 'dispatched', 'received'];
                                 $reqStepIndex = array_search($req->status, $steps);
@@ -549,20 +549,20 @@ function copyTrackingUrl() {
                             </div>
                         @endforeach
                         @if($req->status === 'rejected')
-                            <span class="text-xs text-red-500 ms-2">✕ Rejected</span>
+                            <span class="text-xs text-red-500 ms-2">{{ __('marketer.campaigns.rejected') }}</span>
                         @endif
                     </div>
 
                     @if($req->status === 'rejected' && $req->rejection_reason)
                         <div class="px-4 py-2 bg-red-50 border-t border-red-100">
-                            <p class="text-xs text-red-600"><span class="font-semibold">Reason:</span> {{ $req->rejection_reason }}</p>
+                            <p class="text-xs text-red-600"><span class="font-semibold">{{ __('marketer.campaigns.rejection_reason') }}:</span> {{ $req->rejection_reason }}</p>
                         </div>
                     @endif
                 </div>
             @endforeach
         </div>
     @else
-        <p class="text-xs text-gray-400">No sample requests yet for this campaign.</p>
+        <p class="text-xs text-gray-400">{{ __('marketer.campaigns.no_sample_requests') }}</p>
     @endif
 </div>
 
@@ -572,8 +572,8 @@ function copyTrackingUrl() {
     <div class="samples-modal-box">
         <div class="samples-modal-header">
             <div>
-                <h3 class="text-base font-bold text-gray-800">📦 Request Samples</h3>
-                <p class="text-xs text-gray-400 mt-0.5">Search and add products you want to receive as samples.</p>
+                <h3 class="text-base font-bold text-gray-800">{{ __('marketer.campaigns.request_samples_modal_title') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('marketer.campaigns.request_samples_modal_desc') }}</p>
             </div>
             <button type="button" onclick="closeSamplesModal()" class="samples-modal-close">✕</button>
         </div>
@@ -581,18 +581,18 @@ function copyTrackingUrl() {
         <div class="samples-modal-body">
             @if($campaign->samples_required > 0)
                 <div class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-4">
-                    This vendor requires {{ $campaign->samples_required }} sample item(s) before promoting.
+                    {{ __('marketer.campaigns.samples_required_admin', ['count' => $campaign->samples_required]) }}
                 </div>
             @endif
 
             {{-- Product search --}}
             <div class="mb-4">
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Search Products</label>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{{ __('marketer.campaigns.search_products_label') }}</label>
                 <div class="flex gap-2">
                     <input type="text" id="sample-product-search" class="form-input flex-1 text-sm py-1.5"
-                           placeholder="Type a product name…">
+                           placeholder="{{ __('marketer.campaigns.search_products_placeholder') }}">
                     <button type="button" onclick="searchSampleProducts()"
-                            class="btn btn-ghost btn-sm">Search</button>
+                            class="btn btn-ghost btn-sm">{{ __('marketer.campaigns.search') }}</button>
                 </div>
                 <div id="sample-search-results" style="display:none"
                      class="mt-1 border border-gray-200 rounded-xl overflow-hidden">
@@ -603,17 +603,17 @@ function copyTrackingUrl() {
 
             {{-- Selected items --}}
             <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Selected Items</label>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ __('marketer.campaigns.selected_items') }}</label>
                 <div id="samples-items" class="space-y-2">
-                    <p id="samples-empty-hint" class="text-xs text-gray-400">No products added yet. Search above to add items.</p>
+                    <p id="samples-empty-hint" class="text-xs text-gray-400">{{ __('marketer.campaigns.no_items_added') }}</p>
                 </div>
             </div>
         </div>
 
         <div class="samples-modal-footer">
-            <button type="button" onclick="closeSamplesModal()" class="btn btn-ghost btn-sm">Cancel</button>
+            <button type="button" onclick="closeSamplesModal()" class="btn btn-ghost btn-sm">{{ __('marketer.campaigns.cancel') }}</button>
             <button type="button" id="samples-submit-btn" onclick="submitSamples()"
-                class="btn btn-primary btn-sm">Submit Request</button>
+                class="btn btn-primary btn-sm">{{ __('marketer.campaigns.submit_request') }}</button>
         </div>
     </div>
 </div>
@@ -622,7 +622,7 @@ function copyTrackingUrl() {
 
 {{-- ── Campaign Details ─────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-    <h3 class="font-bold text-gray-800 mb-4">Details</h3>
+    <h3 class="font-bold text-gray-800 mb-4">{{ __('marketer.campaigns.details') }}</h3>
     @if($campaign->description)
         <p class="text-sm text-gray-600 mb-4">{{ $campaign->description }}</p>
     @endif
@@ -630,32 +630,32 @@ function copyTrackingUrl() {
         @php
             $campaignCurrency = $campaign->vendor?->country?->currency_code ?? '';
             $budgetDisplay = $campaign->budget_cents
-                ? number_format($campaign->budget_cents / 100, 2) . ' / spent: ' . number_format($campaign->budget_spent_cents / 100, 2) . ' ' . $campaignCurrency
-                : 'Unlimited (spent: ' . number_format($campaign->budget_spent_cents / 100, 2) . ' ' . $campaignCurrency . ')';
+                ? __('marketer.campaigns.budget_spent', ['budget' => number_format($campaign->budget_cents / 100, 2), 'spent' => number_format($campaign->budget_spent_cents / 100, 2), 'currency' => $campaignCurrency])
+                : __('marketer.campaigns.budget_unlimited', ['spent' => number_format($campaign->budget_spent_cents / 100, 2), 'currency' => $campaignCurrency]);
 
             $samplesDisplay = $campaign->samples_required > 0
-                ? $campaign->samples_required . ' item(s) — set by platform admin'
-                : 'None required';
+                ? __('marketer.campaigns.samples_admin_set', ['count' => $campaign->samples_required])
+                : __('marketer.campaigns.samples_none_required');
 
             $autoApprovalDisplay = $campaign->auto_approved
-                ? 'Auto-approved on ' . $campaign->approved_at?->format('d M Y')
+                ? __('marketer.campaigns.auto_approved_on', ['date' => $campaign->approved_at?->format('d M Y')])
                 : ($campaign->approved_at
-                    ? 'Approved on ' . $campaign->approved_at->format('d M Y')
+                    ? __('marketer.campaigns.approved_on', ['date' => $campaign->approved_at->format('d M Y')])
                     : ($campaign->auto_approve_at
-                        ? 'Pending review — auto-approves ' . $campaign->auto_approve_at->format('d M Y, H:i')
+                        ? __('marketer.campaigns.pending_auto_approves', ['date' => $campaign->auto_approve_at->format('d M Y, H:i')])
                         : '—'));
         @endphp
         @foreach([
-            'Status'            => ucfirst($campaign->status),
-            'Type'              => ucfirst(str_replace('_', ' ', $campaign->campaign_type)),
-            'Commission Rate'   => "{$campaign->commission_rate}% (" . ucfirst(str_replace('_', ' ', $campaign->commission_type)) . ')',
-            'Attribution Model' => ucfirst(str_replace('_', ' ', $campaign->attribution_model ?? 'last_click')),
-            'Budget'            => $budgetDisplay,
-            'Start Date'        => $campaign->starts_at?->format('d M Y') ?? '—',
-            'End Date'          => $campaign->ends_at?->format('d M Y') ?? 'No end date',
-            'Required Samples'  => $samplesDisplay,
-            'Approval'          => $autoApprovalDisplay,
-            'Slug'              => $campaign->tracking_url_slug,
+            __('marketer.campaigns.status')            => ucfirst($campaign->status),
+            __('marketer.campaigns.type')               => ucfirst(str_replace('_', ' ', $campaign->campaign_type)),
+            __('marketer.campaigns.commission_rate_label') => "{$campaign->commission_rate}% (" . ucfirst(str_replace('_', ' ', $campaign->commission_type)) . ')',
+            __('marketer.campaigns.attribution_model')  => ucfirst(str_replace('_', ' ', $campaign->attribution_model ?? 'last_click')),
+            __('marketer.campaigns.budget')             => $budgetDisplay,
+            __('marketer.campaigns.start_date')         => $campaign->starts_at?->format('d M Y') ?? '—',
+            __('marketer.campaigns.end_date')           => $campaign->ends_at?->format('d M Y') ?? __('marketer.campaigns.no_end_date'),
+            __('marketer.campaigns.required_samples')   => $samplesDisplay,
+            __('marketer.campaigns.approval')           => $autoApprovalDisplay,
+            __('marketer.campaigns.slug')               => $campaign->tracking_url_slug,
         ] as $label => $value)
             <div class="flex justify-between">
                 <span class="text-gray-400">{{ $label }}</span>
@@ -709,7 +709,7 @@ new Chart(ctx, {
 function copyProductLink(btn, url) {
     navigator.clipboard.writeText(url).then(function() {
         btn.textContent = '✓';
-        setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+        setTimeout(function() { btn.textContent = @json(__('marketer.campaigns.copy_plain')); }, 1500);
     });
 }
 
@@ -719,7 +719,7 @@ function toggleWhatsappForm() {
     var text = document.getElementById('wa-toggle-text');
     var open = form.style.display === 'none';
     form.style.display = open ? 'block' : 'none';
-    text.textContent = open ? 'Cancel' : 'Generate';
+    text.textContent = open ? @json(__('marketer.campaigns.cancel')) : @json(__('marketer.campaigns.generate'));
 }
 
 function toggleDiscountField() {
@@ -730,7 +730,7 @@ function toggleDiscountField() {
 async function generateWhatsappLink() {
     var btn = document.getElementById('wa-generate-btn');
     btn.disabled = true;
-    btn.textContent = 'Generating...';
+    btn.textContent = @json(__('marketer.campaigns.generating'));
     try {
         var res = await fetch('{{ route('marketer.campaigns.whatsapp-link', $campaign) }}', {
             method: 'POST',
@@ -750,14 +750,14 @@ async function generateWhatsappLink() {
             alert(data.message || 'Error generating link');
         }
     } catch (e) { alert('Network error'); }
-    finally { btn.disabled = false; btn.textContent = 'Generate WhatsApp Link'; }
+    finally { btn.disabled = false; btn.textContent = @json(__('marketer.campaigns.generate_whatsapp_link')); }
 }
 
 // ── QR Panel ─────────────────────────────────────────────────────────────────
 async function generateQr() {
     var btn = document.getElementById('qr-generate-btn');
     btn.disabled = true;
-    btn.textContent = 'Generating...';
+    btn.textContent = @json(__('marketer.campaigns.generating'));
     try {
         var res = await fetch('{{ route('marketer.campaigns.qr-code', $campaign) }}', {
             method: 'POST',
@@ -778,7 +778,7 @@ async function generateQr() {
             alert(data.message || 'Error generating QR');
         }
     } catch (e) { alert('Network error'); }
-    finally { btn.disabled = false; btn.textContent = 'Generate QR'; }
+    finally { btn.disabled = false; btn.textContent = @json(__('marketer.campaigns.generate_qr')); }
 }
 
 // ── Samples Modal ─────────────────────────────────────────────────────────────
@@ -822,7 +822,7 @@ async function searchSampleProducts() {
     var list = document.getElementById('sample-product-list');
     list.innerHTML = '';
     if (!products.length) {
-        list.innerHTML = '<li class="px-4 py-2 text-gray-400 text-xs">No products found.</li>';
+        list.innerHTML = '<li class="px-4 py-2 text-gray-400 text-xs">' + @json(__('marketer.campaigns.no_products_found')) + '</li>';
     } else {
         products.forEach(function (p) {
             var li = document.createElement('li');
@@ -830,7 +830,7 @@ async function searchSampleProducts() {
             li.innerHTML = '<span class="text-sm text-gray-700 flex-1">' + p.text + ' <span class="text-xs text-gray-400">' + p.price + (campaignCurrency ? ' ' + campaignCurrency : '') + '</span></span>' +
                 '<button type="button" onclick="addSampleProduct(this)"' +
                 ' data-id="' + p.id + '" data-name="' + p.text.replace(/"/g, '&quot;') + '" data-price="' + p.price + '"' +
-                ' class="text-xs bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg px-2 py-0.5 shrink-0">+ Add</button>';
+                ' class="text-xs bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg px-2 py-0.5 shrink-0">' + @json(__('marketer.campaigns.add')) + '</button>';
             list.appendChild(li);
         });
     }
@@ -858,7 +858,7 @@ function renderSampleItems() {
     var container = document.getElementById('samples-items');
     var ids = Object.keys(samplesItems);
     if (!ids.length) {
-        container.innerHTML = '<p class="text-xs text-gray-400">No products added yet. Search above to add items.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400">' + @json(__('marketer.campaigns.no_items_added')) + '</p>';
         return;
     }
     container.innerHTML = ids.map(function (id) {
@@ -874,10 +874,10 @@ function renderSampleItems() {
 
 async function submitSamples() {
     var ids = Object.keys(samplesItems);
-    if (!ids.length) { alert('Please add at least one product.'); return; }
+    if (!ids.length) { alert(@json(__('marketer.campaigns.add_at_least_one_product'))); return; }
     var btn = document.getElementById('samples-submit-btn');
     btn.disabled = true;
-    btn.textContent = 'Submitting...';
+    btn.textContent = @json(__('marketer.campaigns.submitting'));
     try {
         var items = ids.map(function (id) {
             return { listing_id: samplesItems[id].listing_id, quantity: samplesItems[id].quantity };
@@ -890,13 +890,13 @@ async function submitSamples() {
         var data = await res.json();
         if (data.success) {
             closeSamplesModal();
-            showToast('success', 'Request submitted!', 'You will be notified once the vendor approves your sample request.', 2500);
+            showToast('success', @json(__('marketer.campaigns.request_submitted')), @json(__('marketer.campaigns.request_submitted_desc')), 2500);
             setTimeout(function() { location.reload(); }, 1400);
         } else {
-            showToast('error', 'Submission failed', data.message || 'Something went wrong. Please try again.', 0);
+            showToast('error', @json(__('marketer.campaigns.submission_failed')), data.message || @json(__('marketer.campaigns.something_went_wrong')), 0);
         }
-    } catch (e) { showToast('error', 'Network error', 'Please check your connection and try again.', 0); }
-    finally { btn.disabled = false; btn.textContent = 'Submit Request'; }
+    } catch (e) { showToast('error', @json(__('marketer.campaigns.network_error_title')), @json(__('marketer.campaigns.check_connection')), 0); }
+    finally { btn.disabled = false; btn.textContent = @json(__('marketer.campaigns.submit_request')); }
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -925,18 +925,18 @@ function dismissToast(t) {
 }
 
 function confirmSampleReceived(requestId) {
-    if (!confirm('Confirm you have received this sample?')) return;
+    if (!confirm(@json(__('marketer.samples.confirm_received')))) return;
     fetch(`{{ url('/samples') }}/` + requestId + `/mark-received`, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json', 'Accept': 'application/json' },
     }).then(r => r.json()).then(data => {
         if (data.success) {
-            showToast('success', 'Marked as received!', null, 2000);
+            showToast('success', @json(__('marketer.campaigns.marked_as_received')), null, 2000);
             setTimeout(function() { location.reload(); }, 1000);
         } else {
-            showToast('error', 'Could not update', data.message || 'Error updating status.', 0);
+            showToast('error', @json(__('marketer.campaigns.could_not_update')), data.message || @json(__('marketer.campaigns.error_updating_status')), 0);
         }
-    }).catch(function() { showToast('error', 'Network error', 'Please try again.', 0); });
+    }).catch(function() { showToast('error', @json(__('marketer.campaigns.network_error_title')), @json(__('marketer.campaigns.try_again')), 0); });
 }
 </script>
 @endpush

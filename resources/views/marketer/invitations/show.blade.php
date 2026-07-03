@@ -1,7 +1,7 @@
 @extends('layouts.marketer')
 
-@section('title', $invitation->offer?->name ?? 'Invitation')
-@section('page-title', 'Invitation Details')
+@section('title', $invitation->offer?->name ?? __('marketer.invitations.title'))
+@section('page-title', __('marketer.invitations.invitation_details'))
 
 @push('styles')
 <style>
@@ -148,7 +148,7 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 <div id="toast-container"></div>
 
 <div class="mb-4">
-    <a href="{{ route('marketer.invitations.index') }}" class="text-sm text-gray-400 hover:text-gray-600">← Invitations</a>
+    <a href="{{ route('marketer.invitations.index') }}" class="text-sm text-gray-400 hover:text-gray-600">{{ __('marketer.invitations.back_to_invitations') }}</a>
 </div>
 
 @php
@@ -161,18 +161,18 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 {{-- Status banner for non-pending invitations --}}
 @if($invitation->status === 'accepted')
     <div class="status-banner accepted">
-        ✓ You accepted this invitation.
+        {{ __('marketer.invitations.accepted_banner') }}
         @if($invitation->resultingCampaign)
             <a href="{{ route('marketer.campaigns.show', $invitation->resultingCampaign) }}"
-               class="underline ml-2">View Your Campaign →</a>
+               class="underline ml-2">{{ __('marketer.invitations.view_your_campaign') }}</a>
         @endif
     </div>
 @elseif($invitation->status === 'declined')
-    <div class="status-banner declined">✕ You declined this invitation.</div>
+    <div class="status-banner declined">{{ __('marketer.invitations.declined_banner') }}</div>
 @elseif($invitation->status === 'expired' || $invitation->isExpired())
-    <div class="status-banner expired">⏱ This invitation has expired.</div>
+    <div class="status-banner expired">{{ __('marketer.invitations.expired_banner') }}</div>
 @elseif($invitation->status === 'revoked')
-    <div class="status-banner revoked">↩ This invitation was revoked by the vendor.</div>
+    <div class="status-banner revoked">{{ __('marketer.invitations.revoked_banner') }}</div>
 @endif
 
 {{-- Offer header --}}
@@ -202,7 +202,7 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
                     </span>
                 @endif
                 @if($invitation->expires_at)
-                    <span class="text-xs text-amber-600">Invitation expires {{ $invitation->expires_at->format('d M Y') }}</span>
+                    <span class="text-xs text-amber-600">{{ __('marketer.invitations.invitation_expires', ['date' => $invitation->expires_at->format('d M Y')]) }}</span>
                 @endif
             </div>
         </div>
@@ -213,21 +213,21 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 <div class="commission-summary">
     <div class="big-rate">{{ $offer?->offered_commission_rate }}%</div>
     <div class="sub">
-        You will earn {{ $offer?->offered_commission_rate }}% of each sale you generate
-        @if($offer?->commission_type === 'revenue_share') (revenue share) @endif
+        {{ __('marketer.invitations.you_will_earn', ['rate' => $offer?->offered_commission_rate]) }}
+        @if($offer?->commission_type === 'revenue_share') {{ __('marketer.invitations.revenue_share') }} @endif
     </div>
 </div>
 
 {{-- Offer description & requirements --}}
 @if($offer?->description || $offer?->requirements)
     <div class="section-card">
-        <h3>Offer Brief</h3>
+        <h3>{{ __('marketer.invitations.offer_brief') }}</h3>
         @if($offer->description)
             <p class="text-sm text-gray-700 mb-3">{{ $offer->description }}</p>
         @endif
         @if($offer->requirements)
             <div>
-                <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Requirements</p>
+                <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{{ __('marketer.invitations.requirements') }}</p>
                 <p class="text-sm text-gray-700">{{ $offer->requirements }}</p>
             </div>
         @endif
@@ -237,9 +237,9 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 {{-- Budget info --}}
 @if($offer?->budget_per_marketer_cents)
     <div class="section-card">
-        <h3>Budget</h3>
+        <h3>{{ __('marketer.invitations.budget') }}</h3>
         <p class="text-sm text-gray-700">
-            Your campaign budget: <strong>{{ number_format($offer->budget_per_marketer_cents / 100, 2) }}</strong>
+            {{ __('marketer.invitations.your_campaign_budget', ['amount' => '']) }}<strong>{{ number_format($offer->budget_per_marketer_cents / 100, 2) }}</strong>
         </p>
     </div>
 @endif
@@ -247,7 +247,7 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 {{-- Products being promoted --}}
 @if($offer?->products?->isNotEmpty())
     <div class="section-card">
-        <h3>Products Being Promoted ({{ $offer->products->count() }})</h3>
+        <h3>{{ __('marketer.invitations.products_promoted', ['count' => $offer->products->count()]) }}</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             @foreach($offer->products as $op)
                 @php
@@ -275,8 +275,8 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
                             </p>
                         @endif
                         <p class="text-xs font-semibold mt-1" style="color:#16a34a;">
-                            {{ $effectiveRate }}% commission
-                            @if($op->commission_override) <span class="text-gray-400 font-normal">(override)</span> @endif
+                            {{ $effectiveRate }}{{ __('marketer.invitations.commission_suffix') }}
+                            @if($op->commission_override) <span class="text-gray-400 font-normal">{{ __('marketer.invitations.override') }}</span> @endif
                         </p>
                     </div>
                 </div>
@@ -288,13 +288,13 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 {{-- Action bar for pending invitations --}}
 @if($isPending)
     <div class="action-bar">
-        <p class="text-sm text-gray-600 mb-3">Ready to respond to this invitation?</p>
+        <p class="text-sm text-gray-600 mb-3">{{ __('marketer.invitations.ready_to_respond') }}</p>
         <div class="flex flex-wrap gap-3">
-            <button class="btn-accept" id="accept-btn" onclick="handleAccept()">Accept Invitation</button>
-            <button class="btn-decline" id="decline-btn" onclick="openDeclineModal()">Decline</button>
+            <button class="btn-accept" id="accept-btn" onclick="handleAccept()">{{ __('marketer.invitations.accept_invitation') }}</button>
+            <button class="btn-decline" id="decline-btn" onclick="openDeclineModal()">{{ __('marketer.invitations.decline') }}</button>
         </div>
         <p class="text-xs text-gray-400 mt-2">
-            Accepting will immediately create an active campaign linked to this offer.
+            {{ __('marketer.invitations.accept_hint') }}
         </p>
     </div>
 @endif
@@ -302,7 +302,7 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 {{-- Marketer note (if any) --}}
 @if($invitation->marketer_note)
     <div class="section-card">
-        <h3>Your Note</h3>
+        <h3>{{ __('marketer.invitations.your_note') }}</h3>
         <p class="text-sm text-gray-700">{{ $invitation->marketer_note }}</p>
     </div>
 @endif
@@ -311,17 +311,17 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 @if($isPending)
 <div id="decline-modal-backdrop">
     <div class="decline-modal-box">
-        <h3 class="font-bold text-gray-800 mb-1">Decline Invitation</h3>
-        <p class="text-sm text-gray-500 mb-4">You can optionally leave a note for the vendor.</p>
-        <textarea class="note-input" id="decline-note" placeholder="Optional reason (visible to vendor)…" maxlength="500"></textarea>
+        <h3 class="font-bold text-gray-800 mb-1">{{ __('marketer.invitations.decline_invitation_title') }}</h3>
+        <p class="text-sm text-gray-500 mb-4">{{ __('marketer.invitations.decline_note_hint') }}</p>
+        <textarea class="note-input" id="decline-note" placeholder="{{ __('marketer.invitations.optional_note') }}" maxlength="500"></textarea>
         <div class="flex gap-2 justify-end mt-4">
             <button onclick="closeDeclineModal()"
                     style="padding:0.55rem 1rem;background:#f1f5f9;color:#64748b;border:none;border-radius:0.6rem;font-size:0.8rem;font-weight:600;cursor:pointer;">
-                Cancel
+                {{ __('marketer.campaigns.cancel') }}
             </button>
             <button onclick="handleDecline()" id="confirm-decline-btn"
                     style="padding:0.55rem 1rem;background:#ef4444;color:#fff;border:none;border-radius:0.6rem;font-size:0.8rem;font-weight:700;cursor:pointer;">
-                Confirm Decline
+                {{ __('marketer.invitations.confirm_decline') }}
             </button>
         </div>
     </div>
@@ -351,7 +351,7 @@ function showToast(msg, type = 'success') {
 
 async function handleAccept() {
     const btn = document.getElementById('accept-btn');
-    btn.disabled = true; btn.textContent = 'Processing…';
+    btn.disabled = true; btn.textContent = @json(__('marketer.invitations.processing'));
     try {
         const res = await fetch(ACCEPT_URL, {
             method: 'POST',
@@ -363,12 +363,12 @@ async function handleAccept() {
             showToast(data.message, 'success');
             setTimeout(() => { window.location.href = data.redirect; }, 1200);
         } else {
-            showToast(data.message || 'Error occurred.', 'error');
-            btn.disabled = false; btn.textContent = 'Accept Invitation';
+            showToast(data.message || @json(__('marketer.invitations.error_occurred')), 'error');
+            btn.disabled = false; btn.textContent = @json(__('marketer.invitations.accept_invitation'));
         }
     } catch (e) {
-        showToast('Network error.', 'error');
-        btn.disabled = false; btn.textContent = 'Accept Invitation';
+        showToast(@json(__('marketer.invitations.network_error')), 'error');
+        btn.disabled = false; btn.textContent = @json(__('marketer.invitations.accept_invitation'));
     }
 }
 
@@ -378,7 +378,7 @@ function closeDeclineModal() { document.getElementById('decline-modal-backdrop')
 async function handleDecline() {
     const note = document.getElementById('decline-note').value.trim();
     const btn  = document.getElementById('confirm-decline-btn');
-    btn.disabled = true; btn.textContent = 'Declining…';
+    btn.disabled = true; btn.textContent = @json(__('marketer.invitations.declining'));
     try {
         const res = await fetch(DECLINE_URL, {
             method: 'POST',
@@ -391,12 +391,12 @@ async function handleDecline() {
             showToast(data.message, 'success');
             setTimeout(() => { window.location.reload(); }, 1200);
         } else {
-            showToast(data.message || 'Error occurred.', 'error');
-            btn.disabled = false; btn.textContent = 'Confirm Decline';
+            showToast(data.message || @json(__('marketer.invitations.error_occurred')), 'error');
+            btn.disabled = false; btn.textContent = @json(__('marketer.invitations.confirm_decline'));
         }
     } catch (e) {
-        showToast('Network error.', 'error');
-        btn.disabled = false; btn.textContent = 'Confirm Decline';
+        showToast(@json(__('marketer.invitations.network_error')), 'error');
+        btn.disabled = false; btn.textContent = @json(__('marketer.invitations.confirm_decline'));
     }
 }
 

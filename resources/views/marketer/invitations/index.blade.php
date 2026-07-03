@@ -1,7 +1,7 @@
 @extends('layouts.marketer')
 
-@section('title', 'Invitations')
-@section('page-title', 'Invitations')
+@section('title', __('marketer.invitations.title'))
+@section('page-title', __('marketer.invitations.title'))
 
 @push('styles')
 <style>
@@ -86,11 +86,11 @@
 @section('content')
 <div class="inv-stats">
     <div class="inv-stat-card">
-        <div class="label">Pending</div>
+        <div class="label">{{ __('marketer.invitations.pending') }}</div>
         <div class="value">{{ $pendingCount }}</div>
     </div>
     <div class="inv-stat-card">
-        <div class="label">Accepted This Month</div>
+        <div class="label">{{ __('marketer.invitations.accepted_this_month') }}</div>
         <div class="value">{{ $acceptedThisMonth }}</div>
     </div>
 </div>
@@ -98,10 +98,10 @@
 @php
     $activeTab = request('tab', 'all');
     $tabs = [
-        'all'      => ['label' => 'All', 'badge' => null],
-        'pending'  => ['label' => 'Pending', 'badge' => $pendingCount > 0 ? $pendingCount : null],
-        'accepted' => ['label' => 'Accepted', 'badge' => null],
-        'declined' => ['label' => 'Declined', 'badge' => null],
+        'all'      => ['label' => __('marketer.invitations.tab_all'), 'badge' => null],
+        'pending'  => ['label' => __('marketer.invitations.tab_pending'), 'badge' => $pendingCount > 0 ? $pendingCount : null],
+        'accepted' => ['label' => __('marketer.invitations.tab_accepted'), 'badge' => null],
+        'declined' => ['label' => __('marketer.invitations.tab_declined'), 'badge' => null],
     ];
 @endphp
 
@@ -130,7 +130,7 @@
             <path stroke-linecap="round" stroke-linejoin="round"
                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
-        <p class="text-sm font-medium">No invitations here yet.</p>
+        <p class="text-sm font-medium">{{ __('marketer.invitations.no_invitations') }}</p>
     </div>
 @else
     @foreach($filtered as $inv)
@@ -174,7 +174,7 @@
                     @endif
                     <span class="commission-val">
                         {{ $offer?->offered_commission_rate }}%
-                        {{ $offer?->commission_type === 'revenue_share' ? 'rev share' : 'commission' }}
+                        {{ $offer?->commission_type === 'revenue_share' ? __('marketer.invitations.rev_share') : __('marketer.invitations.commission') }}
                     </span>
                     @if($offer?->starts_at && $offer?->ends_at)
                         <span class="date-range">
@@ -182,13 +182,13 @@
                         </span>
                     @endif
                     @if($productsCount > 0)
-                        <span class="products-count">Promoting {{ $productsCount }} {{ Str::plural('product', $productsCount) }}</span>
+                        <span class="products-count">{{ __('marketer.invitations.products_count', ['count' => $productsCount, 'product' => __('marketer.campaigns.product')]) }}</span>
                     @endif
                     <span class="status-pill {{ $statusClass }}">{{ $statusIcon }} {{ ucfirst($inv->status) }}</span>
                 </div>
             </div>
             <div class="inv-action">
-                <a href="{{ route('marketer.invitations.show', $inv) }}" class="btn-view">View Details</a>
+                <a href="{{ route('marketer.invitations.show', $inv) }}" class="btn-view">{{ __('marketer.invitations.view_details') }}</a>
             </div>
         </div>
     @endforeach

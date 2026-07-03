@@ -246,7 +246,7 @@ class CampaignController extends Controller
             if ($totalRequested > $category->marketer_sample_quota) {
                 return response()->json([
                     'success' => false,
-                    'message' => "الحد الأقصى المسموح به لهذه الفئة هو {$category->marketer_sample_quota} عينة.",
+                    'message' => __('marketer.campaigns.max_samples_quota_exceeded', ['count' => $category->marketer_sample_quota]),
                 ], 422);
             }
         }

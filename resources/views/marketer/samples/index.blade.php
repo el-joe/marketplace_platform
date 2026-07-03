@@ -1,7 +1,7 @@
 @extends('layouts.marketer')
 
-@section('title', 'Sample Requests')
-@section('page-title', 'Sample Requests')
+@section('title', __('marketer.samples.title'))
+@section('page-title', __('marketer.samples.title'))
 
 @section('content')
 
@@ -25,20 +25,20 @@ $statusColors = [
 @if($sampleRequests->isEmpty())
     <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center">
         <p class="text-5xl mb-4">📦</p>
-        <p class="font-semibold text-gray-700">No sample requests yet</p>
-        <p class="text-sm text-gray-400 mt-1">Visit an active vendor campaign to request product samples.</p>
-        <a href="{{ route('marketer.campaigns.index') }}" class="btn btn-primary mt-4">View Campaigns</a>
+        <p class="font-semibold text-gray-700">{{ __('marketer.samples.no_requests') }}</p>
+        <p class="text-sm text-gray-400 mt-1">{{ __('marketer.samples.no_requests_desc') }}</p>
+        <a href="{{ route('marketer.campaigns.index') }}" class="btn btn-primary mt-4">{{ __('marketer.samples.view_campaigns') }}</a>
     </div>
 @else
     <div class="overflow-x-auto bg-white rounded-2xl border border-gray-100">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
-                    <th class="text-left px-5 py-3">Campaign</th>
-                    <th class="text-left px-5 py-3">Items</th>
-                    <th class="text-left px-5 py-3">Status</th>
-                    <th class="text-left px-5 py-3">Submitted</th>
-                    <th class="text-left px-5 py-3">Updated</th>
+                    <th class="text-left px-5 py-3">{{ __('marketer.samples.campaign') }}</th>
+                    <th class="text-left px-5 py-3">{{ __('marketer.samples.items') }}</th>
+                    <th class="text-left px-5 py-3">{{ __('marketer.samples.status') }}</th>
+                    <th class="text-left px-5 py-3">{{ __('marketer.samples.submitted') }}</th>
+                    <th class="text-left px-5 py-3">{{ __('marketer.samples.updated') }}</th>
                     <th class="px-5 py-3"></th>
                 </tr>
             </thead>
@@ -56,7 +56,7 @@ $statusColors = [
                         @endif
                     </td>
                     <td class="px-5 py-3 text-gray-600">
-                        {{ $sr->items->sum('marketer_quantity') }} item(s)
+                        {{ __('marketer.samples.items_count', ['count' => $sr->items->sum('marketer_quantity')]) }}
                     </td>
                     <td class="px-5 py-3">
                         <span class="text-xs font-semibold rounded-full px-2.5 py-1 {{ $statusColors[$sr->status] ?? 'bg-gray-100 text-gray-600' }}">
@@ -72,11 +72,11 @@ $statusColors = [
                         @if($sr->status === 'dispatched')
                             <form method="POST"
                                   action="{{ route('marketer.samples.mark-received', $sr) }}"
-                                  onsubmit="return confirm('Confirm you have received this sample?')">
+                                  onsubmit="return confirm(@json(__('marketer.samples.confirm_received')))">
                                 @csrf
                                 <button type="submit"
                                         class="text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors">
-                                    Mark Received
+                                    {{ __('marketer.samples.mark_received') }}
                                 </button>
                             </form>
                         @endif

@@ -65,11 +65,11 @@ class InvitationController extends Controller
         }
 
         if ($invitation->status !== 'pending') {
-            return response()->json(['success' => false, 'message' => 'هذه الدعوة لم تعد معلقة.'], 422);
+            return response()->json(['success' => false, 'message' => __('marketer.invitations.invitation_not_pending')], 422);
         }
 
         if ($invitation->isExpired()) {
-            return response()->json(['success' => false, 'message' => 'انتهت صلاحية هذه الدعوة.'], 422);
+            return response()->json(['success' => false, 'message' => __('marketer.invitations.invitation_expired')], 422);
         }
 
         $request->validate(['marketer_note' => 'nullable|string|max:500']);
@@ -123,7 +123,7 @@ class InvitationController extends Controller
 
         return response()->json([
             'success'  => true,
-            'message'  => 'تم قبول الدعوة! تم إنشاء حملتك وهي نشطة الآن.',
+            'message'  => __('marketer.invitations.accepted_message'),
             'redirect' => route('marketer.campaigns.show', $invitation->resulting_campaign_id),
         ]);
     }
@@ -138,11 +138,11 @@ class InvitationController extends Controller
         }
 
         if ($invitation->status !== 'pending') {
-            return response()->json(['success' => false, 'message' => 'هذه الدعوة لم تعد معلقة.'], 422);
+            return response()->json(['success' => false, 'message' => __('marketer.invitations.invitation_not_pending')], 422);
         }
 
         if ($invitation->isExpired()) {
-            return response()->json(['success' => false, 'message' => 'انتهت صلاحية هذه الدعوة.'], 422);
+            return response()->json(['success' => false, 'message' => __('marketer.invitations.invitation_expired')], 422);
         }
 
         $request->validate(['marketer_note' => 'nullable|string|max:500']);
@@ -155,6 +155,6 @@ class InvitationController extends Controller
 
         Notification::send($invitation->offer->vendor->vendorAdmins, new MarketerDeclinedInvitation($invitation));
 
-        return response()->json(['success' => true, 'message' => 'تم رفض الدعوة.']);
+        return response()->json(['success' => true, 'message' => __('marketer.invitations.declined_message')]);
     }
 }

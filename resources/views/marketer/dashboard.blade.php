@@ -1,7 +1,7 @@
 @extends('layouts.marketer')
 
-@section('title', 'Dashboard')
-@section('page-title', 'Dashboard')
+@section('title', __('marketer.nav.dashboard'))
+@section('page-title', __('marketer.nav.dashboard'))
 
 @push('styles')
     <style>
@@ -41,30 +41,30 @@
     {{-- ── Referral link quick copy ─────────────────────────────────────────────── --}}
     <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
         <div>
-            <p class="text-xs text-slate-400 font-semibold uppercase tracking-wide">Your Referral Link</p>
+            <p class="text-xs text-slate-400 font-semibold uppercase tracking-wide">{{ __('marketer.dashboard.referral_link') }}</p>
             <p class="text-slate-200 font-mono text-sm mt-1 truncate max-w-xs" id="global-ref-url">
                 {{ 'https://' . env('DEFAULT_COUNTRY_SLUG', 'sa') . '.' . env('APP_DOMAIN', 'localhost') . '?ref=' . $marketer->referral_code }}
             </p>
         </div>
         <button type="button" onclick="copyGlobalRef()"
             class="flex-shrink-0 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold text-sm rounded-xl px-4 py-2.5 transition-colors">
-            📋 Copy Link
+            {{ __('marketer.dashboard.copy_link') }}
         </button>
     </div>
 
     {{-- ── KPI Cards ────────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="kpi-card border-l-4 border-l-blue-500">
-            <p class="label">Clicks Today</p>
+        <div class="kpi-card border-s-4 border-s-blue-500">
+            <p class="label">{{ __('marketer.dashboard.clicks_today') }}</p>
             <p class="value">{{ number_format($stats['clicks_today']) }}</p>
         </div>
-        <div class="kpi-card border-l-4 border-l-purple-500">
-            <p class="label">Conversions</p>
+        <div class="kpi-card border-s-4 border-s-purple-500">
+            <p class="label">{{ __('marketer.dashboard.conversions') }}</p>
             <p class="value">{{ number_format($stats['conversions_today']) }}</p>
-            <p class="sub">This month: {{ number_format($stats['conversions_month']) }}</p>
+            <p class="sub">{{ __('marketer.dashboard.this_month') }}: {{ number_format($stats['conversions_month']) }}</p>
         </div>
-        <div class="kpi-card border-l-4 border-l-yellow-400">
-            <p class="label">Pending Earnings</p>
+        <div class="kpi-card border-s-4 border-s-yellow-400">
+            <p class="label">{{ __('marketer.dashboard.pending_earnings') }}</p>
             @if($stats['pending_by_currency']->isEmpty())
                 <p class="value">—</p>
             @else
@@ -74,11 +74,11 @@
                 @endforeach
             @endif
         </div>
-        <div class="kpi-card border-l-4 border-l-green-500">
-            <p class="label">Conversion Rate</p>
+        <div class="kpi-card border-s-4 border-s-green-500">
+            <p class="label">{{ __('marketer.dashboard.conversion_rate') }}</p>
             <p class="value">{{ $stats['conversion_rate'] }}%</p>
             @foreach($stats['paid_by_currency'] as $currency => $cents)
-                <p class="sub">Paid: {{ number_format($cents / 100, 2) }} {{ $currency }}</p>
+                <p class="sub">{{ __('marketer.dashboard.paid') }}: {{ number_format($cents / 100, 2) }} {{ $currency }}</p>
             @endforeach
         </div>
     </div>
@@ -96,19 +96,19 @@
         <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
             <div class="flex items-center justify-between mb-3">
                 <div>
-                    <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Commission Tier</p>
+                    <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">{{ __('marketer.dashboard.commission_tier') }}</p>
                     <p class="font-bold text-gray-800 mt-0.5">
-                        {{ $currentTier ? 'Tier ' . $currentTier->tier_order . ' — ' . $currentTier->commission_rate . '%' : 'Default — ' . $marketer->commission_rate . '%' }}
+                        {{ $currentTier ? __('marketer.dashboard.tier') . ' ' . $currentTier->tier_order . ' — ' . $currentTier->commission_rate . '%' : __('marketer.dashboard.default_rate') . ' — ' . $marketer->commission_rate . '%' }}
                     </p>
                 </div>
                 @if($nextTier)
                     <div class="text-right">
-                        <p class="text-xs text-gray-400">Next tier</p>
+                        <p class="text-xs text-gray-400">{{ __('marketer.dashboard.next_tier') }}</p>
                         <p class="font-bold text-yellow-500">{{ $nextTier->commission_rate }}%</p>
-                        <p class="text-xs text-gray-400">at {{ number_format($nextTier->min_sales_count) }} sales</p>
+                        <p class="text-xs text-gray-400">{{ __('marketer.dashboard.at_sales', ['count' => number_format($nextTier->min_sales_count)]) }}</p>
                     </div>
                 @else
-                    <span class="badge badge-success text-xs">Top Tier 🏆</span>
+                    <span class="badge badge-success text-xs">{{ __('marketer.dashboard.top_tier') }}</span>
                 @endif
             </div>
             @if($nextTier)
@@ -117,8 +117,8 @@
                         style="width: {{ $progress }}%"></div>
                 </div>
                 <p class="text-xs text-gray-400 mt-1.5">
-                    {{ number_format($salesCount) }} / {{ number_format($nextTier->min_sales_count) }} sales
-                    — {{ $nextTier->min_sales_count - $salesCount }} more to unlock {{ $nextTier->commission_rate }}%
+                    {{ __('marketer.dashboard.sales_of', ['current' => number_format($salesCount), 'target' => number_format($nextTier->min_sales_count)]) }}
+                    — {{ $nextTier->min_sales_count - $salesCount }} {{ __('marketer.dashboard.more_to_unlock', ['rate' => $nextTier->commission_rate]) }}
                 </p>
             @endif
         </div>
@@ -127,8 +127,8 @@
     {{-- ── Revenue Trend Chart ──────────────────────────────────────────────────── --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="font-bold text-gray-800">Revenue Trend</h3>
-            <span class="text-xs text-gray-400">Last 30 days</span>
+            <h3 class="font-bold text-gray-800">{{ __('marketer.dashboard.revenue_trend') }}</h3>
+            <span class="text-xs text-gray-400">{{ __('marketer.dashboard.last_30_days') }}</span>
         </div>
         <canvas id="revenue-chart" height="80"></canvas>
     </div>
@@ -137,17 +137,17 @@
     @if($topCampaigns->isNotEmpty())
         <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-gray-800">Top Performing Campaigns</h3>
-                <a href="{{ route('marketer.campaigns.index') }}" class="text-xs text-blue-600 hover:underline">View all</a>
+                <h3 class="font-bold text-gray-800">{{ __('marketer.dashboard.top_campaigns') }}</h3>
+                <a href="{{ route('marketer.campaigns.index') }}" class="text-xs text-blue-600 hover:underline">{{ __('marketer.dashboard.view_all') }}</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-100">
-                            <th class="text-left font-semibold text-gray-500 pb-2">Campaign</th>
-                            <th class="text-right font-semibold text-gray-500 pb-2">Clicks</th>
-                            <th class="text-right font-semibold text-gray-500 pb-2">Conv.</th>
-                            <th class="text-right font-semibold text-gray-500 pb-2">Revenue</th>
+                            <th class="text-left font-semibold text-gray-500 pb-2">{{ __('marketer.dashboard.campaign') }}</th>
+                            <th class="text-right font-semibold text-gray-500 pb-2">{{ __('marketer.dashboard.clicks') }}</th>
+                            <th class="text-right font-semibold text-gray-500 pb-2">{{ __('marketer.dashboard.conv') }}</th>
+                            <th class="text-right font-semibold text-gray-500 pb-2">{{ __('marketer.dashboard.revenue') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -177,12 +177,12 @@
         <a href="{{ route('marketer.campaigns.create') }}"
             class="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-5 text-center hover:border-yellow-400 hover:bg-yellow-50 transition-colors group">
             <div class="text-2xl mb-1">🚀</div>
-            <p class="font-semibold text-sm text-gray-700 group-hover:text-yellow-700">New Campaign</p>
+            <p class="font-semibold text-sm text-gray-700 group-hover:text-yellow-700">{{ __('marketer.dashboard.new_campaign') }}</p>
         </a>
         <a href="{{ route('marketer.earnings.index') }}"
             class="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-5 text-center hover:border-green-400 hover:bg-green-50 transition-colors group">
             <div class="text-2xl mb-1">💰</div>
-            <p class="font-semibold text-sm text-gray-700 group-hover:text-green-700">My Earnings</p>
+            <p class="font-semibold text-sm text-gray-700 group-hover:text-green-700">{{ __('marketer.dashboard.my_earnings') }}</p>
         </a>
     </div>
 
@@ -220,8 +220,8 @@
             const url = document.getElementById('global-ref-url').textContent.trim();
             const btn = event.currentTarget;
             copyToClipboard(url).then(() => {
-                btn.textContent = '✓ Copied!';
-                setTimeout(() => { btn.textContent = '📋 Copy Link'; }, 2000);
+                btn.textContent = @json(__('marketer.dashboard.copied'));
+                setTimeout(() => { btn.textContent = @json(__('marketer.dashboard.copy_link')); }, 2000);
             });
         }
     </script>
