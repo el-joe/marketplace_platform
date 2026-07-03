@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'لوحة التحكم')
-@section('page-title', 'لوحة التحكم')
+@section('title', __('partner.dashboard.title'))
+@section('page-title', __('partner.dashboard.title'))
 
 @push('scripts')
     @vite('resources/js/partner/dashboard.js')
@@ -25,13 +25,13 @@
         <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3">
             <span class="text-red-500 text-xl flex-shrink-0">⚠</span>
             <div class="flex-1 min-w-0">
-                <p class="font-semibold text-red-800">{{ $stats['sla_urgent'] }} طلب يقترب من موعد الشحن!</p>
-                <p class="text-sm text-red-600">يجب شحنها خلال ساعتين لتجنب مخالفة الـ SLA</p>
+                <p class="font-semibold text-red-800">{{ __('partner.dashboard.sla_urgent_orders', ['count' => $stats['sla_urgent']]) }}</p>
+                <p class="text-sm text-red-600">{{ __('partner.dashboard.sla_urgent_message') }}</p>
             </div>
             @if(Route::has('partner.orders.index'))
                 <a href="{{ route('partner.orders.index', ['sla_urgent' => 1]) }}"
                     class="shrink-0 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
-                    عرض الطلبات العاجلة
+                    {{ __('partner.dashboard.view_urgent_orders') }}
                 </a>
             @endif
         </div>
@@ -41,30 +41,30 @@
 
     {{-- KPI Cards Row 1 --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <x-partner-stat-card title="إيرادات الشهر" :value="number_format($stats['revenue_month'], 2)" :suffix="$currency"
+        <x-partner-stat-card title="{{ __('partner.dashboard.revenue_month') }}" :value="number_format($stats['revenue_month'], 2)" :suffix="$currency"
             icon="banknotes" color="green" />
 
-        <x-partner-stat-card title="طلبات اليوم" :value="$stats['orders_today']" icon="shopping-bag" color="blue" />
+        <x-partner-stat-card title="{{ __('partner.dashboard.orders_today') }}" :value="$stats['orders_today']" icon="shopping-bag" color="blue" />
 
-        <x-partner-stat-card title="طلبات معلقة" :value="$stats['pending_orders']" icon="clock"
+        <x-partner-stat-card title="{{ __('partner.dashboard.pending_orders') }}" :value="$stats['pending_orders']" icon="clock"
             :color="$stats['pending_orders'] > 0 ? 'warning' : 'gray'" :link="Route::has('partner.orders.index') ? route('partner.orders.index', ['status' => 'placed']) : null" />
 
-        <x-partner-stat-card title="مدفوعات معلقة" :value="number_format($stats['pending_payout'], 2)" :suffix="$currency"
+        <x-partner-stat-card title="{{ __('partner.dashboard.pending_payout') }}" :value="number_format($stats['pending_payout'], 2)" :suffix="$currency"
             icon="credit-card" color="primary" />
     </div>
 
     {{-- KPI Cards Row 2 --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <x-partner-stat-card title="منتجات منخفضة المخزون" :value="$stats['low_stock']" icon="exclamation-triangle"
+        <x-partner-stat-card title="{{ __('partner.dashboard.low_stock_products') }}" :value="$stats['low_stock']" icon="exclamation-triangle"
             :color="$stats['low_stock'] > 0 ? 'warning' : 'success'" :link="Route::has('partner.inventory.low-stock') ? route('partner.inventory.low-stock') : null" />
 
-        <x-partner-stat-card title="نزاعات مفتوحة" :value="$stats['open_disputes']" icon="scale"
+        <x-partner-stat-card title="{{ __('partner.dashboard.open_disputes') }}" :value="$stats['open_disputes']" icon="scale"
             :color="$stats['open_disputes'] > 0 ? 'danger' : 'gray'" />
 
-        <x-partner-stat-card title="تقييم المتجر" :value="number_format($stats['rating_avg'], 1)" suffix="/ 5 ⭐" icon="star"
+        <x-partner-stat-card title="{{ __('partner.dashboard.store_rating') }}" :value="number_format($stats['rating_avg'], 1)" suffix="/ 5 ⭐" icon="star"
             color="yellow" />
 
-        <x-partner-stat-card title="مخالفات نشطة" :value="$stats['active_strikes']" icon="exclamation-circle"
+        <x-partner-stat-card title="{{ __('partner.dashboard.active_strikes') }}" :value="$stats['active_strikes']" icon="exclamation-circle"
             :color="$stats['active_strikes'] > 0 ? 'danger' : 'success'" />
     </div>
 

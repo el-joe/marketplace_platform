@@ -16,7 +16,7 @@
 
     {{-- Page title slot --}}
     <div class="flex-1">
-        <h2 class="text-sm font-bold text-gray-700">@yield('page-title', $isAr ? 'لوحة التحكم' : 'Dashboard')</h2>
+        <h2 class="text-sm font-bold text-gray-700">@yield('page-title', __('partner.dashboard.title'))</h2>
     </div>
 
     {{-- Right actions --}}
@@ -51,7 +51,7 @@
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
                     </svg>
-                    {{ $isAr ? 'الملف الشخصي' : 'Profile' }}
+                    {{ __('partner.nav.my_profile') }}
                 </a>
                 <a href="#" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                     <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -59,7 +59,7 @@
                         <circle cx="12" cy="12" r="3" />
                         <path d="M19.07 4.93l-1.41 1.41M12 2v2" />
                     </svg>
-                    {{ $isAr ? 'الإعدادات' : 'Settings' }}
+                    {{ __('partner.nav.settings') }}
                 </a>
                 <div class="border-t border-gray-100 my-1"></div>
                 <form method="POST" action="{{ route('partner.logout') }}">
@@ -71,7 +71,7 @@
                             <polyline points="16,17 21,12 16,7" />
                             <line x1="21" y1="12" x2="9" y2="12" />
                         </svg>
-                        {{ $isAr ? 'تسجيل الخروج' : 'Sign Out' }}
+                        {{ __('partner.nav.logout') }}
                     </button>
                 </form>
             </div>

@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'نزاع #' . $dispute->dispute_number)
-@section('page-title', 'تفاصيل النزاع')
+@section('title', __('partner.disputes.title', ['number' => $dispute->dispute_number]))
+@section('page-title', __('partner.disputes.details_title'))
 
 @push('scripts')
     @vite('resources/js/partner/disputes.js')
@@ -18,23 +18,23 @@
 @section('content')
     @php
         $statusLabels = [
-            'open' => ['label' => 'مفتوح', 'color' => 'bg-blue-100 text-blue-700'],
-            'seller_responded' => ['label' => 'رددت عليه', 'color' => 'bg-indigo-100 text-indigo-700'],
-            'under_review' => ['label' => 'قيد المراجعة', 'color' => 'bg-yellow-100 text-yellow-700'],
-            'escalated' => ['label' => 'مُصعَّد', 'color' => 'bg-orange-100 text-orange-700'],
-            'resolved' => ['label' => 'محلول', 'color' => 'bg-green-100 text-green-700'],
-            'closed' => ['label' => 'مغلق', 'color' => 'bg-gray-100 text-gray-500'],
+            'open' => ['label' => __('partner.disputes.status.open'), 'color' => 'bg-blue-100 text-blue-700'],
+            'seller_responded' => ['label' => __('partner.disputes.status.seller_responded'), 'color' => 'bg-indigo-100 text-indigo-700'],
+            'under_review' => ['label' => __('partner.disputes.status.under_review'), 'color' => 'bg-yellow-100 text-yellow-700'],
+            'escalated' => ['label' => __('partner.disputes.status.escalated'), 'color' => 'bg-orange-100 text-orange-700'],
+            'resolved' => ['label' => __('partner.disputes.status.resolved'), 'color' => 'bg-green-100 text-green-700'],
+            'closed' => ['label' => __('partner.disputes.status.closed'), 'color' => 'bg-gray-100 text-gray-500'],
         ];
         $reasonLabels = [
-            'item_not_received' => 'المنتج لم يصل',
-            'item_damaged' => 'المنتج تالف',
-            'item_not_as_described' => 'المنتج لا يطابق الوصف',
-            'counterfeit' => 'منتج مزيف',
-            'wrong_item' => 'منتج خاطئ',
-            'quality_issue' => 'مشكلة في الجودة',
-            'seller_unresponsive' => 'البائع لا يرد',
-            'refund_not_received' => 'الاسترداد لم يصل',
-            'other' => 'أخرى',
+            'item_not_received' => __('partner.disputes.reasons.item_not_received'),
+            'item_damaged' => __('partner.disputes.reasons.item_damaged'),
+            'item_not_as_described' => __('partner.disputes.reasons.item_not_as_described'),
+            'counterfeit' => __('partner.disputes.reasons.counterfeit'),
+            'wrong_item' => __('partner.disputes.reasons.wrong_item'),
+            'quality_issue' => __('partner.disputes.reasons.quality_issue'),
+            'seller_unresponsive' => __('partner.disputes.reasons.seller_unresponsive'),
+            'refund_not_received' => __('partner.disputes.reasons.refund_not_received'),
+            'other' => __('partner.disputes.reasons.other'),
         ];
         $statusCfg = $statusLabels[$dispute->status] ?? ['label' => $dispute->status, 'color' => 'bg-gray-100 text-gray-600'];
         $isClosed = in_array($dispute->status, ['resolved', 'closed']);
@@ -44,7 +44,7 @@
         {{-- Breadcrumb --}}
         <div class="mb-4 flex items-center gap-2 text-sm text-gray-500">
             <a href="{{ route('partner.support.tickets.index', ['tab' => 'disputes']) }}"
-                class="hover:text-gray-700">النزاعات</a>
+                class="hover:text-gray-700">{{ __('partner.disputes.breadcrumb') }}</a>
             <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
@@ -56,19 +56,19 @@
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                 <div class="min-w-0">
                     <h1 class="text-lg font-bold text-gray-900">
-                        نزاع: {{ $reasonLabels[$dispute->reason] ?? $dispute->reason }}
+                        {{ __('partner.disputes.dispute_heading', ['reason' => $reasonLabels[$dispute->reason] ?? $dispute->reason]) }}
                     </h1>
                     <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
                         <span class="font-mono">{{ $dispute->dispute_number }}</span>
                         @if ($dispute->order)
                             <span>·</span>
-                            <span>طلب #{{ $dispute->order->order_number }}</span>
+                            <span>{{ __('partner.disputes.order_label', ['number' => $dispute->order->order_number]) }}</span>
                         @endif
                         <span>·</span>
                         <span>{{ $dispute->created_at->format('d/m/Y H:i') }}</span>
                         @if ($dispute->resolved_at)
                             <span>·</span>
-                            <span>حُلَّ في {{ $dispute->resolved_at->format('d/m/Y') }}</span>
+                            <span>{{ __('partner.disputes.resolved_on', ['date' => $dispute->resolved_at->format('d/m/Y')]) }}</span>
                         @endif
                     </div>
 
@@ -89,15 +89,15 @@
                     class="mt-4 rounded-xl border {{ $dispute->resolution_decision === 'favor_seller' ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50' }} px-4 py-3">
                     <p
                         class="text-xs font-semibold {{ $dispute->resolution_decision === 'favor_seller' ? 'text-green-700' : 'text-yellow-700' }} mb-1">
-                        القرار النهائي
+                        {{ __('partner.disputes.final_decision') }}
                     </p>
                     <p class="text-sm text-gray-700">
                         @if ($dispute->resolution_decision === 'favor_seller')
-                            تم البت لصالحك كبائع
+                            {{ __('partner.disputes.decision_favor_seller') }}
                         @elseif ($dispute->resolution_decision === 'favor_buyer')
-                            تم البت لصالح المشتري
+                            {{ __('partner.disputes.decision_favor_buyer') }}
                         @else
-                            تسوية مشتركة
+                            {{ __('partner.disputes.decision_shared') }}
                         @endif
                     </p>
                     @if ($dispute->resolution_notes)
@@ -118,7 +118,7 @@
                                 <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }} msg-row">
                                     <div class="max-w-[80%] sm:max-w-[75%]">
                                         <p class="mb-1 text-xs {{ $isMine ? 'text-end' : 'text-start' }} text-gray-400">
-                                            {{ $isMine ? 'أنت' : ($msg->sender_role === 'admin' ? 'المنصة' : 'المشتري') }}
+                                            {{ $isMine ? __('partner.disputes.you') : ($msg->sender_role === 'admin' ? __('partner.disputes.platform') : __('partner.disputes.buyer')) }}
                                             · {{ $msg->created_at->format('d/m H:i') }}
                                         </p>
                                         <div class="rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm
@@ -133,7 +133,7 @@
 
                     @if ($messages->isEmpty())
                         <div class="bg-white rounded-2xl border border-gray-200 p-8 text-center text-sm text-gray-400">
-                            لا توجد رسائل بعد في هذا النزاع
+                            {{ __('partner.disputes.no_messages') }}
                         </div>
                     @endif
                 </div>
@@ -141,9 +141,9 @@
                 {{-- Reply form --}}
                 @if (!$isClosed)
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-                        <p class="text-xs font-semibold text-gray-600 mb-2">ردّ على النزاع</p>
+                        <p class="text-xs font-semibold text-gray-600 mb-2">{{ __('partner.disputes.reply_title') }}</p>
                         <form id="form-dispute-reply" novalidate>
-                            <textarea id="dispute-reply-message" name="message" rows="3" placeholder="اكتب ردك هنا..."
+                            <textarea id="dispute-reply-message" name="message" rows="3" placeholder="{{ __('partner.disputes.reply_placeholder') }}"
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 resize-y mb-3"></textarea>
                             <div class="flex justify-end">
                                 <button type="submit" id="btn-dispute-reply"
@@ -152,14 +152,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                     </svg>
-                                    إرسال الرد
+                                    {{ __('partner.disputes.send_reply') }}
                                 </button>
                             </div>
                         </form>
                     </div>
                 @else
                     <div class="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-500 text-center">
-                        النزاع {{ $dispute->status === 'resolved' ? 'محلول' : 'مغلق' }} — لا يمكن إضافة مزيد من الردود
+                        {{ __('partner.disputes.dispute_closed_notice', ['status' => $dispute->status === 'resolved' ? __('partner.disputes.status.resolved') : __('partner.disputes.status.closed')]) }}
                     </div>
                 @endif
             </div>
@@ -167,7 +167,7 @@
             {{-- ══ Right column: evidence ══════════════════════════════════════════ --}}
             <div class="mt-4 lg:mt-0">
                 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-                    <h2 class="text-sm font-semibold text-gray-700 mb-3">المستندات والأدلة</h2>
+                    <h2 class="text-sm font-semibold text-gray-700 mb-3">{{ __('partner.disputes.evidence_title') }}</h2>
 
                     {{-- Existing evidence --}}
                     <div id="evidence-list" class="space-y-2 mb-4">
@@ -182,7 +182,7 @@
                                 <div
                                     class="flex-shrink-0 w-10 h-10 rounded overflow-hidden bg-gray-200 flex items-center justify-center">
                                     @if ($isImage && $fileUrl)
-                                        <img src="{{ $fileUrl }}" alt="دليل" class="w-full h-full object-cover">
+                                        <img src="{{ $fileUrl }}" alt="{{ __('partner.disputes.evidence_title') }}" class="w-full h-full object-cover">
                                     @else
                                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -197,7 +197,7 @@
                                     @if ($fileUrl)
                                         <a href="{{ $fileUrl }}" target="_blank" rel="noopener"
                                             class="text-xs text-primary-600 hover:underline">
-                                            {{ $isImage ? 'عرض الصورة' : 'تحميل الملف' }}
+                                            {{ $isImage ? __('partner.disputes.view_image') : __('partner.disputes.download_file') }}
                                         </a>
                                     @endif
                                     <p class="text-xs text-gray-400 mt-0.5">
@@ -205,7 +205,7 @@
                                 </div>
                             </div>
                         @empty
-                            <p class="text-xs text-gray-400 text-center py-4">لا توجد أدلة مرفوعة</p>
+                            <p class="text-xs text-gray-400 text-center py-4">{{ __('partner.disputes.no_evidence') }}</p>
                         @endforelse
                     </div>
 
@@ -214,14 +214,14 @@
                         <form id="form-evidence-upload" novalidate>
                             <div class="space-y-2">
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">رفع دليل جديد</label>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('partner.disputes.upload_evidence_label') }}</label>
                                     <input type="file" id="evidence-file" name="file" accept=".pdf,.jpg,.jpeg,.png"
                                         class="block w-full text-xs text-gray-600 file:me-2 file:rounded file:border-0 file:bg-primary-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-primary-700 hover:file:bg-primary-100 cursor-pointer">
-                                    <p class="mt-0.5 text-xs text-gray-400">PDF، JPG، PNG — حد أقصى 5 ميغابايت</p>
+                                    <p class="mt-0.5 text-xs text-gray-400">{{ __('partner.disputes.evidence_hint') }}</p>
                                 </div>
                                 <div>
                                     <input type="text" id="evidence-description" name="description" maxlength="500"
-                                        placeholder="وصف الدليل (اختياري)"
+                                        placeholder="{{ __('partner.disputes.evidence_description_placeholder') }}"
                                         class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                                 </div>
                                 <button type="submit" id="btn-upload-evidence"
@@ -230,7 +230,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                     </svg>
-                                    رفع الدليل
+                                    {{ __('partner.disputes.upload_evidence') }}
                                 </button>
                             </div>
                         </form>

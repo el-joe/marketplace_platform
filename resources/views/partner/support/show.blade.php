@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'تذكرة #' . $ticket->ticket_number)
-@section('page-title', 'تذكرة الدعم')
+@section('title', __('partner.support.ticket_title', ['number' => $ticket->ticket_number]))
+@section('page-title', __('partner.support.ticket_page_title'))
 
 @push('scripts')
     @vite('resources/js/partner/support.js')
@@ -17,11 +17,11 @@
 @section('content')
     @php
         $statusLabels = [
-            'open' => ['label' => 'مفتوحة', 'color' => 'bg-blue-100 text-blue-700'],
-            'in_progress' => ['label' => 'قيد المعالجة', 'color' => 'bg-yellow-100 text-yellow-700'],
-            'waiting_customer' => ['label' => 'بانتظار ردك', 'color' => 'bg-amber-100 text-amber-700'],
-            'resolved' => ['label' => 'محلولة', 'color' => 'bg-green-100 text-green-700'],
-            'closed' => ['label' => 'مغلقة', 'color' => 'bg-gray-100 text-gray-500'],
+            'open' => ['label' => __('partner.support.status_open'), 'color' => 'bg-blue-100 text-blue-700'],
+            'in_progress' => ['label' => __('partner.support.status_in_progress'), 'color' => 'bg-yellow-100 text-yellow-700'],
+            'waiting_customer' => ['label' => __('partner.support.status_waiting_customer'), 'color' => 'bg-amber-100 text-amber-700'],
+            'resolved' => ['label' => __('partner.support.status_resolved'), 'color' => 'bg-green-100 text-green-700'],
+            'closed' => ['label' => __('partner.support.status_closed'), 'color' => 'bg-gray-100 text-gray-500'],
         ];
         $statusCfg = $statusLabels[$ticket->status] ?? ['label' => $ticket->status, 'color' => 'bg-gray-100 text-gray-600'];
         $isClosed = in_array($ticket->status, ['resolved', 'closed']);
@@ -30,7 +30,7 @@
 
         {{-- Breadcrumb --}}
         <div class="mb-4 flex items-center gap-2 text-sm text-gray-500">
-            <a href="{{ route('partner.support.tickets.index') }}" class="hover:text-gray-700">الدعم الفني</a>
+            <a href="{{ route('partner.support.tickets.index') }}" class="hover:text-gray-700">{{ __('partner.support.title') }}</a>
             <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
@@ -50,7 +50,7 @@
                         <span>{{ $ticket->created_at->format('d/m/Y H:i') }}</span>
                         @if ($ticket->resolved_at)
                             <span>·</span>
-                            <span>حُلَّت في {{ $ticket->resolved_at->format('d/m/Y') }}</span>
+                            <span>{{ __('partner.support.resolved_on', ['date' => $ticket->resolved_at->format('d/m/Y')]) }}</span>
                         @endif
                     </div>
                 </div>
@@ -69,7 +69,7 @@
                     <div class="max-w-[80%] sm:max-w-[70%]">
                         {{-- Sender label --}}
                         <p class="mb-1 text-xs {{ $isMine ? 'text-end' : 'text-start' }} text-gray-400">
-                            {{ $isMine ? 'أنت' : 'فريق الدعم' }}
+                            {{ $isMine ? __('partner.support.you') : __('partner.support.support_team') }}
                             · {{ $msg->created_at->format('d/m H:i') }}
                         </p>
                         {{-- Bubble --}}
@@ -84,7 +84,7 @@
             @endforeach
 
             @if ($messages->isEmpty())
-                <div class="text-center py-10 text-sm text-gray-400">لا توجد رسائل بعد</div>
+                <div class="text-center py-10 text-sm text-gray-400">{{ __('partner.support.no_messages_yet') }}</div>
             @endif
         </div>
 
@@ -92,7 +92,7 @@
         @if (!$isClosed)
             <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
                 <form id="form-reply" novalidate>
-                    <textarea id="reply-message" name="message" rows="3" placeholder="اكتب ردك هنا..."
+                    <textarea id="reply-message" name="message" rows="3" placeholder="{{ __('partner.support.reply_placeholder') }}"
                         class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 resize-y mb-3"></textarea>
                     <div class="flex justify-end">
                         <button type="submit" id="btn-reply"
@@ -101,14 +101,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                             </svg>
-                            إرسال
+                            {{ __('partner.support.send') }}
                         </button>
                     </div>
                 </form>
             </div>
         @else
             <div class="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-500 text-center">
-                هذه التذكرة {{ $ticket->status === 'resolved' ? 'محلولة' : 'مغلقة' }} — لا يمكن إضافة مزيد من الردود
+                {{ __('partner.support.ticket_resolved_notice', ['status' => $ticket->status === 'resolved' ? __('partner.support.status_resolved') : __('partner.support.status_closed')]) }}
             </div>
         @endif
 

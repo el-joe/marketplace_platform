@@ -1,28 +1,28 @@
 @extends('layouts.partner')
 
-@section('title', 'My Claims')
+@section('title', __('partner.claims.index_title'))
 
 @section('content')
 
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Delivery Claims</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Track compensation claims for lost, damaged, or delayed shipments.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('partner.claims.index_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('partner.claims.index_subtitle') }}</p>
         </div>
-        <a href="{{ route('partner.claims.create') }}" class="btn btn-primary">+ New Claim</a>
+        <a href="{{ route('partner.claims.create') }}" class="btn btn-primary">{{ __('partner.claims.new_claim') }}</a>
     </div>
 
     <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="th">Claim #</th>
-                    <th class="th">Type</th>
-                    <th class="th">Carrier</th>
-                    <th class="th">Claimed</th>
-                    <th class="th">Compensated</th>
-                    <th class="th">Status</th>
-                    <th class="th">Date</th>
+                    <th class="th">{{ __('partner.claims.table.number') }}</th>
+                    <th class="th">{{ __('partner.claims.table.type') }}</th>
+                    <th class="th">{{ __('partner.claims.table.carrier') }}</th>
+                    <th class="th">{{ __('partner.claims.table.claimed') }}</th>
+                    <th class="th">{{ __('partner.claims.table.compensated') }}</th>
+                    <th class="th">{{ __('partner.claims.table.status') }}</th>
+                    <th class="th">{{ __('partner.claims.table.date') }}</th>
                     <th class="th"></th>
                 </tr>
             </thead>
@@ -42,12 +42,12 @@
                         <td class="td text-gray-500 text-xs">{{ $claim->created_at->format('d M Y') }}</td>
                         <td class="td text-right">
                             <a href="{{ route('partner.claims.show', $claim) }}"
-                               class="text-primary-600 hover:underline text-xs font-medium">View</a>
+                               class="text-primary-600 hover:underline text-xs font-medium">{{ __('partner.claims.view') }}</a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="td text-center text-gray-400 py-10">No claims yet.</td>
+                        <td colspan="8" class="td text-center text-gray-400 py-10">{{ __('partner.claims.no_claims') }}</td>
                     </tr>
                 @endforelse
             </tbody>

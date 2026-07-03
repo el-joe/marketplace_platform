@@ -1,6 +1,6 @@
 @extends('layouts.partner')
 
-@section('title', 'اشتراكاتي')
+@section('title', __('partner.nav.subscription'))
 
 @push('styles')
     @vite(['resources/css/app.css', 'resources/js/partner/app.js'])
@@ -8,12 +8,12 @@
 
 @section('content')
 
-<div class="max-w-5xl mx-auto py-6 px-4 space-y-8" dir="rtl">
+<div class="max-w-5xl mx-auto py-6 px-4 space-y-8" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}">
 
     {{-- ─── Page Header ─────────────────────────────────────────────────────── --}}
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">الاشتراكات الشهرية</h1>
-        <p class="text-sm text-gray-500 mt-0.5">اختر الخطة المناسبة لتطوير متجرك.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('partner.subscriptions.page_title') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('partner.subscriptions.page_subtitle') }}</p>
     </div>
 
     {{-- ─── Current Subscription Card ──────────────────────────────────────── --}}
@@ -22,11 +22,10 @@
         <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl">⭐</div>
             <div>
-                <p class="text-xs text-indigo-400 uppercase tracking-wide mb-0.5">خطتك الحالية</p>
-                <p class="text-lg font-extrabold text-gray-900">{{ $activePlan->name_ar }}</p>
+                <p class="text-xs text-indigo-400 uppercase tracking-wide mb-0.5">{{ __('partner.subscriptions.current_plan') }}</p>
+                <p class="text-lg font-extrabold text-gray-900">{{ session('locale', 'ar') === 'ar' ? $activePlan->name_ar : $activePlan->name_en }}</p>
                 <p class="text-xs text-gray-500 mt-0.5">
-                    صالحة حتى {{ $activeSub->period_end?->format('d M Y') }}
-                    ({{ $activeSub->daysRemaining() }} يوم متبقي)
+                    {{ __('partner.subscriptions.valid_until', ['date' => $activeSub->period_end?->format('d M Y'), 'days' => $activeSub->daysRemaining()]) }}
                 </p>
             </div>
         </div>
@@ -36,24 +35,24 @@
                 <p class="font-bold text-gray-800 text-base">
                     {{ $activeSub->listings_used }} / {{ $activePlan->hasUnlimitedListings() ? '∞' : $activePlan->max_listings }}
                 </p>
-                <p>قوائم مستخدمة</p>
+                <p>{{ __('partner.subscriptions.listings_used') }}</p>
             </div>
             <button type="button" id="btn-cancel-sub" class="btn btn-ghost btn-xs text-red-500 border-red-200">
-                إلغاء الاشتراك
+                {{ __('partner.subscriptions.cancel_subscription') }}
             </button>
         </div>
     </div>
     @else
     <div class="bg-gray-50 rounded-2xl border border-dashed border-gray-200 p-8 text-center">
         <p class="text-3xl mb-2">📦</p>
-        <p class="text-gray-600 font-semibold">لا يوجد اشتراك نشط</p>
-        <p class="text-sm text-gray-400 mt-1">اختر إحدى الخطط أدناه للبدء والاستفادة من المزايا.</p>
+        <p class="text-gray-600 font-semibold">{{ __('partner.subscriptions.no_active_subscription') }}</p>
+        <p class="text-sm text-gray-400 mt-1">{{ __('partner.subscriptions.no_active_subscription_hint') }}</p>
     </div>
     @endif
 
     {{-- ─── Plans Grid ──────────────────────────────────────────────────────── --}}
     <div>
-        <h2 class="text-base font-bold text-gray-700 mb-4">الخطط المتاحة</h2>
+        <h2 class="text-base font-bold text-gray-700 mb-4">{{ __('partner.subscriptions.available_plans') }}</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             @foreach($plans as $plan)
                 @php
@@ -66,43 +65,43 @@
                     ];
                     $tc = $tierColors[strtolower($plan->name_en)] ?? 'border-gray-200';
                     $featureLabels = [
-                        'commission_discount'     => 'خصم على العمولة',
-                        'free_shipping'           => 'شحن مجاني',
-                        'priority_support'        => 'دعم ذو أولوية',
-                        'dedicated_manager'       => 'مدير حساب مخصص',
-                        'early_flash_sale_access' => 'وصول مبكر للفلاش سيل',
+                        'commission_discount'     => __('partner.subscriptions.feature_commission_discount'),
+                        'free_shipping'           => __('partner.subscriptions.feature_free_shipping'),
+                        'priority_support'        => __('partner.subscriptions.feature_priority_support'),
+                        'dedicated_manager'       => __('partner.subscriptions.feature_dedicated_manager'),
+                        'early_flash_sale_access' => __('partner.subscriptions.feature_early_flash_sale_access'),
                     ];
                 @endphp
                 <div class="relative bg-white rounded-2xl border-2 {{ $isCurrent ? 'border-indigo-500 ring-2 ring-indigo-200' : $tc }} transition-all p-5 flex flex-col">
                     @if($isCurrent)
                         <div class="absolute -top-3 right-4 bg-indigo-500 text-white text-xs font-bold px-3 py-0.5 rounded-full shadow">
-                            خطتك الحالية
+                            {{ __('partner.subscriptions.current_plan') }}
                         </div>
                     @endif
 
-                    <p class="text-base font-extrabold text-gray-900 mb-0.5">{{ $plan->name_ar }}</p>
-                    <p class="text-xs text-gray-400 mb-3">{{ $plan->description_ar }}</p>
+                    <p class="text-base font-extrabold text-gray-900 mb-0.5">{{ session('locale', 'ar') === 'ar' ? $plan->name_ar : $plan->name_en }}</p>
+                    <p class="text-xs text-gray-400 mb-3">{{ session('locale', 'ar') === 'ar' ? $plan->description_ar : $plan->description_en }}</p>
 
                     <p class="text-2xl font-extrabold text-gray-900 mb-1">
                         {{ number_format($plan->price_cents / 100) }}
-                        <span class="text-sm font-medium text-gray-400">{{ $plan->currency }}/شهر</span>
+                        <span class="text-sm font-medium text-gray-400">{{ $plan->currency }}{{ __('partner.subscriptions.per_month') }}</span>
                     </p>
 
                     <ul class="space-y-1.5 text-xs text-gray-600 mb-5 flex-1">
                         <li class="flex items-center gap-1.5">
                             <span class="text-indigo-400">📦</span>
-                            {{ $plan->hasUnlimitedListings() ? 'قوائم غير محدودة' : 'حتى ' . number_format($plan->max_listings) . ' قوائم' }}
+                            {{ $plan->hasUnlimitedListings() ? __('partner.subscriptions.unlimited_listings') : __('partner.subscriptions.up_to_listings', ['count' => number_format($plan->max_listings)]) }}
                         </li>
                         @if($plan->commission_discount_pct > 0)
                         <li class="flex items-center gap-1.5">
                             <span class="text-green-400">💸</span>
-                            خصم {{ $plan->commission_discount_pct }}% على العمولة
+                            {{ $plan->commission_discount_pct }}% {{ __('partner.subscriptions.commission_discount') }}
                         </li>
                         @endif
                         @if($plan->free_shipping_included)
                         <li class="flex items-center gap-1.5">
                             <span class="text-blue-400">🚚</span>
-                            توصيل مجاني (FBP)
+                            {{ __('partner.subscriptions.free_shipping_fbp') }}
                         </li>
                         @endif
                         @foreach(($plan->features ?? []) as $feature)
@@ -117,11 +116,11 @@
 
                     @if($isCurrent)
                         <button type="button" disabled class="btn btn-sm w-full bg-indigo-50 text-indigo-400 border border-indigo-100 cursor-default">
-                            مشترك حالياً
+                            {{ __('partner.subscriptions.currently_subscribed') }}
                         </button>
                     @else
-                        <button type="button" class="btn btn-primary btn-sm w-full btn-subscribe" data-plan-id="{{ $plan->id }}" data-plan-name="{{ $plan->name_ar }}">
-                            {{ $activeSub ? 'الترقية لهذه الخطة' : 'الاشتراك الآن' }}
+                        <button type="button" class="btn btn-primary btn-sm w-full btn-subscribe" data-plan-id="{{ $plan->id }}" data-plan-name="{{ session('locale', 'ar') === 'ar' ? $plan->name_ar : $plan->name_en }}">
+                            {{ $activeSub ? __('partner.subscriptions.upgrade_to_plan') : __('partner.subscriptions.subscribe_now') }}
                         </button>
                     @endif
                 </div>
@@ -132,16 +131,16 @@
     {{-- ─── Invoice History ─────────────────────────────────────────────────── --}}
     @if($invoices->isNotEmpty())
     <div>
-        <h2 class="text-base font-bold text-gray-700 mb-4">سجل الفواتير</h2>
+        <h2 class="text-base font-bold text-gray-700 mb-4">{{ __('partner.subscriptions.invoice_history') }}</h2>
         <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 text-xs text-gray-500">
                     <tr>
-                        <th class="px-4 py-3 text-right">رقم الفاتورة</th>
-                        <th class="px-4 py-3 text-right">المبلغ</th>
-                        <th class="px-4 py-3 text-right">الحالة</th>
-                        <th class="px-4 py-3 text-right">الفترة</th>
-                        <th class="px-4 py-3 text-right">تاريخ الدفع</th>
+                        <th class="px-4 py-3 text-right">{{ __('partner.subscriptions.invoice_number') }}</th>
+                        <th class="px-4 py-3 text-right">{{ __('partner.subscriptions.amount') }}</th>
+                        <th class="px-4 py-3 text-right">{{ __('common.status') }}</th>
+                        <th class="px-4 py-3 text-right">{{ __('partner.subscriptions.period') }}</th>
+                        <th class="px-4 py-3 text-right">{{ __('partner.subscriptions.payment_date') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -169,33 +168,33 @@
 </div>
 
 {{-- ─── Cancel Modal ────────────────────────────────────────────────────────── --}}
-<div id="cancel-modal" class="modal" style="display:none;" dir="rtl">
+<div id="cancel-modal" class="modal" style="display:none;" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}">
     <div class="modal-box max-w-sm">
-        <h3 class="font-bold text-lg mb-4">إلغاء الاشتراك</h3>
+        <h3 class="font-bold text-lg mb-4">{{ __('partner.subscriptions.cancel_subscription_title') }}</h3>
         <p class="text-sm text-gray-500 mb-3">
-            هل أنت متأكد؟ يظل الاشتراك نشطاً حتى نهاية الفترة الحالية.
+            {{ __('partner.subscriptions.cancel_confirm_text') }}
         </p>
         <div>
-            <label class="label-sm">سبب الإلغاء (اختياري)</label>
-            <textarea id="cancel-reason" rows="3" class="form-input w-full text-sm" placeholder="أخبرنا لماذا..."></textarea>
+            <label class="label-sm">{{ __('partner.subscriptions.cancel_reason_optional') }}</label>
+            <textarea id="cancel-reason" rows="3" class="form-input w-full text-sm" placeholder="{{ __('partner.subscriptions.cancel_reason_placeholder') }}"></textarea>
         </div>
         <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-gray-100">
-            <button type="button" id="cancel-modal-close" class="btn btn-ghost btn-sm">تراجع</button>
-            <button type="button" id="cancel-modal-confirm" class="btn btn-danger btn-sm">تأكيد الإلغاء</button>
+            <button type="button" id="cancel-modal-close" class="btn btn-ghost btn-sm">{{ __('partner.subscriptions.go_back') }}</button>
+            <button type="button" id="cancel-modal-confirm" class="btn btn-danger btn-sm">{{ __('partner.subscriptions.confirm_cancellation') }}</button>
         </div>
     </div>
 </div>
 
 {{-- ─── Subscribe Confirm Modal ────────────────────────────────────────────── --}}
-<div id="subscribe-confirm-modal" class="modal" style="display:none;" dir="rtl">
+<div id="subscribe-confirm-modal" class="modal" style="display:none;" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}">
     <div class="modal-box max-w-sm text-center">
         <div class="text-5xl mb-3">🌟</div>
-        <h3 class="font-bold text-lg mb-2">تأكيد الاشتراك</h3>
-        <p class="text-sm text-gray-500 mb-5">سيتم اشتراكك في خطة <strong id="sc-plan-name"></strong>. هل تريد المتابعة؟</p>
+        <h3 class="font-bold text-lg mb-2">{{ __('partner.subscriptions.confirm_subscription_title') }}</h3>
+        <p class="text-sm text-gray-500 mb-5">{{ __('partner.subscriptions.confirm_subscription_prefix') }} <strong id="sc-plan-name"></strong> {{ __('partner.subscriptions.confirm_subscription_suffix') }}</p>
         <input type="hidden" id="sc-plan-id">
         <div class="flex gap-3 justify-center">
-            <button type="button" id="sc-close" class="btn btn-ghost btn-sm">إلغاء</button>
-            <button type="button" id="sc-confirm" class="btn btn-primary btn-sm px-8">تأكيد</button>
+            <button type="button" id="sc-close" class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+            <button type="button" id="sc-confirm" class="btn btn-primary btn-sm px-8">{{ __('partner.subscriptions.confirm') }}</button>
         </div>
     </div>
 </div>
@@ -206,6 +205,7 @@
 <script>
 $(function () {
     const tok = '{{ csrf_token() }}';
+    const genericError = @json(__('partner.subscriptions.generic_error'));
 
     // ── Subscribe ──────────────────────────────────────────────────────────────
     $(document).on('click', '.btn-subscribe', function () {
@@ -221,7 +221,7 @@ $(function () {
             body: JSON.stringify({ plan_id: $('#sc-plan-id').val() }),
         }).then(r => r.json()).then(data => {
             if (data.success) { window.Toast.success(data.message); location.reload(); }
-            else { window.Toast.error(data.message ?? 'حدث خطأ'); }
+            else { window.Toast.error(data.message ?? genericError); }
         });
     });
 
@@ -238,7 +238,7 @@ $(function () {
             body: JSON.stringify({ reason: $('#cancel-reason').val() }),
         }).then(r => r.json()).then(data => {
             if (data.success) { window.Toast.success(data.message); location.reload(); }
-            else { window.Toast.error(data.message ?? 'حدث خطأ'); }
+            else { window.Toast.error(data.message ?? genericError); }
         });
     });
 });

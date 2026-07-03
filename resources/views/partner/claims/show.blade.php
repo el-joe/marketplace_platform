@@ -1,11 +1,11 @@
 @extends('layouts.partner')
 
-@section('title', 'Claim ' . $claim->claim_number)
+@section('title', __('partner.claims.claim_details') . ' ' . $claim->claim_number)
 
 @section('content')
 
     <div class="mb-6 flex items-center gap-3">
-        <a href="{{ route('partner.claims.index') }}" class="text-gray-400 hover:text-gray-600">&larr; Claims</a>
+        <a href="{{ route('partner.claims.index') }}" class="text-gray-400 hover:text-gray-600">&larr; {{ __('partner.claims.claims') }}</a>
         <span class="text-gray-300">/</span>
         <h1 class="text-xl font-bold text-gray-900">{{ $claim->claim_number }}</h1>
         <span class="badge {{ $claim->statusBadgeClass() }}">
@@ -16,35 +16,35 @@
     <div class="max-w-2xl space-y-5">
 
         <div class="card p-5 space-y-4">
-            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Claim Details</h2>
+            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{{ __('partner.claims.claim_details') }}</h2>
             <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 <div>
-                    <dt class="text-gray-500">Type</dt>
+                    <dt class="text-gray-500">{{ __('partner.claims.claim_type_label') }}</dt>
                     <dd class="font-medium">{{ Str::title(str_replace('_',' ',$claim->claim_type)) }}</dd>
                 </div>
                 <div>
-                    <dt class="text-gray-500">Claimed Amount</dt>
+                    <dt class="text-gray-500">{{ __('partner.claims.claimed_amount_label') }}</dt>
                     <dd class="font-medium">{{ $claim->claimed_amount_formatted }}</dd>
                 </div>
                 <div>
-                    <dt class="text-gray-500">Carrier</dt>
+                    <dt class="text-gray-500">{{ __('partner.claims.carrier') }}</dt>
                     {{-- Vendor CAN see carrier name --}}
                     <dd class="font-medium">{{ $claim->shippingCompany?->name ?? '—' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-gray-500">Submitted</dt>
+                    <dt class="text-gray-500">{{ __('partner.claims.submitted') }}</dt>
                     <dd>{{ $claim->created_at->format('d M Y H:i') }}</dd>
                 </div>
             </dl>
             <div>
-                <p class="text-gray-500 text-xs mb-1">Description</p>
+                <p class="text-gray-500 text-xs mb-1">{{ __('common.description') }}</p>
                 <p class="text-gray-800 text-sm leading-relaxed">{{ $claim->description }}</p>
             </div>
         </div>
 
         {{-- Status timeline --}}
         <div class="card p-5">
-            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Status</h2>
+            <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{{ __('common.status') }}</h2>
             @php
                 $steps = ['submitted','under_review','approved','compensated'];
                 $current = array_search($claim->status, $steps);
@@ -54,7 +54,7 @@
                 <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
                     <span class="text-red-500 text-xl">✗</span>
                     <div>
-                        <p class="font-medium text-red-700">Claim Rejected</p>
+                        <p class="font-medium text-red-700">{{ __('partner.claims.claim_rejected') }}</p>
                         @if($claim->resolution_notes)
                             <p class="text-sm text-red-600 mt-0.5">{{ $claim->resolution_notes }}</p>
                         @endif
@@ -69,7 +69,7 @@
                                 {{ $i < $current ? 'bg-primary-600 text-white' : ($i === $current ? 'border-2 border-primary-600 text-primary-600' : 'border-2 border-gray-300 text-gray-300') }}">
                                 @if($i < $current) ✓ @else {{ $i + 1 }} @endif
                             </div>
-                            {{ Str::title(str_replace('_',' ',$step)) }}
+                            {{ __('partner.claims.status_steps.' . $step) }}
                         </li>
                     @endforeach
                 </ol>
@@ -78,10 +78,9 @@
 
         @if($claim->isResolved() && $claim->status !== 'rejected')
             <div class="card p-5 border-l-4 border-green-400">
-                <h2 class="text-sm font-semibold text-gray-700 mb-2">Resolution</h2>
+                <h2 class="text-sm font-semibold text-gray-700 mb-2">{{ __('partner.claims.resolution_title') }}</h2>
                 <p class="text-sm text-gray-700">
-                    Compensation of <strong>{{ $claim->compensated_amount_formatted }}</strong> has been
-                    credited to your wallet.
+                    {!! __('partner.claims.resolution_text', ['amount' => '<strong>' . $claim->compensated_amount_formatted . '</strong>']) !!}
                 </p>
                 @if($claim->resolution_notes)
                     <p class="text-sm text-gray-500 mt-1">{{ $claim->resolution_notes }}</p>

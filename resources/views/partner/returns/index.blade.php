@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'طلبات الإرجاع')
-@section('page-title', 'طلبات الإرجاع')
+@section('title', __('partner.returns.title'))
+@section('page-title', __('partner.returns.title'))
 
 @push('scripts')
 <script>
@@ -32,31 +32,31 @@
 
 @php
     $statusMap = [
-        'requested'        => ['bg-yellow-100 text-yellow-700',  'مطلوب'],
-        'approved'         => ['bg-blue-100 text-blue-700',      'مقبول'],
-        'rejected'         => ['bg-red-100 text-red-700',        'مرفوض'],
-        'awaiting_pickup'  => ['bg-amber-100 text-amber-700',    'بانتظار الاستلام'],
-        'in_transit'       => ['bg-indigo-100 text-indigo-700',  'في الطريق'],
-        'received'         => ['bg-cyan-100 text-cyan-700',      'تم الاستلام'],
-        'inspecting'       => ['bg-purple-100 text-purple-700',  'قيد الفحص'],
-        'completed'        => ['bg-green-100 text-green-700',    'مكتمل'],
-        'cancelled'        => ['bg-gray-100 text-gray-500',      'ملغى'],
+        'requested'        => ['bg-yellow-100 text-yellow-700',  __('partner.returns.status_requested')],
+        'approved'         => ['bg-blue-100 text-blue-700',      __('partner.returns.status_approved')],
+        'rejected'         => ['bg-red-100 text-red-700',        __('partner.returns.status_rejected')],
+        'awaiting_pickup'  => ['bg-amber-100 text-amber-700',    __('partner.returns.status_awaiting_pickup')],
+        'in_transit'       => ['bg-indigo-100 text-indigo-700',  __('partner.returns.status_in_transit')],
+        'received'         => ['bg-cyan-100 text-cyan-700',      __('partner.returns.status_received')],
+        'inspecting'       => ['bg-purple-100 text-purple-700',  __('partner.returns.status_inspecting')],
+        'completed'        => ['bg-green-100 text-green-700',    __('partner.returns.status_completed')],
+        'cancelled'        => ['bg-gray-100 text-gray-500',      __('partner.returns.status_cancelled')],
     ];
     $reasonMap = [
-        'changed_mind'      => 'غيّر رأيه',
-        'wrong_item'        => 'منتج خاطئ',
-        'defective'         => 'معيب',
-        'damaged'           => 'تالف',
-        'not_as_described'  => 'غير مطابق للوصف',
-        'size_issue'        => 'مشكلة في المقاس',
-        'quality_issue'     => 'جودة رديئة',
-        'arrived_late'      => 'وصل متأخراً',
-        'other'             => 'أخرى',
+        'changed_mind'      => __('partner.returns.reason_changed_mind'),
+        'wrong_item'        => __('partner.returns.reason_wrong_item'),
+        'defective'         => __('partner.returns.reason_defective'),
+        'damaged'           => __('partner.returns.reason_damaged'),
+        'not_as_described'  => __('partner.returns.reason_not_as_described'),
+        'size_issue'        => __('partner.returns.reason_size_issue'),
+        'quality_issue'     => __('partner.returns.reason_quality_issue'),
+        'arrived_late'      => __('partner.returns.reason_arrived_late'),
+        'other'             => __('partner.returns.reason_other'),
     ];
     $typeMap = [
-        'refund'       => 'استرداد',
-        'exchange'     => 'استبدال',
-        'store_credit' => 'رصيد متجر',
+        'refund'       => __('partner.returns.type_refund'),
+        'exchange'     => __('partner.returns.type_exchange'),
+        'store_credit' => __('partner.returns.type_store_credit'),
     ];
     $tabStatuses = array_keys($statusMap);
     $currentStatus = request('status');
@@ -69,7 +69,7 @@
             'flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
             'border-primary-500 text-primary-600' => !$currentStatus,
             'border-transparent text-gray-500 hover:text-gray-700' => $currentStatus,
-        ])>الكل <span class="mr-1 text-xs text-gray-400">({{ $returns->total() }})</span></a>
+        ])>{{ __('partner.returns.all') }} <span class="mr-1 text-xs text-gray-400">({{ $returns->total() }})</span></a>
 
         @foreach($tabStatuses as $st)
             <a href="{{ route('partner.returns.index', ['status' => $st, 'date_from' => request('date_from'), 'date_to' => request('date_to')]) }}" @class([
@@ -84,50 +84,50 @@
 {{-- Date filter --}}
 <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-4 flex flex-wrap items-end gap-3">
     <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">من تاريخ</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('partner.returns.from_date') }}</label>
         <input type="date" id="filter-date-from" value="{{ request('date_from') }}"
             class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/40">
     </div>
     <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">إلى تاريخ</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('partner.returns.to_date') }}</label>
         <input type="date" id="filter-date-to" value="{{ request('date_to') }}"
             class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/40">
     </div>
     <button id="apply-date-filter"
         class="bg-gray-900 hover:bg-gray-700 text-white text-sm font-medium px-4 py-1.5 rounded-lg transition-colors">
-        تطبيق
+        {{ __('partner.returns.apply') }}
     </button>
     <button id="clear-date-filter"
         class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-medium px-4 py-1.5 rounded-lg transition-colors">
-        إعادة تعيين
+        {{ __('partner.returns.reset') }}
     </button>
 </div>
 
 {{-- Table --}}
 <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h2 class="font-semibold text-gray-800">قائمة طلبات الإرجاع</h2>
-        <span class="text-xs text-gray-400">{{ $returns->total() }} طلب</span>
+        <h2 class="font-semibold text-gray-800">{{ __('partner.returns.returns_list') }}</h2>
+        <span class="text-xs text-gray-400">{{ __('partner.returns.return_count', ['count' => $returns->total()]) }}</span>
     </div>
 
     @if($returns->isEmpty())
         <div class="py-16 text-center">
             <div class="text-4xl mb-3">📦</div>
-            <h3 class="font-semibold text-gray-800 mb-1">لا توجد طلبات إرجاع</h3>
-            <p class="text-sm text-gray-400">ستظهر هنا طلبات الإرجاع عند ورودها.</p>
+            <h3 class="font-semibold text-gray-800 mb-1">{{ __('partner.returns.no_returns_found') }}</h3>
+            <p class="text-sm text-gray-400">{{ __('partner.returns.no_returns_hint') }}</p>
         </div>
     @else
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 border-b border-gray-100">
                     <tr class="text-xs text-gray-500 uppercase">
-                        <th class="text-right py-3 px-5 font-medium">رقم الإرجاع</th>
-                        <th class="text-right py-3 px-4 font-medium">رقم الطلب</th>
-                        <th class="text-right py-3 px-4 font-medium">العميل</th>
-                        <th class="text-center py-3 px-4 font-medium">السبب</th>
-                        <th class="text-center py-3 px-4 font-medium">النوع</th>
-                        <th class="text-center py-3 px-4 font-medium">الحالة</th>
-                        <th class="text-right py-3 px-4 font-medium">التاريخ</th>
+                        <th class="text-right py-3 px-5 font-medium">{{ __('partner.returns.return_number') }}</th>
+                        <th class="text-right py-3 px-4 font-medium">{{ __('partner.returns.order_number') }}</th>
+                        <th class="text-right py-3 px-4 font-medium">{{ __('partner.returns.customer') }}</th>
+                        <th class="text-center py-3 px-4 font-medium">{{ __('partner.returns.reason_header') }}</th>
+                        <th class="text-center py-3 px-4 font-medium">{{ __('partner.returns.type_header') }}</th>
+                        <th class="text-center py-3 px-4 font-medium">{{ __('common.status') }}</th>
+                        <th class="text-right py-3 px-4 font-medium">{{ __('common.date') }}</th>
                         <th class="py-3 px-4"></th>
                     </tr>
                 </thead>
@@ -161,7 +161,7 @@
                             <td class="py-3 px-4 text-center">
                                 <a href="{{ route('partner.returns.show', $ret->return_number) }}"
                                     class="text-xs text-primary-600 hover:text-primary-800 font-medium">
-                                    عرض
+                                    {{ __('partner.returns.view') }}
                                 </a>
                             </td>
                         </tr>

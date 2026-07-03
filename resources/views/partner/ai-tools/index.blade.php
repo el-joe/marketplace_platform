@@ -1,6 +1,6 @@
 @extends('layouts.partner')
 
-@section('title', 'AI Tools')
+@section('title', __('partner.ai_tools.title'))
 
 @section('content')
 <div class="p-6 space-y-6">
@@ -8,11 +8,11 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl font-bold text-gray-900">AI Tools</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Enhance your listings with AI-powered features</p>
+            <h1 class="text-xl font-bold text-gray-900">{{ __('partner.ai_tools.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('partner.ai_tools.subtitle') }}</p>
         </div>
         <div id="credits-badge" class="text-xs text-gray-500 bg-gray-100 rounded-lg px-3 py-2">
-            Loading credits…
+            {{ __('partner.ai_tools.loading_credits') }}
         </div>
     </div>
 
@@ -21,11 +21,11 @@
         <nav class="-mb-px flex gap-4">
             <button onclick="showTab('enhance')" id="tab-enhance"
                 class="tab-btn border-b-2 border-blue-600 text-blue-600 pb-2 px-1 text-sm font-medium">
-                رفع جودة الصور
+                {{ __('partner.ai_tools.tab_enhance') }}
             </button>
             <button onclick="showTab('video')" id="tab-video"
                 class="tab-btn border-b-2 border-transparent text-gray-500 pb-2 px-1 text-sm font-medium hover:text-gray-700">
-                توليد فيديو ترويجي
+                {{ __('partner.ai_tools.tab_video') }}
             </button>
         </nav>
     </div>
@@ -33,8 +33,7 @@
     {{-- Image Enhancement Tab --}}
     <div id="panel-enhance" class="space-y-4">
         <p class="text-sm text-gray-600">
-            Select a product image to upscale and enhance using AI.
-            You will see a before/after comparison before applying.
+            {{ __('partner.ai_tools.enhance_intro') }}
         </p>
 
         @if($listing->productVariant?->images?->isNotEmpty())
@@ -48,21 +47,21 @@
                         onclick="enhanceImage('{{ $image->id }}')"
                         class="w-full text-xs bg-blue-600 text-white rounded-lg py-1.5 font-medium hover:bg-blue-700 transition enhance-btn"
                         data-image-id="{{ $image->id }}">
-                        ✨ Enhance with AI
+                        ✨ {{ __('partner.ai_tools.enhance_with_ai') }}
                     </button>
                 </div>
                 {{-- Result area (hidden until job completes) --}}
                 <div id="result-{{ $image->id }}" class="hidden p-2 space-y-2">
-                    <p class="text-xs font-semibold text-gray-500">AI Enhanced:</p>
+                    <p class="text-xs font-semibold text-gray-500">{{ __('partner.ai_tools.ai_enhanced_label') }}</p>
                     <img id="enhanced-img-{{ $image->id }}" src="" class="w-full h-40 object-cover rounded-lg border-2 border-green-400">
                     <div class="flex gap-1">
                         <button onclick="applyEnhancement('{{ $image->id }}')"
                             class="flex-1 text-xs bg-green-600 text-white rounded-lg py-1.5 font-medium hover:bg-green-700">
-                            ✓ Apply
+                            ✓ {{ __('partner.ai_tools.apply') }}
                         </button>
                         <button onclick="discardEnhancement('{{ $image->id }}')"
                             class="flex-1 text-xs bg-gray-200 text-gray-700 rounded-lg py-1.5 font-medium hover:bg-gray-300">
-                            ✗ Discard
+                            ✗ {{ __('partner.ai_tools.discard') }}
                         </button>
                     </div>
                 </div>
@@ -72,33 +71,33 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                     </svg>
-                    Enhancing…
+                    {{ __('partner.ai_tools.enhancing') }}
                 </div>
             </div>
             @endforeach
         </div>
         @else
-        <p class="text-sm text-gray-400">No product images found for this listing.</p>
+        <p class="text-sm text-gray-400">{{ __('partner.ai_tools.no_images') }}</p>
         @endif
     </div>
 
     {{-- Video Generation Tab --}}
     <div id="panel-video" class="hidden space-y-4">
         <p class="text-sm text-gray-600">
-            Describe your product and we'll generate a short promotional video using AI.
+            {{ __('partner.ai_tools.video_intro') }}
         </p>
 
         <form id="video-form" class="space-y-3 max-w-lg">
             @csrf
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Prompt</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.ai_tools.prompt_label') }}</label>
                 <textarea name="prompt" rows="4" required
                     class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="e.g. A stylish product showcase of our premium sneakers, slow motion, white background…"></textarea>
+                    placeholder="{{ __('partner.ai_tools.prompt_placeholder') }}"></textarea>
             </div>
             <button type="submit"
                 class="bg-purple-600 text-white rounded-xl px-5 py-2 text-sm font-medium hover:bg-purple-700 transition">
-                🎬 Generate Video
+                🎬 {{ __('partner.ai_tools.generate_video') }}
             </button>
         </form>
 
@@ -108,13 +107,13 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Generating video… this may take a few minutes.
+                {{ __('partner.ai_tools.generating_video') }}
             </div>
             <div id="video-result" class="hidden space-y-2">
-                <p class="text-sm font-semibold text-green-700">✓ Video ready!</p>
+                <p class="text-sm font-semibold text-green-700">✓ {{ __('partner.ai_tools.video_ready') }}</p>
                 <video id="video-player" controls class="rounded-xl max-w-md border"></video>
                 <a id="video-download" href="#" download
-                   class="inline-block text-sm text-blue-600 underline">Download video</a>
+                   class="inline-block text-sm text-blue-600 underline">{{ __('partner.ai_tools.download_video') }}</a>
             </div>
             <p id="video-error" class="hidden text-sm text-red-600"></p>
         </div>
@@ -127,6 +126,13 @@
 const listingId = '{{ $listing->id }}';
 const enhancementJobs = {}; // imageId → jobId
 let videoJobId = null;
+window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
+Object.assign(window.PARTNER_TRANSLATIONS, {
+    creditsLabel: (enhance, video) => `{{ __('partner.ai_tools.credits_label', ['enhance' => '__ENHANCE__', 'video' => '__VIDEO__']) }}`.replace('__ENHANCE__', enhance).replace('__VIDEO__', video),
+    enhancementFailed: @json(__('partner.ai_tools.enhancement_failed')),
+    generationFailed: @json(__('partner.ai_tools.generation_failed')),
+    unknownError: @json(__('partner.ai_tools.unknown_error')),
+});
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
 function showTab(name) {
@@ -145,7 +151,7 @@ fetch('/partner/ai/credits')
     .then(r => r.json())
     .then(data => {
         const el = document.getElementById('credits-badge');
-        el.textContent = `Credits: ${data.image_enhancement?.remaining ?? 0} enhance · ${data.video_generation?.remaining ?? 0} video`;
+        el.textContent = window.PARTNER_TRANSLATIONS.creditsLabel(data.image_enhancement?.remaining ?? 0, data.video_generation?.remaining ?? 0);
     });
 
 // ── Image Enhancement ─────────────────────────────────────────────────────
@@ -177,7 +183,7 @@ function pollEnhancement(imageId, jobId) {
             } else if (data.status === 'failed') {
                 document.getElementById('spinner-' + imageId).classList.add('hidden');
                 document.querySelector(`[data-image-id="${imageId}"]`).disabled = false;
-                alert('Enhancement failed: ' + (data.error || 'Unknown error'));
+                alert(window.PARTNER_TRANSLATIONS.enhancementFailed + ': ' + (data.error || window.PARTNER_TRANSLATIONS.unknownError));
             } else {
                 setTimeout(() => pollEnhancement(imageId, jobId), 3000);
             }
@@ -244,7 +250,7 @@ function pollVideo(jobId) {
             } else if (data.status === 'failed') {
                 document.getElementById('video-processing').classList.add('hidden');
                 const err = document.getElementById('video-error');
-                err.textContent = 'Generation failed: ' + (data.error || 'Unknown error');
+                err.textContent = window.PARTNER_TRANSLATIONS.generationFailed + ': ' + (data.error || window.PARTNER_TRANSLATIONS.unknownError);
                 err.classList.remove('hidden');
             } else {
                 setTimeout(() => pollVideo(jobId), 5000);

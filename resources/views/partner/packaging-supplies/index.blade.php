@@ -1,17 +1,17 @@
 @extends('layouts.partner')
 
-@section('title', 'Packaging Supplies')
+@section('title', __('partner.packaging_supplies.title'))
 
 @section('content')
 
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Packaging Supplies</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Browse available packaging materials. Request what you need.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('partner.packaging_supplies.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('partner.packaging_supplies.subtitle') }}</p>
         </div>
         <div class="flex gap-2">
-            <a href="{{ route('partner.packaging-supplies.my-requests') }}" class="btn btn-secondary">My Requests</a>
-            <a href="{{ route('partner.packaging-supplies.request') }}" class="btn btn-primary">+ New Request</a>
+            <a href="{{ route('partner.packaging-supplies.my-requests') }}" class="btn btn-secondary">{{ __('partner.packaging_supplies.my_requests') }}</a>
+            <a href="{{ route('partner.packaging-supplies.request') }}" class="btn btn-primary">{{ __('partner.packaging_supplies.new_request') }}</a>
         </div>
     </div>
 
@@ -20,7 +20,7 @@
     @endif
 
     @if($supplies->isEmpty())
-        <div class="card p-10 text-center text-gray-400">No packaging supplies available at the moment.</div>
+        <div class="card p-10 text-center text-gray-400">{{ __('partner.packaging_supplies.no_supplies') }}</div>
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($supplies as $supply)
@@ -54,7 +54,7 @@
                                 {{ $supply->unit_cost_formatted }}
                             </span>
                             @if($supply->stock_available !== null)
-                                <span class="text-xs text-gray-400">{{ number_format($supply->stock_available) }} in stock</span>
+                                <span class="text-xs text-gray-400">{{ __('partner.packaging_supplies.in_stock', ['count' => number_format($supply->stock_available)]) }}</span>
                             @endif
                         </div>
                     </div>
@@ -64,7 +64,7 @@
 
         <div class="mt-6 text-center">
             <a href="{{ route('partner.packaging-supplies.request') }}" class="btn btn-primary">
-                Request Packaging Supplies
+                {{ __('partner.packaging_supplies.request_supplies') }}
             </a>
         </div>
     @endif

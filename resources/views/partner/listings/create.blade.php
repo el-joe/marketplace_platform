@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'إضافة قائمة منتج')
-@section('page-title', 'إضافة قائمة منتج')
+@section('title', __('partner.listings.add_product_listing_title'))
+@section('page-title', __('partner.listings.add_product_listing_title'))
 
 @push('scripts')
     @vite('resources/js/partner/listings.js')
@@ -23,7 +23,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            العودة للقوائم
+            {{ __('partner.listings.back_to_listings') }}
         </a>
     </div>
 
@@ -32,12 +32,11 @@
         {{-- LEFT: Step 1 — Product search --}}
         <div class="lg:col-span-5">
             <div class="bg-white rounded-2xl border border-gray-200 p-6 sticky top-6">
-                <h3 class="font-semibold text-gray-800 mb-4">① ابحث عن المنتج</h3>
-                <p class="text-xs text-gray-500 mb-4">ابحث عن منتج موجود في الكتالوج لإضافته كقائمة. لا يمكن للبائعين إنشاء
-                    منتجات جديدة — يقوم الإدارة بذلك فقط.</p>
+                <h3 class="font-semibold text-gray-800 mb-4">{{ __('partner.listings.step1_search_product') }}</h3>
+                <p class="text-xs text-gray-500 mb-4">{{ __('partner.listings.search_product_desc') }}</p>
 
                 <div class="relative mb-4">
-                    <input type="text" id="product-search-input" placeholder="ابحث بالاسم، الرقم النموذجي..."
+                    <input type="text" id="product-search-input" placeholder="{{ __('partner.listings.search_placeholder') }}"
                         autocomplete="off"
                         class="w-full border border-gray-200 rounded-xl pr-4 pl-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
                     <svg class="w-4 h-4 text-gray-400 absolute top-3 left-3 pointer-events-none" fill="none"
@@ -49,7 +48,7 @@
 
                 {{-- Search results --}}
                 <div id="product-search-results" class="space-y-2 max-h-96 overflow-y-auto">
-                    <p class="text-xs text-gray-400 text-center py-6">ابدأ الكتابة للبحث...</p>
+                    <p class="text-xs text-gray-400 text-center py-6">{{ __('partner.listings.start_typing_to_search') }}</p>
                 </div>
             </div>
         </div>
@@ -66,8 +65,8 @@
                             d="M20 7l-8-4-8 4m16 0v10l-8 4m-8-4V7m8 4v10" />
                     </svg>
                 </div>
-                <p class="text-gray-500 text-sm font-medium">اختر منتجاً ونسخة من القائمة</p>
-                <p class="text-gray-400 text-xs mt-1">سيظهر نموذج الإضافة هنا بعد الاختيار</p>
+                <p class="text-gray-500 text-sm font-medium">{{ __('partner.listings.select_product_variant') }}</p>
+                <p class="text-gray-400 text-xs mt-1">{{ __('partner.listings.form_will_appear') }}</p>
             </div>
 
             {{-- Actual form (hidden until product selected) --}}
@@ -89,29 +88,29 @@
                                 <p id="selected-sku" class="text-xs font-mono text-gray-400 mt-0.5"></p>
                             </div>
                             <button type="button" id="change-product-btn"
-                                class="text-xs text-blue-600 hover:underline shrink-0">تغيير</button>
+                                class="text-xs text-blue-600 hover:underline shrink-0">{{ __('partner.listings.change') }}</button>
                         </div>
                         <input type="hidden" id="form-product-variant-id" name="product_variant_id">
                     </div>
 
                     {{-- Pricing & Details --}}
                     <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
-                        <h4 class="font-semibold text-gray-800 text-sm mb-2">② بيانات القائمة</h4>
+                        <h4 class="font-semibold text-gray-800 text-sm mb-2">{{ __('partner.listings.step2_listing_data') }}</h4>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">السعر <span
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('common.price') }} <span
                                         class="text-red-500">*</span></label>
                                 <input type="number" name="price" step="0.01" min="0.01" required
                                     class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
                                     placeholder="0.00">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">الدولة <span
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('common.country') }} <span
                                         class="text-red-500">*</span></label>
                                 <select name="country_id" required
                                     class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
-                                    <option value="">اختر...</option>
+                                    <option value="">{{ __('common.select') }}...</option>
                                     @foreach($countries as $country)
                                         <option value="{{ $country->id }}" {{ $country->id === $countryId ? 'selected' : '' }}>
                                             {{ $country->name_ar ?: $country->name_en }} ({{ $country->currency_code }})
@@ -123,7 +122,7 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">الحالة <span
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.condition') }} <span
                                         class="text-red-500">*</span></label>
                                 <select name="condition" required
                                     class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
@@ -133,7 +132,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">نموذج التنفيذ <span
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.fulfillment_model') }} <span
                                         class="text-red-500">*</span></label>
                                 <select name="fulfillment_model" required
                                     class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
@@ -146,61 +145,61 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">SKU الخاص بك</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.vendor_sku') }}</label>
                                 <input type="text" name="vendor_sku" maxlength="100"
                                     class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                                    placeholder="اختياري">
+                                    placeholder="{{ __('common.optional') }}">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">الحد الأقصى للطلب</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.max_order_quantity') }}</label>
                                 <input type="number" name="max_order_quantity" min="1" max="9999"
                                     class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                                    placeholder="بلا حد">
+                                    placeholder="{{ __('partner.listings.no_limit_placeholder') }}">
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">حد المخزون المنخفض</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.low_stock_threshold') }}</label>
                             <input type="number" name="low_stock_threshold" min="0" value="5"
                                 class="w-32 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
-                            <p class="text-xs text-gray-400 mt-1">سيظهر تحذير عندما يصل المخزون المتاح لهذا الرقم أو أقل</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ __('partner.listings.low_stock_threshold_hint') }}</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">ملاحظات</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('common.notes') }}</label>
                             <textarea name="vendor_notes" rows="2" maxlength="1000"
                                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40 resize-none"
-                                placeholder="ملاحظات داخلية (لن تُعرض للعملاء)"></textarea>
+                                placeholder="{{ __('partner.listings.internal_notes_placeholder') }}"></textarea>
                         </div>
                     </div>
 
                     {{-- Warehouse & Initial Stock --}}
                     <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
-                        <h4 class="font-semibold text-gray-800 text-sm mb-2">③ المستودع والمخزون الأولي</h4>
+                        <h4 class="font-semibold text-gray-800 text-sm mb-2">{{ __('partner.listings.step3_warehouse_stock') }}</h4>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">المستودع <span
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.warehouse') }} <span
                                     class="text-red-500">*</span></label>
                             <select name="warehouse_id" required
                                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
-                                <option value="">اختر المستودع...</option>
+                                <option value="">{{ __('partner.listings.select_warehouse_placeholder') }}</option>
                                 @foreach($warehouses as $warehouse)
                                     <option value="{{ $warehouse->id }}">
                                         {{ $warehouse->name }}
                                         @if($warehouse->code) ({{ $warehouse->code }}) @endif
                                         —
-                                        {{ match ($warehouse->type) { 'vendor' => 'مستودع خاص', 'platform' => 'مستودع المنصة', default => $warehouse->type} }}
+                                        {{ match ($warehouse->type) { 'vendor' => __('partner.listings.vendor_warehouse_type'), 'platform' => __('partner.listings.platform_warehouse_type'), default => $warehouse->type} }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">الكمية الأولية <span
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.initial_quantity') }} <span
                                     class="text-red-500">*</span></label>
                             <input type="number" name="initial_quantity" min="0" value="0" required
                                 class="w-40 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
-                            <p class="text-xs text-gray-400 mt-1">يمكنك إضافة المخزون لاحقاً من صفحة المنتج</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ __('partner.listings.initial_quantity_hint') }}</p>
                         </div>
                     </div>
 
@@ -208,7 +207,7 @@
 
                     <button type="submit" id="create-submit-btn"
                         class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-3 rounded-xl transition-colors text-sm">
-                        إنشاء القائمة
+                        {{ __('partner.listings.create_listing_button') }}
                     </button>
 
                 </form>

@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'الملف الشخصي وإعدادات المتجر')
-@section('page-title', 'الملف الشخصي')
+@section('title', __('partner.profile.page_title'))
+@section('page-title', __('partner.profile.title'))
 
 @push('scripts')
     @vite('resources/js/partner/profile.js')
@@ -19,9 +19,9 @@
 @section('content')
 @php
 $businessTypeLabels = [
-    'individual'  => 'فرد',
-    'company'     => 'شركة',
-    'sole'        => 'مؤسسة فردية',
+    'individual'  => __('partner.profile.business_type_individual'),
+    'company'     => __('partner.profile.business_type_company'),
+    'sole'        => __('partner.profile.business_type_sole'),
 ];
 @endphp
 <div class="px-4 py-6 sm:px-6 lg:px-8"
@@ -37,16 +37,16 @@ $businessTypeLabels = [
             <h1 class="text-2xl font-bold text-gray-900">{{ $vendor->store_name }}</h1>
             <p class="text-sm text-gray-500">
                 @if ($vendor->country)
-                    {{ $vendor->country->flag_emoji ?? '' }} {{ $vendor->country->name_ar ?? $vendor->country->name }}
+                    {{ $vendor->country->flag_emoji ?? '' }} {{ session('locale', 'ar') === 'ar' ? ($vendor->country->name_ar ?? $vendor->country->name) : ($vendor->country->name_en ?? $vendor->country->name) }}
                     &nbsp;·&nbsp;
                 @endif
                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
                     {{ $vendor->global_status === 'active' ? 'bg-green-100 text-green-700' :
                        ($vendor->global_status === 'suspended' ? 'bg-red-100 text-red-700' :
                        'bg-yellow-100 text-yellow-700') }}">
-                    {{ $vendor->global_status === 'active' ? 'نشط' :
-                       ($vendor->global_status === 'suspended' ? 'موقوف' :
-                       ($vendor->global_status === 'rejected' ? 'مرفوض' : 'قيد المراجعة')) }}
+                    {{ $vendor->global_status === 'active' ? __('partner.nav.status_active') :
+                       ($vendor->global_status === 'suspended' ? __('partner.nav.status_suspended') :
+                       ($vendor->global_status === 'rejected' ? __('partner.nav.status_rejected') : __('partner.nav.status_under_review'))) }}
                 </span>
             </p>
         </div>
@@ -56,9 +56,9 @@ $businessTypeLabels = [
     <div class="border-b border-gray-200 mb-6">
         <nav class="-mb-px flex gap-x-6 overflow-x-auto">
             @foreach ([
-                'store'    => 'معلومات المتجر',
-                'documents'=> 'المستندات',
-                'password' => 'تغيير كلمة المرور',
+                'store'    => __('partner.profile.tab_store'),
+                'documents'=> __('partner.profile.tab_documents'),
+                'password' => __('partner.profile.tab_password'),
             ] as $key => $label)
                 <button type="button"
                     @click="tab = '{{ $key }}'"
@@ -80,11 +80,11 @@ $businessTypeLabels = [
 
             {{-- Editable store fields --}}
             <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                <h2 class="text-base font-semibold text-gray-800 mb-5">بيانات المتجر</h2>
+                <h2 class="text-base font-semibold text-gray-800 mb-5">{{ __('partner.profile.store_data') }}</h2>
 
                 @if (! $admin->isOwner())
                     <div class="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
-                        يمكن للمالك فقط تعديل بيانات المتجر.
+                        {{ __('partner.profile.owner_only_edit_notice') }}
                     </div>
                 @endif
 
@@ -92,7 +92,7 @@ $businessTypeLabels = [
                     <div class="space-y-4">
                         {{-- Store name --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">اسم المتجر <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.store_name') }} <span class="text-red-500">*</span></label>
                             <input type="text" name="store_name"
                                 value="{{ old('store_name', $vendor->store_name) }}"
                                 {{ ! $admin->isOwner() ? 'disabled' : '' }}
@@ -101,7 +101,7 @@ $businessTypeLabels = [
 
                         {{-- Store description --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">وصف المتجر</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.store_description') }}</label>
                             <textarea name="store_description" rows="3"
                                 {{ ! $admin->isOwner() ? 'disabled' : '' }}
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400">{{ old('store_description', $vendor->store_description) }}</textarea>
@@ -110,14 +110,14 @@ $businessTypeLabels = [
                         {{-- Contact email --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني للتواصل <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.contact_email') }} <span class="text-red-500">*</span></label>
                                 <input type="email" name="contact_email"
                                     value="{{ old('contact_email', $vendor->contact_email) }}"
                                     {{ ! $admin->isOwner() ? 'disabled' : '' }}
                                     class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.contact_phone') }} <span class="text-red-500">*</span></label>
                                 <input type="text" name="contact_phone"
                                     value="{{ old('contact_phone', $vendor->contact_phone) }}"
                                     {{ ! $admin->isOwner() ? 'disabled' : '' }}
@@ -127,7 +127,7 @@ $businessTypeLabels = [
 
                         {{-- WhatsApp --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">رقم واتساب</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.whatsapp_number') }}</label>
                             <input type="text" name="whatsapp_number"
                                 value="{{ old('whatsapp_number', $vendor->whatsapp_number) }}"
                                 {{ ! $admin->isOwner() ? 'disabled' : '' }}
@@ -140,7 +140,7 @@ $businessTypeLabels = [
                             <button type="submit" id="btn-save-store"
                                 class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2 text-sm font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                حفظ التغييرات
+                                {{ __('partner.profile.save_changes') }}
                             </button>
                         </div>
                     @endif
@@ -149,49 +149,49 @@ $businessTypeLabels = [
 
             {{-- Read-only business info --}}
             <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 h-fit">
-                <h2 class="text-base font-semibold text-gray-800 mb-5">معلومات الأعمال</h2>
+                <h2 class="text-base font-semibold text-gray-800 mb-5">{{ __('partner.profile.business_info') }}</h2>
                 <dl class="space-y-4 text-sm">
                     <div>
-                        <dt class="text-gray-500 mb-0.5">البلد</dt>
+                        <dt class="text-gray-500 mb-0.5">{{ __('partner.profile.country') }}</dt>
                         <dd class="font-medium text-gray-900">
                             @if ($vendor->country)
-                                {{ $vendor->country->flag_emoji ?? '' }} {{ $vendor->country->name_ar ?? $vendor->country->name }}
+                                {{ $vendor->country->flag_emoji ?? '' }} {{ session('locale', 'ar') === 'ar' ? ($vendor->country->name_ar ?? $vendor->country->name) : ($vendor->country->name_en ?? $vendor->country->name) }}
                             @else
                                 —
                             @endif
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500 mb-0.5">نوع الأعمال</dt>
+                        <dt class="text-gray-500 mb-0.5">{{ __('partner.profile.business_type') }}</dt>
                         <dd class="font-medium text-gray-900">
                             {{ $businessTypeLabels[$vendor->business_type] ?? ($vendor->business_type ?? '—') }}
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500 mb-0.5">رقم السجل التجاري</dt>
+                        <dt class="text-gray-500 mb-0.5">{{ __('partner.profile.registration_number') }}</dt>
                         <dd class="font-medium text-gray-900 font-mono text-xs">
                             {{ $vendor->business_registration_number ?? '—' }}
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500 mb-0.5">البريد الإلكتروني الرئيسي</dt>
+                        <dt class="text-gray-500 mb-0.5">{{ __('partner.profile.primary_email') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $vendor->email }}</dd>
                     </div>
                     <div class="pt-3 border-t border-gray-100">
-                        <p class="text-xs text-gray-400">لتعديل هذه البيانات يرجى التواصل مع فريق الدعم.</p>
+                        <p class="text-xs text-gray-400">{{ __('partner.profile.contact_support_to_edit') }}</p>
                     </div>
                 </dl>
 
                 {{-- Bank accounts summary --}}
                 @if ($bankAccounts->isNotEmpty())
-                    <h3 class="text-sm font-semibold text-gray-700 mt-6 mb-3">الحسابات البنكية</h3>
+                    <h3 class="text-sm font-semibold text-gray-700 mt-6 mb-3">{{ __('partner.profile.bank_accounts') }}</h3>
                     <ul class="space-y-2">
                         @foreach ($bankAccounts as $acct)
                             <li class="flex items-center justify-between text-xs rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
                                 <span class="font-medium text-gray-800">{{ $acct->bank_name }}</span>
                                 <span class="text-gray-500 font-mono">•••• {{ substr($acct->account_number ?? $acct->iban ?? '', -4) }}</span>
                                 @if ($acct->is_primary)
-                                    <span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">رئيسي</span>
+                                    <span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">{{ __('partner.profile.primary') }}</span>
                                 @endif
                             </li>
                         @endforeach
@@ -208,7 +208,7 @@ $businessTypeLabels = [
 
         @if ($requiredDocs->isEmpty())
             <div class="rounded-lg bg-gray-50 border border-gray-200 px-4 py-6 text-center text-sm text-gray-500">
-                لم يتم تحديد متطلبات وثائق لبلدك بعد. يُرجى التواصل مع الدعم.
+                {{ __('partner.profile.documents_country_missing') }}
             </div>
         @else
             @php
@@ -229,18 +229,18 @@ $businessTypeLabels = [
                     <div>
                         <p class="font-semibold">
                             {{ $mandatoryNeedingAttention->count() }}
-                            {{ $mandatoryNeedingAttention->count() === 1 ? 'وثيقة إلزامية تحتاج' : 'وثائق إلزامية تحتاج' }}
-                            إلى اهتمامك
+                            {{ $mandatoryNeedingAttention->count() === 1 ? __('partner.profile.mandatory_document_singular') : __('partner.profile.mandatory_document_plural') }}
+                            {{ __('partner.profile.your_attention') }}
                         </p>
                         <p class="mt-0.5 text-xs text-red-600">
-                            {{ $mandatoryNeedingAttention->pluck('type')->map(fn($t) => $t->name_ar ?? $t->name_en)->join('، ') }}
+                            {{ $mandatoryNeedingAttention->pluck('type')->map(fn($t) => session('locale', 'ar') === 'ar' ? ($t->name_ar ?? $t->name_en) : ($t->name_en ?? $t->name_ar))->join('، ') }}
                         </p>
                     </div>
                 </div>
             @endif
 
             <div class="mb-4 rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700">
-                يُرجى التأكد من رفع جميع الوثائق المطلوبة بصيغ PDF أو JPG أو PNG بحد أقصى 5 ميغابايت لكل ملف.
+                {{ __('partner.profile.document_upload_hint') }}
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -264,10 +264,10 @@ $businessTypeLabels = [
                                 </svg>
                                 <div class="min-w-0">
                                     <span class="block text-sm font-semibold text-gray-800 truncate">
-                                        {{ $docType->name_ar ?? $docType->name_en }}
+                                        {{ session('locale', 'ar') === 'ar' ? ($docType->name_ar ?? $docType->name_en) : ($docType->name_en ?? $docType->name_ar) }}
                                     </span>
                                     @if ($reqLevel === 'optional')
-                                        <span class="text-xs text-gray-400">اختياري</span>
+                                        <span class="text-xs text-gray-400">{{ __('partner.profile.optional_tag') }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -276,10 +276,10 @@ $businessTypeLabels = [
                             @if ($doc)
                                 @php
                                     $badgeCfg = match($effectiveStatus) {
-                                        'approved', 'verified' => ['bg-green-100 text-green-700', 'موثَّق'],
-                                        'pending'              => ['bg-yellow-100 text-yellow-700', 'قيد المراجعة'],
-                                        'rejected'             => ['bg-red-100 text-red-700', 'مرفوض'],
-                                        'expired'              => ['bg-red-100 text-red-600', 'منتهي الصلاحية'],
+                                        'approved', 'verified' => ['bg-green-100 text-green-700', __('partner.profile.verified')],
+                                        'pending'              => ['bg-yellow-100 text-yellow-700', __('partner.documents.document_pending')],
+                                        'rejected'             => ['bg-red-100 text-red-700', __('partner.documents.document_rejected')],
+                                        'expired'              => ['bg-red-100 text-red-600', __('partner.documents.document_expired')],
                                         default                => ['bg-gray-100 text-gray-600', $effectiveStatus],
                                     };
                                 @endphp
@@ -288,7 +288,7 @@ $businessTypeLabels = [
                                 </span>
                             @else
                                 <span class="shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-500">
-                                    لم يُرفع
+                                    {{ __('partner.profile.not_uploaded') }}
                                 </span>
                             @endif
                         </div>
@@ -297,12 +297,12 @@ $businessTypeLabels = [
                         @if ($doc)
                             <div class="text-xs text-gray-500 space-y-1">
                                 <div class="flex justify-between">
-                                    <span>تاريخ الرفع</span>
+                                    <span>{{ __('partner.profile.upload_date') }}</span>
                                     <span class="font-medium text-gray-700">{{ $doc->created_at->format('d/m/Y') }}</span>
                                 </div>
                                 @if ($doc->expires_at)
                                     <div class="flex justify-between">
-                                        <span>تاريخ الانتهاء</span>
+                                        <span>{{ __('partner.profile.expiry_date') }}</span>
                                         <span class="font-medium {{ $doc->isExpired() ? 'text-red-600' : 'text-gray-700' }}">
                                             {{ $doc->expires_at->format('d/m/Y') }}
                                         </span>
@@ -321,13 +321,13 @@ $businessTypeLabels = [
                                    target="_blank"
                                    class="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-800">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    معاينة
+                                    {{ __('partner.profile.preview') }}
                                 </a>
                             @endif
 
                             <label class="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                {{ $doc ? 'إعادة رفع' : 'رفع الملف' }}
+                                {{ $doc ? __('partner.profile.reupload') : __('partner.profile.upload_file') }}
                                 <input type="file"
                                        class="hidden doc-upload-input"
                                        data-type-id="{{ $docType->id }}"
@@ -335,7 +335,7 @@ $businessTypeLabels = [
                             </label>
 
                             <span class="doc-upload-status hidden text-xs text-gray-400">
-                                جارٍ الرفع...
+                                {{ __('partner.profile.uploading') }}
                             </span>
                         </div>
                     </div>
@@ -349,22 +349,22 @@ $businessTypeLabels = [
     {{-- ══════════════════════════════════════════════════════════════════════ --}}
     <div x-show="tab === 'password'" x-cloak>
         <div class="max-w-lg bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-            <h2 class="text-base font-semibold text-gray-800 mb-5">تغيير كلمة المرور</h2>
+            <h2 class="text-base font-semibold text-gray-800 mb-5">{{ __('partner.profile.change_password') }}</h2>
             <form id="form-password" novalidate>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">كلمة المرور الحالية <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.current_password') }} <span class="text-red-500">*</span></label>
                         <input type="password" name="current_password" autocomplete="current-password"
                             class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">كلمة المرور الجديدة <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.new_password') }} <span class="text-red-500">*</span></label>
                         <input type="password" name="password" autocomplete="new-password"
                             class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                        <p class="mt-1 text-xs text-gray-400">8 أحرف على الأقل</p>
+                        <p class="mt-1 text-xs text-gray-400">{{ __('partner.profile.min_chars_hint') }}</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">تأكيد كلمة المرور <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.confirm_password') }} <span class="text-red-500">*</span></label>
                         <input type="password" name="password_confirmation" autocomplete="new-password"
                             class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                     </div>
@@ -373,7 +373,7 @@ $businessTypeLabels = [
                     <button type="submit" id="btn-save-password"
                         class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2 text-sm font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        تغيير كلمة المرور
+                        {{ __('partner.profile.change_password') }}
                     </button>
                 </div>
             </form>

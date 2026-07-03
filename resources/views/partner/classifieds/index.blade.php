@@ -1,6 +1,6 @@
 @extends('layouts.partner')
-@section('title', 'السوق المفتوح')
-@section('page-title', 'السوق المفتوح')
+@section('title', __('partner.classifieds_extra.index_title'))
+@section('page-title', __('partner.classifieds_extra.index_title'))
 
 @push('scripts')
     @vite('resources/js/partner/classifieds.js')
@@ -17,15 +17,15 @@
 
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-xl font-bold text-gray-900">السوق المفتوح</h1>
-            <p class="text-sm text-gray-500 mt-0.5">أنشئ وأدر إعلاناتك في سوق البيع الحر.</p>
+            <h1 class="text-xl font-bold text-gray-900">{{ __('partner.classifieds_extra.index_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('partner.classifieds_extra.index_subtitle') }}</p>
         </div>
         <button id="btn-open-wizard"
             class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
             </svg>
-            إنشاء إعلان
+            {{ __('partner.classifieds_extra.create_ad') }}
         </button>
     </div>
 
@@ -35,19 +35,19 @@
             <svg class="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
             </svg>
-            <input id="cl-search" type="text" placeholder="ابحث بعنوان الإعلان..."
+            <input id="cl-search" type="text" placeholder="{{ __('partner.classifieds_extra.search_placeholder') }}"
                 class="w-full ps-9 pe-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/40 placeholder-gray-400">
         </div>
         <select id="cl-filter-status" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-400/40">
-            <option value="">جميع الحالات</option>
-            <option value="draft">مسودة</option>
-            <option value="pending_contract">بانتظار العقد</option>
-            <option value="pending_review">قيد المراجعة</option>
-            <option value="active">نشط</option>
-            <option value="paused">موقوف</option>
-            <option value="sold">تم البيع</option>
-            <option value="expired">منتهي</option>
-            <option value="rejected">مرفوض</option>
+            <option value="">{{ __('partner.classifieds_extra.all_statuses') }}</option>
+            <option value="draft">{{ __('partner.classifieds_extra.status.draft') }}</option>
+            <option value="pending_contract">{{ __('partner.classifieds_extra.status.pending_contract') }}</option>
+            <option value="pending_review">{{ __('partner.classifieds_extra.status.pending_review') }}</option>
+            <option value="active">{{ __('partner.classifieds_extra.status.active') }}</option>
+            <option value="paused">{{ __('partner.classifieds_extra.status.paused') }}</option>
+            <option value="sold">{{ __('partner.classifieds_extra.status.sold') }}</option>
+            <option value="expired">{{ __('partner.classifieds_extra.status.expired') }}</option>
+            <option value="rejected">{{ __('partner.classifieds_extra.status.rejected') }}</option>
         </select>
     </div>
 
@@ -56,12 +56,12 @@
         <table id="cl-table" class="w-full text-sm" style="width:100%">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
-                    <th class="px-4 py-3 text-start font-semibold tracking-wide">الإعلان</th>
-                    <th class="px-4 py-3 text-start font-semibold tracking-wide">الفئة</th>
-                    <th class="px-4 py-3 text-start font-semibold tracking-wide">الحالة</th>
-                    <th class="px-4 py-3 text-start font-semibold tracking-wide">السعر</th>
-                    <th class="px-4 py-3 text-start font-semibold tracking-wide">المشاهدات</th>
-                    <th class="px-4 py-3 text-start font-semibold tracking-wide">تاريخ الإنشاء</th>
+                    <th class="px-4 py-3 text-start font-semibold tracking-wide">{{ __('partner.classifieds_extra.table.ad') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold tracking-wide">{{ __('partner.classifieds_extra.table.category') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold tracking-wide">{{ __('partner.classifieds_extra.table.status') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold tracking-wide">{{ __('partner.classifieds_extra.table.price') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold tracking-wide">{{ __('partner.classifieds_extra.table.views') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold tracking-wide">{{ __('partner.classifieds_extra.table.created_at') }}</th>
                     <th class="px-4 py-3 text-start font-semibold tracking-wide"></th>
                 </tr>
             </thead>
@@ -78,11 +78,11 @@
         <svg class="mx-auto h-10 w-10 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/>
         </svg>
-        <p class="text-sm font-medium text-gray-700 mb-1">لا توجد إعلانات بعد</p>
-        <p class="text-xs text-gray-400 mb-4">أنشئ أول إعلان لك في السوق المفتوح</p>
+        <p class="text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.no_ads') }}</p>
+        <p class="text-xs text-gray-400 mb-4">{{ __('partner.classifieds_extra.no_ads_desc') }}</p>
         <button id="btn-open-wizard-empty"
             class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors">
-            إنشاء إعلان
+            {{ __('partner.classifieds_extra.create_ad') }}
         </button>
     </div>
 
@@ -98,8 +98,8 @@
             {{-- Header --}}
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-900">إنشاء إعلان جديد</h2>
-                    <p class="text-xs text-gray-500 mt-0.5">الخطوة <span id="cl-wiz-step-label">1</span> من <span id="cl-wiz-total-label">6</span></p>
+                    <h2 class="text-lg font-bold text-gray-900">{{ __('partner.classifieds_extra.wizard_title') }}</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">{!! __('partner.classifieds_extra.wizard_step_of', ['current' => '<span id="cl-wiz-step-label">1</span>', 'total' => '<span id="cl-wiz-total-label">6</span>']) !!}</p>
                 </div>
                 <button id="cl-wiz-close" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
@@ -118,14 +118,14 @@
                 {{-- Step 1: Category selection --}}
                 <div id="cl-wiz-step-1" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-800 mb-1">اختر فئة الإعلان <span class="text-red-500">*</span></label>
-                        <p class="text-xs text-gray-500 mb-3">تحدد الفئة الحقول المطلوبة في الخطوات التالية.</p>
-                        <div id="cl-categories-loading" class="py-8 text-center text-sm text-gray-400">جاري تحميل الفئات...</div>
+                        <label class="block text-sm font-semibold text-gray-800 mb-1">{{ __('partner.classifieds_extra.wizard.choose_category') }} <span class="text-red-500">*</span></label>
+                        <p class="text-xs text-gray-500 mb-3">{{ __('partner.classifieds_extra.wizard.choose_category_desc') }}</p>
+                        <div id="cl-categories-loading" class="py-8 text-center text-sm text-gray-400">{{ __('partner.classifieds_extra.wizard.loading_categories') }}</div>
                         <div id="cl-categories-grid" class="hidden grid-cols-2 gap-3"></div>
                     </div>
                     {{-- Sub-category (shown after parent selection) --}}
                     <div id="cl-subcategory-section" class="hidden space-y-2">
-                        <label class="block text-sm font-semibold text-gray-800">الفئة الفرعية <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-semibold text-gray-800">{{ __('partner.classifieds_extra.wizard.subcategory') }} <span class="text-red-500">*</span></label>
                         <div id="cl-subcategories-grid" class="grid grid-cols-2 gap-2"></div>
                     </div>
                 </div>
@@ -134,46 +134,46 @@
                 <div id="cl-wiz-step-2" class="hidden space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">العنوان (عربي) <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.title_ar') }} <span class="text-red-500">*</span></label>
                             <input type="text" id="cl-title-ar" maxlength="255"
                                 class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                                placeholder="مثال: شقة للإيجار — حي النزهة">
+                                placeholder="{{ __('partner.classifieds_extra.wizard.title_ar_placeholder') }}">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">العنوان (إنجليزي) <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.title_en') }} <span class="text-red-500">*</span></label>
                             <input type="text" id="cl-title-en" maxlength="255"
                                 class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                                placeholder="e.g. Apartment for rent — Al Nuzha">
+                                placeholder="{{ __('partner.classifieds_extra.wizard.title_en_placeholder') }}">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">الوصف (عربي)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.description_ar') }}</label>
                         <textarea id="cl-desc-ar" rows="3"
                             class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                            placeholder="وصف تفصيلي للإعلان..."></textarea>
+                            placeholder="{{ __('partner.classifieds_extra.wizard.description_placeholder_ar') }}"></textarea>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">الوصف (إنجليزي)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.description_en') }}</label>
                         <textarea id="cl-desc-en" rows="3"
                             class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                            placeholder="Detailed description..."></textarea>
+                            placeholder="{{ __('partner.classifieds_extra.wizard.description_placeholder_en') }}"></textarea>
                     </div>
                     <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">الغرض <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.purpose') }} <span class="text-red-500">*</span></label>
                             <select id="cl-purpose" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                                <option value="sale">بيع</option>
-                                <option value="rent">إيجار</option>
+                                <option value="sale">{{ __('partner.classifieds_extra.wizard.purpose_sale') }}</option>
+                                <option value="rent">{{ __('partner.classifieds_extra.wizard.purpose_rent') }}</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">السعر <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.price') }} <span class="text-red-500">*</span></label>
                             <input type="number" id="cl-price" min="0" step="1"
                                 class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                                 placeholder="0">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">العملة <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.currency') }} <span class="text-red-500">*</span></label>
                             <select id="cl-currency" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                                 @foreach(\App\Models\Currency::where('is_active', true)->orderBy('code')->get() as $cur)
                                     <option value="{{ $cur->code }}" {{ (auth()->user()?->country?->currency_code === $cur->code) ? 'selected' : '' }}>
@@ -185,14 +185,14 @@
                     </div>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="cl-negotiable" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                        <span class="text-sm text-gray-700">السعر قابل للتفاوض</span>
+                        <span class="text-sm text-gray-700">{{ __('partner.classifieds_extra.wizard.negotiable') }}</span>
                     </label>
                     <div class="border border-gray-200 rounded-xl p-4 bg-gray-50/60">
                         <label class="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" id="cl-marketer-promo" class="mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                             <div>
-                                <span class="block text-sm font-medium text-gray-800">السماح للمسوّقين بترويج هذا الإعلان</span>
-                                <span class="block text-xs text-gray-500 mt-0.5">يمكن للمسوّقين إنشاء حملات ترويجية لهذا الإعلان وكسب عمولة على المبيعات أو الاستفسارات الناتجة.</span>
+                                <span class="block text-sm font-medium text-gray-800">{{ __('partner.classifieds_extra.wizard.allow_marketer_promo') }}</span>
+                                <span class="block text-xs text-gray-500 mt-0.5">{{ __('partner.classifieds_extra.wizard.allow_marketer_promo_desc') }}</span>
                             </div>
                         </label>
                     </div>
@@ -203,38 +203,38 @@
                     {{-- Country & City --}}
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">الدولة <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.country') }} <span class="text-red-500">*</span></label>
                             <select id="cl-country-id" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                                <option value="">— اختر الدولة —</option>
+                                <option value="">{{ __('partner.classifieds_extra.wizard.select_country') }}</option>
                                 @foreach($countries as $country)
                                     <option value="{{ $country->id }}">{{ $country->name_ar ?: $country->name_en }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.city') }}</label>
                             <select id="cl-city-id" class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500" disabled>
-                                <option value="">— اختر المدينة —</option>
+                                <option value="">{{ __('partner.classifieds_extra.wizard.select_city') }}</option>
                             </select>
                         </div>
                     </div>
 
                     {{-- Location map (shown if category requires_location_map) --}}
                     <div id="cl-location-section" class="space-y-3">
-                        <label class="block text-sm font-semibold text-gray-800">الموقع الجغرافي</label>
+                        <label class="block text-sm font-semibold text-gray-800">{{ __('partner.classifieds_extra.wizard.location_title') }}</label>
                         <div class="rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700">
-                            <p class="font-medium mb-1">أدخل إحداثيات الموقع</p>
-                            <p class="text-xs text-blue-600">يمكنك الحصول عليها من خرائط جوجل أو تركها فارغة.</p>
+                            <p class="font-medium mb-1">{{ __('partner.classifieds_extra.wizard.enter_coordinates') }}</p>
+                            <p class="text-xs text-blue-600">{{ __('partner.classifieds_extra.wizard.coordinates_hint') }}</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">خط العرض (Latitude)</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('partner.classifieds_extra.wizard.latitude') }}</label>
                                 <input type="number" id="cl-latitude" step="0.0000001" min="-90" max="90"
                                     class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                                     placeholder="24.7136">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">خط الطول (Longitude)</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('partner.classifieds_extra.wizard.longitude') }}</label>
                                 <input type="number" id="cl-longitude" step="0.0000001" min="-180" max="180"
                                     class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                                     placeholder="46.6753">
@@ -244,9 +244,9 @@
 
                     {{-- Category attributes (dynamic) --}}
                     <div id="cl-attributes-section" class="space-y-3">
-                        <label class="block text-sm font-semibold text-gray-800">خصائص إضافية</label>
+                        <label class="block text-sm font-semibold text-gray-800">{{ __('partner.classifieds_extra.wizard.additional_attributes') }}</label>
                         <div id="cl-attributes-fields" class="space-y-3"></div>
-                        <p class="text-xs text-gray-400">هذه الخصائص اختيارية وتساعد المشترين في العثور على إعلانك.</p>
+                        <p class="text-xs text-gray-400">{{ __('partner.classifieds_extra.wizard.attributes_hint') }}</p>
                     </div>
                 </div>
 
@@ -254,36 +254,36 @@
                 <div id="cl-wiz-step-4" class="hidden space-y-5">
                     {{-- Images (required) --}}
                     <div class="space-y-3">
-                        <label class="block text-sm font-semibold text-gray-800">صور الإعلان <span class="text-red-500">*</span></label>
-                        <p class="text-xs text-gray-500">ارفع صورة واحدة على الأقل (بحد أقصى 10 صور، كل صورة بحجم أقصى 10 ميجابايت).</p>
+                        <label class="block text-sm font-semibold text-gray-800">{{ __('partner.classifieds_extra.wizard.images_title') }} <span class="text-red-500">*</span></label>
+                        <p class="text-xs text-gray-500">{{ __('partner.classifieds_extra.wizard.images_hint') }}</p>
                         <div id="cl-images-dropzone"
                             class="relative border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-primary-400 transition-colors">
                             <input type="file" id="cl-images-input" accept="image/*" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                             <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
                             </svg>
-                            <p class="text-sm text-gray-500">اسحب وأفلت الصور هنا أو <span class="text-primary-600 font-medium">اضغط للاختيار</span></p>
+                            <p class="text-sm text-gray-500">{{ __('partner.classifieds_extra.wizard.images_drop_hint') }} <span class="text-primary-600 font-medium">{{ __('partner.classifieds_extra.wizard.images_drop_action') }}</span></p>
                         </div>
                         <div id="cl-images-preview" class="grid grid-cols-4 gap-2"></div>
                     </div>
 
                     {{-- Sketch upload (conditional) --}}
                     <div id="cl-sketch-section" class="hidden space-y-3">
-                        <label class="block text-sm font-semibold text-gray-800">مخطط / رسم تقني <span class="text-gray-400 text-xs font-normal">اختياري</span></label>
+                        <label class="block text-sm font-semibold text-gray-800">{{ __('partner.classifieds_extra.wizard.sketch_title') }} <span class="text-gray-400 text-xs font-normal">{{ __('partner.classifieds_extra.wizard.sketch_optional') }}</span></label>
                         <div class="relative border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-primary-400 transition-colors">
                             <input type="file" id="cl-sketch-input" accept=".pdf,.jpg,.jpeg,.png,.dwg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                            <p class="text-sm text-gray-500">ارفع ملف المخطط (PDF، صورة)</p>
+                            <p class="text-sm text-gray-500">{{ __('partner.classifieds_extra.wizard.sketch_upload_hint') }}</p>
                         </div>
                         <div id="cl-sketch-name" class="hidden text-xs text-gray-500 flex items-center gap-2"></div>
                     </div>
 
                     {{-- Additional attachments (conditional) --}}
                     <div id="cl-attachments-section" class="hidden space-y-3">
-                        <label class="block text-sm font-semibold text-gray-800">مرفقات إضافية <span class="text-gray-400 text-xs font-normal">اختياري</span></label>
-                        <p class="text-xs text-gray-500" id="cl-attachments-hint">مستندات داعمة مطلوبة لهذه الفئة.</p>
+                        <label class="block text-sm font-semibold text-gray-800">{{ __('partner.classifieds_extra.wizard.attachments_title') }} <span class="text-gray-400 text-xs font-normal">{{ __('partner.classifieds_extra.wizard.attachments_optional') }}</span></label>
+                        <p class="text-xs text-gray-500" id="cl-attachments-hint">{{ __('partner.classifieds_extra.wizard.attachments_default_hint') }}</p>
                         <div class="relative border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-primary-400 transition-colors">
                             <input type="file" id="cl-attachments-input" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                            <p class="text-sm text-gray-500">ارفع الملفات المطلوبة</p>
+                            <p class="text-sm text-gray-500">{{ __('partner.classifieds_extra.wizard.attachments_upload_hint') }}</p>
                         </div>
                         <div id="cl-attachments-list" class="space-y-1"></div>
                     </div>
@@ -292,21 +292,21 @@
                 {{-- Step 5: Contract (conditional — only if category has_contract) --}}
                 <div id="cl-wiz-step-5" class="hidden space-y-4">
                     <div class="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
-                        تتطلب هذه الفئة الموافقة على عقد نشر قبل إرسال الإعلان.
+                        {{ __('partner.classifieds_extra.wizard.contract_required_notice') }}
                     </div>
-                    <div id="cl-contract-loading" class="py-6 text-center text-sm text-gray-400">جاري تحميل العقد...</div>
+                    <div id="cl-contract-loading" class="py-6 text-center text-sm text-gray-400">{{ __('partner.classifieds_extra.wizard.loading_contract') }}</div>
                     <div id="cl-contract-content" class="hidden">
                         <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 max-h-64 overflow-y-auto text-sm text-gray-700 leading-relaxed" id="cl-contract-text"></div>
                         <div class="mt-4 space-y-3">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">اسمك الكامل (للتوقيع) <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.classifieds_extra.wizard.signature_name') }} <span class="text-red-500">*</span></label>
                                 <input type="text" id="cl-signature-name"
                                     class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                                    placeholder="الاسم كما يظهر في الوثيقة الرسمية">
+                                    placeholder="{{ __('partner.classifieds_extra.wizard.signature_name_placeholder') }}">
                             </div>
                             <label class="flex items-start gap-3 cursor-pointer">
                                 <input type="checkbox" id="cl-contract-agree" class="mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                                <span class="text-sm text-gray-700">أوافق على شروط وأحكام العقد المبين أعلاه وأقر بصحة المعلومات المقدمة.</span>
+                                <span class="text-sm text-gray-700">{{ __('partner.classifieds_extra.wizard.contract_agree') }}</span>
                             </label>
                         </div>
                     </div>
@@ -315,7 +315,7 @@
                 {{-- Step 6 (or 5 without contract): Review --}}
                 <div id="cl-wiz-step-6" class="hidden space-y-4">
                     <div class="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
-                        راجع بيانات إعلانك قبل الإرسال. سيتم مراجعته من فريق المنصة خلال 24 ساعة.
+                        {{ __('partner.classifieds_extra.wizard.review_notice') }}
                     </div>
                     <div class="rounded-xl border border-gray-100 bg-gray-50 divide-y divide-gray-100 text-sm" id="cl-review-table"></div>
                 </div>
@@ -325,17 +325,17 @@
             <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0">
                 <button id="cl-wiz-prev" class="hidden items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
-                    السابق
+                    {{ __('partner.classifieds_extra.wizard.prev') }}
                 </button>
                 <span id="cl-wiz-prev-spacer"></span>
                 <div class="flex items-center gap-3">
-                    <button id="cl-wiz-cancel" class="text-sm text-gray-500 hover:text-gray-700">إلغاء</button>
+                    <button id="cl-wiz-cancel" class="text-sm text-gray-500 hover:text-gray-700">{{ __('partner.classifieds_extra.wizard.cancel') }}</button>
                     <button id="cl-wiz-next" class="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-5 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60">
-                        التالي
+                        {{ __('partner.classifieds_extra.wizard.next') }}
                         <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
                     </button>
                     <button id="cl-wiz-submit" class="hidden items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">
-                        إرسال الإعلان
+                        {{ __('partner.classifieds_extra.wizard.submit_ad') }}
                     </button>
                 </div>
             </div>

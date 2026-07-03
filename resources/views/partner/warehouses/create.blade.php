@@ -1,6 +1,6 @@
 @extends('layouts.partner')
-@section('title', 'Register Warehouse')
-@section('page-title', 'Register a Warehouse')
+@section('title', __('partner.warehouses.register_warehouse'))
+@section('page-title', __('partner.warehouses.register_warehouse'))
 
 @push('scripts')
     @vite('resources/js/partner/warehouse-create.js')
@@ -18,7 +18,7 @@
 
         <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
             <p class="text-sm text-blue-700">
-                Registering your own warehouse lets you fulfill orders directly (FBM/FBP) using your own stock location, instead of relying solely on our platform warehouses.
+                {{ __('partner.warehouses.register_intro') }}
             </p>
         </div>
 
@@ -26,17 +26,17 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse name <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.warehouses.warehouse_name') }} <span class="text-red-500">*</span></label>
                     <input type="text" name="name" id="wh-name" required maxlength="150"
-                        placeholder="e.g. My Main Storage — Riyadh"
+                        placeholder="{{ __('partner.warehouses.name_placeholder') }}"
                         class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Country <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('common.country') }} <span class="text-red-500">*</span></label>
                     <select name="country_id" id="wh-country" required
                         class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                        <option value="">Select country…</option>
+                        <option value="">{{ __('partner.warehouses.select_country') }}</option>
                         @foreach($countries as $country)
                             <option value="{{ $country->id }}">{{ $country->name_en }}</option>
                         @endforeach
@@ -44,37 +44,37 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('common.city') }}</label>
                     <select name="city_id" id="wh-city"
                         class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                        <option value="">Select country first…</option>
+                        <option value="">{{ __('partner.warehouses.select_country_first') }}</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Area / District</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.warehouses.area_district') }}</label>
                     <input type="text" name="area" id="wh-area" maxlength="255"
                         class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Street address <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.warehouses.street_address') }} <span class="text-red-500">*</span></label>
                     <input type="text" name="street_address" id="wh-street" required maxlength="255"
                         class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Building</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.warehouses.building') }}</label>
                         <input type="text" name="building" id="wh-building" maxlength="100"
                             class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Storage capacity (m³)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.warehouses.storage_capacity') }}</label>
                         <input type="number" name="total_capacity_m3" id="wh-capacity" min="0" step="0.01"
-                            placeholder="Optional"
+                            placeholder="{{ __('common.optional') }}"
                             class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                        <p class="text-xs text-gray-400 mt-1">Helps you track how full your warehouse is</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ __('partner.warehouses.capacity_help') }}</p>
                     </div>
                 </div>
 
@@ -85,11 +85,11 @@
             <div class="flex gap-3 mt-5">
                 <button type="submit" id="register-warehouse-btn"
                     class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors">
-                    Register warehouse
+                    {{ __('partner.warehouses.register_warehouse') }}
                 </button>
                 <a href="{{ route('partner.warehouses.index') }}"
                     class="inline-flex items-center px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
-                    Cancel
+                    {{ __('common.cancel') }}
                 </a>
             </div>
         </form>
