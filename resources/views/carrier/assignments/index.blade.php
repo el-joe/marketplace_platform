@@ -1,22 +1,28 @@
 @extends('layouts.carrier')
 
-@section('title', 'الطلبات')
+@section('title', __('carrier.assignments.title'))
 
 @section('content')
 
 <div class="mb-6">
-    <h1 class="text-2xl font-black text-gray-900">طلبات التوصيل</h1>
-    <p class="text-sm text-gray-500 mt-0.5">جميع الطلبات المعيّنة لمناديب شركتك — بما فيها غير المقبولة.</p>
+    <h1 class="text-2xl font-black text-gray-900">{{ __('carrier.assignments.title') }}</h1>
+    <p class="text-sm text-gray-500 mt-0.5">{{ __('carrier.assignments.all_assignments') }} — بما فيها غير المقبولة.</p>
 </div>
 
 {{-- Filters --}}
 <form method="GET" class="mb-4 flex flex-wrap gap-3 items-end">
     <div>
-        <label class="block text-xs font-semibold text-gray-600 mb-1">الحالة</label>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">{{ __('carrier.assignments.status') }}</label>
         <select name="status" onchange="this.form.submit()"
                 class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="">الكل</option>
-            @foreach(['assigned'=>'معيّن','accepted'=>'مقبول','picked_up'=>'محمول','delivered'=>'مسلّم','failed'=>'فاشل'] as $val=>$label)
+            <option value="">{{ __('carrier.assignments.all') }}</option>
+            @foreach([
+                'assigned'  => __('carrier.assignments.status_assigned'),
+                'accepted'  => __('carrier.assignments.status_accepted'),
+                'picked_up' => __('carrier.assignments.status_picked_up'),
+                'delivered' => __('carrier.assignments.status_delivered'),
+                'failed'    => __('carrier.assignments.status_failed'),
+            ] as $val=>$label)
             <option value="{{ $val }}" @selected(request('status')===$val)>{{ $label }}</option>
             @endforeach
         </select>
@@ -25,18 +31,18 @@
 
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
     @if($assignments->isEmpty())
-    <div class="py-16 text-center text-gray-400 text-sm">لا توجد طلبات.</div>
+    <div class="py-16 text-center text-gray-400 text-sm">{{ __('carrier.assignments.no_assignments') }}</div>
     @else
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                 <tr>
-                    <th class="px-6 py-3 text-right font-semibold">رقم الطلب</th>
-                    <th class="px-6 py-3 text-right font-semibold">المندوب</th>
-                    <th class="px-6 py-3 text-right font-semibold">الحالة</th>
-                    <th class="px-6 py-3 text-right font-semibold">تاريخ التعيين</th>
+                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.assignments.order_number') }}</th>
+                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.assignments.agent') }}</th>
+                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.assignments.status') }}</th>
+                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.assignments.assigned_date') }}</th>
                     @if(auth('shipping_supervisor')->user()->hasPermission('assign_orders'))
-                    <th class="px-6 py-3 text-right font-semibold">إعادة تعيين</th>
+                    <th class="px-6 py-3 text-right font-semibold">{{ __('carrier.assignments.reassign_agent') }}</th>
                     @endif
                     <th class="px-6 py-3"></th>
                 </tr>
@@ -45,7 +51,13 @@
                 @foreach($assignments as $a)
                 @php
                     $colors = ['assigned'=>'amber','accepted'=>'blue','picked_up'=>'indigo','delivered'=>'emerald','failed'=>'red'];
-                    $labels = ['assigned'=>'معيّن','accepted'=>'مقبول','picked_up'=>'محمول','delivered'=>'مسلّم','failed'=>'فاشل'];
+                    $labels = [
+                        'assigned'  => __('carrier.assignments.status_assigned'),
+                        'accepted'  => __('carrier.assignments.status_accepted'),
+                        'picked_up' => __('carrier.assignments.status_picked_up'),
+                        'delivered' => __('carrier.assignments.status_delivered'),
+                        'failed'    => __('carrier.assignments.status_failed'),
+                    ];
                     $c = $colors[$a->status] ?? 'gray';
                 @endphp
                 <tr class="hover:bg-gray-50">
@@ -63,14 +75,14 @@
                         <button
                             onclick="openReassignModal('{{ $a->id }}', '{{ addslashes($a->agent?->name) }}')"
                             class="text-indigo-600 hover:underline text-xs font-medium">
-                            إعادة تعيين
+                            {{ __('carrier.assignments.reassign_agent') }}
                         </button>
                         @endif
                     </td>
                     @endif
                     <td class="px-6 py-3 text-left">
                         <a href="{{ route('carrier.assignments.show', $a->id) }}"
-                           class="text-gray-400 hover:text-indigo-600 text-xs transition">تفاصيل ←</a>
+                           class="text-gray-400 hover:text-indigo-600 text-xs transition">{{ __('carrier.assignments.details') }} ←</a>
                     </td>
                 </tr>
                 @endforeach
@@ -88,13 +100,13 @@
 <div id="reassign-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 px-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
         <div class="flex items-center justify-between mb-1">
-            <h2 class="text-lg font-bold text-gray-900">إعادة تعيين المندوب</h2>
+            <h2 class="text-lg font-bold text-gray-900">{{ __('carrier.assignments.reassign_agent') }}</h2>
             <button onclick="closeReassignModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
-        <p class="text-xs text-gray-400 mb-5">المندوب الحالي: <span id="reassign-current-agent" class="font-medium text-gray-700"></span></p>
+        <p class="text-xs text-gray-400 mb-5">{{ __('carrier.assignments.current_agent') }}: <span id="reassign-current-agent" class="font-medium text-gray-700"></span></p>
 
         @if($agents->isEmpty())
-        <p class="text-sm text-gray-500 text-center py-6">لا يوجد مناديب متاحون حالياً.</p>
+        <p class="text-sm text-gray-500 text-center py-6">{{ __('carrier.assignments.no_available_agents') }}</p>
         @else
         <div class="space-y-2 max-h-72 overflow-y-auto mb-5">
             @foreach($agents as $agent)
@@ -111,7 +123,7 @@
             @endforeach
         </div>
         <button onclick="submitReassign()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl transition text-sm">
-            تأكيد إعادة التعيين
+            {{ __('carrier.assignments.confirm_reassign') }}
         </button>
         @endif
     </div>
@@ -140,7 +152,7 @@ function closeReassignModal() {
 
 function submitReassign() {
     const selected = document.querySelector('input[name="reassign_agent"]:checked');
-    if (!selected) { alert('يرجى اختيار مندوب.'); return; }
+    if (!selected) { alert('{{ __('carrier.assignments.please_select_agent') }}'); return; }
 
     fetch(`/carrier/assignments/${currentAssignmentId}/reassign`, {
         method: 'POST',

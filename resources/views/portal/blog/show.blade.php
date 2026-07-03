@@ -23,11 +23,11 @@
         {{-- ── Breadcrumb ───────────────────────────────────────────── --}}
         <nav class="flex items-center gap-2 text-xs text-gray-400 mb-6 flex-wrap" aria-label="Breadcrumb">
             <a href="{{ route('portal.home') }}" class="hover:text-gray-600 transition-colors">
-                {{ $locale === 'ar' ? 'الرئيسية' : 'Home' }}
+                {{ __('portal.nav.home') }}
             </a>
             <span>/</span>
             <a href="{{ route('portal.blog.index') }}" class="hover:text-gray-600 transition-colors">
-                {{ $locale === 'ar' ? 'المدونة' : 'Blog' }}
+                {{ __('portal.blog.title') }}
             </a>
             @if($post->category)
                 <span>/</span>
@@ -74,7 +74,7 @@
                     <span>·</span>
                     <span>{{ $post->published_at->format('d M Y') }}</span>
                     <span>·</span>
-                    <span>{{ $post->reading_time_minutes }} {{ $locale === 'ar' ? 'دقائق قراءة' : 'min read' }}</span>
+                    <span>{{ $post->reading_time_minutes }} {{ __('portal.blog.min_read') }}</span>
                     @if($post->views_count)
                         <span>·</span>
                         <span>{{ number_format($post->views_count) }} {{ $locale === 'ar' ? 'مشاهدة' : 'views' }}</span>
@@ -123,7 +123,7 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">
-                            {{ $locale === 'ar' ? 'كتب بواسطة' : 'Written by' }}
+                            {{ __('portal.blog.written_by') }}
                         </p>
                         <p class="font-semibold text-gray-800">{{ $post->author->name }}</p>
                     </div>
@@ -136,7 +136,7 @@
         @if($relatedPosts->isNotEmpty())
             <div class="mt-12 mb-16">
                 <h2 class="text-xl font-bold text-gray-900 mb-6">
-                    {{ $locale === 'ar' ? 'مقالات ذات صلة' : 'Related Posts' }}
+                    {{ __('portal.blog.related_posts') }}
                 </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     @foreach($relatedPosts as $related)

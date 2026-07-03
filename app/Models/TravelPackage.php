@@ -109,7 +109,7 @@ class TravelPackage extends Model
 
     public function priceFormatted(): string
     {
-        return $this->currency . ' ' . number_format($this->price_cents, 2);
+        return \App\Helpers\CurrencyFormatter::formatPrice($this->price_cents, $this->currency);
     }
 
     public function seatsRemaining(): ?int

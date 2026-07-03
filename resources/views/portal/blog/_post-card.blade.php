@@ -16,7 +16,7 @@
                   style="background-color: {{ $post->category->color_hex ?? '#EFF6FF' }}20; color: {{ $post->category->color_hex ?? '#3B82F6' }}">
                 {{ $post->category->{'name_' . $locale} }}
             </span>
-            <span class="text-xs text-gray-400">· {{ $post->reading_time_minutes }} {{ $locale === 'ar' ? 'دقائق' : 'min' }}</span>
+            <span class="text-xs text-gray-400">· {{ $post->reading_time_minutes }} {{ __('portal.blog.min_read') }}</span>
         </div>
 
         <h3 class="font-bold text-gray-900 leading-snug line-clamp-2 flex-1 group-hover:text-primary-600 transition-colors">

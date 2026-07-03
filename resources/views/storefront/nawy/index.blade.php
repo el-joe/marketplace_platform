@@ -144,8 +144,7 @@
                                     : ($product?->name_en ?? $product?->name_ar) }}
                             </p>
                             <p class="text-sm font-bold text-gray-900">
-                                {{ number_format($listing->price_cents / 100, 2) }}
-                                <span class="text-xs font-normal text-gray-500">{{ $listing->currency }}</span>
+                                {{ \App\Helpers\CurrencyFormatter::formatPrice($listing->price_cents, $listing->currency, $locale) }}
                             </p>
                             @if($cardMethod && $cardMethod->is_express_type)
                                 <div class="mt-1">

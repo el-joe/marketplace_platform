@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'بوابة شركات الشحن') | {{ auth('shipping_supervisor')->user()?->company?->name ?? 'Carrier Portal' }}</title>
+    <title>@yield('title', __('carrier.panel_title')) | {{ auth('shipping_supervisor')->user()?->company?->name ?? __('carrier.panel_title') }}</title>
     <link href="https://fonts.bunny.net/css?family=cairo:400,600,700,800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/portal/app.js'])
 </head>
@@ -25,31 +25,31 @@
                 <x-notification-bell guard="shipping_supervisor" />
                 <a href="{{ route('carrier.dashboard') }}"
                    class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.dashboard') ? 'text-indigo-600 font-bold' : '' }}">
-                    الرئيسية
+                    {{ __('carrier.nav.home') }}
                 </a>
                 <a href="{{ route('carrier.agents.index') }}"
                    class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.agents.*') ? 'text-indigo-600 font-bold' : '' }}">
-                    المناديب
+                    {{ __('carrier.nav.agents') }}
                 </a>
                 @if(auth('shipping_supervisor')->user()?->hasPermission('view_orders'))
                 <a href="{{ route('carrier.assignments.unassigned') }}"
                    class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.assignments.unassigned') ? 'text-indigo-600 font-bold' : '' }}">
-                    غير معينة
+                    {{ __('carrier.nav.unassigned') }}
                 </a>
                 <a href="{{ route('carrier.assignments.index') }}"
                    class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.assignments.index') || request()->routeIs('carrier.assignments.show') ? 'text-indigo-600 font-bold' : '' }}">
-                    الطلبات
+                    {{ __('carrier.nav.assignments') }}
                 </a>
                 @endif
                 @if(auth('shipping_supervisor')->user()?->hasPermission('manage_agents'))
                 <a href="{{ route('carrier.supervisors.index') }}"
                    class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.supervisors.*') ? 'text-indigo-600 font-bold' : '' }}">
-                    المشرفون
+                    {{ __('carrier.nav.supervisors') }}
                 </a>
                 @endif
                 <form method="POST" action="{{ route('carrier.logout') }}" class="inline">
                     @csrf
-                    <button type="submit" class="text-red-500 hover:text-red-700 transition font-medium">خروج</button>
+                    <button type="submit" class="text-red-500 hover:text-red-700 transition font-medium">{{ __('carrier.nav.logout') }}</button>
                 </form>
             </div>
         </div>

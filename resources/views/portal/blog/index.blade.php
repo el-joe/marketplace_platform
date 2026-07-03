@@ -1,6 +1,6 @@
 @extends('layouts.portal')
 
-@section('title', $locale === 'ar' ? 'المدونة' : 'Blog')
+@section('title', __('portal.blog.title'))
 
 @section('content')
 
@@ -8,7 +8,7 @@
 <section class="bg-white border-b border-gray-100 py-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 class="text-3xl font-bold text-gray-900">
-            {{ $locale === 'ar' ? 'المدونة' : 'Blog' }}
+            {{ __('portal.blog.title') }}
         </h1>
         <p class="text-gray-500 mt-2">
             {{ $locale === 'ar'
@@ -21,11 +21,11 @@
                 <input type="hidden" name="category" value="{{ request('category') }}">
             @endif
             <input type="text" name="search" value="{{ request('search') }}"
-                   placeholder="{{ $locale === 'ar' ? 'ابحث في المدونة...' : 'Search the blog...' }}"
+                   placeholder="{{ __('portal.blog.search_blog') }}"
                    class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm
                           focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-gray-900">
             <button type="submit" class="btn btn-primary btn-sm">
-                {{ $locale === 'ar' ? 'بحث' : 'Search' }}
+                {{ __('portal.blog.search') }}
             </button>
         </form>
     </div>
@@ -65,7 +65,7 @@
                         <span>{{ $featuredPost->published_at->format('d M Y') }}</span>
                         <span>·</span>
                         <span>{{ $featuredPost->reading_time_minutes }}
-                            {{ $locale === 'ar' ? 'دقائق قراءة' : 'min read' }}</span>
+                            {{ __('portal.blog.min_read') }}</span>
                     </div>
                 </div>
             </div>
@@ -80,7 +80,7 @@
               {{ !request('category')
                   ? 'bg-primary-600 text-white border-primary-600'
                   : 'bg-white text-gray-600 border-gray-200 hover:border-primary-400' }}">
-        {{ $locale === 'ar' ? 'الكل' : 'All' }}
+        {{ __('portal.blog.all') }}
     </a>
 
     @foreach($categories as $cat)
@@ -102,7 +102,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-16">
     @if($posts->isEmpty())
         <div class="py-20 text-center text-gray-400">
-            <p class="text-lg">{{ $locale === 'ar' ? 'لا توجد مقالات بعد.' : 'No posts yet.' }}</p>
+            <p class="text-lg">{{ __('portal.blog.no_posts') }}</p>
         </div>
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

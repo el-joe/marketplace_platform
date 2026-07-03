@@ -19,14 +19,14 @@
             </div>
             <div class="flex items-center gap-4 text-sm">
                 <x-notification-bell guard="travel_agency" />
-                <a href="{{ route('travel-agency.dashboard') }}" class="text-gray-600 hover:text-blue-600 font-medium">الرئيسية</a>
-                <a href="{{ route('travel-agency.packages.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">الباقات</a>
-                <a href="{{ route('travel-agency.bookings.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">الحجوزات</a>
-                <a href="{{ route('travel-agency.inquiries.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">العملاء المهتمون</a>
-                <a href="{{ route('travel-agency.profile.edit') }}" class="text-gray-600 hover:text-blue-600 font-medium">الملف الشخصي</a>
+                <a href="{{ route('travel-agency.dashboard') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.nav.dashboard') }}</a>
+                <a href="{{ route('travel-agency.packages.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.nav.packages') }}</a>
+                <a href="{{ route('travel-agency.bookings.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.nav.bookings') }}</a>
+                <a href="{{ route('travel-agency.inquiries.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.inquiries.interested_clients') }}</a>
+                <a href="{{ route('travel-agency.profile.edit') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.nav.profile') }}</a>
                 <form method="POST" action="{{ route('travel-agency.logout') }}" class="inline">
                     @csrf
-                    <button type="submit" class="text-red-500 hover:text-red-700 font-medium">خروج</button>
+                    <button type="submit" class="text-red-500 hover:text-red-700 font-medium">{{ __('travel.nav.logout') }}</button>
                 </form>
             </div>
         </div>

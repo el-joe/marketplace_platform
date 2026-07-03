@@ -1,14 +1,14 @@
 @extends('layouts.travel-agency')
 
-@section('title', 'باقاتي')
+@section('title', __('travel.packages.title'))
 
 @section('content')
     <div class="space-y-5">
         <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-black text-gray-900">الباقات السياحية</h1>
+            <h1 class="text-2xl font-black text-gray-900">{{ __('travel.packages.title') }}</h1>
             <a href="{{ route('travel-agency.packages.create') }}"
                 class="px-5 py-2.5 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-400 transition-colors">
-                + إضافة باقة جديدة
+                + {{ __('travel.packages.create_package') }}
             </a>
         </div>
 
@@ -16,12 +16,12 @@
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">الباقة</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">الوجهة</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">موعد السفر</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">السعر</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">المقاعد</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">الحالة</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.title') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.destination_country') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.departure_date') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.price_per_person') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.available_seats') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.status') }}</th>
                         <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
@@ -29,7 +29,7 @@
                     @forelse($packages as $pkg)
                         @php
                             $colors = ['draft' => 'bg-gray-100 text-gray-600', 'pending_review' => 'bg-amber-100 text-amber-700', 'active' => 'bg-emerald-100 text-emerald-700', 'sold_out' => 'bg-purple-100 text-purple-700', 'expired' => 'bg-gray-100 text-gray-500'];
-                            $labels = ['draft' => 'مسودة', 'pending_review' => 'قيد المراجعة', 'active' => 'نشطة', 'sold_out' => 'مكتملة', 'expired' => 'منتهية'];
+                            $labels = ['draft' => __('travel.packages.status_draft'), 'pending_review' => __('travel.packages.status_pending_review'), 'active' => __('travel.packages.status_active'), 'sold_out' => __('travel.packages.status_sold_out'), 'expired' => __('travel.packages.status_expired')];
                         @endphp
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
@@ -55,19 +55,18 @@
                             </td>
                             <td class="px-4 py-3 flex gap-2">
                                 <a href="{{ route('travel-agency.packages.show', $pkg) }}"
-                                    class="text-blue-600 text-xs hover:underline">عرض</a>
+                                    class="text-blue-600 text-xs hover:underline">{{ __('travel.packages.view') }}</a>
                                 @if(in_array($pkg->status, ['draft', 'pending_review']))
                                     <a href="{{ route('travel-agency.packages.edit', $pkg) }}"
-                                        class="text-amber-600 text-xs hover:underline">تعديل</a>
+                                        class="text-amber-600 text-xs hover:underline">{{ __('travel.packages.edit') }}</a>
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="7" class="px-4 py-10 text-center text-gray-400 text-sm">
-                                لا توجد باقات بعد.
-                                <a href="{{ route('travel-agency.packages.create') }}" class="text-blue-600 hover:underline">أضف
-                                    أول باقة</a>
+                                {{ __('travel.packages.no_packages') }}
+                                <a href="{{ route('travel-agency.packages.create') }}" class="text-blue-600 hover:underline">{{ __('travel.packages.add_first_package') }}</a>
                             </td>
                         </tr>
                     @endforelse

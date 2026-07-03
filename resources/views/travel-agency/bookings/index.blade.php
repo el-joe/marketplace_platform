@@ -1,25 +1,25 @@
 @extends('layouts.travel-agency')
 
-@section('title', 'الحجوزات')
+@section('title', __('travel.bookings.title'))
 
 @section('content')
 <div class="space-y-5">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-black text-gray-900">الحجوزات</h1>
+        <h1 class="text-2xl font-black text-gray-900">{{ __('travel.bookings.title') }}</h1>
         <a href="{{ route('travel-agency.packages.index') }}"
            class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500">
-            + حجز جديد
+            + {{ __('travel.bookings.create_booking') }}
         </a>
     </div>
 
     {{-- Status filter tabs --}}
     @php
     $statuses = [
-        ''                   => 'الكل',
-        'pending_documents'  => 'بانتظار الوثائق',
-        'confirmed'          => 'مؤكدة',
-        'cancelled'          => 'ملغاة',
-        'completed'          => 'مكتملة',
+        ''                   => __('travel.bookings.all_statuses'),
+        'pending_documents'  => __('travel.bookings.status_pending_documents'),
+        'confirmed'          => __('travel.bookings.status_confirmed'),
+        'cancelled'          => __('travel.bookings.status_cancelled'),
+        'completed'          => __('travel.bookings.status_completed'),
     ];
     $current = request('status', '');
     @endphp
@@ -37,13 +37,13 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">رقم الحجز</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">العميل</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">الباقة</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">المسافرون</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">الإجمالي</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">الحالة</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">التاريخ</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.booking_number') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.traveler_name') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.title') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.travelers_count') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.total_price') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.status') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.date') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -51,7 +51,7 @@
                 @forelse($bookings as $bk)
                 @php
                 $colors = ['pending_documents'=>'bg-amber-100 text-amber-700','confirmed'=>'bg-emerald-100 text-emerald-700','cancelled'=>'bg-red-100 text-red-700','completed'=>'bg-blue-100 text-blue-700'];
-                $labels = ['pending_documents'=>'بانتظار الوثائق','confirmed'=>'مؤكد','cancelled'=>'ملغى','completed'=>'مكتمل'];
+                $labels = ['pending_documents'=>__('travel.bookings.status_pending_documents'),'confirmed'=>__('travel.bookings.status_confirmed'),'cancelled'=>__('travel.bookings.status_cancelled'),'completed'=>__('travel.bookings.status_completed')];
                 @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 font-mono text-xs text-gray-600">{{ $bk->booking_number }}</td>
@@ -66,12 +66,12 @@
                     </td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $bk->created_at->format('d M Y') }}</td>
                     <td class="px-4 py-3">
-                        <a href="{{ route('travel-agency.bookings.show', $bk) }}" class="text-blue-600 text-xs hover:underline">تفاصيل</a>
+                        <a href="{{ route('travel-agency.bookings.show', $bk) }}" class="text-blue-600 text-xs hover:underline">{{ __('travel.bookings.details') }}</a>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-10 text-center text-gray-400 text-sm">لا توجد حجوزات بعد.</td>
+                    <td colspan="8" class="px-4 py-10 text-center text-gray-400 text-sm">{{ __('travel.bookings.no_bookings') }}</td>
                 </tr>
                 @endforelse
             </tbody>

@@ -1,22 +1,22 @@
 @extends('layouts.travel-agency')
 
-@section('title', 'العملاء المهتمون')
+@section('title', __('travel.inquiries.title'))
 
 @section('content')
 <div class="space-y-5">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-black text-gray-900">العملاء المهتمون</h1>
-        <p class="text-sm text-gray-400">طلبات الاهتمام من الزوار — قبل الحجز الرسمي</p>
+        <h1 class="text-2xl font-black text-gray-900">{{ __('travel.inquiries.interested_clients') }}</h1>
+        <p class="text-sm text-gray-400">{{ __('travel.inquiries.subtitle') }}</p>
     </div>
 
     {{-- Filters --}}
     @php
     $statuses = [
-        ''          => 'الكل',
-        'new'       => 'جديد',
-        'contacted' => 'تم التواصل',
-        'converted' => 'تحوّل لحجز',
-        'closed'    => 'مغلق',
+        ''          => __('travel.inquiries.all_statuses'),
+        'new'       => __('travel.inquiries.status_new'),
+        'contacted' => __('travel.inquiries.status_contacted'),
+        'converted' => __('travel.inquiries.status_converted'),
+        'closed'    => __('travel.inquiries.status_closed'),
     ];
     $currentStatus  = request('status', '');
     $currentPackage = request('package_id', '');
@@ -40,7 +40,7 @@
             @endif
             <select name="package_id" onchange="this.form.submit()"
                     class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:ring-2 focus:ring-blue-300 outline-none bg-white">
-                <option value="">كل الباقات</option>
+                <option value="">{{ __('travel.inquiries.all_packages') }}</option>
                 @foreach($packages as $pkg)
                 <option value="{{ $pkg->id }}" {{ $currentPackage === $pkg->id ? 'selected' : '' }}>
                     {{ $pkg->title_ar ?: $pkg->title_en }}
@@ -61,12 +61,12 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">الاسم</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">الهاتف</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">الباقة</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">المسافرون</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">الحالة</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">التاريخ</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.inquiries.contact_name') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.inquiries.contact_phone') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.title') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.travelers_count') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.status') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.date') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -99,7 +99,7 @@
                                 @csrf
                                 <button type="submit"
                                         class="px-2.5 py-1 text-xs font-medium text-amber-700 border border-amber-300 rounded-lg hover:bg-amber-50 transition-colors">
-                                    تم التواصل
+                                    {{ __('travel.inquiries.mark_contacted') }}
                                 </button>
                             </form>
                             @endif
@@ -109,21 +109,21 @@
                                 @csrf
                                 <button type="submit"
                                         class="px-2.5 py-1 text-xs font-medium text-emerald-700 border border-emerald-300 rounded-lg hover:bg-emerald-50 transition-colors">
-                                    تحويل لحجز
+                                    {{ __('travel.inquiries.convert_to_booking') }}
                                 </button>
                             </form>
                             <form method="POST" action="{{ route('travel-agency.inquiries.close', $inq) }}">
                                 @csrf
                                 <button type="submit"
                                         class="px-2.5 py-1 text-xs font-medium text-gray-500 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                                    إغلاق
+                                    {{ __('travel.inquiries.close_inquiry') }}
                                 </button>
                             </form>
                             @endif
 
                             @if($inq->status === 'converted' && $inq->converted_to_booking_id)
                             <a href="{{ route('travel-agency.bookings.show', $inq->converted_to_booking_id) }}"
-                               class="text-xs text-blue-600 hover:underline">عرض الحجز</a>
+                               class="text-xs text-blue-600 hover:underline">{{ __('travel.inquiries.view_booking') }}</a>
                             @endif
 
                         </div>
@@ -137,7 +137,7 @@
                 @empty
                 <tr>
                     <td colspan="7" class="px-4 py-10 text-center text-gray-400 text-sm">
-                        لا توجد طلبات اهتمام حتى الآن.
+                        {{ __('travel.inquiries.no_inquiries') }}
                     </td>
                 </tr>
                 @endforelse
