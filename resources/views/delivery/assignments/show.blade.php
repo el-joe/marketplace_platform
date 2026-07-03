@@ -7,7 +7,7 @@
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        Back
+        {{ __('delivery.assignments.back') }}
     </a>
 @endsection
 
@@ -29,7 +29,7 @@
         <div>
             <h1 class="text-xl font-bold">#{{ $assignment->subOrder?->sub_order_number ?? substr($assignment->id, 0, 8) }}
             </h1>
-            <p class="text-xs text-slate-400 mt-0.5">Assigned {{ $assignment->assigned_at?->diffForHumans() }}</p>
+            <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.assignments.assigned') }} {{ $assignment->assigned_at?->diffForHumans() }}</p>
         </div>
         <span
             class="chip {{ $chipClass }} text-sm px-3 py-1">{{ ucfirst(str_replace('_', ' ', $assignment->status)) }}</span>
@@ -39,7 +39,7 @@
     @if($assignment->subOrder?->order)
         <div class="d-card mb-4 p-0 overflow-hidden rounded-2xl" style="height: 180px;" id="route-map">
             <div class="flex items-center justify-center h-full text-slate-500 text-sm" id="map-placeholder">
-                📍 Loading map…
+                📍 {{ __('delivery.assignments.loading_map') }}
             </div>
         </div>
     @endif
@@ -53,9 +53,9 @@
                     <span class="text-yellow-400 text-xs font-bold">P</span>
                 </div>
                 <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Pickup</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">{{ __('delivery.assignments.pickup') }}</p>
                     <p class="text-sm text-slate-200 mt-0.5">
-                        {{ $assignment->shipment?->subOrder?->vendor?->store_name ?? 'Vendor Warehouse' }}
+                        {{ $assignment->shipment?->subOrder?->vendor?->store_name ?? __('delivery.assignments.vendor_warehouse') }}
                     </p>
                 </div>
             </div>
@@ -68,7 +68,7 @@
                     <span class="text-green-400 text-xs font-bold">D</span>
                 </div>
                 <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Deliver To</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">{{ __('delivery.assignments.deliver_to') }}</p>
                     @if($order?->shipping_address_snapshot)
                                 <p class="text-sm text-slate-200 mt-0.5">
                                     {{ is_array($order->shipping_address_snapshot)
@@ -80,7 +80,7 @@
                         : $order->shipping_address_snapshot }}
                                 </p>
                     @else
-                        <p class="text-sm text-slate-500 mt-0.5">Address not available</p>
+                        <p class="text-sm text-slate-500 mt-0.5">{{ __('delivery.assignments.address_unavailable') }}</p>
                     @endif
                 </div>
             </div>
@@ -91,7 +91,7 @@
     @if($customer?->phone && $isActive)
         <div class="d-card mb-3 flex items-center justify-between">
             <div>
-                <p class="text-xs text-slate-400">Customer</p>
+                <p class="text-xs text-slate-400">{{ __('delivery.assignments.customer') }}</p>
                 <p class="text-sm font-semibold">{{ $customer->name }}</p>
             </div>
             <a href="tel:{{ $customer->phone }}"
@@ -100,7 +100,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                Call
+                {{ __('delivery.assignments.call') }}
             </a>
         </div>
     @endif
@@ -110,7 +110,7 @@
         <details>
             <summary class="flex items-center justify-between cursor-pointer list-none">
                 <span class="text-sm font-semibold">
-                    Items
+                    {{ __('delivery.assignments.items_count') }}
                     <span class="text-slate-400 font-normal">({{ $items->count() }})</span>
                 </span>
                 <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -120,11 +120,11 @@
             <div class="mt-3 space-y-2 border-t border-slate-700 pt-3">
                 @forelse($items as $item)
                     <div class="flex justify-between text-sm">
-                        <span class="text-slate-300">{{ $item->productVariant?->product?->name_en ?? 'Product' }}</span>
+                        <span class="text-slate-300">{{ $item->productVariant?->product?->name_en ?? __('delivery.assignments.product') }}</span>
                         <span class="text-slate-400">× {{ $item->quantity }}</span>
                     </div>
                 @empty
-                    <p class="text-slate-500 text-sm">No items found.</p>
+                    <p class="text-slate-500 text-sm">{{ __('delivery.assignments.no_items_found') }}</p>
                 @endforelse
             </div>
         </details>
@@ -137,14 +137,14 @@
             {{-- ASSIGNED: Accept button --}}
             @if($assignment->status === 'assigned')
                 <button type="button" @click="accept()" :disabled="loading" class="btn-action btn-yellow">
-                    <span x-text="loading ? 'Processing…' : '✓ Accept Assignment'"></span>
+                    <span x-text="loading ? '{{ __('delivery.assignments.processing') }}' : '✓ {{ __('delivery.assignments.accept') }}'"></span>
                 </button>
             @endif
 
             {{-- ACCEPTED: Mark Picked Up --}}
             @if($assignment->status === 'accepted')
                 <button type="button" @click="pickUp()" :disabled="loading" class="btn-action btn-blue">
-                    <span x-text="loading ? 'Getting location…' : '📦 Mark as Picked Up'"></span>
+                    <span x-text="loading ? '{{ __('delivery.assignments.getting_location') }}' : '📦 {{ __('delivery.dashboard.mark_picked_up') }}'"></span>
                 </button>
             @endif
 
@@ -156,10 +156,10 @@
                     <div class="d-card mb-3 border border-yellow-500/40 bg-yellow-500/5">
                         <div class="flex items-center gap-2 mb-3">
                             <span class="text-yellow-400 text-lg">💵</span>
-                            <p class="text-sm font-bold text-yellow-300">تحصيل الدفع النقدي (COD)</p>
+                            <p class="text-sm font-bold text-yellow-300">{{ __('delivery.cod.title') }} (COD)</p>
                         </div>
                         <div class="bg-slate-800 rounded-xl p-4 mb-3 text-center">
-                            <p class="text-xs text-slate-400 mb-1">المبلغ المطلوب تحصيله</p>
+                            <p class="text-xs text-slate-400 mb-1">{{ __('delivery.cod.expected_amount') }}</p>
                             <p class="text-3xl font-extrabold text-yellow-300">
                                 {{ number_format($expectedCodCents / 100, 2) }}
                                 <span class="text-sm font-normal text-slate-400">{{ $order->currency }}</span>
@@ -167,7 +167,7 @@
                         </div>
                         <div>
                             <label class="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1">
-                                المبلغ المُحصَّل فعلياً
+                                {{ __('delivery.cod.collected_amount') }}
                             </label>
                             <input type="number" id="cod-amount-input" x-model.number="codAmountCollected"
                                 min="0" step="1"
@@ -175,24 +175,24 @@
                                 class="w-full bg-slate-700 text-slate-100 rounded-xl p-3 text-center text-xl font-bold border-2 border-slate-600 focus:border-yellow-400 focus:outline-none transition-colors"
                                 inputmode="decimal">
                             <p class="text-xs text-slate-500 mt-1 text-center">
-                                أدخل المبلغ بالقرش ({{ $order->currency === 'EGP' ? 'مليم' : 'سنت' }})، مثال: {{ number_format($expectedCodCents / 100, 2) }}
+                                {{ __('delivery.cod.enter_collected_amount_hint') }}: {{ number_format($expectedCodCents / 100, 2) }}
                             </p>
                         </div>
 
                         {{-- Discrepancy note — shown when amount differs by more than 5% --}}
                         <div x-show="showDiscrepancyNote" x-cloak class="mt-3 border-t border-yellow-500/30 pt-3">
                             <label class="text-xs font-semibold text-yellow-400 block mb-1">
-                                سبب الاختلاف في المبلغ (مطلوب)
+                                {{ __('delivery.cod.discrepancy_reason') }}
                             </label>
                             <textarea x-model="discrepancyNote" rows="2"
                                 class="w-full bg-slate-700 text-slate-100 rounded-xl p-3 text-sm border-2 border-yellow-500/50 focus:border-yellow-400 focus:outline-none resize-none"
-                                placeholder="مثال: العميل لم يكن معه فكّة كافية، دفع أقل بمقدار 2 جنيه…"></textarea>
+                                placeholder="{{ __('delivery.cod.discrepancy_placeholder') }}"></textarea>
                         </div>
                     </div>
                 @endif
 
                 <div class="d-card mb-3">
-                    <p class="text-sm font-semibold mb-4 text-center">Enter Delivery OTP</p>
+                    <p class="text-sm font-semibold mb-4 text-center">{{ __('delivery.assignments.otp_verification') }}</p>
                     <div class="flex justify-center gap-2 mb-4" id="otp-inputs">
                         @for($i = 0; $i < 6; $i++)
                             <input type="tel" inputmode="numeric" pattern="[0-9]" maxlength="1"
@@ -204,8 +204,7 @@
 
                     {{-- Proof photo --}}
                     <div class="mt-4 border-t border-slate-700 pt-4">
-                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-2">Proof Photo
-                            (optional)</label>
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-2">{{ __('delivery.assignments.proof_photo_optional') }}</label>
                         <label
                             class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-yellow-400 transition-colors"
                             x-bind:class="proofPreview ? 'border-green-500' : ''">
@@ -217,7 +216,7 @@
                                         <circle cx="8.5" cy="8.5" r="1.5" />
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21" />
                                     </svg>
-                                    <p class="text-xs text-slate-500 mt-1">Tap to take / upload photo</p>
+                                    <p class="text-xs text-slate-500 mt-1">{{ __('delivery.assignments.tap_to_take_upload_photo') }}</p>
                                 </div>
                             </template>
                             <template x-if="proofPreview">
@@ -233,14 +232,14 @@
                     :disabled="loading || !otp || otp.length < 6 || (isCod && !codAmountCollected)"
                     class="btn-action btn-yellow"
                     :class="{ 'opacity-50': !otp || otp.length < 6 || (isCod && !codAmountCollected) }">
-                    <span x-text="loading ? 'Confirming…' : (isCod ? '✓ تأكيد التسليم وتحصيل النقد' : '✓ Confirm Delivery')"></span>
+                    <span x-text="loading ? '{{ __('delivery.assignments.confirming') }}' : (isCod ? '✓ {{ __('delivery.assignments.delivery_confirmed_cod') }}' : '✓ {{ __('delivery.assignments.confirm_delivery') }}')"></span>
                 </button>
             @endif
 
             {{-- Fail button (available for accepted and picked_up) --}}
             @if(in_array($assignment->status, ['accepted', 'picked_up']))
                 <button type="button" @click="showFail = true" class="btn-action btn-outline text-sm" style="min-height: 46px;">
-                    Mark as Failed
+                    {{ __('delivery.assignments.mark_as_failed') }}
                 </button>
             @endif
 
@@ -248,26 +247,26 @@
             <div x-show="showFail" x-cloak class="fixed inset-0 bg-black/70 z-50 flex items-end justify-center"
                 style="max-width: 480px; left: 50%; transform: translateX(-50%);">
                 <div class="bg-slate-800 w-full rounded-t-3xl p-6 pb-safe" @click.stop>
-                    <h3 class="text-base font-bold mb-4">Why did the delivery fail?</h3>
+                    <h3 class="text-base font-bold mb-4">{{ __('delivery.assignments.why_delivery_failed') }}</h3>
                     <select x-model="failReason"
                         class="w-full bg-slate-700 text-slate-200 rounded-xl p-3 mb-3 text-sm border border-slate-600 focus:outline-none focus:border-yellow-400">
-                        <option value="">Select a reason…</option>
-                        <option value="customer_not_home">Customer not home</option>
-                        <option value="wrong_address">Wrong address</option>
-                        <option value="customer_refused">Customer refused delivery</option>
-                        <option value="damaged_package">Package damaged</option>
-                        <option value="other">Other</option>
+                        <option value="">{{ __('delivery.assignments.select_a_reason') }}</option>
+                        <option value="customer_not_home">{{ __('delivery.assignments.customer_not_home') }}</option>
+                        <option value="wrong_address">{{ __('delivery.assignments.wrong_address') }}</option>
+                        <option value="customer_refused">{{ __('delivery.assignments.customer_refused') }}</option>
+                        <option value="damaged_package">{{ __('delivery.assignments.damaged_package') }}</option>
+                        <option value="other">{{ __('delivery.assignments.other') }}</option>
                     </select>
                     <textarea x-model="failNotes" rows="2"
                         class="w-full bg-slate-700 text-slate-200 rounded-xl p-3 mb-4 text-sm border border-slate-600 focus:outline-none focus:border-yellow-400 resize-none"
-                        placeholder="Additional notes (optional)"></textarea>
+                        placeholder="{{ __('delivery.assignments.additional_notes_optional') }}"></textarea>
                     <div class="flex gap-3">
                         <button type="button" @click="showFail = false" class="btn-action btn-outline flex-1"
-                            style="min-height:46px; font-size:14px;">Cancel</button>
+                            style="min-height:46px; font-size:14px;">{{ __('delivery.assignments.cancel') }}</button>
                         <button type="button" @click="fail()" :disabled="!failReason || loading"
                             class="btn-action btn-red flex-1" style="min-height:46px; font-size:14px;"
                             :class="{ 'opacity-50': !failReason }">
-                            <span x-text="loading ? 'Saving…' : 'Confirm'"></span>
+                            <span x-text="loading ? '{{ __('delivery.assignments.saving') }}' : '{{ __('delivery.assignments.confirm') }}'"></span>
                         </button>
                     </div>
                 </div>
@@ -286,13 +285,13 @@
         <div class="d-card text-center py-8 mb-6">
             @if($assignment->status === 'delivered')
                 <div class="text-4xl mb-2">✅</div>
-                <p class="font-semibold text-green-400">Delivered</p>
+                <p class="font-semibold text-green-400">{{ __('delivery.assignments.delivered') }}</p>
                 @if($assignment->delivered_at)
                     <p class="text-xs text-slate-400 mt-1">{{ $assignment->delivered_at->format('d M Y H:i') }}</p>
                 @endif
             @elseif($assignment->status === 'failed')
                 <div class="text-4xl mb-2">❌</div>
-                <p class="font-semibold text-red-400">Failed</p>
+                <p class="font-semibold text-red-400">{{ __('delivery.assignments.failed') }}</p>
                 @if($assignment->failure_reason)
                     <p class="text-xs text-slate-400 mt-1">{{ ucfirst(str_replace('_', ' ', $assignment->failure_reason)) }}</p>
                 @endif
@@ -354,12 +353,12 @@
                         });
                         const data = await res.json();
                         if (data.success) {
-                            this.toast('Assignment accepted!');
+                            this.toast(@json(__('delivery.assignments.assignment_accepted')));
                             setTimeout(() => location.reload(), 800);
                         } else {
-                            this.toast(data.message || 'Failed.', true);
+                            this.toast(data.message || @json(__('delivery.assignments.generic_failed')), true);
                         }
-                    } catch (e) { this.toast('Network error.', true); }
+                    } catch (e) { this.toast(@json(__('delivery.assignments.network_error')), true); }
                     finally { this.loading = false; }
                 },
 
@@ -374,12 +373,12 @@
                         });
                         const data = await res.json();
                         if (data.success) {
-                            this.toast('Marked as picked up!');
+                            this.toast(@json(__('delivery.assignments.marked_picked_up')));
                             setTimeout(() => location.reload(), 800);
                         } else {
-                            this.toast(data.message || 'Failed.', true);
+                            this.toast(data.message || @json(__('delivery.assignments.generic_failed')), true);
                         }
-                    } catch (e) { this.toast('Network error.', true); }
+                    } catch (e) { this.toast(@json(__('delivery.assignments.network_error')), true); }
                     finally { this.loading = false; }
                 },
 
@@ -393,11 +392,11 @@
                 async deliver() {
                     if (!this.otp || this.otp.length < 6) return;
                     if (this.isCod && !this.codAmountCollected) {
-                        this.toast('يرجى إدخال المبلغ المُحصَّل.', true);
+                        this.toast(@json(__('delivery.assignments.enter_collected_amount')), true);
                         return;
                     }
                     if (this.showDiscrepancyNote && !this.discrepancyNote.trim()) {
-                        this.toast('يرجى إدخال سبب الاختلاف في المبلغ.', true);
+                        this.toast(@json(__('delivery.assignments.enter_discrepancy_reason')), true);
                         return;
                     }
                     this.loading = true;
@@ -425,20 +424,20 @@
                         });
                         const data = await res.json();
                         if (data.success) {
-                            this.toast(this.isCod ? 'تم تأكيد التسليم وتحصيل النقد! 🎉' : 'Delivery confirmed! 🎉');
+                            this.toast(this.isCod ? @json(__('delivery.assignments.delivery_confirmed_cod')) : @json(__('delivery.assignments.delivery_confirmed')));
                             setTimeout(() => window.location.href = @json(route('delivery.assignments.index')), 1200);
                         } else {
                             if (data.requires_discrepancy_note) {
                                 this.toast(data.message, true);
                                 // Force show the note field
                             } else {
-                                this.toast(data.message || 'Invalid OTP.', true);
+                                this.toast(data.message || @json(__('delivery.assignments.invalid_otp')), true);
                             }
                             if (data.remaining === 0) {
                                 setTimeout(() => location.reload(), 1500);
                             }
                         }
-                    } catch (e) { this.toast('Network error.', true); }
+                    } catch (e) { this.toast(@json(__('delivery.assignments.network_error')), true); }
                     finally { this.loading = false; }
                 },
 
@@ -459,12 +458,12 @@
                         const data = await res.json();
                         if (data.success) {
                             this.showFail = false;
-                            this.toast('Marked as failed.');
+                            this.toast(@json(__('delivery.assignments.marked_failed')));
                             setTimeout(() => window.location.href = @json(route('delivery.assignments.index')), 1200);
                         } else {
-                            this.toast(data.message || 'Failed.', true);
+                            this.toast(data.message || @json(__('delivery.assignments.generic_failed')), true);
                         }
-                    } catch (e) { this.toast('Network error.', true); }
+                    } catch (e) { this.toast(@json(__('delivery.assignments.network_error')), true); }
                     finally { this.loading = false; }
                 },
             };

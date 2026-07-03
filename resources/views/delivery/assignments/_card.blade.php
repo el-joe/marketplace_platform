@@ -2,10 +2,10 @@
     /** @var \App\Models\DeliveryAssignment $assignment */
     $chipClass = 'chip-' . $assignment->status;
     $actionLabel = match ($assignment->status) {
-        'assigned' => 'Accept Assignment',
-        'accepted' => 'Mark as Picked Up',
-        'picked_up' => 'Deliver',
-        default => 'View',
+        'assigned' => __('delivery.assignments.accept'),
+        'accepted' => __('delivery.dashboard.mark_picked_up'),
+        'picked_up' => __('delivery.assignments.confirm_delivery'),
+        default => __('delivery.dashboard.view'),
     };
 @endphp
 <a href="{{ route('delivery.assignments.show', $assignment->id) }}"
@@ -16,7 +16,7 @@
                 #{{ $assignment->subOrder?->sub_order_number ?? substr($assignment->id, 0, 8) }}
             </p>
             <p class="text-xs text-slate-400 mt-0.5">
-                {{ $assignment->subOrder?->items?->count() ?? '?' }} items
+                {{ $assignment->subOrder?->items?->count() ?? '?' }} {{ __('delivery.assignments.items') }}
                 @if($assignment->assigned_at)
                     · {{ $assignment->assigned_at->format('H:i') }}
                 @endif

@@ -263,11 +263,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                         </svg>
                         <span>
-                            لديك مبلغ نقدي مستحق للتسليم:
-                            <strong class="font-bold">
-                                {{ number_format($pendingCodSettlement->net_to_remit_cents / 100, 2) }} ر.س
-                            </strong>
-                            — يرجى التواصل مع المشرف لتسوية الحساب.
+                            {{ __('delivery.cod.settlement_due', ['amount' => number_format($pendingCodSettlement->net_to_remit_cents / 100, 2) . ' ر.س']) }}
                         </span>
                     </a>
                 </div>
@@ -307,7 +303,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><polyline stroke-linecap="round" stroke-linejoin="round" points="9 22 9 12 15 12 15 22"/>
                         </svg>
-                        Home
+                        {{ __('delivery.nav.home') }}
                     </a>
 
                     <a href="{{ route('delivery.assignments.index') }}"
@@ -315,7 +311,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
                         </svg>
-                        Orders
+                        {{ __('delivery.nav.my_deliveries') }}
                     </a>
 
                     <a href="{{ route('delivery.dashboard') }}#map"
@@ -323,7 +319,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 9m0 8V9m0 0L9 7"/>
                         </svg>
-                        Map
+                        {{ __('delivery.nav.map') }}
                     </a>
 
                     <a href="{{ route('delivery.earnings.index') }}"
@@ -331,7 +327,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        Earnings
+                        {{ __('delivery.nav.earnings') }}
                     </a>
 
                     <a href="{{ route('delivery.cod-settlements.index') }}"
@@ -339,7 +335,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
-                        COD
+                        {{ __('delivery.nav.cod_payments') }}
                     </a>
 
                     <a href="{{ route('delivery.profile.index') }}"
@@ -347,7 +343,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Profile
+                        {{ __('delivery.nav.profile') }}
                     </a>
                 </div>
             </nav>

@@ -1,11 +1,11 @@
 @extends('layouts.delivery')
 
-@section('title', 'Home')
+@section('title', __('delivery.dashboard.title'))
 
 @section('header-right')
     <form method="POST" action="{{ route('delivery.logout') }}">
         @csrf
-        <button type="submit" class="text-slate-400 text-sm">Logout</button>
+        <button type="submit" class="text-slate-400 text-sm">{{ __('delivery.nav.logout') }}</button>
     </form>
 @endsection
 
@@ -45,8 +45,8 @@
      }">
     <div class="flex items-center justify-between">
         <div>
-            <p class="text-base font-bold" x-text="isAvailable ? '🟢 You\'re Online' : '⚫ You\'re Offline'"></p>
-            <p class="text-xs text-slate-400 mt-0.5" x-text="isAvailable ? 'Ready to receive assignments' : 'Not receiving assignments'"></p>
+            <p class="text-base font-bold" x-text="isAvailable ? '🟢 {{ __('delivery.dashboard.online') }}' : '⚫ {{ __('delivery.dashboard.offline') }}'"></p>
+            <p class="text-xs text-slate-400 mt-0.5" x-text="isAvailable ? '{{ __('delivery.dashboard.ready_for_assignments') }}' : '{{ __('delivery.dashboard.not_receiving_assignments') }}'"></p>
         </div>
         <button type="button" @click="toggle()" :disabled="loading"
             class="relative focus:outline-none" style="width:64px; height:34px;">
@@ -60,9 +60,9 @@
 {{-- ── Today Stats ─────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-3 gap-3 mb-4">
     @foreach([
-        ['label' => 'Total',     'value' => $todayAssignments->total     ?? 0, 'color' => 'text-slate-300'],
-        ['label' => 'Completed', 'value' => $todayAssignments->completed ?? 0, 'color' => 'text-green-400'],
-        ['label' => 'Earnings',  'value' => number_format(($earningsToday ?? 0) / 100, 2), 'color' => 'text-yellow-400'],
+        ['label' => __('delivery.dashboard.total'),     'value' => $todayAssignments->total     ?? 0, 'color' => 'text-slate-300'],
+        ['label' => __('delivery.dashboard.completed'), 'value' => $todayAssignments->completed ?? 0, 'color' => 'text-green-400'],
+        ['label' => __('delivery.earnings.title'),  'value' => number_format(($earningsToday ?? 0) / 100, 2), 'color' => 'text-yellow-400'],
     ] as $s)
         <div class="d-card text-center">
             <p class="text-xl font-bold {{ $s['color'] }}">{{ $s['value'] }}</p>
@@ -74,16 +74,16 @@
 {{-- ── Pending Assignments ──────────────────────────────────────────────────── --}}
 @if($pendingAssignments->isNotEmpty())
     <div class="mb-5">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Pending Actions</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{{ __('delivery.dashboard.pending_actions') }}</h2>
         <div class="space-y-3">
             @foreach($pendingAssignments as $a)
                 @php
                     $chipClass = 'chip-' . $a->status;
                     $actionLabel = match($a->status) {
-                        'assigned'  => 'Accept',
-                        'accepted'  => 'Mark Picked Up',
-                        'picked_up' => 'Deliver',
-                        default     => 'View',
+                        'assigned'  => __('delivery.assignments.accept'),
+                        'accepted'  => __('delivery.dashboard.mark_picked_up'),
+                        'picked_up' => __('delivery.assignments.confirm_delivery'),
+                        default     => __('delivery.dashboard.view'),
                     };
                     $actionColor = match($a->status) {
                         'picked_up' => 'btn-yellow',
@@ -114,8 +114,8 @@
 @else
     <div class="d-card text-center py-10 mb-4">
         <div class="text-4xl mb-3">📦</div>
-        <p class="font-semibold text-slate-300">No pending assignments</p>
-        <p class="text-sm text-slate-500 mt-1">Check back soon!</p>
+        <p class="font-semibold text-slate-300">{{ __('delivery.dashboard.no_pending_assignments') }}</p>
+        <p class="text-sm text-slate-500 mt-1">{{ __('delivery.dashboard.check_back_soon') }}</p>
     </div>
 @endif
 
@@ -124,14 +124,14 @@
     <a href="{{ route('delivery.assignments.index') }}"
        class="d-card text-center py-5 hover:bg-slate-700/60 transition-colors">
         <div class="text-2xl mb-1">📦</div>
-        <p class="text-sm font-semibold">All Orders</p>
-        <p class="text-xs text-slate-400 mt-0.5">Today's list</p>
+        <p class="text-sm font-semibold">{{ __('delivery.dashboard.all_orders') }}</p>
+        <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.dashboard.todays_list') }}</p>
     </a>
     <a href="{{ route('delivery.earnings.index') }}"
        class="d-card text-center py-5 hover:bg-slate-700/60 transition-colors">
         <div class="text-2xl mb-1">💰</div>
-        <p class="text-sm font-semibold">My Earnings</p>
-        <p class="text-xs text-slate-400 mt-0.5">Payouts &amp; history</p>
+        <p class="text-sm font-semibold">{{ __('delivery.dashboard.my_earnings') }}</p>
+        <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.dashboard.payouts_and_history') }}</p>
     </a>
 </div>
 

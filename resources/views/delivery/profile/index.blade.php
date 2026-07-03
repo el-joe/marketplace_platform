@@ -1,6 +1,6 @@
 @extends('layouts.delivery')
 
-@section('title', 'My Profile')
+@section('title', __('delivery.profile.title'))
 
 @section('content')
 
@@ -36,18 +36,18 @@
     <div class="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-slate-700">
         <div class="text-center">
             <p class="text-xl font-bold text-yellow-400">{{ number_format($agent->rating_avg, 1) }}</p>
-            <p class="text-xs text-slate-400">Rating</p>
+            <p class="text-xs text-slate-400">{{ __('delivery.profile.rating') }}</p>
         </div>
         <div class="w-px h-10 bg-slate-700"></div>
         <div class="text-center">
             <p class="text-xl font-bold text-white">{{ number_format($agent->total_deliveries) }}</p>
-            <p class="text-xs text-slate-400">Deliveries</p>
+            <p class="text-xs text-slate-400">{{ __('delivery.profile.deliveries') }}</p>
         </div>
         @if($agent->zone)
             <div class="w-px h-10 bg-slate-700"></div>
             <div class="text-center">
                 <p class="text-base font-bold text-white truncate max-w-[80px]">{{ $agent->zone->name }}</p>
-                <p class="text-xs text-slate-400">Zone</p>
+                <p class="text-xs text-slate-400">{{ __('delivery.profile.zone') }}</p>
             </div>
         @endif
     </div>
@@ -55,12 +55,12 @@
 
 {{-- ── Vehicle Info ─────────────────────────────────────────────────────────── --}}
 <div class="d-card mb-4">
-    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Vehicle Info</h3>
+    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{{ __('delivery.profile.vehicle_info') }}</h3>
     <div class="space-y-3">
         @foreach([
-            'Type'         => ucfirst($agent->vehicle_type),
-            'Plate'        => $agent->vehicle_plate ?? '—',
-            'National ID'  => $agent->national_id ? '••••' . substr($agent->national_id, -4) : '—',
+            __('delivery.profile.type')        => ucfirst($agent->vehicle_type),
+            __('delivery.profile.plate')       => $agent->vehicle_plate ?? '—',
+            __('delivery.profile.national_id') => $agent->national_id ? '••••' . substr($agent->national_id, -4) : '—',
         ] as $label => $value)
             <div class="flex justify-between text-sm">
                 <span class="text-slate-400">{{ $label }}</span>
@@ -73,7 +73,7 @@
 {{-- ── Emergency Contact ────────────────────────────────────────────────────── --}}
 @if($agent->emergency_contact_name || $agent->emergency_contact_phone)
     <div class="d-card mb-4">
-        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Emergency Contact</h3>
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{{ __('delivery.profile.emergency_contact') }}</h3>
         <div class="flex items-center justify-between">
             <div>
                 <p class="font-medium text-slate-200">{{ $agent->emergency_contact_name ?? '—' }}</p>
@@ -81,7 +81,7 @@
             </div>
             @if($agent->emergency_contact_phone)
                 <a href="tel:{{ $agent->emergency_contact_phone }}"
-                   class="bg-green-600 text-white rounded-xl px-4 py-2 text-sm font-semibold">Call</a>
+                   class="bg-green-600 text-white rounded-xl px-4 py-2 text-sm font-semibold">{{ __('delivery.profile.call') }}</a>
             @endif
         </div>
     </div>
@@ -89,7 +89,7 @@
 
 {{-- ── Documents ────────────────────────────────────────────────────────────── --}}
 <div class="d-card mb-4">
-    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Documents</h3>
+    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{{ __('delivery.profile.documents') }}</h3>
     @forelse($agent->documents as $doc)
         <div class="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
             <p class="text-sm font-medium text-slate-200">{{ $doc->label }}</p>
@@ -98,7 +98,7 @@
             </span>
         </div>
     @empty
-        <p class="text-sm text-slate-500">No documents on file.</p>
+        <p class="text-sm text-slate-500">{{ __('delivery.profile.no_documents_on_file') }}</p>
     @endforelse
 </div>
 
@@ -106,7 +106,7 @@
 <div class="d-card mb-8" x-data="{ open: false }">
     <button type="button" @click="open = !open"
             class="w-full flex items-center justify-between text-sm font-semibold text-slate-200">
-        <span>Change Password</span>
+        <span>{{ __('delivery.profile.change_password') }}</span>
         <svg class="w-4 h-4 text-slate-400 transition-transform" :class="{ 'rotate-180': open }"
              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -117,7 +117,7 @@
         <form method="POST" action="{{ route('delivery.profile.password') }}" class="space-y-3">
             @csrf
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Current Password</label>
+                <label class="block text-xs text-slate-400 mb-1">{{ __('delivery.profile.current_password') }}</label>
                 <input type="password" name="current_password"
                     class="w-full bg-slate-700 text-slate-200 rounded-xl p-3 text-sm border border-slate-600 focus:border-yellow-400 focus:outline-none"
                     required>
@@ -126,19 +126,19 @@
                 @enderror
             </div>
             <div>
-                <label class="block text-xs text-slate-400 mb-1">New Password</label>
+                <label class="block text-xs text-slate-400 mb-1">{{ __('delivery.profile.new_password') }}</label>
                 <input type="password" name="password"
                     class="w-full bg-slate-700 text-slate-200 rounded-xl p-3 text-sm border border-slate-600 focus:border-yellow-400 focus:outline-none"
                     required minlength="8">
             </div>
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Confirm New Password</label>
+                <label class="block text-xs text-slate-400 mb-1">{{ __('delivery.profile.confirm_new_password') }}</label>
                 <input type="password" name="password_confirmation"
                     class="w-full bg-slate-700 text-slate-200 rounded-xl p-3 text-sm border border-slate-600 focus:border-yellow-400 focus:outline-none"
                     required minlength="8">
             </div>
             <button type="submit" class="btn-action btn-yellow text-sm" style="min-height:48px;">
-                Update Password
+                {{ __('delivery.profile.update_password') }}
             </button>
         </form>
     </div>
@@ -148,7 +148,7 @@
 <form method="POST" action="{{ route('delivery.logout') }}" class="mb-8">
     @csrf
     <button type="submit" class="btn-action btn-outline text-sm text-red-400" style="min-height:48px; border-color: #7f1d1d;">
-        Sign Out
+        {{ __('delivery.profile.sign_out') }}
     </button>
 </form>
 

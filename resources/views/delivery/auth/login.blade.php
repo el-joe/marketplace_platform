@@ -6,7 +6,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0f172a">
-    <title>Sign In | Noon Delivery</title>
+    <title>{{ __('delivery.auth.sign_in_title') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet">
@@ -95,7 +95,7 @@
                 <span class="text-yellow-400 font-extrabold text-4xl tracking-tight">noon</span>
                 <span class="text-slate-400 text-lg font-semibold">delivery</span>
             </div>
-            <p class="text-slate-400 text-sm mt-1">Sign in to your delivery account</p>
+            <p class="text-slate-400 text-sm mt-1">{{ __('delivery.auth.sign_in_subtitle') }}</p>
         </div>
 
         {{-- Error --}}
@@ -108,14 +108,13 @@
             @csrf
 
             <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Phone
-                    Number</label>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{{ __('delivery.auth.phone_number') }}</label>
                 <input type="tel" name="phone" value="{{ old('phone') }}" class="form-field"
                     placeholder="+20 XXX XXX XXXX" autocomplete="username" autofocus required>
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{{ __('delivery.auth.password') }}</label>
                 <input type="password" name="password" class="form-field" placeholder="••••••••"
                     autocomplete="current-password" required>
             </div>
@@ -123,17 +122,17 @@
             <div class="flex items-center gap-3 pt-1">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" name="remember" value="1" class="w-4 h-4 rounded accent-yellow-400">
-                    <span class="text-slate-400 text-sm">Keep me signed in</span>
+                    <span class="text-slate-400 text-sm">{{ __('delivery.auth.keep_signed_in') }}</span>
                 </label>
             </div>
 
             <div class="pt-2">
-                <button type="submit" class="btn-login">Sign In</button>
+                <button type="submit" class="btn-login">{{ __('delivery.auth.sign_in') }}</button>
             </div>
         </form>
 
         <p class="text-center text-slate-500 text-xs mt-8">
-            Having trouble? Contact your dispatcher.
+            {{ __('delivery.auth.trouble_contact_dispatcher') }}
         </p>
 
     </div>

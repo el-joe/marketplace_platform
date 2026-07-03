@@ -1,6 +1,6 @@
 @extends('layouts.delivery')
 
-@section('title', 'مدفوعاتي النقدية')
+@section('title', __('delivery.cod.my_cod_payments'))
 
 @section('content')
 
@@ -9,9 +9,9 @@
     $currency = 'SAR';
 
     $statusChipMap = [
-        'pending'  => ['class' => 'chip-cod-pending',  'label' => 'معلّق'],
-        'settled'  => ['class' => 'chip-cod-settled',  'label' => 'مسوَّى'],
-        'disputed' => ['class' => 'chip-cod-disputed', 'label' => 'متنازع عليه'],
+        'pending'  => ['class' => 'chip-cod-pending',  'label' => __('delivery.cod.status_pending')],
+        'settled'  => ['class' => 'chip-cod-settled',  'label' => __('delivery.cod.status_settled')],
+        'disputed' => ['class' => 'chip-cod-disputed', 'label' => __('delivery.cod.status_disputed')],
     ];
 
     function codCents(int $cents, string $currency = 'SAR'): string {
@@ -37,38 +37,38 @@
     <div class="flex items-center gap-3 mb-1">
         <div class="text-2xl">💵</div>
         <div>
-            <h1 class="text-lg font-bold">مدفوعاتي النقدية</h1>
-            <p class="text-xs text-slate-400 mt-0.5">تسويات الدفع النقدي عند التسليم (COD)</p>
+            <h1 class="text-lg font-bold">{{ __('delivery.cod.my_cod_payments') }}</h1>
+            <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.cod.settlements_subtitle') }}</p>
         </div>
     </div>
 
     {{-- ── Current Period Summary ───────────────────────────────────────────── --}}
     <div class="d-card space-y-3">
         <div class="flex items-center justify-between">
-            <p class="text-sm font-bold text-slate-300">الفترة الحالية (اليوم)</p>
-            <span class="chip chip-cod-pending text-xs">معلّق</span>
+            <p class="text-sm font-bold text-slate-300">{{ __('delivery.cod.current_period_today') }}</p>
+            <span class="chip chip-cod-pending text-xs">{{ __('delivery.cod.status_pending') }}</span>
         </div>
 
         <div class="grid grid-cols-3 gap-2 text-center">
             <div class="bg-slate-800 rounded-xl p-3">
                 <p class="text-base font-bold text-slate-100">{{ codCents($currentCodTotal, $currency) }}</p>
-                <p class="text-xs text-slate-400 mt-0.5">إجمالي النقد</p>
+                <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.cod.total_collected') }}</p>
             </div>
             <div class="bg-slate-800 rounded-xl p-3">
                 <p class="text-base font-bold text-green-400">{{ codCents($currentEarningsTotal, $currency) }}</p>
-                <p class="text-xs text-slate-400 mt-0.5">عمولتي</p>
+                <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.cod.earned_fees') }}</p>
             </div>
             <div class="bg-slate-800 rounded-xl p-3">
                 <p class="text-base font-bold {{ $currentNetOwed > 0 ? 'text-yellow-400' : 'text-slate-400' }}">
                     {{ codCents($currentNetOwed, $currency) }}
                 </p>
-                <p class="text-xs text-slate-400 mt-0.5">صافي المستحق</p>
+                <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.cod.net_owed') }}</p>
             </div>
         </div>
 
         @if($currentPeriodAssignments->isNotEmpty())
             <div class="border-t border-slate-700 pt-3">
-                <p class="text-xs font-semibold text-slate-400 mb-2">التوصيلات اليوم</p>
+                <p class="text-xs font-semibold text-slate-400 mb-2">{{ __('delivery.cod.deliveries_today') }}</p>
                 <div class="space-y-2">
                     @foreach($currentPeriodAssignments as $a)
                         <div class="flex items-center justify-between text-sm bg-slate-800 rounded-lg px-3 py-2">
@@ -82,13 +82,13 @@
                 </div>
             </div>
         @else
-            <p class="text-center text-xs text-slate-500 py-2">لا توجد توصيلات نقدية اليوم</p>
+            <p class="text-center text-xs text-slate-500 py-2">{{ __('delivery.cod.no_cod_deliveries_today') }}</p>
         @endif
     </div>
 
     {{-- ── Settlements History ──────────────────────────────────────────────── --}}
     <div>
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">سجل التسويات</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{{ __('delivery.cod.settlements_history') }}</h2>
 
         @forelse($settlements as $settlement)
             @php
@@ -114,17 +114,17 @@
                         <div class="grid grid-cols-3 gap-2 text-center mt-3">
                             <div>
                                 <p class="text-sm font-bold text-slate-100">{{ codCents($settlement->total_cod_collected_cents, $currency) }}</p>
-                                <p class="text-xs text-slate-500">النقد</p>
+                                <p class="text-xs text-slate-500">{{ __('delivery.cod.total_collected') }}</p>
                             </div>
                             <div>
                                 <p class="text-sm font-bold text-green-400">{{ codCents($settlement->total_earnings_owed_cents, $currency) }}</p>
-                                <p class="text-xs text-slate-500">عمولتي</p>
+                                <p class="text-xs text-slate-500">{{ __('delivery.cod.earned_fees') }}</p>
                             </div>
                             <div>
                                 <p class="text-sm font-bold {{ $settlement->net_to_remit_cents > 0 ? 'text-yellow-400' : 'text-slate-400' }}">
                                     {{ codCents($settlement->net_to_remit_cents, $currency) }}
                                 </p>
-                                <p class="text-xs text-slate-500">المستحق</p>
+                                <p class="text-xs text-slate-500">{{ __('delivery.cod.net_owed') }}</p>
                             </div>
                         </div>
                     </div>
@@ -138,7 +138,7 @@
 
                 {{-- Delivery breakdown --}}
                 <div x-show="open" x-collapse class="border-t border-slate-700 mt-3 pt-3 space-y-2">
-                    <p class="text-xs font-semibold text-slate-400 mb-2">التوصيلات المشمولة</p>
+                    <p class="text-xs font-semibold text-slate-400 mb-2">{{ __('delivery.cod.settlements_included') }}</p>
 
                     @forelse($settlement->assignments as $a)
                         <div class="flex items-center justify-between text-sm bg-slate-800 rounded-lg px-3 py-2">
@@ -153,14 +153,14 @@
                             </p>
                         </div>
                     @empty
-                        <p class="text-xs text-slate-500 text-center py-2">لا توجد توصيلات مرتبطة</p>
+                        <p class="text-xs text-slate-500 text-center py-2">{{ __('delivery.cod.no_linked_deliveries') }}</p>
                     @endforelse
 
                     @if($settlement->status === 'pending' && $settlement->net_to_remit_cents > 0)
                         <div class="mt-3 p-3 rounded-xl bg-yellow-900/30 border border-yellow-700/40 text-yellow-300 text-xs leading-relaxed">
-                            يرجى تسليم مبلغ
+                            {{ __('delivery.cod.please_remit') }}
                             <span class="font-bold">{{ codCents($settlement->net_to_remit_cents, $currency) }}</span>
-                            إلى المشرف لإتمام التسوية.
+                            {{ __('delivery.cod.to_supervisor') }}
                         </div>
                     @endif
                 </div>
@@ -169,8 +169,8 @@
         @empty
             <div class="d-card text-center py-10">
                 <div class="text-4xl mb-3">📋</div>
-                <p class="font-semibold text-slate-300">لا توجد تسويات بعد</p>
-                <p class="text-sm text-slate-500 mt-1">ستظهر تسوياتك النقدية هنا</p>
+                <p class="font-semibold text-slate-300">{{ __('delivery.cod.no_settlements_yet') }}</p>
+                <p class="text-sm text-slate-500 mt-1">{{ __('delivery.cod.settlements_will_appear_here') }}</p>
             </div>
         @endforelse
 
