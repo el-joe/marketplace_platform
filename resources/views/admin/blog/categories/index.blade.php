@@ -39,12 +39,13 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="w-8 px-3 py-3"></th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.blog.name') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.blog.slug') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.blog.parent') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.blog.color') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.blog.posts') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.blog.data_table.name') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.blog.data_table.slug') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.blog.data_table.parent') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.blog.data_table.color') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.blog.data_table.posts') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.blog.data_table.active') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.blog.data_table.actions') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -59,7 +60,7 @@
                             <span class="block text-xs text-gray-400" dir="rtl">{{ $root->name_ar }}</span>
                         </td>
                         <td class="px-4 py-3 text-xs text-gray-400 font-mono">{{ $root->slug }}</td>
-                        <td class="px-4 py-3 text-xs text-gray-400">{{ __('admin.blog.top_level') }}</td>
+                        <td class="px-4 py-3 text-xs text-gray-400">{{ $root->parent ? $root->parent->name_en : __('admin.blog.data_table.top_level') }}</td>
                         <td class="px-4 py-3 text-center">
                             @if($root->color_hex)
                                 <span class="inline-block w-5 h-5 rounded-full border border-gray-200" style="background:{{ $root->color_hex }}" title="{{ $root->color_hex }}"></span>
@@ -147,12 +148,12 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.name_en') }} <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.name_en') }} <span class="text-red-500">*</span></label>
                 <input type="text" name="name_en" id="f-name-en" required maxlength="150"
                        class="form-input w-full text-sm" placeholder="Travel Tips">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.name_ar') }} <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.name_ar') }} <span class="text-red-500">*</span></label>
                 <input type="text" name="name_ar" id="f-name-ar" required maxlength="150" dir="rtl"
                        class="form-input w-full text-sm" placeholder="نصائح السفر">
             </div>
@@ -160,14 +161,14 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.slug') }}</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.slug') }}</label>
                 <input type="text" name="slug" id="f-slug" maxlength="150"
-                       class="form-input w-full text-sm font-mono" placeholder="auto-generated">
+                       class="form-input w-full text-sm font-mono" placeholder="{{ __('admin.blog.modal.auto_generated') }}">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.parent') }}</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.parent_category') }}</label>
                 <select name="parent_id" id="f-parent-id" class="form-input w-full text-sm">
-                    <option value="">{{ __('admin.blog.top_level') }}</option>
+                    <option value="">{{ __('admin.blog.data_table.top_level') }}</option>
                     @foreach($roots as $root)
                         <option value="{{ $root->id }}">{{ $root->name_en }}</option>
                     @endforeach
@@ -177,7 +178,7 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.color') }}</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.color') }}</label>
                 <div class="flex items-center gap-2">
                     <input type="color" id="f-color-picker" class="h-9 w-12 rounded border border-gray-300 cursor-pointer p-0.5">
                     <input type="text" name="color_hex" id="f-color-hex" maxlength="7"
@@ -185,7 +186,7 @@
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.icon_name') }}</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.icon_name') }}</label>
                 <input type="text" name="icon_name" id="f-icon-name" maxlength="50"
                        class="form-input w-full text-sm" placeholder="e.g. globe-alt">
             </div>
@@ -193,12 +194,12 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.description') }} (EN)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.description_en') }}</label>
                 <textarea name="description_en" id="f-desc-en" rows="3"
                           class="form-input w-full text-sm" placeholder="Category description…"></textarea>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.description') }} (AR)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.description_ar') }}</label>
                 <textarea name="description_ar" id="f-desc-ar" rows="3" dir="rtl"
                           class="form-input w-full text-sm" placeholder="وصف الفئة…"></textarea>
             </div>
@@ -228,13 +229,13 @@
 
         <div class="flex items-center gap-6">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.sort_order') }}</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.sort_order') }}</label>
                 <input type="number" name="sort_order" id="f-sort-order" value="0" min="0"
                        class="form-input w-28 text-sm">
             </div>
             <label class="flex items-center gap-2 cursor-pointer select-none mt-4">
                 <input type="checkbox" name="is_active" id="f-is-active" value="1" class="rounded text-primary-600" checked>
-                <span class="text-sm text-gray-700">{{ __('common.active') }}</span>
+                <span class="text-sm text-gray-700">{{ __('admin.blog.modal.active') }}</span>
             </label>
         </div>
 
@@ -242,19 +243,19 @@
     </form>
 
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
-        <button type="button" id="btn-save-category" class="btn btn-primary">{{ __('common.save') }} {{ __('admin.blog.category_label') }}</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('admin.blog.modal.cancel') }}</button>
+        <button type="button" id="btn-save-category" class="btn btn-primary">{{ __('admin.blog.modal.save') }} {{ __('admin.blog.modal.category_label') }}</button>
     </x-slot:footer>
 </x-modal>
 
 {{-- Delete confirmation modal --}}
-<x-modal id="delete-modal" title="{{ __('admin.blog.delete_category') }}" size="sm">
-    <p class="text-sm text-gray-700">{!! __('admin.blog.delete_category_confirm', ['name' => '<strong id="delete-cat-name"></strong>']) !!}</p>
+<x-modal id="delete-modal" title="{{ __('admin.blog.delete_modal.delete_category') }}" size="sm">
+    <p class="text-sm text-gray-700">{!! __('admin.blog.delete_modal.message', ['name' => '<strong id="delete-cat-name"></strong>']) !!}</p>
     <input type="hidden" id="delete-cat-id">
     <div id="delete-error" class="hidden mt-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"></div>
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
-        <button type="button" id="btn-confirm-delete" class="btn btn-danger">{{ __('common.delete') }}</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('admin.blog.delete_modal.cancel') }}</button>
+        <button type="button" id="btn-confirm-delete" class="btn btn-danger">{{ __('admin.blog.delete_modal.delete') }}</button>
     </x-slot:footer>
 </x-modal>
 
