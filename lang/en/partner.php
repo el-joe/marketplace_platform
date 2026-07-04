@@ -597,9 +597,18 @@ return [
     ],
 
     'finance' => [
+        'title' => 'Finance',
         'total_sales' => 'Total sales',
+        'total_sales_desc' => 'all completed orders',
         'total_refunds' => 'Total refunds',
+        'total_refunds_desc' => 'all completed refunds',
         'total_paid_out' => 'Total paid out',
+        'total_paid_out_desc' => 'all completed payouts',
+        'transaction_log' => 'Transaction Log',
+        'date_range' => 'Date Range',
+        'transaction_count' => 'Transaction Count',
+        'no_transactions_found' => 'No transactions found',
+        'try_adjusting_filters' => 'Try adjusting filters to view transactions',
         'vendor_payout' => 'Vendor Payout',
         'platform_commission' => 'Platform Commission',
         'gateway_fee_deducted' => 'Gateway Fee Deducted',
