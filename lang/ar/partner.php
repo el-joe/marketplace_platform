@@ -79,6 +79,9 @@ return [
         'mark_out_for_delivery' => 'تحديث: في التوصيل',
         'confirm_delivery' => 'تأكيد التسليم',
         'tracking_number' => 'رقم التتبع',
+        'order_number' => 'رقم الطلب',
+        'items' => 'العناصر',
+        'ship_by' => 'شحن بواسطة',
         'carrier' => 'شركة الشحن',
         'shipping_method_pending' => 'طريقة الشحن قيد التعيين من الإدارة',
         'order_items' => 'عناصر الطلب',
@@ -118,6 +121,18 @@ return [
         'reason_pricing_error' => 'خطأ في السعر',
         'reason_other' => 'سبب آخر',
         'page_title' => 'الطلبات',
+        'sla_urgent' => 'SLA عاجل',
+        'status' => [
+            'placed' => 'تم لبتقديم',
+            'confirmed' => 'مؤكد',
+            'processing' => 'جار التجهيز',
+            'packed' => 'مُحَبَّأ',
+            'shipped' => 'تم الشحن',
+            'out_for_delivery' => 'قيد التوصيل',
+            'delivered' => 'تم التسليم',
+            'cancelled' => 'ملغي',
+            'completed' => 'مكتمل',
+        ],
     ],
 
     'listings' => [

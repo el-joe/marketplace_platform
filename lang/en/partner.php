@@ -86,6 +86,9 @@ return [
     'orders' => [
         'title' => 'Orders',
         'sub_order_number' => 'Sub-order Number',
+        'order_number' => 'Order Number',
+        'items' => 'Items',
+        'ship_by' => 'Ship By',
         'ship_order' => 'Ship Order',
         'cancel_order' => 'Cancel Order',
         'mark_out_for_delivery' => 'Mark Out for Delivery',
@@ -130,6 +133,18 @@ return [
         'reason_pricing_error' => 'Pricing Error',
         'reason_other' => 'Other Reason',
         'page_title' => 'Orders',
+        'sla_urgent' => 'SLA Urgent',
+        'status' => [
+            'placed' => 'Placed',
+            'confirmed' => 'Confirmed',
+            'processing' => 'Processing',
+            'packed' => 'Packed',
+            'shipped' => 'Shipped',
+            'out_for_delivery' => 'Out for Delivery',
+            'delivered' => 'Delivered',
+            'cancelled' => 'Cancelled',
+            'completed' => 'Completed',
+        ],
     ],
 
     'listings' => [
