@@ -13,17 +13,19 @@ class HomeController extends Controller
 {
     public function __construct(
         private readonly HomeService $home,
-    ) {}
+    ) {
+    }
 
-    public function index(Request $request, Country $country, PageBuilderService $pageBuilder): JsonResponse
+    public function index(Request $request, $country, PageBuilderService $pageBuilder): JsonResponse
     {
-        $sessionId = $request->header('X-Session-Id') ?? $request->cookie('session_id') ?? session()->getId();
-        $customer  = $request->user('customer');
+        $country = $request->attributes->get('country');
+
+        $customer = $request->user('customer');
 
         $deviceTarget = $pageBuilder->detectDevice($request);
-        $audience     = auth('customer')->check() ? 'authenticated' : 'guest';
+        $audience = auth('customer')->check() ? 'authenticated' : 'guest';
 
-        $data = $this->home->getHomeData($country, $customer, (string) $sessionId, $deviceTarget, $audience);
+        $data = $this->home->getHomeData($country, $customer, $deviceTarget, $audience);
 
         return response()->json(['success' => true, 'data' => $data]);
     }

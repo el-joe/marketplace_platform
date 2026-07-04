@@ -12,7 +12,6 @@ class DetectCountry
     public function handle(Request $request, Closure $next): Response
     {
         $siteCode = $request->route('country');
-
         $country = Country::where('site_code', $siteCode)->where('is_active', true)->first();
 
         if (!$country) {
