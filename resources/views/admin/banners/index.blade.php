@@ -97,25 +97,25 @@
             <table id="banners-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr class="border-b border-gray-100 text-start">
-                        <th class="py-2 pr-3 w-16 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.image') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners_section.data_table.name') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.placement') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.country') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.status') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.device') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.audience') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.date_range') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.impr') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.clicks') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.ctr') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.priority') }}</th>
-                        <th class="py-2 text-xs font-medium text-gray-500 uppercase text-end">{{ __('admin.banners.actions') }}</th>
+                        <th class="py-2 pr-3 w-16 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.image') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.name') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.placement') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.country') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.status') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.device') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.audience') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.dates') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.impr') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.clicks') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.ctr') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.data_table.priority') }}</th>
+                        <th class="py-2 text-xs font-medium text-gray-500 uppercase text-end">{{ __('admin.banners.data_table.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
-    </x-card>
+    </x-card>`
 
     {{-- ─── Delete Confirm Modal ────────────────────────────────────────────────── --}}
     <x-modal id="delete-modal" title="{{ __('admin.banners.delete_banner_title') }}" size="sm">

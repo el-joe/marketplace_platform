@@ -61,7 +61,7 @@
             <table id="slots-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr class="border-b border-gray-100 text-start">
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_slots.name') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_slots.data_table.name') }}</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_slots.placement') }}</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_slots.country') }}</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_slots.pricing') }}</th>
