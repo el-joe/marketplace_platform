@@ -250,8 +250,10 @@ let wizAttachmentFiles = [];
 let wizAttributes    = {};
 let wizContractLoaded = false;
 
-const STEP_LABELS_FULL        = ['الفئة', 'الأساسيات', 'الموقع والخصائص', 'الصور والمرفقات', 'العقد', 'مراجعة'];
-const STEP_LABELS_NO_CONTRACT = ['الفئة', 'الأساسيات', 'الموقع والخصائص', 'الصور والمرفقات', 'مراجعة'];
+// Step labels are injected by the Blade view via CLASSIFIEDS_CFG so they
+// respect the active locale (AR/RTL or EN/LTR) automatically.
+const STEP_LABELS_FULL        = cfg().stepLabelsFull        || ['Category', 'Basics', 'Location & Attributes', 'Images & Attachments', 'Contract', 'Review'];
+const STEP_LABELS_NO_CONTRACT = cfg().stepLabelsNoContract  || ['Category', 'Basics', 'Location & Attributes', 'Images & Attachments', 'Review'];
 
 function wizHasContract()      { return !!wizSelectedCategory?.contract_template_id; }
 function wizNeedsLocation()    { return !!wizSelectedCategory?.requires_location_map; }

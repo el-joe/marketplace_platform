@@ -6,9 +6,11 @@
     @vite('resources/js/partner/classifieds.js')
     <script>
         window.CLASSIFIEDS_CFG = {
-            datatableUrl:  "{{ route('partner.classifieds.datatable') }}",
-            categoriesUrl: "{{ route('partner.classifieds.categories') }}",
-            storeUrl:      "{{ route('partner.classifieds.store') }}",
+            datatableUrl:       "{{ route('partner.classifieds.datatable') }}",
+            categoriesUrl:      "{{ route('partner.classifieds.categories') }}",
+            storeUrl:           "{{ route('partner.classifieds.store') }}",
+            stepLabelsFull:     @json(__('partner.classifieds_extra.wizard.step_labels_full')),
+            stepLabelsNoContract: @json(__('partner.classifieds_extra.wizard.step_labels_no_contract')),
         };
     </script>
 @endpush
