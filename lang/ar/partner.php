@@ -98,6 +98,7 @@ return [
         'order_updated' => 'تم تحديث الطلب بنجاح',
         'order_shipped' => 'تم شحن الطلب بنجاح',
         'order_cancelled' => 'تم إلغاء الطلب بنجاح',
+        'page_title' => 'الطلبات',
     ],
 
     'listings' => [
@@ -192,6 +193,18 @@ return [
                 'reservation_release' => '🔓 إلغاء حجز',
             ],
         ],
+    ],
+
+    'auth' => [
+        'sellers' => 'للبائعين',
+        'email' => 'البريد الإلكتروني',
+        'password' => 'كلمة المرور',
+        'forgot_password_link' => 'نسيت كلمة المرور؟',
+        'remember_me' => 'تذكرني',
+        'no_account' => 'ليس لديك حساب؟',
+        'register_now' => 'سجّل الآن',
+        'sign_in_title' => 'تسجيل الدخول كبائع',
+        'access_store_dashboard' => 'الوصول إلى لوحة تحكم البائع',
     ],
 
     'ads' => [
