@@ -1505,6 +1505,8 @@ return [
             'next' => 'Next',
             'cancel' => 'Cancel',
             'submit_ad' => 'Submit Listing',
+            'step_labels_full'        => ['Category', 'Basics', 'Location & Attributes', 'Images & Attachments', 'Contract', 'Review'],
+            'step_labels_no_contract' => ['Category', 'Basics', 'Location & Attributes', 'Images & Attachments', 'Review'],
         ],
     ],
 
