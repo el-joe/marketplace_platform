@@ -14,7 +14,7 @@ class OrderService
     public function listForCustomer(Customer $customer, array $filters): LengthAwarePaginator
     {
         $query = Order::where('customer_id', $customer->id)
-            ->with(['subOrders.items', 'subOrders.vendor'])
+            ->with(['subOrders.items.vendorListing', 'subOrders.vendor'])
             ->orderByDesc('placed_at');
 
         if (!empty($filters['status'])) {
@@ -38,6 +38,7 @@ class OrderService
             ->where('customer_id', $customer->id)
             ->with([
                 'subOrders.items.productVariant',
+                'subOrders.items.vendorListing',
                 'subOrders.vendor',
                 'subOrders.carrier',
                 'subOrders.statusHistories',

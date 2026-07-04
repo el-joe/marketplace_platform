@@ -17,6 +17,7 @@ use App\Http\Controllers\Customer\SupportTicketController;
 use App\Http\Controllers\Customer\WishlistController;
 use App\Http\Controllers\Customer\BrowseController;
 use App\Http\Controllers\Customer\ListingController;
+use App\Http\Controllers\Customer\ListingDetailController;
 use App\Http\Controllers\Customer\NavigationController;
 use App\Http\Controllers\Customer\HomeController;
 use App\Http\Controllers\Customer\PageController;
@@ -47,8 +48,19 @@ Route::prefix('v1/{country}')
         // ── Product catalog (public) ──────────────────────────────────────────
         Route::prefix('products')->name('customer.products.')->group(function (): void {
             Route::get('/', [ProductController::class, 'index'])->name('index');
-            Route::get('{slug}', [ProductController::class, 'show'])->name('show');
+
+            // Legacy: product detail moved to /l/{identifier}. Keep old URLs working.
+            Route::get('{slug}', fn (Country $country, string $slug) => redirect()->route(
+                'customer.listing.show',
+                ['country' => $country->site_code, 'identifier' => $slug],
+                301,
+            ))->name('show.redirect');
         });
+
+        // ── Listing detail (public) ───────────────────────────────────────────
+        // GET /l/{identifier} — identifier IN (listing UUID, variant SKU, listing_ref, product slug)
+        Route::get('l/{identifier}', [ListingDetailController::class, 'show'])
+            ->name('customer.listing.show');
 
         // ── Unified browse (public) ───────────────────────────────────────────
         // GET /browse/{type}/{slug}  — type IN (product, classified, travel)

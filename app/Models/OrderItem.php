@@ -24,6 +24,7 @@ class OrderItem extends Model
         'order_id',
         'sub_order_id',
         'product_variant_id',
+        'vendor_listing_id',
         'product_snapshot',
         'vendor_id',
         'sku',
@@ -53,6 +54,11 @@ class OrderItem extends Model
     public function productVariant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class);
+    }
+
+    public function vendorListing(): BelongsTo
+    {
+        return $this->belongsTo(VendorListing::class);
     }
 
     public function vendor(): BelongsTo

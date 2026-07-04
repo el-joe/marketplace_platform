@@ -248,6 +248,7 @@ class CustomerCheckoutService
                         'order_id'                => $order->id,
                         'sub_order_id'            => $subOrder->id,
                         'product_variant_id'      => $variant->id,
+                        'vendor_listing_id'       => $listing->id,
                         'product_snapshot'        => [
                             'name'        => $product->name_en ?? $product->name_ar ?? '',
                             'sku'         => $variant->sku ?? $listing->vendor_sku ?? '',

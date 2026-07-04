@@ -13,6 +13,7 @@ use App\Listeners\InvalidateVendorDashboardCache;
 use App\Listeners\RecordMarketerConversion;
 use App\Services\Payment\PaymentGatewayFactory;
 use App\Services\Shared\PageBuilderService;
+use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\UnifiedCategoryService;
 use App\Services\Shipping\ShippingCarrierFactory;
@@ -69,6 +70,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ShippingCarrierFactory::class);
         $this->app->singleton(PageBuilderService::class);
         $this->app->singleton(ListingQueryService::class);
+        $this->app->singleton(ListingIdentifierService::class);
         $this->app->singleton(UnifiedCategoryService::class);
 
         // Replace Laravel's built-in DatabaseChannel with our custom one that
