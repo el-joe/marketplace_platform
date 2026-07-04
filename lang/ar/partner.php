@@ -141,6 +141,7 @@ return [
         'sale_price' => 'سعر البيع',
         'original_price' => 'السعر الأصلي',
         'stock' => 'المخزون',
+        'low_sock' => 'مخزون منخفض',
         'fulfillment_model' => 'نموذج التنفيذ',
         'fbm' => 'تنفيذ التاجر',
         'fbn' => 'تنفيذ المنصة',

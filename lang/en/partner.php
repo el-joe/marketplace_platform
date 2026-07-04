@@ -153,6 +153,7 @@ return [
         'sale_price' => 'Sale Price',
         'original_price' => 'Original Price',
         'stock' => 'Stock',
+        'low_stock' => 'Low Stock',
         'fulfillment_model' => 'Fulfillment Model',
         'fbm' => 'Fulfilled by Merchant',
         'fbn' => 'Fulfilled by Platform',
