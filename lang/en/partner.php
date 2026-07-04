@@ -607,6 +607,7 @@ return [
         'low_stock' => 'Low Stock',
         'out_of_stock' => 'Out of Stock',
         'movements' => 'Stock Movements',
+        'movements_history' => 'Stock Movements History',
         'adjust_stock' => 'Adjust Stock',
         'current_stock' => 'Current Stock',
         'no_items' => 'No items found',

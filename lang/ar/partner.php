@@ -607,6 +607,7 @@ return [
         'low_stock' => 'مخزون منخفض',
         'out_of_stock' => 'نفذ من المخزون',
         'movements' => 'حركات المخزون',
+        'movements_history' => 'سجل حركات المخزون',
         'adjust_stock' => 'تعديل المخزون',
         'current_stock' => 'المخزون الحالي',
         'no_items' => 'لا توجد عناصر',
