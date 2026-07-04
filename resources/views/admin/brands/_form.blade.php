@@ -47,7 +47,7 @@
 
                     <div>
                         <label for="name_en" class="block text-xs font-medium text-gray-700 mb-1">
-                            {{ __('common.name_en') }} <span class="text-red-500">*</span>
+                            {{ __('admin.brands.brand_form.name_en') }} <span class="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -64,7 +64,7 @@
 
                     <div>
                         <label for="name_ar" class="block text-xs font-medium text-gray-700 mb-1">
-                            {{ __('common.name_ar') }} <span class="text-red-500">*</span>
+                            {{ __('admin.brands.brand_form.name_ar') }} <span class="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -121,7 +121,7 @@
                 <div class="px-5 py-5 space-y-4">
 
                     <div>
-                        <label for="description_en" class="block text-xs font-medium text-gray-700 mb-1">{{ __('common.description_en') }}</label>
+                        <label for="description_en" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.brands.brand_form.description_en') }}</label>
                         <textarea
                             id="description_en"
                             name="description_en"
@@ -134,7 +134,7 @@
                     </div>
 
                     <div>
-                        <label for="description_ar" class="block text-xs font-medium text-gray-700 mb-1">{{ __('common.description_ar') }}</label>
+                        <label for="description_ar" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.brands.brand_form.description_ar') }}</label>
                         <textarea
                             id="description_ar"
                             name="description_ar"

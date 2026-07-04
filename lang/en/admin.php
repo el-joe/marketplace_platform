@@ -1938,6 +1938,12 @@ return [
         'delete_title'          => 'Delete Brand?',
         'deleted_success'       => 'Brand deleted.',
         'delete_failed'         => 'Delete failed.',
+        'brand_form' => [
+            'name_en'               => 'Name (English)',
+            'name_ar'               => 'Name (Arabic)',
+            'description_en'        => 'Description (English)',
+            'description_ar'        => 'Description (Arabic)',
+        ]
     ],
 
     // ─── Products ────────────────────────────────────────────────────────────
