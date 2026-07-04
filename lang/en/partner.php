@@ -149,6 +149,7 @@ return [
 
     'listings' => [
         'title' => 'Listings',
+        'add_product_listing_title' => 'Add Product Listing',
         'create_listing' => 'Create Listing',
         'sale_price' => 'Sale Price',
         'original_price' => 'Original Price',
@@ -159,8 +160,14 @@ return [
         'add_listing' => 'Add Listing',
         'product' => 'Product',
         'variant_sku' => 'Variant SKU',
+        'back_to_listings' => 'Back to Listings',
         'available' => 'Available',
         'sold' => 'Sold',
+        'step1_search_product' => '① Search for a product',
+        'search_product_desc' => 'Search for a product available in the catalog to add as a listing. Sellers cannot create new products - only admins do that',
+        'start_typing_to_search' => 'Start typing to search',
+        'select_product_variant' => 'Select a product variant from catalog',
+        'form_will_appear' => 'A form will appear here after selection',
         'rating' => 'Rating',
         'search_placeholder' => 'Search by product or sku...',
         'fulfillment_model' => 'Fulfillment Model',

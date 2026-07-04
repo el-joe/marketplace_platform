@@ -137,6 +137,7 @@ return [
 
     'listings' => [
         'title' => 'قوائم المنتجات',
+        'add_product_listing_title' => 'إضافة قائمة منتجات',
         'create_listing' => 'إضافة قائمة',
         'sale_price' => 'سعر البيع',
         'original_price' => 'السعر الأصلي',
@@ -147,6 +148,12 @@ return [
         'out_of_stock' => 'نفذ من المخزون',
         'product' => 'المنتج',
         'variant_sku' => 'النسخة / SKU',
+        'back_to_listings' => 'العودة إلى القوائم',
+        'step1_search_product' => '① ابحث عن منتج',
+        'search_product_desc' => 'ابحث عن منتج موجود في الكتالوج لإضافته كقائمة. لا يمكن للبائعين إنشاء منتجات جديدة - تقوم الإدارة بذلك فقط',
+        'start_typing_to_search' => 'ابدأ الكتابة للبحث',
+        'select_product_variant' => 'اختر منتجا ونسخة من القائمة',
+        'form_will_appear' => 'سيظهر نموذج للإضافة هنا بعد الاختيار',
         'available' => 'متاح',
         'sold' => 'مُباع',
         'rating' => 'التقييم',
