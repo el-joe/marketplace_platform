@@ -162,7 +162,7 @@ return [
         'available' => 'Available',
         'sold' => 'Sold',
         'rating' => 'Rating',
-        'search_placeholder' => 'Search listings...',
+        'search_placeholder' => 'Search by product or sku...',
         'fulfillment_model' => 'Fulfillment Model',
         'fbm' => 'Fulfilled by Merchant',
         'fbn' => 'Fulfilled by Platform',
