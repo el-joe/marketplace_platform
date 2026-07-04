@@ -41,7 +41,7 @@
                                 <input type="text" name="title_en" id="title-en" required maxlength="255"
                                        value="{{ old('title_en') }}"
                                        class="form-input w-full @error('title_en') is-invalid @enderror"
-                                       placeholder="Your article title…">
+                                       placeholder="{{ __('admin.blog.title_placeholder') }}">
                                 @error('title_en') <p class="form-error">{{ $message }}</p> @enderror
                             </div>
                             <div>
@@ -61,7 +61,7 @@
                                 <input type="text" name="slug" id="slug-input" maxlength="255"
                                        value="{{ old('slug') }}"
                                        class="form-input flex-1 text-sm font-mono @error('slug') is-invalid @enderror"
-                                       placeholder="auto-generated-from-title">
+                                       placeholder="{{ __('admin.blog.slug_auto_generated') }}">
                             </div>
                             @error('slug') <p class="form-error">{{ $message }}</p> @enderror
                         </div>

@@ -13,7 +13,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.blog.posts') }}</h1>
-            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.blog.manage_all_content') }}</p>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.blog.post.manage_all_content') }}</p>
         </div>
         <a href="{{ route('admin.blog.posts.create') }}"
            class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">

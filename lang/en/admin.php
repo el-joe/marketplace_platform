@@ -1552,6 +1552,31 @@ return [
 
     // ─── Blog ────────────────────────────────────────────────────────────────
     'blog' => [
+        'new_post'               => 'New Post',
+        'new_blog_post'           => 'New Blog Post',
+        'fill_content_below'     => 'Fill content below',
+        'search_placeholder'     => 'Search posts by title, author…',
+        'excerpt_placeholder_en'      => 'Write a short excerpt for this post…',
+        'excerpt_placeholder_ar'      => 'اكتب ملخصاً قريباً لهذا المقال…',
+        'tags_hint'                => 'Separate tags with commas. e.g. fashion, beauty, tech',
+        'category_label'          => 'Category',
+        'select_category'         => 'Select a category…',
+        'alt_text_en'               => 'Alt Text (English)',
+        'alt_text_ar'               => 'Alt Text (Arabic)',
+        'social_share_optional' => 'Social Share Image (optional)',
+        'seo_title_placeholder' => 'SEO title (optional)',
+        'seo_desc_placeholder' => 'SEO description (optional)',
+        'uses_featured_if_not_set' => 'Featured image will be used if social share image is not set.',
+        'seo_preview'               => 'SEO Preview',
+        'back_to_posts'          => 'Back to Posts',
+        'title_en'               => 'Post Title (English)',
+        'title_ar'               => 'Post Title (Arabic)',
+        'title_placeholder'         => 'Your article title here…',
+        'all_categories'         => 'All categories',
+        'all_countries'           => 'All countries',
+        'all_authors'            => 'All authors',
+        'published_from'          => 'Published From',
+        'published_to'            => 'Published To',
         'title'                 => 'Blog',
         'posts'                 => 'Posts',
         'categories'            => 'Categories',
@@ -1632,6 +1657,9 @@ return [
             'message' => 'Are you sure you want to delete this category? This action cannot be undone.',
             'cancel' => 'Cancel',
             'delete' => 'Delete',
+        ],
+        'post' => [
+            'manage_all_content' => 'Manage all blog content, including posts and categories.',
         ],
     ],
 
@@ -6444,5 +6472,4 @@ return [
         'no'                => 'No',
         'edit_listing'      => 'Edit listing',
     ],
-
 ];
