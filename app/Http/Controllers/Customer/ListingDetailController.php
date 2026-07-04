@@ -22,8 +22,10 @@ class ListingDetailController extends Controller
     ) {
     }
 
-    public function show(Request $request, Country $country, string $identifier): JsonResponse
+    public function show(Request $request, $country, string $identifier): JsonResponse
     {
+        $country = $request->attributes->get('country');
+
         $listing = $this->resolveListing($identifier, $country);
 
         if (!$listing) {
@@ -46,7 +48,7 @@ class ListingDetailController extends Controller
             product: $product,
             country: $country,
             customerId: auth('customer')->id(),
-            sessionId: $request->session()->getId() ?? '',
+            sessionId: $request->hasSession() ? $request->session()->getId() : '',
             source: $request->query('source', 'direct'),
             referrerUrl: $request->header('Referer'),
         );
@@ -61,15 +63,15 @@ class ListingDetailController extends Controller
         return ApiResponse::success([
             'listing' => $this->listingShape($listing, $country, $isWishlisted),
             'seller' => $this->sellerShape($listing),
-            'delivery_options' => $deliveryOptions->map(fn ($method) => $this->deliveryOptionShape($method))->values()->all(),
+            'delivery_options' => $deliveryOptions->map(fn($method) => $this->deliveryOptionShape($method))->values()->all(),
             'product' => $this->productShape($product),
             'variant' => $this->variantShape($listing->productVariant),
-            'other_sellers' => $siblings['same_variant']->map(fn (VendorListing $l) => $this->otherSellerShape($l, $country))->values()->all(),
-            'other_variants' => $siblings['other_variants']->map(fn (VendorListing $l) => $this->otherVariantShape($l))->values()->all(),
+            'other_sellers' => $siblings['same_variant']->map(fn(VendorListing $l) => $this->otherSellerShape($l, $country))->values()->all(),
+            'other_variants' => $siblings['other_variants']->map(fn(VendorListing $l) => $this->otherVariantShape($l))->values()->all(),
             'reviews' => [
                 'rating_avg' => (float) $product->rating_avg,
                 'rating_count' => (int) $product->rating_count,
-                'items' => $reviews->map(fn ($review) => $this->reviewShape($review))->values()->all(),
+                'items' => $reviews->map(fn($review) => $this->reviewShape($review))->values()->all(),
             ],
         ]);
     }
@@ -83,8 +85,8 @@ class ListingDetailController extends Controller
                 return null;
             }
 
-            return VendorListing::whereHas('productVariant', fn ($q) => $q->where('sku', $parsed['sku']))
-                ->where('id', 'like', $parsed['listing_id_prefix'].'%')
+            return VendorListing::whereHas('productVariant', fn($q) => $q->where('sku', $parsed['sku']))
+                ->where('id', 'like', $parsed['listing_id_prefix'] . '%')
                 ->where('country_id', $country->id)
                 ->where('status', 'active')
                 ->with([
@@ -178,7 +180,7 @@ class ListingDetailController extends Controller
                 'name_ar' => $product->category->name_ar,
                 'slug' => $product->category->slug,
             ] : null,
-            'images' => $product->images->map(fn ($img) => [
+            'images' => $product->images->map(fn($img) => [
                 'url' => $img->url,
                 'is_primary' => $img->is_primary,
             ])->values()->all(),
@@ -203,7 +205,7 @@ class ListingDetailController extends Controller
         }
 
         return $variant->variantAttributes
-            ->map(fn ($va) => ($va->attribute?->name_en).': '.($va->attributeValue?->value_en ?? $va->value_text_en))
+            ->map(fn($va) => ($va->attribute?->name_en) . ': ' . ($va->attributeValue?->value_en ?? $va->value_text_en))
             ->implode(', ');
     }
 
@@ -215,7 +217,7 @@ class ListingDetailController extends Controller
             'barcode' => $variant->barcode,
             'variant_name' => $variant->variant_name,
             'is_default' => $variant->is_default,
-            'attributes' => $variant->variantAttributes->map(fn ($va) => [
+            'attributes' => $variant->variantAttributes->map(fn($va) => [
                 'attribute_name' => $va->attribute?->name_en,
                 'value' => $va->attributeValue?->value_en ?? $va->value_text_en,
             ])->values()->all(),
@@ -257,7 +259,7 @@ class ListingDetailController extends Controller
             'price_formatted' => number_format($listing->price / 100, 2),
             'currency' => $listing->currency,
             'is_admin_listing' => $listing->global_system_type === 'express_fbn',
-            'attributes' => $listing->productVariant->variantAttributes->map(fn ($va) => [
+            'attributes' => $listing->productVariant->variantAttributes->map(fn($va) => [
                 'attribute_name' => $va->attribute?->name_en,
                 'value' => $va->attributeValue?->value_en ?? $va->value_text_en,
             ])->values()->all(),

@@ -50,11 +50,7 @@ Route::prefix('v1/{country}')
             Route::get('/', [ProductController::class, 'index'])->name('index');
 
             // Legacy: product detail moved to /l/{identifier}. Keep old URLs working.
-            Route::get('{slug}', fn (Country $country, string $slug) => redirect()->route(
-                'customer.listing.show',
-                ['country' => $country->site_code, 'identifier' => $slug],
-                301,
-            ))->name('show.redirect');
+            Route::get('{identifier}', [ListingDetailController::class, 'show'])->name('show.redirect');
         });
 
         // ── Listing detail (public) ───────────────────────────────────────────
