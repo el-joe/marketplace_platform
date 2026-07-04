@@ -28,9 +28,9 @@ class ListingQueryService
             ->where('status', 'active')
             ->whereHas(
                 'productVariant.product',
-                fn ($q) => $q->whereIn('category_id', $categoryIds)->where('status', 'active'),
+                fn($q) => $q->whereIn('category_id', $categoryIds)->where('status', 'active'),
             )
-            ->whereHas('vendor', fn ($q) => $q->where('global_status', 'active'));
+            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'));
     }
 
     /**
@@ -42,10 +42,10 @@ class ListingQueryService
     public function applyFilters($builder, array $filters)
     {
         if (!empty($filters['category'])) {
-            $builder->whereHas('productVariant.product', fn ($q) => $q->where('category_id', $filters['category']));
+            $builder->whereHas('productVariant.product', fn($q) => $q->where('category_id', $filters['category']));
         }
         if (!empty($filters['brand'])) {
-            $builder->whereHas('productVariant.product', fn ($q) => $q->where('brand_id', $filters['brand']));
+            $builder->whereHas('productVariant.product', fn($q) => $q->where('brand_id', $filters['brand']));
         }
         if (!empty($filters['price_min'])) {
             $builder->where('price', '>=', (int) ($filters['price_min'] * 100));
@@ -54,7 +54,7 @@ class ListingQueryService
             $builder->where('price', '<=', (int) ($filters['price_max'] * 100));
         }
         if (!empty($filters['rating_min'])) {
-            $builder->whereHas('productVariant.product', fn ($q) => $q->where('rating_avg', '>=', $filters['rating_min']));
+            $builder->whereHas('productVariant.product', fn($q) => $q->where('rating_avg', '>=', $filters['rating_min']));
         }
         if (!empty($filters['condition'])) {
             $builder->where('condition', $filters['condition']);
@@ -63,7 +63,7 @@ class ListingQueryService
             $builder->where('fulfillment_model', $filters['fulfillment_model']);
         }
         if (empty($filters['include_oos'])) {
-            $builder->whereHas('warehouseInventories', fn ($q) => $q->where('quantity_available', '>', 0));
+            $builder->whereHas('warehouseInventories', fn($q) => $q->where('quantity_available', '>', 0));
         }
         if (!empty($filters['attributes']) && is_array($filters['attributes'])) {
             foreach ($filters['attributes'] as $attrCode => $values) {
@@ -90,12 +90,12 @@ class ListingQueryService
     public function applySort($builder, string $sort)
     {
         return match ($sort) {
-            'price_asc'    => $builder->orderBy('price', 'asc'),
-            'price_desc'   => $builder->orderBy('price', 'desc'),
-            'rating'       => $builder->orderByDesc('rating_avg'),
-            'newest'       => $builder->orderByDesc('created_at'),
+            'price_asc' => $builder->orderBy('price', 'asc'),
+            'price_desc' => $builder->orderBy('price', 'desc'),
+            'rating' => $builder->orderByDesc('rating_avg'),
+            'newest' => $builder->orderByDesc('created_at'),
             'best_selling' => $builder->orderByDesc('total_sold'),
-            default        => $builder
+            default => $builder
                 ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
                 ->orderBy('price'),
         };
@@ -141,7 +141,7 @@ class ListingQueryService
             ->where('product_variant_id', $productVariantId)
             ->where('country_id', $country->id)
             ->where('status', 'active')
-            ->whereHas('vendor', fn ($q) => $q->where('global_status', 'active'))
+            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'))
             ->with([
                 'vendor:id,store_name,store_rating_avg,store_rating_count',
                 'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
@@ -165,7 +165,7 @@ class ListingQueryService
         Country $country,
     ): array {
         $variantIds = $products
-            ->flatMap(fn (Product $product) => $product->variants->pluck('id'))
+            ->flatMap(fn(Product $product) => $product->variants->pluck('id'))
             ->unique()
             ->values();
 
@@ -173,7 +173,7 @@ class ListingQueryService
             ->whereIn('product_variant_id', $variantIds)
             ->where('country_id', $country->id)
             ->where('status', 'active')
-            ->whereHas('vendor', fn ($q) => $q->where('global_status', 'active'))
+            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'))
             ->with([
                 'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
                 'vendor:id,store_name,store_rating_avg',
@@ -314,14 +314,14 @@ class ListingQueryService
     public function paginateTravelPackages(?string $travelCategoryId, int $perPage = 20): LengthAwarePaginator
     {
         return TravelPackage::where('status', 'active')
-            ->when($travelCategoryId, fn ($q) => $q->whereHas(
+            ->when($travelCategoryId, fn($q) => $q->whereHas(
                 'categories',
-                fn ($q2) => $q2->where('travel_categories.id', $travelCategoryId),
+                fn($q2) => $q2->where('travel_categories.id', $travelCategoryId),
             ))
             ->with([
                 'agency:id,name',
                 'categories:id,name_en,name_ar,slug',
-                'media' => fn ($q) => $q->orderBy('position')->limit(1),
+                'media' => fn($q) => $q->orderBy('position')->limit(1),
             ])
             ->orderByDesc('departure_date')
             ->paginate($perPage);
@@ -351,7 +351,7 @@ class ListingQueryService
             'available_seats' => $package->available_seats,
             'seats_remaining' => $package->seatsRemaining(),
             'agency_name' => $package->agency?->name,
-            'categories' => $package->categories->map(fn ($c) => [
+            'categories' => $package->categories->map(fn($c) => [
                 'name_en' => $c->name_en,
                 'slug' => $c->slug,
             ])->toArray(),

@@ -4,7 +4,7 @@ namespace App\Services\Delivery;
 
 use App\Models\AgentLocationHistory;
 use App\Models\DeliveryAgent;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 
 class LocationTrackingService
@@ -15,15 +15,15 @@ class LocationTrackingService
     {
         $key = 'delivery_location:' . $agent->id;
 
-        // Redis-backed per-agent throttle; bypasses route-level throttle limits
-        if (Redis::exists($key)) {
-            $ttl = Redis::ttl($key);
+        if (Cache::has($key)) {
+            $ttl = Cache::get($key . ':expires_at') - time();
             throw new RuntimeException(
                 "Location update rate limit: please wait {$ttl} second(s) before updating again."
             );
         }
 
-        Redis::setex($key, self::THROTTLE_SECONDS, 1);
+        Cache::put($key, 1, self::THROTTLE_SECONDS);
+        Cache::put($key . ':expires_at', time() + self::THROTTLE_SECONDS, self::THROTTLE_SECONDS);
 
         $agent->update([
             'current_latitude'  => $lat,

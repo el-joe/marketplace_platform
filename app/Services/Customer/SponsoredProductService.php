@@ -110,7 +110,7 @@ class SponsoredProductService
                 'ad_campaign_id'                => $campaign->ad_campaign_id,
                 'vendor_listing_id'             => $listing->id,
                 'customer_id'                   => auth('customer')->id(),
-                'session_id'                    => request()->session()->getId() ?? Str::random(26),
+                'session_id'                    => request()->hasSession() ? request()->session()->getId() : Str::random(26),
                 'placement_code'                => $placement,
                 'search_query'                  => $query,
                 'position_shown'                => $position,

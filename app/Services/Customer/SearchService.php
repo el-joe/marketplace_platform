@@ -24,6 +24,7 @@ class SearchService
         ?string $customerId = null,
         string $sessionId = '',
     ): LengthAwarePaginator {
+
         $builder = $this->productQuery->baseQuery($country)
             ->where(function ($q) use ($query) {
                 $q->where('products.name_en', 'like', "%{$query}%")

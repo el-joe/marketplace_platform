@@ -13,7 +13,8 @@ class ProductQueryService
 {
     public function __construct(
         private readonly SponsoredProductService $sponsored,
-    ) {}
+    ) {
+    }
 
     /**
      * Paginate products with optional category scope.
@@ -81,7 +82,7 @@ class ProductQueryService
 
         $items = ProductListResource::collection($paginator->load('images'))
             ->map(function (ProductListResource $r) use ($wishlistIds) {
-                $r->resource->is_sponsored  = false;
+                $r->resource->is_sponsored = false;
                 $r->resource->is_wishlisted = in_array($r->resource->id, $wishlistIds);
                 return $r->toArray(request());
             })
@@ -91,11 +92,11 @@ class ProductQueryService
 
         return [
             'items' => $items,
-            'meta'  => [
+            'meta' => [
                 'current_page' => $paginator->currentPage(),
-                'last_page'    => $paginator->lastPage(),
-                'per_page'     => $paginator->perPage(),
-                'total'        => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
             ],
         ];
     }
@@ -116,19 +117,19 @@ class ProductQueryService
             )
             ->join('product_country_settings as pcs', function ($j) use ($country) {
                 $j->on('pcs.product_id', '=', 'products.id')
-                  ->where('pcs.country_id', $country->id)
-                  ->where('pcs.is_available', true);
+                    ->where('pcs.country_id', $country->id)
+                    ->where('pcs.is_available', true);
             })
             ->leftJoin('product_variants as pv', function ($j) {
                 $j->on('pv.product_id', '=', 'products.id')
-                  ->where('pv.is_active', true)
-                  ->whereNull('pv.deleted_at');
+                    ->where('pv.is_active', true)
+                    ->whereNull('pv.deleted_at');
             })
             ->leftJoin('vendor_listings as vl', function ($j) use ($country) {
                 $j->on('vl.product_variant_id', '=', 'pv.id')
-                  ->where('vl.country_id', $country->id)
-                  ->where('vl.status', 'active')
-                  ->whereNull('vl.deleted_at');
+                    ->where('vl.country_id', $country->id)
+                    ->where('vl.status', 'active')
+                    ->whereNull('vl.deleted_at');
             })
             ->leftJoin('warehouse_inventories as wi', 'wi.vendor_listing_id', '=', 'vl.id')
             ->where('products.status', 'active')
@@ -182,12 +183,12 @@ class ProductQueryService
     public function applySort($builder, string $sort)
     {
         return match ($sort) {
-            'price_asc'    => $builder->orderByRaw('MIN(vl.price) ASC'),
-            'price_desc'   => $builder->orderByRaw('MAX(vl.price) DESC'),
-            'rating'       => $builder->orderBy('products.rating_avg', 'desc'),
-            'newest'       => $builder->orderBy('products.published_at', 'desc'),
+            'price_asc' => $builder->orderByRaw('MIN(vl.price) ASC'),
+            'price_desc' => $builder->orderByRaw('MAX(vl.price) DESC'),
+            'rating' => $builder->orderBy('products.rating_avg', 'desc'),
+            'newest' => $builder->orderBy('products.published_at', 'desc'),
             'best_selling' => $builder->orderBy('products.total_sold', 'desc'),
-            default        => $builder->orderBy('products.is_featured', 'desc')->orderBy('products.rating_avg', 'desc'),
+            default => $builder->orderBy('products.is_featured', 'desc')->orderBy('products.rating_avg', 'desc'),
         };
     }
 

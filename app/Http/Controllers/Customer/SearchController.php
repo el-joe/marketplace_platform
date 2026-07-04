@@ -18,13 +18,16 @@ class SearchController extends Controller
         private readonly SearchService $search,
         private readonly SponsoredProductService $sponsored,
         private readonly ListingQueryService $listings,
-    ) {}
+    ) {
+    }
 
-    public function search(SearchRequest $request, Country $country): JsonResponse
+    public function search(SearchRequest $request, $country): JsonResponse
     {
-        $data       = $request->validated();
-        $perPage    = (int) ($data['per_page'] ?? 20);
-        $page       = (int) ($data['page'] ?? 1);
+        $country = $request->attributes->get('country');
+
+        $data = $request->validated();
+        $perPage = (int) ($data['per_page'] ?? 20);
+        $page = (int) ($data['page'] ?? 1);
         // Absent source_type must preserve pre-existing product-only search behavior;
         // 'all' only runs when explicitly requested.
         $sourceType = $data['source_type'] ?? 'product';
@@ -47,13 +50,13 @@ class SearchController extends Controller
             filters: $data,
             perPage: $perPage,
             customerId: auth('customer')->id(),
-            sessionId: $request->session()->getId() ?? '',
+            sessionId: $request->hasSession() ? $request->session()->getId() : '',
         );
 
         $paginator->load('images', 'variants');
 
         $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
-        $buyBox      = $this->listings->getBuyBoxForProducts($paginator->getCollection(), $country);
+        $buyBox = $this->listings->getBuyBoxForProducts($paginator->getCollection(), $country);
 
         $items = [];
         foreach ($paginator as $product) {
@@ -77,14 +80,14 @@ class SearchController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => [
-                'items'  => $items,
+            'data' => [
+                'items' => $items,
                 'facets' => $facets,
-                'meta'   => [
+                'meta' => [
                     'current_page' => $paginator->currentPage(),
-                    'last_page'    => $paginator->lastPage(),
-                    'per_page'     => $paginator->perPage(),
-                    'total'        => $paginator->total(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
                 ],
             ],
         ]);
@@ -95,20 +98,20 @@ class SearchController extends Controller
         $paginator = $this->search->searchClassifieds($data['q'], $data, $perPage);
 
         $items = $paginator->getCollection()
-            ->map(fn ($listing) => $this->listings->toClassifiedCardShape($listing))
+            ->map(fn($listing) => $this->listings->toClassifiedCardShape($listing))
             ->toArray();
 
         return response()->json([
             'success' => true,
-            'data'    => [
+            'data' => [
                 'source_type' => 'classified',
-                'items'       => $items,
-                'meta'        => [
+                'items' => $items,
+                'meta' => [
                     'current_page' => $paginator->currentPage(),
-                    'last_page'    => $paginator->lastPage(),
-                    'per_page'     => $paginator->perPage(),
-                    'total'        => $paginator->total(),
-                    'query'        => $data['q'],
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'query' => $data['q'],
                 ],
             ],
         ]);
@@ -119,20 +122,20 @@ class SearchController extends Controller
         $paginator = $this->search->searchTravel($data['q'], $perPage);
 
         $items = $paginator->getCollection()
-            ->map(fn ($package) => $this->listings->toTravelCardShape($package))
+            ->map(fn($package) => $this->listings->toTravelCardShape($package))
             ->toArray();
 
         return response()->json([
             'success' => true,
-            'data'    => [
+            'data' => [
                 'source_type' => 'travel',
-                'items'       => $items,
-                'meta'        => [
+                'items' => $items,
+                'meta' => [
                     'current_page' => $paginator->currentPage(),
-                    'last_page'    => $paginator->lastPage(),
-                    'per_page'     => $paginator->perPage(),
-                    'total'        => $paginator->total(),
-                    'query'        => $data['q'],
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'query' => $data['q'],
                 ],
             ],
         ]);
@@ -148,12 +151,12 @@ class SearchController extends Controller
             filters: $data,
             perPage: 4,
             customerId: auth('customer')->id(),
-            sessionId: $request->session()->getId() ?? '',
+            sessionId: $request->hasSession() ? $request->session()->getId() : '',
         );
 
         $productPaginator->load('images', 'variants');
         $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
-        $buyBox      = $this->listings->getBuyBoxForProducts($productPaginator->getCollection(), $country);
+        $buyBox = $this->listings->getBuyBoxForProducts($productPaginator->getCollection(), $country);
 
         $productItems = [];
         foreach ($productPaginator as $product) {
@@ -172,22 +175,22 @@ class SearchController extends Controller
         }
 
         $classifiedPaginator = $this->search->searchClassifieds($query, $data, 4);
-        $classifiedItems     = $classifiedPaginator->getCollection()
-            ->map(fn ($listing) => $this->listings->toClassifiedCardShape($listing))
+        $classifiedItems = $classifiedPaginator->getCollection()
+            ->map(fn($listing) => $this->listings->toClassifiedCardShape($listing))
             ->toArray();
 
         $travelPaginator = $this->search->searchTravel($query, 4);
-        $travelItems     = $travelPaginator->getCollection()
-            ->map(fn ($package) => $this->listings->toTravelCardShape($package))
+        $travelItems = $travelPaginator->getCollection()
+            ->map(fn($package) => $this->listings->toTravelCardShape($package))
             ->toArray();
 
         $totalResults = $productPaginator->total() + $classifiedPaginator->total() + $travelPaginator->total();
 
         return response()->json([
             'success' => true,
-            'data'    => [
+            'data' => [
                 'source_type' => 'all',
-                'products'    => [
+                'products' => [
                     'items' => array_slice($productItems, 0, 4),
                     'total' => $productPaginator->total(),
                 ],
@@ -200,7 +203,7 @@ class SearchController extends Controller
                     'total' => $travelPaginator->total(),
                 ],
                 'meta' => [
-                    'query'         => $query,
+                    'query' => $query,
                     'total_results' => $totalResults,
                 ],
             ],

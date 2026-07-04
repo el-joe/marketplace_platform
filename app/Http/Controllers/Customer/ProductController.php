@@ -132,7 +132,7 @@ class ProductController extends Controller
             product: $product,
             country: $country,
             customerId: auth('customer')->id(),
-            sessionId: $request->session()->getId() ?? '',
+            sessionId: $request->hasSession() ? $request->session()->getId() : '',
             source: $request->query('source', 'direct'),
             referrerUrl: $request->header('Referer'),
         );
