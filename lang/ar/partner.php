@@ -181,6 +181,9 @@ return [
         'select_product' => 'اختر منتجاً',
         'listing_created' => 'تم إنشاء القائمة بنجاح',
         'listing_updated' => 'تم تحديث القائمة بنجاح',
+        'activate' => 'تفعيل',
+        'pause_temporarily' => 'إيقاف مؤقت',
+        'archive' => 'أرشفة',
         'listing_deleted' => 'تم حذف القائمة بنجاح',
         'delete_confirm' => 'هل أنت متأكد من حذف هذه القائمة؟',
         'show' => [
