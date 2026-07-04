@@ -597,6 +597,9 @@ return [
     ],
 
     'finance' => [
+        'total_sales' => 'Total sales',
+        'total_refunds' => 'Total refunds',
+        'total_paid_out' => 'Total paid out',
         'vendor_payout' => 'Vendor Payout',
         'platform_commission' => 'Platform Commission',
         'gateway_fee_deducted' => 'Gateway Fee Deducted',
