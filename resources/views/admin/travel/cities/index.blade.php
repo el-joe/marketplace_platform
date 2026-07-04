@@ -17,7 +17,7 @@
         <input name="q" value="{{ request('q') }}" placeholder="{{ __('admin.travel.search_city_name') }}"
                class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
         <select name="country_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <option value="">{{ __('admin.all_countries') }}</option>
+            <option value="">{{ __('admin.travel.status.all_countries') }}</option>
             @foreach($countries as $c)
             <option value="{{ $c->id }}" {{ request('country_id') == $c->id ? 'selected' : '' }}>
                 {{ $c->flag_emoji }} {{ $c->name_en }}
@@ -27,7 +27,7 @@
         <select name="active" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="">{{ __('admin.travel.all_statuses') }}</option>
             <option value="1" {{ request('active') === '1' ? 'selected' : '' }}>{{ __('common.active') }}</option>
-            <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>{{ __('admin.hidden') }}</option>
+            <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>{{ __('admin.travel.status.hidden') }}</option>
         </select>
         <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">{{ __('admin.filter') }}</button>
         <a href="{{ route('admin.travel.cities.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">{{ __('common.reset') }}</a>

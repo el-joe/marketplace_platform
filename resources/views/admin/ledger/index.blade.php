@@ -12,11 +12,11 @@
     <div class="mb-5 flex items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">
-                {{ __('admin.ledger.title') }}
+                {{ __('admin.ledger_section.title') }}
                 <span
-                    class="ms-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">{{ __('admin.ledger.read_only') }}</span>
+                    class="ms-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">{{ __('admin.ledger_section.read_only') }}</span>
                 <span
-                    class="ms-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">{{ __('admin.ledger.append_only') }}</span>
+                    class="ms-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">{{ __('admin.ledger_section.append_only') }}</span>
             </h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.ledger.subtitle') }}</p>
         </div>

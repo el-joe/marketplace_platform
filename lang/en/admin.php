@@ -1779,6 +1779,15 @@ return [
         'return_prefix'      => 'Return',
         'return_suffix'      => 'to draft. The agency will see the reason and can resubmit.',
         'submitted'          => 'Submitted',
+        'all_statuses'        => 'All Statuses',
+        'all_countries'         => 'All Countries',
+        'status'             => [
+            'pending'   => 'Pending',
+            'active'    => 'Active',
+            'suspended' => 'Suspended',
+            'hidden'   => 'Hidden',
+            'all_countries' => 'All Countries',
+        ],
     ],
 
     // ─── Radio ───────────────────────────────────────────────────────────────
@@ -2961,6 +2970,8 @@ return [
     // ─── Ledger ──────────────────────────────────────────────────────────────
     'ledger_section' => [
         'title'             => 'Ledger',
+        'read_only' => 'Read-Only',
+        'append_only' => 'Append-Only',
         'entry_type'        => 'Entry Type',
         'debit'             => 'Debit',
         'credit'            => 'Credit',

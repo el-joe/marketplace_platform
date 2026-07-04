@@ -7,7 +7,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-xl font-bold text-gray-900">{{ __('admin.travel.agencies') }}</h1>
-                @if($pendingCount > 0)
+                @if ($pendingCount > 0)
                     <p class="text-sm text-amber-600 font-medium mt-0.5">
                         {{ __('admin.travel.pending_approval_count', ['count' => $pendingCount]) }}
                     </p>
@@ -21,18 +21,27 @@
                 class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-64">
             <select name="status" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
                 <option value="">{{ __('admin.travel.all_statuses') }}</option>
-                @foreach(['pending', 'active', 'suspended'] as $s)
-                    <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
+
+                @foreach ([
+            'pending' => __('admin.travel.status.pending'),
+            'active' => __('admin.travel.status.active'),
+            'suspended' => __('admin.travel.status.suspended'),
+        ] as $value => $label)
+                    <option value="{{ $value }}" {{ request('status') === $value ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
                 @endforeach
             </select>
             <select name="country_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
                 <option value="">{{ __('admin.travel.all_countries') }}</option>
-                @foreach($countries as $c)
-                    <option value="{{ $c->id }}" {{ request('country_id') == $c->id ? 'selected' : '' }}>{{ $c->name_en }}
+                @foreach ($countries as $c)
+                    <option value="{{ $c->id }}" {{ request('country_id') == $c->id ? 'selected' : '' }}>
+                        {{ $c->name_en }}
                     </option>
                 @endforeach
             </select>
-            <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">{{ __('common.filters') }}</button>
+            <button type="submit"
+                class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">{{ __('common.filters') }}</button>
             <a href="{{ route('admin.travel.agencies.index') }}"
                 class="px-4 py-2 border border-gray-300 rounded-lg text-sm">{{ __('common.reset') }}</a>
         </form>
@@ -46,13 +55,15 @@
                         <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.country') }}</th>
                         <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.packages') }}</th>
                         <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.status') }}</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.registered') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.registered') }}
+                        </th>
                         <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
                 <tbody id="agencies-tbody" class="divide-y divide-gray-100">
                     <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">{{ __('common.loading') }}</td>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">{{ __('common.loading') }}
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -91,14 +102,16 @@
                 });
 
                 const res = await fetch(`{{ route('admin.travel.agencies.datatable') }}?${params}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
                 });
                 const json = await res.json();
 
                 const tbody = document.getElementById('agencies-tbody');
-                tbody.innerHTML = json.data.length === 0
-                    ? `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">${window.TRANSLATIONS.no_agencies_found}</td></tr>`
-                    : json.data.map(a => `
+                tbody.innerHTML = json.data.length === 0 ?
+                    `<tr><td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">${window.TRANSLATIONS.no_agencies_found}</td></tr>` :
+                    json.data.map(a => `
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium text-gray-900">${a.name}</td>
                         <td class="px-4 py-3 text-gray-500">${a.email}</td>

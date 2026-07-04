@@ -25,7 +25,7 @@
         <select name="active" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="">{{ __('admin.travel.all_statuses') }}</option>
             <option value="1" {{ request('active') === '1' ? 'selected' : '' }}>{{ __('common.active') }}</option>
-            <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>{{ __('admin.hidden') }}</option>
+            <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>{{ __('admin.travel.status.hidden') }}</option>
         </select>
         <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">{{ __('admin.filter') }}</button>
         <a href="{{ route('admin.travel.countries.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">{{ __('common.reset') }}</a>
