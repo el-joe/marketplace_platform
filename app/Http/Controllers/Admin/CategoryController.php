@@ -442,13 +442,7 @@ class CategoryController extends Controller
 
         // Dispatch job to recompute listings (created in Prompt 3)
         if (class_exists(RecomputeListingShippingMethodsJob::class)) {
-            $listingIds = DB::table('vendor_listings')
-                ->where('category_id', $category->id)
-                ->pluck('id');
-
-            foreach ($listingIds as $listingId) {
-                dispatch(new RecomputeListingShippingMethodsJob($listingId));
-            }
+            dispatch(new RecomputeListingShippingMethodsJob([$category->id]));
         }
 
         return response()->json(['success' => true, 'message' => 'Delivery options saved.']);

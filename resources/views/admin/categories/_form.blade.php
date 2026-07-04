@@ -268,8 +268,7 @@
                                             <label class="flex items-center gap-1 text-xs text-gray-500 cursor-pointer whitespace-nowrap">
                                                 <input type="radio" name="sm_default_method"
                                                     :value="m.id"
-                                                    :checked="m.is_default"
-                                                    @change="setDefault(m.id)"
+                                                    x-model="defaultMethodId"
                                                     class="text-primary-600">
                                                 {{ __('admin.categories.default_delivery') }}
                                             </label>
@@ -494,6 +493,7 @@ function categoryShippingMethods(getUrl, postUrl) {
         savedMsg: false,
         errorMsg: '',
         methods: [],
+        defaultMethodId: null,
 
         toggle() {
             this.open = !this.open;
@@ -508,16 +508,13 @@ function categoryShippingMethods(getUrl, postUrl) {
                 });
                 const data = await r.json();
                 this.methods = data.methods.map(m => ({...m}));
+                this.defaultMethodId = this.methods.find(m => m.is_default)?.id ?? null;
                 this.loaded = true;
             } catch (e) {
                 this.errorMsg = window.TRANSLATIONS.failedLoadMethods;
             } finally {
                 this.loading = false;
             }
-        },
-
-        setDefault(id) {
-            this.methods.forEach(m => m.is_default = (m.id === id));
         },
 
         async save() {
@@ -537,7 +534,7 @@ function categoryShippingMethods(getUrl, postUrl) {
                         methods: this.methods.map(m => ({
                             shipping_method_id: m.id,
                             enabled: m.enabled,
-                            is_default: m.is_default,
+                            is_default: m.id === this.defaultMethodId,
                             is_available_for_express_fbn: m.is_available_for_express_fbn,
                             is_available_for_merchant_fbp: m.is_available_for_merchant_fbp,
                         }))

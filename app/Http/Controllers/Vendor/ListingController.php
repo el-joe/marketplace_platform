@@ -20,7 +20,8 @@ class ListingController extends Controller
     public function __construct(
         private readonly ListingService $listingService,
         private readonly ListingShippingResolver $shippingResolver,
-    ) {}
+    ) {
+    }
 
     public function index(ListingIndexRequest $request): \Illuminate\Http\JsonResponse
     {
@@ -28,10 +29,10 @@ class ListingController extends Controller
 
         $query = VendorListing::where('vendor_id', $vendorId)
             ->with(['productVariant.product', 'country', 'primaryShippingMethod'])
-            ->when($request->status, fn ($q) => $q->where('status', $request->status))
-            ->when($request->search, fn ($q) => $q->whereHas('productVariant.product', function ($pq) use ($request) {
+            ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->search, fn($q) => $q->whereHas('productVariant.product', function ($pq) use ($request) {
                 $pq->where('name_en', 'like', "%{$request->search}%")
-                   ->orWhere('name_ar', 'like', "%{$request->search}%");
+                    ->orWhere('name_ar', 'like', "%{$request->search}%");
             }))
             ->latest();
 
@@ -51,7 +52,7 @@ class ListingController extends Controller
 
     public function store(CreateListingRequest $request): \Illuminate\Http\JsonResponse
     {
-        $vendor  = auth('vendor')->user()->vendor;
+        $vendor = auth('vendor')->user()->vendor;
         $listing = $this->listingService->create($request->validated(), $vendor);
 
         return ApiResponse::success(
@@ -78,7 +79,7 @@ class ListingController extends Controller
 
         Gate::authorize('updateStatus', $listing);
 
-        if (! in_array($listing->status, ['active', 'paused'])) {
+        if (!in_array($listing->status, ['active', 'paused'])) {
             return ApiResponse::error('Only active or paused listings can have their status changed by the vendor.', [], 422);
         }
 
@@ -94,7 +95,7 @@ class ListingController extends Controller
         Gate::authorize('view', $listing);
 
         $methods = $this->shippingResolver->resolveForListing($listing)
-            ->map(fn ($method) => ['id' => $method->id, 'name' => $method->name])
+            ->map(fn($method) => ['id' => $method->id, 'name' => $method->name])
             ->values();
 
         return ApiResponse::success($methods);
