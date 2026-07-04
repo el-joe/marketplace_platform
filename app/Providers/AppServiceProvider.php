@@ -12,6 +12,9 @@ use App\Events\SubOrderPlaced;
 use App\Listeners\InvalidateVendorDashboardCache;
 use App\Listeners\RecordMarketerConversion;
 use App\Services\Payment\PaymentGatewayFactory;
+use App\Services\Shared\PageBuilderService;
+use App\Services\Customer\ListingQueryService;
+use App\Services\Customer\UnifiedCategoryService;
 use App\Services\Shipping\ShippingCarrierFactory;
 use App\Models\Address;
 use App\Models\FlashSaleSubmission;
@@ -64,6 +67,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PaymentGatewayFactory::class);
         $this->app->singleton(ShippingCarrierFactory::class);
+        $this->app->singleton(PageBuilderService::class);
+        $this->app->singleton(ListingQueryService::class);
+        $this->app->singleton(UnifiedCategoryService::class);
 
         // Replace Laravel's built-in DatabaseChannel with our custom one that
         // writes to the platform's non-standard notifications table schema

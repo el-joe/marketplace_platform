@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Services\Customer\HomeService;
+use App\Services\Shared\PageBuilderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,12 +15,15 @@ class HomeController extends Controller
         private readonly HomeService $home,
     ) {}
 
-    public function index(Request $request, Country $country): JsonResponse
+    public function index(Request $request, Country $country, PageBuilderService $pageBuilder): JsonResponse
     {
         $sessionId = $request->header('X-Session-Id') ?? $request->cookie('session_id') ?? session()->getId();
         $customer  = $request->user('customer');
 
-        $data = $this->home->getHomeData($country, $customer, (string) $sessionId);
+        $deviceTarget = $pageBuilder->detectDevice($request);
+        $audience     = auth('customer')->check() ? 'authenticated' : 'guest';
+
+        $data = $this->home->getHomeData($country, $customer, (string) $sessionId, $deviceTarget, $audience);
 
         return response()->json(['success' => true, 'data' => $data]);
     }

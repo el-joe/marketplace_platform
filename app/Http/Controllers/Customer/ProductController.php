@@ -8,10 +8,13 @@ use App\Http\Resources\Customer\ProductDetailResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Country;
 use App\Models\Product;
+use App\Models\VendorListing;
 use App\Models\Wishlist;
 use App\Services\Customer\BuyBoxService;
+use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\ProductQueryService;
 use App\Services\Customer\ProductViewService;
+use App\Services\Customer\SponsoredProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,23 +22,65 @@ class ProductController extends Controller
 {
     public function __construct(
         private readonly ProductQueryService $products,
+        private readonly ListingQueryService $listings,
         private readonly BuyBoxService $buyBox,
         private readonly ProductViewService $viewService,
+        private readonly SponsoredProductService $sponsored,
     ) {}
 
     public function index(ProductListRequest $request, Country $country): JsonResponse
     {
-        $filters   = $request->validated();
-        $perPage   = (int) ($filters['per_page'] ?? 20);
-        $page      = (int) ($filters['page'] ?? 1);
+        $filters = $request->validated();
+        $perPage = (int) ($filters['per_page'] ?? 20);
+        $page    = (int) ($filters['page'] ?? 1);
 
-        $paginator = $this->products->paginate($country, $filters, $perPage);
-        $facets    = $this->products->facets($country, $filters);
-        $payload   = $this->products->buildProductsPayload($paginator, $country, $page, 'category_top');
+        $builder = VendorListing::where('country_id', $country->id)
+            ->where('status', 'active')
+            ->whereHas('productVariant.product', fn ($q) => $q->where('status', 'active'))
+            ->whereHas('vendor', fn ($q) => $q->where('global_status', 'active'))
+            ->with([
+                'vendor:id,store_name,store_rating_avg',
+                'productVariant.product.images',
+                'productVariant.product.category:id,name_en,name_ar,slug',
+                'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
+            ]);
+
+        $builder = $this->listings->applyFilters($builder, $filters);
+        $builder = $this->listings->applySort($builder, $filters['sort'] ?? 'relevance');
+
+        $paginator = $builder->paginate($perPage);
+
+        $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
+
+        $items = [];
+        foreach ($paginator as $listing) {
+            $product = $listing->productVariant->product;
+
+            $items[] = $this->listings->toCardShape(
+                listing: $listing,
+                product: $product,
+                country: $country,
+                isWishlisted: in_array($product->id, $wishlistIds),
+                isSponsored: false,
+            );
+        }
+
+        $items = $this->sponsored->inject($items, $country, $page, 'category_top');
+
+        $facets = $this->products->facets($country, $filters);
 
         return response()->json([
             'success' => true,
-            'data'    => array_merge($payload, ['facets' => $facets]),
+            'data'    => [
+                'items'  => $items,
+                'facets' => $facets,
+                'meta'   => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page'    => $paginator->lastPage(),
+                    'per_page'     => $paginator->perPage(),
+                    'total'        => $paginator->total(),
+                ],
+            ],
         ]);
     }
 
