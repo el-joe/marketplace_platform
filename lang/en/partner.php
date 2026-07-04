@@ -714,6 +714,7 @@ return [
         'no_warehouse_yet' => "You don't have a registered warehouse yet",
         'no_warehouse_hint' => 'Register your own warehouse to manage stock directly (FBM/FBP fulfillment) instead of sending products to our platform warehouses.',
         'seller_owned' => 'Seller-owned',
+        'capacity_help' => 'Helps you track how full your warehouse is',
         'inactive' => 'Inactive',
         'manage' => 'Manage',
         'total_units' => 'Total units',
