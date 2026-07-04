@@ -34,19 +34,19 @@
 
     {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-        <x-stat-card title="{{ __('admin.ledger.total_debits') }}" :value="'$' . number_format($stats['total_debit'] / 100, 2)"
+        <x-stat-card title="{{ __('admin.ledger_section.cards.total_debit') }}" :value="'$' . number_format($stats['total_debit'] / 100, 2)"
             iconBg="bg-green-100 text-green-600" />
 
-        <x-stat-card title="{{ __('admin.ledger.total_credits') }}" :value="'$' . number_format($stats['total_credit'] / 100, 2)"
+        <x-stat-card title="{{ __('admin.ledger_section.cards.total_credit') }}" :value="'$' . number_format($stats['total_credit'] / 100, 2)"
             iconBg="bg-blue-100 text-blue-600" />
 
         <div
             class="rounded-xl border {{ $stats['balanced'] ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50' }} p-4">
             <p class="text-xs font-medium {{ $stats['balanced'] ? 'text-green-600' : 'text-red-600' }} uppercase mb-1">
-                {{ __('admin.ledger.balance_check') }}</p>
+                {{ __('admin.ledger_section.cards.balance_check') }}</p>
             @if($stats['balanced'])
-                <p class="text-xl font-bold text-green-700">✓ {{ __('admin.ledger.balanced') }}</p>
-                <p class="text-xs text-green-600 mt-0.5">{{ __('admin.ledger.balance_formula') }}</p>
+                <p class="text-xl font-bold text-green-700">✓ {{ __('admin.ledger_section.cards.balanced') }}</p>
+                <p class="text-xs text-green-600 mt-0.5">{{ __('admin.ledger_section.cards.balance_formula') }}</p>
             @else
                 <p class="text-xl font-bold text-red-700">⚠ {{ __('admin.ledger.imbalance') }}</p>
                 <p class="text-xs text-red-600 mt-0.5" dir="ltr">{{ __('admin.ledger.difference') }}: ${{ number_format($stats['difference'] / 100, 2) }}</p>
@@ -58,13 +58,13 @@
     <x-card class="mb-5">
         <div class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[160px]">
-                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger.search_description') }}</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger_section.search_description') }}</label>
                 <input type="text" id="ledger-search-input" class="form-input w-full text-sm" placeholder="{{ __('common.description') }}…">
             </div>
             <div class="w-48">
-                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger.account_type') }}</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger_section.account_type') }}</label>
                 <select id="ledger-filter-account-type" class="form-input w-full text-sm">
-                    <option value="">{{ __('admin.ledger.all_account_types') }}</option>
+                    <option value="">{{ __('admin.ledger_section.all_account_types') }}</option>
                     @foreach($accountTypes as $type)
                         <option value="{{ $type }}">{{ ucwords(str_replace('_', ' ', $type)) }}</option>
                     @endforeach
@@ -83,14 +83,14 @@
                 <input type="date" id="ledger-filter-date-to" class="form-input w-full text-sm" dir="ltr">
             </div>
             <div class="w-56">
-                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger.transaction_group_id') }}</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger_section.transaction_group_id') }}</label>
                 <input type="text" id="ledger-filter-group-id" class="form-input w-full text-sm font-mono"
                     placeholder="UUID…" dir="ltr">
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger.reference_type') }}</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger_section.reference_type') }}</label>
                 <input type="text" id="ledger-filter-reference-type" class="form-input w-full text-sm"
-                    placeholder="{{ __('admin.ledger.reference_type_placeholder') }}">
+                    placeholder="{{ __('admin.ledger_section.reference_type_placeholder') }}">
             </div>
             <div>
                 <button type="button" id="ledger-clear-filters" class="btn btn-secondary btn-sm">{{ __('common.clear') }}</button>
@@ -103,15 +103,15 @@
         <table id="ledger-table" class="w-full" style="width:100%">
             <thead>
                 <tr>
-                    <th>{{ __('common.created_at') }}</th>
-                    <th>{{ __('admin.ledger.group_id') }}</th>
-                    <th>{{ __('admin.ledger.account_type') }}</th>
-                    <th>{{ __('admin.ledger.holder') }}</th>
-                    <th>{{ __('admin.ledger.debit') }}</th>
-                    <th>{{ __('admin.ledger.credit') }}</th>
-                    <th>{{ __('common.currency') }}</th>
-                    <th>{{ __('common.reference') }}</th>
-                    <th>{{ __('common.description') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.created_at') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.group_id') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.account_type') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.holder') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.debit') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.credit') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.currency') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.reference') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.description') }}</th>
                 </tr>
             </thead>
             <tbody></tbody>

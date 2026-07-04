@@ -2979,12 +2979,48 @@ return [
         'title'             => 'دفتر الأستاذ',
         'read_only'        => 'للقراءة فقط',
         'append_only'       => 'الإضافة فقط',
+        'search_description'  => 'البحث بالوصف',
+        'all_account_types'     => 'كل أنواع الحسابات',
+        'transaction_group_id' => 'معرّف مجموعة المعاملات',
+        'reference_type_placeholder' => 'المنتج / الفئة / العلامة التجارية / العرض السريع / الصفحة',
+        'reference_type' => 'نوع المرجع',
+        'account_type'      => 'نوع الحساب',
         'entry_type'        => 'نوع القيد',
         'debit'             => 'مدين',
         'credit'            => 'دائن',
         'running_balance'   => 'الرصيد الجاري',
         'account'           => 'الحساب',
         'no_entries'        => 'لا توجد قيود.',
+        'cards' => [
+            'balance_check'       => 'فحص الرصيد',
+            'balanced'            => 'متوازن',
+            'balance_formula'      => 'الرصيد السابق + المدين - الدائن = الرصيد الجاري',
+            'total_debit'       => 'إجمالي المدين',
+            'total_credit'      => 'إجمالي الدائن',
+            'current_balance'   => 'الرصيد الحالي',
+        ],
+        'account_types' => [
+            'customer_payment'  => 'مدفوعات العميل',
+            'platform_revenue'            => 'إيرادات المنصة',
+            'platform_commission'            => 'عمولة المنصة',
+            'seller_payable'    => 'مستحقات البائع',
+            'gateway_fee'  => 'رسوم البوابة',
+            'tax_payable'    => 'الضرائب المستحقة',
+            'refund_liability' => 'مسؤولية الاسترداد',
+            'shipping_revenue' => 'إيرادات الشحن',
+            'cod_clearing' => 'تسوية الدفع عند الاستلام',
+        ],
+        'data_table' => [
+            'created_at' => 'تاريخ الإنشاء',
+            'group_id' => 'معرّف المجموعة',
+            'account_type' => 'نوع الحساب',
+            'holder' => 'المالك',
+            'debit' => 'مدين',
+            'credit' => 'دائن',
+            'currency' => 'العملة',
+            'reference' => 'المرجع',
+            'description' => 'الوصف',
+        ],
     ],
 
     // ─── Payouts ─────────────────────────────────────────────────────────────
@@ -6363,4 +6399,3 @@ return [
     ],
 
 ];
-

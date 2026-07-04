@@ -29,15 +29,15 @@ class LedgerController extends Controller
         ];
 
         $accountTypes = [
-            'customer_payment',
-            'platform_revenue',
-            'platform_commission',
-            'seller_payable',
-            'gateway_fee',
-            'tax_payable',
-            'refund_liability',
-            'shipping_revenue',
-            'cod_clearing',
+            __('admin.ledger_section.account_types.customer_payment'),
+            __('admin.ledger_section.account_types.platform_revenue'),
+            __('admin.ledger_section.account_types.platform_commission'),
+            __('admin.ledger_section.account_types.seller_payable'),
+            __('admin.ledger_section.account_types.gateway_fee'),
+            __('admin.ledger_section.account_types.tax_payable'),
+            __('admin.ledger_section.account_types.refund_liability'),
+            __('admin.ledger_section.account_types.shipping_revenue'),
+            __('admin.ledger_section.account_types.cod_clearing'),
         ];
 
         return view('admin.ledger.index', compact('stats', 'accountTypes'));
