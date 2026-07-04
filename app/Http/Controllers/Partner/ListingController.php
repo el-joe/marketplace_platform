@@ -10,6 +10,7 @@ use App\Models\ProductImage;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
+use App\Services\ListingShippingResolver;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ use Illuminate\View\View;
 class ListingController extends Controller
 {
     use HasDataTable;
+
+    public function __construct(private readonly ListingShippingResolver $shippingResolver) {}
 
     // ─────────────────────────────────────────────────────────────────────────
     // Helpers
@@ -280,6 +283,7 @@ class ListingController extends Controller
             'productVariant.product.images',
             'warehouseInventories.warehouse',
             'country',
+            'primaryShippingMethod',
         ]);
 
         // Last 20 inventory movements for all warehouse inventories of this listing
@@ -289,7 +293,9 @@ class ListingController extends Controller
             ->limit(20)
             ->get();
 
-        return view('partner.listings.show', compact('listing', 'movements'));
+        $availableShippingMethods = $this->shippingResolver->resolveForListing($listing);
+
+        return view('partner.listings.show', compact('listing', 'movements', 'availableShippingMethods'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -483,6 +489,38 @@ class ListingController extends Controller
             'success' => true,
             'message' => 'تم تحديث السعر بنجاح.',
             'price_formatted' => number_format($listing->price / 100, 2),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Update Shipping Method
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function updateShipping(Request $request, VendorListing $listing): JsonResponse
+    {
+        $this->authoriseListing($listing);
+
+        $request->validate([
+            'primary_shipping_method_id' => ['required', 'uuid', 'exists:shipping_methods,id'],
+        ]);
+
+        $availableMethods = $this->shippingResolver->resolveForListing($listing);
+
+        if (!$availableMethods->contains('id', $request->primary_shipping_method_id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'طريقة الشحن هذه غير متاحة لهذه القائمة.',
+            ], 422);
+        }
+
+        $listing->update(['primary_shipping_method_id' => $request->primary_shipping_method_id]);
+
+        $method = $availableMethods->firstWhere('id', $request->primary_shipping_method_id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث طريقة الشحن بنجاح.',
+            'shipping_method_name' => $method->name,
         ]);
     }
 

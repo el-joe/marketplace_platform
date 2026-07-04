@@ -32,6 +32,10 @@ class VendorListingResource extends JsonResource
                 'id'   => $this->country->id,
                 'name' => $this->country->name,
             ]),
+            'primary_shipping_method' => $this->whenLoaded('primaryShippingMethod', fn () => $this->primaryShippingMethod ? [
+                'id'   => $this->primaryShippingMethod->id,
+                'name' => $this->primaryShippingMethod->name,
+            ] : null),
             'created_at'           => $this->created_at->toIso8601String(),
             'updated_at'           => $this->updated_at->toIso8601String(),
         ];
