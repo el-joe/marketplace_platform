@@ -352,9 +352,21 @@ return [
         'minimum_age' => 'Minimum age',
         'create_product' => 'Create Product',
         'save_changes' => 'Save Changes',
+        'cancel' => 'Cancel',
         'countries_placeholder' => [
              'same_as_default' => 'Same as default',
         ],
+        'seo_placeholder' => [
+            'title' => 'Appears in browser tab & search results… (max 70 chars)...',
+            'description' => 'Brief description for search engines (max 160 chars)…',
+            'slug' => 'Enter URL slug (e.g., my-product-name)',
+            'search_preview_placeholder' => 'Add a meta description to improve search engine visibility.',
+        ],
+        'search_preview' => 'Search Preview',
+        'seo_title' => 'SEO Title',
+        'seo_description' => 'SEO Description',
+        'seo_slug' => 'SEO Slug',
+        'seo_slug_help' => 'Auto-generated from title. Click the lock to edit manually.',
     ],
     // ─── Dashboard ───────────────────────────────────────────────────────────
     'dashboard' => [

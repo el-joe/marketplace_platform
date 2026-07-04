@@ -449,32 +449,32 @@
             >
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label for="seo_title" class="form-label">SEO Title</label>
+                        <label for="seo_title" class="form-label">{{ __('admin.product_form.seo_title') }}</label>
                         <span class="text-xs text-gray-400" data-char-counter="seo_title" data-max="70">0 / 70</span>
                     </div>
                     <input type="text" name="seo_title" id="seo_title"
                         value="{{ $val('seo_title') }}" maxlength="70"
                         class="form-input w-full @error('seo_title') is-invalid @enderror"
-                        placeholder="Appears in browser tab &amp; search results…"
+                        placeholder="{{ __('admin.product_form.seo_placeholder.title') }}"
                     />
                     @error('seo_title') <p class="form-error">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label for="seo_description" class="form-label">SEO Description</label>
+                        <label for="seo_description" class="form-label">{{ __('admin.product_form.seo_description') }}</label>
                         <span class="text-xs text-gray-400" data-char-counter="seo_description" data-max="160">0 / 160</span>
                     </div>
                     <textarea name="seo_description" id="seo_description"
                         maxlength="160" rows="3"
                         class="form-textarea w-full @error('seo_description') is-invalid @enderror"
-                        placeholder="Brief description for search engines (max 160 chars)…">{{ $val('seo_description') }}</textarea>
+                        placeholder="{{ __('admin.product_form.seo_placeholder.description') }}">{{ $val('seo_description') }}</textarea>
                     @error('seo_description') <p class="form-error">{{ $message }}</p> @enderror
                 </div>
 
                 <x-form.slug-input
                     name="slug"
-                    label="URL Slug"
+                    label="{{ __('admin.product_form.seo_slug') }}"
                     source-field="name_en"
                     :value="$val('slug')"
                     :prefix="rtrim(config('app.url'), '/') . '/products/'"
@@ -482,13 +482,13 @@
 
                 {{-- SEO preview card --}}
                 <div class="rounded-xl border border-gray-200 p-4 bg-gray-50">
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Search Preview</p>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ __('admin.product_form.search_preview') }}</p>
                     <p id="seo-preview-title" class="text-base font-medium text-blue-700 hover:underline cursor-pointer truncate">
                         {{ $val('seo_title') ?: $val('name_en') ?: 'Product title' }}
                     </p>
                     <p class="text-xs text-green-700 mb-1">{{ rtrim(config('app.url'), '/') }}/products/<span id="seo-preview-slug">{{ $val('slug') ?: 'product-slug' }}</span></p>
                     <p id="seo-preview-desc" class="text-sm text-gray-600 line-clamp-2">
-                        {{ $val('seo_description') ?: 'Add a meta description to improve search engine visibility.' }}
+                        {{ $val('seo_description') ?: __('admin.product_form.seo_placeholder.search_preview_placeholder') }}
                     </p>
                 </div>
             </div>
@@ -597,7 +597,7 @@
                 </button>
                 <a href="{{ route('admin.products.index') }}"
                     class="btn btn-ghost w-full justify-center text-center block">
-                    Cancel
+                    {{ __('admin.product_form.cancel') }}
                 </a>
             </div>
 
