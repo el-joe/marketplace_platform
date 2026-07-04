@@ -74,7 +74,7 @@
         {{-- Revenue chart (2/3) --}}
         <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="font-semibold text-gray-800">الإيرادات — آخر 7 أيام</h3>
+                <h3 class="font-semibold text-gray-800">{{ __('partner.dashboard.revenue_last_7_days') }}</h3>
                 <span class="text-xs text-gray-400">{{ $currency }}</span>
             </div>
             <canvas id="revenue-chart" height="200"></canvas>
@@ -82,7 +82,7 @@
 
         {{-- Quick actions (1/3) --}}
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 class="font-semibold text-gray-800 mb-4">إجراءات سريعة</h3>
+            <h3 class="font-semibold text-gray-800 mb-4">{{ __('partner.dashboard.quick_actions') }}</h3>
             <div class="space-y-2">
                 @if(Route::has('partner.orders.index'))
                     <a href="{{ route('partner.orders.index', ['status' => 'placed']) }}"
@@ -91,8 +91,8 @@
                             <x-heroicon name="shopping-bag" class="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-800">معالجة الطلبات</p>
-                            <p class="text-xs text-gray-500">{{ $stats['pending_orders'] }} طلب جديد</p>
+                            <p class="text-sm font-medium text-gray-800">{{ __('partner.dashboard.process_orders') }}</p>
+                            <p class="text-xs text-gray-500">{{ __('partner.dashboard.new_orders_count', ['count' => $stats['pending_orders']]) }}</p>
                         </div>
                     </a>
                 @endif
@@ -103,8 +103,8 @@
                             <x-heroicon name="plus" class="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-800">إضافة منتج</p>
-                            <p class="text-xs text-gray-500">قائمة جديدة</p>
+                            <p class="text-sm font-medium text-gray-800">{{ __('partner.dashboard.add_product') }}</p>
+                            <p class="text-xs text-gray-500">{{ __('partner.dashboard.new_listing') }}</p>
                         </div>
                     </a>
                 @endif
@@ -115,8 +115,8 @@
                             <x-heroicon name="cube" class="w-5 h-5 text-yellow-600" />
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-800">تحديث المخزون</p>
-                            <p class="text-xs text-gray-500">{{ $stats['low_stock'] }} منخفض</p>
+                            <p class="text-sm font-medium text-gray-800">{{ __('partner.dashboard.update_inventory') }}</p>
+                            <p class="text-xs text-gray-500">{{ __('partner.dashboard.low_stock_count', ['count' => $stats['low_stock']]) }}</p>
                         </div>
                     </a>
                 @endif
@@ -127,9 +127,9 @@
                             <x-heroicon name="banknotes" class="w-5 h-5 text-purple-600" />
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-800">المدفوعات</p>
+                            <p class="text-sm font-medium text-gray-800">{{ __('partner.dashboard.pending_payout') }}</p>
                             <p class="text-xs text-gray-500">{{ number_format($stats['pending_payout'], 2) }} {{ $currency }}
-                                معلق</p>
+                                {{ __('partner.dashboard.pending_amount') }}</p>
                         </div>
                     </a>
                 @endif
@@ -140,26 +140,26 @@
     {{-- Recent orders --}}
     <div class="bg-white rounded-2xl border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-gray-800">أحدث الطلبات</h3>
+            <h3 class="font-semibold text-gray-800">{{ __('partner.dashboard.recent_orders') }}</h3>
             @if(Route::has('partner.orders.index'))
                 <a href="{{ route('partner.orders.index') }}" class="text-sm text-primary-600 hover:underline">
-                    عرض الكل
+                    {{ __('partner.dashboard.view_all') }}
                 </a>
             @endif
         </div>
 
         @if($stats['recent_orders']->isEmpty())
-            <div class="text-center py-8 text-gray-400 text-sm">لا توجد طلبات بعد</div>
+            <div class="text-center py-8 text-gray-400 text-sm">{{ __('partner.dashboard.no_orders_yet') }}</div>
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-100 text-xs text-gray-500 uppercase">
-                            <th class="text-right pb-2 font-medium">رقم الطلب</th>
-                            <th class="text-right pb-2 font-medium">الحالة</th>
-                            <th class="text-right pb-2 font-medium">المبلغ</th>
-                            <th class="text-right pb-2 font-medium">موعد الشحن</th>
-                            <th class="text-right pb-2 font-medium">التاريخ</th>
+                            <th class="text-right pb-2 font-medium">{{ __('partner.dashboard.order_number') }}</th>
+                            <th class="text-right pb-2 font-medium">{{ __('common.status') }}</th>
+                            <th class="text-right pb-2 font-medium">{{ __('common.amount') }}</th>
+                            <th class="text-right pb-2 font-medium">{{ __('partner.dashboard.ship_deadline') }}</th>
+                            <th class="text-right pb-2 font-medium">{{ __('common.date') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">

@@ -233,7 +233,7 @@ $businessTypeLabels = [
                             {{ __('partner.profile.your_attention') }}
                         </p>
                         <p class="mt-0.5 text-xs text-red-600">
-                            {{ $mandatoryNeedingAttention->pluck('type')->map(fn($t) => session('locale', 'ar') === 'ar' ? ($t->name_ar ?? $t->name_en) : ($t->name_en ?? $t->name_ar))->join('، ') }}
+                            {{ $mandatoryNeedingAttention->pluck('type')->map(fn($t) => session('locale', 'ar') === 'ar' ? ($t->name_ar ?? $t->name_en) : ($t->name_en ?? $t->name_ar))->join(session('locale', 'ar') === 'ar' ? '، ' : ', ') }}
                         </p>
                     </div>
                 </div>

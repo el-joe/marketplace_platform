@@ -156,7 +156,7 @@
             <div>
                 <h3 class="text-sm font-semibold text-blue-900">{{ __('partner.flash_sales_extra.submit_product_title') }}</h3>
                 <p class="text-xs text-blue-700 mt-0.5">
-                    {{ __('partner.flash_sales_extra.submission_ends', ['date' => $flashSale->submission_closes_at?->translatedFormat('j M Y الساعة H:i') ?? '—']) }}
+                    {{ __('partner.flash_sales_extra.submission_ends', ['date' => $flashSale->submission_closes_at ? $flashSale->submission_closes_at->translatedFormat('j M Y') . ' ' . __('common.at_time') . ' ' . $flashSale->submission_closes_at->format('H:i') : '—']) }}
                 </p>
             </div>
             <button id="btn-add-product" type="button"

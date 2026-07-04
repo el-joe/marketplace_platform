@@ -97,20 +97,20 @@ function initCreateWizard() {
             const starts = form.querySelector('#starts_at').value;
             const ends = form.querySelector('#ends_at').value;
             const attr = form.querySelector('#attribution_model').value;
-            if (!name) { alert('يرجى إدخال اسم الحملة.'); return false; }
-            if (!type) { alert('يرجى اختيار نوع الحملة.'); return false; }
-            if (!starts || !ends) { alert('يرجى تحديد تواريخ الحملة.'); return false; }
-            if (!attr) { alert('يرجى اختيار نموذج الإسناد.'); return false; }
+            if (!name) { alert(window.PARTNER_TRANSLATIONS?.enterCampaignName ?? 'Please enter a campaign name.'); return false; }
+            if (!type) { alert(window.PARTNER_TRANSLATIONS?.selectCampaignType ?? 'Please select a campaign type.'); return false; }
+            if (!starts || !ends) { alert(window.PARTNER_TRANSLATIONS?.selectCampaignDates ?? 'Please select the campaign dates.'); return false; }
+            if (!attr) { alert(window.PARTNER_TRANSLATIONS?.selectAttributionModel ?? 'Please select an attribution model.'); return false; }
             return true;
         }
         if (step === 2) {
             const rate = form.querySelector('#offered_commission_rate').value;
             const commType = form.querySelector('[name="commission_type"]:checked')?.value;
             if (!rate || isNaN(rate) || rate < 0 || rate > 100) {
-                alert('يرجى إدخال نسبة عمولة صحيحة بين 0 و 100.');
+                alert(window.PARTNER_TRANSLATIONS?.enterValidCommissionRate ?? 'Please enter a valid commission rate between 0 and 100.');
                 return false;
             }
-            if (!commType) { alert('يرجى اختيار نوع العمولة.'); return false; }
+            if (!commType) { alert(window.PARTNER_TRANSLATIONS?.selectCommissionType ?? 'Please select a commission type.'); return false; }
             return true;
         }
         if (step === 3) {
@@ -344,7 +344,7 @@ function initShowPage() {
     // Revoke invitation buttons
     document.querySelectorAll('.btn-revoke').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (!confirm('هل تريد سحب هذه الدعوة؟')) return;
+            if (!confirm(window.PARTNER_TRANSLATIONS?.confirmWithdrawInvitation ?? 'Withdraw this invitation?')) return;
             const invId = btn.dataset.invitationId;
             const { ok, data } = await apiPost(`${cfg.revokeBaseUrl}/${invId}/revoke`, {}, 'DELETE');
             if (ok && data.success) {

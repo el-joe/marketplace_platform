@@ -15,6 +15,11 @@
             listingsUrl:   "{{ route('partner.listings.datatable') }}",
             categoriesUrl: "{{ route('partner.ads.categories') }}",
         };
+        window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
+        Object.assign(window.PARTNER_TRANSLATIONS, {
+            confirmPauseCampaign: @json(__('partner.ads.confirm_pause_campaign')),
+            confirmResumeCampaign: @json(__('partner.ads.confirm_resume_campaign')),
+        });
     </script>
 @endpush
 

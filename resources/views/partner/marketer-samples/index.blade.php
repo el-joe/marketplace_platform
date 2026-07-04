@@ -140,11 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Reload page to reflect status change
                 location.reload();
             } else {
-                alert(data.message ?? 'حدث خطأ');
+                alert(data.message ?? @json(__('partner.marketer_samples.generic_error')));
                 buttonEl.disabled = false;
             }
         } catch (e) {
-            alert('حدث خطأ في الاتصال');
+            alert(@json(__('partner.marketer_samples.connection_error')));
             buttonEl.disabled = false;
         }
     }
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.btn-reject').forEach(btn => {
         btn.addEventListener('click', () => {
-            if (confirm('هل أنت متأكد من رفض هذا الطلب؟')) {
+            if (confirm(@json(__('partner.marketer_samples.confirm_reject')))) {
                 postAction(btn.dataset.url, btn, 'rejected');
             }
         });

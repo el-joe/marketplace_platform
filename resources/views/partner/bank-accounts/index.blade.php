@@ -12,6 +12,10 @@
             deleteUrl:     '{{ url('bank-accounts') }}',
             csrf:          '{{ csrf_token() }}',
         };
+        window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
+        Object.assign(window.PARTNER_TRANSLATIONS, {
+            confirmDeleteBankAccount: @json(__('partner.bank_accounts.confirm_delete')),
+        });
     </script>
 @endpush
 

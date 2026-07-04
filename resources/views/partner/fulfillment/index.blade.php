@@ -103,7 +103,7 @@
                 <div class="bg-white rounded-xl border border-gray-100 p-4">
                     <div class="flex items-start justify-between mb-2">
                         <div>
-                            <p class="font-semibold text-gray-800 text-sm">{{ $listing->productVariant?->product?->name_ar ?? $listing->productVariant?->product?->name_en ?? 'منتج' }}</p>
+                            <p class="font-semibold text-gray-800 text-sm">{{ $listing->productVariant?->product?->name_ar ?? $listing->productVariant?->product?->name_en ?? __('common.product') }}</p>
                             <p class="text-xs text-gray-400">SKU: {{ $listing->vendor_sku ?? '—' }}</p>
                         </div>
                         <span class="badge badge-indigo text-xs">FBN</span>
@@ -274,7 +274,7 @@
                 @php $rule = $listing->marketplaceShippingRule ?? null; @endphp
                 <div class="bg-white rounded-xl border border-gray-100 p-4">
                     <p class="font-semibold text-gray-800 text-sm mb-1">
-                        {{ $listing->productVariant?->product?->name_ar ?? $listing->productVariant?->product?->name_en ?? 'منتج' }}
+                        {{ $listing->productVariant?->product?->name_ar ?? $listing->productVariant?->product?->name_en ?? __('common.product') }}
                     </p>
                     @if($rule)
                         <div class="flex flex-wrap gap-1.5 mb-2">

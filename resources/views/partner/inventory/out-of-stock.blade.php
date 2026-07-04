@@ -71,7 +71,7 @@
                                     @endif
                                 </td>
                                 <td class="py-3 px-4">
-                                    <p class="text-gray-700 text-xs">{{ $row->variant_name ?: 'الافتراضية' }}</p>
+                                    <p class="text-gray-700 text-xs">{{ $row->variant_name ?: __('partner.inventory.default_variant') }}</p>
                                     <p class="font-mono text-gray-400 text-xs">{{ $row->sku }}</p>
                                 </td>
                                 <td class="py-3 px-4 text-gray-600 text-xs">{{ $row->warehouse_name }}</td>

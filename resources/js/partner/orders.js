@@ -136,7 +136,7 @@ function initConfirmAction() {
                 cancelButtonText: 'إلغاء',
                 confirmButtonColor: '#2563eb',
             }).then(r => r.isConfirmed)
-            : confirm('هل تريد تأكيد هذا الطلب؟');
+            : confirm(window.PARTNER_TRANSLATIONS?.confirmOrderConfirm ?? 'Confirm this order?');
 
         if (!ok) return;
 
@@ -251,7 +251,7 @@ function initOutForDeliveryAction() {
                 cancelButtonText: 'إلغاء',
                 confirmButtonColor: '#2563eb',
             }).then(r => r.isConfirmed)
-            : confirm('هل تريد تحديث الحالة إلى "في التوصيل"؟');
+            : confirm(window.PARTNER_TRANSLATIONS?.confirmOutForDelivery ?? "Update status to Out for Delivery?");
 
         if (!ok) return;
 
@@ -286,7 +286,7 @@ function initDeliverAction() {
                 cancelButtonText: 'إلغاء',
                 confirmButtonColor: '#15803d',
             }).then(r => r.isConfirmed)
-            : confirm('هل تريد تأكيد تسليم هذا الطلب للعميل؟');
+            : confirm(window.PARTNER_TRANSLATIONS?.confirmDeliveryConfirm ?? 'Confirm delivery to customer?');
 
         if (!ok) return;
 

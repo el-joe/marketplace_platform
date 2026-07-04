@@ -9,6 +9,14 @@
 
 @push('scripts')
     @vite('resources/js/partner/orders.js')
+    <script>
+        window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
+        Object.assign(window.PARTNER_TRANSLATIONS, {
+            confirmOrderConfirm: @json(__('partner.orders.confirm_order_confirm')),
+            confirmOutForDelivery: @json(__('partner.orders.confirm_out_for_delivery')),
+            confirmDeliveryConfirm: @json(__('partner.orders.confirm_delivery_confirm')),
+        });
+    </script>
 @endpush
 
 @section('content')

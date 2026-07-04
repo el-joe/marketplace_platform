@@ -220,7 +220,7 @@ function initDelete() {
 
         const confirmed = window.confirmDelete
             ? await window.confirmDelete('هل تريد حذف هذا الحساب البنكي؟')
-            : window.confirm('هل تريد حذف هذا الحساب البنكي؟');
+            : window.confirm(window.PARTNER_TRANSLATIONS?.confirmDeleteBankAccount ?? 'Delete this bank account?');
 
         if (!confirmed) return;
 

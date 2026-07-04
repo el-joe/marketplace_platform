@@ -11,6 +11,16 @@
             listingsUrl:   "{{ route('partner.listings.datatable') }}",
             mode:          'create',
         };
+        window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
+        Object.assign(window.PARTNER_TRANSLATIONS, {
+            enterCampaignName: @json(__('partner.campaign_offers.enter_campaign_name')),
+            selectCampaignType: @json(__('partner.campaign_offers.select_campaign_type')),
+            selectCampaignDates: @json(__('partner.campaign_offers.select_campaign_dates')),
+            selectAttributionModel: @json(__('partner.campaign_offers.select_attribution_model')),
+            enterValidCommissionRate: @json(__('partner.campaign_offers.enter_valid_commission_rate')),
+            selectCommissionType: @json(__('partner.campaign_offers.select_commission_type')),
+            confirmWithdrawInvitation: @json(__('partner.campaign_offers.confirm_withdraw_invitation')),
+        });
     </script>
 @endpush
 
@@ -237,7 +247,7 @@
                                            min="0" step="0.01"
                                            class="w-full rounded-lg border border-gray-300 ps-3 pe-14 py-2.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                            placeholder="0.00">
-                                    <span class="absolute inset-y-0 end-3 flex items-center text-gray-400 text-sm">ر.س</span>
+                                    <span class="absolute inset-y-0 end-3 flex items-center text-gray-400 text-sm">{{ __('common.sar') }}</span>
                                 </div>
                             </div>
                             <div>
@@ -250,7 +260,7 @@
                                            min="0" step="0.01"
                                            class="w-full rounded-lg border border-gray-300 ps-3 pe-14 py-2.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                            placeholder="0.00">
-                                    <span class="absolute inset-y-0 end-3 flex items-center text-gray-400 text-sm">ر.س</span>
+                                    <span class="absolute inset-y-0 end-3 flex items-center text-gray-400 text-sm">{{ __('common.sar') }}</span>
                                 </div>
                             </div>
                         </div>

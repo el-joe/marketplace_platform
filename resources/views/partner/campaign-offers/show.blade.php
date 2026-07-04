@@ -17,6 +17,16 @@
             marketerSearchUrl:  "{{ route('partner.campaign-offers.marketers.search') }}",
             offerStatus:        "{{ $offer->status }}",
         };
+        window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
+        Object.assign(window.PARTNER_TRANSLATIONS, {
+            enterCampaignName: @json(__('partner.campaign_offers.enter_campaign_name')),
+            selectCampaignType: @json(__('partner.campaign_offers.select_campaign_type')),
+            selectCampaignDates: @json(__('partner.campaign_offers.select_campaign_dates')),
+            selectAttributionModel: @json(__('partner.campaign_offers.select_attribution_model')),
+            enterValidCommissionRate: @json(__('partner.campaign_offers.enter_valid_commission_rate')),
+            selectCommissionType: @json(__('partner.campaign_offers.select_commission_type')),
+            confirmWithdrawInvitation: @json(__('partner.campaign_offers.confirm_withdraw_invitation')),
+        });
     </script>
 @endpush
 
@@ -140,13 +150,13 @@
                     @if ($offer->budget_per_marketer_cents)
                         <div>
                             <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">{{ __('partner.campaign_offers.budget_per_marketer_label') }}</p>
-                            <p class="font-medium text-gray-900">{{ number_format($offer->budget_per_marketer_cents / 100, 2) }} ر.س</p>
+                            <p class="font-medium text-gray-900">{{ number_format($offer->budget_per_marketer_cents / 100, 2) }} {{ __('common.sar') }}</p>
                         </div>
                     @endif
                     @if ($offer->total_budget_cents)
                         <div>
                             <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">{{ __('partner.campaign_offers.total_budget_label') }}</p>
-                            <p class="font-medium text-gray-900">{{ number_format($offer->total_budget_cents / 100, 2) }} ر.س</p>
+                            <p class="font-medium text-gray-900">{{ number_format($offer->total_budget_cents / 100, 2) }} {{ __('common.sar') }}</p>
                         </div>
                     @endif
                     <div>

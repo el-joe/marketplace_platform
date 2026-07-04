@@ -15,6 +15,12 @@
             csrf: '{{ csrf_token() }}',
             status: '{{ $subOrder->status }}',
         };
+        window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
+        Object.assign(window.PARTNER_TRANSLATIONS, {
+            confirmOrderConfirm: @json(__('partner.orders.confirm_order_confirm')),
+            confirmOutForDelivery: @json(__('partner.orders.confirm_out_for_delivery')),
+            confirmDeliveryConfirm: @json(__('partner.orders.confirm_delivery_confirm')),
+        });
     </script>
 @endpush
 
@@ -399,7 +405,7 @@
     <div id="ship-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md" @click.stop>
             <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="font-semibold text-gray-900">تأكيد الشحن</h3>
+                <h3 class="font-semibold text-gray-900">{{ __('partner.orders.confirm_shipment') }}</h3>
                 <button id="ship-modal-close" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <x-heroicon name="x-mark" class="w-5 h-5" />
                 </button>
@@ -407,20 +413,20 @@
             <form id="ship-form" class="p-6 space-y-4">
                 @if($subOrder->shippingMethod)
                     <div class="text-sm text-gray-600 bg-gray-50 rounded-xl px-3 py-2.5">
-                        طريقة الشحن المعينة: <span class="font-medium text-gray-800">{{ $subOrder->shippingMethod->name }}</span>
+                        {{ __('partner.orders.assigned_shipping_method') }} <span class="font-medium text-gray-800">{{ $subOrder->shippingMethod->name }}</span>
                         @if($subOrder->carrier)
-                            عبر <span class="font-medium text-gray-800">{{ $subOrder->carrier->name }}</span>
+                            {{ __('partner.orders.via_carrier') }} <span class="font-medium text-gray-800">{{ $subOrder->carrier->name }}</span>
                         @endif
                     </div>
                 @endif
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">رقم التتبع</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.orders.tracking_number') }}</label>
                     <input type="text" name="tracking_number" required
                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                        placeholder="TRACK123456">
+                        placeholder="{{ __('partner.orders.tracking_number_placeholder') }}">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">تاريخ التسليم المتوقع</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.orders.expected_delivery_date') }}</label>
                     <input type="date" name="estimated_delivery_date" required min="{{ date('Y-m-d') }}"
                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
                 </div>
@@ -428,11 +434,11 @@
                 <div class="flex gap-3 pt-2">
                     <button type="submit"
                         class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm">
-                        تأكيد الشحن
+                        {{ __('partner.orders.confirm_shipment') }}
                     </button>
                     <button type="button" id="ship-cancel-btn"
                         class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl transition-colors text-sm">
-                        إلغاء
+                        {{ __('common.cancel') }}
                     </button>
                 </div>
             </form>
@@ -443,41 +449,41 @@
     <div id="cancel-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md" @click.stop>
             <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="font-semibold text-gray-900 text-red-700">إلغاء الطلب</h3>
+                <h3 class="font-semibold text-gray-900 text-red-700">{{ __('partner.orders.cancel_order') }}</h3>
                 <button id="cancel-modal-close" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <x-heroicon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
             <form id="cancel-form" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">سبب الإلغاء</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.orders.cancel_reason') }}</label>
                     <select name="reason" required
                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/40">
-                        <option value="">اختر السبب...</option>
-                        <option value="out_of_stock">نفاد المخزون</option>
-                        <option value="unable_to_fulfill">غير قادر على التنفيذ</option>
-                        <option value="duplicate_order">طلب مكرر</option>
-                        <option value="customer_request">طلب العميل</option>
-                        <option value="pricing_error">خطأ في السعر</option>
-                        <option value="other">سبب آخر</option>
+                        <option value="">{{ __('partner.orders.select_reason') }}</option>
+                        <option value="out_of_stock">{{ __('partner.orders.reason_out_of_stock') }}</option>
+                        <option value="unable_to_fulfill">{{ __('partner.orders.reason_unable_to_fulfill') }}</option>
+                        <option value="duplicate_order">{{ __('partner.orders.reason_duplicate_order') }}</option>
+                        <option value="customer_request">{{ __('partner.orders.reason_customer_request') }}</option>
+                        <option value="pricing_error">{{ __('partner.orders.reason_pricing_error') }}</option>
+                        <option value="other">{{ __('partner.orders.reason_other') }}</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">ملاحظات إضافية <span
-                            class="text-gray-400">(اختياري)</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.orders.additional_notes') }} <span
+                            class="text-gray-400">({{ __('common.optional') }})</span></label>
                     <textarea name="reason_notes" rows="3"
                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/40 resize-none"
-                        placeholder="أي تفاصيل إضافية..."></textarea>
+                        placeholder="{{ __('partner.orders.additional_notes_placeholder') }}"></textarea>
                 </div>
                 <div id="cancel-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3"></div>
                 <div class="flex gap-3 pt-2">
                     <button type="submit"
                         class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm">
-                        تأكيد الإلغاء
+                        {{ __('partner.orders.confirm_cancellation') }}
                     </button>
                     <button type="button" id="cancel-cancel-btn"
                         class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl transition-colors text-sm">
-                        تراجع
+                        {{ __('common.back') }}
                     </button>
                 </div>
             </form>

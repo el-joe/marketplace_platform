@@ -743,7 +743,7 @@ window.pauseCampaign = async function (url) {
             confirmButtonText: 'إيقاف',
             cancelButtonText:  'إلغاء',
           }).then(r => r.isConfirmed)
-        : confirm('هل تريد إيقاف الحملة مؤقتاً؟');
+        : confirm(window.PARTNER_TRANSLATIONS?.confirmPauseCampaign ?? 'Pause this campaign?');
 
     if (!ok) return;
     try {
@@ -764,7 +764,7 @@ window.resumeCampaign = async function (url) {
             confirmButtonText: 'استئناف',
             cancelButtonText:  'إلغاء',
           }).then(r => r.isConfirmed)
-        : confirm('هل تريد استئناف الحملة؟');
+        : confirm(window.PARTNER_TRANSLATIONS?.confirmResumeCampaign ?? 'Resume this campaign?');
 
     if (!ok) return;
     try {
