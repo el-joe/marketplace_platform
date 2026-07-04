@@ -34,6 +34,27 @@ class ListingQueryService
     }
 
     /**
+     * Base listing query for text search: active listings whose product matches
+     * the query, active vendor. Kept listing-centric so the same product sold by
+     * multiple vendors appears once per vendor listing, not deduped per product.
+     */
+    public function baseSearchQuery(Country $country, string $query)
+    {
+        return VendorListing::where('country_id', $country->id)
+            ->where('status', 'active')
+            ->whereHas('productVariant.product', function ($q) use ($query) {
+                $q->where('status', 'active')
+                    ->where(function ($q2) use ($query) {
+                        $q2->where('name_en', 'like', "%{$query}%")
+                            ->orWhere('name_ar', 'like', "%{$query}%")
+                            ->orWhere('short_desc_en', 'like', "%{$query}%")
+                            ->orWhere('model_number', 'like', "%{$query}%");
+                    });
+            })
+            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'));
+    }
+
+    /**
      * Apply the standard grid filters (price, brand, rating, condition, fulfillment,
      * stock, attributes) to a VendorListing query built from baseCategoryQuery().
      *
