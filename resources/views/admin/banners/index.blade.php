@@ -98,7 +98,7 @@
                 <thead>
                     <tr class="border-b border-gray-100 text-start">
                         <th class="py-2 pr-3 w-16 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.image') }}</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.name') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners_section.data_table.name') }}</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.placement') }}</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.country') }}</th>
                         <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.banners.status') }}</th>

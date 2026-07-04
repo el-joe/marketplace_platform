@@ -414,7 +414,7 @@
                                         name="countries[{{ $country->id }}][name_override_en]"
                                         value="{{ $cNameOverride }}"
                                         :disabled="!avail"
-                                        placeholder="Same as default"
+                                        placeholder="{{ __('admin.product_form.countries_placeholder.same_as_default') }}"
                                         class="form-input text-sm py-1.5 w-full disabled:opacity-40 disabled:cursor-not-allowed"
                                     />
                                 </td>
@@ -506,16 +506,16 @@
 
             {{-- Status card --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
-                <h3 class="text-sm font-semibold text-gray-800">Status</h3>
+                <h3 class="text-sm font-semibold text-gray-800">{{ __('admin.product_form.status') }}</h3>
                 <x-form.select
                     name="status"
                     label=""
                     :value="$val('status', 'draft')"
                     :options="[
-                        'draft'        => 'Draft',
-                        'active'       => 'Active',
-                        'discontinued' => 'Discontinued',
-                        'restricted'   => 'Restricted',
+                        'draft'        => __('admin.product_form.Draft'),
+                        'active'       => __('admin.product_form.Active'),
+                        'discontinued' => __('admin.product_form.Discontinued'),
+                        'restricted'   => __('admin.product_form.Restricted'),
                     ]"
                 />
                 @if($isEdit)
@@ -536,7 +536,7 @@
 
             {{-- Classification card --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-1">
-                <h3 class="text-sm font-semibold text-gray-800 mb-3">Classification</h3>
+                <h3 class="text-sm font-semibold text-gray-800 mb-3">{{ __('admin.classification') }}</h3>
 
                 {{-- has_variants — synced to Alpine hasVariants --}}
                 <label class="flex items-center gap-3 py-2 cursor-pointer select-none w-full group">
@@ -549,12 +549,12 @@
                         <span class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
                             :class="hasVariants ? 'translate-x-5' : 'translate-x-0'"></span>
                     </div>
-                    <span class="text-sm text-gray-700 group-hover:text-gray-900">Has variants</span>
+                    <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ __('admin.has_variant') }}</span>
                 </label>
 
-                <x-form.toggle name="is_featured"         label="Featured on homepage" :value="$bool('is_featured')" />
-                <x-form.toggle name="requires_brand_auth" label="Requires brand auth"  :value="$bool('requires_brand_auth')" />
-                <x-form.toggle name="is_hazardous"        label="Hazardous item"       :value="$bool('is_hazardous')" />
+                <x-form.toggle name="is_featured"         label="{{ __('admin.featured_on_homepage') }}" :value="$bool('is_featured')" />
+                <x-form.toggle name="requires_brand_auth" label="{{ __('admin.requires_brand_auth') }}"  :value="$bool('requires_brand_auth')" />
+                <x-form.toggle name="is_hazardous"        label="{{ __('admin.is_hazardous') }}"       :value="$bool('is_hazardous')" />
 
                 {{-- is_age_restricted — synced to Alpine isAgeRestricted --}}
                 <label class="flex items-center gap-3 py-2 cursor-pointer select-none w-full group">
@@ -567,13 +567,13 @@
                         <span class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
                             :class="isAgeRestricted ? 'translate-x-5' : 'translate-x-0'"></span>
                     </div>
-                    <span class="text-sm text-gray-700 group-hover:text-gray-900">Age restricted</span>
+                    <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ __('admin.age_restricted') }}</span>
                 </label>
 
                 <div x-show="isAgeRestricted" x-cloak class="mt-1 pl-14">
                     <x-form.input
                         name="min_age"
-                        label="Minimum age"
+                        label="{{ __('admin.product_form.minimum_age') }}"
                         type="number"
                         :value="$val('min_age')"
                         min="1" max="99"
@@ -593,7 +593,7 @@
 
                 <button type="submit" id="submit-btn"
                     class="btn btn-primary w-full justify-center">
-                    {{ $isEdit ? 'Save changes' : 'Create product' }}
+                    {{ $isEdit ? __('admin.product_form.save_changes') : __('admin.product_form.create_product') }}
                 </button>
                 <a href="{{ route('admin.products.index') }}"
                     class="btn btn-ghost w-full justify-center text-center block">

@@ -5,8 +5,14 @@ return [
     // ─── Legacy flat keys (kept for backward compatibility) ──────────────────
     'panel_title'           => 'لوحة الإدارة',
     'users'                 => 'المستخدمون',
+    'classification'        => 'التصنيف',
     'admins'                => 'المشرفون',
     'customers'             => 'العملاء',
+    'has_variant'           => 'له خيارات',
+    'featured_on_homepage'  => 'مميز على الصفحة الرئيسية',
+    'requires_brand_auth'   => 'يتطلب موافقة العلامة التجارية',
+    'is_hazardous'          => 'منتج خطير',
+    'age_restricted'         => 'مقيد بالعمر',
     'listings'              => 'القوائم',
     'inventory'             => 'المخزون',
     'payouts'               => 'المدفوعات',
@@ -338,6 +344,21 @@ return [
         'open_menu'             => 'فتح القائمة',
     ],
 
+    'product_form' => [
+        'status' => 'الحالة',
+        'Draft' => 'مسودة',
+        'Active' => 'نشط',
+        'Discontinued' => 'تم إيقافه',
+        'Restricted' => 'مقيد',
+        'Age restricted' => 'مقيد بالعمر',
+        'minimum_age' => 'الحد الأدنى للعمر',
+        'create_product' => 'إنشاء منتج',
+        'save_changes' => 'حفظ التغييرات',
+        'countries_placeholder' => [
+             'same_as_default' => 'نفس القيمة الافتراضية',
+        ],
+    ],
+
     // ─── Dashboard ───────────────────────────────────────────────────────────
     'dashboard' => [
         'gmv'                   => 'إجمالي قيمة البضائع',
@@ -393,6 +414,7 @@ return [
 
     // ─── Orders ──────────────────────────────────────────────────────────────
     'orders' => [
+        'placed'                   => 'تم التقديم',
         'title'                     => 'الطلبات',
         'order_number'              => 'رقم الطلب',
         'customer'                  => 'العميل',
@@ -2596,6 +2618,9 @@ return [
 
     // ─── Banners ─────────────────────────────────────────────────────────────
     'banners_section' => [
+        'data_table' =>[
+            'name' => 'الاسم',
+        ],
         'title'             => 'البانرات',
         'banner_name'       => 'اسم البانر',
         'banner_type'       => 'النوع',
@@ -2750,6 +2775,14 @@ return [
         'selected_count'            => ':count محدد',
         'summary'                   => 'الملخص',
         'groups'                    => 'المجموعات',
+    ],
+
+        'breadcrumbs' => [
+        'ad_slots' => 'Ad Slots',
+        'ad_campaigns' => 'Ad Campaigns',
+        'paid_ad_bookings' => 'Paid Ad Bookings',
+        'dashboard' => 'لوحة التحكم',
+        'administrators' => 'المشرفون',
     ],
 
     // ─── Customers ───────────────────────────────────────────────────────────

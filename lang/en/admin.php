@@ -5,6 +5,7 @@ return [
     // ─── Legacy flat keys (kept for backward compatibility) ──────────────────
     'panel_title'           => 'Admin Panel',
     'users'                 => 'Users',
+    'classification'        => 'Classification',
     'admins'                => 'Admins',
     'customers'             => 'Customers',
     'listings'              => 'Listings',
@@ -225,6 +226,11 @@ return [
     'move'                  => 'Move',
     'merge'                 => 'Merge',
     'split'                 => 'Split',
+    'has_variant'           => 'Has Variant',
+    'featured_on_homepage'  => 'Featured on Homepage',
+    'requires_brand_auth'   => 'Requires Brand Auth',
+    'is_hazardous'          => 'Hazardous Item',
+    'age_restricted'         => 'Age Restricted',
     'convert'               => 'Convert',
     'not_available'         => 'N/A',
     'optional'              => 'Optional',
@@ -337,7 +343,19 @@ return [
         'toggle_sidebar'        => 'Toggle sidebar',
         'open_menu'             => 'Open menu',
     ],
-
+        'product_form' => [
+        'status' => 'ٍStatus',
+        'Draft' => 'Draft',
+        'Active' => 'Active',
+        'Discontinued' => 'Discontinued',
+        'Restricted' => 'Restricted',
+        'minimum_age' => 'Minimum age',
+        'create_product' => 'Create Product',
+        'save_changes' => 'Save Changes',
+        'countries_placeholder' => [
+             'same_as_default' => 'Same as default',
+        ],
+    ],
     // ─── Dashboard ───────────────────────────────────────────────────────────
     'dashboard' => [
         'gmv'                   => 'Gross Merchandise Value',
@@ -393,6 +411,7 @@ return [
 
     // ─── Orders ──────────────────────────────────────────────────────────────
     'orders' => [
+        'placed'                     => 'Placed',
         'title'                     => 'Orders',
         'order_number'              => 'Order #',
         'customer'                  => 'Customer',
@@ -2593,9 +2612,15 @@ return [
         'reassign_to'            => 'Reassign to…',
         'save'                   => 'Save',
     ],
+    'data_table' => [
+        'name' => 'Name',
+    ],
 
     // ─── Banners ─────────────────────────────────────────────────────────────
     'banners_section' => [
+        'data_table' => [
+            'name' => 'Name',
+        ],
         'title'             => 'Banners',
         'banner_name'       => 'Banner Name',
         'banner_type'       => 'Type',
@@ -3911,6 +3936,13 @@ return [
         'no_bookings_found_slot'    => 'No bookings found for this slot.',
         'slot'                        => 'Slot',
         'pricing_model_col'          => 'Pricing Model',
+    ],
+    'breadcrumbs' => [
+        'ad_slots' => 'Ad Slots',
+        'ad_campaigns' => 'Ad Campaigns',
+        'paid_ad_bookings' => 'Paid Ad Bookings',
+        'dashboard' => 'Dashboard',
+        'administrators' => 'Administrators'
     ],
 
     // ─── Paid Ad Bookings ────────────────────────────────────────────────────
