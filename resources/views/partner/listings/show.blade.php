@@ -50,6 +50,8 @@
             currentStatus: '{{ $listing->status }}',
             currentPrice: '{{ $listing->price / 100 }}',
             updatePriceUrl: '{{ route('partner.listings.update-price', $listing->id) }}',
+            updateShippingUrl: '{{ route('partner.listings.update-shipping', $listing->id) }}',
+            currentShippingMethodId: '{{ $listing->primary_shipping_method_id }}',
             toggleStatusUrl: '{{ route('partner.listings.toggle-status', $listing->id) }}',
             adjustStockUrl: '{{ route('partner.listings.adjust-stock', $listing->id) }}',
             csrf: '{{ csrf_token() }}',
@@ -161,6 +163,10 @@
                     <div>
                         <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.alert_threshold') }}</span>
                         <span class="font-medium">{{ $listing->low_stock_threshold }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.shipping_method') }}</span>
+                        <span id="display-shipping-method" class="font-medium">{{ $listing->primaryShippingMethod?->name ?? __('partner.listings.show.not_set') }}</span>
                     </div>
                 </div>
 
@@ -341,6 +347,12 @@
                         {{ __('partner.listings.show.update_price') }}
                     </button>
 
+                    {{-- Update Shipping Method --}}
+                    <button id="btn-update-shipping"
+                        class="w-full border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2.5 rounded-xl transition-colors">
+                        {{ $listing->primary_shipping_method_id ? __('partner.listings.show.update_shipping') : __('partner.listings.show.set_shipping') }}
+                    </button>
+
                     {{-- Toggle Status --}}
                     @if(in_array($listing->status, ['active', 'paused']))
                         <button id="btn-toggle-status"
@@ -441,6 +453,40 @@
                     <button type="submit"
                         class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-2.5 rounded-xl text-sm transition-colors">{{ __('partner.listings.show.save') }}</button>
                     <button type="button" id="price-close-btn"
+                        class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">{{ __('partner.listings.show.cancel') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Update Shipping Method Modal --}}
+    <div id="update-shipping-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="font-semibold text-gray-900 text-sm">{{ __('partner.listings.show.update_shipping_title') }}</h3>
+                <button id="shipping-modal-close" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="shipping-update-form" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.show.shipping_method') }}</label>
+                    <select id="shipping-method-select" name="primary_shipping_method_id"
+                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        @forelse($availableShippingMethods as $method)
+                            <option value="{{ $method->id }}" @selected($listing->primary_shipping_method_id === $method->id)>{{ $method->name }}</option>
+                        @empty
+                            <option value="">{{ __('partner.listings.show.no_shipping_methods') }}</option>
+                        @endforelse
+                    </select>
+                </div>
+                <div id="shipping-update-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3"></div>
+                <div class="flex gap-2">
+                    <button type="submit" @disabled($availableShippingMethods->isEmpty())
+                        class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{{ __('partner.listings.show.save') }}</button>
+                    <button type="button" id="shipping-close-btn"
                         class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">{{ __('partner.listings.show.cancel') }}</button>
                 </div>
             </form>

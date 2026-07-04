@@ -110,6 +110,8 @@ Route::prefix('v1')->group(function (): void {
                 Route::post('/',           [ListingController::class, 'store'])->name('store');
                 Route::put('{id}/price',   [ListingController::class, 'updatePrice'])->name('price');
                 Route::put('{id}/status',  [ListingController::class, 'updateStatus'])->name('status');
+                Route::get('{id}/shipping-methods', [ListingController::class, 'availableShippingMethods'])->name('shipping-methods');
+                Route::put('{id}/shipping', [ListingController::class, 'updateShipping'])->name('shipping');
                 Route::delete('{id}',      [ListingController::class, 'destroy'])->name('destroy');
             });
 

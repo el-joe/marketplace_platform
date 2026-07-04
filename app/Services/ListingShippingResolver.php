@@ -17,11 +17,11 @@ class ListingShippingResolver
 
         if (!$category) return collect();
 
-        $isFBN = $listing->global_system_type === 'express_fbn';
-        $fbpField = $isFBN ? 'is_available_for_express_fbn' : 'is_available_for_merchant_fbp';
+        // $isFBN = $listing->global_system_type === 'express_fbn';
+        // $fbpField = $isFBN ? 'is_available_for_express_fbn' : 'is_available_for_merchant_fbp';
 
         return $category->shippingMethods()
-            ->where("category_shipping_methods.{$fbpField}", true)
+            // ->where("category_shipping_methods.{$fbpField}", true)
             ->orderBy('shipping_methods.display_priority')
             ->get();
     }

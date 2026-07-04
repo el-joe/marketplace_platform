@@ -94,6 +94,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/warehouses-by-country', 'warehousesByCountry')->name('warehouses-by-country');
         Route::get('/{listing}', 'show')->name('show');
         Route::post('/{listing}/update-price', 'updatePrice')->name('update-price');
+        Route::post('/{listing}/update-shipping', 'updateShipping')->name('update-shipping');
         Route::post('/{listing}/toggle-status', 'toggleStatus')->name('toggle-status');
         Route::post('/{listing}/adjust-stock', 'adjustStock')->name('adjust-stock');
     });

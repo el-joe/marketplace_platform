@@ -13,9 +13,15 @@ class SearchService
 {
     public function __construct(
         private readonly ProductQueryService $productQuery,
+        private readonly ListingQueryService $listings,
         private readonly UnifiedCategoryService $unifiedCategories,
-    ) {}
+    ) {
+    }
 
+    /**
+     * Listing-centric search: one row per active vendor listing matching the query,
+     * so a product sold by several vendors appears once per vendor.
+     */
     public function search(
         Country $country,
         string $query,
@@ -25,20 +31,17 @@ class SearchService
         string $sessionId = '',
     ): LengthAwarePaginator {
 
-        $builder = $this->productQuery->baseQuery($country)
-            ->where(function ($q) use ($query) {
-                $q->where('products.name_en', 'like', "%{$query}%")
-                  ->orWhere('products.name_ar', 'like', "%{$query}%")
-                  ->orWhere('products.short_desc_en', 'like', "%{$query}%")
-                  ->orWhere('products.model_number', 'like', "%{$query}%");
-            })
-            ->whereHas('variants.vendorListings', fn ($q) => $q
-                ->where('country_id', $country->id)
-                ->where('status', 'active')
-                ->whereHas('vendor', fn ($q2) => $q2->where('global_status', 'active')));
+        $builder = $this->listings->baseSearchQuery($country, $query)
+            ->with([
+                'vendor:id,store_name,store_rating_avg',
+                'productVariant:id,sku,product_id',
+                'productVariant.product.images',
+                'productVariant.product.category:id,name_en,name_ar,slug',
+                'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
+            ]);
 
-        $builder = $this->productQuery->applyFilters($builder, $filters);
-        $builder = $this->productQuery->applySort($builder, $filters['sort'] ?? 'relevance');
+        $builder = $this->listings->applyFilters($builder, $filters);
+        $builder = $this->listings->applySort($builder, $filters['sort'] ?? 'relevance');
 
         $paginator = $builder->paginate($perPage);
 
@@ -60,13 +63,13 @@ class SearchService
         return ClassifiedListing::where('status', 'active')
             ->where(function ($q) use ($query) {
                 $q->where('title_en', 'like', "%{$query}%")
-                  ->orWhere('title_ar', 'like', "%{$query}%")
-                  ->orWhere('description_en', 'like', "%{$query}%");
+                    ->orWhere('title_ar', 'like', "%{$query}%")
+                    ->orWhere('description_en', 'like', "%{$query}%");
             })
             ->with(['images', 'classifiedCategory', 'city'])
-            ->when(!empty($filters['category']), fn ($q) => $q->where('classified_category_id', $filters['category']))
-            ->when(!empty($filters['price_min']), fn ($q) => $q->where('price_cents', '>=', (int) ($filters['price_min'] * 100)))
-            ->when(!empty($filters['price_max']), fn ($q) => $q->where('price_cents', '<=', (int) ($filters['price_max'] * 100)))
+            ->when(!empty($filters['category']), fn($q) => $q->where('classified_category_id', $filters['category']))
+            ->when(!empty($filters['price_min']), fn($q) => $q->where('price_cents', '>=', (int) ($filters['price_min'] * 100)))
+            ->when(!empty($filters['price_max']), fn($q) => $q->where('price_cents', '<=', (int) ($filters['price_max'] * 100)))
             ->orderByDesc('created_at')
             ->paginate($perPage);
     }
@@ -76,14 +79,14 @@ class SearchService
         return TravelPackage::where('status', 'active')
             ->where(function ($q) use ($query) {
                 $q->where('title_en', 'like', "%{$query}%")
-                  ->orWhere('title_ar', 'like', "%{$query}%")
-                  ->orWhere('destination_country', 'like', "%{$query}%")
-                  ->orWhere('destination_city', 'like', "%{$query}%");
+                    ->orWhere('title_ar', 'like', "%{$query}%")
+                    ->orWhere('destination_country', 'like', "%{$query}%")
+                    ->orWhere('destination_city', 'like', "%{$query}%");
             })
             ->with([
                 'agency:id,name',
                 'categories:id,name_en,name_ar,slug',
-                'media' => fn ($q) => $q->orderBy('position')->limit(1),
+                'media' => fn($q) => $q->orderBy('position')->limit(1),
             ])
             ->orderByDesc('departure_date')
             ->paginate($perPage);
@@ -95,19 +98,19 @@ class SearchService
             ->select('products.id', 'products.name_en', 'products.name_ar', 'products.slug')
             ->join('product_country_settings as pcs', function ($j) use ($country) {
                 $j->on('pcs.product_id', '=', 'products.id')
-                  ->where('pcs.country_id', $country->id)
-                  ->where('pcs.is_available', true);
+                    ->where('pcs.country_id', $country->id)
+                    ->where('pcs.is_available', true);
             })
             ->where('products.status', 'active')
             ->where(function ($q) use ($query) {
                 $q->where('products.name_en', 'like', "%{$query}%")
-                  ->orWhere('products.name_ar', 'like', "%{$query}%");
+                    ->orWhere('products.name_ar', 'like', "%{$query}%");
             })
             ->limit(10)
             ->get();
 
-        $productSuggestions = $products->map(fn ($p) => [
-            'id'   => $p->id,
+        $productSuggestions = $products->map(fn($p) => [
+            'id' => $p->id,
             'slug' => $p->slug,
             'name' => app()->getLocale() === 'ar' ? $p->name_ar : $p->name_en,
             'type' => 'product',
@@ -121,18 +124,18 @@ class SearchService
             ->select('id', 'store_name', 'store_slug', 'store_rating_avg')
             ->limit(3)
             ->get()
-            ->map(fn ($vendor) => [
-                'id'         => $vendor->id,
+            ->map(fn($vendor) => [
+                'id' => $vendor->id,
                 'store_name' => $vendor->store_name,
-                'slug'       => $vendor->store_slug,
-                'rating'     => $vendor->store_rating_avg,
+                'slug' => $vendor->store_slug,
+                'rating' => $vendor->store_rating_avg,
             ]);
 
         return [
-            'queries'    => $queries,
-            'products'   => $productSuggestions->toArray(),
+            'queries' => $queries,
+            'products' => $productSuggestions->toArray(),
             'categories' => $this->unifiedCategories->search($query),
-            'vendors'    => $vendors->toArray(),
+            'vendors' => $vendors->toArray(),
         ];
     }
 

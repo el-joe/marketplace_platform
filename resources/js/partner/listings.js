@@ -508,6 +508,34 @@ function initDetailPage() {
         submitBtn.disabled = false;
     });
 
+    // ── Update Shipping Method Modal ──────────────────────────────────────────
+    document.getElementById('btn-update-shipping')?.addEventListener('click', () => {
+        hideError('shipping-update-error');
+        showModal('update-shipping-modal');
+    });
+    document.getElementById('shipping-modal-close')?.addEventListener('click', () => hideModal('update-shipping-modal'));
+    document.getElementById('shipping-close-btn')?.addEventListener('click', () => hideModal('update-shipping-modal'));
+
+    document.getElementById('shipping-update-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError('shipping-update-error');
+        const select = document.getElementById('shipping-method-select');
+        const primary_shipping_method_id = select?.value;
+        const submitBtn = e.target.querySelector('[type=submit]');
+        submitBtn.disabled = true;
+
+        const { ok, data } = await postJson(cfg.updateShippingUrl, { primary_shipping_method_id });
+        if (ok) {
+            hideModal('update-shipping-modal');
+            toast(data.message ?? 'تم تحديث طريقة الشحن.');
+            const displayEl = document.getElementById('display-shipping-method');
+            if (displayEl) displayEl.textContent = data.shipping_method_name;
+        } else {
+            showError('shipping-update-error', data.message ?? 'حدث خطأ.');
+        }
+        submitBtn.disabled = false;
+    });
+
     // ── Toggle Status ─────────────────────────────────────────────────────────
     document.getElementById('btn-toggle-status')?.addEventListener('click', async () => {
         const btn = document.getElementById('btn-toggle-status');

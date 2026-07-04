@@ -7,10 +7,13 @@ use App\Models\ProductVariant;
 use App\Models\SubOrder;
 use App\Models\VendorListing;
 use App\Models\Vendor;
+use App\Services\ListingShippingResolver;
 use Illuminate\Validation\ValidationException;
 
 class ListingService
 {
+    public function __construct(private readonly ListingShippingResolver $shippingResolver) {}
+
     public function create(array $data, Vendor $vendor): VendorListing
     {
         $variant = ProductVariant::findOrFail($data['product_variant_id']);
@@ -46,6 +49,21 @@ class ListingService
     public function updateStatus(VendorListing $listing, string $status): VendorListing
     {
         $listing->update(['status' => $status]);
+
+        return $listing->fresh();
+    }
+
+    public function updateShippingMethod(VendorListing $listing, string $shippingMethodId): VendorListing
+    {
+        $availableMethods = $this->shippingResolver->resolveForListing($listing->load('productVariant.product.category'));
+
+        if (! $availableMethods->contains('id', $shippingMethodId)) {
+            throw ValidationException::withMessages([
+                'primary_shipping_method_id' => ['This shipping method is not available for this listing.'],
+            ]);
+        }
+
+        $listing->update(['primary_shipping_method_id' => $shippingMethodId]);
 
         return $listing->fresh();
     }

@@ -53,17 +53,11 @@ class SearchController extends Controller
             sessionId: $request->hasSession() ? $request->session()->getId() : '',
         );
 
-        $paginator->load('images', 'variants');
-
         $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
-        $buyBox = $this->listings->getBuyBoxForProducts($paginator->getCollection(), $country);
 
         $items = [];
-        foreach ($paginator as $product) {
-            $listing = $buyBox[$product->id] ?? null;
-            if (!$listing) {
-                continue;
-            }
+        foreach ($paginator as $listing) {
+            $product = $listing->productVariant->product;
 
             $items[] = $this->listings->toCardShape(
                 listing: $listing,
@@ -154,16 +148,11 @@ class SearchController extends Controller
             sessionId: $request->hasSession() ? $request->session()->getId() : '',
         );
 
-        $productPaginator->load('images', 'variants');
         $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
-        $buyBox = $this->listings->getBuyBoxForProducts($productPaginator->getCollection(), $country);
 
         $productItems = [];
-        foreach ($productPaginator as $product) {
-            $listing = $buyBox[$product->id] ?? null;
-            if (!$listing) {
-                continue;
-            }
+        foreach ($productPaginator as $listing) {
+            $product = $listing->productVariant->product;
 
             $productItems[] = $this->listings->toCardShape(
                 listing: $listing,
