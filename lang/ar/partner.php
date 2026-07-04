@@ -194,6 +194,18 @@ return [
         ],
     ],
 
+    'auth' => [
+        'sellers' => 'للبائعين',
+        'email' => 'البريد الإلكتروني',
+        'password' => 'كلمة المرور',
+        'forgot_password_link' => 'نسيت كلمة المرور؟',
+        'remember_me' => 'تذكرني',
+        'no_account' => 'ليس لديك حساب؟',
+        'register_now' => 'سجّل الآن',
+        'sign_in_title' => 'تسجيل الدخول كبائع',
+        'access_store_dashboard' => 'الوصول إلى لوحة تحكم البائع',
+    ],
+
     'ads' => [
         'title' => 'الإعلانات',
         'create_campaign' => 'إنشاء حملة',

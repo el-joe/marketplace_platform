@@ -44,7 +44,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-1.5 {{ $isAr ? 'text-right' : '' }}">
-                        {{ __('common.email') }}
+                        {{ __('partner.auth.email') }}
                     </label>
                     <input type="email" name="email" value="{{ old('email') }}" required autofocus class="w-full bg-gray-800 border {{ $errors->has('email') ? 'border-red-500' : 'border-gray-700' }}
                               text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm

@@ -71,6 +71,18 @@ return [
         'campaign_offers'      => 'Campaign Offers',
     ],
 
+    'auth' => [
+        'sellers' => 'For Sellers',
+        'email' => 'Email',
+        'password' => 'Password',
+        'forgot_password_link' => 'Forgot your password?',
+        'remember_me' => 'Remember me',
+        'no_account' => "Don't have an account?",
+        'register_now' => 'Register now',
+        'sign_in_title' => 'Sign in to your vendor account',
+        'access_store_dashboard' => 'Access your store dashboard and manage your listings, orders, and more.',
+    ],
+
     'orders' => [
         'title' => 'Orders',
         'sub_order_number' => 'Sub-order Number',
