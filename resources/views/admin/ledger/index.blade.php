@@ -48,8 +48,8 @@
                 <p class="text-xl font-bold text-green-700">✓ {{ __('admin.ledger_section.cards.balanced') }}</p>
                 <p class="text-xs text-green-600 mt-0.5">{{ __('admin.ledger_section.cards.balance_formula') }}</p>
             @else
-                <p class="text-xl font-bold text-red-700">⚠ {{ __('admin.ledger.imbalance') }}</p>
-                <p class="text-xs text-red-600 mt-0.5" dir="ltr">{{ __('admin.ledger.difference') }}: ${{ number_format($stats['difference'] / 100, 2) }}</p>
+                <p class="text-xl font-bold text-red-700">⚠ {{ __('admin.ledger_section.cards.imbalance') }}</p>
+                <p class="text-xs text-red-600 mt-0.5" dir="ltr">{{ __('admin.ledger_section.cards.difference') }}: ${{ number_format($stats['difference'] / 100, 2) }}</p>
             @endif
         </div>
     </div>

@@ -2991,6 +2991,8 @@ return [
             'total_debit'       => 'Total Debit',
             'total_credit'      => 'Total Credit',
             'current_balance'   => 'Current Balance',
+            'imbalance'           => 'Imbalance',
+            'difference'         => 'Difference',
         ],
         'account_types' => [
             'customer_payment'  => 'Customer Payment',

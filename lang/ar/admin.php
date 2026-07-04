@@ -2998,6 +2998,8 @@ return [
             'total_debit'       => 'إجمالي المدين',
             'total_credit'      => 'إجمالي الدائن',
             'current_balance'   => 'الرصيد الحالي',
+            'imbalance'           => 'عدم التوازن',
+            'difference'         => 'الفرق',
         ],
         'account_types' => [
             'customer_payment'  => 'مدفوعات العميل',
