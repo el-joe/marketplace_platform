@@ -65,10 +65,14 @@ class PageBuilderController extends Controller
 
         $data = $request->validate([
             'name' => 'required|string|max:150',
-            'page_type' => 'required|string|max:30',
+            'page_type' => 'required|string|in:home,category,brand,vendor',
             'country_id' => 'required|uuid|exists:countries,id',
-            'slug' => 'required|string|max:255',
-            'reference_id' => 'nullable|uuid',
+            'reference_id' => match ($request->input('page_type')) {
+                'category' => ['required', 'uuid', 'exists:categories,id'],
+                'brand' => ['required', 'uuid', 'exists:brands,id'],
+                'vendor' => ['required', 'uuid', 'exists:vendors,id'],
+                default => ['prohibited'],
+            },
         ]);
 
         $page = $this->service->createPage($data, $this->admin());

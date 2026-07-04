@@ -6,6 +6,8 @@ use App\Models\AdImageItem;
 use App\Models\Admin;
 use App\Models\AdminProductListing;
 use App\Models\BlockType;
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Country;
 use App\Models\Page;
 use App\Models\PageBlock;
@@ -13,8 +15,10 @@ use App\Models\PageBlockProduct;
 use App\Models\PageBlockRevision;
 use App\Models\PageRevision;
 use App\Models\SliderSlide;
+use App\Models\Vendor;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class PageBuilderService
@@ -61,12 +65,33 @@ class PageBuilderService
             'page_type' => $data['page_type'],
             'reference_id' => $data['reference_id'] ?? null,
             'name' => $data['name'],
-            'slug' => $data['slug'],
+            'slug' => $this->generatePageSlug($data['page_type'], $data['reference_id'] ?? null, $data['country_id']),
             'status' => 'draft',
             'version' => 1,
             'is_default' => false,
             'last_edited_by_admin_id' => $admin->id,
         ]);
+    }
+
+    private function generatePageSlug(string $pageType, ?string $referenceId, string $countryId): string
+    {
+        $base = match ($pageType) {
+            'home' => 'home',
+            'category' => Category::whereKey($referenceId)->value('slug') ?? 'category',
+            'brand' => Brand::whereKey($referenceId)->value('slug') ?? 'brand',
+            'vendor' => Vendor::whereKey($referenceId)->value('store_slug') ?? 'vendor',
+            default => Str::slug($pageType),
+        };
+
+        $slug = $base;
+        $suffix = 1;
+
+        while (Page::where('country_id', $countryId)->where('slug', $slug)->exists()) {
+            $suffix++;
+            $slug = "{$base}-{$suffix}";
+        }
+
+        return $slug;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

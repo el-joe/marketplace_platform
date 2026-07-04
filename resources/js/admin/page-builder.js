@@ -561,9 +561,24 @@ $('#slide-form').on('submit', function (e) {
 /* ─── Page creation ─────────────────────────────────────────────────────── */
 $('#create-page-btn').on('click', () => $('#create-page-modal').modal('open'));
 
+function toggleReferenceField() {
+    const type = $('#page_type').val();
+    $('[data-reference-field]').addClass('hidden');
+    $(`[data-reference-field="${type}"]`).removeClass('hidden');
+}
+
+$('#page_type').on('change', toggleReferenceField);
+$('#create-page-modal').on('modal:opened', toggleReferenceField);
+
 $('#create-page-form').on('submit', function (e) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(this).entries());
+
+    const type = data.page_type;
+    data.reference_id = type ? data[`reference_${type}_id`] || null : null;
+    delete data.reference_category_id;
+    delete data.reference_brand_id;
+    delete data.reference_vendor_id;
 
     ajax({ url: ROUTES.pages, method: 'POST', data })
         .done((res) => {

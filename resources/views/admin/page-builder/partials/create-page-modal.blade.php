@@ -9,18 +9,26 @@
             'home' => __('admin.page_builder.create_page_modal.types.home'),
             'category' => __('admin.page_builder.create_page_modal.types.category'),
             'brand' => __('admin.page_builder.create_page_modal.types.brand'),
-            'landing' => __('admin.page_builder.create_page_modal.types.landing'),
-            'campaign' => __('admin.page_builder.create_page_modal.types.campaign'),
-            'custom' => __('admin.page_builder.create_page_modal.types.custom'),
+            'vendor' => __('admin.page_builder.create_page_modal.types.vendor'),
         ]" />
 
         <x-form.select name="country_id" label="{{ __('common.country') }}" required placeholder="{{ __('admin.page_builder.create_page_modal.select_placeholder') }}"
             :options="$countries->mapWithKeys(fn($c) => [$c->id => $c->name_en . ' (' . ($c->site_code ?? '—') . ')'])" />
 
-        <x-form.slug-input name="slug" label="{{ __('admin.page_builder.create_page_modal.slug') }}" :editable="true" prefix="/p/" required />
+        <div data-reference-field="category" class="hidden">
+            <x-form.async-select name="reference_category_id" label="{{ __('admin.page_builder.create_page_modal.types.category') }}"
+                search-url="{{ route('admin.page-builder.search.categories') }}" :min-length="0" />
+        </div>
 
-        <x-form.input name="reference_id" label="{{ __('admin.page_builder.create_page_modal.reference_id') }}" placeholder="{{ __('admin.page_builder.create_page_modal.reference_id_placeholder') }}"
-            helpText="{{ __('admin.page_builder.create_page_modal.reference_id_help') }}" />
+        <div data-reference-field="brand" class="hidden">
+            <x-form.async-select name="reference_brand_id" label="{{ __('admin.page_builder.create_page_modal.types.brand') }}"
+                search-url="{{ route('admin.page-builder.search.brands') }}" :min-length="0" />
+        </div>
+
+        <div data-reference-field="vendor" class="hidden">
+            <x-form.async-select name="reference_vendor_id" label="{{ __('admin.page_builder.create_page_modal.types.vendor') }}"
+                search-url="{{ route('admin.page-builder.search.vendors') }}" :min-length="0" />
+        </div>
     </form>
 
     <div class="px-6 py-3 border-t border-gray-200 flex justify-end gap-2 bg-gray-50 rounded-b-lg">
