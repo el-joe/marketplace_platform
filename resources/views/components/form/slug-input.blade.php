@@ -6,7 +6,7 @@
     'prefix'      => null,  // URL prefix shown before the slug input
     'editable'    => false, // if false, locked until user clicks unlock
     'required'    => false,
-    'helpText'    => 'Auto-generated from title. Click the lock to edit manually.',
+    'helpText'    => __('admin.product_form.seo_slug_help'), // help text shown below the input
 ])
 
 @php

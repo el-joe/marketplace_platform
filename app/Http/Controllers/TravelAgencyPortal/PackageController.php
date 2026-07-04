@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
+use App\Models\Currency;
+use App\Models\TravelCity;
+use App\Models\TravelCountry;
 use App\Models\TravelPackage;
 use App\Models\TravelPackageMedia;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +34,7 @@ class PackageController extends Controller
     public function index(): View
     {
         $packages = TravelPackage::where('travel_agency_id', $this->agencyId())
-            ->with('media')
+            ->with(['media', 'destinationCountry', 'destinationCity'])
             ->latest()
             ->paginate(20);
 
@@ -39,39 +43,49 @@ class PackageController extends Controller
 
     // ── Create / Store ────────────────────────────────────────────────────────
 
+    private function formData(): array
+    {
+        return [
+            'travelCountries' => TravelCountry::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'flag_emoji']),
+            'currencies'      => Currency::where('is_active', true)->orderBy('code')->get(['code', 'name', 'symbol']),
+        ];
+    }
+
     public function create(): View
     {
-        return view('travel-agency.packages.create');
+        return view('travel-agency.packages.create', $this->formData());
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'title_en'           => ['required', 'string', 'max:255'],
-            'title_ar'           => ['required', 'string', 'max:255'],
-            'description_en'     => ['nullable', 'string'],
-            'description_ar'     => ['nullable', 'string'],
-            'destination_country' => ['required', 'string', 'max:100'],
-            'destination_city'   => ['nullable', 'string', 'max:100'],
-            'price_cents'        => ['required', 'integer', 'min:1'],
-            'currency'           => ['required', 'string', 'size:3'],
-            'duration_days'      => ['required', 'integer', 'min:1'],
-            'duration_nights'    => ['required', 'integer', 'min:0'],
-            'departure_date'     => ['required', 'date', 'after:today'],
-            'return_date'        => ['required', 'date', 'after:departure_date'],
-            'available_seats'    => ['nullable', 'integer', 'min:1'],
-            'inclusions'         => ['nullable', 'array'],
-            'inclusions.*'       => ['string'],
-            'media'              => ['nullable', 'array', 'max:10'],
-            'media.*'            => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'title_en'                      => ['required', 'string', 'max:255'],
+            'title_ar'                      => ['required', 'string', 'max:255'],
+            'description_en'                => ['nullable', 'string'],
+            'description_ar'                => ['nullable', 'string'],
+            'destination_travel_country_id' => ['required', 'uuid', 'exists:travel_countries,id'],
+            'destination_travel_city_id'    => ['nullable', 'uuid', 'exists:travel_cities,id'],
+            'price_cents'                   => ['required', 'integer', 'min:1'],
+            'currency'                      => ['required', 'string', 'size:3', 'exists:currencies,code'],
+            'duration_days'                 => ['required', 'integer', 'min:1'],
+            'duration_nights'               => ['required', 'integer', 'min:0'],
+            'departure_date'                => ['required', 'date', 'after:today'],
+            'return_date'                   => ['required', 'date', 'after:departure_date'],
+            'available_seats'               => ['nullable', 'integer', 'min:1'],
+            'inclusions'                    => ['nullable', 'array'],
+            'inclusions.*'                  => ['string'],
+            'media'                         => ['nullable', 'array', 'max:10'],
+            'media.*'                       => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'contract_file'                 => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ]);
 
         $package = TravelPackage::create([
             ...$data,
             'travel_agency_id' => $this->agencyId(),
-            'status'           => 'draft',
+            'status' => 'draft',
         ]);
 
+        $this->storeContractFile($request, $package);
         $this->handleMediaUploads($request, $package);
 
         return redirect()->route('travel-agency.packages.show', $package)
@@ -95,7 +109,7 @@ class PackageController extends Controller
         $this->authorise($package);
         $package->load('media');
 
-        return view('travel-agency.packages.edit', compact('package'));
+        return view('travel-agency.packages.edit', ['package' => $package, ...$this->formData()]);
     }
 
     public function update(Request $request, TravelPackage $package): RedirectResponse
@@ -107,30 +121,51 @@ class PackageController extends Controller
         }
 
         $data = $request->validate([
-            'title_en'           => ['required', 'string', 'max:255'],
-            'title_ar'           => ['required', 'string', 'max:255'],
-            'description_en'     => ['nullable', 'string'],
-            'description_ar'     => ['nullable', 'string'],
-            'destination_country' => ['required', 'string', 'max:100'],
-            'destination_city'   => ['nullable', 'string', 'max:100'],
-            'price_cents'        => ['required', 'integer', 'min:1'],
-            'currency'           => ['required', 'string', 'size:3'],
-            'duration_days'      => ['required', 'integer', 'min:1'],
-            'duration_nights'    => ['required', 'integer', 'min:0'],
-            'departure_date'     => ['required', 'date'],
-            'return_date'        => ['required', 'date', 'after:departure_date'],
-            'available_seats'    => ['nullable', 'integer', 'min:1'],
-            'inclusions'         => ['nullable', 'array'],
-            'inclusions.*'       => ['string'],
-            'media'              => ['nullable', 'array', 'max:10'],
-            'media.*'            => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'title_en'                      => ['required', 'string', 'max:255'],
+            'title_ar'                      => ['required', 'string', 'max:255'],
+            'description_en'                => ['nullable', 'string'],
+            'description_ar'                => ['nullable', 'string'],
+            'destination_travel_country_id' => ['required', 'uuid', 'exists:travel_countries,id'],
+            'destination_travel_city_id'    => ['nullable', 'uuid', 'exists:travel_cities,id'],
+            'price_cents'                   => ['required', 'integer', 'min:1'],
+            'currency'                      => ['required', 'string', 'size:3', 'exists:currencies,code'],
+            'duration_days'                 => ['required', 'integer', 'min:1'],
+            'duration_nights'               => ['required', 'integer', 'min:0'],
+            'departure_date'                => ['required', 'date'],
+            'return_date'                   => ['required', 'date', 'after:departure_date'],
+            'available_seats'               => ['nullable', 'integer', 'min:1'],
+            'inclusions'                    => ['nullable', 'array'],
+            'inclusions.*'                  => ['string'],
+            'media'                         => ['nullable', 'array', 'max:10'],
+            'media.*'                       => ['file', 'mimes:jpg,jpeg,png,webp,mp4,mov', 'max:51200'],
+            'contract_file'                 => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
         ]);
 
         $package->update($data);
+
+        if ($request->hasFile('contract_file')) {
+            if ($package->contract_file_path) {
+                Storage::disk('local')->delete($package->contract_file_path);
+            }
+            $this->storeContractFile($request, $package);
+        }
+
         $this->handleMediaUploads($request, $package);
 
         return redirect()->route('travel-agency.packages.show', $package)
             ->with('success', 'Package updated.');
+    }
+
+    // ── Cities for country (AJAX) ─────────────────────────────────────────────
+
+    public function citiesForCountry(string $travelCountryId): JsonResponse
+    {
+        return response()->json(
+            TravelCity::where('travel_country_id', $travelCountryId)
+                ->where('is_active', true)
+                ->orderBy('name_en')
+                ->get(['id', 'name_en', 'name_ar'])
+        );
     }
 
     // ── Submit for review ─────────────────────────────────────────────────────
@@ -160,7 +195,33 @@ class PackageController extends Controller
         return back()->with('success', 'Media removed.');
     }
 
+    // ── Download contract ─────────────────────────────────────────────────────
+
+    public function downloadContract(TravelPackage $package): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $this->authorise($package);
+
+        abort_unless($package->contract_file_path && Storage::disk('local')->exists($package->contract_file_path), 404);
+
+        return Storage::disk('local')->download(
+            $package->contract_file_path,
+            $package->contract_file_original_name ?? 'contract.pdf'
+        );
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private function storeContractFile(Request $request, TravelPackage $package): void
+    {
+        $file = $request->file('contract_file');
+        $path = $file->store("travel-packages/{$package->id}/contracts", 'local');
+
+        $package->update([
+            'contract_file_path'          => $path,
+            'contract_file_original_name' => $file->getClientOriginalName(),
+            'contract_uploaded_at'        => now(),
+        ]);
+    }
 
     private function handleMediaUploads(Request $request, TravelPackage $package): void
     {
@@ -171,15 +232,15 @@ class PackageController extends Controller
         $position = $package->media()->max('position') ?? 0;
 
         foreach ($request->file('media') as $file) {
-            $ext  = $file->getClientOriginalExtension();
+            $ext = $file->getClientOriginalExtension();
             $type = in_array(strtolower($ext), ['mp4', 'mov']) ? 'video' : 'image';
             $path = $file->store("travel-packages/{$package->id}", 'public');
 
             TravelPackageMedia::create([
                 'travel_package_id' => $package->id,
-                'media_type'        => $type,
-                'file_path'         => $path,
-                'position'          => ++$position,
+                'media_type' => $type,
+                'file_path' => $path,
+                'position' => ++$position,
             ]);
         }
     }

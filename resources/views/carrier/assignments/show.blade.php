@@ -1,6 +1,6 @@
 @extends('layouts.carrier')
 
-@section('title', 'تفاصيل الطلب')
+@section('title', __('carrier.assignment_detail.breadcrumb'))
 
 @section('content')
 
@@ -13,18 +13,18 @@
         'failed'    => 'red',
     ];
     $statusLabels = [
-        'assigned'  => 'معيّن',
-        'accepted'  => 'مقبول',
-        'picked_up' => 'محمول',
-        'delivered' => 'مسلّم',
-        'failed'    => 'فاشل',
+        'assigned'  => __('carrier.assignments.status_assigned'),
+        'accepted'  => __('carrier.assignments.status_accepted'),
+        'picked_up' => __('carrier.assignments.status_picked_up'),
+        'delivered' => __('carrier.assignments.status_delivered'),
+        'failed'    => __('carrier.assignments.status_failed'),
     ];
     $failureReasonLabels = [
-        'customer_unavailable' => 'العميل غير متاح',
-        'wrong_address'        => 'عنوان خاطئ',
-        'refused_delivery'     => 'رفض الاستلام',
-        'damaged_item'         => 'بضاعة تالفة',
-        'other'                => 'سبب آخر',
+        'customer_unavailable' => __('carrier.assignment_detail.failure_reasons.customer_unavailable'),
+        'wrong_address'        => __('carrier.assignment_detail.failure_reasons.wrong_address'),
+        'refused_delivery'     => __('carrier.assignment_detail.failure_reasons.refused_delivery'),
+        'damaged_item'         => __('carrier.assignment_detail.failure_reasons.damaged_item'),
+        'other'                => __('carrier.assignment_detail.failure_reasons.other'),
     ];
 
     $shipment   = $assignment->shipment;
@@ -50,25 +50,25 @@
     $canReassign = in_array($assignment->status, ['assigned', 'accepted']);
 
     $timeline = [
-        ['label' => 'تعيين',      'at' => $assignment->assigned_at],
-        ['label' => 'قبول',       'at' => $assignment->accepted_at],
-        ['label' => 'استلام',     'at' => $assignment->picked_up_at],
-        ['label' => 'تسليم',      'at' => $assignment->delivered_at ?? $assignment->failed_at],
+        ['label' => __('carrier.assignment_detail.stage_assigned'),  'at' => $assignment->assigned_at],
+        ['label' => __('carrier.assignment_detail.stage_accepted'),  'at' => $assignment->accepted_at],
+        ['label' => __('carrier.assignment_detail.stage_picked_up'), 'at' => $assignment->picked_up_at],
+        ['label' => __('carrier.assignment_detail.stage_delivered'), 'at' => $assignment->delivered_at ?? $assignment->failed_at],
     ];
     $timeline = array_filter($timeline, fn ($step) => $step['at'] !== null);
 @endphp
 
 {{-- Breadcrumb --}}
 <div class="mb-6 flex items-center gap-2 text-sm text-gray-500">
-    <a href="{{ route('carrier.assignments.index') }}" class="hover:text-indigo-600 transition">الطلبات</a>
+    <a href="{{ route('carrier.assignments.index') }}" class="hover:text-indigo-600 transition">{{ __('carrier.nav.assignments') }}</a>
     <span>/</span>
-    <span class="text-gray-800 font-medium">تفاصيل الطلب</span>
+    <span class="text-gray-800 font-medium">{{ __('carrier.assignment_detail.breadcrumb') }}</span>
 </div>
 
 {{-- Header --}}
 <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
     <div>
-        <h1 class="text-2xl font-black text-gray-900">تفاصيل الطلب</h1>
+        <h1 class="text-2xl font-black text-gray-900">{{ __('carrier.assignment_detail.breadcrumb') }}</h1>
         @if($subOrder)
         <p class="text-sm text-gray-500 mt-0.5 font-mono">{{ $subOrder->sub_order_number }}</p>
         @endif
@@ -85,14 +85,14 @@
 
         {{-- Customer & Delivery Info --}}
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 class="font-semibold text-gray-800 mb-4">معلومات العميل والتوصيل</h3>
+            <h3 class="font-semibold text-gray-800 mb-4">{{ __('carrier.assignment_detail.customer_info') }}</h3>
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                    <p class="text-xs text-gray-400 mb-0.5">الاسم</p>
+                    <p class="text-xs text-gray-400 mb-0.5">{{ __('carrier.assignment_detail.name') }}</p>
                     <p class="font-medium text-gray-900">{{ $maskedName }}</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 mb-0.5">الهاتف</p>
+                    <p class="text-xs text-gray-400 mb-0.5">{{ __('carrier.assignment_detail.phone') }}</p>
                     <p class="font-medium text-gray-900 font-mono">{{ $maskedPhone }}</p>
                 </div>
             </div>
@@ -114,13 +114,13 @@
         {{-- Order Items --}}
         @if($subOrder && $subOrder->items->isNotEmpty())
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 class="font-semibold text-gray-800 mb-4">عناصر الطلب</h3>
+            <h3 class="font-semibold text-gray-800 mb-4">{{ __('carrier.assignment_detail.order_items') }}</h3>
             <div class="divide-y divide-gray-50">
                 @foreach($subOrder->items as $item)
                 @php
                     $snap    = $item->product_snapshot ?? [];
                     $imgUrl  = $snap['image_url'] ?? null;
-                    $name    = $snap['name_ar'] ?? $snap['name'] ?? 'منتج';
+                    $name    = $snap['name_ar'] ?? $snap['name'] ?? __('carrier.assignment_detail.product');
                     $variant = $snap['variant'] ?? null;
                 @endphp
                 <div class="flex items-start gap-4 py-4 first:pt-0 last:pb-0">
@@ -149,7 +149,7 @@
         {{-- Shipment Tracking --}}
         @if($shipment && $shipment->trackingEvents->isNotEmpty())
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 class="font-semibold text-gray-800 mb-1">تتبع الشحنة</h3>
+            <h3 class="font-semibold text-gray-800 mb-1">{{ __('carrier.assignment_detail.shipment_tracking') }}</h3>
             <p class="text-xs text-gray-400 mb-4 font-mono">{{ $shipment->tracking_number }}</p>
             <ol class="relative border-s border-gray-200 space-y-4 pe-4">
                 @foreach($shipment->trackingEvents as $event)
@@ -170,20 +170,20 @@
 
         {{-- Assignment Status Card --}}
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 class="font-semibold text-gray-800 mb-4">حالة التعيين</h3>
+            <h3 class="font-semibold text-gray-800 mb-4">{{ __('carrier.assignment_detail.assignment_status') }}</h3>
 
             {{-- Agent info --}}
             <div class="mb-4 pb-4 border-b border-gray-100 text-sm space-y-1.5">
                 <div class="flex justify-between">
-                    <span class="text-gray-500">المندوب</span>
+                    <span class="text-gray-500">{{ __('carrier.assignment_detail.agent') }}</span>
                     <span class="font-medium text-gray-900">{{ $assignment->agent?->name ?? '—' }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-500">المركبة</span>
+                    <span class="text-gray-500">{{ __('carrier.assignment_detail.vehicle') }}</span>
                     <span class="text-gray-700">{{ $assignment->agent?->vehicle_type ?? '—' }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-500">الهاتف</span>
+                    <span class="text-gray-500">{{ __('carrier.assignment_detail.phone') }}</span>
                     <span class="font-mono text-gray-700 text-xs">{{ $assignment->agent?->phone ?? '—' }}</span>
                 </div>
             </div>
@@ -191,7 +191,7 @@
             {{-- Timeline — only show steps that actually occurred --}}
             @if(!empty($timeline))
             <div class="mb-4 pb-4 border-b border-gray-100">
-                <p class="text-xs text-gray-400 mb-3 font-semibold uppercase">المراحل</p>
+                <p class="text-xs text-gray-400 mb-3 font-semibold uppercase">{{ __('carrier.assignment_detail.stages') }}</p>
                 <ol class="relative border-s border-indigo-200 space-y-3 ps-4">
                     @foreach($timeline as $step)
                     <li>
@@ -208,7 +208,7 @@
             @if($assignment->status === 'failed')
             <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm">
                 <p class="font-semibold text-red-700 mb-1">
-                    {{ $failureReasonLabels[$assignment->failure_reason] ?? $assignment->failure_reason ?? 'فشل التوصيل' }}
+                    {{ $failureReasonLabels[$assignment->failure_reason] ?? $assignment->failure_reason ?? __('carrier.assignment_detail.delivery_failed') }}
                 </p>
                 @if($assignment->failure_notes)
                 <p class="text-red-600 text-xs">{{ $assignment->failure_notes }}</p>
@@ -221,7 +221,7 @@
             <div class="mb-4 pb-4 border-b border-gray-100 text-sm space-y-1.5">
                 @if($assignment->customer_rating)
                 <div class="flex justify-between items-center">
-                    <span class="text-gray-500">تقييم العميل</span>
+                    <span class="text-gray-500">{{ __('carrier.assignment_detail.customer_rating') }}</span>
                     <span class="text-amber-500">
                         @for($i = 1; $i <= 5; $i++)
                             {{ $i <= $assignment->customer_rating ? '★' : '☆' }}
@@ -231,7 +231,7 @@
                 @endif
                 @if($assignment->agent_notes)
                 <div>
-                    <p class="text-gray-500 mb-0.5">ملاحظات المندوب</p>
+                    <p class="text-gray-500 mb-0.5">{{ __('carrier.assignment_detail.agent_notes') }}</p>
                     <p class="text-gray-700 text-xs">{{ $assignment->agent_notes }}</p>
                 </div>
                 @endif
@@ -242,13 +242,13 @@
             @if($assignment->cod_amount_collected_cents)
             <div class="mb-4 pb-4 border-b border-gray-100 text-sm space-y-1.5">
                 <div class="flex justify-between">
-                    <span class="text-gray-500">الدفع عند الاستلام</span>
+                    <span class="text-gray-500">{{ __('carrier.assignment_detail.cash_on_delivery') }}</span>
                     <span class="font-semibold text-gray-900">{{ number_format($assignment->cod_amount_collected_cents / 100, 2) }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-500">OTP</span>
+                    <span class="text-gray-500">{{ __('carrier.assignment_detail.otp') }}</span>
                     <span class="{{ $assignment->otp_verified ? 'text-emerald-600' : 'text-red-500' }} font-medium text-xs">
-                        {{ $assignment->otp_verified ? 'تم التحقق' : 'لم يتحقق' }}
+                        {{ $assignment->otp_verified ? __('carrier.assignment_detail.verified') : __('carrier.assignment_detail.not_verified') }}
                     </span>
                 </div>
             </div>
@@ -258,7 +258,7 @@
             @if($canReassign && auth('shipping_supervisor')->user()->hasPermission('assign_orders'))
             <button onclick="const m=document.getElementById('reassign-modal');m.classList.remove('hidden');m.style.display='flex';"
                     class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2.5 rounded-xl transition">
-                إعادة تعيين المندوب
+                {{ __('carrier.assignment_detail.reassign_agent') }}
             </button>
             @endif
         </div>
@@ -266,18 +266,18 @@
         {{-- Shipment info --}}
         @if($shipment)
         <div class="bg-white rounded-2xl border border-gray-200 p-6 text-sm space-y-2">
-            <h3 class="font-semibold text-gray-800 mb-3">معلومات الشحنة</h3>
+            <h3 class="font-semibold text-gray-800 mb-3">{{ __('carrier.assignment_detail.shipment_info') }}</h3>
             <div class="flex justify-between">
-                <span class="text-gray-500">رقم التتبع</span>
+                <span class="text-gray-500">{{ __('carrier.assignment_detail.tracking_number') }}</span>
                 <span class="font-mono text-xs text-gray-700">{{ $shipment->tracking_number }}</span>
             </div>
             <div class="flex justify-between">
-                <span class="text-gray-500">الحالة</span>
+                <span class="text-gray-500">{{ __('carrier.assignment_detail.status') }}</span>
                 <span class="text-gray-700">{{ $shipment->status }}</span>
             </div>
             @if($shipment->weight_grams)
             <div class="flex justify-between">
-                <span class="text-gray-500">الوزن</span>
+                <span class="text-gray-500">{{ __('carrier.assignment_detail.weight') }}</span>
                 <span class="text-gray-700">{{ number_format($shipment->weight_grams / 1000, 2) }} كغ</span>
             </div>
             @endif
@@ -292,13 +292,13 @@
 <div id="reassign-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 px-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
         <div class="flex items-center justify-between mb-5">
-            <h2 class="text-lg font-bold text-gray-900">إعادة تعيين المندوب</h2>
+            <h2 class="text-lg font-bold text-gray-900">{{ __('carrier.assignment_detail.reassign_agent') }}</h2>
             <button onclick="const m=document.getElementById('reassign-modal');m.style.display='none';m.classList.add('hidden');"
                     class="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
 
         @if($availableAgents->isEmpty())
-        <p class="text-sm text-gray-500 text-center py-6">لا يوجد مناديب متاحون حالياً.</p>
+        <p class="text-sm text-gray-500 text-center py-6">{{ __('carrier.assignments.no_available_agents') }}</p>
         @else
         <div id="reassign-agents" class="space-y-2 max-h-72 overflow-y-auto mb-5">
             @foreach($availableAgents as $agent)
@@ -316,7 +316,7 @@
         </div>
         <button onclick="submitReassign('{{ route('carrier.assignments.reassign', $assignment->id) }}')"
                 class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl transition text-sm">
-            تأكيد إعادة التعيين
+            {{ __('carrier.assignments.confirm_reassign') }}
         </button>
         @endif
     </div>
@@ -327,7 +327,7 @@
 <script>
 function submitReassign(url) {
     const selected = document.querySelector('input[name="reassign_agent"]:checked');
-    if (!selected) { alert('يرجى اختيار مندوب.'); return; }
+    if (!selected) { alert('{{ __('carrier.assignments.please_select_agent') }}'); return; }
 
     fetch(url, {
         method: 'POST',

@@ -112,7 +112,7 @@ class ClassifiedListing extends Model
 
     public function getPriceFormattedAttribute(): string
     {
-        return number_format($this->price_cents / 100, 2) . ' ' . $this->currency;
+        return \App\Helpers\CurrencyFormatter::formatPrice($this->price_cents, $this->currency);
     }
 
     public function getPrimaryImageUrlAttribute(): ?string

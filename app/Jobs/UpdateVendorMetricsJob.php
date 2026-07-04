@@ -46,11 +46,21 @@ class UpdateVendorMetricsJob implements ShouldQueue
     private function updateVendor(Vendor $vendor): void
     {
         // ── GMV & total orders (from sub_orders) ─────────────────────────────
-        $orderMetrics = DB::table('sub_orders')
-            ->where('vendor_id', $vendor->id)
-            ->whereIn('status', ['completed', 'delivered'])
-            ->selectRaw('COALESCE(SUM(vendor_payout), 0) as gmv, COUNT(*) as total_orders')
-            ->first();
+        // A vendor is scoped to one country_id and therefore one currency, so the SUM is safe
+        // in practice. JOIN to orders and GROUP BY currency is an explicit safeguard so that
+        // any future cross-border vendor data produces separate rows rather than blending.
+        $metricsRows = DB::table('sub_orders')
+            ->join('orders', 'orders.id', '=', 'sub_orders.order_id')
+            ->where('sub_orders.vendor_id', $vendor->id)
+            ->whereIn('sub_orders.status', ['completed', 'delivered'])
+            ->selectRaw('orders.currency, COALESCE(SUM(sub_orders.vendor_payout), 0) as gmv, COUNT(*) as total_orders')
+            ->groupBy('orders.currency')
+            ->get();
+
+        $orderMetrics = (object) [
+            'gmv'          => $metricsRows->sum('gmv'),
+            'total_orders' => $metricsRows->sum('total_orders'),
+        ];
 
         // ── Return rate ───────────────────────────────────────────────────────
         $totalOrders = (int) $orderMetrics->total_orders;

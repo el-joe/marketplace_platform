@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Add Product')
+@section('title', __('admin.products.add_product'))
 
 @push('styles')
 @vite([

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Partner;
 use App\Http\Controllers\Controller;
 use App\Models\VendorBankAccount;
 use App\Models\VendorDocument;
+use App\Models\VendorDocumentCountryRequirement;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,23 +30,34 @@ class ProfileController extends Controller
     // ── Actions ───────────────────────────────────────────────────────────────
 
     /**
-     * Main profile page — loads vendor, documents, bank accounts summary.
+     * Main profile page — loads vendor, dynamic required docs (country-aware), bank accounts summary.
      */
     public function index(): View
     {
-        $admin = $this->vendorAdmin();
+        $admin  = $this->vendorAdmin();
         $vendor = $admin->vendor()->with('country')->firstOrFail();
 
-        $documents = VendorDocument::where('vendor_id', $this->vendorId())
-            ->whereNull('deleted_at')
+        // Dynamic, country-aware list — same shared helper as registration.
+        // Re-fetched on every page load so admin matrix changes reflect immediately.
+        $requiredDocs = $vendor->country
+            ? $vendor->country->requiredDocumentTypesFor()
+            : collect();
+
+        // Latest VendorDocument per type for this vendor, keyed by vendor_document_type_id.
+        $typeIds = $requiredDocs->pluck('type.id');
+        $latestDocByType = VendorDocument::where('vendor_id', $this->vendorId())
+            ->whereIn('vendor_document_type_id', $typeIds)
             ->get()
-            ->keyBy('document_type');
+            ->groupBy('vendor_document_type_id')
+            ->map(fn ($group) => $group->sortByDesc('created_at')->first());
 
         $bankAccounts = VendorBankAccount::where('vendor_id', $this->vendorId())
             ->orderByDesc('is_primary')
             ->get();
 
-        return view('partner.profile.index', compact('admin', 'vendor', 'documents', 'bankAccounts'));
+        return view('partner.profile.index', compact(
+            'admin', 'vendor', 'requiredDocs', 'latestDocByType', 'bankAccounts'
+        ));
     }
 
     /**
@@ -104,37 +116,53 @@ class ProfileController extends Controller
     }
 
     /**
-     * Upload or replace a vendor document file.
-     * Stores to: storage/vendor-docs/{vendor_id}/{type}.{ext}
+     * Upload a compliance document.
+     * Validates that the document_type_id is actually required (mandatory/optional)
+     * for this vendor's country — rejects 422 for not_applicable or unknown types.
+     * Always creates a NEW pending row so the admin sees the resubmission.
      */
     public function uploadDocument(Request $request): JsonResponse
     {
-        $vendorId = $this->vendorId();
+        $admin    = $this->vendorAdmin();
+        $vendor   = $admin->vendor()->with('country')->firstOrFail();
+        $vendorId = $vendor->id;
 
         $request->validate([
-            'document_type' => 'required|in:business_license,tax_certificate,owner_id,bank_proof,vat_registration',
-            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'document_type_id' => 'required|uuid|exists:vendor_document_types,id',
+            'file'             => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
-        $type = $request->input('document_type');
-        $ext = $request->file('file')->getClientOriginalExtension();
+        $typeId = $request->input('document_type_id');
 
+        // Confirm the type is applicable for this vendor's country.
+        if (! $vendor->country) {
+            return response()->json(['message' => 'لا يمكن تحديد بلد البائع'], 422);
+        }
+
+        $requirement = VendorDocumentCountryRequirement::where('vendor_document_type_id', $typeId)
+            ->where('country_id', $vendor->country->id)
+            ->where('requirement_level', '!=', 'not_applicable')
+            ->first();
+
+        if (! $requirement) {
+            return response()->json(['message' => 'نوع الوثيقة غير مطلوب لبلدك'], 422);
+        }
+
+        $ext  = $request->file('file')->getClientOriginalExtension();
+        $slug = \Illuminate\Support\Str::uuid();
         $path = $request->file('file')->storeAs(
             "vendor-docs/{$vendorId}",
-            "{$type}.{$ext}",
+            "{$typeId}-{$slug}.{$ext}",
             'public'
         );
 
-        VendorDocument::updateOrCreate(
-            ['vendor_id' => $vendorId, 'document_type' => $type],
-            [
-                'file_path' => $path,
-                'status' => 'pending',
-                'verified_at' => null,
-                'verified_by_admin_id' => null,
-                'rejection_reason' => null,
-            ]
-        );
+        // Always insert a new row — admin reviews the fresh submission.
+        VendorDocument::create([
+            'vendor_id'               => $vendorId,
+            'vendor_document_type_id' => $typeId,
+            'file_path'               => $path,
+            'status'                  => 'pending',
+        ]);
 
         return response()->json(['message' => 'تم رفع الملف بنجاح، سيتم مراجعته قريباً']);
     }

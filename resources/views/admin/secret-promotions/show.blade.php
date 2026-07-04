@@ -4,16 +4,16 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Secret Promotion Detail')
+@section('title', __('admin.secret_promotions.secret_promotion_detail'))
 
 @section('content')
 
     {{-- ─── Breadcrumbs ─────────────────────────────────────────────────────────── --}}
     <nav class="flex text-sm text-gray-500 mb-4">
-        <a href="{{ route('admin.secret-promotions.index') }}" class="hover:text-gray-700">Secret Promotions</a>
+        <a href="{{ route('admin.secret-promotions.index') }}" class="hover:text-gray-700">{{ __('admin.secret_promotions.title') }}</a>
         <span class="mx-2">/</span>
         <span
-            class="text-gray-900 font-medium truncate">{{ $promotion->vendorListing?->product?->name_en ?? 'Promotion #' . $promotion->id }}</span>
+            class="text-gray-900 font-medium truncate">{{ $promotion->vendorListing?->product?->name_en ?? __('admin.secret_promotions.promotion_hash', ['id' => $promotion->id]) }}</span>
     </nav>
 
     {{-- ─── Page header ─────────────────────────────────────────────────────────── --}}
@@ -38,26 +38,26 @@
                     @if($promotion->marketer)
                         <span class="text-green-700">{{ $promotion->marketer->name }}</span>
                     @else
-                        <span class="text-gray-400 italic">Open to all eligible marketers</span>
+                        <span class="text-gray-400 italic">{{ __('admin.secret_promotions.open_to_all_eligible_marketers') }}</span>
                     @endif
                     &nbsp;·&nbsp;
-                    Created {{ $promotion->created_at->diffForHumans() }}
+                    {{ __('admin.secret_promotions.created') }} {{ $promotion->created_at->diffForHumans() }}
                 </p>
             </div>
         </div>
         <div class="flex items-center gap-2">
             <span id="status-badge"
                 class="badge badge-{{ $promotion->status_color }} text-sm px-3 py-1">{{ ucfirst($promotion->status) }}</span>
-            <button type="button" id="edit-promo-btn" class="btn btn-outline btn-sm">Edit</button>
+            <button type="button" id="edit-promo-btn" class="btn btn-outline btn-sm">{{ __('admin.secret_promotions.edit') }}</button>
             @if($promotion->status === 'active')
-                <button type="button" id="toggle-status-btn" class="btn btn-warning btn-sm" data-action="pause">Pause</button>
+                <button type="button" id="toggle-status-btn" class="btn btn-warning btn-sm" data-action="pause">{{ __('admin.secret_promotions.pause') }}</button>
             @elseif($promotion->status === 'paused')
-                <button type="button" id="toggle-status-btn" class="btn btn-success btn-sm" data-action="resume">Resume</button>
+                <button type="button" id="toggle-status-btn" class="btn btn-success btn-sm" data-action="resume">{{ __('admin.secret_promotions.resume') }}</button>
             @endif
             @if($promotion->status !== 'expired')
-                <button type="button" id="expire-btn" class="btn btn-danger btn-sm">Force Expire</button>
+                <button type="button" id="expire-btn" class="btn btn-danger btn-sm">{{ __('admin.secret_promotions.force_expire') }}</button>
             @endif
-            <button type="button" id="duplicate-btn" class="btn btn-ghost btn-sm">Duplicate</button>
+            <button type="button" id="duplicate-btn" class="btn btn-ghost btn-sm">{{ __('admin.secret_promotions.duplicate') }}</button>
         </div>
     </div>
 
@@ -67,8 +67,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
-        <p class="text-sm text-amber-800"><strong>Admin-only view.</strong> All commission values, product costs, and split
-            details below are hidden from vendors and marketers.</p>
+        <p class="text-sm text-amber-800">{{ __('admin.secret_promotions.admin_only_view_banner') }}</p>
     </div>
 
     <div class="grid grid-cols-3 gap-6">
@@ -78,31 +77,31 @@
 
             {{-- ── Commission split card ──────────────────────────────────────── --}}
             <x-card>
-                <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Commission Split <span
-                        class="text-amber-600 normal-case font-normal text-xs">🔒 admin only</span></h2>
+                <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">{{ __('admin.secret_promotions.commission_split') }} <span
+                        class="text-amber-600 normal-case font-normal text-xs">🔒 {{ __('admin.secret_promotions.admin_only') }}</span></h2>
                 <div class="grid grid-cols-3 gap-4">
                     {{-- Total --}}
                     <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                        <p class="text-xs font-medium text-blue-500 uppercase">Total commission</p>
+                        <p class="text-xs font-medium text-blue-500 uppercase">{{ __('admin.secret_promotions.total_commission') }}</p>
                         <p class="text-3xl font-bold text-blue-700 mt-1">{{ $promotion->total_commission_pct }}<span
                                 class="text-lg font-medium">%</span></p>
-                        <p class="text-xs text-blue-600 mt-1">Vendor pays this on every sale</p>
+                        <p class="text-xs text-blue-600 mt-1">{{ __('admin.secret_promotions.vendor_pays_this_every_sale') }}</p>
                         <p class="text-sm font-bold text-blue-800 mt-2">= {{ $promotion->listing_price_formatted }}</p>
                     </div>
                     {{-- Marketer --}}
                     <div class="bg-green-50 border border-green-100 rounded-xl p-4">
-                        <p class="text-xs font-medium text-green-500 uppercase">Marketer earns</p>
+                        <p class="text-xs font-medium text-green-500 uppercase">{{ __('admin.secret_promotions.marketer_earns') }}</p>
                         <p class="text-3xl font-bold text-green-700 mt-1">{{ $promotion->marketer_share_pct }}<span
                                 class="text-lg font-medium">%</span></p>
-                        <p class="text-xs text-green-600 mt-1">Marketer sees only this</p>
+                        <p class="text-xs text-green-600 mt-1">{{ __('admin.secret_promotions.marketer_sees_only_this') }}</p>
                         <p class="text-sm font-bold text-green-800 mt-2">= {{ $promotion->marketer_earnings_format }}</p>
                     </div>
                     {{-- Admin --}}
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                        <p class="text-xs font-medium text-amber-500 uppercase">🔒 Admin earns</p>
+                        <p class="text-xs font-medium text-amber-500 uppercase">🔒 {{ __('admin.secret_promotions.admin_earns') }}</p>
                         <p class="text-3xl font-bold text-amber-700 mt-1">{{ $promotion->admin_share_pct }}<span
                                 class="text-lg font-medium">%</span></p>
-                        <p class="text-xs text-amber-600 mt-1">Silent platform cut</p>
+                        <p class="text-xs text-amber-600 mt-1">{{ __('admin.secret_promotions.silent_platform_cut') }}</p>
                         <p class="text-sm font-bold text-amber-800 mt-2">= {{ $promotion->admin_earnings_format }}</p>
                     </div>
                 </div>
@@ -125,40 +124,40 @@
                             @if($adminPct > 8) {{ $promotion->admin_share_pct }}% @endif
                         </div>
                         <div class="bg-gray-200 flex-1 flex items-center justify-center text-gray-500 text-xs">
-                            vendor margin
+                            {{ __('admin.secret_promotions.vendor_margin') }}
                         </div>
                     </div>
                     <div class="flex text-xs mt-2 gap-5 text-gray-500">
                         <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-green-500 rounded-full"></span>
-                            Marketer {{ $promotion->marketer_share_pct }}%</span>
+                            {{ __('admin.secret_promotions.marketer') }} {{ $promotion->marketer_share_pct }}%</span>
                         <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-amber-500 rounded-full"></span> 🔒
-                            Admin {{ $promotion->admin_share_pct }}%</span>
+                            {{ __('admin.secret_promotions.admin_pct') }} {{ $promotion->admin_share_pct }}%</span>
                         <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-gray-200 rounded-full"></span>
-                            Vendor retains rest</span>
+                            {{ __('admin.secret_promotions.vendor_margin') }}</span>
                     </div>
                 </div>
             </x-card>
 
             {{-- ── Product economics ───────────────────────────────────────────── --}}
             <x-card>
-                <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">🔒 Product Economics <span
-                        class="text-amber-600 normal-case font-normal text-xs">(admin only)</span></h2>
+                <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">🔒 {{ __('admin.secret_promotions.product_economics') }} <span
+                        class="text-amber-600 normal-case font-normal text-xs">({{ __('admin.secret_promotions.admin_only') }})</span></h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="text-center p-3 bg-gray-50 rounded-xl">
-                        <p class="text-xs text-gray-400 uppercase">Listing price</p>
+                        <p class="text-xs text-gray-400 uppercase">{{ __('admin.secret_promotions.listing_price') }}</p>
                         <p class="text-lg font-bold text-gray-900 mt-1">{{ $promotion->listing_price_formatted }}</p>
                     </div>
                     <div class="text-center p-3 bg-amber-50 rounded-xl border border-amber-100">
-                        <p class="text-xs text-amber-500 uppercase">🔒 Product cost</p>
+                        <p class="text-xs text-amber-500 uppercase">🔒 {{ __('admin.secret_promotions.product_value') }}</p>
                         <p class="text-lg font-bold text-amber-800 mt-1">{{ $promotion->product_value_formatted }}</p>
                     </div>
                     <div class="text-center p-3 bg-primary-50 rounded-xl">
-                        <p class="text-xs text-primary-500 uppercase">🔒 Margin</p>
+                        <p class="text-xs text-primary-500 uppercase">🔒 {{ __('admin.secret_promotions.margin') }}</p>
                         <p class="text-lg font-bold text-primary-700 mt-1">{{ number_format($promotion->margin_pct, 1) }}%
                         </p>
                     </div>
                     <div class="text-center p-3 bg-gray-50 rounded-xl">
-                        <p class="text-xs text-gray-400 uppercase">Conversions</p>
+                        <p class="text-xs text-gray-400 uppercase">{{ __('admin.secret_promotions.conversions') }}</p>
                         <p class="text-lg font-bold text-gray-900 mt-1">{{ $promotion->conversion_count }}</p>
                     </div>
                 </div>
@@ -166,17 +165,17 @@
                 {{-- Lifetime totals --}}
                 <div class="mt-4 border-t border-gray-100 pt-4 grid grid-cols-3 gap-4">
                     <div>
-                        <p class="text-xs text-gray-400">Lifetime revenue generated</p>
+                        <p class="text-xs text-gray-400">{{ __('admin.secret_promotions.lifetime_revenue_generated') }}</p>
                         <p class="text-lg font-bold text-primary-700 mt-0.5">
                             {{ number_format($promotion->total_revenue_generated / 100, 2) }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-amber-500">🔒 Lifetime admin earned</p>
+                        <p class="text-xs text-amber-500">🔒 {{ __('admin.secret_promotions.lifetime_admin_earned') }}</p>
                         <p class="text-lg font-bold text-amber-700 mt-0.5">
                             {{ number_format($promotion->total_admin_earned / 100, 2) }}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-green-500">Lifetime marketer earned</p>
+                        <p class="text-xs text-green-500">{{ __('admin.secret_promotions.lifetime_marketer_earned') }}</p>
                         <p class="text-lg font-bold text-green-700 mt-0.5">
                             {{ number_format($promotion->conversions->sum('commission_amount_cents') / 100, 2) }}
                         </p>
@@ -187,11 +186,11 @@
             {{-- ── Conversions Chart ───────────────────────────────────────────── --}}
             <x-card>
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">Conversion History</h2>
+                    <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">{{ __('admin.secret_promotions.conversion_history') }}</h2>
                     <select id="chart-range" class="form-input text-sm py-1 w-36">
-                        <option value="30">Last 30 days</option>
-                        <option value="90">Last 90 days</option>
-                        <option value="180">Last 180 days</option>
+                        <option value="30">{{ __('admin.secret_promotions.last_30_days') }}</option>
+                        <option value="90">{{ __('admin.secret_promotions.last_90_days') }}</option>
+                        <option value="180">{{ __('admin.secret_promotions.last_180_days') }}</option>
                     </select>
                 </div>
                 <canvas id="conversions-chart" height="200"></canvas>
@@ -199,18 +198,18 @@
 
             {{-- ── Conversions table ───────────────────────────────────────────── --}}
             <x-card>
-                <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Conversions Log</h2>
+                <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">{{ __('admin.secret_promotions.conversions_log') }}</h2>
                 <table id="conversions-table" class="w-full text-sm" style="width:100%">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Order</th>
-                            <th>Customer</th>
-                            <th>Marketer</th>
-                            <th>Sale Price</th>
-                            <th class="bg-green-50 text-green-700">Marketer Earned</th>
-                            <th class="bg-amber-50 text-amber-700">🔒 Admin Earned</th>
-                            <th>Status</th>
+                            <th>{{ __('admin.secret_promotions.date') }}</th>
+                            <th>{{ __('admin.secret_promotions.order') }}</th>
+                            <th>{{ __('admin.secret_promotions.customer') }}</th>
+                            <th>{{ __('admin.secret_promotions.marketer') }}</th>
+                            <th>{{ __('admin.secret_promotions.sale_price') }}</th>
+                            <th class="bg-green-50 text-green-700">{{ __('admin.secret_promotions.marketer_earned') }}</th>
+                            <th class="bg-amber-50 text-amber-700">🔒 {{ __('admin.secret_promotions.admin_earned') }}</th>
+                            <th>{{ __('admin.status') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -242,9 +241,9 @@
                                 </td>
                                 <td>
                                     @if($c->completed_at)
-                                        <span class="badge badge-success text-xs">Paid</span>
+                                        <span class="badge badge-success text-xs">{{ __('admin.secret_promotions.paid') }}</span>
                                     @else
-                                        <span class="badge badge-warning text-xs">Pending</span>
+                                        <span class="badge badge-warning text-xs">{{ __('admin.secret_promotions.pending') }}</span>
                                     @endif
                                 </td>
                             </tr>
@@ -252,7 +251,7 @@
                     </tbody>
                 </table>
                 @if($conversions->isEmpty())
-                    <p class="text-center text-gray-400 italic py-8">No conversions yet.</p>
+                    <p class="text-center text-gray-400 italic py-8">{{ __('admin.secret_promotions.no_conversions_yet') }}</p>
                 @endif
             </x-card>
 
@@ -263,19 +262,19 @@
 
             {{-- Status & timeline --}}
             <x-card>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Status & Timeline</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{{ __('admin.secret_promotions.status_timeline') }}</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Status</span>
+                        <span class="text-sm text-gray-600">{{ __('admin.status') }}</span>
                         <span class="badge badge-{{ $promotion->status_color }}">{{ ucfirst($promotion->status) }}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600">Created</span>
+                        <span class="text-sm text-gray-600">{{ __('admin.secret_promotions.created') }}</span>
                         <span class="text-sm font-medium">{{ $promotion->created_at->format('d M Y') }}</span>
                     </div>
                     @if($promotion->valid_until)
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Expires</span>
+                            <span class="text-sm text-gray-600">{{ __('admin.secret_promotions.expires') }}</span>
                             <span
                                 class="text-sm font-medium {{ $promotion->isExpired() ? 'text-red-600' : ($promotion->valid_until->diffInDays() <= 7 ? 'text-amber-600' : '') }}">
                                 {{ $promotion->valid_until->format('d M Y') }}
@@ -286,13 +285,13 @@
                         </div>
                     @else
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Expires</span>
-                            <span class="text-sm text-gray-400 italic">Never</span>
+                            <span class="text-sm text-gray-600">{{ __('admin.secret_promotions.expires') }}</span>
+                            <span class="text-sm text-gray-400 italic">{{ __('admin.secret_promotions.never') }}</span>
                         </div>
                     @endif
                     @if($promotion->updated_at->ne($promotion->created_at))
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Last updated</span>
+                            <span class="text-sm text-gray-600">{{ __('admin.secret_promotions.last_updated') }}</span>
                             <span class="text-sm text-gray-500">{{ $promotion->updated_at->diffForHumans() }}</span>
                         </div>
                     @endif
@@ -301,7 +300,7 @@
 
             {{-- Parties --}}
             <x-card>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Parties</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{{ __('admin.secret_promotions.parties') }}</h3>
 
                 {{-- Vendor --}}
                 <div class="flex items-center gap-3 mb-4">
@@ -310,7 +309,7 @@
                         {{ strtoupper(substr($promotion->vendor?->store_name ?? 'V', 0, 1)) }}
                     </div>
                     <div>
-                        <p class="text-xs text-gray-400 uppercase">Vendor</p>
+                        <p class="text-xs text-gray-400 uppercase">{{ __('admin.secret_promotions.vendor') }}</p>
                         <a href="{{ route('admin.vendors.show', $promotion->vendor_id) }}"
                             class="text-sm font-medium text-primary-600 hover:underline">
                             {{ $promotion->vendor?->store_name ?? '—' }}
@@ -326,7 +325,7 @@
                             {{ strtoupper(substr($promotion->marketer->name, 0, 1)) }}
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 uppercase">Marketer</p>
+                            <p class="text-xs text-gray-400 uppercase">{{ __('admin.secret_promotions.marketer') }}</p>
                             <a href="{{ route('admin.marketers.show', $promotion->marketer_id) }}"
                                 class="text-sm font-medium text-primary-600 hover:underline">
                                 {{ $promotion->marketer->name }}
@@ -341,8 +340,8 @@
                             &#9734;
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 uppercase">Marketer</p>
-                            <p class="text-sm font-medium text-gray-500 italic">Open to all eligible</p>
+                            <p class="text-xs text-gray-400 uppercase">{{ __('admin.secret_promotions.marketer') }}</p>
+                            <p class="text-sm font-medium text-gray-500 italic">{{ __('admin.secret_promotions.open_to_all_eligible') }}</p>
                         </div>
                     </div>
                 @endif
@@ -358,7 +357,7 @@
                         @endif
                     </div>
                     <div>
-                        <p class="text-xs text-gray-400 uppercase">Listing</p>
+                        <p class="text-xs text-gray-400 uppercase">{{ __('admin.secret_promotions.listing') }}</p>
                         <p class="text-sm font-medium text-gray-900">
                             {{ $promotion->vendorListing?->product?->name_en ?? '—' }}</p>
                         <p class="text-xs text-gray-500">{{ $promotion->listing_price_formatted }}</p>
@@ -368,30 +367,30 @@
 
             {{-- Visibility --}}
             <x-card>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">What Each Party Sees</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{{ __('admin.secret_promotions.what_each_party_sees') }}</h3>
                 <div class="space-y-2 text-sm">
                     <div class="flex items-start gap-2">
                         <span class="mt-0.5 text-blue-500">🔵</span>
                         <div>
-                            <p class="font-medium text-gray-700">Vendor sees:</p>
-                            <p class="text-gray-500">Total commission
-                                <strong>{{ $promotion->total_commission_pct }}%</strong> — no split detail</p>
+                            <p class="font-medium text-gray-700">{{ __('admin.secret_promotions.vendor_sees') }}</p>
+                            <p class="text-gray-500">{{ __('admin.secret_promotions.total_commission') }}
+                                <strong>{{ $promotion->total_commission_pct }}%</strong> — {{ __('admin.secret_promotions.no_split_detail') }}</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-2">
                         <span class="mt-0.5 text-green-500">🟢</span>
                         <div>
-                            <p class="font-medium text-gray-700">Marketer sees:</p>
-                            <p class="text-gray-500">Their share <strong>{{ $promotion->marketer_share_pct }}%</strong> only
+                            <p class="font-medium text-gray-700">{{ __('admin.secret_promotions.marketer_sees') }}</p>
+                            <p class="text-gray-500">{{ __('admin.secret_promotions.their_share') }} <strong>{{ $promotion->marketer_share_pct }}%</strong> {{ __('admin.secret_promotions.their_share_only') }}
                             </p>
                         </div>
                     </div>
                     <div class="flex items-start gap-2">
                         <span class="mt-0.5 text-amber-500">🔒</span>
                         <div>
-                            <p class="font-medium text-amber-700">Admin only:</p>
-                            <p class="text-amber-600">Platform earns <strong>{{ $promotion->admin_share_pct }}%</strong>
-                                silently</p>
+                            <p class="font-medium text-amber-700">{{ __('admin.secret_promotions.admin_only_colon') }}</p>
+                            <p class="text-amber-600">{{ __('admin.secret_promotions.platform_earns') }} <strong>{{ $promotion->admin_share_pct }}%</strong>
+                                {{ __('admin.secret_promotions.silently') }}</p>
                         </div>
                     </div>
                 </div>
@@ -399,14 +398,12 @@
 
             {{-- Quick actions --}}
             <x-card>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Actions</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{{ __('admin.secret_promotions.actions') }}</h3>
                 <div class="space-y-2">
-                    <a href="{{ route('admin.secret-promotions.index') }}" class="btn btn-ghost btn-sm w-full">← Back to
-                        list</a>
-                    <button type="button" id="sidebar-duplicate-btn" class="btn btn-ghost btn-sm w-full">Duplicate
-                        promotion</button>
+                    <a href="{{ route('admin.secret-promotions.index') }}" class="btn btn-ghost btn-sm w-full">{{ __('admin.secret_promotions.back_to_list') }}</a>
+                    <button type="button" id="sidebar-duplicate-btn" class="btn btn-ghost btn-sm w-full">{{ __('admin.secret_promotions.duplicate_promotion') }}</button>
                     @if($promotion->status !== 'expired')
-                        <button type="button" id="sidebar-expire-btn" class="btn btn-danger btn-sm w-full">Force expire</button>
+                        <button type="button" id="sidebar-expire-btn" class="btn btn-danger btn-sm w-full">{{ __('admin.secret_promotions.force_expire') }}</button>
                     @endif
                 </div>
             </x-card>
@@ -419,7 +416,7 @@
     <div id="edit-promo-modal" class="modal-backdrop hidden">
         <div class="modal-box max-w-2xl">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Edit Secret Promotion</h3>
+                <h3 class="text-lg font-semibold text-gray-900">{{ __('admin.secret_promotions.edit_secret_promotion') }}</h3>
                 <button type="button" data-modal-close
                     class="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1">&times;</button>
             </div>
@@ -428,10 +425,9 @@
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="form-label">Marketer <span class="text-xs text-gray-400 font-normal">(leave empty
-                                    = open to all)</span></label>
+                            <label class="form-label">{{ __('admin.secret_promotions.marketer') }} <span class="text-xs text-gray-400 font-normal">{{ __('admin.secret_promotions.leave_empty_open_to_all') }}</span></label>
                             <select id="edit-marketer-select" name="marketer_id" class="form-input w-full text-sm">
-                                <option value="">Open to all eligible marketers</option>
+                                <option value="">{{ __('admin.secret_promotions.open_to_all_eligible_marketers') }}</option>
                                 @foreach($marketers as $m)
                                     <option value="{{ $m->id }}" @selected($promotion->marketer_id === $m->id)>{{ $m->name }}
                                         ({{ $m->type }})</option>
@@ -439,30 +435,30 @@
                             </select>
                         </div>
                         <div>
-                            <label class="form-label">Valid until</label>
+                            <label class="form-label">{{ __('admin.secret_promotions.valid_until_label') }}</label>
                             <input type="date" id="edit-valid-until" name="valid_until" class="form-input w-full text-sm"
                                 value="{{ $promotion->valid_until?->format('Y-m-d') }}"
                                 min="{{ now()->addDay()->format('Y-m-d') }}">
                         </div>
                         <div>
-                            <label class="form-label">Total commission %</label>
+                            <label class="form-label">{{ __('admin.secret_promotions.total_comm_pct') }}</label>
                             <input type="number" name="total_commission_pct" step="0.01" min="0.01" max="99"
                                 class="form-input w-full text-sm" value="{{ $promotion->total_commission_pct }}">
                         </div>
                         <div>
-                            <label class="form-label">Marketer share %</label>
+                            <label class="form-label">{{ __('admin.secret_promotions.marketer_pct') }}</label>
                             <input type="number" name="marketer_share_pct" step="0.01" min="0.01"
                                 class="form-input w-full text-sm" value="{{ $promotion->marketer_share_pct }}">
                         </div>
                         <div>
-                            <label class="form-label">🔒 Product value</label>
+                            <label class="form-label">🔒 {{ __('admin.secret_promotions.product_value') }}</label>
                             <input type="number" name="product_value" step="0.01" min="0.01"
                                 class="form-input w-full text-sm" value="{{ $promotion->product_value_cents / 100 }}">
                         </div>
                     </div>
                     <div class="flex justify-end gap-3 pt-2 border-t border-gray-100">
-                        <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-                        <button type="submit" class="btn btn-primary btn-sm">Save changes</button>
+                        <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.secret_promotions.save_changes') }}</button>
                     </div>
                 </div>
             </form>

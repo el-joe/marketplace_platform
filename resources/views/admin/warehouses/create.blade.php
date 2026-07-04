@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Add Warehouse')
+@section('title', __('admin.warehouses_section.add_warehouse'))
 
 @push('styles')
     @vite(['resources/js/components/select2.js'])

@@ -26,7 +26,7 @@ class MarketerSampleController extends Controller
         $vendorId = $this->vendorId();
 
         $requests = MarketerSampleRequest::where('vendor_id', $vendorId)
-            ->with(['marketer', 'campaign', 'items.vendorListing.product'])
+            ->with(['marketer', 'campaign', 'items.vendorListing.productVariant.product'])
             ->orderByDesc('created_at')
             ->paginate(20);
 

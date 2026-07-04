@@ -10,8 +10,11 @@ use App\Models\MarketerCampaign;
 use App\Models\MarketerCommissionTier;
 use App\Models\MarketerConversion;
 use App\Models\MarketerPayout;
+use App\Models\MarketerSampleItem;
 use App\Models\MarketerSampleRequest;
 use App\Models\MarketerSecretPromotion;
+use App\Models\Category;
+use App\Models\VendorListing;
 use App\Models\ClassifiedListing;
 use App\Models\TravelPackage;
 use App\Models\Vendor;
@@ -30,6 +33,7 @@ use App\Notifications\Marketer\PayoutProcessed as MarketerPayoutProcessed;
 use App\Notifications\Marketer\SampleDispatched as MarketerSampleDispatched;
 use App\Notifications\Marketer\SampleRequestApproved as MarketerSampleRequestApproved;
 use App\Notifications\Marketer\SampleRequestRejected as MarketerSampleRequestRejected;
+use App\Services\SampleQuotaResolver;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -53,9 +57,13 @@ class MarketerController extends Controller
             'total' => Marketer::count(),
             'active' => Marketer::where('status', 'active')->count(),
             'pending' => Marketer::where('status', 'pending')->count(),
-            'commissions_month' => MarketerConversion::where('status', 'approved')
+            // Per-currency breakdown for this month's approved commissions.
+            // Returned as a collection keyed by ISO currency code.
+            'commissions_month_by_currency' => MarketerConversion::where('status', 'approved')
                 ->whereBetween('approved_at', [now()->startOfMonth(), now()])
-                ->sum('commission_amount_cents'),
+                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->groupBy('currency')
+                ->pluck('total', 'currency'),
         ];
 
         $countries = Country::orderBy('name_en')->get(['id', 'name_en']);
@@ -137,12 +145,20 @@ class MarketerController extends Controller
     {
         $marketer->load(['country', 'campaigns' => fn($q) => $q->latest()->limit(5)]);
 
+        // Earnings grouped by currency — never sum across currencies.
+        $pendingByCurrency = $marketer->conversions()->where('status', 'pending')
+            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->groupBy('currency')->pluck('total', 'currency');
+        $paidByCurrency = $marketer->conversions()->where('status', 'paid')
+            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->groupBy('currency')->pluck('total', 'currency');
+
         $stats = [
             'total_campaigns' => $marketer->campaigns()->count(),
             'active_campaigns' => $marketer->campaigns()->where('status', 'active')->count(),
             'total_conversions' => $marketer->conversions()->count(),
-            'pending_earnings' => $marketer->conversions()->where('status', 'pending')->sum('commission_amount_cents'),
-            'paid_earnings' => $marketer->conversions()->where('status', 'paid')->sum('commission_amount_cents'),
+            'pending_by_currency' => $pendingByCurrency,
+            'paid_by_currency' => $paidByCurrency,
         ];
 
         return view('admin.marketers.show', [
@@ -323,9 +339,9 @@ class MarketerController extends Controller
         }
         if ($targetType = $request->input('filter_target_type')) {
             $map = [
-                'vendor'     => Vendor::class,
+                'vendor' => Vendor::class,
                 'classified' => ClassifiedListing::class,
-                'travel'     => TravelPackage::class,
+                'travel' => TravelPackage::class,
             ];
             if (isset($map[$targetType])) {
                 $query->where('marketer_campaigns.campaignable_type', $map[$targetType]);
@@ -371,11 +387,47 @@ class MarketerController extends Controller
             return response()->json(['success' => false, 'message' => 'Campaign is not in draft status.'], 422);
         }
 
-        $campaign->update([
-            'status' => 'active',
-            'approved_by_admin_id' => auth()->guard('admin')->id(),
-            'approved_at' => now(),
-        ]);
+        DB::transaction(function () use ($campaign) {
+            $campaign->update([
+                'status' => 'active',
+                'approved_by_admin_id' => auth()->guard('admin')->id(),
+                'approved_at' => now(),
+            ]);
+
+            // Auto-create and approve sample requests grouped by vendor
+            // if ($campaign->samples_required > 0) {
+            $campaign->load('products.vendorListing');
+
+            $byVendor = $campaign->products
+                ->filter(fn($p) => $p->vendorListing?->vendor_id)
+                ->groupBy(fn($p) => $p->vendorListing->vendor_id);
+
+            foreach ($byVendor as $vendorId => $products) {
+                $sampleRequest = MarketerSampleRequest::create([
+                    'marketer_id' => $campaign->marketer_id,
+                    'vendor_id' => $vendorId,
+                    'campaign_id' => $campaign->id,
+                    'status' => 'requested',
+                ]);
+
+                $category = app(SampleQuotaResolver::class)->resolveFromRequest($sampleRequest);
+                foreach ($products as $product) {
+
+                    MarketerSampleItem::create([
+                        'sample_request_id' => $sampleRequest->id,
+                        'vendor_listing_id' => $product->vendorListing->id,
+                        'quantity' => $category->marketer_sample_quota,
+                        'marketer_quantity' => $category->marketer_sample_quota,
+                        'admin_quantity' => 0,
+                        'is_mandatory' => false,
+                        'sample_cost_cents' => 0,
+                    ]);
+                }
+
+                \App\Jobs\MarketerAutoApproveJob::dispatch(null, $sampleRequest->id)->afterCommit();
+            }
+            // }
+        });
 
         $campaign->marketer->notify(new MarketerCampaignApproved($campaign));
 
@@ -408,7 +460,7 @@ class MarketerController extends Controller
 
     public function showCampaign(MarketerCampaign $campaign): View
     {
-        $campaign->load(['marketer', 'products.vendorListing.product', 'campaignable']);
+        $campaign->load(['marketer', 'products.vendorListing.productVariant.product', 'campaignable']);
 
         // For travel campaigns, also eager-load the agency on the already-loaded campaignable
         if ($campaign->campaignable instanceof TravelPackage) {
@@ -564,35 +616,45 @@ class MarketerController extends Controller
             return response()->json(['success' => false, 'message' => 'No approved conversions in this period.'], 422);
         }
 
-        $gross = $conversions->sum('commission_amount_cents');
-        $tax = (int) round($gross * 0.05); // 5% tax — configurable
-        $net = $gross - $tax;
+        // Each currency group becomes its own payout row so amounts are never blended.
+        // Tax rate: marketer_withholding_tax_rate is withholding tax on commission income —
+        // a separate statutory concept from vat_rate (which is VAT on the sale).
+        // Defaults to 0 if the marketer has no country linked or the country rate is unset.
+        $taxRate = $marketer->country->marketer_withholding_tax_rate ?? 0;
 
-        $payout = MarketerPayout::create([
-            'marketer_id' => $marketer->id,
-            'period_start' => $request->period_start,
-            'period_end' => $request->period_end,
-            'total_conversions' => $conversions->count(),
-            'gross_commission_cents' => $gross,
-            'tax_deduction_cents' => $tax,
-            'net_amount_cents' => $net,
-            'currency' => $conversions->first()->currency ?? 'SAR',
-            'status' => 'pending',
-            'bank_name' => $marketer->bank_name,
-            'bank_iban' => $marketer->bank_iban,
-        ]);
+        $payoutNumbers = [];
 
-        // Mark conversions as part of this payout
+        foreach ($conversions->groupBy('currency') as $currency => $group) {
+            $gross = $group->sum('commission_amount_cents');
+            $tax = (int) round($gross * ($taxRate / 100));
+            $net = $gross - $tax;
+
+            $payout = MarketerPayout::create([
+                'marketer_id' => $marketer->id,
+                'period_start' => $request->period_start,
+                'period_end' => $request->period_end,
+                'total_conversions' => $group->count(),
+                'gross_commission_cents' => $gross,
+                'tax_deduction_cents' => $tax,
+                'net_amount_cents' => $net,
+                'currency' => $currency,
+                'status' => 'pending',
+                'bank_name' => $marketer->bank_name,
+                'bank_iban' => $marketer->bank_iban,
+            ]);
+
+            $payoutNumbers[] = $payout->payout_number;
+            $marketer->increment('total_earnings_cents', $net);
+        }
+
+        // Mark all conversions as paid only after all payout rows are committed.
         $conversions->each(fn($c) => $c->update(['status' => 'paid', 'paid_at' => now()]));
-
-        // Update marketer totals
-        $marketer->increment('total_earnings_cents', $net);
 
         Notification::send(
             Admin::permission('marketers.payouts.approve')->get(),
             new PayoutBatchReadyForApproval(
                 batchType: 'marketer',
-                payoutCount: 1,
+                payoutCount: count($payoutNumbers),
                 periodStart: $request->period_start,
                 periodEnd: $request->period_end,
             ),
@@ -600,7 +662,7 @@ class MarketerController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Payout generated: ' . $payout->payout_number,
+            'message' => count($payoutNumbers) . ' payout(s) generated: ' . implode(', ', $payoutNumbers),
         ]);
     }
 
@@ -989,22 +1051,49 @@ class MarketerController extends Controller
         ]);
     }
 
-    public function approveSample(MarketerSampleRequest $req): JsonResponse
+    public function approveSample(Request $httpRequest, MarketerSampleRequest $req): JsonResponse
     {
         if ($req->status !== 'requested') {
             return response()->json(['success' => false, 'message' => 'Request is not pending.'], 422);
         }
 
-        $req->update([
-            'status' => 'approved',
-            'admin_approved_by' => auth()->guard('admin')->id(),
-            'approved_at' => now(),
+        $validated = $httpRequest->validate([
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|uuid|exists:marketer_sample_items,id',
+            'items.*.marketer_quantity' => 'required|integer|min:0',
+            'items.*.admin_quantity' => 'required|integer|min:0',
         ]);
+
+        DB::transaction(function () use ($req, $validated) {
+            foreach ($validated['items'] as $itemData) {
+                $item = $req->items()->find($itemData['id']);
+                if (!$item)
+                    continue;
+
+                $mktQty = max(0, (int) $itemData['marketer_quantity']);
+                $admQty = max(0, (int) $itemData['admin_quantity']);
+
+                // marketer_quantity and admin_quantity coexist on the same row.
+                // quantity = combined total visible to the vendor.
+                $item->update([
+                    'marketer_quantity' => $mktQty,
+                    'admin_quantity' => $admQty,
+                    'quantity' => $mktQty + $admQty,
+                ]);
+            }
+
+            $req->update([
+                'status' => 'approved',
+                'admin_approved_by' => auth()->guard('admin')->id(),
+                'approved_at' => now(),
+            ]);
+        });
 
         $req->marketer->notify(new MarketerSampleRequestApproved($req));
 
         return response()->json(['success' => true, 'message' => 'Sample request approved.']);
     }
+
 
     public function dispatchSample(MarketerSampleRequest $req): JsonResponse
     {
@@ -1048,27 +1137,34 @@ class MarketerController extends Controller
             'marketer',
             'vendor',
             'campaign',
-            'items.vendorListing.productVariant.product',
+            'items.vendorListing.productVariant.product.category',
         ]);
 
         return response()->json([
-            'id'               => $req->id,
-            'marketer'         => $req->marketer->name,
-            'vendor'           => $req->vendor->store_name,
-            'campaign'         => $req->campaign?->name,
-            'status'           => $req->status,
-            'notes'            => $req->notes,
+            'id' => $req->id,
+            'marketer' => $req->marketer->name,
+            'vendor' => $req->vendor->store_name,
+            'campaign' => $req->campaign?->name,
+            'status' => $req->status,
+            'notes' => $req->notes,
             'rejection_reason' => $req->rejection_reason,
-            'created_at'       => $req->created_at->format('d M Y H:i'),
-            'items'            => $req->items->map(function ($item) {
+            'created_at' => $req->created_at->format('d M Y H:i'),
+            'items' => $req->items->map(function ($item) {
                 $variant = $item->vendorListing?->productVariant;
                 $product = $variant?->product;
+                $category = $product?->category;
                 return [
-                    'product_name'  => $product?->name_en ?? '—',
-                    'variant_name'  => $variant?->variant_name,
-                    'quantity'      => $item->quantity,
-                    'is_mandatory'  => $item->is_mandatory,
-                    'cost'          => $item->sample_cost_cents ? number_format($item->sample_cost_cents / 100, 2) : null,
+                    'id' => $item->id,
+                    'product_name' => $product?->name_en ?? '—',
+                    'variant_name' => $variant?->variant_name,
+                    'category_id' => $category?->id,
+                    'category_name' => $category?->name_en ?? 'Uncategorised',
+                    'category_admin_quota' => $category?->admin_sample_quota ?? 0,
+                    'quantity' => $item->quantity,
+                    'marketer_quantity' => $item->marketer_quantity,
+                    'admin_quantity' => $item->admin_quantity,
+                    'is_mandatory' => $item->is_mandatory,
+                    'cost' => $item->sample_cost_cents ? number_format($item->sample_cost_cents / 100, 2) : null,
                 ];
             }),
         ]);

@@ -4,7 +4,7 @@
     @vite(['resources/js/components/select2.js', 'resources/js/admin/vendor-applications.js'])
 @endpush
 
-@section('title', 'Review: ' . $vendor->store_name)
+@section('title', __('admin.vendor_applications.review_prefix', ['name' => $vendor->store_name]))
 
 @section('content')
 
@@ -12,7 +12,7 @@
     <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
             <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <a href="{{ route('admin.vendor-applications.index') }}" class="hover:text-primary-600">Applications</a>
+                <a href="{{ route('admin.vendor-applications.index') }}" class="hover:text-primary-600">{{ __('admin.vendor_applications.applications_breadcrumb') }}</a>
                 <span>/</span>
                 <span class="text-gray-800 font-medium">{{ $vendor->store_name }}</span>
             </div>
@@ -28,23 +28,23 @@
                 @php
                     $urgencyClass = $daysWaiting > 5 ? 'text-red-600 font-semibold' : ($daysWaiting >= 2 ? 'text-yellow-600' : 'text-green-600');
                 @endphp
-                <span class="text-sm {{ $urgencyClass }}">Waiting {{ $daysWaiting }} day{{ $daysWaiting !== 1 ? 's' : '' }}</span>
+                <span class="text-sm {{ $urgencyClass }}">{{ __('admin.vendor_applications.waiting_days_text', ['days' => $daysWaiting]) }}</span>
                 <button type="button"
                     id="start-review-btn"
                     class="btn btn-secondary btn-xs {{ $vendor->global_status === 'under_review' ? 'hidden' : '' }}"
                     data-url="{{ route('admin.vendor-applications.start-review', $vendor->id) }}">
-                    Start Review
+                    {{ __('admin.vendor_applications.start_review') }}
                 </button>
                 <button type="button"
                     id="assign-me-btn"
                     class="btn btn-ghost btn-xs"
                     data-url="{{ route('admin.vendor-applications.assign-me', $vendor->id) }}"
-                    title="Assign yourself as account manager">
-                    Assign to me
+                    title="{{ __('admin.vendor_applications.assign_to_me_title') }}">
+                    {{ __('admin.vendor_applications.assign_to_me') }}
                 </button>
             </div>
         </div>
-        <a href="{{ route('admin.vendor-applications.index') }}" class="btn btn-secondary btn-sm">← Back to Queue</a>
+        <a href="{{ route('admin.vendor-applications.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.vendor_applications.back_to_queue') }}</a>
     </div>
 
     {{-- ─── Main 2-column layout ────────────────────────────────────────────────── --}}
@@ -54,44 +54,44 @@
         <div class="col-span-12 lg:col-span-7 space-y-6">
 
             {{-- ─── Business Information ────────────────────────────────────────────── --}}
-            <x-card title="Business Information">
+            <x-card title="{{ __('admin.vendors.business_information') }}">
                 <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Business Name</dt>
+                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.business_name_label') }}</dt>
                         <dd class="font-medium">{{ $vendor->business_name ?? '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Business Type</dt>
+                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.business_type_label') }}</dt>
                         <dd>{{ ucfirst($vendor->business_type ?? '—') }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Registration No.</dt>
+                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.registration_no_label') }}</dt>
                         <dd class="font-mono text-xs">{{ $vendor->business_registration_number ?? '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Tax ID</dt>
+                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.tax_id_label') }}</dt>
                         <dd class="font-mono text-xs">{{ $vendor->tax_id ?? '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Contact Email</dt>
+                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.contact_email_label') }}</dt>
                         <dd class="break-all">{{ $vendor->contact_email ?? $vendor->email ?? '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Contact Phone</dt>
+                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.contact_phone_label') }}</dt>
                         <dd>{{ $vendor->contact_phone ?? '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">WhatsApp</dt>
+                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.whatsapp_label') }}</dt>
                         <dd>{{ $vendor->whatsapp_number ?? '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Country</dt>
+                        <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.country_label') }}</dt>
                         <dd>{{ $vendor->country?->flag_emoji ?? '' }} {{ $vendor->country?->name_en ?? '—' }}</dd>
                     </div>
                     @php $address = $vendor->addresses->first(); @endphp
                     @if($address)
                         <div class="col-span-2">
-                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Business Address</dt>
+                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.business_address_label') }}</dt>
                             <dd>
                                 {{ $address->street_line_1 ?? '' }}
                                 @if($address->street_line_2), {{ $address->street_line_2 }}@endif
@@ -103,7 +103,7 @@
                     @endif
                     @if($vendor->store_description)
                         <div class="col-span-2">
-                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Store Description</dt>
+                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.store_description_label') }}</dt>
                             <dd class="text-gray-600 text-sm">{{ $vendor->store_description }}</dd>
                         </div>
                     @endif
@@ -111,7 +111,7 @@
             </x-card>
 
             {{-- ─── Documents ────────────────────────────────────────────────────────── --}}
-            <x-card title="Documents" subtitle="Required: Business License, Tax Certificate, Owner ID">
+            <x-card title="{{ __('admin.vendors.documents') }}" subtitle="{{ __('admin.vendor_applications.required_docs_subtitle') }}">
 
                 {{-- Required docs checklist --}}
                 <div class="flex flex-wrap gap-3 mb-4">
@@ -132,17 +132,17 @@
 
                 {{-- All documents table --}}
                 @if($vendor->documents->isEmpty())
-                    <p class="text-sm text-gray-400 py-4 text-center">No documents uploaded.</p>
+                    <p class="text-sm text-gray-400 py-4 text-center">{{ __('admin.vendors.no_documents_uploaded') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b border-gray-100 text-left">
-                                    <th class="py-2 pr-3 text-xs font-medium text-gray-500 uppercase">Type</th>
-                                    <th class="py-2 pr-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th class="py-2 pr-3 text-xs font-medium text-gray-500 uppercase">Expires</th>
-                                    <th class="py-2 pr-3 text-xs font-medium text-gray-500 uppercase">Verified by</th>
-                                    <th class="py-2 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                <tr class="border-b border-gray-100 text-start">
+                                    <th class="py-2 pr-3 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.type_column') }}</th>
+                                    <th class="py-2 pr-3 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.status_column') }}</th>
+                                    <th class="py-2 pr-3 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.expires_column') }}</th>
+                                    <th class="py-2 pr-3 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendor_applications.verified_by_column') }}</th>
+                                    <th class="py-2 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.actions_column') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -166,7 +166,7 @@
                                         <td class="py-2 pr-3 text-gray-500 text-xs">
                                             {{ $doc->expires_at ? $doc->expires_at->format('d M Y') : '—' }}
                                             @if($doc->isExpired())
-                                                <span class="text-red-500 ml-1">(expired)</span>
+                                                <span class="text-red-500 ml-1">{{ __('admin.vendor_applications.expired_suffix') }}</span>
                                             @endif
                                         </td>
                                         <td class="py-2 pr-3 text-xs text-gray-500">
@@ -187,7 +187,7 @@
                                                         data-file="{{ Storage::url($doc->file_path) }}"
                                                         data-type="{{ $doc->document_type }}"
                                                         data-id="{{ $doc->id }}">
-                                                        View
+                                                        {{ __('admin.vendors.view') }}
                                                     </button>
                                                 @endif
                                                 @if(!in_array($doc->status, ['verified','approved']))
@@ -195,7 +195,7 @@
                                                         class="btn btn-xs btn-success js-verify-doc-btn"
                                                         data-url="{{ route('admin.vendor-applications.documents.verify', $doc->id) }}"
                                                         data-id="{{ $doc->id }}">
-                                                        Verify
+                                                        {{ __('admin.vendors.verify') }}
                                                     </button>
                                                 @endif
                                                 @if($doc->status !== 'rejected')
@@ -203,7 +203,7 @@
                                                         class="btn btn-xs btn-danger js-reject-doc-btn"
                                                         data-url="{{ route('admin.vendor-applications.documents.reject', $doc->id) }}"
                                                         data-id="{{ $doc->id }}">
-                                                        Reject
+                                                        {{ __('admin.vendors.reject') }}
                                                     </button>
                                                 @endif
                                             </div>
@@ -220,14 +220,14 @@
                     @if(!$info['uploaded'])
                         <div class="mt-3 flex items-center gap-3 rounded border border-dashed border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
                             <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                            <span>Missing: <strong>{{ $info['label'] }}</strong> — not yet uploaded</span>
+                            <span>{!! str_replace($info['label'], '<strong>' . e($info['label']) . '</strong>', __('admin.vendor_applications.missing_doc_notice', ['label' => $info['label']])) !!}</span>
                         </div>
                     @endif
                 @endforeach
             </x-card>
 
             {{-- ─── Bank Account ─────────────────────────────────────────────────────── --}}
-            <x-card title="Bank Account">
+            <x-card title="{{ __('admin.vendors.bank_account') }}">
                 @php
                     $primaryBank = $vendor->bankAccounts->where('is_primary', true)->first()
                         ?? $vendor->bankAccounts->first();
@@ -236,15 +236,15 @@
                 @if($primaryBank)
                     <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Bank Name</dt>
+                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.bank_name_label') }}</dt>
                             <dd class="font-medium">{{ $primaryBank->bank_name ?? '—' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Account Holder</dt>
+                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.account_holder_label') }}</dt>
                             <dd>{{ $primaryBank->account_holder_name ?? '—' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">IBAN</dt>
+                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.iban_label') }}</dt>
                             <dd class="font-mono text-xs">
                                 @if($primaryBank->iban)
                                     ****{{ substr($primaryBank->iban, -4) }}
@@ -253,7 +253,7 @@
                             </dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Status</dt>
+                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.status_label') }}</dt>
                             <dd>
                                 @php $bsc = $bankStatusColors[$primaryBank->verification_status] ?? 'gray'; @endphp
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $bsc }}-100 text-{{ $bsc }}-700">
@@ -262,11 +262,11 @@
                             </dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">Currency</dt>
+                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.currency_label') }}</dt>
                             <dd class="uppercase">{{ $primaryBank->currency ?? '—' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">SWIFT</dt>
+                            <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.swift_label') }}</dt>
                             <dd class="font-mono text-xs">{{ $primaryBank->swift_code ?? '—' }}</dd>
                         </div>
                     </dl>
@@ -276,17 +276,17 @@
                                 class="btn btn-success btn-sm js-verify-bank-btn"
                                 data-url="{{ route('admin.vendors.bank-accounts.verify', [$vendor->id, $primaryBank->id]) }}"
                                 data-name="{{ e($primaryBank->bank_name ?? 'bank account') }}">
-                                Verify Bank Account
+                                {{ __('admin.vendor_applications.verify_bank_account_btn') }}
                             </button>
                         </div>
                     @endif
                     @if($vendor->bankAccounts->count() > 1)
-                        <p class="text-xs text-gray-400 mt-3">+ {{ $vendor->bankAccounts->count() - 1 }} more account(s)</p>
+                        <p class="text-xs text-gray-400 mt-3">{{ __('admin.vendor_applications.more_accounts_suffix', ['count' => $vendor->bankAccounts->count() - 1]) }}</p>
                     @endif
                 @else
                     <div class="flex items-center gap-2 rounded border border-dashed border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                        No bank account on file — cannot approve without one.
+                        {{ __('admin.vendor_applications.no_bank_account_notice') }}
                     </div>
                 @endif
             </x-card>
@@ -297,7 +297,7 @@
         <div class="col-span-12 lg:col-span-5 space-y-5">
 
             {{-- ─── Review Checklist ─────────────────────────────────────────────────── --}}
-            <x-card title="Review Checklist">
+            <x-card title="{{ __('admin.vendors.review_checklist') }}">
                 <ul class="space-y-2.5">
                     @foreach($checklist as $key => $item)
                         <li class="flex items-center gap-2.5">
@@ -317,36 +317,36 @@
                 </ul>
                 @if(!$canApprove)
                     <p class="mt-3 text-xs text-red-500 bg-red-50 rounded px-3 py-2">
-                        Resolve all checklist items before approving.
+                        {{ __('admin.vendor_applications.resolve_checklist_notice') }}
                     </p>
                 @endif
             </x-card>
 
             {{-- ─── Assignment ───────────────────────────────────────────────────────── --}}
-            <x-card title="Assignment">
+            <x-card title="{{ __('admin.vendors.assignment') }}">
                 <div class="space-y-4">
                     <x-form-async-select
                         name="account_manager_admin_id"
-                        label="Account Manager"
+                        label="{{ __('admin.vendor_applications.account_manager_label') }}"
                         :search-url="route('admin.admins.search')"
                         :value="$vendor->account_manager_admin_id"
                         :value-label="$vendor->accountManagerAdmin?->name"
-                        placeholder="Search for admin…"
+                        placeholder="{{ __('admin.vendor_applications.search_admin_placeholder') }}"
                         search-param="q" />
                     <x-form-input
                         type="number"
                         name="commission_rate_override_display"
-                        label="Commission Rate Override (%)"
+                        label="{{ __('admin.vendor_applications.commission_rate_override') }}"
                         step="0.01"
                         min="0"
                         max="100"
-                        placeholder="Leave empty for category default"
+                        placeholder="{{ __('admin.vendor_applications.leave_empty_category_default') }}"
                         :value="$vendor->commission_rate" />
                 </div>
             </x-card>
 
             {{-- ─── Decision ─────────────────────────────────────────────────────────── --}}
-            <x-card title="Decision">
+            <x-card title="{{ __('admin.vendors.decision') }}">
                 <div class="space-y-2">
                     @if(in_array($vendor->global_status, ['pending', 'under_review']))
                         <button
@@ -354,19 +354,19 @@
                             id="open-approve-modal-btn"
                             class="w-full btn btn-primary {{ !$canApprove ? 'opacity-50 cursor-not-allowed' : '' }}"
                             {{ !$canApprove ? 'disabled' : '' }}
-                            title="{{ !$canApprove ? 'Complete all checklist items first' : '' }}"
+                            title="{{ !$canApprove ? __('admin.vendor_applications.complete_checklist_first') : '' }}"
                             data-can-approve="{{ $canApprove ? 'true' : 'false' }}"
                             data-vendor-id="{{ $vendor->id }}"
                             data-approve-url="{{ route('admin.vendor-applications.approve', $vendor->id) }}"
                             data-vendor-name="{{ e($vendor->store_name) }}">
-                            Approve Application
+                            {{ __('admin.vendor_applications.approve_application') }}
                         </button>
                         <button
                             type="button"
                             id="open-request-info-modal-btn"
                             class="w-full btn btn-secondary"
                             data-vendor-name="{{ e($vendor->store_name) }}">
-                            Request More Information
+                            {{ __('admin.vendor_applications.request_more_information') }}
                         </button>
                         <button
                             type="button"
@@ -374,15 +374,15 @@
                             class="w-full btn btn-danger"
                             data-vendor-name="{{ e($vendor->store_name) }}"
                             data-reject-url="{{ route('admin.vendor-applications.reject', $vendor->id) }}">
-                            Reject Application
+                            {{ __('admin.vendor_applications.reject_application') }}
                         </button>
                     @elseif($vendor->global_status === 'active')
                         <div class="rounded-lg bg-green-50 border border-green-100 px-4 py-3 text-sm text-green-800">
-                            ✓ This application was approved.
+                            {{ __('admin.vendor_applications.approved_notice') }}
                         </div>
                     @elseif($vendor->global_status === 'rejected')
                         <div class="rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-800">
-                            ✗ This application was rejected.
+                            {{ __('admin.vendor_applications.rejected_notice') }}
                             @if($vendor->rejection_reason)
                                 <p class="mt-1 text-xs">{{ $vendor->rejection_reason }}</p>
                             @endif
@@ -399,48 +399,47 @@
     {{-- ══════════════════════════════════════════════════════════════════════════ --}}
 
     {{-- ─── Document Preview Modal ──────────────────────────────────────────────── --}}
-    <x-modal id="doc-preview-modal" title="Document Preview" size="xl">
+    <x-modal id="doc-preview-modal" title="{{ __('admin.vendor_applications.document_preview') }}" size="xl">
         <div id="doc-preview-content" class="min-h-[400px] flex items-center justify-center bg-gray-50 rounded">
-            <p class="text-gray-400 text-sm">Loading…</p>
+            <p class="text-gray-400 text-sm">{{ __('admin.vendor_applications.loading') }}</p>
         </div>
         <div class="flex items-center justify-between mt-4">
             <div class="flex gap-2">
-                <button type="button" id="modal-verify-doc-btn" class="btn btn-success btn-sm hidden">Verify Document</button>
-                <button type="button" id="modal-reject-doc-open-btn" class="btn btn-danger btn-sm hidden">Reject Document</button>
+                <button type="button" id="modal-verify-doc-btn" class="btn btn-success btn-sm hidden">{{ __('admin.vendor_applications.verify_document_btn') }}</button>
+                <button type="button" id="modal-reject-doc-open-btn" class="btn btn-danger btn-sm hidden">{{ __('admin.vendor_applications.reject_document_btn') }}</button>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="$('#doc-preview-modal').modal('close')">Close</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="$('#doc-preview-modal').modal('close')">{{ __('admin.vendor_applications.close') }}</button>
         </div>
     </x-modal>
 
     {{-- ─── Reject Document Modal ────────────────────────────────────────────────── --}}
-    <x-modal id="reject-doc-modal" title="Reject Document" size="sm">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Rejection Reason <span class="text-red-500">*</span></label>
-        <textarea id="doc-rejection-reason" rows="3" class="form-input w-full text-sm" placeholder="Why is this document being rejected?"></textarea>
-        <p class="text-xs text-red-500 hidden mt-1" id="doc-rejection-error">Reason is required.</p>
+    <x-modal id="reject-doc-modal" title="{{ __('admin.vendor_applications.reject_document_btn') }}" size="sm">
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendor_applications.rejection_reason_required') }} <span class="text-red-500">*</span></label>
+        <textarea id="doc-rejection-reason" rows="3" class="form-input w-full text-sm" placeholder="{{ __('admin.vendor_applications.rejection_reason_hint') }}"></textarea>
+        <p class="text-xs text-red-500 hidden mt-1" id="doc-rejection-error">{{ __('admin.vendor_applications.reason_required') }}</p>
         <div class="flex justify-end gap-3 mt-4">
-            <button type="button" class="btn btn-secondary" onclick="$('#reject-doc-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-reject-doc-btn" class="btn btn-danger">Reject</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#reject-doc-modal').modal('close')">{{ __('admin.vendor_applications.cancel') }}</button>
+            <button type="button" id="confirm-reject-doc-btn" class="btn btn-danger">{{ __('admin.vendor_applications.reject') }}</button>
         </div>
     </x-modal>
 
     {{-- ─── Approve Application Modal ────────────────────────────────────────────── --}}
-    <x-modal id="approve-modal" title="Approve Application" size="md">
+    <x-modal id="approve-modal" title="{{ __('admin.vendor_applications.approve_application') }}" size="md">
         <p class="text-sm text-gray-600 mb-4">
-            Approve <strong id="approve-vendor-name"></strong>?
-            The vendor will be notified and gain access to the platform.
+            {{ \Illuminate\Support\Str::before(__('admin.vendor_applications.approve_application_notice'), ':name') }}<strong id="approve-vendor-name"></strong>{{ \Illuminate\Support\Str::after(__('admin.vendor_applications.approve_application_notice'), ':name') }}
         </p>
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Commission Rate Override (%)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendor_applications.commission_rate_override') }}</label>
                 <input type="number" id="approve-commission" class="form-input w-full text-sm" step="0.01" min="0" max="100"
-                    placeholder="Leave empty for category default"
+                    placeholder="{{ __('admin.vendor_applications.leave_empty_category_default') }}"
                     value="{{ $vendor->commission_rate }}">
-                <p class="text-xs text-gray-400 mt-1">Current: {{ $vendor->commission_rate ? $vendor->commission_rate . '%' : 'Category default' }}</p>
+                <p class="text-xs text-gray-400 mt-1">{{ __('admin.vendor_applications.current_label', ['value' => $vendor->commission_rate ? $vendor->commission_rate . '%' : __('admin.vendor_applications.category_default')]) }}</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Account Manager</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendor_applications.account_manager_label') }}</label>
                 <select id="approve-account-manager" class="form-input w-full text-sm">
-                    <option value="">— None —</option>
+                    <option value="">{{ __('admin.vendor_applications.account_manager_none') }}</option>
                     @foreach($admins as $a)
                         <option value="{{ $a->id }}" {{ $vendor->account_manager_admin_id === $a->id ? 'selected' : '' }}>
                             {{ $a->name }}
@@ -449,28 +448,28 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Notes (internal)</label>
-                <textarea id="approve-notes" rows="2" class="form-input w-full text-sm" placeholder="Optional notes…"></textarea>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendor_applications.internal_notes_label') }}</label>
+                <textarea id="approve-notes" rows="2" class="form-input w-full text-sm" placeholder="{{ __('admin.vendor_applications.internal_notes_placeholder') }}"></textarea>
             </div>
         </div>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#approve-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-approve-btn" class="btn btn-primary">Confirm Approval</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#approve-modal').modal('close')">{{ __('admin.vendor_applications.cancel') }}</button>
+            <button type="button" id="confirm-approve-btn" class="btn btn-primary">{{ __('admin.vendor_applications.confirm_approval') }}</button>
         </div>
     </x-modal>
 
     {{-- ─── Reject Application Modal ─────────────────────────────────────────────── --}}
-    <x-modal id="reject-modal" title="Reject Application" size="md">
-        <p class="text-sm text-gray-600 mb-3">Reject <strong id="reject-vendor-name"></strong>. Select the rejection reasons:</p>
+    <x-modal id="reject-modal" title="{{ __('admin.vendor_applications.reject_application') }}" size="md">
+        <p class="text-sm text-gray-600 mb-3">{{ __('admin.vendor_applications.reject') }} <strong id="reject-vendor-name"></strong>. {{ __('admin.vendor_applications.select_rejection_reasons') }}</p>
         <div class="space-y-2 mb-4">
             @foreach([
-                'documents_incomplete'    => 'Documents Incomplete',
-                'documents_invalid'       => 'Documents Invalid or Unreadable',
-                'business_not_verifiable' => 'Business Cannot Be Verified',
-                'policy_violation'        => 'Policy Violation',
-                'duplicate_account'       => 'Duplicate Account',
-                'prohibited_category'     => 'Prohibited Category',
-                'other'                   => 'Other',
+                'documents_incomplete'    => __('admin.vendor_applications.documents_incomplete'),
+                'documents_invalid'       => __('admin.vendor_applications.documents_invalid'),
+                'business_not_verifiable' => __('admin.vendor_applications.business_not_verifiable'),
+                'policy_violation'        => __('admin.vendors.policy_violation'),
+                'duplicate_account'       => __('admin.vendor_applications.duplicate_account'),
+                'prohibited_category'     => __('admin.vendor_applications.prohibited_category'),
+                'other'                   => __('admin.vendor_applications.other'),
             ] as $code => $label)
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" class="form-checkbox rejection-code-checkbox" value="{{ $code }}">
@@ -478,26 +477,26 @@
                 </label>
             @endforeach
         </div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Detailed Reason <span class="text-red-500">*</span></label>
-        <textarea id="reject-reason-input" rows="3" class="form-input w-full text-sm" placeholder="Explain in detail why this application is being rejected…"></textarea>
-        <p class="text-xs text-red-500 hidden mt-1" id="reject-reason-error">Rejection reason is required.</p>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendor_applications.detailed_reason') }} <span class="text-red-500">*</span></label>
+        <textarea id="reject-reason-input" rows="3" class="form-input w-full text-sm" placeholder="{{ __('admin.vendor_applications.detailed_reason_placeholder') }}"></textarea>
+        <p class="text-xs text-red-500 hidden mt-1" id="reject-reason-error">{{ __('admin.vendor_applications.rejection_reason_required_hint') }}</p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#reject-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-reject-btn" class="btn btn-danger">Reject Application</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#reject-modal').modal('close')">{{ __('admin.vendor_applications.cancel') }}</button>
+            <button type="button" id="confirm-reject-btn" class="btn btn-danger">{{ __('admin.vendor_applications.reject_application') }}</button>
         </div>
     </x-modal>
 
     {{-- ─── Request More Info Modal ──────────────────────────────────────────────── --}}
-    <x-modal id="request-info-modal" title="Request More Information" size="md">
-        <p class="text-sm text-gray-600 mb-3">Select which documents you need from <strong id="request-info-vendor-name"></strong>:</p>
+    <x-modal id="request-info-modal" title="{{ __('admin.vendor_applications.request_more_information') }}" size="md">
+        <p class="text-sm text-gray-600 mb-3">{{ \Illuminate\Support\Str::before(__('admin.vendor_applications.select_documents_needed'), ':name') }}<strong id="request-info-vendor-name"></strong>{{ \Illuminate\Support\Str::after(__('admin.vendor_applications.select_documents_needed'), ':name') }}</p>
         <div class="space-y-2 mb-4">
             @foreach([
-                'business_license' => 'Business License',
-                'tax_certificate'  => 'Tax Certificate',
-                'owner_id'         => 'Owner ID',
-                'bank_statement'   => 'Bank Statement',
-                'trade_license'    => 'Trade License',
-                'other'            => 'Other / Custom',
+                'business_license' => __('admin.vendors.business_license'),
+                'tax_certificate'  => __('admin.vendors.tax_certificate'),
+                'owner_id'         => __('admin.vendors.owner_id'),
+                'bank_statement'   => __('admin.vendor_applications.bank_statement'),
+                'trade_license'    => __('admin.vendor_applications.trade_license'),
+                'other'            => __('admin.vendor_applications.other_custom'),
             ] as $docType => $docLabel)
                 <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" class="form-checkbox request-doc-checkbox" value="{{ $docType }}">
@@ -505,14 +504,14 @@
                 </label>
             @endforeach
         </div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Message to vendor</label>
-        <textarea id="request-info-message" rows="3" class="form-input w-full text-sm" placeholder="Additional instructions for the vendor…"></textarea>
-        <p class="text-xs text-red-500 hidden mt-1" id="request-doc-error">Select at least one document type.</p>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendor_applications.message_to_vendor') }}</label>
+        <textarea id="request-info-message" rows="3" class="form-input w-full text-sm" placeholder="{{ __('admin.vendor_applications.additional_instructions') }}"></textarea>
+        <p class="text-xs text-red-500 hidden mt-1" id="request-doc-error">{{ __('admin.vendor_applications.select_at_least_one_doc') }}</p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#request-info-modal').modal('close')">Cancel</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#request-info-modal').modal('close')">{{ __('admin.vendor_applications.cancel') }}</button>
             <button type="button" id="confirm-request-info-btn" class="btn btn-secondary"
                 data-url="{{ route('admin.vendor-applications.request-info', $vendor->id) }}">
-                Send Request
+                {{ __('admin.vendor_applications.send_request') }}
             </button>
         </div>
     </x-modal>

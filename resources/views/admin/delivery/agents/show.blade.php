@@ -4,7 +4,7 @@
     @vite(['resources/js/components/datatable.js'])
 @endpush
 
-@section('title', $agent->name . ' — Delivery Agent')
+@section('title', $agent->name . ' — ' . __('admin.delivery_section.agents'))
 
 @section('content')
 
@@ -38,29 +38,29 @@
                 <x-badge color="gray">{{ ucfirst(str_replace('_', ' ', $agent->agent_type)) }}</x-badge>
                 <x-badge color="gray">{{ ucfirst($agent->vehicle_type) }}</x-badge>
                 @if($agent->is_available)
-                    <x-badge color="success">Available</x-badge>
+                    <x-badge color="success">{{ __('admin.delivery_section.available_badge') }}</x-badge>
                 @endif
             </div>
         </div>
     </div>
     <div class="flex items-center gap-2 flex-shrink-0">
         @if($agent->status === 'active' || $agent->status === 'on_shift')
-            <button type="button" id="suspend-btn" class="btn btn-warning btn-sm">Suspend</button>
+            <button type="button" id="suspend-btn" class="btn btn-warning btn-sm">{{ __('admin.delivery_section.suspend') }}</button>
         @else
-            <button type="button" id="activate-btn" class="btn btn-success btn-sm">Activate</button>
+            <button type="button" id="activate-btn" class="btn btn-success btn-sm">{{ __('common.active') }}</button>
         @endif
-        <button type="button" id="reset-pwd-btn" class="btn btn-secondary btn-sm">Reset Password</button>
-        <a href="{{ route('admin.delivery.agents.index') }}" class="text-sm text-gray-500 hover:text-gray-700">← Back</a>
+        <button type="button" id="reset-pwd-btn" class="btn btn-secondary btn-sm">{{ __('admin.delivery_section.reset_password') }}</button>
+        <a href="{{ route('admin.delivery.agents.index') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('admin.delivery_section.back') }}</a>
     </div>
 </div>
 
 {{-- ─── Stats Strip ─────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
     @foreach([
-        ['label' => 'Total Deliveries', 'value' => number_format($agent->total_deliveries)],
-        ['label' => 'Rating',           'value' => number_format($agent->rating_avg, 1) . ' ★'],
-        ['label' => 'Delivered',        'value' => number_format($assignmentStats->delivered ?? 0)],
-        ['label' => 'Failed',           'value' => number_format($assignmentStats->failed ?? 0)],
+        ['label' => __('admin.delivery_section.total_deliveries_stat'), 'value' => number_format($agent->total_deliveries)],
+        ['label' => __('admin.delivery_section.rating_col'),           'value' => number_format($agent->rating_avg, 1) . ' ★'],
+        ['label' => __('admin.delivery_section.delivered_stat'),        'value' => number_format($assignmentStats->delivered ?? 0)],
+        ['label' => __('admin.delivery_section.failed_stat'),           'value' => number_format($assignmentStats->failed ?? 0)],
     ] as $stat)
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ $stat['label'] }}</p>
@@ -73,11 +73,11 @@
 <div x-data="{ tab: 'profile' }">
     <div class="flex gap-1 border-b border-gray-200 overflow-x-auto pb-px mb-6">
         @foreach([
-            'profile'     => 'Profile',
-            'assignments' => 'Assignments',
-            'earnings'    => 'Earnings',
-            'documents'   => 'Documents',
-            'shifts'      => 'Shifts',
+            'profile'     => __('admin.delivery_section.tab_profile'),
+            'assignments' => __('admin.delivery_section.tab_assignments'),
+            'earnings'    => __('admin.delivery_section.tab_earnings'),
+            'documents'   => __('admin.delivery_section.tab_documents'),
+            'shifts'      => __('admin.delivery_section.tab_shifts'),
         ] as $key => $label)
             <button type="button"
                     @click="tab = '{{ $key }}'"
@@ -96,29 +96,29 @@
 
             {{-- Main profile info --}}
             <div class="col-span-12 lg:col-span-8">
-                <x-card title="Agent Profile">
+                <x-card title="{{ __('admin.delivery_section.agent_profile') }}">
                     <x-slot name="actions">
-                        <button type="button" id="edit-profile-btn" class="btn btn-secondary btn-sm text-xs">Edit</button>
+                        <button type="button" id="edit-profile-btn" class="btn btn-secondary btn-sm text-xs">{{ __('admin.delivery_section.edit') }}</button>
                     </x-slot>
 
                     <div id="profile-view" class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
                         @foreach([
-                            'Name'                    => $agent->name,
-                            'Email'                   => $agent->email,
-                            'Phone'                   => $agent->phone,
-                            'Country'                 => $agent->country?->name_en ?? '—',
-                            'Zone'                    => $agent->zone?->name ?? '—',
-                            'Agent Type'              => ucfirst(str_replace('_', ' ', $agent->agent_type)),
-                            'Vehicle Type'            => ucfirst($agent->vehicle_type),
-                            'National ID'             => $agent->national_id ?? '—',
-                            'Vehicle Plate'           => $agent->vehicle_plate ?? '—',
-                            'Emergency Contact'       => $agent->emergency_contact_name ?? '—',
-                            'Emergency Phone'         => $agent->emergency_contact_phone ?? '—',
-                            'Base Salary'             => $agent->base_salary_cents ? number_format($agent->base_salary_cents / 100, 2) : '—',
-                            'Per Delivery Fee'        => number_format($agent->per_delivery_fee_cents / 100, 2),
-                            'Last Login'              => $agent->last_login_at?->format('d M Y H:i') ?? 'Never',
-                            'Last Login IP'           => $agent->last_login_ip ?? '—',
-                            'Joined'                  => $agent->created_at->format('d M Y'),
+                            __('admin.delivery_section.field_name')                    => $agent->name,
+                            __('admin.delivery_section.field_email')                   => $agent->email,
+                            __('admin.delivery_section.field_phone')                   => $agent->phone,
+                            __('admin.delivery_section.field_country')                 => $agent->country?->name_en ?? '—',
+                            __('admin.delivery_section.field_zone')                    => $agent->zone?->name ?? '—',
+                            __('admin.delivery_section.field_agent_type')              => ucfirst(str_replace('_', ' ', $agent->agent_type)),
+                            __('admin.delivery_section.field_vehicle_type')            => ucfirst($agent->vehicle_type),
+                            __('admin.delivery_section.field_national_id')             => $agent->national_id ?? '—',
+                            __('admin.delivery_section.field_vehicle_plate')           => $agent->vehicle_plate ?? '—',
+                            __('admin.delivery_section.field_emergency_contact')       => $agent->emergency_contact_name ?? '—',
+                            __('admin.delivery_section.field_emergency_phone')         => $agent->emergency_contact_phone ?? '—',
+                            __('admin.delivery_section.field_base_salary')             => $agent->base_salary_cents ? number_format($agent->base_salary_cents / 100, 2) : '—',
+                            __('admin.delivery_section.field_per_delivery_fee')        => number_format($agent->per_delivery_fee_cents / 100, 2),
+                            __('admin.delivery_section.field_last_login')              => $agent->last_login_at?->format('d M Y H:i') ?? __('admin.delivery_section.never'),
+                            __('admin.delivery_section.field_last_login_ip')           => $agent->last_login_ip ?? '—',
+                            __('admin.delivery_section.field_joined')                  => $agent->created_at->format('d M Y'),
                         ] as $label => $value)
                             <div>
                                 <dt class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ $label }}</dt>
@@ -132,14 +132,14 @@
                         @csrf @method('PUT')
                         <div class="grid grid-cols-2 gap-4">
                             @foreach([
-                                ['name' => 'name',                    'label' => 'Name',              'type' => 'text',   'value' => $agent->name],
-                                ['name' => 'phone',                   'label' => 'Phone',             'type' => 'text',   'value' => $agent->phone],
-                                ['name' => 'national_id',             'label' => 'National ID',       'type' => 'text',   'value' => $agent->national_id],
-                                ['name' => 'vehicle_plate',           'label' => 'Vehicle Plate',     'type' => 'text',   'value' => $agent->vehicle_plate],
-                                ['name' => 'emergency_contact_name',  'label' => 'Emergency Name',    'type' => 'text',   'value' => $agent->emergency_contact_name],
-                                ['name' => 'emergency_contact_phone', 'label' => 'Emergency Phone',   'type' => 'text',   'value' => $agent->emergency_contact_phone],
-                                ['name' => 'base_salary_cents',       'label' => 'Base Salary (cents)','type' => 'number','value' => $agent->base_salary_cents],
-                                ['name' => 'per_delivery_fee_cents',  'label' => 'Per Delivery Fee (cents)','type' => 'number','value' => $agent->per_delivery_fee_cents],
+                                ['name' => 'name',                    'label' => __('admin.delivery_section.field_name'),              'type' => 'text',   'value' => $agent->name],
+                                ['name' => 'phone',                   'label' => __('admin.delivery_section.field_phone'),             'type' => 'text',   'value' => $agent->phone],
+                                ['name' => 'national_id',             'label' => __('admin.delivery_section.field_national_id'),       'type' => 'text',   'value' => $agent->national_id],
+                                ['name' => 'vehicle_plate',           'label' => __('admin.delivery_section.field_vehicle_plate'),     'type' => 'text',   'value' => $agent->vehicle_plate],
+                                ['name' => 'emergency_contact_name',  'label' => __('admin.delivery_section.emergency_name'),    'type' => 'text',   'value' => $agent->emergency_contact_name],
+                                ['name' => 'emergency_contact_phone', 'label' => __('admin.delivery_section.emergency_phone'),   'type' => 'text',   'value' => $agent->emergency_contact_phone],
+                                ['name' => 'base_salary_cents',       'label' => __('admin.delivery_section.base_salary_cents_label'),'type' => 'number','value' => $agent->base_salary_cents],
+                                ['name' => 'per_delivery_fee_cents',  'label' => __('admin.delivery_section.per_delivery_fee_cents_label'),'type' => 'number','value' => $agent->per_delivery_fee_cents],
                             ] as $f)
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">{{ $f['label'] }}</label>
@@ -147,7 +147,7 @@
                                 </div>
                             @endforeach
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Vehicle Type</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.field_vehicle_type') }}</label>
                                 <select name="vehicle_type" class="form-input w-full text-sm">
                                     @foreach(['motorcycle','car','van','bicycle'] as $vt)
                                         <option value="{{ $vt }}" {{ $agent->vehicle_type === $vt ? 'selected' : '' }}>{{ ucfirst($vt) }}</option>
@@ -158,8 +158,8 @@
                             <input type="hidden" name="agent_type" value="{{ $agent->agent_type }}">
                         </div>
                         <div class="mt-4 flex gap-3">
-                            <button type="submit" class="btn btn-primary btn-sm">Save</button>
-                            <button type="button" id="cancel-edit-btn" class="btn btn-ghost btn-sm">Cancel</button>
+                            <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.save') }}</button>
+                            <button type="button" id="cancel-edit-btn" class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
                         </div>
                     </form>
                 </x-card>
@@ -167,25 +167,25 @@
 
             {{-- Zone assignment sidebar --}}
             <div class="col-span-12 lg:col-span-4 space-y-4">
-                <x-card title="Zone Assignment">
+                <x-card title="{{ __('admin.delivery_section.zone_assignment') }}">
                     <form id="zone-form">
                         @csrf
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Assign to Zone</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.assign_to_zone') }}</label>
                         <select name="zone_id" id="zone-select" class="form-input w-full text-sm mb-3">
-                            <option value="">No zone</option>
+                            <option value="">{{ __('admin.delivery_section.no_zone') }}</option>
                             @foreach($zones as $zone)
                                 <option value="{{ $zone->id }}" {{ $agent->zone_id === $zone->id ? 'selected' : '' }}>
                                     {{ $zone->name }}
                                 </option>
                             @endforeach
                         </select>
-                        <button type="submit" class="btn btn-secondary btn-sm w-full">Update Zone</button>
+                        <button type="submit" class="btn btn-secondary btn-sm w-full">{{ __('admin.delivery_section.update_zone') }}</button>
                     </form>
                 </x-card>
 
                 @if($agent->current_latitude && $agent->current_longitude)
-                    <x-card title="Last Known Location">
-                        <p class="text-xs text-gray-500 mb-2">Updated {{ $agent->last_location_at?->diffForHumans() ?? '—' }}</p>
+                    <x-card title="{{ __('admin.delivery_section.last_known_location') }}">
+                        <p class="text-xs text-gray-500 mb-2">{{ __('admin.delivery_section.updated_at_label', ['time' => $agent->last_location_at?->diffForHumans() ?? '—']) }}</p>
                         <div id="agent-mini-map" class="h-48 rounded-lg bg-gray-100 flex items-center justify-center">
                             <span class="text-gray-400 text-sm">
                                 {{ $agent->current_latitude }}, {{ $agent->current_longitude }}
@@ -203,23 +203,23 @@
         <x-card>
             <div class="mb-4 flex gap-3">
                 <select id="assignment-status-filter" class="form-input text-sm w-40">
-                    <option value="">All statuses</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="picked_up">Picked Up</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="failed">Failed</option>
+                    <option value="">{{ __('admin.delivery_section.all_statuses') }}</option>
+                    <option value="assigned">{{ __('admin.delivery_section.assigned') }}</option>
+                    <option value="accepted">{{ __('admin.delivery_section.accepted') }}</option>
+                    <option value="picked_up">{{ __('admin.delivery_section.picked_up') }}</option>
+                    <option value="delivered">{{ __('admin.delivery_section.delivered') }}</option>
+                    <option value="failed">{{ __('admin.delivery_section.failed') }}</option>
                 </select>
             </div>
             <table id="assignments-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Order #</th>
-                        <th>Status</th>
-                        <th>Assigned At</th>
-                        <th>Delivered At</th>
-                        <th>Duration</th>
-                        <th>Rating</th>
+                        <th>{{ __('admin.delivery_section.order_number_col') }}</th>
+                        <th>{{ __('common.status') }}</th>
+                        <th>{{ __('admin.delivery_section.assigned_at_col') }}</th>
+                        <th>{{ __('admin.delivery_section.delivered_at_col') }}</th>
+                        <th>{{ __('admin.delivery_section.duration_col') }}</th>
+                        <th>{{ __('admin.delivery_section.rating_col') }}</th>
                     </tr>
                 </thead>
             </table>
@@ -230,19 +230,19 @@
     <div x-show="tab === 'earnings'" x-cloak>
         <div class="grid grid-cols-3 gap-4 mb-6" id="earnings-summary-row">
             <div class="bg-white rounded-xl border border-gray-200 p-4">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">This Month</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ __('admin.delivery_section.this_month') }}</p>
                 <p class="mt-1 text-2xl font-bold text-gray-800" id="earnings-this-month">—</p>
             </div>
             <div class="bg-white rounded-xl border border-gray-200 p-4">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Last Month</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ __('admin.delivery_section.last_month') }}</p>
                 <p class="mt-1 text-2xl font-bold text-gray-800" id="earnings-last-month">—</p>
             </div>
             <div class="bg-white rounded-xl border border-gray-200 p-4">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Year to Date</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ __('admin.delivery_section.year_to_date') }}</p>
                 <p class="mt-1 text-2xl font-bold text-gray-800" id="earnings-ytd">—</p>
             </div>
         </div>
-        <x-card title="Monthly Earnings">
+        <x-card title="{{ __('admin.delivery_section.monthly_earnings') }}">
             <canvas id="earnings-chart" height="80"></canvas>
         </x-card>
     </div>
@@ -257,9 +257,9 @@
                             <p class="font-medium text-gray-800 text-sm">{{ $doc->label }}</p>
                             @if($doc->expires_at)
                                 <p class="text-xs text-gray-400 mt-0.5">
-                                    Expires: {{ $doc->expires_at->format('d M Y') }}
+                                    {{ __('admin.delivery_section.expires_label', ['date' => $doc->expires_at->format('d M Y')]) }}
                                     @if($doc->isExpired())
-                                        <span class="text-red-500">(Expired)</span>
+                                        <span class="text-red-500">{{ __('admin.delivery_section.expired_badge') }}</span>
                                     @endif
                                 </p>
                             @endif
@@ -271,7 +271,7 @@
 
                     <a href="{{ Storage::url($doc->file_path) }}" target="_blank"
                        class="block w-full text-center text-xs text-primary-600 hover:underline mb-3">
-                        View Document
+                        {{ __('admin.delivery_section.view_document') }}
                     </a>
 
                     @if($doc->rejection_reason)
@@ -281,21 +281,21 @@
                     @if($doc->status === 'pending')
                         <div class="flex gap-2">
                             <button type="button" data-doc-id="{{ $doc->id }}" data-action="verify"
-                                class="doc-action-btn btn btn-xs btn-success flex-1">Verify</button>
+                                class="doc-action-btn btn btn-xs btn-success flex-1">{{ __('admin.delivery_section.verify') }}</button>
                             <button type="button" data-doc-id="{{ $doc->id }}" data-action="reject"
-                                class="doc-action-btn btn btn-xs btn-danger flex-1">Reject</button>
+                                class="doc-action-btn btn btn-xs btn-danger flex-1">{{ __('admin.delivery_section.reject') }}</button>
                         </div>
                     @endif
 
                     @if($doc->verified_at)
                         <p class="text-xs text-gray-400 mt-2">
-                            Verified {{ $doc->verified_at->format('d M Y') }}
+                            {{ __('admin.delivery_section.verified_on', ['date' => $doc->verified_at->format('d M Y')]) }}
                         </p>
                     @endif
                 </div>
             @empty
                 <div class="col-span-3 text-center py-12 text-gray-400">
-                    No documents uploaded yet.
+                    {{ __('admin.delivery_section.no_documents') }}
                 </div>
             @endforelse
         </div>
@@ -307,13 +307,13 @@
             <table class="w-full text-sm">
                 <thead class="text-xs text-gray-500 uppercase border-b">
                     <tr>
-                        <th class="pb-2 text-left">Date</th>
-                        <th class="pb-2 text-left">Zone</th>
-                        <th class="pb-2 text-left">Scheduled</th>
-                        <th class="pb-2 text-left">Actual</th>
-                        <th class="pb-2 text-left">Status</th>
-                        <th class="pb-2 text-right">Deliveries</th>
-                        <th class="pb-2 text-right">Earnings</th>
+                        <th class="pb-2 text-start">{{ __('admin.delivery_section.date_col') }}</th>
+                        <th class="pb-2 text-start">{{ __('admin.delivery_section.zone_col') }}</th>
+                        <th class="pb-2 text-start">{{ __('admin.delivery_section.scheduled_col') }}</th>
+                        <th class="pb-2 text-start">{{ __('admin.delivery_section.actual_col') }}</th>
+                        <th class="pb-2 text-start">{{ __('common.status') }}</th>
+                        <th class="pb-2 text-end">{{ __('admin.delivery_section.deliveries_col') }}</th>
+                        <th class="pb-2 text-end">{{ __('admin.delivery_section.earnings_col') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -338,12 +338,12 @@
                                     {{ ucfirst(str_replace('_', ' ', $shift->status)) }}
                                 </x-badge>
                             </td>
-                            <td class="py-2 text-right">{{ $shift->total_deliveries }}</td>
-                            <td class="py-2 text-right">{{ number_format($shift->total_earnings_cents / 100, 2) }}</td>
+                            <td class="py-2 text-end">{{ $shift->total_deliveries }}</td>
+                            <td class="py-2 text-end">{{ number_format($shift->total_earnings_cents / 100, 2) }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-8 text-center text-gray-400">No shifts recorded.</td>
+                            <td colspan="7" class="py-8 text-center text-gray-400">{{ __('admin.delivery_section.no_shifts') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -356,16 +356,16 @@
 {{-- ─── Reject Document Modal ───────────────────────────────────────────────── --}}
 <div id="reject-doc-modal" class="modal-backdrop hidden">
     <div class="modal-box max-w-sm">
-        <h3 class="text-lg font-semibold mb-4">Reject Document</h3>
+        <h3 class="text-lg font-semibold mb-4">{{ __('admin.delivery_section.reject_document') }}</h3>
         <form id="reject-doc-form">
             @csrf
             <input type="hidden" id="reject-doc-id">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Rejection Reason <span class="text-red-500">*</span></label>
-            <textarea name="reason" rows="3" class="form-input w-full" required placeholder="Explain why the document is rejected…"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.rejection_reason_required') }} <span class="text-red-500">*</span></label>
+            <textarea name="reason" rows="3" class="form-input w-full" required placeholder="{{ __('admin.delivery_section.reject_reason_placeholder') }}"></textarea>
             <div class="mt-4 flex justify-end gap-3">
                 <button type="button" onclick="document.getElementById('reject-doc-modal').classList.add('hidden')"
-                    class="btn btn-ghost btn-sm">Cancel</button>
-                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+                <button type="submit" class="btn btn-danger btn-sm">{{ __('admin.delivery_section.reject') }}</button>
             </div>
         </form>
     </div>
@@ -376,6 +376,15 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    updateFailed: @json(__('admin.delivery_section.update_failed')),
+    failedGeneric: @json(__('admin.delivery_section.failed_generic')),
+    suspensionReasonPrompt: @json(__('admin.delivery_section.suspension_reason_prompt')),
+    resetPasswordConfirm: @json(__('admin.delivery_section.reset_password_confirm')),
+    tempPasswordAlert: @json(__('admin.delivery_section.temp_password_alert')),
+});
+
 (function () {
     const agentId        = @json($agent->id);
     const UPDATE_URL     = @json(route('admin.delivery.agents.update', $agent->id));
@@ -465,7 +474,7 @@
             method : 'POST',
             data   : $(this).serialize() + '&_method=PUT&_token=' + token(),
             success: res => { if (res.success) { window.Toast?.success(res.message); location.reload(); } },
-            error  : xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Update failed.'),
+            error  : xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.updateFailed),
         });
     });
 
@@ -477,13 +486,13 @@
             method : 'POST',
             data   : { _token: token(), zone_id: $('#zone-select').val() },
             success: res => { if (res.success) window.Toast?.success(res.message); },
-            error  : xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.'),
+            error  : xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.failedGeneric),
         });
     });
 
     // ── Suspend / Activate ────────────────────────────────────────────────────
     $('#suspend-btn').on('click', () => {
-        const reason = prompt('Suspension reason (required):');
+        const reason = prompt(window.TRANSLATIONS.suspensionReasonPrompt);
         if (!reason) return;
         $.ajax({
             url    : SUSPEND_URL,
@@ -503,14 +512,14 @@
 
     // ── Reset Password ────────────────────────────────────────────────────────
     $('#reset-pwd-btn').on('click', () => {
-        if (!confirm('Generate a new temporary password and send to agent?')) return;
+        if (!confirm(window.TRANSLATIONS.resetPasswordConfirm)) return;
         $.ajax({
             url    : RESET_PWD_URL,
             method : 'POST',
             data   : { _token: token() },
             success: res => {
                 if (res.success) {
-                    alert(`New temp password: ${res.temp_password}\n\nPlease relay this to the agent securely.`);
+                    alert(window.TRANSLATIONS.tempPasswordAlert.replace(':password', res.temp_password));
                 }
             },
         });

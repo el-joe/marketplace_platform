@@ -31,11 +31,16 @@ class EarningsController extends Controller
             ->orderByDesc('created_at')
             ->paginate(10, ['*'], 'payout_page');
 
-        $summary = [
-            'pending' => $marketer->conversions()->where('status', 'pending')->sum('commission_amount_cents'),
-            'approved' => $marketer->conversions()->where('status', 'approved')->sum('commission_amount_cents'),
-            'paid' => $marketer->conversions()->where('status', 'paid')->sum('commission_amount_cents'),
-        ];
+        // Group by currency — summing across currencies would produce a meaningless number
+        // for marketers who earn commissions in more than one country's currency.
+        $summary = [];
+        foreach (['pending', 'approved', 'paid'] as $status) {
+            $summary[$status] = $marketer->conversions()
+                ->where('status', $status)
+                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->groupBy('currency')
+                ->pluck('total', 'currency');
+        }
 
         return view('marketer.earnings.index', [
             'marketer' => $marketer,
@@ -51,11 +56,18 @@ class EarningsController extends Controller
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
 
+        $byCurrency = [];
+        foreach (['pending', 'approved', 'paid'] as $status) {
+            $byCurrency[$status] = $marketer->conversions()
+                ->where('status', $status)
+                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->groupBy('currency')
+                ->pluck('total', 'currency');
+        }
+
         return response()->json([
-            'pending' => $marketer->conversions()->where('status', 'pending')->sum('commission_amount_cents'),
-            'approved' => $marketer->conversions()->where('status', 'approved')->sum('commission_amount_cents'),
-            'paid' => $marketer->conversions()->where('status', 'paid')->sum('commission_amount_cents'),
-            'total' => $marketer->total_earnings_cents,
+            'by_currency' => $byCurrency,
+            'total_earnings_cents' => $marketer->total_earnings_cents,
         ]);
     }
 }

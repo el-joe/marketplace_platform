@@ -1,6 +1,6 @@
 @extends('layouts.partner')
 
-@section('title', 'My Wallet')
+@section('title', __('partner.wallet.title'))
 
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6 py-6 px-4">
@@ -14,15 +14,15 @@
 
     {{-- Balance Card --}}
     <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg">
-        <p class="text-sm font-medium text-blue-200 mb-1">Available Balance</p>
+        <p class="text-sm font-medium text-blue-200 mb-1">{{ __('partner.wallet.available_balance') }}</p>
         <p class="text-4xl font-extrabold tracking-tight">{{ number_format($wallet->balance_cents / 100, 2) }} <span class="text-xl font-semibold text-blue-300">{{ $wallet->currency }}</span></p>
         @if($wallet->pending_balance_cents > 0)
-            <p class="text-sm text-blue-300 mt-2">+ {{ number_format($wallet->pending_balance_cents / 100, 2) }} {{ $wallet->currency }} pending</p>
+            <p class="text-sm text-blue-300 mt-2">+ {{ number_format($wallet->pending_balance_cents / 100, 2) }} {{ $wallet->currency }} {{ __('partner.wallet.pending_suffix') }}</p>
         @endif
         @if($wallet->is_frozen)
             <div class="mt-3 inline-flex items-center gap-1.5 bg-red-500/30 text-red-100 text-xs font-medium px-3 py-1 rounded-full">
                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>
-                Wallet Frozen
+                {{ __('partner.wallet.wallet_frozen') }}
             </div>
         @endif
     </div>
@@ -30,29 +30,29 @@
     {{-- Withdraw --}}
     @unless($wallet->is_frozen)
     <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-        <h2 class="font-semibold text-gray-800 mb-4">Request Withdrawal</h2>
+        <h2 class="font-semibold text-gray-800 mb-4">{{ __('partner.wallet.request_withdrawal') }}</h2>
         <form method="POST" action="{{ route('partner.wallet.withdraw') }}" class="space-y-4">
             @csrf
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount ({{ $wallet->currency }})</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.wallet.amount') }} ({{ $wallet->currency }})</label>
                     <input type="number" name="amount" min="1" step="0.01" required
                            max="{{ $wallet->balance_cents / 100 }}"
                            class="w-full form-input rounded-lg border-gray-300 text-sm" placeholder="0.00">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.wallet.bank_name') }}</label>
                     <input type="text" name="bank_name" required maxlength="150"
-                           class="w-full form-input rounded-lg border-gray-300 text-sm" placeholder="e.g. CIB Bank">
+                           class="w-full form-input rounded-lg border-gray-300 text-sm" placeholder="{{ __('partner.wallet.bank_name_placeholder') }}">
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank IBAN</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.wallet.bank_iban') }}</label>
                     <input type="text" name="bank_iban" required maxlength="50"
                            class="w-full form-input rounded-lg border-gray-300 text-sm font-mono" placeholder="EG000000000000000000000000000">
                 </div>
             </div>
             <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition">
-                Request Withdrawal
+                {{ __('partner.wallet.request_withdrawal') }}
             </button>
         </form>
     </div>
@@ -62,7 +62,7 @@
     @if($withdrawalRequests->isNotEmpty())
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100">
-            <h2 class="font-semibold text-gray-800">Recent Withdrawal Requests</h2>
+            <h2 class="font-semibold text-gray-800">{{ __('partner.wallet.recent_withdrawal_requests') }}</h2>
         </div>
         <div class="divide-y divide-gray-100">
             @foreach($withdrawalRequests as $wr)
@@ -71,8 +71,16 @@
                         <p class="text-sm font-medium text-gray-900">{{ number_format($wr->amount_cents / 100, 2) }} {{ $wr->currency }}</p>
                         <p class="text-xs text-gray-500">{{ $wr->bank_name }} · {{ $wr->created_at->format('d M Y') }}</p>
                     </div>
-                    @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','approved'=>'bg-blue-100 text-blue-700','processed'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700']; @endphp
-                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {{ $colors[$wr->status] ?? '' }}">{{ ucfirst($wr->status) }}</span>
+                    @php
+                        $colors = ['pending'=>'bg-yellow-100 text-yellow-700','approved'=>'bg-blue-100 text-blue-700','processed'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700'];
+                        $statusLabels = [
+                            'pending' => __('partner.wallet.status_pending'),
+                            'approved' => __('partner.wallet.status_approved'),
+                            'processed' => __('partner.wallet.status_processed'),
+                            'rejected' => __('partner.wallet.status_rejected'),
+                        ];
+                    @endphp
+                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {{ $colors[$wr->status] ?? '' }}">{{ $statusLabels[$wr->status] ?? ucfirst($wr->status) }}</span>
                 </div>
             @endforeach
         </div>
@@ -82,7 +90,7 @@
     {{-- Transaction History --}}
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100">
-            <h2 class="font-semibold text-gray-800">Transaction History</h2>
+            <h2 class="font-semibold text-gray-800">{{ __('partner.wallet.transaction_history') }}</h2>
         </div>
         @forelse($transactions as $tx)
             <div class="px-5 py-3 flex items-center justify-between border-b border-gray-50 last:border-0">
@@ -95,7 +103,7 @@
                 </p>
             </div>
         @empty
-            <div class="px-5 py-8 text-center text-sm text-gray-400">No transactions yet.</div>
+            <div class="px-5 py-8 text-center text-sm text-gray-400">{{ __('partner.wallet.no_transactions_yet') }}</div>
         @endforelse
         @if($transactions->hasPages())
             <div class="px-5 py-3 border-t border-gray-100">{{ $transactions->links() }}</div>

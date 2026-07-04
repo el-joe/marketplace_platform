@@ -28,6 +28,7 @@ class Order extends Model
         'id',
         'order_number',
         'customer_id',
+        'country_id',
         'status',
         'currency',
         'subtotal',
@@ -55,6 +56,11 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
     }
 
     public function coupon(): BelongsTo

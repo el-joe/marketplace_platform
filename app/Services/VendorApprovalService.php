@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Jobs\VendorApprovedJob;
 use App\Models\Admin;
 use App\Models\Vendor;
+use App\Models\VendorDocumentType;
 use App\Models\VendorStrike;
 use App\Notifications\Vendor\AccountReactivated;
 use App\Notifications\Vendor\AccountSuspended;
@@ -60,9 +61,15 @@ class VendorApprovalService
         DB::transaction(function () use ($vendor, $documentTypes, $admin) {
             $vendor->update(['global_status' => 'under_review']);
 
-            foreach ($documentTypes as $type) {
+            $typeMap = VendorDocumentType::whereIn('code', $documentTypes)
+                ->pluck('id', 'code');
+
+            foreach ($documentTypes as $code) {
+                if (! isset($typeMap[$code])) {
+                    continue;
+                }
                 $vendor->documents()->firstOrCreate(
-                    ['document_type' => $type],
+                    ['vendor_document_type_id' => $typeMap[$code]],
                     ['status' => 'pending']
                 );
             }

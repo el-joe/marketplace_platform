@@ -3,15 +3,20 @@
 namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
+use App\Models\TravelPackageInquiry;
 use App\Notifications\Customer\TravelBookingCancelled as CustomerTravelBookingCancelled;
 use App\Notifications\Customer\TravelBookingConfirmed;
 use App\Notifications\TravelAgency\LowSeatsRemaining;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class BookingController extends Controller
@@ -19,6 +24,129 @@ class BookingController extends Controller
     private function agencyId(): string
     {
         return Auth::guard('travel_agency')->id();
+    }
+
+    // ── Customer search (AJAX) ────────────────────────────────────────────────
+
+    public function customerSearch(Request $request): JsonResponse
+    {
+        $term = trim($request->query('q', ''));
+
+        if (strlen($term) < 2) {
+            return response()->json([]);
+        }
+
+        $customers = Customer::query()
+            ->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('email', 'like', "%{$term}%")
+                  ->orWhere('phone', 'like', "%{$term}%");
+            })
+            ->select('id', 'name', 'email', 'phone')
+            ->limit(10)
+            ->get();
+
+        return response()->json($customers);
+    }
+
+    // ── Create ────────────────────────────────────────────────────────────────
+
+    public function create(TravelPackage $package): View
+    {
+        $this->authorisePackage($package);
+
+        if ($package->status !== 'active') {
+            return redirect()->route('travel-agency.packages.show', $package)
+                ->with('error', 'لا يمكن إنشاء حجز لباقة غير نشطة.');
+        }
+
+        if ($package->available_seats !== null && $package->seatsRemaining() <= 0) {
+            return redirect()->route('travel-agency.packages.show', $package)
+                ->with('error', 'لا توجد مقاعد متاحة في هذه الباقة.');
+        }
+
+        return view('travel-agency.bookings.create', compact('package'));
+    }
+
+    // ── Store ─────────────────────────────────────────────────────────────────
+
+    public function store(Request $request, TravelPackage $package): RedirectResponse
+    {
+        $this->authorisePackage($package);
+
+        $mode = $request->input('customer_mode', 'existing');
+
+        $rules = [
+            'travelers_count' => ['required', 'integer', 'min:1'],
+            'customer_mode'   => ['required', 'in:existing,new'],
+        ];
+
+        if ($mode === 'existing') {
+            $rules['customer_id'] = ['required', 'uuid', 'exists:customers,id'];
+        } else {
+            $rules['new_name']  = ['required', 'string', 'max:255'];
+            $rules['new_phone'] = ['required', 'string', 'max:30'];
+            $rules['new_email'] = ['required', 'email', 'max:255', 'unique:customers,email'];
+        }
+
+        $validated = $request->validate($rules);
+
+        $booking = DB::transaction(function () use ($request, $package, $validated, $mode) {
+            $pkg = TravelPackage::lockForUpdate()->findOrFail($package->id);
+
+            $this->authorisePackage($pkg);
+
+            if ($pkg->status !== 'active') {
+                throw ValidationException::withMessages(['travelers_count' => 'الباقة لم تعد نشطة.']);
+            }
+
+            if ($pkg->available_seats !== null
+                && ($pkg->seats_booked + $validated['travelers_count']) > $pkg->available_seats
+            ) {
+                throw ValidationException::withMessages(['travelers_count' => 'لا توجد مقاعد كافية متاحة.']);
+            }
+
+            if ($mode === 'existing') {
+                $customer = Customer::findOrFail($validated['customer_id']);
+            } else {
+                $customer = Customer::create([
+                    'name'     => $validated['new_name'],
+                    'email'    => $validated['new_email'],
+                    'phone'    => $validated['new_phone'],
+                    'password' => Str::random(32), // agency-created; customer sets own password via forgot-password
+                    'status'   => 'active',
+                ]);
+            }
+
+            $booking = TravelBooking::create([
+                'travel_package_id'  => $pkg->id,
+                'customer_id'        => $customer->id,
+                'travelers_count'    => $validated['travelers_count'],
+                'total_price_cents'  => $pkg->price_cents * $validated['travelers_count'],
+                'status'             => 'pending_documents',
+            ]);
+
+            $pkg->increment('seats_booked', $validated['travelers_count']);
+
+            return $booking;
+        });
+
+        // Link inquiry → booking if this booking originated from a lead inquiry
+        if ($inquiryId = $request->input('from_inquiry')) {
+            $inquiry = TravelPackageInquiry::where('id', $inquiryId)
+                ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $this->agencyId()))
+                ->where('status', '!=', 'converted')
+                ->first();
+
+            $inquiry?->update([
+                'status'                 => 'converted',
+                'converted_to_booking_id' => $booking->id,
+            ]);
+        }
+
+        return redirect()
+            ->route('travel-agency.bookings.show', $booking)
+            ->with('success', 'تم إنشاء الحجز بنجاح.');
     }
 
     // ── Index ─────────────────────────────────────────────────────────────────
@@ -113,11 +241,18 @@ class BookingController extends Controller
         return back()->with('success', $label);
     }
 
-    // ── Auth guard ────────────────────────────────────────────────────────────
+    // ── Auth guards ───────────────────────────────────────────────────────────
 
     private function authorise(TravelBooking $booking): void
     {
         if ($booking->package->travel_agency_id !== $this->agencyId()) {
+            abort(403);
+        }
+    }
+
+    private function authorisePackage(TravelPackage $package): void
+    {
+        if ($package->travel_agency_id !== $this->agencyId()) {
             abort(403);
         }
     }

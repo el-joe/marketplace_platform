@@ -1,8 +1,8 @@
 {{-- Notifications Settings Partial --}}
 <x-card class="mb-6">
     <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Admin Notifications</h2>
-        <p class="text-sm text-gray-500">Control which events trigger email alerts to the ops team.</p>
+        <h2 class="text-base font-semibold text-gray-900">{{ __('admin.settings_section.admin_notifications') }}</h2>
+        <p class="text-sm text-gray-500">{{ __('admin.settings_section.admin_notifications_desc') }}</p>
     </div>
     <div class="divide-y divide-gray-100">
 
@@ -23,8 +23,8 @@
 
 <x-card>
     <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Customer &amp; Vendor Notifications</h2>
-        <p class="text-sm text-gray-500">Outbound messaging channels to vendors and customers.</p>
+        <h2 class="text-base font-semibold text-gray-900">{{ __('admin.settings_section.customer_vendor_notifications') }}</h2>
+        <p class="text-sm text-gray-500">{{ __('admin.settings_section.customer_vendor_notifications_desc') }}</p>
     </div>
     <div class="divide-y divide-gray-100">
 

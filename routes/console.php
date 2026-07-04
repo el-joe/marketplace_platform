@@ -1,6 +1,8 @@
 <?php
 
 use App\Jobs\AutoCompleteOrdersJob;
+use App\Jobs\ExpireVendorCampaignInvitationsJob;
+use App\Jobs\GenerateCodSettlementsJob;
 use App\Jobs\ReleaseExpiredLocksJob;
 use App\Jobs\ApproveMarketerCommissionsJob;
 use App\Jobs\CheckSlaBreachJob;
@@ -10,6 +12,7 @@ use App\Jobs\FlashSaleSchedulerJob;
 use App\Jobs\TransitionFlashSaleStatusJob;
 use App\Jobs\GenerateFbnStorageFeesJob;
 use App\Jobs\FbnInboundReminderJob;
+use App\Jobs\PublishScheduledBlogPostsJob;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -26,6 +29,7 @@ Schedule::job(new TransitionFlashSaleStatusJob)->everyFiveMinutes();
 Schedule::job(new FlashSaleSchedulerJob)->everyFiveMinutes()->withoutOverlapping()->name('flash-sale-scheduler');
 Schedule::job(new BannerSchedulerJob)->everyFiveMinutes();
 Schedule::job(new \App\Jobs\PageSchedulerJob)->everyFiveMinutes()->name('page-scheduler');
+Schedule::job(new PublishScheduledBlogPostsJob)->everyFiveMinutes()->name('publish-scheduled-blog-posts');
 
 // Auto-approve marketer commissions after 14-day return window
 Schedule::job(new ApproveMarketerCommissionsJob)->dailyAt('03:00')->name('marketer-approve-commissions');
@@ -46,3 +50,9 @@ Schedule::call(function () {
 
 // FBN: remind admins of pending inbound requests every Monday at 08:00
 Schedule::job(new FbnInboundReminderJob)->weeklyOn(1, '08:00')->name('fbn-inbound-reminder');
+
+// Generate COD settlements for delivery agents nightly at 23:30
+Schedule::job(new GenerateCodSettlementsJob)->dailyAt('23:30')->name('generate-cod-settlements');
+
+// Expire pending vendor campaign invitations past their deadline
+Schedule::job(new ExpireVendorCampaignInvitationsJob)->dailyAt('00:15')->name('expire-vendor-campaign-invitations');

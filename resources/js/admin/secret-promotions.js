@@ -224,7 +224,7 @@ function loadListingsForVendor(vendorId, preselect = null) {
             }
             let opts = '<option value="">Select listing…</option>';
             listings.forEach(l => {
-                opts += `<option value="${l.id}" data-price="${l.price_cents}" data-name="${l.name}" data-img="${l.image ?? ''}">${l.name} — ${fmtMoney(l.price_cents / 100)}</option>`;
+                opts += `<option value="${l.id}" data-price="${l.price_cents}" data-name="${l.name}" data-img="${l.image ?? ''}" data-currency="${l.currency ?? ''}">${l.name} — ${fmtMoney(l.price_cents / 100)}</option>`;
             });
             $select.html(opts).prop('disabled', false);
 
@@ -253,9 +253,9 @@ function updateListingPreview(option) {
         resetListingPreview();
     }
 
-    // Update currency badge
+    // Update currency badge from the listing's own currency
     const currencyBadge = document.getElementById('product-value-currency');
-    if (currencyBadge) currencyBadge.textContent = 'EGP'; // TODO: read from vendor/country
+    if (currencyBadge) currencyBadge.textContent = $(option).data('currency') || '—';
 
     recalculateSplit();
 }

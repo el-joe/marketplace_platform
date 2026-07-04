@@ -1,28 +1,28 @@
 @extends('layouts.admin')
 
-@section('title', 'Shipping Companies')
+@section('title', __('admin.shipping_section.title'))
 
 @section('content')
 
 {{-- ─── Page Header ─────────────────────────────────────────────────────────── --}}
 <div class="mb-6 flex items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Shipping Companies</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Manage third-party carrier companies and their portal access.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.shipping_section.shipping_companies') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.shipping_section.companies_desc') }}</p>
     </div>
     <a href="{{ route('admin.shipping-companies.fallback-rules.index') }}"
        class="btn btn-secondary btn-sm">
-        Fallback Rules
+        {{ __('admin.shipping_section.fallback_rules') }}
     </a>
 </div>
 
 {{-- ─── Stats ───────────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
     @foreach([
-        ['label' => 'Total',     'value' => $stats['total'],     'color' => 'gray'],
-        ['label' => 'Active',    'value' => $stats['active'],    'color' => 'success'],
-        ['label' => 'Pending',   'value' => $stats['pending'],   'color' => 'warning'],
-        ['label' => 'Suspended', 'value' => $stats['suspended'], 'color' => 'danger'],
+        ['label' => __('admin.shipping_section.stat_total'),     'value' => $stats['total'],     'color' => 'gray'],
+        ['label' => __('admin.shipping_section.stat_active'),    'value' => $stats['active'],    'color' => 'success'],
+        ['label' => __('admin.shipping_section.stat_pending'),   'value' => $stats['pending'],   'color' => 'warning'],
+        ['label' => __('admin.shipping_section.stat_suspended'), 'value' => $stats['suspended'], 'color' => 'danger'],
     ] as $stat)
     <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
         <div class="text-2xl font-black text-{{ $stat['color'] === 'gray' ? 'gray-700' : ($stat['color'] === 'success' ? 'emerald-600' : ($stat['color'] === 'warning' ? 'amber-600' : 'red-600')) }}">
@@ -39,13 +39,13 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase border-b border-gray-200">
                 <tr>
-                    <th class="px-6 py-3 text-left font-semibold">Company</th>
-                    <th class="px-6 py-3 text-left font-semibold">Country</th>
-                    <th class="px-6 py-3 text-left font-semibold">Contact</th>
-                    <th class="px-6 py-3 text-left font-semibold">Supervisors</th>
-                    <th class="px-6 py-3 text-left font-semibold">Agents</th>
-                    <th class="px-6 py-3 text-left font-semibold">Status</th>
-                    <th class="px-6 py-3 text-left font-semibold">Actions</th>
+                    <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.company_col') }}</th>
+                    <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.country_col') }}</th>
+                    <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.contact_col') }}</th>
+                    <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.supervisors_col') }}</th>
+                    <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.agents_col') }}</th>
+                    <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.status_col') }}</th>
+                    <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.actions_col') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -77,18 +77,18 @@
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             <a href="{{ route('admin.shipping-companies.show', $company->id) }}"
-                               class="text-indigo-600 hover:underline text-xs font-medium">View</a>
+                               class="text-indigo-600 hover:underline text-xs font-medium">{{ __('admin.shipping_section.view') }}</a>
                             @if($company->status === 'pending')
                             <form method="POST" action="{{ route('admin.shipping-companies.approve', $company->id) }}">
                                 @csrf
-                                <button class="text-emerald-600 hover:underline text-xs font-medium">Approve</button>
+                                <button class="text-emerald-600 hover:underline text-xs font-medium">{{ __('admin.shipping_section.approve') }}</button>
                             </form>
                             @endif
                             @if($company->status !== 'suspended')
                             <form method="POST" action="{{ route('admin.shipping-companies.suspend', $company->id) }}"
-                                  onsubmit="return confirm('Suspend this company?')">
+                                  onsubmit="return confirm('{{ __('admin.shipping_section.suspend_confirm') }}')">
                                 @csrf
-                                <button class="text-red-500 hover:underline text-xs font-medium">Suspend</button>
+                                <button class="text-red-500 hover:underline text-xs font-medium">{{ __('admin.shipping_section.suspend') }}</button>
                             </form>
                             @endif
                         </div>
@@ -96,7 +96,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-gray-400 text-sm">No shipping companies registered yet.</td>
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-400 text-sm">{{ __('admin.no_shipping_companies') }}</td>
                 </tr>
                 @endforelse
             </tbody>

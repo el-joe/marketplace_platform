@@ -4,7 +4,7 @@
     @vite(['resources/js/admin/reviews.js'])
 @endpush
 
-@section('title', 'Review: ' . ($review->product?->name_en ?? 'Review'))
+@section('title', __('admin.reviews_section.review_detail') . ': ' . ($review->product?->name_en ?? __('admin.reviews_section.review_detail')))
 
 @section('content')
 
@@ -12,13 +12,13 @@
     <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
             <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <a href="{{ route('admin.reviews.index') }}" class="hover:text-primary-600">Reviews</a>
+                <a href="{{ route('admin.reviews.index') }}" class="hover:text-primary-600">{{ __('admin.reviews_section.title') }}</a>
                 <span>/</span>
-                <span class="text-gray-800">{{ $review->product?->name_en ?? 'Review' }}</span>
+                <span class="text-gray-800">{{ $review->product?->name_en ?? __('admin.reviews_section.review_detail') }}</span>
             </div>
-            <h1 class="text-xl font-bold text-gray-900">Review Detail</h1>
+            <h1 class="text-xl font-bold text-gray-900">{{ __('admin.reviews_section.review_detail') }}</h1>
         </div>
-        <a href="{{ route('admin.reviews.index') }}" class="btn btn-secondary btn-sm">← Back to Reviews</a>
+        <a href="{{ route('admin.reviews.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.reviews_section.back_to_reviews') }}</a>
     </div>
 
     <div class="grid grid-cols-12 gap-6">
@@ -37,7 +37,7 @@
                             <img src="{{ $img->url }}" class="w-12 h-12 object-cover rounded border border-gray-100" alt="">
                         @endif
                         <div>
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">Product</p>
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.product') }}</p>
                             @if($review->product)
                                 <a href="{{ route('admin.products.show', $review->product->id) }}"
                                     class="font-semibold text-primary-600 hover:underline" target="_blank">
@@ -54,7 +54,7 @@
                     {{-- Customer + metadata --}}
                     <div class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                         <div>
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">Customer</p>
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.customer') }}</p>
                             @if($review->customer)
                                 <a href="{{ route('admin.customers.show', $review->customer->id) }}"
                                     class="text-primary-600 hover:underline">
@@ -72,19 +72,19 @@
                                     {{ $masked }}
                                 </a>
                             @else
-                                <span class="text-gray-500">Guest</span>
+                                <span class="text-gray-500">{{ __('admin.reviews_section.guest') }}</span>
                             @endif
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">Country</p>
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.country') }}</p>
                             <span>{{ $review->country?->flag_emoji ?? '' }} {{ $review->country?->name_en ?? '—' }}</span>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">Submitted</p>
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.submitted') }}</p>
                             <span>{{ $review->created_at->format('d M Y H:i') }}</span>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">Moderated by</p>
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.moderated_by') }}</p>
                             <span>{{ $review->moderatedByAdmin?->name ?? '—' }}</span>
                         </div>
                     </div>
@@ -93,7 +93,7 @@
 
                     {{-- Rating --}}
                     <div>
-                        <p class="text-xs text-gray-400 uppercase font-medium mb-1">Rating</p>
+                        <p class="text-xs text-gray-400 uppercase font-medium mb-1">{{ __('admin.reviews_section.rating') }}</p>
                         <div class="flex items-center gap-2">
                             <span class="text-2xl leading-none">
                                 @for($i = 1; $i <= 5; $i++)
@@ -107,14 +107,14 @@
                     {{-- Title + Body --}}
                     @if($review->title)
                         <div>
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-1">Title</p>
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-1">{{ __('admin.reviews_section.title_field') }}</p>
                             <p class="font-semibold text-gray-800">{{ $review->title }}</p>
                         </div>
                     @endif
 
                     @if($review->body)
                         <div>
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-1">Review</p>
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-1">{{ __('admin.reviews_section.review_text') }}</p>
                             <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{{ $review->body }}</p>
                         </div>
                     @endif
@@ -122,7 +122,7 @@
                     {{-- Review images --}}
                     @if($review->files->isNotEmpty())
                         <div>
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-2">Attached Images</p>
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-2">{{ __('admin.reviews_section.attached_images') }}</p>
                             <div class="flex flex-wrap gap-2">
                                 @foreach($review->files as $file)
                                     <a href="{{ Storage::url($file->path) }}" target="_blank">
@@ -144,7 +144,7 @@
                             $sc = $statusColors[$review->status] ?? 'gray';
                         @endphp
                         <div>
-                            <span class="text-xs text-gray-400 uppercase font-medium mr-1">Status</span>
+                            <span class="text-xs text-gray-400 uppercase font-medium mr-1">{{ __('admin.reviews_section.status') }}</span>
                             <span
                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">
                                 {{ ucwords(str_replace('_', ' ', $review->status)) }}
@@ -155,7 +155,7 @@
                         @if($review->is_verified_purchase)
                             <span
                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                ✓ Verified Purchase
+                                ✓ {{ __('admin.reviews_section.verified_purchase_badge') }}
                             </span>
                         @endif
 
@@ -178,7 +178,7 @@
                                         clip-rule="evenodd" />
                                 </svg>
                                 <div>
-                                    <p class="text-xs font-semibold text-yellow-800 mb-0.5">AI Flag Reason</p>
+                                    <p class="text-xs font-semibold text-yellow-800 mb-0.5">{{ __('admin.reviews_section.ai_flag_reason') }}</p>
                                     <p class="text-sm text-yellow-700">{{ $review->ai_flag_reason }}</p>
                                 </div>
                             </div>
@@ -191,14 +191,14 @@
             {{-- ─── Vendor Reply ───────────────────────────────────────────────────── --}}
             @if($review->vendorReply)
                 @php $reply = $review->vendorReply; @endphp
-                <x-card title="Vendor Reply">
+                <x-card title="{{ __('admin.reviews_section.vendor_reply') }}">
                     <div class="flex items-start justify-between gap-4 mb-3">
                         <div>
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">From</p>
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.from') }}</p>
                             <p class="font-medium text-gray-800">{{ $reply->vendor?->store_name ?? '—' }}</p>
                         </div>
-                        <div class="text-right">
-                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">Status</p>
+                        <div class="text-end">
+                            <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.status') }}</p>
                             @php $rc = $reply->status === 'published' ? 'success' : 'gray'; @endphp
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $rc }}-100 text-{{ $rc }}-700">
@@ -211,13 +211,13 @@
                         @if($reply->status !== 'hidden')
                             <button type="button" class="btn btn-secondary btn-sm js-reply-toggle-btn" data-action="hide"
                                 data-url="{{ route('admin.reviews.vendor-replies.hide', $reply->id) }}">
-                                Hide Reply
+                                {{ __('admin.reviews_section.hide_reply') }}
                             </button>
                         @endif
                         @if($reply->status !== 'published')
                             <button type="button" class="btn btn-success btn-sm js-reply-toggle-btn" data-action="show"
                                 data-url="{{ route('admin.reviews.vendor-replies.show', $reply->id) }}">
-                                Show Reply
+                                {{ __('admin.reviews_section.show_reply') }}
                             </button>
                         @endif
                     </div>
@@ -230,33 +230,33 @@
         <div class="col-span-12 lg:col-span-4 space-y-5">
 
             {{-- ─── Moderation Actions ─────────────────────────────────────────────── --}}
-            <x-card title="Moderation">
+            <x-card title="{{ __('admin.reviews_section.moderation') }}">
                 @if(in_array($review->status, ['pending', 'flagged', 'auto_flagged']))
                     <div class="space-y-2">
                         <button type="button" class="w-full btn btn-primary" id="approve-btn"
                             data-url="{{ route('admin.reviews.approve', $review->id) }}">
-                            Approve &amp; Publish
+                            {!! __('admin.reviews_section.approve_and_publish') !!}
                         </button>
                         <div>
                             <button type="button" class="w-full btn btn-danger" id="open-reject-modal-btn">
-                                Reject Review
+                                {{ __('admin.reviews_section.reject_review') }}
                             </button>
                         </div>
                     </div>
                 @elseif($review->status === 'published')
                     <div class="rounded-lg bg-green-50 border border-green-100 px-4 py-3 text-sm text-green-800 mb-3">
-                        ✓ Published
+                        {{ __('admin.reviews_section.published_badge') }}
                     </div>
                     <button type="button" class="w-full btn btn-danger" id="open-reject-modal-btn">
-                        Un-publish &amp; Reject
+                        {!! __('admin.reviews_section.unpublish_and_reject') !!}
                     </button>
                 @elseif($review->status === 'rejected')
                     <div class="rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-800 mb-3">
-                        ✗ Rejected
+                        {{ __('admin.reviews_section.rejected_badge') }}
                     </div>
                     <button type="button" class="w-full btn btn-primary" id="approve-btn"
                         data-url="{{ route('admin.reviews.approve', $review->id) }}">
-                        Re-approve
+                        {{ __('admin.reviews_section.re_approve') }}
                     </button>
                 @endif
 
@@ -265,46 +265,46 @@
                     <button type="button" class="w-full btn btn-ghost btn-sm mt-3 text-red-600 hover:bg-red-50" id="delete-btn"
                         data-url="{{ route('admin.reviews.delete', $review->id) }}"
                         data-redirect="{{ route('admin.reviews.index') }}">
-                        Delete permanently
+                        {{ __('admin.reviews_section.delete_permanently') }}
                     </button>
                 @endif
             </x-card>
 
             {{-- ─── Quick Info ───────────────────────────────────────────────────────── --}}
-            <x-card title="Quick Info">
+            <x-card title="{{ __('admin.reviews_section.quick_info') }}">
                 <dl class="space-y-2.5 text-sm">
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Review ID</dt>
+                        <dt class="text-gray-500">{{ __('admin.reviews_section.review_id') }}</dt>
                         <dd class="font-mono text-xs text-gray-600 truncate max-w-[160px]" title="{{ $review->id }}">
                             {{ substr($review->id, 0, 8) }}…
                         </dd>
                     </div>
                     @if($review->orderItem)
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Order</dt>
+                            <dt class="text-gray-500">{{ __('admin.reviews_section.order') }}</dt>
                             <dd>
                                 <a href="{{ route('admin.orders.show', $review->orderItem->order_id) }}"
                                     class="text-primary-600 hover:underline text-xs">
-                                    View order
+                                    {{ __('admin.reviews_section.view_order') }}
                                 </a>
                             </dd>
                         </div>
                     @endif
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Verified purchase</dt>
-                        <dd>{{ $review->is_verified_purchase ? 'Yes' : 'No' }}</dd>
+                        <dt class="text-gray-500">{{ __('admin.reviews_section.verified_purchase') }}</dt>
+                        <dd>{{ $review->is_verified_purchase ? __('admin.reviews_section.yes') : __('admin.reviews_section.no') }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Helpful votes</dt>
+                        <dt class="text-gray-500">{{ __('admin.reviews_section.helpful_votes') }}</dt>
                         <dd>👍 {{ $review->helpful_count }} / 👎 {{ $review->not_helpful_count }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Submitted</dt>
+                        <dt class="text-gray-500">{{ __('admin.reviews_section.submitted') }}</dt>
                         <dd class="text-xs">{{ $review->created_at->format('d M Y H:i') }}</dd>
                     </div>
                     @if($review->moderatedByAdmin)
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Moderated by</dt>
+                            <dt class="text-gray-500">{{ __('admin.reviews_section.moderated_by') }}</dt>
                             <dd class="text-xs">{{ $review->moderatedByAdmin->name }}</dd>
                         </div>
                     @endif
@@ -315,22 +315,25 @@
     </div>
 
     {{-- ─── Reject Modal ─────────────────────────────────────────────────────────── --}}
-    <x-modal id="reject-modal" title="Reject Review" size="sm">
-        <p class="text-sm text-gray-600 mb-3">This review will be rejected and soft-deleted. Add an optional internal note:
+    <x-modal id="reject-modal" title="{{ __('admin.reviews_section.reject_review_title') }}" size="sm">
+        <p class="text-sm text-gray-600 mb-3">{{ __('admin.reviews_section.this_review_will_be_rejected') }}
         </p>
         <textarea id="reject-reason-input" rows="3" class="form-input w-full text-sm"
-            placeholder="Optional reason…"></textarea>
+            placeholder="{{ __('admin.reviews_section.optional_reason') }}"></textarea>
         <div class="flex justify-end gap-3 mt-4">
-            <button type="button" class="btn btn-secondary" onclick="$('#reject-modal').modal('close')">Cancel</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#reject-modal').modal('close')">{{ __('admin.reviews_section.cancel') }}</button>
             <button type="button" id="confirm-reject-btn" class="btn btn-danger"
                 data-url="{{ route('admin.reviews.reject', $review->id) }}"
                 data-redirect="{{ route('admin.reviews.index') }}">
-                Confirm Reject
+                {{ __('admin.reviews_section.confirm_reject') }}
             </button>
         </div>
     </x-modal>
 
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {});
+
         window.reviewShow = {
             approveUrl: @json(route('admin.reviews.approve', $review->id)),
             rejectUrl: @json(route('admin.reviews.reject', $review->id)),

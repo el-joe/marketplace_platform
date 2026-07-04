@@ -159,12 +159,13 @@
 
 <script>
 window._routes = {
-    step:      '{{ route('portal.register.step', ['step' => '__STEP__']) }}',
-    checkSlug: '{{ route('portal.register.check-slug') }}',
-    cities:    '{{ route('portal.register.cities') }}',
-    upload:    '{{ route('portal.register.upload') }}',
-    docRemove: '{{ route('portal.register.document.remove') }}',
-    complete:  '{{ route('portal.register.complete') }}',
+    step:         '{{ route('portal.register.step', ['step' => '__STEP__']) }}',
+    checkSlug:    '{{ route('portal.register.check-slug') }}',
+    cities:       '{{ route('portal.register.cities') }}',
+    docRequirements: '{{ route('portal.register.document-requirements') }}',
+    upload:       '{{ route('portal.register.upload') }}',
+    docRemove:    '{{ route('portal.register.document.remove') }}',
+    complete:     '{{ route('portal.register.complete') }}',
 };
 window._csrf = '{{ csrf_token() }}';
 </script>

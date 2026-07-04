@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Subscription Details')
+@section('title', __('admin.subscriptions.subscription_details_title'))
 
 @section('content')
 
@@ -12,7 +12,7 @@
 
             <div class="bg-white rounded-2xl border border-gray-100 p-5">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold text-gray-900 text-lg">Subscription</h2>
+                    <h2 class="font-bold text-gray-900 text-lg">{{ __('admin.subscriptions.subscription_details') }}</h2>
                     <span class="badge badge-{{ $subscription->statusColor() }}">
                         {{ ucfirst($subscription->status) }}
                     </span>
@@ -20,7 +20,7 @@
 
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Vendor</dt>
+                        <dt class="text-gray-500">{{ __('admin.subscriptions.vendor') }}</dt>
                         <dd class="font-medium text-gray-800">
                             <a href="{{ route('admin.vendors.show', $subscription->vendor_id) }}" class="hover:underline">
                                 {{ $subscription->vendor->business_name ?? $subscription->vendor->name }}
@@ -28,15 +28,15 @@
                         </dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Plan</dt>
+                        <dt class="text-gray-500">{{ __('admin.subscriptions.plan') }}</dt>
                         <dd class="font-medium text-gray-800">{{ $subscription->plan->name_en ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Started</dt>
+                        <dt class="text-gray-500">{{ __('admin.subscriptions.started') }}</dt>
                         <dd class="font-medium text-gray-800">{{ $subscription->started_at?->format('d M Y') }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Period</dt>
+                        <dt class="text-gray-500">{{ __('admin.subscriptions.period') }}</dt>
                         <dd class="font-medium text-gray-800">
                             {{ $subscription->period_start?->format('d M Y') }}
                             →
@@ -45,20 +45,20 @@
                     </div>
                     @if($subscription->isActive())
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Days Remaining</dt>
+                            <dt class="text-gray-500">{{ __('admin.subscriptions.days_remaining') }}</dt>
                             <dd class="font-bold text-green-600">{{ $subscription->daysRemaining() }}</dd>
                         </div>
                     @endif
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Auto-Renew</dt>
+                        <dt class="text-gray-500">{{ __('admin.subscriptions.auto_renew') }}</dt>
                         <dd>
                             <span class="badge badge-{{ $subscription->auto_renew ? 'success' : 'secondary' }} text-xs">
-                                {{ $subscription->auto_renew ? 'On' : 'Off' }}
+                                {{ $subscription->auto_renew ? __('admin.subscriptions.on') : __('admin.subscriptions.off') }}
                             </span>
                         </dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Listings Used</dt>
+                        <dt class="text-gray-500">{{ __('admin.subscriptions.listings_used') }}</dt>
                         <dd class="font-medium text-gray-800">
                             {{ $subscription->listings_used }}
                             /
@@ -67,7 +67,7 @@
                     </div>
                     @if($subscription->approved_by_admin_id)
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Approved By</dt>
+                            <dt class="text-gray-500">{{ __('admin.subscriptions.approved_by') }}</dt>
                             <dd class="font-medium text-gray-800">
                                 {{ $subscription->approvedByAdmin?->name ?? $subscription->approved_by_admin_id }}
                             </dd>
@@ -75,13 +75,13 @@
                     @endif
                     @if($subscription->cancelled_at)
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Cancelled At</dt>
+                            <dt class="text-gray-500">{{ __('admin.subscriptions.cancelled_at') }}</dt>
                             <dd class="text-red-500">{{ $subscription->cancelled_at->format('d M Y') }}</dd>
                         </div>
                     @endif
                     @if($subscription->cancellation_reason)
                         <div class="pt-1">
-                            <dt class="text-gray-500 text-xs mb-0.5">Cancellation Reason</dt>
+                            <dt class="text-gray-500 text-xs mb-0.5">{{ __('admin.subscriptions.cancellation_reason') }}</dt>
                             <dd class="text-xs bg-gray-50 rounded p-2 text-gray-700">{{ $subscription->cancellation_reason }}
                             </dd>
                         </div>
@@ -92,7 +92,7 @@
                     <div class="mt-5 pt-4 border-t border-gray-100">
                         <button type="button" id="btn-cancel-this-sub" class="btn btn-danger btn-sm w-full"
                             data-id="{{ $subscription->id }}">
-                            Cancel Subscription
+                            {{ __('admin.subscriptions.cancel_subscription') }}
                         </button>
                     </div>
                 @endif
@@ -101,23 +101,23 @@
             {{-- Plan info card --}}
             @if($subscription->plan)
                 <div class="bg-white rounded-2xl border border-gray-100 p-5">
-                    <h3 class="font-semibold text-gray-800 mb-3 text-sm">Plan Details</h3>
+                    <h3 class="font-semibold text-gray-800 mb-3 text-sm">{{ __('admin.subscriptions.plan_details') }}</h3>
                     <dl class="space-y-1.5 text-sm">
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Price</dt>
+                            <dt class="text-gray-500">{{ __('admin.subscriptions.price') }}</dt>
                             <dd class="font-medium">{{ number_format($subscription->plan->price_cents / 100) }}
                                 {{ $subscription->plan->currency }}/mo</dd>
                         </div>
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Commission Discount</dt>
+                            <dt class="text-gray-500">{{ __('admin.subscriptions.commission_discount') }}</dt>
                             <dd class="font-medium">{{ $subscription->plan->commission_discount_pct }}%</dd>
                         </div>
                         <div class="flex justify-between">
-                            <dt class="text-gray-500">Free Shipping</dt>
+                            <dt class="text-gray-500">{{ __('admin.subscriptions.free_shipping') }}</dt>
                             <dd>
                                 <span
                                     class="badge badge-{{ $subscription->plan->free_shipping_included ? 'success' : 'secondary' }} text-xs">
-                                    {{ $subscription->plan->free_shipping_included ? 'Yes' : 'No' }}
+                                    {{ $subscription->plan->free_shipping_included ? __('admin.subscriptions.yes') : __('admin.subscriptions.no') }}
                                 </span>
                             </dd>
                         </div>
@@ -137,22 +137,22 @@
         <div class="lg:col-span-2">
             <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h3 class="font-bold text-gray-900">Invoices</h3>
-                    <span class="text-xs text-gray-400">{{ $invoices->count() }} invoice(s)</span>
+                    <h3 class="font-bold text-gray-900">{{ __('admin.subscriptions.invoices') }}</h3>
+                    <span class="text-xs text-gray-400">{{ __('admin.subscriptions.invoice_count', ['count' => $invoices->count()]) }}</span>
                 </div>
 
                 @if($invoices->isEmpty())
-                    <div class="p-10 text-center text-gray-400 text-sm">No invoices yet.</div>
+                    <div class="p-10 text-center text-gray-400 text-sm">{{ __('admin.subscriptions.no_invoices_yet') }}</div>
                 @else
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
-                                <th class="px-4 py-3 text-left">Invoice #</th>
-                                <th class="px-4 py-3 text-left">Amount</th>
-                                <th class="px-4 py-3 text-left">Status</th>
-                                <th class="px-4 py-3 text-left">Period</th>
-                                <th class="px-4 py-3 text-left">Paid At</th>
-                                <th class="px-4 py-3 text-left">Actions</th>
+                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.invoice_number') }}</th>
+                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.amount') }}</th>
+                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.status') }}</th>
+                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.period') }}</th>
+                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.paid_at') }}</th>
+                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -174,7 +174,7 @@
                                         @if($invoice->status !== 'paid')
                                             <button type="button" class="btn btn-xs btn-success btn-mark-paid"
                                                 data-id="{{ $invoice->id }}">
-                                                Mark Paid
+                                                {{ __('admin.subscriptions.mark_paid') }}
                                             </button>
                                         @else
                                             <span class="text-xs text-gray-400">—</span>
@@ -193,15 +193,15 @@
     {{-- ─── Cancel Subscription Modal ───────────────────────────────────────────── --}}
     <div id="cancel-sub-modal" class="modal" style="display:none;">
         <div class="modal-box max-w-sm">
-            <h3 class="font-bold text-lg mb-4">Cancel Subscription</h3>
+            <h3 class="font-bold text-lg mb-4">{{ __('admin.subscriptions.cancel_subscription') }}</h3>
             <div>
-                <label class="label-sm">Reason (optional)</label>
+                <label class="label-sm">{{ __('admin.subscriptions.reason_optional') }}</label>
                 <textarea id="cancel-sub-reason" rows="3" class="form-input w-full text-sm"
-                    placeholder="Reason for cancellation..."></textarea>
+                    placeholder="{{ __('admin.subscriptions.cancellation_reason_placeholder') }}"></textarea>
             </div>
             <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-gray-100">
-                <button type="button" id="cancel-sub-close" class="btn btn-ghost btn-sm">Close</button>
-                <button type="button" id="cancel-sub-confirm" class="btn btn-danger btn-sm">Cancel Subscription</button>
+                <button type="button" id="cancel-sub-close" class="btn btn-ghost btn-sm">{{ __('admin.subscriptions.close') }}</button>
+                <button type="button" id="cancel-sub-confirm" class="btn btn-danger btn-sm">{{ __('admin.subscriptions.cancel_subscription') }}</button>
             </div>
         </div>
     </div>
@@ -209,15 +209,15 @@
     {{-- ─── Mark Paid Modal ─────────────────────────────────────────────────────── --}}
     <div id="mark-paid-modal" class="modal" style="display:none;">
         <div class="modal-box max-w-sm">
-            <h3 class="font-bold text-lg mb-4">Mark Invoice Paid</h3>
+            <h3 class="font-bold text-lg mb-4">{{ __('admin.subscriptions.mark_invoice_paid') }}</h3>
             <input type="hidden" id="mp-invoice-id">
             <div>
-                <label class="label-sm">Payment Transaction ID (optional)</label>
-                <input type="text" id="mp-txid" class="form-input w-full text-sm" placeholder="e.g. TXN-123456">
+                <label class="label-sm">{{ __('admin.subscriptions.payment_transaction_id_optional') }}</label>
+                <input type="text" id="mp-txid" class="form-input w-full text-sm" placeholder="{{ __('admin.subscriptions.payment_transaction_id_placeholder') }}">
             </div>
             <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-gray-100">
-                <button type="button" id="mp-close" class="btn btn-ghost btn-sm">Close</button>
-                <button type="button" id="mp-confirm" class="btn btn-success btn-sm">Mark Paid</button>
+                <button type="button" id="mp-close" class="btn btn-ghost btn-sm">{{ __('admin.subscriptions.close') }}</button>
+                <button type="button" id="mp-confirm" class="btn btn-success btn-sm">{{ __('admin.subscriptions.mark_paid') }}</button>
             </div>
         </div>
     </div>

@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'إدارة الفريق')
-@section('page-title', 'الفريق')
+@section('title', __('partner.team.page_title'))
+@section('page-title', __('partner.team.title'))
 
 @push('scripts')
     @vite('resources/js/partner/team.js')
@@ -22,8 +22,8 @@
         {{-- Page header --}}
         <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">إدارة الفريق</h1>
-                <p class="mt-1 text-sm text-gray-500">إدارة أعضاء الفريق والصلاحيات</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ __('partner.team.manage_team') }}</h1>
+                <p class="mt-1 text-sm text-gray-500">{{ __('partner.team.manage_team_subtitle') }}</p>
             </div>
             @if ($admin->isOwner())
                 <button type="button" @click="showInviteModal = true"
@@ -31,7 +31,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    دعوة عضو
+                    {{ __('partner.team.invite_member') }}
                 </button>
             @endif
         </div>
@@ -39,7 +39,7 @@
         {{-- Owner-only notice --}}
         @if (!$admin->isOwner())
             <div class="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
-                يحق للمالك فقط إدارة أعضاء الفريق.
+                {{ __('partner.team.owner_only_notice') }}
             </div>
         @endif
 
@@ -48,14 +48,14 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العضو
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('partner.team.member') }}
                         </th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الدور
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('partner.team.role') }}
                         </th>
                         <th
                             class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                            آخر دخول</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة
+                            {{ __('partner.team.last_login') }}</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('partner.team.status') }}
                         </th>
                         @if ($admin->isOwner())
                             <th class="px-6 py-3"></th>
@@ -71,9 +71,9 @@
                                 'staff' => 'bg-gray-100 text-gray-600',
                             ];
                             $roleLabels = [
-                                'owner' => 'مالك',
-                                'manager' => 'مدير',
-                                'staff' => 'موظف',
+                                'owner' => __('partner.team.role_owner'),
+                                'manager' => __('partner.team.role_manager'),
+                                'staff' => __('partner.team.role_staff'),
                             ];
                         @endphp
                         <tr class="hover:bg-gray-50 transition-colors" id="member-row-{{ $member->id }}">
@@ -88,7 +88,7 @@
                                         <p class="text-sm font-semibold text-gray-900">
                                             {{ $member->name }}
                                             @if ($member->id === $admin->id)
-                                                <span class="text-xs text-gray-400">(أنت)</span>
+                                                <span class="text-xs text-gray-400">{{ __('partner.team.you_suffix') }}</span>
                                             @endif
                                         </p>
                                         <p class="text-xs text-gray-500">{{ $member->email }}</p>
@@ -115,7 +115,7 @@
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium member-status-badge
                                         {{ $member->is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600' }}">
-                                    {{ $member->is_active ? 'نشط' : 'معطَّل' }}
+                                    {{ $member->is_active ? __('partner.team.active') : __('partner.team.inactive') }}
                                 </span>
                             </td>
 
@@ -130,14 +130,14 @@
                                         ? 'border-amber-300 text-amber-700 hover:bg-amber-50'
                                         : 'border-green-300 text-green-700 hover:bg-green-50' }}"
                                                         data-id="{{ $member->id }}" data-active="{{ $member->is_active ? '1' : '0' }}">
-                                                        {{ $member->is_active ? 'تعطيل' : 'تفعيل' }}
+                                                        {{ $member->is_active ? __('partner.team.deactivate') : __('partner.team.activate') }}
                                                     </button>
 
                                                     {{-- Delete --}}
                                                     <button type="button"
                                                         class="btn-delete-member text-xs font-medium px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
                                                         data-id="{{ $member->id }}" data-name="{{ $member->name }}">
-                                                        حذف
+                                                        {{ __('partner.team.delete') }}
                                                     </button>
                                                 </div>
                                     @else
@@ -149,7 +149,7 @@
                     @empty
                         <tr>
                             <td colspan="{{ $admin->isOwner() ? 5 : 4 }}" class="px-6 py-10 text-center text-sm text-gray-400">
-                                لا يوجد أعضاء في الفريق حتى الآن
+                                {{ __('partner.team.no_members_yet') }}
                             </td>
                         </tr>
                     @endforelse
@@ -168,7 +168,7 @@
             {{-- Modal panel --}}
             <div class="relative z-10 w-full max-w-md rounded-2xl bg-white shadow-xl p-6" @click.stop>
                 <div class="flex items-center justify-between mb-5">
-                    <h3 class="text-base font-semibold text-gray-900">دعوة عضو جديد</h3>
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('partner.team.invite_new_member') }}</h3>
                     <button type="button" @click="showInviteModal = false"
                         class="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@
                     <div class="space-y-4">
                         {{-- Name --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل <span
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.team.full_name') }} <span
                                     class="text-red-500">*</span></label>
                             <input type="text" name="name" autocomplete="off"
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
@@ -190,7 +190,7 @@
 
                         {{-- Email --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني <span
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.team.email') }} <span
                                     class="text-red-500">*</span></label>
                             <input type="email" name="email" autocomplete="off"
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
@@ -198,12 +198,12 @@
 
                         {{-- Role --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">الدور <span
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.team.role') }} <span
                                     class="text-red-500">*</span></label>
                             <select name="role"
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                                <option value="manager">مدير</option>
-                                <option value="staff">موظف</option>
+                                <option value="manager">{{ __('partner.team.role_manager') }}</option>
+                                <option value="staff">{{ __('partner.team.role_staff') }}</option>
                             </select>
                         </div>
                     </div>
@@ -215,7 +215,7 @@
                     <div class="mt-6 flex justify-end gap-3">
                         <button type="button" @click="showInviteModal = false"
                             class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                            إلغاء
+                            {{ __('common.cancel') }}
                         </button>
                         <button type="submit" id="btn-send-invite"
                             class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2 text-sm font-semibold text-white hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
@@ -223,7 +223,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
-                            إرسال الدعوة
+                            {{ __('partner.team.send_invite') }}
                         </button>
                     </div>
                 </form>

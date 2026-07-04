@@ -1,18 +1,18 @@
 @extends('layouts.admin')
 
-@section('title', 'Radio Channels')
+@section('title', __('admin.radio.channels'))
 
 @section('content')
 <div class="p-6 space-y-4">
 
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl font-bold text-gray-900">Radio Channels</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Manage live audio &amp; video radio channels</p>
+            <h1 class="text-xl font-bold text-gray-900">{{ __('admin.radio.channels') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.radio.channels_desc') }}</p>
         </div>
         <a href="{{ route('admin.radio.channels.create') }}"
            class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700">
-            + New Channel
+            + {{ __('admin.radio.new_channel') }}
         </a>
     </div>
 
@@ -24,11 +24,11 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Channel</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Type</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Country</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Status</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Stream</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.radio.channel') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.radio.type') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.country') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.status') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.radio.stream') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -57,13 +57,13 @@
                         </span>
                     </td>
                     <td class="px-4 py-3 text-gray-600">
-                        {{ $channel->country?->name_en ?? 'All Countries' }}
+                        {{ $channel->country?->name_en ?? __('admin.radio.all_countries') }}
                     </td>
                     <td class="px-4 py-3">
                         @if($channel->is_active)
-                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
+                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{{ __('common.active') }}</span>
                         @else
-                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Inactive</span>
+                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{{ __('common.inactive') }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 text-xs text-gray-500 max-w-xs truncate">
@@ -73,17 +73,17 @@
                         <div class="flex items-center gap-2">
                             <a href="{{ route('admin.radio.schedule', $channel) }}"
                                class="text-xs px-3 py-1.5 border border-indigo-300 text-indigo-700 rounded-lg hover:bg-indigo-50">
-                                📅 Schedule
+                                📅 {{ __('admin.radio.schedule') }}
                             </a>
                             <a href="{{ route('admin.radio.channels.edit', $channel) }}"
                                class="text-xs px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
-                                Edit
+                                {{ __('common.edit') }}
                             </a>
                             <form method="POST" action="{{ route('admin.radio.channels.destroy', $channel) }}"
-                                  onsubmit="return confirm('Delete this channel?')">
+                                  onsubmit="return confirm('{{ __('admin.radio.delete_channel_confirm') }}')">
                                 @csrf @method('DELETE')
                                 <button class="text-xs px-3 py-1.5 border border-red-200 text-red-600 rounded-lg hover:bg-red-50">
-                                    Delete
+                                    {{ __('common.delete') }}
                                 </button>
                             </form>
                         </div>
@@ -91,7 +91,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-12 text-center text-gray-400">No radio channels yet.</td>
+                    <td colspan="6" class="px-4 py-12 text-center text-gray-400">{{ __('admin.radio.no_channels') }}</td>
                 </tr>
                 @endforelse
             </tbody>

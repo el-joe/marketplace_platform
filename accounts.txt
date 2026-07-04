@@ -82,6 +82,14 @@ aramex-rider2@delivery.com       password123    third_party   Aramex Gulf       
 localexpress-rider1@delivery.com password123    third_party   Local Express Oman   active      motorcycle
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GUARD: travel agency  →  Panel URL: http://travel-agency.noon.loc
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Email                         Password       Role (enum)
+────────────────────────────  ────────────   ───────────
+info@gulfhorizons.com         password123    owner        
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SPATIE ROLES & PERMISSIONS SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

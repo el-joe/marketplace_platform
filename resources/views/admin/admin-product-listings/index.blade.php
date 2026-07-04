@@ -1,33 +1,33 @@
 @extends('layouts.admin')
 
-@section('title', 'Admin Product Listings')
+@section('title', __('admin.admin_product_listings.title'))
 
 @section('content')
 <div class="p-6 space-y-5">
 
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl font-bold text-gray-900">Admin Product Listings</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Manage products sold directly by admin — powers the Now Nawy feed.</p>
+            <h1 class="text-xl font-bold text-gray-900">{{ __('admin.admin_product_listings.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.admin_product_listings.page_subtitle') }}</p>
         </div>
         <a href="{{ route('admin.admin-product-listings.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
             <x-heroicon name="plus" class="w-4 h-4" />
-            New Listing
+            {{ __('admin.admin_product_listings.new_listing') }}
         </a>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <table class="w-full text-sm">
             <thead>
-                <tr class="border-b border-gray-100 bg-gray-50 text-left">
-                    <th class="px-4 py-3 font-medium text-gray-600">Product</th>
-                    <th class="px-4 py-3 font-medium text-gray-600">Country</th>
-                    <th class="px-4 py-3 font-medium text-gray-600">Price</th>
-                    <th class="px-4 py-3 font-medium text-gray-600">Fulfillment</th>
-                    <th class="px-4 py-3 font-medium text-gray-600">Payment</th>
-                    <th class="px-4 py-3 font-medium text-gray-600">Now Nawy</th>
-                    <th class="px-4 py-3 font-medium text-gray-600">Status</th>
+                <tr class="border-b border-gray-100 bg-gray-50 text-start">
+                    <th class="px-4 py-3 font-medium text-gray-600">{{ __('admin.admin_product_listings.product_col') }}</th>
+                    <th class="px-4 py-3 font-medium text-gray-600">{{ __('admin.admin_product_listings.country_col') }}</th>
+                    <th class="px-4 py-3 font-medium text-gray-600">{{ __('admin.admin_product_listings.price_col') }}</th>
+                    <th class="px-4 py-3 font-medium text-gray-600">{{ __('admin.admin_product_listings.fulfillment_col') }}</th>
+                    <th class="px-4 py-3 font-medium text-gray-600">{{ __('admin.admin_product_listings.payment_col') }}</th>
+                    <th class="px-4 py-3 font-medium text-gray-600">{{ __('admin.admin_product_listings.now_nawy_col') }}</th>
+                    <th class="px-4 py-3 font-medium text-gray-600">{{ __('admin.admin_product_listings.status_col') }}</th>
                     <th class="px-4 py-3 font-medium text-gray-600"></th>
                 </tr>
             </thead>
@@ -57,7 +57,7 @@
                     <td class="px-4 py-3">
                         @php
                             $po = $listing->payment_options;
-                            $poLabel = ['cod_only' => 'COD Only', 'electronic_only' => 'Electronic Only', 'both' => 'Both'];
+                            $poLabel = ['cod_only' => __('admin.admin_product_listings.cod_only'), 'electronic_only' => __('admin.admin_product_listings.electronic_only'), 'both' => __('admin.admin_product_listings.both')];
                         @endphp
                         <span class="text-xs text-gray-600">{{ $poLabel[$po] ?? $po }}</span>
                     </td>
@@ -65,7 +65,7 @@
                         @if($listing->featured_in_nawy)
                             <span class="inline-flex items-center gap-1 text-xs text-primary-700 font-medium">
                                 <x-heroicon name="sparkles" class="w-3.5 h-3.5" />
-                                Featured
+                                {{ __('admin.admin_product_listings.featured') }}
                             </span>
                         @else
                             <span class="text-xs text-gray-400">—</span>
@@ -84,7 +84,7 @@
                             <a href="{{ route('admin.admin-product-listings.nawy-preview', $listing) }}"
                                target="_blank"
                                class="text-xs text-gray-500 hover:text-primary-600 transition-colors"
-                               title="Now Nawy Preview">
+                               title="{{ __('admin.admin_product_listings.now_nawy_preview') }}">
                                 <x-heroicon name="eye" class="w-4 h-4" />
                             </a>
                             <a href="{{ route('admin.admin-product-listings.edit', $listing) }}"
@@ -92,7 +92,7 @@
                                 <x-heroicon name="pencil-square" class="w-4 h-4" />
                             </a>
                             <form method="POST" action="{{ route('admin.admin-product-listings.destroy', $listing) }}"
-                                  onsubmit="return confirm('Remove this listing?')">
+                                  onsubmit="return confirm('{{ __('admin.admin_product_listings.remove_listing_confirm') }}')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors">
                                     <x-heroicon name="trash" class="w-4 h-4" />
@@ -103,7 +103,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-12 text-center text-gray-400 text-sm">No listings yet.</td>
+                    <td colspan="8" class="px-4 py-12 text-center text-gray-400 text-sm">{{ __('admin.admin_product_listings.no_listings') }}</td>
                 </tr>
                 @endforelse
             </tbody>

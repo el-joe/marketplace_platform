@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Create Role')
+@section('title', __('admin.roles_section.create_role'))
 
 @push('styles')
     @vite(['resources/js/admin/admins.js'])

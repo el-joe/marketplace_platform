@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Schedule — ' . $channel->name_en)
+@section('title', __('admin.radio.schedule_for', ['channel' => $channel->name_en]))
 
 @push('head')
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
@@ -11,15 +11,15 @@
 
     <div class="flex items-center justify-between">
         <div>
-            <a href="{{ route('admin.radio.channels.index') }}" class="text-sm text-gray-500 hover:text-gray-700">← Channels</a>
+            <a href="{{ route('admin.radio.channels.index') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('admin.radio.back_to_channels') }}</a>
             <h1 class="text-xl font-bold text-gray-900 mt-1">
-                📅 Schedule — {{ $channel->name_en }}
-                <span class="text-sm font-normal text-gray-500 ml-2">{{ ucfirst($channel->type) }}</span>
+                📅 {{ __('admin.radio.schedule_for', ['channel' => $channel->name_en]) }}
+                <span class="text-sm font-normal text-gray-500 ml-2">{{ __('admin.radio.' . $channel->type) }}</span>
             </h1>
         </div>
         <button @click="openCreate()"
                 class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700">
-            + Add Slot
+            + {{ __('admin.radio.add_slot') }}
         </button>
     </div>
 
@@ -34,35 +34,35 @@
          @click.self="closeModal()">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
 
-            <h2 class="text-lg font-bold text-gray-900" x-text="editing ? 'Edit Slot' : 'New Schedule Slot'"></h2>
+            <h2 class="text-lg font-bold text-gray-900" x-text="editing ? '{{ __('admin.radio.edit_slot') }}' : '{{ __('admin.radio.new_slot') }}'"></h2>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.slot_title') }}</label>
                 <input type="text" x-model="form.title" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Starts At</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.starts_at') }}</label>
                     <input type="datetime-local" x-model="form.starts_at" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ends At</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.ends_at') }}</label>
                     <input type="datetime-local" x-model="form.ends_at" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Recurrence</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.recurrence') }}</label>
                 <select x-model="form.recurrence" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    <option value="once">Once</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
+                    <option value="once">{{ __('admin.radio.recurrence_once') }}</option>
+                    <option value="daily">{{ __('admin.radio.recurrence_daily') }}</option>
+                    <option value="weekly">{{ __('admin.radio.recurrence_weekly') }}</option>
                 </select>
             </div>
 
             <div x-show="form.recurrence === 'weekly'">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Repeat on Days</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('admin.radio.repeat_on_days') }}</label>
                 <div class="flex flex-wrap gap-2">
                     @foreach(['mon','tue','wed','thu','fri','sat','sun'] as $d)
                     <label class="flex items-center gap-1.5 cursor-pointer">
@@ -70,7 +70,7 @@
                                @change="toggleDay('{{ $d }}')"
                                :checked="form.recurrence_days.includes('{{ $d }}')"
                                class="rounded border-gray-300 text-primary-600">
-                        <span class="text-sm text-gray-700">{{ ucfirst($d) }}</span>
+                        <span class="text-sm text-gray-700">{{ __('admin.radio.day_' . $d) }}</span>
                     </label>
                     @endforeach
                 </div>
@@ -78,23 +78,23 @@
 
             <div class="flex items-center gap-3">
                 <input type="checkbox" x-model="form.is_active" id="slot_active" class="rounded border-gray-300 text-primary-600">
-                <label for="slot_active" class="text-sm text-gray-700">Active</label>
+                <label for="slot_active" class="text-sm text-gray-700">{{ __('common.active') }}</label>
             </div>
 
             <div class="flex gap-3 pt-2">
                 <button @click="saveSlot()"
                         class="flex-1 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700"
-                        x-text="saving ? 'Saving…' : (editing ? 'Update Slot' : 'Create Slot')"
+                        x-text="saving ? '{{ __('admin.radio.saving') }}' : (editing ? '{{ __('admin.radio.update_slot') }}' : '{{ __('admin.radio.create_slot') }}')"
                         :disabled="saving"></button>
                 <template x-if="editing">
                     <button @click="deleteSlot()"
                             class="py-2 px-4 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50">
-                        Delete
+                        {{ __('common.delete') }}
                     </button>
                 </template>
                 <button @click="closeModal()"
                         class="py-2 px-4 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">
-                    Cancel
+                    {{ __('common.cancel') }}
                 </button>
             </div>
         </div>
@@ -106,6 +106,12 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    slot_error: "{{ __('admin.radio.slot_error', ['message' => '__MSG__']) }}",
+    delete_slot_confirm: "{{ __('admin.radio.delete_slot_confirm') }}",
+});
+
 function radioSchedule() {
     return {
         modal:   false,
@@ -199,14 +205,14 @@ function radioSchedule() {
                 this.calendar.refetchEvents();
                 this.closeModal();
             } catch(e) {
-                alert('Error: ' + (e.message ?? JSON.stringify(e)));
+                alert(window.TRANSLATIONS.slot_error.replace('__MSG__', e.message ?? JSON.stringify(e)));
             } finally {
                 this.saving = false;
             }
         },
 
         async deleteSlot() {
-            if (!confirm('Delete this slot?')) return;
+            if (!confirm(window.TRANSLATIONS.delete_slot_confirm)) return;
             await fetch(`/admin/radio/channels/{{ $channel->id }}/slots/${this.editing}`, {
                 method: 'DELETE',
                 headers: {

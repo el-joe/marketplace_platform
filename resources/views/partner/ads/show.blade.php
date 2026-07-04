@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
 @section('title', $campaign->name)
-@section('page-title', 'الإعلانات')
+@section('page-title', __('partner.ads.title'))
 
 @push('scripts')
     @vite('resources/js/partner/ads.js')
@@ -11,15 +11,16 @@
 @section('content')
 @php
     $statusMap = [
-        'draft'            => ['label' => 'مسودة',            'cls' => 'bg-gray-100 text-gray-700'],
-        'pending_review'   => ['label' => 'بانتظار المراجعة', 'cls' => 'bg-amber-100 text-amber-700'],
-        'active'           => ['label' => 'نشطة',             'cls' => 'bg-emerald-100 text-emerald-700'],
-        'paused'           => ['label' => 'موقوفة',           'cls' => 'bg-blue-100 text-blue-700'],
-        'budget_exhausted' => ['label' => 'نفد الميزانية',    'cls' => 'bg-red-100 text-red-700'],
-        'ended'            => ['label' => 'منتهية',           'cls' => 'bg-gray-100 text-gray-500'],
-        'rejected'         => ['label' => 'مرفوضة',           'cls' => 'bg-red-100 text-red-700'],
+        'draft'            => ['label' => __('partner.ads.status.draft'),            'cls' => 'bg-gray-100 text-gray-700'],
+        'pending_review'   => ['label' => __('partner.ads.status.pending_review'), 'cls' => 'bg-amber-100 text-amber-700'],
+        'active'           => ['label' => __('partner.ads.status.active'),             'cls' => 'bg-emerald-100 text-emerald-700'],
+        'paused'           => ['label' => __('partner.ads.status.paused'),           'cls' => 'bg-blue-100 text-blue-700'],
+        'budget_exhausted' => ['label' => __('partner.ads.status.budget_exhausted'),    'cls' => 'bg-red-100 text-red-700'],
+        'ended'            => ['label' => __('partner.ads.status.ended'),           'cls' => 'bg-gray-100 text-gray-500'],
+        'rejected'         => ['label' => __('partner.ads.status.rejected'),           'cls' => 'bg-red-100 text-red-700'],
     ];
     $st = $statusMap[$campaign->status] ?? ['label' => $campaign->status, 'cls' => 'bg-gray-100 text-gray-600'];
+    $adCurrency = $campaign->country?->currency_code ?? '';
 @endphp
 
 <div class="px-4 py-6 sm:px-6 lg:px-8 space-y-6">
@@ -35,7 +36,7 @@
 
     {{-- Breadcrumb --}}
     <nav class="flex items-center gap-2 text-sm text-gray-500">
-        <a href="{{ route('partner.ads.index') }}" class="hover:text-primary-600">الإعلانات</a>
+        <a href="{{ route('partner.ads.index') }}" class="hover:text-primary-600">{{ __('partner.ads.title') }}</a>
         <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
         </svg>
@@ -66,7 +67,7 @@
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5"/>
                     </svg>
-                    إيقاف مؤقت
+                    {{ __('partner.ads.pause') }}
                 </button>
             @elseif ($campaign->status === 'paused' && ($campaign->ends_at === null || $campaign->ends_at->isFuture()))
                 <button
@@ -76,11 +77,11 @@
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/>
                     </svg>
-                    استئناف
+                    {{ __('partner.ads.resume') }}
                 </button>
             @endif
             <a href="{{ route('partner.ads.index') }}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
-                رجوع
+                {{ __('partner.ads.back') }}
             </a>
         </div>
     </div>
@@ -88,7 +89,7 @@
     {{-- Rejection notice --}}
     @if ($campaign->status === 'rejected' && $campaign->rejection_reason)
         <div class="rounded-xl bg-red-50 border border-red-200 px-5 py-4">
-            <p class="text-sm font-semibold text-red-800 mb-1">تم رفض الحملة</p>
+            <p class="text-sm font-semibold text-red-800 mb-1">{{ __('partner.ads.campaign_rejected') }}</p>
             <p class="text-sm text-red-700">{{ $campaign->rejection_reason }}</p>
         </div>
     @endif
@@ -101,27 +102,27 @@
                 : 0;
         @endphp
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p class="text-xs text-gray-500 mb-1">إجمالي الإنفاق</p>
-            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->budget_spent_total, 2) }} <span class="text-sm font-normal text-gray-400">ر.س</span></p>
+            <p class="text-xs text-gray-500 mb-1">{{ __('partner.ads.total_spend') }}</p>
+            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->budget_spent_total, 2) }} <span class="text-sm font-normal text-gray-400">{{ $adCurrency }}</span></p>
             <div class="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                 <div class="h-full rounded-full bg-primary-500" style="width: {{ $budgetPct }}%"></div>
             </div>
-            <p class="text-xs text-gray-400 mt-1">من {{ number_format($campaign->budget_total, 2) }} ر.س</p>
+            <p class="text-xs text-gray-400 mt-1">{{ __('partner.ads.of_amount') }} {{ number_format($campaign->budget_total, 2) }} {{ $adCurrency }}</p>
         </div>
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p class="text-xs text-gray-500 mb-1">إنفاق اليوم</p>
-            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->budget_spent_today, 2) }} <span class="text-sm font-normal text-gray-400">ر.س</span></p>
+            <p class="text-xs text-gray-500 mb-1">{{ __('partner.ads.spend_today') }}</p>
+            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->budget_spent_today, 2) }} <span class="text-sm font-normal text-gray-400">{{ $adCurrency }}</span></p>
             @if ($campaign->budget_daily)
-                <p class="text-xs text-gray-400 mt-2">حد يومي: {{ number_format($campaign->budget_daily, 2) }} ر.س</p>
+                <p class="text-xs text-gray-400 mt-2">{{ __('partner.ads.daily_limit') }}: {{ number_format($campaign->budget_daily, 2) }} {{ $adCurrency }}</p>
             @endif
         </div>
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p class="text-xs text-gray-500 mb-1">المزايدة</p>
-            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->bid, 2) }} <span class="text-sm font-normal text-gray-400">ر.س</span></p>
+            <p class="text-xs text-gray-500 mb-1">{{ __('partner.ads.bidding') }}</p>
+            <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->bid, 2) }} <span class="text-sm font-normal text-gray-400">{{ $adCurrency }}</span></p>
             <p class="text-xs text-gray-400 mt-2">{{ strtoupper($campaign->type) }}</p>
         </div>
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p class="text-xs text-gray-500 mb-1">جودة الإعلان</p>
+            <p class="text-xs text-gray-500 mb-1">{{ __('partner.ads.ad_quality') }}</p>
             @php
                 $qs = $campaign->quality_score;
                 $qsColor = $qs >= 7 ? 'text-emerald-600' : ($qs >= 4 ? 'text-amber-600' : 'text-red-500');
@@ -136,18 +137,18 @@
     {{-- ── Performance Chart ── --}}
     <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
-            <h2 class="text-base font-semibold text-gray-800">أداء الحملة</h2>
+            <h2 class="text-base font-semibold text-gray-800">{{ __('partner.ads.campaign_performance') }}</h2>
             <div class="flex items-center gap-2 flex-wrap">
                 <input type="date" id="perf-from"
                     value="{{ now()->subDays(29)->toDateString() }}"
                     class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm">
-                <span class="text-gray-400 text-sm">إلى</span>
+                <span class="text-gray-400 text-sm">{{ __('partner.ads.to') }}</span>
                 <input type="date" id="perf-to"
                     value="{{ now()->toDateString() }}"
                     class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm">
                 <button id="apply-dates"
                     class="rounded-lg bg-primary-600 px-4 py-1.5 text-sm text-white hover:bg-primary-700">
-                    تطبيق
+                    {{ __('partner.ads.apply') }}
                 </button>
             </div>
         </div>
@@ -155,11 +156,11 @@
         {{-- Totals strip --}}
         <div class="grid grid-cols-2 sm:grid-cols-5 divide-x divide-x-reverse divide-gray-100 border-b border-gray-100 bg-gray-50 text-center">
             @foreach ([
-                ['id' => 'total-impressions', 'label' => 'مشاهدات'],
-                ['id' => 'total-clicks',      'label' => 'نقرات'],
-                ['id' => 'total-conversions', 'label' => 'تحويلات'],
-                ['id' => 'total-spend',       'label' => 'إنفاق'],
-                ['id' => 'total-revenue',     'label' => 'إيرادات منسوبة'],
+                ['id' => 'total-impressions', 'label' => __('partner.ads.stat_impressions')],
+                ['id' => 'total-clicks',      'label' => __('partner.ads.stat_clicks')],
+                ['id' => 'total-conversions', 'label' => __('partner.ads.stat_conversions')],
+                ['id' => 'total-spend',       'label' => __('partner.ads.stat_spend')],
+                ['id' => 'total-revenue',     'label' => __('partner.ads.stat_attributed_revenue')],
             ] as $stat)
                 <div class="px-3 py-3">
                     <p class="text-xs text-gray-500 mb-0.5">{{ $stat['label'] }}</p>
@@ -177,7 +178,7 @@
     <div id="quality-score-section" class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100">
             <div class="flex items-center justify-between">
-                <h2 class="text-base font-semibold text-gray-800">جودة الإعلان</h2>
+                <h2 class="text-base font-semibold text-gray-800">{{ __('partner.ads.ad_quality') }}</h2>
                 <div class="text-right">
                     <span id="qs-overall" class="text-3xl font-bold text-gray-800">—</span>
                     <span class="text-sm text-gray-400"> / 10</span>
@@ -186,10 +187,10 @@
         </div>
         <div class="p-5 space-y-4">
             @foreach ([
-                ['id' => 'qs-ctr',       'label' => 'معدل النقر',        'desc' => 'نسبة النقر على إعلانك مقارنةً بالمعدل العام — ينعكس على مدى جاذبية إعلانك.'],
-                ['id' => 'qs-relevance', 'label' => 'الصلة بالكلمات',   'desc' => 'مدى تطابق كلماتك المفتاحية مع محتوى منتجك وصفحته.'],
-                ['id' => 'qs-landing',   'label' => 'جودة صفحة المنتج', 'desc' => 'اكتمال بيانات المنتج: الصور والوصف والتقييمات.'],
-                ['id' => 'qs-vendor',    'label' => 'تقييم المتجر',      'desc' => 'تقييم متجرك العام بناءً على تقييمات العملاء والالتزام بالتوصيل.'],
+                ['id' => 'qs-ctr',       'label' => __('partner.ads.quality_breakdown.ctr'),        'desc' => __('partner.ads.quality_breakdown.ctr_desc')],
+                ['id' => 'qs-relevance', 'label' => __('partner.ads.quality_breakdown.relevance'),   'desc' => __('partner.ads.quality_breakdown.relevance_desc')],
+                ['id' => 'qs-landing',   'label' => __('partner.ads.quality_breakdown.landing'), 'desc' => __('partner.ads.quality_breakdown.landing_desc')],
+                ['id' => 'qs-vendor',    'label' => __('partner.ads.quality_breakdown.vendor'),      'desc' => __('partner.ads.quality_breakdown.vendor_desc')],
             ] as $qs)
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
@@ -211,7 +212,7 @@
         {{-- ── Targeting ── --}}
         <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100">
-                <h2 class="text-base font-semibold text-gray-800">الاستهداف</h2>
+                <h2 class="text-base font-semibold text-gray-800">{{ __('partner.ads.targeting') }}</h2>
             </div>
             <div class="p-5">
                 @if ($campaign->targeting_type === 'auto')
@@ -221,14 +222,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/>
                             </svg>
                         </span>
-                        <span>استهداف تلقائي — تختار المنصة أفضل المواضع والكلمات تلقائياً</span>
+                        <span>{{ __('partner.ads.auto_targeting_desc') }}</span>
                     </div>
                 @endif
 
                 @if (in_array($campaign->targeting_type, ['keyword', 'mixed']))
                     @php $keywords = $campaign->keywords()->where('is_active', true)->where('is_negative', false)->get(); @endphp
                     <div class="mb-4">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">الكلمات المفتاحية ({{ $keywords->count() }})</p>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ __('partner.ads.keywords_count', ['count' => $keywords->count()]) }}</p>
                         <div class="space-y-1.5 max-h-48 overflow-y-auto">
                             @forelse ($keywords as $kw)
                                 <div class="flex items-center gap-2 text-sm">
@@ -237,14 +238,14 @@
                                         @if ($kw->match_type === 'exact') bg-indigo-100 text-indigo-700
                                         @elseif ($kw->match_type === 'phrase') bg-blue-100 text-blue-700
                                         @else bg-gray-100 text-gray-600 @endif">
-                                        {{ ['broad' => 'واسع', 'phrase' => 'عبارة', 'exact' => 'مطابق'][$kw->match_type] }}
+                                        {{ __('partner.ads.match_types.' . $kw->match_type) }}
                                     </span>
                                     @if ($kw->bid_override)
-                                        <span class="text-xs text-amber-600">{{ number_format($kw->bid_override / 100, 2) }} ر.س</span>
+                                        <span class="text-xs text-amber-600">{{ number_format($kw->bid_override / 100, 2) }} {{ $adCurrency }}</span>
                                     @endif
                                 </div>
                             @empty
-                                <p class="text-sm text-gray-400">لا توجد كلمات مفتاحية.</p>
+                                <p class="text-sm text-gray-400">{{ __('partner.ads.no_keywords') }}</p>
                             @endforelse
                         </div>
                     </div>
@@ -253,7 +254,7 @@
                 @if (in_array($campaign->targeting_type, ['category', 'mixed']))
                     @php $cats = $campaign->categoryTargets()->where('is_active', true)->with('category')->get(); @endphp
                     <div>
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">الفئات المستهدفة ({{ $cats->count() }})</p>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ __('partner.ads.target_categories_count', ['count' => $cats->count()]) }}</p>
                         <div class="flex flex-wrap gap-2">
                             @forelse ($cats as $ct)
                                 <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700">
@@ -263,7 +264,7 @@
                                     @endif
                                 </span>
                             @empty
-                                <p class="text-sm text-gray-400">لا توجد فئات.</p>
+                                <p class="text-sm text-gray-400">{{ __('partner.ads.no_categories') }}</p>
                             @endforelse
                         </div>
                     </div>
@@ -274,7 +275,7 @@
         {{-- ── Products in Campaign ── --}}
         <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100">
-                <h2 class="text-base font-semibold text-gray-800">المنتجات في الحملة</h2>
+                <h2 class="text-base font-semibold text-gray-800">{{ __('partner.ads.products_in_campaign') }}</h2>
             </div>
             <div class="p-5">
                 @php $products = $campaign->products()->where('is_active', true)->with('vendorListing')->get(); @endphp
@@ -294,18 +295,18 @@
                             <p class="text-sm font-medium text-gray-800 truncate">
                                 {{ $p->vendorListing?->product?->name_ar
                                     ?? $p->vendorListing?->product?->name_en
-                                    ?? 'منتج' }}
+                                    ?? __('partner.ads.product_fallback') }}
                             </p>
                             <p class="text-xs text-gray-400">{{ $p->vendorListing?->sku ?? '—' }}</p>
                         </div>
                         @if ($p->vendorListing?->price)
                             <span class="mr-auto text-sm font-semibold text-gray-700">
-                                {{ number_format($p->vendorListing->price, 2) }} ر.س
+                                {{ number_format($p->vendorListing->price, 2) }} {{ $adCurrency }}
                             </span>
                         @endif
                     </div>
                 @empty
-                    <p class="text-sm text-gray-400 text-center py-6">لا توجد منتجات.</p>
+                    <p class="text-sm text-gray-400 text-center py-6">{{ __('partner.ads.no_products') }}</p>
                 @endforelse
             </div>
         </div>
@@ -314,23 +315,23 @@
     {{-- Campaign dates --}}
     <div class="rounded-xl border border-gray-100 bg-white shadow-sm px-5 py-4 flex gap-6 flex-wrap text-sm">
         <div>
-            <span class="text-gray-500">تاريخ البدء:</span>
+            <span class="text-gray-500">{{ __('partner.ads.starts_at') }}:</span>
             <span class="font-medium text-gray-800 ms-1">{{ $campaign->starts_at?->translatedFormat('j M Y') ?? '—' }}</span>
         </div>
         <div>
-            <span class="text-gray-500">تاريخ الانتهاء:</span>
-            <span class="font-medium text-gray-800 ms-1">{{ $campaign->ends_at?->translatedFormat('j M Y') ?? 'مفتوح' }}</span>
+            <span class="text-gray-500">{{ __('partner.ads.ends_at') }}:</span>
+            <span class="font-medium text-gray-800 ms-1">{{ $campaign->ends_at?->translatedFormat('j M Y') ?? __('partner.ads.open_ended') }}</span>
         </div>
         @if ($campaign->approved_at)
             <div>
-                <span class="text-gray-500">تاريخ الموافقة:</span>
+                <span class="text-gray-500">{{ __('partner.ads.approved_at') }}:</span>
                 <span class="font-medium text-gray-800 ms-1">{{ $campaign->approved_at->translatedFormat('j M Y') }}</span>
             </div>
         @endif
         <div>
-            <span class="text-gray-500">نوع الاستهداف:</span>
+            <span class="text-gray-500">{{ __('partner.ads.targeting_type') }}:</span>
             <span class="font-medium text-gray-800 ms-1">
-                {{ ['auto' => 'تلقائي', 'keyword' => 'كلمات مفتاحية', 'category' => 'فئات', 'mixed' => 'مختلط'][$campaign->targeting_type] }}
+                {{ __('partner.ads.targeting_types.' . $campaign->targeting_type) }}
             </span>
         </div>
     </div>

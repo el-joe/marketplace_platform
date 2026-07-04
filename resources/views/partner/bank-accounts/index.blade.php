@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'الحسابات البنكية')
-@section('page-title', 'الحسابات البنكية')
+@section('title', __('partner.bank_accounts.title'))
+@section('page-title', __('partner.bank_accounts.title'))
 
 @push('scripts')
     @vite('resources/js/partner/bank-accounts.js')
@@ -19,13 +19,13 @@
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
-        <p class="text-sm text-gray-500">الحسابات المعتمدة فقط تُستخدم لتحويل الأرباح.</p>
+        <p class="text-sm text-gray-500">{{ __('partner.bank_accounts.verified_only_note') }}</p>
         <button id="btn-add-account"
                 class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            إضافة حساب بنكي
+            {{ __('partner.bank_accounts.add_account') }}
         </button>
     </div>
 
@@ -36,8 +36,7 @@
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
         <p class="text-sm text-blue-700">
-            يُراجع فريقنا الحسابات البنكية خلال <strong>يومي عمل</strong>.
-            الحسابات المعتمدة فقط يمكن تعيينها كحساب رئيسي لاستقبال المدفوعات.
+            {!! __('partner.bank_accounts.verification_notice', ['days' => '<strong>2</strong>']) !!}
         </p>
     </div>
 
@@ -46,11 +45,11 @@
         @if($accounts->isEmpty())
             <div id="empty-state" class="bg-white rounded-2xl border border-gray-200 py-16 text-center">
                 <div class="text-4xl mb-3">🏦</div>
-                <h3 class="font-semibold text-gray-800 mb-1">لا توجد حسابات بنكية</h3>
-                <p class="text-sm text-gray-400 mb-4">أضف حسابك البنكي لاستقبال أرباحك.</p>
+                <h3 class="font-semibold text-gray-800 mb-1">{{ __('partner.bank_accounts.no_accounts') }}</h3>
+                <p class="text-sm text-gray-400 mb-4">{{ __('partner.bank_accounts.no_accounts_desc') }}</p>
                 <button id="btn-add-account-empty"
                         class="bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
-                    إضافة حساب بنكي
+                    {{ __('partner.bank_accounts.add_account') }}
                 </button>
             </div>
         @else
@@ -59,9 +58,9 @@
                 @foreach($accounts as $account)
                     @php
                         $verificationMap = [
-                            'pending'  => ['bg-yellow-100 text-yellow-700', 'قيد المراجعة'],
-                            'verified' => ['bg-green-100 text-green-700',   'معتمد'],
-                            'rejected' => ['bg-red-100 text-red-700',       'مرفوض'],
+                            'pending'  => ['bg-yellow-100 text-yellow-700', __('partner.bank_accounts.verification.pending')],
+                            'verified' => ['bg-green-100 text-green-700',   __('partner.bank_accounts.verification.verified')],
+                            'rejected' => ['bg-red-100 text-red-700',       __('partner.bank_accounts.verification.rejected')],
                         ];
                         [$verifyCls, $verifyLabel] = $verificationMap[$account->verification_status]
                             ?? ['bg-gray-100 text-gray-500', $account->verification_status];
@@ -93,7 +92,7 @@
                             <div class="flex items-center gap-1.5 shrink-0">
                                 @if($account->is_primary)
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                                        رئيسي ★
+                                        {{ __('partner.bank_accounts.primary_badge') }} ★
                                     </span>
                                 @endif
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $verifyCls }}">
@@ -104,11 +103,11 @@
 
                         <div class="space-y-1.5 text-sm mb-4">
                             <div class="flex justify-between">
-                                <span class="text-gray-500">اسم صاحب الحساب</span>
+                                <span class="text-gray-500">{{ __('partner.bank_accounts.account_holder') }}</span>
                                 <span class="font-medium text-gray-800">{{ $account->account_holder_name }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-500">IBAN</span>
+                                <span class="text-gray-500">{{ __('partner.bank_accounts.iban') }}</span>
                                 <span class="font-mono text-xs text-gray-700 tracking-widest">{{ $masked }}</span>
                             </div>
                             @if($account->swift_code)
@@ -118,7 +117,7 @@
                                 </div>
                             @endif
                             <div class="flex justify-between">
-                                <span class="text-gray-500">العملة</span>
+                                <span class="text-gray-500">{{ __('partner.bank_accounts.currency') }}</span>
                                 <span class="font-medium text-gray-800">{{ $account->currency }}</span>
                             </div>
                         </div>
@@ -128,17 +127,17 @@
                                 <button type="button"
                                         class="btn-set-primary flex-1 text-xs bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium py-2 rounded-lg transition-colors"
                                         data-id="{{ $account->id }}">
-                                    تعيين كرئيسي
+                                    {{ __('partner.bank_accounts.set_primary') }}
                                 </button>
                             @elseif($account->is_primary)
-                                <span class="flex-1 text-xs text-center text-gray-400 py-2">الحساب الرئيسي الحالي</span>
+                                <span class="flex-1 text-xs text-center text-gray-400 py-2">{{ __('partner.bank_accounts.current_primary') }}</span>
                             @else
                                 <span class="flex-1 text-xs text-center text-gray-300 py-2">—</span>
                             @endif
                             <button type="button"
                                     class="btn-delete-account text-xs bg-red-50 hover:bg-red-100 text-red-600 font-medium px-3 py-2 rounded-lg transition-colors"
                                     data-id="{{ $account->id }}">
-                                حذف
+                                {{ __('partner.bank_accounts.delete') }}
                             </button>
                         </div>
                     </div>
@@ -151,7 +150,7 @@
     <div id="add-account-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
             <div class="p-5 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="font-semibold text-gray-900">إضافة حساب بنكي جديد</h3>
+                <h3 class="font-semibold text-gray-900">{{ __('partner.bank_accounts.add_new_account') }}</h3>
                 <button id="modal-close-btn" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -162,25 +161,25 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                            اسم صاحب الحساب <span class="text-red-500">*</span>
+                            {{ __('partner.bank_accounts.holder_name_label') }} <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="account_holder_name" required
                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                               placeholder="الاسم كما هو في البنك">
+                               placeholder="{{ __('partner.bank_accounts.holder_placeholder') }}">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                            اسم البنك <span class="text-red-500">*</span>
+                            {{ __('partner.bank_accounts.bank_name_label') }} <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="bank_name" required
                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                               placeholder="مثال: بنك الراجحي">
+                               placeholder="{{ __('partner.bank_accounts.bank_name_placeholder') }}">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">الفرع</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.bank_accounts.branch_label') }}</label>
                         <input type="text" name="branch"
                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                               placeholder="اختياري">
+                               placeholder="{{ __('partner.bank_accounts.branch_placeholder') }}">
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -188,26 +187,24 @@
                         </label>
                         <input type="text" name="iban" required maxlength="34" dir="ltr"
                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                               placeholder="SA0000000000000000000000">
+                               placeholder="{{ __('partner.bank_accounts.iban_placeholder') }}">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1.5">SWIFT / BIC</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.bank_accounts.swift_label') }}</label>
                         <input type="text" name="swift_code" maxlength="11" dir="ltr"
                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
                                placeholder="RJHISARI">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                            العملة <span class="text-red-500">*</span>
+                            {{ __('partner.bank_accounts.currency') }} <span class="text-red-500">*</span>
                         </label>
                         <select name="currency" required
                                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
-                            <option value="">اختر...</option>
-                            <option value="SAR">SAR — ريال سعودي</option>
-                            <option value="AED">AED — درهم إماراتي</option>
-                            <option value="EGP">EGP — جنيه مصري</option>
-                            <option value="USD">USD — دولار أمريكي</option>
-                            <option value="EUR">EUR — يورو</option>
+                            <option value="">{{ __('partner.bank_accounts.currency_select') }}</option>
+                            @foreach(\App\Models\Currency::where('is_active', true)->orderBy('code')->get() as $cur)
+                                <option value="{{ $cur->code }}">{{ $cur->code }}{{ $cur->name ? ' — ' . $cur->name : '' }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -217,11 +214,11 @@
                 <div class="flex gap-2 pt-1">
                     <button type="submit" id="account-submit-btn"
                             class="flex-1 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
-                        إضافة الحساب
+                        {{ __('partner.bank_accounts.submit_account') }}
                     </button>
                     <button type="button" id="modal-cancel-btn"
                             class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">
-                        إلغاء
+                        {{ __('common.cancel') }}
                     </button>
                 </div>
             </form>

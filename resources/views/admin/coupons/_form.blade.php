@@ -33,18 +33,18 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-xl font-semibold text-gray-900">
-                {{ $isEdit ? 'Edit Coupon: ' . e($coupon->code) : 'New Coupon' }}
+                {{ $isEdit ? __('admin.coupons_section.edit_coupon') . ': ' . e($coupon->code) : __('admin.coupons_section.new_coupon') }}
             </h1>
             @if($isEdit)
                 <p class="text-sm text-gray-500 mt-1">
-                    Used {{ $usageCount }} time(s) so far.
+                    {{ __('admin.coupons_section.used_times_so_far', ['count' => $usageCount]) }}
                 </p>
             @endif
         </div>
         <div class="flex gap-2">
-            <a href="{{ route('admin.coupons.index') }}" class="btn btn-secondary">Cancel</a>
+            <a href="{{ route('admin.coupons.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
             <button type="submit" class="btn btn-primary" id="save-btn">
-                {{ $isEdit ? 'Save Changes' : 'Create Coupon' }}
+                {{ $isEdit ? __('admin.coupons_section.save_changes') : __('admin.coupons_section.create_coupon') }}
             </button>
         </div>
     </div>
@@ -59,14 +59,14 @@
             {{-- Basic Info ─────────────────────────────────────────────── --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Coupon Details</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.coupon_details') }}</h2>
                 </div>
                 <div class="px-5 py-5 space-y-4">
 
                     {{-- Code --}}
                     <div>
                         <label for="code" class="block text-xs font-medium text-gray-700 mb-1">
-                            Code <span class="text-red-500">*</span>
+                            {{ __('admin.coupons_section.code_required') }} <span class="text-red-500">*</span>
                         </label>
                         <div class="flex gap-2">
                             <input
@@ -75,7 +75,7 @@
                                 name="code"
                                 value="{{ strtoupper($val('code')) }}"
                                 class="input flex-1 font-mono uppercase @error('code') border-red-400 @enderror"
-                                placeholder="e.g. WELCOME20"
+                                placeholder="{{ __('admin.coupons_section.code_placeholder') }}"
                                 maxlength="50"
                                 oninput="this.value = this.value.toUpperCase()"
                                 required
@@ -84,7 +84,7 @@
                                     id="btn-generate-code"
                                     data-url="{{ route('admin.coupons.generate-code') }}"
                                     class="btn btn-secondary btn-sm shrink-0 whitespace-nowrap">
-                                Generate
+                                {{ __('admin.coupons_section.generate') }}
                             </button>
                         </div>
                         @error('code') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -93,7 +93,7 @@
                     {{-- Name --}}
                     <div>
                         <label for="name" class="block text-xs font-medium text-gray-700 mb-1">
-                            Internal Name <span class="text-red-500">*</span>
+                            {{ __('admin.coupons_section.internal_name') }} <span class="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -101,7 +101,7 @@
                             name="name"
                             value="{{ $val('name') }}"
                             class="input w-full @error('name') border-red-400 @enderror"
-                            placeholder="e.g. Welcome 20% Off"
+                            placeholder="{{ __('admin.coupons_section.internal_name_placeholder') }}"
                             maxlength="150"
                             required
                         />
@@ -110,13 +110,13 @@
 
                     {{-- Description --}}
                     <div>
-                        <label for="description" class="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                        <label for="description" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.description') }}</label>
                         <textarea
                             id="description"
                             name="description"
                             rows="3"
                             class="input w-full @error('description') border-red-400 @enderror"
-                            placeholder="Shown to the customer at checkout…"
+                            placeholder="{{ __('admin.coupons_section.description_placeholder') }}"
                         >{{ $val('description') }}</textarea>
                         @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -127,14 +127,14 @@
             {{-- Discount Type & Value ──────────────────────────────────── --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Discount</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.discount') }}</h2>
                 </div>
                 <div class="px-5 py-5 space-y-4">
 
                     {{-- Type --}}
                     <div>
                         <label for="type" class="block text-xs font-medium text-gray-700 mb-1">
-                            Type <span class="text-red-500">*</span>
+                            {{ __('admin.coupons_section.type') }} <span class="text-red-500">*</span>
                         </label>
                         <select
                             id="type"
@@ -143,10 +143,10 @@
                             class="input w-full @error('type') border-red-400 @enderror"
                             required
                         >
-                            <option value="percentage"   {{ $currentType === 'percentage'   ? 'selected' : '' }}>Percentage (%)</option>
-                            <option value="fixed_amount" {{ $currentType === 'fixed_amount' ? 'selected' : '' }}>Fixed Amount</option>
-                            <option value="free_shipping"{{ $currentType === 'free_shipping'? 'selected' : '' }}>Free Shipping</option>
-                            <option value="bogo"         {{ $currentType === 'bogo'         ? 'selected' : '' }}>BOGO (Buy One Get One)</option>
+                            <option value="percentage"   {{ $currentType === 'percentage'   ? 'selected' : '' }}>{{ __('admin.coupons_section.percentage_pct') }}</option>
+                            <option value="fixed_amount" {{ $currentType === 'fixed_amount' ? 'selected' : '' }}>{{ __('admin.coupons_section.fixed_amount') }}</option>
+                            <option value="free_shipping"{{ $currentType === 'free_shipping'? 'selected' : '' }}>{{ __('admin.coupons_section.free_shipping') }}</option>
+                            <option value="bogo"         {{ $currentType === 'bogo'         ? 'selected' : '' }}>{{ __('admin.coupons_section.bogo_full') }}</option>
                         </select>
                         @error('type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -154,8 +154,8 @@
                     {{-- Value (hidden for free_shipping) --}}
                     <div x-show="type !== 'free_shipping'">
                         <label for="value" class="block text-xs font-medium text-gray-700 mb-1">
-                            Value <span class="text-red-500">*</span>
-                            <span x-show="type === 'percentage'" class="text-gray-400 font-normal">(0–100)</span>
+                            {{ __('admin.coupons_section.value') }} <span class="text-red-500">*</span>
+                            <span x-show="type === 'percentage'" class="text-gray-400 font-normal">{{ __('admin.coupons_section.value_range_hint') }}</span>
                         </label>
                         <input
                             type="number"
@@ -171,7 +171,7 @@
 
                     {{-- Currency (only for fixed_amount) --}}
                     <div x-show="type === 'fixed_amount'">
-                        <label for="currency" class="block text-xs font-medium text-gray-700 mb-1">Currency</label>
+                        <label for="currency" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.currency') }}</label>
                         <input
                             type="text"
                             id="currency"
@@ -188,8 +188,8 @@
                     {{-- Max Discount (only for percentage) --}}
                     <div x-show="type === 'percentage'">
                         <label for="max_discount" class="block text-xs font-medium text-gray-700 mb-1">
-                            Max Discount Cap
-                            <span class="text-gray-400 font-normal">(in smallest currency unit, leave blank for no cap)</span>
+                            {{ __('admin.coupons_section.max_discount_cap') }}
+                            <span class="text-gray-400 font-normal">{{ __('admin.coupons_section.max_discount_cap_hint') }}</span>
                         </label>
                         <input
                             type="number"
@@ -198,7 +198,7 @@
                             value="{{ $val('max_discount') }}"
                             class="input w-full @error('max_discount') border-red-400 @enderror"
                             min="0"
-                            placeholder="e.g. 10000 for 100.00"
+                            placeholder="{{ __('admin.coupons_section.max_discount_placeholder') }}"
                         />
                         @error('max_discount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -209,13 +209,13 @@
             {{-- Scope ─────────────────────────────────────────────────── --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Scope</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.scope') }}</h2>
                 </div>
                 <div class="px-5 py-5 space-y-4">
 
                     <div>
                         <label for="scope" class="block text-xs font-medium text-gray-700 mb-1">
-                            Applies To <span class="text-red-500">*</span>
+                            {{ __('admin.coupons_section.applies_to_required') }} <span class="text-red-500">*</span>
                         </label>
                         <select
                             id="scope"
@@ -224,23 +224,23 @@
                             class="input w-full @error('scope') border-red-400 @enderror"
                             required
                         >
-                            <option value="platform" {{ $currentScope === 'platform' ? 'selected' : '' }}>Platform (all products)</option>
-                            <option value="vendor"   {{ $currentScope === 'vendor'   ? 'selected' : '' }}>Specific Vendor</option>
-                            <option value="category" {{ $currentScope === 'category' ? 'selected' : '' }}>Specific Category</option>
-                            <option value="product"  {{ $currentScope === 'product'  ? 'selected' : '' }}>Specific Products</option>
+                            <option value="platform" {{ $currentScope === 'platform' ? 'selected' : '' }}>{{ __('admin.coupons_section.platform_all_products') }}</option>
+                            <option value="vendor"   {{ $currentScope === 'vendor'   ? 'selected' : '' }}>{{ __('admin.coupons_section.specific_vendor') }}</option>
+                            <option value="category" {{ $currentScope === 'category' ? 'selected' : '' }}>{{ __('admin.coupons_section.specific_category') }}</option>
+                            <option value="product"  {{ $currentScope === 'product'  ? 'selected' : '' }}>{{ __('admin.coupons_section.specific_products') }}</option>
                         </select>
                         @error('scope') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     {{-- Vendor picker --}}
                     <div x-show="scope === 'vendor'">
-                        <label for="vendor_id" class="block text-xs font-medium text-gray-700 mb-1">Vendor</label>
+                        <label for="vendor_id" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.vendor') }}</label>
                         <select
                             id="vendor_id"
                             name="vendor_id"
                             class="input w-full @error('vendor_id') border-red-400 @enderror"
                         >
-                            <option value="">— Select vendor —</option>
+                            <option value="">{{ __('admin.coupons_section.select_vendor') }}</option>
                             @foreach($vendors as $vendor)
                                 <option value="{{ $vendor->id }}" {{ $val('vendor_id') === $vendor->id ? 'selected' : '' }}>
                                     {{ e($vendor->store_name) }}
@@ -252,13 +252,13 @@
 
                     {{-- Category picker --}}
                     <div x-show="scope === 'category'">
-                        <label for="category_id" class="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                        <label for="category_id" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.category') }}</label>
                         <select
                             id="category_id"
                             name="category_id"
                             class="input w-full @error('category_id') border-red-400 @enderror"
                         >
-                            <option value="">— Select category —</option>
+                            <option value="">{{ __('admin.coupons_section.select_category') }}</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}" {{ $val('category_id') === $cat->id ? 'selected' : '' }}>
                                     {{ e($cat->name_en) }}
@@ -270,8 +270,7 @@
 
                     {{-- Product note --}}
                     <div x-show="scope === 'product'" class="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700">
-                        Product-level targeting uses the <strong>coupon_products</strong> table.
-                        You can attach specific products after saving the coupon.
+                        {!! __('admin.coupons_section.product_scope_note', ['table' => '<strong>coupon_products</strong>']) !!}
                     </div>
 
                 </div>
@@ -280,14 +279,14 @@
             {{-- Usage Limits ───────────────────────────────────────────── --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Usage Limits</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.usage_limits') }}</h2>
                 </div>
                 <div class="px-5 py-5 grid grid-cols-2 gap-4">
 
                     <div>
                         <label for="usage_limit_total" class="block text-xs font-medium text-gray-700 mb-1">
-                            Total Uses
-                            <span class="text-gray-400 font-normal">(blank = unlimited)</span>
+                            {{ __('admin.coupons_section.total_uses') }}
+                            <span class="text-gray-400 font-normal">{{ __('admin.coupons_section.unlimited_hint') }}</span>
                         </label>
                         <input
                             type="number"
@@ -303,7 +302,7 @@
 
                     <div>
                         <label for="usage_limit_per_customer" class="block text-xs font-medium text-gray-700 mb-1">
-                            Per Customer <span class="text-red-500">*</span>
+                            {{ __('admin.coupons_section.per_customer') }} <span class="text-red-500">*</span>
                         </label>
                         <input
                             type="number"
@@ -319,8 +318,8 @@
 
                     <div>
                         <label for="min_order_amount" class="block text-xs font-medium text-gray-700 mb-1">
-                            Minimum Order Amount
-                            <span class="text-gray-400 font-normal">(smallest unit)</span>
+                            {{ __('admin.coupons_section.min_order_amount') }}
+                            <span class="text-gray-400 font-normal">{{ __('admin.coupons_section.smallest_unit_hint') }}</span>
                         </label>
                         <input
                             type="number"
@@ -329,14 +328,14 @@
                             value="{{ $val('min_order_amount') }}"
                             class="input w-full @error('min_order_amount') border-red-400 @enderror"
                             min="0"
-                            placeholder="e.g. 50000 for 500.00"
+                            placeholder="{{ __('admin.coupons_section.min_order_placeholder') }}"
                         />
                         @error('min_order_amount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label for="customer_eligibility" class="block text-xs font-medium text-gray-700 mb-1">
-                            Customer Eligibility <span class="text-red-500">*</span>
+                            {{ __('admin.coupons_section.customer_eligibility') }} <span class="text-red-500">*</span>
                         </label>
                         <select
                             id="customer_eligibility"
@@ -344,10 +343,10 @@
                             class="input w-full @error('customer_eligibility') border-red-400 @enderror"
                             required
                         >
-                            <option value="all"              {{ $val('customer_eligibility', 'all') === 'all'              ? 'selected' : '' }}>All Customers</option>
-                            <option value="new_customers"    {{ $val('customer_eligibility', 'all') === 'new_customers'    ? 'selected' : '' }}>New Customers Only</option>
-                            <option value="specific_segment" {{ $val('customer_eligibility', 'all') === 'specific_segment' ? 'selected' : '' }}>Specific Segment</option>
-                            <option value="specific_users"   {{ $val('customer_eligibility', 'all') === 'specific_users'   ? 'selected' : '' }}>Specific Users</option>
+                            <option value="all"              {{ $val('customer_eligibility', 'all') === 'all'              ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_all') }}</option>
+                            <option value="new_customers"    {{ $val('customer_eligibility', 'all') === 'new_customers'    ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_new') }}</option>
+                            <option value="specific_segment" {{ $val('customer_eligibility', 'all') === 'specific_segment' ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_segment') }}</option>
+                            <option value="specific_users"   {{ $val('customer_eligibility', 'all') === 'specific_users'   ? 'selected' : '' }}>{{ __('admin.coupons_section.eligibility_users') }}</option>
                         </select>
                         @error('customer_eligibility') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -358,13 +357,13 @@
             {{-- Validity Period ─────────────────────────────────────────── --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Validity Period</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.validity_period') }}</h2>
                 </div>
                 <div class="px-5 py-5 grid grid-cols-2 gap-4">
 
                     <div>
                         <label for="valid_from" class="block text-xs font-medium text-gray-700 mb-1">
-                            Valid From <span class="text-red-500">*</span>
+                            {{ __('admin.coupons_section.valid_from') }} <span class="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -382,7 +381,7 @@
 
                     <div>
                         <label for="valid_until" class="block text-xs font-medium text-gray-700 mb-1">
-                            Valid Until <span class="text-red-500">*</span>
+                            {{ __('admin.coupons_section.valid_until') }} <span class="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -411,7 +410,7 @@
             {{-- Status card --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Status</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.status') }}</h2>
                 </div>
                 <div class="px-5 py-5 space-y-4">
 
@@ -429,7 +428,7 @@
                             {{ $bool('is_active', true) ? 'checked' : '' }}
                             class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
                         />
-                        <span class="text-sm text-gray-700">Active</span>
+                        <span class="text-sm text-gray-700">{{ __('admin.coupons_section.active') }}</span>
                     </label>
 
                     <label class="flex items-center gap-3 cursor-pointer">
@@ -446,8 +445,8 @@
                             {{ $bool('is_stackable', false) ? 'checked' : '' }}
                             class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
                         />
-                        <span class="text-sm text-gray-700">Stackable
-                            <span class="text-xs text-gray-400">(can combine with other coupons)</span>
+                        <span class="text-sm text-gray-700">{{ __('admin.coupons_section.stackable') }}
+                            <span class="text-xs text-gray-400">{{ __('admin.coupons_section.stackable_hint') }}</span>
                         </span>
                     </label>
 
@@ -458,16 +457,16 @@
             @if($isEdit)
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Usage Stats</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.usage_stats') }}</h2>
                 </div>
                 <div class="px-5 py-5 space-y-2 text-sm text-gray-700">
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Times Used</span>
+                        <span class="text-gray-500">{{ __('admin.coupons_section.used_count') }}</span>
                         <span class="font-medium">{{ number_format($coupon->times_used) }}</span>
                     </div>
                     @if($coupon->usage_limit_total)
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Limit</span>
+                        <span class="text-gray-500">{{ __('admin.coupons_section.limit') }}</span>
                         <span class="font-medium">{{ number_format($coupon->usage_limit_total) }}</span>
                     </div>
                     <div class="w-full bg-gray-100 rounded-full h-1.5 mt-1">
@@ -478,7 +477,7 @@
                     </div>
                     @endif
                     <div class="flex justify-between pt-1">
-                        <span class="text-gray-500">DB Usages</span>
+                        <span class="text-gray-500">{{ __('admin.coupons_section.db_usages') }}</span>
                         <span class="font-medium">{{ number_format($usageCount) }}</span>
                     </div>
                 </div>
@@ -487,12 +486,12 @@
 
             {{-- Summary card --}}
             <div class="bg-blue-50 rounded-xl border border-blue-200 px-5 py-4 text-xs text-blue-700 space-y-1">
-                <p class="font-semibold">How coupon values work</p>
-                <p>• <strong>Percentage</strong>: deduct % of cart total.</p>
-                <p>• <strong>Fixed Amount</strong>: deduct flat value in given currency.</p>
-                <p>• <strong>Free Shipping</strong>: waive shipping cost (value ignored).</p>
-                <p>• <strong>BOGO</strong>: buy 1 get 1 free on eligible items.</p>
-                <p class="pt-1">Amounts (min order / max discount) are stored in the <em>smallest currency unit</em> (e.g. cents).</p>
+                <p class="font-semibold">{{ __('admin.coupons_section.how_values_work') }}</p>
+                <p>• {{ __('admin.coupons_section.percentage_explain') }}</p>
+                <p>• {{ __('admin.coupons_section.fixed_amount_explain') }}</p>
+                <p>• {{ __('admin.coupons_section.free_shipping_explain') }}</p>
+                <p>• {{ __('admin.coupons_section.bogo_explain') }}</p>
+                <p class="pt-1">{{ __('admin.coupons_section.amounts_stored_hint') }}</p>
             </div>
 
         </div>

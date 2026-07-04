@@ -1,8 +1,8 @@
 {{-- Customers Settings Partial --}}
 <x-card class="mb-6">
     <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Customers &amp; Loyalty</h2>
-        <p class="text-sm text-gray-500">Loyalty points, referrals, tier thresholds, and account limits.</p>
+        <h2 class="text-base font-semibold text-gray-900">{{ __('admin.settings_section.customers_loyalty') }}</h2>
+        <p class="text-sm text-gray-500">{{ __('admin.settings_section.loyalty_desc') }}</p>
     </div>
     <div class="divide-y divide-gray-100">
 
@@ -22,16 +22,16 @@
 {{-- Tier Thresholds --}}
 <x-card>
     <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Loyalty Tier Thresholds</h2>
-        <p class="text-sm text-gray-500">Points required to reach each loyalty tier.</p>
+        <h2 class="text-base font-semibold text-gray-900">{{ __('admin.settings_section.loyalty_tier_thresholds') }}</h2>
+        <p class="text-sm text-gray-500">{{ __('admin.settings_section.loyalty_tier_desc') }}</p>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
         @php
         $tiers = [
-            'loyalty_tier_silver_points'   => ['label' => '🥈 Silver',   'key' => 'loyalty_tier_silver_points'],
-            'loyalty_tier_gold_points'     => ['label' => '🥇 Gold',     'key' => 'loyalty_tier_gold_points'],
-            'loyalty_tier_platinum_points' => ['label' => '💎 Platinum', 'key' => 'loyalty_tier_platinum_points'],
+            'loyalty_tier_silver_points'   => ['label' => '🥈 ' . __('admin.settings_section.tier_silver'),   'key' => 'loyalty_tier_silver_points'],
+            'loyalty_tier_gold_points'     => ['label' => '🥇 ' . __('admin.settings_section.tier_gold'),     'key' => 'loyalty_tier_gold_points'],
+            'loyalty_tier_platinum_points' => ['label' => '💎 ' . __('admin.settings_section.tier_platinum'), 'key' => 'loyalty_tier_platinum_points'],
         ];
         @endphp
 

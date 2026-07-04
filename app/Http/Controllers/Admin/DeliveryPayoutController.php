@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Currency;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentPayout;
 use App\Traits\HasDataTable;
@@ -33,6 +34,7 @@ class DeliveryPayoutController extends Controller
         $pendingCount = DeliveryAgentPayout::where('status', 'pending')->count();
 
         $agents = DeliveryAgent::orderBy('name')->get(['id', 'name']);
+        $currencies = Currency::where('is_active', true)->orderBy('code')->pluck('code');
 
         return view('admin.delivery.payouts.index', [
             'breadcrumbs' => [
@@ -41,7 +43,8 @@ class DeliveryPayoutController extends Controller
                 ['label' => 'Payouts'],
             ],
             'pendingCount' => $pendingCount,
-            'agents' => $agents,
+            'agents'       => $agents,
+            'currencies'   => $currencies,
         ]);
     }
 
@@ -95,53 +98,62 @@ class DeliveryPayoutController extends Controller
             'agent_id' => ['required', 'exists:delivery_agents,id'],
             'period_start' => ['required', 'date'],
             'period_end' => ['required', 'date', 'after_or_equal:period_start'],
-            'currency' => ['required', 'string', 'size:3'],
         ]);
 
         $agentId = $request->input('agent_id');
 
-        // Aggregate approved earnings for the period
-        $earnings = DB::table('delivery_agent_earnings')
+        // Group by the earnings' own currency — one payout row per currency.
+        $rows = DB::table('delivery_agent_earnings')
             ->where('agent_id', $agentId)
             ->where('status', 'approved')
             ->whereBetween('created_at', [$request->period_start . ' 00:00:00', $request->period_end . ' 23:59:59'])
             ->selectRaw('
+                currency,
                 COUNT(DISTINCT delivery_assignment_id) as total_deliveries,
                 SUM(CASE WHEN earning_type != ? THEN amount_cents ELSE 0 END) as gross_cents,
                 SUM(CASE WHEN earning_type = ? THEN ABS(amount_cents) ELSE 0 END) as deductions_cents
             ', ['deduction', 'deduction'])
-            ->first();
+            ->groupBy('currency')
+            ->get();
 
-        if (!$earnings || $earnings->gross_cents == 0) {
+        $rows = $rows->filter(fn($r) => $r->gross_cents > 0);
+
+        if ($rows->isEmpty()) {
             return response()->json(['success' => false, 'message' => 'No approved earnings found for the selected period.'], 422);
         }
 
-        $gross = (int) $earnings->gross_cents;
-        $deductions = (int) $earnings->deductions_cents;
-        $net = $gross - $deductions;
+        $payouts = [];
 
-        $payout = DeliveryAgentPayout::create([
-            'payout_number' => 'DAP-' . strtoupper(Str::random(8)),
-            'agent_id' => $agentId,
-            'period_start' => $request->period_start,
-            'period_end' => $request->period_end,
-            'total_deliveries' => (int) $earnings->total_deliveries,
-            'gross_earnings_cents' => $gross,
-            'deductions_cents' => $deductions,
-            'net_amount_cents' => $net,
-            'currency' => $request->currency,
-            'status' => 'pending',
-        ]);
+        foreach ($rows as $row) {
+            $gross      = (int) $row->gross_cents;
+            $deductions = (int) $row->deductions_cents;
+            $net        = $gross - $deductions;
+
+            $payout = DeliveryAgentPayout::create([
+                'payout_number'        => 'DAP-' . strtoupper(Str::random(8)),
+                'agent_id'             => $agentId,
+                'period_start'         => $request->period_start,
+                'period_end'           => $request->period_end,
+                'total_deliveries'     => (int) $row->total_deliveries,
+                'gross_earnings_cents' => $gross,
+                'deductions_cents'     => $deductions,
+                'net_amount_cents'     => $net,
+                'currency'             => $row->currency,
+                'status'               => 'pending',
+            ]);
+
+            $payouts[] = [
+                'id'           => $payout->id,
+                'payout_number' => $payout->payout_number,
+                'net_amount'   => number_format($net / 100, 2),
+                'currency'     => $payout->currency,
+            ];
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Payout generated: ' . $payout->payout_number,
-            'payout' => [
-                'id' => $payout->id,
-                'payout_number' => $payout->payout_number,
-                'net_amount' => number_format($net / 100, 2),
-                'currency' => $payout->currency,
-            ],
+            'message' => count($payouts) . ' payout(s) generated: ' . implode(', ', array_column($payouts, 'payout_number')),
+            'payouts' => $payouts,
         ]);
     }
 

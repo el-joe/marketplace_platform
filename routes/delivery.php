@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Delivery\AuthController;
+use App\Http\Controllers\Delivery\CodSettlementsController;
 use App\Http\Controllers\Delivery\AssignmentController;
 use App\Http\Controllers\Delivery\DashboardController;
 use App\Http\Controllers\Delivery\EarningsController;
@@ -61,5 +62,8 @@ Route::domain('delivery.' . env('APP_DOMAIN', 'localhost'))
             // Wallet
             Route::get('/wallet', [\App\Http\Controllers\Delivery\WalletController::class, 'index'])->name('wallet.index');
             Route::post('/wallet/withdraw', [\App\Http\Controllers\Delivery\WalletController::class, 'requestWithdrawal'])->name('wallet.withdraw');
+
+            // COD Settlements
+            Route::get('/cod-settlements', [CodSettlementsController::class, 'index'])->name('cod-settlements.index');
         });
     });

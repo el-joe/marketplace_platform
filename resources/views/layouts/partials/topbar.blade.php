@@ -6,7 +6,7 @@
 <header id="topbar" class="bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center gap-4">
     {{-- Mobile hamburger --}}
     <button id="mobile-menu-btn" type="button" class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-        aria-label="Open menu">
+        aria-label="{{ __('admin.nav.open_menu') }}">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -60,7 +60,7 @@
                 class="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
                 @foreach(['EG' => 'Egypt', 'SA' => 'Saudi Arabia', 'AE' => 'UAE'] as $code => $name)
                 <button type="button" data-country="{{ $code }}"
-                    class="country-switch w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50">
+                    class="country-switch w-full text-start px-3 py-1.5 text-sm hover:bg-gray-50">
                     {{ $name }} <span class="text-gray-400 text-xs">({{ $code }})</span>
                 </button>
                 @endforeach
@@ -76,21 +76,29 @@
                 <x-heroicon name="chevron-down" class="w-3 h-3 text-gray-400" />
             </button>
             <div x-show="open" @click.outside="open = false" x-cloak
-                class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
-                <button type="button" data-locale="en" class="locale-switch w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
-                           flex items-center justify-between">
-                    <span>EN — English</span>
-                    @if(app()->getLocale() === 'en')
-                        <x-heroicon name="check" class="w-3.5 h-3.5 text-primary-600" />
-                    @endif
-                </button>
-                <button type="button" data-locale="ar" class="locale-switch w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
-                           flex items-center justify-between">
-                    <span>AR — العربية</span>
-                    @if(app()->getLocale() === 'ar')
-                        <x-heroicon name="check" class="w-3.5 h-3.5 text-primary-600" />
-                    @endif
-                </button>
+                class="absolute end-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                <form method="POST" action="{{ url('/locale/switch') }}">
+                    @csrf
+                    <input type="hidden" name="locale" value="en">
+                    <button type="submit" class="w-full text-start px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                               flex items-center justify-between">
+                        <span>EN — English</span>
+                        @if(app()->getLocale() === 'en')
+                            <x-heroicon name="check" class="w-3.5 h-3.5 text-primary-600" />
+                        @endif
+                    </button>
+                </form>
+                <form method="POST" action="{{ url('/locale/switch') }}">
+                    @csrf
+                    <input type="hidden" name="locale" value="ar">
+                    <button type="submit" class="w-full text-start px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                               flex items-center justify-between">
+                        <span>AR — العربية</span>
+                        @if(app()->getLocale() === 'ar')
+                            <x-heroicon name="check" class="w-3.5 h-3.5 text-primary-600" />
+                        @endif
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -107,21 +115,21 @@
                 <x-heroicon name="chevron-down" class="w-4 h-4 text-gray-400" />
             </button>
             <div x-show="open" @click.outside="open = false" x-cloak
-                class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                class="absolute end-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
                 <div class="px-3 py-2 border-b border-gray-100">
                     <div class="text-sm font-medium text-gray-900 truncate">{{ $user?->name ?? 'Admin' }}</div>
                     <div class="text-xs text-gray-500 truncate">{{ $user?->email ?? '' }}</div>
                 </div>
                 <a href="{{ \Illuminate\Support\Facades\Route::has('admin.profile.edit') ? route('admin.profile.edit') : '#' }}"
-                    class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
+                    class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ __('common.profile') }}</a>
                 <a href="{{ \Illuminate\Support\Facades\Route::has('vendor.dashboard') ? route('vendor.dashboard') : '#' }}"
-                    class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">Switch to Vendor</a>
+                    class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ __('admin.switch_to_vendor') }}</a>
                 <div class="border-t border-gray-100 my-1"></div>
                 <form method="POST"
                     action="{{ \Illuminate\Support\Facades\Route::has('admin.logout') ? route('admin.logout') : '#' }}">
                     @csrf
-                    <button type="submit" class="w-full text-left px-3 py-2 text-sm text-danger-600 hover:bg-danger-50">
-                        Logout
+                    <button type="submit" class="w-full text-start px-3 py-2 text-sm text-danger-600 hover:bg-danger-50">
+                        {{ __('common.logout') }}
                     </button>
                 </form>
             </div>

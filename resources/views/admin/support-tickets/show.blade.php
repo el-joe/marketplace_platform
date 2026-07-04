@@ -4,7 +4,7 @@
     @vite(['resources/js/admin/support-tickets.js'])
 @endpush
 
-@section('title', $ticket->ticket_number . ' — Support Ticket')
+@section('title', $ticket->ticket_number . ' — ' . __('admin.support_tickets.ticket_case_title'))
 
 @section('content')
 
@@ -35,7 +35,7 @@
 
     {{-- ─── Breadcrumb ──────────────────────────────────────────────────────── --}}
     <nav class="mb-5 text-sm text-gray-500 flex items-center gap-1.5">
-        <a href="{{ route('admin.support-tickets.index') }}" class="hover:text-primary-600">Support Tickets</a>
+        <a href="{{ route('admin.support-tickets.index') }}" class="hover:text-primary-600">{{ __('admin.support_tickets.title') }}</a>
         <span>/</span>
         <span class="text-gray-800 font-medium font-mono">{{ $ticket->ticket_number }}</span>
     </nav>
@@ -92,12 +92,11 @@
                         <div class="rounded-xl p-4 {{ $bubbleClass }}">
                             <div class="flex items-center gap-2 mb-2">
                                 <span class="text-xs font-semibold text-gray-700">
-                                    {{ $isAdmin ? 'Support Agent' : $requesterName }}
+                                    {{ $isAdmin ? __('admin.support_tickets.support_agent') : $requesterName }}
                                 </span>
                                 @if($isInternal)
                                     <span
-                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">Internal
-                                        note</span>
+                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">{{ __('admin.support_tickets.internal_note_badge') }}</span>
                                 @elseif($isAi)
                                     <span
                                         class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-200 text-purple-800">AI</span>
@@ -112,7 +111,7 @@
                 @endforeach
 
                 @if($ticket->messages->isEmpty())
-                    <div class="text-center py-8 text-sm text-gray-400">No messages yet.</div>
+                    <div class="text-center py-8 text-sm text-gray-400">{{ __('admin.support_tickets.no_messages') }}</div>
                 @endif
             </div>
 
@@ -123,7 +122,7 @@
                         @csrf
 
                         <div id="reply-form-bg" class="mb-3 rounded-lg border border-gray-200 p-0.5 transition-colors">
-                            <textarea id="reply-message" name="message" rows="4" placeholder="Write your reply…"
+                            <textarea id="reply-message" name="message" rows="4" placeholder="{{ __('admin.support_tickets.write_reply_placeholder') }}"
                                 class="w-full text-sm p-3 rounded-md resize-none focus:outline-none bg-transparent"
                                 required></textarea>
                         </div>
@@ -134,17 +133,17 @@
                                 <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600">
                                     <input type="checkbox" id="is-internal-note" name="is_internal_note" value="1"
                                         class="rounded border-gray-300 text-yellow-500 focus:ring-yellow-400">
-                                    Internal note
+                                    {{ __('admin.support_tickets.internal_note_checkbox') }}
                                 </label>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button type="submit" name="close_after" value="0" id="btn-reply"
                                     class="btn btn-primary btn-sm">
-                                    Send Reply
+                                    {{ __('admin.support_tickets.send_reply') }}
                                 </button>
                                 <button type="submit" name="close_after" value="1" id="btn-reply-close"
                                     class="btn btn-secondary btn-sm">
-                                    Send &amp; Close
+                                    {{ __('admin.support_tickets.send_and_close') }}
                                 </button>
                             </div>
                         </div>
@@ -152,7 +151,7 @@
                 </div>
             @else
                 <div class="text-center text-sm text-gray-400 py-4">
-                    Ticket is {{ $ticket->status }}. Reopen to reply.
+                    {{ __('admin.support_tickets.ticket_status_reopen', ['status' => $ticket->status]) }}
                 </div>
             @endif
 
@@ -165,11 +164,11 @@
 
             {{-- Ticket Info --}}
             <x-card>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Ticket Info</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">{{ __('admin.support_tickets.ticket_info') }}</h3>
                 <dl class="space-y-3 text-sm">
 
                     <div class="flex items-center justify-between gap-2">
-                        <dt class="text-xs text-gray-500 shrink-0">Status</dt>
+                        <dt class="text-xs text-gray-500 shrink-0">{{ __('admin.status') }}</dt>
                         <dd>
                             <select id="status-select"
                                 data-url="{{ route('admin.support-tickets.update-status', $ticket->id) }}"
@@ -184,7 +183,7 @@
                     </div>
 
                     <div class="flex items-center justify-between gap-2">
-                        <dt class="text-xs text-gray-500 shrink-0">Priority</dt>
+                        <dt class="text-xs text-gray-500 shrink-0">{{ __('admin.support_tickets.priority') }}</dt>
                         <dd>
                             <select id="priority-select"
                                 data-url="{{ route('admin.support-tickets.update-priority', $ticket->id) }}"
@@ -199,7 +198,7 @@
                     </div>
 
                     <div>
-                        <dt class="text-xs text-gray-500 mb-0.5">Category</dt>
+                        <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.support_tickets.category') }}</dt>
                         <dd>
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
@@ -209,12 +208,12 @@
                     </div>
 
                     <div>
-                        <dt class="text-xs text-gray-500 mb-0.5">Requester</dt>
+                        <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.support_tickets.requester') }}</dt>
                         <dd class="flex items-center gap-1.5">
                             <span
                                 class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium
                                     {{ $ticket->requester_role === 'seller' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700' }}">
-                                {{ $ticket->requester_role === 'seller' ? 'Vendor' : 'Customer' }}
+                                {{ $ticket->requester_role === 'seller' ? __('admin.support_tickets.vendor_seller') : __('admin.support_tickets.customer') }}
                             </span>
                             <a href="{{ $requesterRoute }}" class="text-sm text-primary-600 hover:underline truncate">
                                 {{ $requesterName }}
@@ -224,7 +223,7 @@
 
                     @if($ticket->relatedOrder)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Related Order</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.support_tickets.related_order') }}</dt>
                             <dd>
                                 <a href="{{ route('admin.orders.show', $ticket->related_order_id) }}"
                                     class="text-sm text-primary-600 hover:underline font-mono">
@@ -236,7 +235,7 @@
 
                     @if($ticket->relatedProduct)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Related Product</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.support_tickets.related_product') }}</dt>
                             <dd>
                                 <a href="{{ route('admin.products.show', $ticket->related_product_id) }}"
                                     class="text-sm text-primary-600 hover:underline">
@@ -247,22 +246,22 @@
                     @endif
 
                     <div>
-                        <dt class="text-xs text-gray-500 mb-0.5">Opened</dt>
+                        <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.support_tickets.opened') }}</dt>
                         <dd class="text-sm text-gray-700">{{ $ticket->created_at->format('M d, Y H:i') }}</dd>
                     </div>
 
                     <div>
-                        <dt class="text-xs text-gray-500 mb-0.5">First Response</dt>
+                        <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.support_tickets.first_response') }}</dt>
                         <dd class="text-sm {{ $ticket->first_response_at ? 'text-gray-700' : 'text-orange-500' }}">
                             {{ $ticket->first_response_at
         ? \Carbon\Carbon::parse($ticket->first_response_at)->format('M d, Y H:i')
-        : 'Not yet responded' }}
+        : __('admin.support_tickets.not_yet_responded') }}
                         </dd>
                     </div>
 
                     @if($ticket->resolved_at)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Resolved</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.support_tickets.resolved') }}</dt>
                             <dd class="text-sm text-green-700">
                                 {{ \Carbon\Carbon::parse($ticket->resolved_at)->format('M d, Y H:i') }}</dd>
                         </div>
@@ -270,7 +269,7 @@
 
                     @if($ticket->satisfaction_rating)
                         <div>
-                            <dt class="text-xs text-gray-500 mb-0.5">Satisfaction</dt>
+                            <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.support_tickets.satisfaction') }}</dt>
                             <dd class="flex items-center gap-1">
                                 @for($i = 1; $i <= 5; $i++)
                                     <span
@@ -289,21 +288,21 @@
 
             {{-- Assigned to --}}
             <x-card>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Assigned To</h3>
+                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{{ __('admin.support_tickets.assigned_to_title') }}</h3>
 
                 <p id="assignee-name" class="text-sm font-medium text-gray-800 mb-3">
-                    {{ $ticket->assignedToAdmin?->name ?? 'Unassigned' }}
+                    {{ $ticket->assignedToAdmin?->name ?? __('admin.support_tickets.unassigned') }}
                 </p>
 
                 <div class="flex flex-col gap-2">
                     <button id="btn-assign-me" data-url="{{ route('admin.support-tickets.assign-me', $ticket->id) }}"
                         data-my-name="{{ $admin->name }}" class="btn btn-secondary btn-sm w-full">
-                        Assign to me
+                        {{ __('admin.support_tickets.assign_to_me') }}
                     </button>
 
                     <div class="flex gap-2">
                         <select id="reassign-select" class="form-input flex-1 text-xs py-1">
-                            <option value="">Reassign to…</option>
+                            <option value="">{{ __('admin.support_tickets.reassign_to') }}</option>
                             @foreach($admins as $a)
                                 <option value="{{ $a->id }}" {{ $ticket->assigned_to_admin_id === $a->id ? 'selected' : '' }}>
                                     {{ $a->name }}
@@ -312,7 +311,7 @@
                         </select>
                         <button id="btn-reassign" data-url="{{ route('admin.support-tickets.assign', $ticket->id) }}"
                             class="btn btn-primary btn-sm shrink-0">
-                            Save
+                            {{ __('admin.support_tickets.save') }}
                         </button>
                     </div>
                 </div>

@@ -2,24 +2,24 @@
 
 @php
     $statusMap = [
-        'pending' => ['bg-yellow-100 text-yellow-700', 'معلق'],
-        'approved' => ['bg-blue-100 text-blue-700', 'موافق عليه'],
-        'processing' => ['bg-indigo-100 text-indigo-700', 'قيد التحويل'],
-        'completed' => ['bg-green-100 text-green-700', 'مكتمل'],
-        'failed' => ['bg-red-100 text-red-700', 'فشل'],
-        'on_hold' => ['bg-gray-100 text-gray-600', 'معلق بأمر إداري'],
+        'pending' => ['bg-yellow-100 text-yellow-700', __('partner.payouts.status_pending')],
+        'approved' => ['bg-blue-100 text-blue-700', __('partner.payouts.status_approved')],
+        'processing' => ['bg-indigo-100 text-indigo-700', __('partner.payouts.status_processing')],
+        'completed' => ['bg-green-100 text-green-700', __('partner.payouts.status_completed')],
+        'failed' => ['bg-red-100 text-red-700', __('partner.payouts.status_failed')],
+        'on_hold' => ['bg-gray-100 text-gray-600', __('partner.payouts.status_on_hold')],
     ];
     [$statusCls, $statusLabel] = $statusMap[$payout->status] ?? ['bg-gray-100 text-gray-500', $payout->status];
 
     $methodLabels = [
-        'bank_transfer' => 'تحويل بنكي',
-        'wallet' => 'محفظة إلكترونية',
+        'bank_transfer' => __('partner.payouts.method_bank_transfer'),
+        'wallet' => __('partner.payouts.method_wallet'),
         'paypal' => 'PayPal',
     ];
 @endphp
 
-@section('title', 'تفاصيل الدفعة ' . $payout->payout_number)
-@section('page-title', 'تفاصيل الدفعة')
+@section('title', __('partner.payouts.payout_details_title', ['number' => $payout->payout_number]))
+@section('page-title', __('partner.payouts.payout_details'))
 
 @section('content')
 
@@ -30,7 +30,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            العودة للمدفوعات
+            {{ __('partner.payouts.back_to_payouts') }}
         </a>
     </div>
 
@@ -51,7 +51,7 @@
                             </span>
                         </div>
                         <p class="text-sm text-gray-500">
-                            الفترة:
+                            {{ __('partner.payouts.period') }}:
                             <span class="font-medium text-gray-700">
                                 {{ $payout->period_start?->format('d M Y') }}
                                 —
@@ -66,7 +66,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            تحميل الإيصال
+                            {{ __('partner.payouts.download_receipt') }}
                         </a>
                     @endif
                 </div>
@@ -74,20 +74,20 @@
                 {{-- Amounts breakdown --}}
                 <div class="bg-gray-50 rounded-xl p-4 space-y-2.5">
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">المبيعات الإجمالية</span>
+                        <span class="text-gray-600">{{ __('partner.payouts.gross_sales') }}</span>
                         <span class="font-medium text-gray-900">
                             {{ number_format($payout->gross_sales / 100, 2) }} {{ $payout->currency }}
                         </span>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">عمولة المنصة</span>
+                        <span class="text-gray-600">{{ __('partner.payouts.platform_commission') }}</span>
                         <span class="text-red-500">
                             − {{ number_format($payout->commission / 100, 2) }} {{ $payout->currency }}
                         </span>
                     </div>
                     @if($payout->refunds_deducted)
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">المرتجعات المخصومة</span>
+                            <span class="text-gray-600">{{ __('partner.payouts.refunds_deducted') }}</span>
                             <span class="text-red-500">
                                 − {{ number_format($payout->refunds_deducted / 100, 2) }} {{ $payout->currency }}
                             </span>
@@ -95,7 +95,7 @@
                     @endif
                     @if($payout->chargebacks_deducted)
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">المبالغ المسترجعة (Chargebacks)</span>
+                            <span class="text-gray-600">{{ __('partner.payouts.chargebacks_deducted') }}</span>
                             <span class="text-red-500">
                                 − {{ number_format($payout->chargebacks_deducted / 100, 2) }} {{ $payout->currency }}
                             </span>
@@ -103,7 +103,7 @@
                     @endif
                     @if($payout->storage_fees)
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">رسوم التخزين (FBN)</span>
+                            <span class="text-gray-600">{{ __('partner.payouts.storage_fees') }}</span>
                             <span class="text-red-500">
                                 − {{ number_format($payout->storage_fees / 100, 2) }} {{ $payout->currency }}
                             </span>
@@ -111,7 +111,7 @@
                     @endif
                     @if($payout->ad_fees)
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">رسوم الإعلانات</span>
+                            <span class="text-gray-600">{{ __('partner.payouts.ad_fees') }}</span>
                             <span class="text-red-500">
                                 − {{ number_format($payout->ad_fees / 100, 2) }} {{ $payout->currency }}
                             </span>
@@ -119,7 +119,7 @@
                     @endif
                     @if($payout->other_adjustments)
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">تعديلات أخرى</span>
+                            <span class="text-gray-600">{{ __('partner.payouts.other_adjustments') }}</span>
                             <span class="{{ $payout->other_adjustments < 0 ? 'text-red-500' : 'text-green-600' }}">
                                 {{ $payout->other_adjustments < 0 ? '−' : '+' }}
                                 {{ number_format(abs($payout->other_adjustments) / 100, 2) }} {{ $payout->currency }}
@@ -127,7 +127,7 @@
                         </div>
                     @endif
                     <div class="border-t border-gray-200 pt-2.5 flex justify-between">
-                        <span class="font-semibold text-gray-800">صافي المبلغ المحوّل</span>
+                        <span class="font-semibold text-gray-800">{{ __('partner.payouts.net_amount_transferred') }}</span>
                         <span class="font-bold text-xl text-gray-900">
                             {{ number_format($payout->net_amount / 100, 2) }} {{ $payout->currency }}
                         </span>
@@ -136,7 +136,7 @@
 
                 @if($payout->failed_reason)
                     <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
-                        <p class="text-xs font-semibold text-red-700 mb-1">سبب الإخفاق</p>
+                        <p class="text-xs font-semibold text-red-700 mb-1">{{ __('partner.payouts.failure_reason') }}</p>
                         <p class="text-sm text-red-800">{{ $payout->failed_reason }}</p>
                     </div>
                 @endif
@@ -145,23 +145,23 @@
             {{-- Items table --}}
             <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h3 class="font-semibold text-gray-800">الطلبات المشمولة</h3>
-                    <span class="text-xs text-gray-400">{{ $payout->items->count() }} طلب</span>
+                    <h3 class="font-semibold text-gray-800">{{ __('partner.payouts.included_orders') }}</h3>
+                    <span class="text-xs text-gray-400">{{ __('partner.payouts.order_count', ['count' => $payout->items->count()]) }}</span>
                 </div>
 
                 @if($payout->items->isEmpty())
                     <div class="py-10 text-center">
-                        <p class="text-sm text-gray-400">لا توجد بنود مرتبطة بهذه الدفعة.</p>
+                        <p class="text-sm text-gray-400">{{ __('partner.payouts.no_items_for_payout') }}</p>
                     </div>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 border-b border-gray-100">
                                 <tr class="text-xs text-gray-500 uppercase">
-                                    <th class="text-right py-3 px-5 font-medium">رقم الطلب</th>
-                                    <th class="py-3 px-4 text-center font-medium">الإجمالي</th>
-                                    <th class="py-3 px-4 text-center font-medium">العمولة</th>
-                                    <th class="py-3 px-4 text-center font-medium">الصافي</th>
+                                    <th class="text-right py-3 px-5 font-medium">{{ __('partner.payouts.order_number_header') }}</th>
+                                    <th class="py-3 px-4 text-center font-medium">{{ __('partner.payouts.total') }}</th>
+                                    <th class="py-3 px-4 text-center font-medium">{{ __('partner.payouts.commission') }}</th>
+                                    <th class="py-3 px-4 text-center font-medium">{{ __('partner.payouts.net') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -186,7 +186,7 @@
                             </tbody>
                             <tfoot class="border-t border-gray-200 bg-gray-50">
                                 <tr class="text-sm font-semibold text-gray-800">
-                                    <td class="py-3 px-5">الإجمالي</td>
+                                    <td class="py-3 px-5">{{ __('partner.payouts.total') }}</td>
                                     <td class="py-3 px-4 text-center">
                                         {{ number_format($payout->items->sum('gross') / 100, 2) }}
                                     </td>
@@ -210,28 +210,28 @@
 
             {{-- Payment details --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
-                <h4 class="font-semibold text-gray-800 text-sm mb-3">تفاصيل التحويل</h4>
+                <h4 class="font-semibold text-gray-800 text-sm mb-3">{{ __('partner.payouts.transfer_details') }}</h4>
                 <div class="space-y-2.5 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-gray-500">طريقة الدفع</span>
+                        <span class="text-gray-500">{{ __('partner.payouts.payment_method') }}</span>
                         <span
                             class="font-medium">{{ $methodLabels[$payout->payout_method] ?? $payout->payout_method }}</span>
                     </div>
                     @if($payout->bankAccount)
                         <div class="flex justify-between">
-                            <span class="text-gray-500">البنك</span>
+                            <span class="text-gray-500">{{ __('partner.payouts.bank') }}</span>
                             <span class="font-medium">{{ $payout->bankAccount->bank_name }}</span>
                         </div>
                     @endif
                     @if($payout->gateway_reference)
                         <div class="flex justify-between">
-                            <span class="text-gray-500">مرجع التحويل</span>
+                            <span class="text-gray-500">{{ __('partner.payouts.transfer_reference') }}</span>
                             <span class="font-mono text-xs text-gray-700">{{ $payout->gateway_reference }}</span>
                         </div>
                     @endif
                     @if($payout->processed_at)
                         <div class="flex justify-between">
-                            <span class="text-gray-500">تاريخ التحويل</span>
+                            <span class="text-gray-500">{{ __('partner.payouts.transfer_date') }}</span>
                             <span class="font-medium">{{ $payout->processed_at->format('d M Y') }}</span>
                         </div>
                     @endif
@@ -246,11 +246,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span class="font-semibold text-green-800 text-sm">الإيصال متاح</span>
+                        <span class="font-semibold text-green-800 text-sm">{{ __('partner.payouts.receipt_available') }}</span>
                     </div>
                     <a href="{{ $payout->receipt_url }}" target="_blank" rel="noopener noreferrer"
                         class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-2.5 rounded-xl transition-colors">
-                        تحميل إيصال PDF
+                        {{ __('partner.payouts.download_pdf_receipt') }}
                     </a>
                 </div>
             @endif

@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminProductListing;
 use App\Models\Category;
 use App\Models\Country;
+use App\Models\ShippingMethod;
+use App\Models\VendorListing;
+use App\Services\ListingShippingResolver;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class NawyController extends Controller
@@ -38,7 +42,9 @@ class NawyController extends Controller
                 ->distinct();
         })->get();
 
-        return view('storefront.nawy.index', compact('listings', 'categories', 'filter', 'countryModel'));
+        $shippingMethods = $this->shippingMethodsByCode();
+
+        return view('storefront.nawy.index', compact('listings', 'categories', 'filter', 'countryModel', 'shippingMethods'));
     }
 
     public function byCategory(string $country, Category $category, Request $request): View
@@ -69,6 +75,42 @@ class NawyController extends Controller
                 ->distinct();
         })->get();
 
-        return view('storefront.nawy.index', compact('listings', 'categories', 'filter', 'countryModel', 'category'));
+        $shippingMethods = $this->shippingMethodsByCode();
+
+        return view('storefront.nawy.index', compact('listings', 'categories', 'filter', 'countryModel', 'category', 'shippingMethods'));
+    }
+
+    public function show(string $country, AdminProductListing $listing, Request $request): View
+    {
+        $countryModel = Country::where('iso_code_2', strtoupper($country))
+            ->orWhere('slug', $country)
+            ->firstOrFail();
+
+        $listing->load(['productVariant.product.images', 'productVariant.product.brand', 'productVariant.product.category']);
+
+        // Resolve delivery options via best VendorListing for this variant in this country.
+        // Falls back to an empty collection if no vendor listing exists.
+        $deliveryOptions = collect();
+        $vendorListing = VendorListing::where('product_variant_id', $listing->product_variant_id)
+            ->where('country_id', $countryModel->id)
+            ->where('status', 'active')
+            ->with(['primaryShippingMethod'])
+            ->orderByDesc('score')
+            ->first();
+
+        if ($vendorListing) {
+            $deliveryOptions = app(ListingShippingResolver::class)->resolveForListing($vendorListing);
+        }
+
+        return view('storefront.nawy.show', compact('listing', 'countryModel', 'deliveryOptions', 'vendorListing'));
+    }
+
+    private function shippingMethodsByCode(): Collection
+    {
+        return ShippingMethod::where('is_active', true)
+            ->whereNotNull('badge_label_en')
+            ->where('badge_label_en', '!=', '')
+            ->get()
+            ->keyBy('code');
     }
 }

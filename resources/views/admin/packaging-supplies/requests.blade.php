@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'Packaging Supply Requests')
+@section('title', __('admin.packaging_supplies.requests_title'))
 
 @section('content')
 
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Packaging Supply Requests</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Review and approve vendor packaging requests.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.packaging_supplies.requests_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.packaging_supplies.requests_subtitle') }}</p>
         </div>
-        <a href="{{ route('admin.packaging-supplies.index') }}" class="btn btn-secondary">← Catalog</a>
+        <a href="{{ route('admin.packaging-supplies.index') }}" class="btn btn-secondary">{{ __('admin.packaging_supplies.catalog') }}</a>
     </div>
 
     @if(session('success'))
@@ -18,23 +18,23 @@
 
     {{-- ─── Stats ───────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
-        <x-stat-card title="Pending"   :value="number_format($stats['pending'])"   iconBg="bg-yellow-100 text-yellow-600" />
-        <x-stat-card title="Approved"  :value="number_format($stats['approved'])"  iconBg="bg-blue-100 text-blue-600" />
-        <x-stat-card title="Shipped"   :value="number_format($stats['shipped'])"   iconBg="bg-indigo-100 text-indigo-600" />
-        <x-stat-card title="Delivered" :value="number_format($stats['delivered'])" iconBg="bg-green-100 text-green-600" />
-        <x-stat-card title="Rejected"  :value="number_format($stats['rejected'])"  iconBg="bg-red-100 text-red-600" />
+        <x-stat-card title="{{ __('admin.packaging_supplies.pending') }}"   :value="number_format($stats['pending'])"   iconBg="bg-yellow-100 text-yellow-600" />
+        <x-stat-card title="{{ __('admin.packaging_supplies.approved') }}"  :value="number_format($stats['approved'])"  iconBg="bg-blue-100 text-blue-600" />
+        <x-stat-card title="{{ __('admin.packaging_supplies.shipped') }}"   :value="number_format($stats['shipped'])"   iconBg="bg-indigo-100 text-indigo-600" />
+        <x-stat-card title="{{ __('admin.packaging_supplies.delivered') }}" :value="number_format($stats['delivered'])" iconBg="bg-green-100 text-green-600" />
+        <x-stat-card title="{{ __('admin.packaging_supplies.rejected') }}"  :value="number_format($stats['rejected'])"  iconBg="bg-red-100 text-red-600" />
     </div>
 
     {{-- ─── Filter ──────────────────────────────────────────────────────────── --}}
     <form method="GET" class="flex flex-wrap gap-3 mb-5">
         <select name="status" class="input-sm">
-            <option value="">All statuses</option>
+            <option value="">{{ __('admin.packaging_supplies.all_statuses') }}</option>
             @foreach(['pending','approved','shipped','delivered','rejected'] as $s)
-                <option value="{{ $s }}" @selected(request('status') === $s)>{{ ucfirst($s) }}</option>
+                <option value="{{ $s }}" @selected(request('status') === $s)>{{ __('admin.packaging_supplies.' . $s) }}</option>
             @endforeach
         </select>
-        <button type="submit" class="btn-sm btn-primary">Filter</button>
-        <a href="{{ route('admin.packaging-supplies.requests') }}" class="btn-sm btn-secondary">Reset</a>
+        <button type="submit" class="btn-sm btn-primary">{{ __('admin.packaging_supplies.filter') }}</button>
+        <a href="{{ route('admin.packaging-supplies.requests') }}" class="btn-sm btn-secondary">{{ __('admin.packaging_supplies.reset') }}</a>
     </form>
 
     {{-- ─── Table ───────────────────────────────────────────────────────────── --}}
@@ -42,12 +42,12 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="th">Request #</th>
-                    <th class="th">Vendor</th>
-                    <th class="th">Warehouse</th>
-                    <th class="th">Total</th>
-                    <th class="th">Status</th>
-                    <th class="th">Date</th>
+                    <th class="th">{{ __('admin.packaging_supplies.request_number') }}</th>
+                    <th class="th">{{ __('admin.packaging_supplies.vendor') }}</th>
+                    <th class="th">{{ __('admin.packaging_supplies.warehouse') }}</th>
+                    <th class="th">{{ __('admin.packaging_supplies.total') }}</th>
+                    <th class="th">{{ __('admin.packaging_supplies.status') }}</th>
+                    <th class="th">{{ __('admin.packaging_supplies.date') }}</th>
                     <th class="th"></th>
                 </tr>
             </thead>
@@ -62,14 +62,14 @@
                             <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status) }}</span>
                         </td>
                         <td class="td text-gray-500 text-xs">{{ $req->created_at->format('d M Y') }}</td>
-                        <td class="td text-right">
+                        <td class="td text-end">
                             <a href="{{ route('admin.packaging-supplies.show-request', $req) }}"
-                               class="text-primary-600 hover:underline text-xs font-medium">View</a>
+                               class="text-primary-600 hover:underline text-xs font-medium">{{ __('admin.packaging_supplies.view') }}</a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="td text-center text-gray-400 py-10">No requests found.</td>
+                        <td colspan="7" class="td text-center text-gray-400 py-10">{{ __('admin.packaging_supplies.no_requests_found') }}</td>
                     </tr>
                 @endforelse
             </tbody>

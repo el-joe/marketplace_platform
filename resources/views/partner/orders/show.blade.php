@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'الطلب ' . $subOrder->sub_order_number)
-@section('page-title', 'تفاصيل الطلب')
+@section('title', __('partner.orders.order_title', ['number' => $subOrder->sub_order_number]))
+@section('page-title', __('partner.orders.order_details'))
 
 @push('scripts')
     @vite('resources/js/partner/orders.js')
@@ -46,17 +46,17 @@
         $isPast = $subOrder->sla_ship_deadline && now()->gt($subOrder->sla_ship_deadline);
 
         $statusLabels = [
-            'placed' => 'معلق',
-            'confirmed' => 'مؤكد',
-            'processing' => 'جارٍ التجهيز',
-            'packed' => 'جاهز للشحن',
-            'shipped' => 'تم الشحن',
-            'out_for_delivery' => 'في التوصيل',
-            'delivered' => 'تم التسليم',
-            'completed' => 'مكتمل',
-            'cancelled' => 'ملغى',
-            'return_requested' => 'طلب إرجاع',
-            'returned' => 'مرتجع',
+            'placed' => __('partner.orders.status.placed'),
+            'confirmed' => __('partner.orders.status.confirmed'),
+            'processing' => __('partner.orders.status.processing'),
+            'packed' => __('partner.orders.status.packed'),
+            'shipped' => __('partner.orders.status.shipped'),
+            'out_for_delivery' => __('partner.orders.status.out_for_delivery'),
+            'delivered' => __('partner.orders.status.delivered'),
+            'completed' => __('common.completed'),
+            'cancelled' => __('common.cancelled'),
+            'return_requested' => __('partner.orders.status.return_requested'),
+            'returned' => __('partner.orders.status.returned'),
         ];
     @endphp
 
@@ -65,7 +65,7 @@
         <a href="{{ route('partner.orders.index') }}"
             class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
             <x-heroicon name="arrow-right" class="w-4 h-4" />
-            العودة للطلبات
+            {{ __('partner.orders.back_to_orders') }}
         </a>
     </div>
 
@@ -77,13 +77,13 @@
 
             {{-- Order Items --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 class="font-semibold text-gray-800 mb-4">عناصر الطلب</h3>
+                <h3 class="font-semibold text-gray-800 mb-4">{{ __('partner.orders.order_items') }}</h3>
                 <div class="divide-y divide-gray-50">
                     @foreach($subOrder->items as $item)
                         @php
                             $snap = $item->product_snapshot ?? [];
                             $imgUrl = $snap['image_url'] ?? null;
-                            $name = $snap['name_ar'] ?? $snap['name'] ?? 'منتج';
+                            $name = $snap['name_ar'] ?? $snap['name'] ?? __('partner.orders.product');
                             $variant = $snap['variant'] ?? null;
                         @endphp
                         <div class="flex items-start gap-4 py-4 first:pt-0 last:pb-0">
@@ -107,6 +107,11 @@
                                     {{ number_format($item->unit_price / 100, 2) }} {{ $currency }}</p>
                                 <p class="font-semibold text-gray-900 mt-0.5">{{ number_format($item->line_total / 100, 2) }}
                                     {{ $currency }}</p>
+                                @if(($item->commission_amount ?? 0) > 0)
+                                    <p class="text-xs text-red-500 mt-0.5">
+                                        {{ __('partner.orders.commission') }}: −{{ number_format($item->commission_amount / 100, 2) }} {{ $currency }}
+                                    </p>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -117,7 +122,7 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
                 <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <x-heroicon name="map-pin" class="w-4 h-4 text-gray-400" />
-                    عنوان التوصيل
+                    {{ __('partner.orders.delivery_address') }}
                 </h3>
                 <div class="text-sm text-gray-700 space-y-1">
                     <p class="font-medium">{{ $address['name'] ?? $maskedName }}</p>
@@ -158,7 +163,7 @@
                     <div class="flex items-start gap-2">
                         <x-heroicon name="chat-bubble-left" class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                         <div>
-                            <p class="text-xs font-semibold text-amber-700 mb-1">ملاحظات العميل</p>
+                            <p class="text-xs font-semibold text-amber-700 mb-1">{{ __('partner.orders.customer_notes') }}</p>
                             <p class="text-sm text-amber-900">{{ $order->customer_notes }}</p>
                         </div>
                     </div>
@@ -167,7 +172,7 @@
 
             {{-- Status history timeline --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 class="font-semibold text-gray-800 mb-4">سجل الحالة</h3>
+                <h3 class="font-semibold text-gray-800 mb-4">{{ __('partner.orders.status_history') }}</h3>
                 <ol class="relative border-s border-gray-200 space-y-5 pe-4">
                     @foreach($subOrder->statusHistories as $history)
                         <li class="ms-4">
@@ -198,7 +203,7 @@
                         <div class="bg-white rounded-2xl border border-gray-200 p-6">
                             <h3 class="font-semibold text-gray-800 mb-1 flex items-center gap-2">
                                 <x-heroicon name="truck" class="w-4 h-4 text-gray-400" />
-                                تتبع الشحنة
+                                {{ __('partner.orders.shipment_tracking') }}
                             </h3>
                             <p class="text-xs text-gray-400 mb-4 font-mono">{{ $shipment->tracking_number }}</p>
                             <ol class="relative border-s border-gray-200 space-y-4 pe-4">
@@ -222,28 +227,46 @@
 
             {{-- Order Summary card --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
-                <h4 class="font-semibold text-gray-800 mb-3 text-sm">ملخص الطلب</h4>
+                <h4 class="font-semibold text-gray-800 mb-3 text-sm">{{ __('partner.orders.order_summary') }}</h4>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between text-gray-600">
-                        <span>رقم الطلب</span>
+                        <span>{{ __('partner.orders.order_number') }}</span>
                         <span class="font-mono text-xs text-gray-800">{{ $subOrder->sub_order_number }}</span>
                     </div>
                     <div class="flex justify-between text-gray-600">
-                        <span>المجموع الفرعي</span>
+                        <span>{{ __('common.subtotal') }}</span>
                         <span class="font-medium">{{ number_format($subOrder->subtotal / 100, 2) }} {{ $currency }}</span>
                     </div>
                     <div class="flex justify-between text-gray-600">
-                        <span>عمولة المنصة</span>
+                        <span>{{ __('partner.orders.platform_commission') }}</span>
                         <span class="text-red-500">- {{ number_format($subOrder->platform_commission / 100, 2) }}
                             {{ $currency }}</span>
                     </div>
+                    @if($subOrder->gateway_fee > 0)
+                        <div class="flex justify-between text-gray-600">
+                            <span class="inline-flex items-center gap-1">
+                                {{ __('partner.orders.gateway_fee') }}
+                                <span class="cursor-help text-gray-400" title="{{ __('partner.orders.gateway_fee_tooltip') }}">
+                                    <x-heroicon name="information-circle" class="w-3.5 h-3.5" />
+                                </span>
+                            </span>
+                            <span class="text-red-500">- {{ number_format($subOrder->gateway_fee / 100, 2) }}
+                                {{ $currency }}</span>
+                        </div>
+                    @endif
                     <div class="border-t border-gray-100 pt-2 flex justify-between font-semibold text-gray-900">
-                        <span>صافي المدفوعات</span>
+                        <span>{{ __('partner.orders.net_payout') }}</span>
                         <span class="text-green-600">{{ number_format($subOrder->vendor_payout / 100, 2) }}
                             {{ $currency }}</span>
                     </div>
                 </div>
             </div>
+
+            @if(!$subOrder->cod_remittance_confirmed && $order->payment_method === 'cod')
+                <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
+                    <strong>{{ __('partner.orders.alert') }}:</strong> {{ __('partner.orders.cod_pending_notice', ['amount' => number_format($subOrder->vendor_payout / 100, 2) . ' ' . $currency]) }}
+                </div>
+            @endif
 
             {{-- SLA card --}}
             @if($subOrder->sla_ship_deadline && !in_array($subOrder->status, ['shipped', 'delivered', 'completed', 'cancelled']))
@@ -257,7 +280,7 @@
                         <x-heroicon name="clock" @class(['w-4 h-4', 'text-red-500' => $isPast, 'text-orange-500' => !$isPast && $isUrgent, 'text-gray-400' => !$isPast && !$isUrgent]) />
                         <h4
                             class="text-sm font-semibold {{ $isPast ? 'text-red-700' : ($isUrgent ? 'text-orange-700' : 'text-gray-700') }}">
-                            موعد الشحن
+                            {{ __('partner.orders.ship_by') }}
                         </h4>
                     </div>
                     <p
@@ -272,12 +295,12 @@
 
             {{-- Actions card --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
-                <h4 class="font-semibold text-gray-800 mb-3 text-sm">الإجراءات</h4>
+                <h4 class="font-semibold text-gray-800 mb-3 text-sm">{{ __('common.actions') }}</h4>
                 <div class="space-y-2">
 
                     {{-- Current status badge --}}
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs text-gray-500">الحالة الحالية</span>
+                        <span class="text-xs text-gray-500">{{ __('partner.orders.current_status') }}</span>
                         <x-status-badge :status="$subOrder->status" />
                     </div>
 
@@ -285,23 +308,29 @@
                         <button id="btn-confirm"
                             class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="check-circle" class="w-4 h-4" />
-                            تأكيد الطلب
+                            {{ __('partner.orders.confirm_order') }}
                         </button>
                     @endif
 
                     @if(in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'packed']))
-                        <button id="btn-ship"
-                            class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
-                            <x-heroicon name="truck" class="w-4 h-4" />
-                            شحن الطلب
-                        </button>
+                        @if($subOrder->shipping_method_id)
+                            <button id="btn-ship"
+                                class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+                                <x-heroicon name="truck" class="w-4 h-4" />
+                                {{ __('partner.orders.ship_order') }}
+                            </button>
+                        @else
+                            <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-center">
+                                {{ __('partner.orders.awaiting_shipping_method') }}
+                            </p>
+                        @endif
                     @endif
 
                     @if($subOrder->status === 'shipped')
                         <button id="btn-out-for-delivery"
                             class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="truck" class="w-4 h-4" />
-                            تحديث: في التوصيل
+                            {{ __('partner.orders.update_out_for_delivery') }}
                         </button>
                     @endif
 
@@ -309,7 +338,7 @@
                         <button id="btn-deliver"
                             class="w-full bg-green-700 hover:bg-green-800 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="check-badge" class="w-4 h-4" />
-                            تأكيد التسليم
+                            {{ __('partner.orders.confirm_delivery') }}
                         </button>
                     @endif
 
@@ -317,12 +346,12 @@
                         <button id="btn-cancel"
                             class="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="x-circle" class="w-4 h-4" />
-                            إلغاء الطلب
+                            {{ __('partner.orders.cancel_order') }}
                         </button>
                     @endif
 
                     @if(in_array($subOrder->status, ['delivered', 'completed', 'cancelled']))
-                        <p class="text-xs text-gray-400 text-center py-1">لا توجد إجراءات متاحة</p>
+                        <p class="text-xs text-gray-400 text-center py-1">{{ __('partner.orders.no_actions_available') }}</p>
                     @endif
 
                 </div>
@@ -333,22 +362,28 @@
                 <div class="bg-white rounded-2xl border border-gray-200 p-5">
                     <h4 class="font-semibold text-gray-800 mb-3 text-sm flex items-center gap-2">
                         <x-heroicon name="truck" class="w-4 h-4 text-gray-400" />
-                        معلومات الشحن
+                        {{ __('partner.orders.shipping_info') }}
                     </h4>
                     <div class="space-y-2 text-sm">
+                        @if($subOrder->shippingMethod)
+                            <div class="flex justify-between text-gray-600">
+                                <span>{{ __('partner.orders.shipping_method') }}</span>
+                                <span class="font-medium">{{ $subOrder->shippingMethod->name }}</span>
+                            </div>
+                        @endif
                         @if($subOrder->carrier)
                             <div class="flex justify-between text-gray-600">
-                                <span>شركة الشحن</span>
+                                <span>{{ __('partner.orders.carrier') }}</span>
                                 <span class="font-medium">{{ $subOrder->carrier->name }}</span>
                             </div>
                         @endif
                         <div class="flex justify-between text-gray-600">
-                            <span>رقم التتبع</span>
+                            <span>{{ __('partner.orders.tracking_number') }}</span>
                             <span class="font-mono text-xs text-gray-800 select-all">{{ $subOrder->tracking_number }}</span>
                         </div>
                         @if($subOrder->estimated_delivery_date)
                             <div class="flex justify-between text-gray-600">
-                                <span>التسليم المتوقع</span>
+                                <span>{{ __('partner.orders.estimated_delivery') }}</span>
                                 <span class="font-medium">{{ $subOrder->estimated_delivery_date->format('d M Y') }}</span>
                             </div>
                         @endif
@@ -370,16 +405,14 @@
                 </button>
             </div>
             <form id="ship-form" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">شركة الشحن</label>
-                    <select name="carrier_id" required
-                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
-                        <option value="">اختر الشركة...</option>
-                        @foreach($carriers as $carrier)
-                            <option value="{{ $carrier->id }}">{{ $carrier->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @if($subOrder->shippingMethod)
+                    <div class="text-sm text-gray-600 bg-gray-50 rounded-xl px-3 py-2.5">
+                        طريقة الشحن المعينة: <span class="font-medium text-gray-800">{{ $subOrder->shippingMethod->name }}</span>
+                        @if($subOrder->carrier)
+                            عبر <span class="font-medium text-gray-800">{{ $subOrder->carrier->name }}</span>
+                        @endif
+                    </div>
+                @endif
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">رقم التتبع</label>
                     <input type="text" name="tracking_number" required

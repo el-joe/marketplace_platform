@@ -123,6 +123,11 @@ class DeliveryAgent extends Authenticatable implements JWTSubject
         return $this->hasMany(DeliveryAgentDocument::class, 'agent_id');
     }
 
+    public function codSettlements(): HasMany
+    {
+        return $this->hasMany(DeliveryAgentCodSettlement::class, 'agent_id');
+    }
+
     public function shifts(): HasMany
     {
         return $this->hasMany(DeliveryAgentShift::class, 'agent_id');

@@ -1,6 +1,22 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Locale switcher — works across all panels and the portal
+|--------------------------------------------------------------------------
+*/
+Route::post('/locale/switch', function (Request $request) {
+    $locale = $request->input('locale');
+    abort_unless(in_array($locale, config('app.available_locales', ['ar', 'en'])), 422);
+    $request->session()->put('locale', $locale);
+    $request->session()->put('dir', $locale === 'ar' ? 'rtl' : 'ltr');
+    \Carbon\Carbon::setLocale($locale);
+    \Illuminate\Support\Facades\App::setLocale($locale);
+    return back();
+})->name('locale.switch')->middleware('web');
 
 
 /*
@@ -99,6 +115,8 @@ Route::prefix('{country}')
             ->name('index');
         Route::get('/now-nawy/category/{category}', [\App\Http\Controllers\Storefront\NawyController::class, 'byCategory'])
             ->name('category');
+        Route::get('/now-nawy/{listing}', [\App\Http\Controllers\Storefront\NawyController::class, 'show'])
+            ->name('show');
     });
 
 /*
@@ -149,6 +167,9 @@ Route::prefix('{country}/travel')
             ->middleware('auth:customer');
         Route::get('/{package}', [\App\Http\Controllers\Storefront\TravelController::class, 'show'])
             ->name('show');
+        Route::post('/{package}/inquire', [\App\Http\Controllers\Storefront\PublicTravelInquiryController::class, 'store'])
+            ->name('packages.inquire')
+            ->middleware('throttle:5,1');
         Route::middleware('auth:customer')->group(function () {
             Route::get('/{package}/book', [\App\Http\Controllers\Storefront\TravelController::class, 'bookForm'])
                 ->name('book');
@@ -207,6 +228,11 @@ Route::post('/orders/{subOrder}/rate-delivery', [\App\Http\Controllers\Storefron
 | Payment Gateway Webhooks (external POST — exempt from CSRF)
 |--------------------------------------------------------------------------
 */
+// ─── Blog view counter (public, throttled) ────────────────────────────────
+Route::post('/blog/{post}/views', [\App\Http\Controllers\Admin\BlogPostController::class, 'incrementViews'])
+    ->name('blog.posts.increment-views')
+    ->middleware(['web', 'throttle:60,1']);
+
 Route::post('/webhooks/payment/{gatewayCode}', [\App\Http\Controllers\WebhookController::class, 'payment'])
     ->name('webhooks.payment')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);

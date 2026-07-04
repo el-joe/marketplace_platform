@@ -1,18 +1,18 @@
 @extends('layouts.admin')
 
-@section('title', 'Carrier Scorecard')
+@section('title', __('admin.carriers_section.scorecard_title'))
 
 @section('content')
 
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Carrier Scorecard</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Ranked performance across all active shipping companies.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.carriers_section.scorecard_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.carriers_section.scorecard_desc') }}</p>
         </div>
         <form method="GET" class="flex gap-2 items-center">
-            <label class="text-sm text-gray-600">Period:</label>
+            <label class="text-sm text-gray-600">{{ __('admin.carriers_section.period_label') }}</label>
             <select name="period" onchange="this.form.submit()" class="input-sm">
-                @foreach(['week' => 'This Week', 'month' => 'This Month', 'quarter' => 'This Quarter', 'year' => 'This Year'] as $val => $label)
+                @foreach(['week' => __('admin.carriers_section.this_week'), 'month' => __('admin.carriers_section.this_month'), 'quarter' => __('admin.carriers_section.this_quarter'), 'year' => __('admin.carriers_section.this_year')] as $val => $label)
                     <option value="{{ $val }}" @selected($period === $val)>{{ $label }}</option>
                 @endforeach
             </select>
@@ -23,13 +23,13 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="th">#</th>
-                    <th class="th">Carrier</th>
-                    <th class="th">Avg Rating</th>
-                    <th class="th">On-Time %</th>
-                    <th class="th">Claims</th>
-                    <th class="th">Approved %</th>
-                    <th class="th">Compensated</th>
+                    <th class="th">{{ __('admin.carriers_section.rank_col') }}</th>
+                    <th class="th">{{ __('admin.carriers_section.carrier_col') }}</th>
+                    <th class="th">{{ __('admin.carriers_section.avg_rating_col') }}</th>
+                    <th class="th">{{ __('admin.carriers_section.on_time_pct_col') }}</th>
+                    <th class="th">{{ __('admin.carriers_section.claims_col') }}</th>
+                    <th class="th">{{ __('admin.carriers_section.approved_pct_col') }}</th>
+                    <th class="th">{{ __('admin.carriers_section.compensated_col') }}</th>
                     <th class="th"></th>
                 </tr>
             </thead>
@@ -67,14 +67,14 @@
                             @endif
                         </td>
                         <td class="td">{{ number_format($sc['total_compensated'] / 100, 2) }}</td>
-                        <td class="td text-right">
+                        <td class="td text-end">
                             <a href="{{ route('admin.carrier-scorecard.show', $company) }}"
-                               class="text-primary-600 hover:underline text-xs font-medium">Details</a>
+                               class="text-primary-600 hover:underline text-xs font-medium">{{ __('admin.carriers_section.details_link') }}</a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="td text-center text-gray-400 py-10">No active carriers.</td>
+                        <td colspan="8" class="td text-center text-gray-400 py-10">{{ __('admin.carriers_section.no_active_carriers') }}</td>
                     </tr>
                 @endforelse
             </tbody>

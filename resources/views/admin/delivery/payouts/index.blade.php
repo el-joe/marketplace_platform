@@ -4,26 +4,26 @@
     @vite(['resources/js/components/datatable.js'])
 @endpush
 
-@section('title', 'Delivery Payouts')
+@section('title', __('admin.delivery_section.payouts'))
 
 @section('content')
 
 {{-- ─── Header ──────────────────────────────────────────────────────────────── --}}
 <div class="mb-6 flex items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Delivery Payouts</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Generate and process agent payout cycles.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.delivery_section.payouts') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.delivery_section.payouts_desc') }}</p>
     </div>
-    <button type="button" id="generate-btn" class="btn btn-primary btn-sm">+ Generate Payouts</button>
+    <button type="button" id="generate-btn" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.generate_payouts') }}</button>
 </div>
 
 {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
     @foreach([
-        ['label' => 'Total Payouts',  'value' => number_format($stats['total'])],
-        ['label' => 'Pending',        'value' => number_format($stats['pending'])],
-        ['label' => 'Approved',       'value' => number_format($stats['approved'])],
-        ['label' => 'Paid',           'value' => number_format($stats['paid'])],
+        ['label' => __('admin.delivery_section.total_payouts'),  'value' => number_format($stats['total'])],
+        ['label' => __('admin.delivery_section.pending'),        'value' => number_format($stats['pending'])],
+        ['label' => __('admin.delivery_section.approved'),       'value' => number_format($stats['approved'])],
+        ['label' => __('admin.delivery_section.paid'),           'value' => number_format($stats['paid'])],
     ] as $stat)
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ $stat['label'] }}</p>
@@ -36,33 +36,33 @@
 <x-card class="mb-5">
     <div class="flex flex-wrap gap-3 items-end">
         <div class="w-40">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.status') }}</label>
             <select id="filter-status" class="form-input w-full text-sm">
-                <option value="">All</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="paid">Paid</option>
-                <option value="failed">Failed</option>
+                <option value="">{{ __('common.all') }}</option>
+                <option value="pending">{{ __('admin.delivery_section.pending') }}</option>
+                <option value="approved">{{ __('admin.delivery_section.approved') }}</option>
+                <option value="paid">{{ __('admin.delivery_section.paid') }}</option>
+                <option value="failed">{{ __('admin.delivery_section.failed') }}</option>
             </select>
         </div>
         <div class="w-48">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Agent</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.agent_col') }}</label>
             <select id="filter-agent" class="form-input w-full text-sm">
-                <option value="">All agents</option>
+                <option value="">{{ __('admin.delivery_section.all_agents') }}</option>
                 @foreach($agents as $agent)
                     <option value="{{ $agent->id }}">{{ $agent->name }}</option>
                 @endforeach
             </select>
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Period From</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.period_from') }}</label>
             <input type="date" id="filter-from" class="form-input text-sm">
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Period To</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.period_to') }}</label>
             <input type="date" id="filter-to" class="form-input text-sm">
         </div>
-        <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">Reset</button>
+        <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('common.reset') }}</button>
     </div>
 </x-card>
 
@@ -71,17 +71,17 @@
     <table id="payouts-table" class="w-full text-sm" style="width:100%">
         <thead>
             <tr>
-                <th>Payout #</th>
-                <th>Agent</th>
-                <th>Period</th>
-                <th>Deliveries</th>
-                <th>Gross</th>
-                <th>Deductions</th>
-                <th>Net</th>
-                <th>Status</th>
-                <th>Approved By</th>
-                <th>Processed At</th>
-                <th>Actions</th>
+                <th>{{ __('admin.delivery_section.payout_number_col') }}</th>
+                <th>{{ __('admin.delivery_section.agent_col') }}</th>
+                <th>{{ __('admin.delivery_section.period_col') }}</th>
+                <th>{{ __('admin.delivery_section.deliveries_col') }}</th>
+                <th>{{ __('admin.delivery_section.gross_col') }}</th>
+                <th>{{ __('admin.delivery_section.deductions_col') }}</th>
+                <th>{{ __('admin.delivery_section.net_col') }}</th>
+                <th>{{ __('admin.delivery_section.status_col') }}</th>
+                <th>{{ __('admin.delivery_section.approved_by_col') }}</th>
+                <th>{{ __('admin.delivery_section.processed_at_col') }}</th>
+                <th>{{ __('admin.delivery_section.actions_col') }}</th>
             </tr>
         </thead>
     </table>
@@ -91,7 +91,7 @@
 <div id="generate-modal" class="modal-backdrop hidden">
     <div class="modal-box max-w-md">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold">Generate Payouts</h3>
+            <h3 class="text-lg font-semibold">{{ __('admin.delivery_section.generate_payouts_title') }}</h3>
             <button type="button" onclick="document.getElementById('generate-modal').classList.add('hidden')"
                 class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
         </div>
@@ -99,37 +99,36 @@
             @csrf
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Period Start <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.period_start_required') }} <span class="text-red-500">*</span></label>
                     <input type="date" name="period_start" class="form-input w-full" required>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Period End <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.period_end_required') }} <span class="text-red-500">*</span></label>
                     <input type="date" name="period_end" class="form-input w-full" required>
                 </div>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Agent</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.agent_col') }}</label>
                 <select name="agent_id" class="form-input w-full">
-                    <option value="">All eligible agents</option>
+                    <option value="">{{ __('admin.delivery_section.all_eligible_agents') }}</option>
                     @foreach($agents as $agent)
                         <option value="{{ $agent->id }}">{{ $agent->name }}</option>
                     @endforeach
                 </select>
-                <p class="text-xs text-gray-400 mt-1">Leave blank to generate for all agents with pending earnings.</p>
+                <p class="text-xs text-gray-400 mt-1">{{ __('admin.delivery_section.generate_agent_hint') }}</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Currency <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.currency_required') }} <span class="text-red-500">*</span></label>
                 <select name="currency" class="form-input w-full" required>
-                    <option value="USD">USD</option>
-                    <option value="EGP">EGP</option>
-                    <option value="SAR">SAR</option>
-                    <option value="AED">AED</option>
+                    @foreach($currencies as $code)
+                        <option value="{{ $code }}">{{ $code }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="pt-4 border-t flex justify-end gap-3">
                 <button type="button" onclick="document.getElementById('generate-modal').classList.add('hidden')"
-                    class="btn btn-ghost btn-sm">Cancel</button>
-                <button type="submit" class="btn btn-primary btn-sm">Generate</button>
+                    class="btn btn-ghost btn-sm">{{ __('admin.delivery_section.cancel') }}</button>
+                <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.generate') }}</button>
             </div>
         </form>
     </div>
@@ -139,7 +138,7 @@
 <div id="process-modal" class="modal-backdrop hidden">
     <div class="modal-box max-w-sm">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold">Process Payout</h3>
+            <h3 class="text-lg font-semibold">{{ __('admin.delivery_section.process_payout') }}</h3>
             <button type="button" onclick="document.getElementById('process-modal').classList.add('hidden')"
                 class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
         </div>
@@ -147,22 +146,22 @@
             @csrf
             <input type="hidden" id="process-payout-id">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.payment_method_required') }} <span class="text-red-500">*</span></label>
                 <select name="payment_method" class="form-input w-full" required>
-                    <option value="">Select method</option>
-                    <option value="bank_transfer">Bank Transfer</option>
-                    <option value="cash">Cash</option>
-                    <option value="mobile_wallet">Mobile Wallet</option>
+                    <option value="">{{ __('admin.delivery_section.select_method') }}</option>
+                    <option value="bank_transfer">{{ __('admin.delivery_section.bank_transfer') }}</option>
+                    <option value="cash">{{ __('admin.delivery_section.cash') }}</option>
+                    <option value="mobile_wallet">{{ __('admin.delivery_section.mobile_wallet') }}</option>
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Payment Reference</label>
-                <input type="text" name="payment_reference" class="form-input w-full" placeholder="Transaction ID, cheque #…">
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.payment_reference') }}</label>
+                <input type="text" name="payment_reference" class="form-input w-full" placeholder="{{ __('admin.delivery_section.payment_reference_placeholder') }}">
             </div>
             <div class="pt-4 border-t flex justify-end gap-3">
                 <button type="button" onclick="document.getElementById('process-modal').classList.add('hidden')"
-                    class="btn btn-ghost btn-sm">Cancel</button>
-                <button type="submit" class="btn btn-primary btn-sm">Mark as Paid</button>
+                    class="btn btn-ghost btn-sm">{{ __('admin.delivery_section.cancel') }}</button>
+                <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.mark_as_paid') }}</button>
             </div>
         </form>
     </div>
@@ -172,6 +171,16 @@
 
 @push('scripts')
 <script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    approve: @json(__('admin.delivery_section.approve_btn')),
+    process: @json(__('admin.delivery_section.process_btn')),
+    generationFailed: @json(__('admin.delivery_section.generation_failed')),
+    failedGeneric: @json(__('admin.delivery_section.failed_generic')),
+    approvePayoutConfirm: @json(__('admin.delivery_section.approve_payout_confirm')),
+    processingFailed: @json(__('admin.delivery_section.processing_failed')),
+});
+
 (function () {
     const DATATABLE_URL = @json(route('admin.delivery.payouts.datatable'));
     const GENERATE_URL  = @json(route('admin.delivery.payouts.generate'));
@@ -215,10 +224,10 @@
                 render: r => {
                     const btns = [];
                     if (r.status === 'pending') {
-                        btns.push(`<button type="button" class="approve-btn btn btn-xs btn-success" data-id="${r.id}">Approve</button>`);
+                        btns.push(`<button type="button" class="approve-btn btn btn-xs btn-success" data-id="${r.id}">${window.TRANSLATIONS.approve}</button>`);
                     }
                     if (r.status === 'approved') {
-                        btns.push(`<button type="button" class="process-btn btn btn-xs btn-primary" data-id="${r.id}">Process</button>`);
+                        btns.push(`<button type="button" class="process-btn btn btn-xs btn-primary" data-id="${r.id}">${window.TRANSLATIONS.process}</button>`);
                     }
                     return btns.join(' ') || '—';
                 }
@@ -256,20 +265,20 @@
                     table.ajax.reload();
                 }
             },
-            error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Generation failed.'),
+            error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.generationFailed),
         });
     });
 
     // ── Approve ───────────────────────────────────────────────────────────────
     $(document).on('click', '.approve-btn', function () {
         const id = $(this).data('id');
-        if (!confirm('Approve this payout?')) return;
+        if (!confirm(window.TRANSLATIONS.approvePayoutConfirm)) return;
         $.ajax({
             url    : `${BASE_URL}/${id}/approve`,
             method : 'POST',
             data   : { _token: token() },
             success: res => { if (res.success) { window.Toast?.success(res.message); table.ajax.reload(); } },
-            error  : xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.'),
+            error  : xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.failedGeneric),
         });
     });
 
@@ -293,7 +302,7 @@
                     table.ajax.reload();
                 }
             },
-            error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Processing failed.'),
+            error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.processingFailed),
         });
     });
 })();

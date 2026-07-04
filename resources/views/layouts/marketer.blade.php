@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Marketer Portal') — Noon</title>
+    <title>@yield('title', __('marketer.nav.subtitle')) — Noon</title>
     @vite(['resources/css/app.css', 'resources/js/marketer/app.js'])
     <style>
         /* ── Sidebar layout ─────────────────────────────────────────────────── */
@@ -20,7 +20,7 @@
             min-height: 100vh;
             position: fixed;
             top: 0;
-            left: 0;
+            inset-inline-start: 0;
             display: flex;
             flex-direction: column;
             z-index: 40;
@@ -102,7 +102,7 @@
 
         /* ── Content area ───────────────────────────────────────────────────── */
         #marketer-content {
-            margin-left: 240px;
+            margin-inline-start: 240px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -143,12 +143,16 @@
                 transition: transform 0.25s;
             }
 
+            html[dir="rtl"] #marketer-sidebar {
+                transform: translateX(100%);
+            }
+
             #marketer-sidebar.open {
                 transform: translateX(0);
             }
 
             #marketer-content {
-                margin-left: 0;
+                margin-inline-start: 0;
             }
         }
     </style>
@@ -161,7 +165,7 @@
     <aside id="marketer-sidebar">
         <div class="brand">
             <h1>noon <span style="color:#f1f5f9;font-weight:400">marketer</span></h1>
-            <p>Partner Portal</p>
+            <p>{{ __('marketer.nav.subtitle') }}</p>
         </div>
 
         <nav>
@@ -175,7 +179,7 @@
                     <rect x="14" y="14" width="7" height="7" />
                     <rect x="3" y="14" width="7" height="7" />
                 </svg>
-                Dashboard
+                {{ __('marketer.nav.dashboard') }}
             </a>
 
             <a href="{{ route('marketer.campaigns.index') }}"
@@ -186,7 +190,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M17.5 2.5a2.121 2.121 0 013 3L12 14l-4 1 1-4 7.5-7.5z" />
                 </svg>
-                My Campaigns
+                {{ __('marketer.nav.campaigns') }}
             </a>
 
             <a href="{{ route('marketer.earnings.index') }}"
@@ -195,8 +199,37 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Earnings
+                {{ __('marketer.nav.earnings') }}
             </a>
+
+            @auth('marketer')
+            @php
+                $invitationPendingCount = \App\Models\VendorCampaignInvitation::where('marketer_id', auth()->guard('marketer')->id())
+                    ->where('status', 'pending')
+                    ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                    ->count();
+            @endphp
+            <a href="{{ route('marketer.invitations.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.invitations') ? 'active' : '' }}"
+                style="position:relative;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {{ __('marketer.nav.invitations') }}
+                @if($invitationPendingCount > 0)
+                    <span style="
+                        position:absolute; top:6px; right:10px;
+                        background:#f59e0b; color:#fff;
+                        font-size:0.6rem; font-weight:700;
+                        min-width:1.1rem; height:1.1rem;
+                        border-radius:999px;
+                        display:inline-flex; align-items:center; justify-content:center;
+                        padding:0 3px; line-height:1;
+                    ">{{ $invitationPendingCount > 99 ? '99+' : $invitationPendingCount }}</span>
+                @endif
+            </a>
+            @endauth
 
             <a href="{{ route('marketer.profile.edit') }}"
                 class="{{ Str::startsWith($route, 'marketer.profile') ? 'active' : '' }}">
@@ -204,13 +237,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                Profile
+                {{ __('marketer.nav.profile') }}
             </a>
         </nav>
 
         <div class="sidebar-footer">
             @auth('marketer')
-                <p style="color:#64748b; font-size:0.7rem; margin-bottom:4px;">Referral Code</p>
+                <p style="color:#64748b; font-size:0.7rem; margin-bottom:4px;">{{ __('marketer.nav.referral_code') }}</p>
                 <div class="referral-chip" onclick="copyReferral()" title="Click to copy">
                     <span>{{ auth()->guard('marketer')->user()->referral_code }}</span>
                     <span class="copy-icon">📋</span>
@@ -219,7 +252,7 @@
                     @csrf
                     <button type="submit"
                         style="color:#ef4444;font-size:0.75rem;background:none;border:none;cursor:pointer;padding:0;">
-                        Sign out
+                        {{ __('marketer.nav.sign_out') }}
                     </button>
                 </form>
             @endauth
@@ -232,14 +265,14 @@
         <header id="marketer-topbar">
             <div class="flex items-center gap-3">
                 {{-- Mobile hamburger --}}
-                <button class="md:hidden p-1" onclick="toggleMobileSidebar()" aria-label="Toggle menu">
+                <button class="md:hidden p-1" onclick="toggleMobileSidebar()" aria-label="{{ __('marketer.nav.toggle_menu') }}">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
 
                 <div>
-                    <h2 class="text-sm font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h2>
+                    <h2 class="text-sm font-semibold text-gray-800">@yield('page-title', __('marketer.nav.dashboard'))</h2>
                 </div>
             </div>
 
@@ -307,7 +340,7 @@
         }
         document.addEventListener('click', function (e) {
             var sidebar = document.getElementById('marketer-sidebar');
-            var hamburger = e.target.closest('[aria-label="Toggle menu"]');
+            var hamburger = e.target.closest('[aria-label="{{ __('marketer.nav.toggle_menu') }}"]');
             if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !hamburger) {
                 sidebar.classList.remove('open');
             }

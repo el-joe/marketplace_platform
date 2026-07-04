@@ -39,6 +39,8 @@ class DeliveryAssignment extends Model
         'delivery_longitude',
         'customer_rating',
         'cod_amount_collected_cents',
+        'discrepancy_note',
+        'cod_settlement_id',
     ];
 
     protected function casts(): array
@@ -79,6 +81,11 @@ class DeliveryAssignment extends Model
     public function proofFile(): BelongsTo
     {
         return $this->belongsTo(File::class, 'proof_file_id');
+    }
+
+    public function codSettlement(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryAgentCodSettlement::class, 'cod_settlement_id');
     }
 
     // ── Accessors ─────────────────────────────────────────────────────────────

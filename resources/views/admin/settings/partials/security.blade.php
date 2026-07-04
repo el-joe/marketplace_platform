@@ -1,8 +1,8 @@
 {{-- Security Settings Partial --}}
 <x-card>
     <div class="mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Security &amp; Access</h2>
-        <p class="text-sm text-gray-500">Login protection, session timeouts, and API rate limits.</p>
+        <h2 class="text-base font-semibold text-gray-900">{{ __('admin.settings_section.security_access') }}</h2>
+        <p class="text-sm text-gray-500">{{ __('admin.settings_section.security_access_desc') }}</p>
     </div>
     <div class="divide-y divide-gray-100">
 

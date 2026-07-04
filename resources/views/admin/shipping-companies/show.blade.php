@@ -8,7 +8,7 @@
 <div class="mb-6 flex items-start justify-between gap-4">
     <div>
         <a href="{{ route('admin.shipping-companies.index') }}"
-           class="text-sm text-indigo-600 hover:underline">← Shipping Companies</a>
+           class="text-sm text-indigo-600 hover:underline">{{ __('admin.shipping_section.back_to_shipping_companies') }}</a>
         <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ $shippingCompany->name }}</h1>
         @if($shippingCompany->legal_name)
         <p class="text-sm text-gray-500">{{ $shippingCompany->legal_name }}</p>
@@ -18,14 +18,14 @@
         @if($shippingCompany->status === 'pending')
         <form method="POST" action="{{ route('admin.shipping-companies.approve', $shippingCompany->id) }}">
             @csrf
-            <button class="btn btn-success btn-sm">Approve</button>
+            <button class="btn btn-success btn-sm">{{ __('admin.shipping_section.approve') }}</button>
         </form>
         @endif
         @if($shippingCompany->status !== 'suspended')
         <form method="POST" action="{{ route('admin.shipping-companies.suspend', $shippingCompany->id) }}"
-              onsubmit="return confirm('Suspend this company?')">
+              onsubmit="return confirm('{{ __('admin.shipping_section.suspend_confirm') }}')">
             @csrf
-            <button class="btn btn-danger btn-sm">Suspend</button>
+            <button class="btn btn-danger btn-sm">{{ __('admin.shipping_section.suspend') }}</button>
         </form>
         @endif
     </div>
@@ -36,10 +36,10 @@
     {{-- ─── Info Card ──────────────────────────────────────────────────────── --}}
     <div class="lg:col-span-1 space-y-4">
         <div class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="font-bold text-gray-900 mb-4">Company Details</h2>
+            <h2 class="font-bold text-gray-900 mb-4">{{ __('admin.company_details') }}</h2>
             <dl class="space-y-3 text-sm">
                 <div>
-                    <dt class="text-gray-500 text-xs uppercase tracking-wide">Status</dt>
+                    <dt class="text-gray-500 text-xs uppercase tracking-wide">{{ __('admin.shipping_section.company_details_status') }}</dt>
                     <dd class="mt-0.5">
                         @php $sc = ['active'=>'emerald','pending'=>'amber','suspended'=>'red'][$shippingCompany->status] ?? 'gray'; @endphp
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-{{ $sc }}-100 text-{{ $sc }}-700 capitalize">
@@ -48,28 +48,28 @@
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-gray-500 text-xs uppercase tracking-wide">Country</dt>
+                    <dt class="text-gray-500 text-xs uppercase tracking-wide">{{ __('admin.shipping_section.company_details_country') }}</dt>
                     <dd class="font-medium text-gray-800">{{ $shippingCompany->country?->name_en ?? '—' }}</dd>
                 </div>
                 <div>
-                    <dt class="text-gray-500 text-xs uppercase tracking-wide">Contact Email</dt>
+                    <dt class="text-gray-500 text-xs uppercase tracking-wide">{{ __('admin.shipping_section.contact_email') }}</dt>
                     <dd class="font-medium text-gray-800">{{ $shippingCompany->contact_email }}</dd>
                 </div>
                 @if($shippingCompany->contact_phone)
                 <div>
-                    <dt class="text-gray-500 text-xs uppercase tracking-wide">Phone</dt>
+                    <dt class="text-gray-500 text-xs uppercase tracking-wide">{{ __('admin.shipping_section.phone') }}</dt>
                     <dd class="font-medium text-gray-800">{{ $shippingCompany->contact_phone }}</dd>
                 </div>
                 @endif
                 <div>
-                    <dt class="text-gray-500 text-xs uppercase tracking-wide">Supervisor Notifications</dt>
+                    <dt class="text-gray-500 text-xs uppercase tracking-wide">{{ __('admin.shipping_section.supervisor_notifications_label') }}</dt>
                     <dd class="font-medium {{ $shippingCompany->can_supervisors_receive_all_notifications ? 'text-emerald-600' : 'text-gray-400' }}">
-                        {{ $shippingCompany->can_supervisors_receive_all_notifications ? 'Enabled (company-level)' : 'Disabled' }}
+                        {{ $shippingCompany->can_supervisors_receive_all_notifications ? __('admin.shipping_section.enabled_company_level') : __('admin.shipping_section.disabled') }}
                     </dd>
                 </div>
                 @if($shippingCompany->approved_at)
                 <div>
-                    <dt class="text-gray-500 text-xs uppercase tracking-wide">Approved At</dt>
+                    <dt class="text-gray-500 text-xs uppercase tracking-wide">{{ __('admin.shipping_section.approved_at') }}</dt>
                     <dd class="font-medium text-gray-800">{{ $shippingCompany->approved_at->format('Y-m-d H:i') }}</dd>
                 </div>
                 @endif
@@ -81,21 +81,21 @@
     <div class="lg:col-span-2 space-y-6">
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100">
-                <h2 class="font-bold text-gray-900">Supervisors</h2>
-                <p class="text-xs text-gray-500 mt-0.5">Toggle notifications per supervisor independently.</p>
+                <h2 class="font-bold text-gray-900">{{ __('admin.shipping_section.supervisors') }}</h2>
+                <p class="text-xs text-gray-500 mt-0.5">{{ __('admin.shipping_section.supervisors_desc') }}</p>
             </div>
             @if($shippingCompany->supervisors->isEmpty())
-            <div class="px-6 py-8 text-center text-gray-400 text-sm">No supervisors added yet.</div>
+            <div class="px-6 py-8 text-center text-gray-400 text-sm">{{ __('admin.shipping_section.no_supervisors') }}</div>
             @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
-                            <th class="px-6 py-3 text-left font-semibold">Name</th>
-                            <th class="px-6 py-3 text-left font-semibold">Email</th>
-                            <th class="px-6 py-3 text-left font-semibold">Permissions</th>
-                            <th class="px-6 py-3 text-left font-semibold">Active</th>
-                            <th class="px-6 py-3 text-left font-semibold">Notifications</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.name_col') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.email_col') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.permissions_col') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.active_col') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.notifications_col') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -146,10 +146,10 @@
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
-                            <th class="px-6 py-3 text-left font-semibold">Name</th>
-                            <th class="px-6 py-3 text-left font-semibold">Phone</th>
-                            <th class="px-6 py-3 text-left font-semibold">Status</th>
-                            <th class="px-6 py-3 text-left font-semibold">Rating</th>
+                            <th class="px-6 py-3 text-start font-semibold">Name</th>
+                            <th class="px-6 py-3 text-start font-semibold">Phone</th>
+                            <th class="px-6 py-3 text-start font-semibold">Status</th>
+                            <th class="px-6 py-3 text-start font-semibold">Rating</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">

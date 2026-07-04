@@ -4,7 +4,7 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Subscription Plans')
+@section('title', __('admin.subscriptions.subscription_plans_title'))
 
 @section('content')
 
@@ -12,10 +12,10 @@
     {{-- ─── Page Header ─────────────────────────────────────────────────────────── --}}
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Subscription Plans</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Manage the monthly packages available to vendors.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.subscriptions.subscription_plans_title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.subscriptions.subscription_plans_subtitle') }}</p>
         </div>
-        <button type="button" id="btn-create-plan" class="btn btn-primary btn-sm">+ New Plan</button>
+        <button type="button" id="btn-create-plan" class="btn btn-primary btn-sm">{{ __('admin.subscriptions.new_plan') }}</button>
     </div>
 
     {{-- ─── Plans Grid ──────────────────────────────────────────────────────────── --}}
@@ -40,7 +40,7 @@
                     </div>
                     <span
                         class="text-xs font-semibold rounded-full px-2 py-0.5 {{ $plan->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                        {{ $plan->is_active ? 'Active' : 'Inactive' }}
+                        {{ $plan->is_active ? __('admin.subscriptions.active') : __('admin.subscriptions.inactive') }}
                     </span>
                 </div>
 
@@ -52,14 +52,14 @@
                 <ul class="space-y-1 text-xs text-gray-600 mb-4 flex-1">
                     <li>
                         📦
-                        <strong>{{ $plan->hasUnlimitedListings() ? 'Unlimited' : number_format($plan->max_listings) }}</strong>
-                        listings
+                        <strong>{{ $plan->hasUnlimitedListings() ? __('admin.subscriptions.unlimited') : number_format($plan->max_listings) }}</strong>
+                        {{ __('admin.subscriptions.listings_word') }}
                     </li>
                     <li>
-                        💸 Commission discount: <strong>{{ $plan->commission_discount_pct }}%</strong>
+                        💸 {{ __('admin.subscriptions.commission_discount_label') }} <strong>{{ $plan->commission_discount_pct }}%</strong>
                     </li>
                     <li>
-                        🚚 Free shipping: <strong>{{ $plan->free_shipping_included ? 'Yes' : 'No' }}</strong>
+                        🚚 {{ __('admin.subscriptions.free_shipping_label') }} <strong>{{ $plan->free_shipping_included ? __('admin.subscriptions.yes') : __('admin.subscriptions.no') }}</strong>
                     </li>
                     @foreach(($plan->features ?? []) as $feature)
                         <li>✓ {{ ucwords(str_replace('_', ' ', $feature)) }}</li>
@@ -68,18 +68,18 @@
 
                 <div class="flex gap-2 pt-3 border-t border-gray-100">
                     <button type="button" class="flex-1 btn btn-ghost btn-xs btn-edit-plan"
-                        data-plan="{{ json_encode($plan) }}">Edit</button>
+                        data-plan="{{ json_encode($plan) }}">{{ __('admin.subscriptions.edit') }}</button>
                     <button type="button"
                         class="btn btn-xs btn-toggle-plan {{ $plan->is_active ? 'btn-warning' : 'btn-success' }}"
                         data-id="{{ $plan->id }}" data-active="{{ $plan->is_active ? 1 : 0 }}">
-                        {{ $plan->is_active ? 'Deactivate' : 'Activate' }}
+                        {{ $plan->is_active ? __('admin.subscriptions.deactivate') : __('admin.subscriptions.activate') }}
                     </button>
-                    <button type="button" class="btn btn-xs btn-danger btn-delete-plan" data-id="{{ $plan->id }}">Del</button>
+                    <button type="button" class="btn btn-xs btn-danger btn-delete-plan" data-id="{{ $plan->id }}">{{ __('admin.subscriptions.delete_short') }}</button>
                 </div>
             </div>
         @empty
             <div class="col-span-4 bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-400">
-                No plans yet. Click "New Plan" to create the first one.
+                {{ __('admin.subscriptions.no_plans_yet') }}
             </div>
         @endforelse
     </div>
@@ -87,61 +87,61 @@
     {{-- ─── Plan Modal ──────────────────────────────────────────────────────────── --}}
     <div id="plan-modal" class="modal" style="display:none;">
         <div class="modal-box max-w-xl">
-            <h3 class="font-bold text-lg mb-5" id="plan-modal-title">New Subscription Plan</h3>
+            <h3 class="font-bold text-lg mb-5" id="plan-modal-title">{{ __('admin.subscriptions.new_subscription_plan') }}</h3>
             <input type="hidden" id="plan-modal-id">
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="label-sm">Name (EN) <span class="text-red-500">*</span></label>
-                    <input type="text" id="pm-name-en" class="form-input w-full text-sm">
+                    <label class="label-sm">{{ __('admin.subscriptions.name_en') }} <span class="text-red-500">*</span></label>
+                    <input type="text" id="pm-name-en" class="form-input w-full text-sm" dir="ltr">
                 </div>
                 <div>
-                    <label class="label-sm">Name (AR) <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.subscriptions.name_ar') }} <span class="text-red-500">*</span></label>
                     <input type="text" id="pm-name-ar" class="form-input w-full text-sm" dir="rtl">
                 </div>
                 <div class="col-span-2">
-                    <label class="label-sm">Description (EN)</label>
-                    <textarea id="pm-desc-en" rows="2" class="form-input w-full text-sm"></textarea>
+                    <label class="label-sm">{{ __('admin.subscriptions.description_en') }}</label>
+                    <textarea id="pm-desc-en" rows="2" class="form-input w-full text-sm" dir="ltr"></textarea>
                 </div>
                 <div class="col-span-2">
-                    <label class="label-sm">Description (AR)</label>
+                    <label class="label-sm">{{ __('admin.subscriptions.description_ar') }}</label>
                     <textarea id="pm-desc-ar" rows="2" class="form-input w-full text-sm" dir="rtl"></textarea>
                 </div>
                 <div>
-                    <label class="label-sm">Price (in smallest unit) <span class="text-red-500">*</span></label>
-                    <input type="number" id="pm-price" class="form-input w-full text-sm" placeholder="e.g. 5000 = 50 EGP">
+                    <label class="label-sm">{{ __('admin.subscriptions.price_smallest_unit') }} <span class="text-red-500">*</span></label>
+                    <input type="number" id="pm-price" class="form-input w-full text-sm" placeholder="{{ __('admin.subscriptions.price_placeholder') }}">
                 </div>
                 <div>
-                    <label class="label-sm">Currency <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.subscriptions.currency') }} <span class="text-red-500">*</span></label>
                     <input type="text" id="pm-currency" class="form-input w-full text-sm" value="EGP" maxlength="3">
                 </div>
                 <div>
-                    <label class="label-sm">Max Listings (blank = unlimited)</label>
+                    <label class="label-sm">{{ __('admin.subscriptions.max_listings') }}</label>
                     <input type="number" id="pm-max-listings" class="form-input w-full text-sm" min="1">
                 </div>
                 <div>
-                    <label class="label-sm">Commission Discount %</label>
+                    <label class="label-sm">{{ __('admin.subscriptions.commission_discount_pct') }}</label>
                     <input type="number" id="pm-commission-discount" class="form-input w-full text-sm" min="0" max="100"
                         step="0.01" value="0">
                 </div>
                 <div class="flex items-center gap-3 pt-2">
                     <input type="checkbox" id="pm-free-shipping" class="w-4 h-4">
-                    <label for="pm-free-shipping" class="text-sm font-medium text-gray-700">Free Shipping Included</label>
+                    <label for="pm-free-shipping" class="text-sm font-medium text-gray-700">{{ __('admin.subscriptions.free_shipping_included') }}</label>
                 </div>
                 <div>
-                    <label class="label-sm">Sort Order</label>
+                    <label class="label-sm">{{ __('admin.subscriptions.sort_order') }}</label>
                     <input type="number" id="pm-sort-order" class="form-input w-full text-sm" value="0" min="0">
                 </div>
                 <div class="col-span-2">
-                    <label class="label-sm">Features (one per line)</label>
+                    <label class="label-sm">{{ __('admin.subscriptions.features_one_per_line') }}</label>
                     <textarea id="pm-features" rows="3" class="form-input w-full text-sm font-mono"
-                        placeholder="e.g. priority_support&#10;dedicated_manager"></textarea>
+                        placeholder="{{ __('admin.subscriptions.features_placeholder') }}"></textarea>
                 </div>
             </div>
 
             <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-gray-100">
-                <button type="button" id="plan-modal-cancel" class="btn btn-ghost btn-sm">Cancel</button>
-                <button type="button" id="plan-modal-save" class="btn btn-primary btn-sm px-8">Save Plan</button>
+                <button type="button" id="plan-modal-cancel" class="btn btn-ghost btn-sm">{{ __('admin.subscriptions.cancel') }}</button>
+                <button type="button" id="plan-modal-save" class="btn btn-primary btn-sm px-8">{{ __('admin.subscriptions.save_plan') }}</button>
             </div>
         </div>
     </div>
@@ -150,6 +150,15 @@
 
 @push('scripts')
     <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            newSubscriptionPlan: @json(__('admin.subscriptions.new_subscription_plan')),
+            editPlanPrefix: @json(__('admin.subscriptions.edit_plan_prefix')),
+            error: @json(__('admin.subscriptions.error')),
+            deletePlanTitle: @json(__('admin.subscriptions.delete_plan_confirm_title')),
+            deletePlanText: @json(__('admin.subscriptions.delete_plan_confirm_text')),
+        });
+
         $(function () {
             const tok = '{{ csrf_token() }}';
 
@@ -158,7 +167,7 @@
             // ── Open create modal ──────────────────────────────────────────────────────
             $('#btn-create-plan').on('click', function () {
                 $('#plan-modal-id').val('');
-                $('#plan-modal-title').text('New Subscription Plan');
+                $('#plan-modal-title').text(window.TRANSLATIONS.newSubscriptionPlan);
                 ['name-en', 'name-ar', 'desc-en', 'desc-ar', 'features'].forEach(id => $('#pm-' + id).val(''));
                 $('#pm-price').val('');
                 $('#pm-currency').val('EGP');
@@ -173,7 +182,7 @@
             $(document).on('click', '.btn-edit-plan', function () {
                 const p = $(this).data('plan');
                 $('#plan-modal-id').val(p.id);
-                $('#plan-modal-title').text('Edit Plan: ' + p.name_en);
+                $('#plan-modal-title').text(window.TRANSLATIONS.editPlanPrefix + ' ' + p.name_en);
                 $('#pm-name-en').val(p.name_en);
                 $('#pm-name-ar').val(p.name_ar);
                 $('#pm-desc-en').val(p.description_en);
@@ -217,7 +226,7 @@
                     body: JSON.stringify(payload),
                 }).then(r => r.json()).then(data => {
                     if (data.success) { window.Toast.success(data.message); $('#plan-modal').hide(); refreshPage(); }
-                    else { window.Toast.error(data.message ?? 'Error'); }
+                    else { window.Toast.error(data.message ?? window.TRANSLATIONS.error); }
                 });
             });
 
@@ -238,8 +247,8 @@
             $(document).on('click', '.btn-delete-plan', function () {
                 const id = $(this).data('id');
                 window.confirmDelete({
-                    title: 'Delete plan?',
-                    text: 'This cannot be undone. Plans with active subscriptions cannot be deleted.',
+                    title: window.TRANSLATIONS.deletePlanTitle,
+                    text: window.TRANSLATIONS.deletePlanText,
                     onConfirm: () => {
                         fetch('/admin/subscriptions/plans/' + id, {
                             method: 'DELETE',

@@ -405,7 +405,7 @@ class ListingController extends Controller
         // Established vendor (> 10 orders) gets active status directly
         $status = ($vendor->total_orders >= 10) ? 'active' : 'pending_review';
 
-        $currency = Country::find($request->country_id)?->currency_code ?? 'SAR';
+        $currency = Country::find($request->country_id)?->currency_code ?? '';
 
         // try {
         $listing = null;

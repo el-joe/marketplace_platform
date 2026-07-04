@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Admin Login — {{ config('app.name') }}</title>
+    <title>{{ __('admin.auth.login_title') }} — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css'])
 </head>
 
@@ -19,12 +19,12 @@
                 M
             </div>
             <h1 class="text-xl font-bold text-gray-900">{{ config('app.name') }}</h1>
-            <p class="text-sm text-gray-500 mt-1">Admin Panel</p>
+            <p class="text-sm text-gray-500 mt-1">{{ __('admin.panel_title') }}</p>
         </div>
 
         {{-- Card --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 px-8 py-8">
-            <h2 class="text-lg font-semibold text-gray-900 mb-6">Sign in to your account</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-6">{{ __('admin.auth.login_subtitle') }}</h2>
 
             {{-- Session errors --}}
             @if(session('error'))
@@ -38,7 +38,7 @@
 
                 {{-- Email --}}
                 <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.auth.email_label') }}</label>
                     <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus
                         autocomplete="email"
                         class="w-full rounded-lg border px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition
@@ -51,14 +51,14 @@
 
                 {{-- Password --}}
                 <div class="mb-6">
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.auth.password_label') }}</label>
                     <div class="relative">
                         <input type="password" id="password" name="password" required autocomplete="current-password"
                             class="w-full rounded-lg border px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition
                                    {{ $errors->has('password') ? 'border-danger-400 bg-danger-50' : 'border-gray-300 bg-white' }}"
                             placeholder="••••••••">
                         <button type="button" id="toggle-password"
-                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                            class="absolute inset-y-0 end-0 flex items-center pe-3 text-gray-400 hover:text-gray-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -76,7 +76,7 @@
                 <div class="flex items-center mb-6">
                     <input id="remember" name="remember" type="checkbox" value="1"
                         class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                    <label for="remember" class="ml-2 block text-sm text-gray-700">Keep me signed in</label>
+                    <label for="remember" class="ms-2 block text-sm text-gray-700">{{ __('admin.auth.remember_me') }}</label>
                 </div>
 
                 {{-- Submit --}}
@@ -86,30 +86,32 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
-                    <span id="login-btn-text">Sign in</span>
+                    <span id="login-btn-text">{{ __('admin.auth.login_button') }}</span>
                 </button>
             </form>
         </div>
 
         <p class="mt-6 text-center text-xs text-gray-400">
-            &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
+            &copy; {{ date('Y') }} {{ config('app.name') }}. {{ __('common.all_rights_reserved') }}
         </p>
     </div>
 
     <script>
-        // Password visibility toggle
+        window.TRANSLATIONS = {
+            signing_in: "{{ __('admin.auth.login_button') }}…",
+        };
+
         document.getElementById('toggle-password').addEventListener('click', function () {
             const pw = document.getElementById('password');
             pw.type = pw.type === 'password' ? 'text' : 'password';
         });
 
-        // Loading state on submit
         document.getElementById('login-form').addEventListener('submit', function () {
             const btn = document.getElementById('login-btn');
             const text = document.getElementById('login-btn-text');
             const spinner = document.getElementById('login-spinner');
             btn.disabled = true;
-            text.textContent = 'Signing in…';
+            text.textContent = window.TRANSLATIONS.signing_in;
             spinner.classList.remove('hidden');
         });
     </script>

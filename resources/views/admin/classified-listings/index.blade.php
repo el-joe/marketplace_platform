@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'Classified Listings')
+@section('title', __('admin.classifieds.listings_title'))
 
 @section('content')
 <div class="p-6 space-y-4">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl font-bold text-gray-900">Classified Listings</h1>
+            <h1 class="text-xl font-bold text-gray-900">{{ __('admin.classifieds.listings_title') }}</h1>
             @if($pendingCount > 0)
             <p class="text-sm text-amber-600 font-medium mt-0.5">
-                {{ $pendingCount }} listing(s) pending review
+                {{ __('admin.classifieds.pending_review_count', ['count' => $pendingCount]) }}
             </p>
             @endif
         </div>
@@ -17,37 +17,37 @@
 
     {{-- Filters --}}
     <form method="GET" class="flex flex-wrap gap-3">
-        <input name="q" value="{{ request('q') }}" placeholder="Search by number / title..."
+        <input name="q" value="{{ request('q') }}" placeholder="{{ __('admin.classifieds.search_number_title') }}"
                class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-64">
         <select name="status" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <option value="">All Statuses</option>
+            <option value="">{{ __('admin.classifieds.all_statuses') }}</option>
             @foreach(['draft','pending_contract','pending_review','active','paused','sold','expired','rejected'] as $s)
             <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option>
             @endforeach
         </select>
         <select name="category" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <option value="">All Categories</option>
+            <option value="">{{ __('admin.classifieds.all_categories') }}</option>
             @foreach($categories as $cat)
             <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
                 {{ $cat->name_en }}
             </option>
             @endforeach
         </select>
-        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">Filter</button>
-        <a href="{{ route('admin.classifieds.listings.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">Reset</a>
+        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">{{ __('admin.filter') }}</button>
+        <a href="{{ route('admin.classifieds.listings.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">{{ __('common.reset') }}</a>
     </form>
 
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Number</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Title</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Seller</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Category</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Price</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Status</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Created</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.number') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.listing_title') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.seller') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.category') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.price') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.status') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.created') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -74,9 +74,9 @@
                     <td class="px-4 py-3 text-gray-600">
                         {{ $listing->seller?->name ?? $listing->seller?->store_name }}
                         @if($listing->is_vendor_listing)
-                            <span class="ms-1 inline-flex items-center rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-700">Vendor</span>
+                            <span class="ms-1 inline-flex items-center rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-700">{{ __('admin.classifieds.vendor') }}</span>
                         @else
-                            <span class="ms-1 inline-flex items-center rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700">Customer</span>
+                            <span class="ms-1 inline-flex items-center rounded-full bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700">{{ __('admin.classifieds.customer') }}</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $listing->classifiedCategory?->name_en }}</td>
@@ -89,12 +89,12 @@
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $listing->created_at->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
                         <a href="{{ route('admin.classifieds.listings.show', $listing) }}"
-                           class="text-xs text-primary-600 font-medium hover:underline">View</a>
+                           class="text-xs text-primary-600 font-medium hover:underline">{{ __('common.view') }}</a>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-8 text-center text-gray-400">No listings found.</td>
+                    <td colspan="8" class="px-4 py-8 text-center text-gray-400">{{ __('admin.classifieds.no_listings') }}</td>
                 </tr>
                 @endforelse
             </tbody>

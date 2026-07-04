@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ session('locale', 'ar') }}" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>الحساب موقوف | نون للبائعين</title>
+    <title>{{ __('partner.suspended.page_title') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700,800&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css'])
@@ -31,13 +31,12 @@
         </div>
 
         {{-- Message --}}
-        <h1 class="text-2xl font-bold text-gray-900 mb-3">تم إيقاف حسابك</h1>
+        <h1 class="text-2xl font-bold text-gray-900 mb-3">{{ __('partner.suspended.heading') }}</h1>
         <p class="text-gray-500 text-sm leading-relaxed mb-2">
-            تم إيقاف حساب متجرك على منصة نون مؤقتاً. قد يكون ذلك بسبب مخالفة لسياسات المنصة أو لوجود مشكلة تتطلب
-            المراجعة.
+            {{ __('partner.suspended.message_1') }}
         </p>
         <p class="text-gray-500 text-sm mb-8">
-            يرجى التواصل مع فريق الدعم لمعرفة التفاصيل وإعادة تفعيل حسابك.
+            {{ __('partner.suspended.message_2') }}
         </p>
 
         {{-- Actions --}}
@@ -48,11 +47,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                 </svg>
-                التواصل مع الدعم
+                {{ __('partner.suspended.contact_support') }}
             </a>
             <a href="{{ route('partner.login') }}"
                 class="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium px-6 py-3 rounded-xl transition-colors text-sm">
-                العودة لتسجيل الدخول
+                {{ __('partner.suspended.back_to_login') }}
             </a>
         </div>
 

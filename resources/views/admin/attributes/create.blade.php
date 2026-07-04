@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'New Attribute')
+@section('title', __('admin.attributes_section.new_attribute'))
 
 @push('styles')
     @vite(['resources/js/admin/attributes.js'])

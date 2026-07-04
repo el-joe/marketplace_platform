@@ -8,7 +8,7 @@
     @vite('resources/js/admin/flash-sale-detail.js')
 @endpush
 
-@section('title', 'Flash Sale: ' . $flashSale->name_en)
+@section('title', __('admin.flash_sales.title') . ': ' . $flashSale->name_en)
 
 @section('content')
     @php
@@ -23,14 +23,14 @@
             'cancelled'         => 'danger',
         ];
         $statusLabels = [
-            'draft'             => 'Draft',
-            'submission_open'   => 'Accepting Submissions',
-            'submission_closed' => 'Submissions Closed',
-            'under_review'      => 'Under Review',
-            'approved'          => 'Approved',
-            'live'              => 'Live',
-            'ended'             => 'Ended',
-            'cancelled'         => 'Cancelled',
+            'draft'             => __('admin.flash_sales.status_draft'),
+            'submission_open'   => __('admin.flash_sales.status_submission_open'),
+            'submission_closed' => __('admin.flash_sales.status_submission_closed'),
+            'under_review'      => __('admin.flash_sales.status_under_review'),
+            'approved'          => __('admin.flash_sales.status_approved'),
+            'live'              => __('admin.flash_sales.status_live'),
+            'ended'             => __('admin.flash_sales.status_ended'),
+            'cancelled'         => __('admin.flash_sales.status_cancelled'),
         ];
     @endphp
 
@@ -67,11 +67,11 @@
             <div x-data="{ tab: 'submissions' }">
                 <nav class="flex gap-1 border-b border-gray-200 mb-5 overflow-x-auto">
                     @foreach([
-                        'submissions'  => ['label' => 'Submissions',  'icon' => 'inbox-stack'],
-                        'invitations'  => ['label' => 'Invitations',  'icon' => 'envelope'],
-                        'live'         => ['label' => 'Live Monitor', 'icon' => 'signal'],
-                        'analytics'    => ['label' => 'Analytics',    'icon' => 'chart-bar'],
-                        'settings'     => ['label' => 'Settings',     'icon' => 'cog-6-tooth'],
+                        'submissions'  => ['label' => __('admin.flash_sales.submissions_tab'),  'icon' => 'inbox-stack'],
+                        'invitations'  => ['label' => __('admin.flash_sales.invitations_tab'),  'icon' => 'envelope'],
+                        'live'         => ['label' => __('admin.flash_sales.live_monitor'), 'icon' => 'signal'],
+                        'analytics'    => ['label' => __('admin.flash_sales.analytics'),    'icon' => 'chart-bar'],
+                        'settings'     => ['label' => __('admin.flash_sales.settings'),     'icon' => 'cog-6-tooth'],
                     ] as $key => $cfg)
                         <button type="button"
                             @click="tab = '{{ $key }}'"
@@ -120,14 +120,22 @@
 
                         <div class="ml-auto flex items-center gap-2">
                             <select id="sub-filter-status" class="form-select form-select-sm">
-                                <option value="">All statuses</option>
-                                @foreach(['submitted' => 'Submitted','under_review' => 'Under Review','approved' => 'Approved','rejected' => 'Rejected','live' => 'Live','sold_out' => 'Sold Out','ended' => 'Ended'] as $v => $l)
+                                <option value="">{{ __('admin.flash_sales.all_statuses') }}</option>
+                                @foreach([
+                                    'submitted'    => __('admin.flash_sales.submitted'),
+                                    'under_review' => __('admin.flash_sales.status_under_review'),
+                                    'approved'     => __('admin.flash_sales.status_approved'),
+                                    'rejected'     => __('admin.flash_sales.reject'),
+                                    'live'         => __('admin.flash_sales.status_live'),
+                                    'sold_out'     => __('admin.flash_sales.sold_out'),
+                                    'ended'        => __('admin.flash_sales.status_ended'),
+                                ] as $v => $l)
                                     <option value="{{ $v }}">{{ $l }}</option>
                                 @endforeach
                             </select>
                             @if(auth('admin')->user()->can('flash_sales.review_submissions'))
                                 <button type="button" id="btn-bulk-reject" class="btn btn-danger btn-sm hidden">
-                                    Bulk Reject
+                                    {{ __('admin.flash_sales.bulk_reject') }}
                                 </button>
                             @endif
                         </div>
@@ -142,10 +150,10 @@
                     {{-- Stat cards --}}
                     @php
                         $invStatConfig = [
-                            'pending'   => ['label' => 'Pending',   'color' => 'bg-amber-50 border-amber-200',   'dot' => 'bg-amber-400',   'text' => 'text-amber-800'],
-                            'accepted'  => ['label' => 'Accepted',  'color' => 'bg-emerald-50 border-emerald-200','dot' => 'bg-emerald-500', 'text' => 'text-emerald-800'],
-                            'declined'  => ['label' => 'Declined',  'color' => 'bg-red-50 border-red-200',       'dot' => 'bg-red-400',     'text' => 'text-red-800'],
-                            'submitted' => ['label' => 'Submitted', 'color' => 'bg-blue-50 border-blue-200',     'dot' => 'bg-blue-500',    'text' => 'text-blue-800'],
+                            'pending'   => ['label' => __('admin.flash_sales.pending'),   'color' => 'bg-amber-50 border-amber-200',   'dot' => 'bg-amber-400',   'text' => 'text-amber-800'],
+                            'accepted'  => ['label' => __('admin.flash_sales.accepted'),  'color' => 'bg-emerald-50 border-emerald-200','dot' => 'bg-emerald-500', 'text' => 'text-emerald-800'],
+                            'declined'  => ['label' => __('admin.flash_sales.declined'),  'color' => 'bg-red-50 border-red-200',       'dot' => 'bg-red-400',     'text' => 'text-red-800'],
+                            'submitted' => ['label' => __('admin.flash_sales.submitted'), 'color' => 'bg-blue-50 border-blue-200',     'dot' => 'bg-blue-500',    'text' => 'text-blue-800'],
                         ];
                     @endphp
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
@@ -163,9 +171,9 @@
                     <x-card>
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center gap-3">
-                                <p class="text-sm text-gray-500">{{ $invitationCount }} vendor(s) invited total.</p>
+                                <p class="text-sm text-gray-500">{{ __('admin.flash_sales.vendors_invited_total', ['count' => $invitationCount]) }}</p>
                                 <select id="inv-filter-status" class="form-select form-select-sm">
-                                    <option value="">All statuses</option>
+                                    <option value="">{{ __('admin.flash_sales.all_statuses') }}</option>
                                     @foreach($invStatConfig as $status => $cfg)
                                         <option value="{{ $status }}">{{ $cfg['label'] }}</option>
                                     @endforeach
@@ -175,11 +183,11 @@
                                 <div class="flex gap-2">
                                     <button type="button" id="btn-auto-invite" class="btn btn-secondary btn-sm">
                                         <x-heroicon name="user-group" class="w-4 h-4 mr-1.5" />
-                                        Auto-Invite Eligible
+                                        {{ __('admin.flash_sales.auto_invite_eligible') }}
                                     </button>
                                     <button type="button" data-modal-open="manual-invite-modal" class="btn btn-ghost btn-sm">
                                         <x-heroicon name="user-plus" class="w-4 h-4 mr-1.5" />
-                                        Invite Manually
+                                        {{ __('admin.flash_sales.invite_manually') }}
                                     </button>
                                 </div>
                             @endif
@@ -192,24 +200,24 @@
                 <div x-show="tab === 'live'" x-cloak>
                     @if($flashSale->status === 'live')
                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                            <x-stat-card label="Units Sold"     id="live-units"     value="—" color="success" icon="shopping-bag" />
-                            <x-stat-card label="Revenue"        id="live-revenue"   value="—" color="primary" icon="currency-dollar" />
-                            <x-stat-card label="Sold Out"       id="live-sold-out"  value="—" color="warning" icon="x-circle" />
-                            <x-stat-card label="Time Remaining" id="live-countdown" value="—" color="info"    icon="clock" />
+                            <x-stat-card label="{{ __('admin.flash_sales.units_sold') }}"     id="live-units"     value="—" color="success" icon="shopping-bag" />
+                            <x-stat-card label="{{ __('admin.flash_sales.revenue') }}"        id="live-revenue"   value="—" color="primary" icon="currency-dollar" />
+                            <x-stat-card label="{{ __('admin.flash_sales.sold_out') }}"       id="live-sold-out"  value="—" color="warning" icon="x-circle" />
+                            <x-stat-card label="{{ __('admin.flash_sales.time_remaining') }}" id="live-countdown" value="—" color="info"    icon="clock" />
                         </div>
 
-                        <x-card title="Top Products">
+                        <x-card title="{{ __('admin.flash_sales.top_products') }}">
                             <table class="w-full text-sm">
                                 <thead class="text-xs text-gray-500 uppercase bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-2 text-left">Product</th>
-                                        <th class="px-4 py-2 text-right">Sold</th>
-                                        <th class="px-4 py-2 text-right">Remaining</th>
-                                        <th class="px-4 py-2 text-right">Revenue</th>
+                                        <th class="px-4 py-2 text-start">{{ __('admin.flash_sales.product') }}</th>
+                                        <th class="px-4 py-2 text-end">{{ __('admin.flash_sales.sold') }}</th>
+                                        <th class="px-4 py-2 text-end">{{ __('admin.flash_sales.remaining') }}</th>
+                                        <th class="px-4 py-2 text-end">{{ __('admin.flash_sales.revenue') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody id="live-top-tbody" class="divide-y divide-gray-100">
-                                    <tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm italic">Loading…</td></tr>
+                                    <tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm italic">{{ __('admin.flash_sales.loading') }}</td></tr>
                                 </tbody>
                             </table>
                         </x-card>
@@ -217,8 +225,8 @@
                         <x-card>
                             <div class="text-center py-12 text-gray-400">
                                 <x-heroicon name="signal" class="w-12 h-12 mx-auto mb-3 opacity-30" />
-                                <p class="text-sm">Live monitor is only available while the sale is active.</p>
-                                <p class="text-xs mt-1">Current status: <span class="font-medium">{{ $statusLabels[$flashSale->status] ?? $flashSale->status }}</span></p>
+                                <p class="text-sm">{{ __('admin.flash_sales.live_monitor_unavailable') }}</p>
+                                <p class="text-xs mt-1">{{ __('admin.flash_sales.current_status', ['status' => $statusLabels[$flashSale->status] ?? $flashSale->status]) }}</p>
                             </div>
                         </x-card>
                     @endif
@@ -228,26 +236,26 @@
                 <div x-show="tab === 'analytics'" x-cloak>
                     @if(in_array($flashSale->status, ['live', 'ended']))
                         <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                            <x-stat-card label="Total Units Sold"    id="an-units"      value="—" color="primary" icon="shopping-bag" />
-                            <x-stat-card label="Gross Revenue"       id="an-revenue"    value="—" color="success" icon="currency-dollar" />
-                            <x-stat-card label="Discount Given"      id="an-discount"   value="—" color="warning" icon="tag" />
-                            <x-stat-card label="Platform Commission" id="an-commission" value="—" color="info"    icon="building-library" />
-                            <x-stat-card label="Vendor Payout"       id="an-payout"     value="—" color="success" icon="banknotes" />
-                            <x-stat-card label="Avg Conversion"      id="an-conversion" value="—" color="gray"    icon="arrow-trending-up" />
+                            <x-stat-card label="{{ __('admin.flash_sales.total_units_sold') }}"    id="an-units"      value="—" color="primary" icon="shopping-bag" />
+                            <x-stat-card label="{{ __('admin.flash_sales.gross_revenue') }}"       id="an-revenue"    value="—" color="success" icon="currency-dollar" />
+                            <x-stat-card label="{{ __('admin.flash_sales.discount_given') }}"      id="an-discount"   value="—" color="warning" icon="tag" />
+                            <x-stat-card label="{{ __('admin.flash_sales.platform_commission') }}" id="an-commission" value="—" color="info"    icon="building-library" />
+                            <x-stat-card label="{{ __('admin.flash_sales.vendor_payout') }}"       id="an-payout"     value="—" color="success" icon="banknotes" />
+                            <x-stat-card label="{{ __('admin.flash_sales.avg_conversion') }}"      id="an-conversion" value="—" color="gray"    icon="arrow-trending-up" />
                         </div>
 
-                        <x-card title="Daily Breakdown">
+                        <x-card title="{{ __('admin.flash_sales.daily_breakdown') }}">
                             <table class="w-full text-sm">
                                 <thead class="text-xs text-gray-500 uppercase bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-2 text-left">Date</th>
-                                        <th class="px-4 py-2 text-right">Units</th>
-                                        <th class="px-4 py-2 text-right">Revenue</th>
-                                        <th class="px-4 py-2 text-right">Discount</th>
+                                        <th class="px-4 py-2 text-start">{{ __('admin.flash_sales.date') }}</th>
+                                        <th class="px-4 py-2 text-end">{{ __('admin.flash_sales.units') }}</th>
+                                        <th class="px-4 py-2 text-end">{{ __('admin.flash_sales.revenue') }}</th>
+                                        <th class="px-4 py-2 text-end">{{ __('admin.flash_sales.discount') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody id="analytics-tbody">
-                                    <tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm italic">Loading…</td></tr>
+                                    <tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm italic">{{ __('admin.flash_sales.loading') }}</td></tr>
                                 </tbody>
                             </table>
                         </x-card>
@@ -255,7 +263,7 @@
                         <x-card>
                             <div class="text-center py-12 text-gray-400">
                                 <x-heroicon name="chart-bar" class="w-12 h-12 mx-auto mb-3 opacity-30" />
-                                <p class="text-sm">Analytics will be available once the sale goes live.</p>
+                                <p class="text-sm">{{ __('admin.flash_sales.analytics_unavailable') }}</p>
                             </div>
                         </x-card>
                     @endif
@@ -263,85 +271,85 @@
 
                 {{-- ─── Settings tab ─────────────────────────────────────────── --}}
                 <div x-show="tab === 'settings'" x-cloak>
-                    <x-card title="Flash Sale Details">
+                    <x-card title="{{ __('admin.flash_sales.flash_sale_details') }}">
                         <div class="grid grid-cols-1 gap-y-4 sm:grid-cols-2 text-sm">
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Name (English)</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.name_en') }}</p>
                                 <p class="font-medium text-gray-900">{{ $flashSale->name_en }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Name (Arabic)</p>
-                                <p class="font-medium text-gray-900 text-right" dir="rtl">{{ $flashSale->name_ar }}</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.name_ar') }}</p>
+                                <p class="font-medium text-gray-900 text-end" dir="rtl">{{ $flashSale->name_ar }}</p>
                             </div>
                             @if($flashSale->description_en)
                                 <div class="sm:col-span-2">
-                                    <p class="text-gray-500 text-xs mb-0.5">Description (EN)</p>
+                                    <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.description_en') }}</p>
                                     <p class="text-gray-700">{{ $flashSale->description_en }}</p>
                                 </div>
                             @endif
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Submission Opens</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.submission_opens') }}</p>
                                 <p class="text-gray-700">{{ $flashSale->submission_opens_at?->format('M j, Y H:i') ?? '—' }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Submission Closes</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.submission_closes') }}</p>
                                 <p class="text-gray-700">{{ $flashSale->submission_closes_at?->format('M j, Y H:i') ?? '—' }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Review Deadline</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.review_deadline') }}</p>
                                 <p class="text-gray-700">{{ $flashSale->review_deadline_at?->format('M j, Y H:i') ?? '—' }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Sale Starts</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.sale_starts') }}</p>
                                 <p class="text-gray-700">{{ $flashSale->sale_starts_at?->format('M j, Y H:i') ?? '—' }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Sale Ends</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.sale_ends') }}</p>
                                 <p class="text-gray-700">{{ $flashSale->sale_ends_at?->format('M j, Y H:i') ?? '—' }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Min Discount</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.min_discount') }}</p>
                                 <p class="font-medium text-gray-900">{{ $flashSale->min_discount_pct }}%</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Max Products / Vendor</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.max_products_vendor') }}</p>
                                 <p class="font-medium text-gray-900">{{ $flashSale->max_products_per_seller ?? '∞' }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Max Total Slots</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.max_total_slots') }}</p>
                                 <p class="font-medium text-gray-900">{{ $flashSale->max_total_slots ?? '∞' }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Commission Override</p>
-                                <p class="font-medium text-gray-900">{{ $flashSale->commission_override_pct ? $flashSale->commission_override_pct . '%' : 'Default' }}</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.commission_override') }}</p>
+                                <p class="font-medium text-gray-900">{{ $flashSale->commission_override_pct ? $flashSale->commission_override_pct . '%' : __('admin.default') }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Min Seller Rating</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.min_seller_rating') }}</p>
                                 <p class="font-medium text-gray-900">{{ $flashSale->min_seller_rating ?? '—' }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Eligible Tiers</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.eligible_tiers_label') }}</p>
                                 <p class="font-medium text-gray-900">
-                                    {{ !empty($flashSale->eligible_seller_tiers) ? implode(', ', $flashSale->eligible_seller_tiers) : 'All' }}
+                                    {{ !empty($flashSale->eligible_seller_tiers) ? implode(', ', $flashSale->eligible_seller_tiers) : __('common.all') }}
                                 </p>
                             </div>
                             <div class="sm:col-span-2">
-                                <p class="text-gray-500 text-xs mb-0.5">Eligible Categories</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.eligible_categories') }}</p>
                                 <p class="font-medium text-gray-900">
-                                    {{ !empty($flashSale->eligible_categories) ? count($flashSale->eligible_categories) . ' categories selected' : 'All' }}
+                                    {{ !empty($flashSale->eligible_categories) ? __('admin.flash_sales.categories_selected', ['count' => count($flashSale->eligible_categories)]) : __('common.all') }}
                                 </p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Featured</p>
-                                <p class="font-medium">{{ $flashSale->is_featured ? '✓ Yes' : 'No' }}</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.featured') }}</p>
+                                <p class="font-medium">{{ $flashSale->is_featured ? __('admin.flash_sales.yes') : __('admin.flash_sales.no') }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Exclusive</p>
-                                <p class="font-medium">{{ $flashSale->is_exclusive ? '✓ Yes (invite-only)' : 'No' }}</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.exclusive') }}</p>
+                                <p class="font-medium">{{ $flashSale->is_exclusive ? __('admin.flash_sales.yes_invite_only') : __('admin.flash_sales.no') }}</p>
                             </div>
                             <div>
-                                <p class="text-gray-500 text-xs mb-0.5">Price Drop Required</p>
-                                <p class="font-medium">{{ $flashSale->price_drop_required ? '✓ Yes' : 'No' }}</p>
+                                <p class="text-gray-500 text-xs mb-0.5">{{ __('admin.flash_sales.price_drop_required') }}</p>
+                                <p class="font-medium">{{ $flashSale->price_drop_required ? __('admin.flash_sales.yes') : __('admin.flash_sales.no') }}</p>
                             </div>
                         </div>
 
@@ -349,7 +357,7 @@
                             <div class="mt-4 pt-4 border-t border-gray-100">
                                 <a href="{{ route('admin.flash-sales.edit', $flashSale->id) }}" class="btn btn-secondary btn-sm">
                                     <x-heroicon name="pencil-square" class="w-4 h-4 mr-1.5" />
-                                    Edit Settings
+                                    {{ __('admin.flash_sales.edit_settings') }}
                                 </a>
                             </div>
                         @endif
@@ -368,47 +376,47 @@
             <x-card title="{{ $flashSale->name_en }}">
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between items-center">
-                        <span class="text-gray-500">Status</span>
+                        <span class="text-gray-500">{{ __('admin.status') }}</span>
                         <x-badge :color="$statusColors[$flashSale->status] ?? 'gray'">
                             {{ $statusLabels[$flashSale->status] ?? $flashSale->status }}
                         </x-badge>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Country</span>
-                        <span class="text-gray-700">{{ $flashSale->country?->name_en ?? 'All' }}</span>
+                        <span class="text-gray-500">{{ __('admin.country') }}</span>
+                        <span class="text-gray-700">{{ $flashSale->country?->name_en ?? __('common.all') }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Approved Slots</span>
+                        <span class="text-gray-500">{{ __('admin.flash_sales.approved_slots') }}</span>
                         <span class="font-mono font-medium">{{ $flashSale->approved_slots_count }} / {{ $flashSale->max_total_slots ?? '∞' }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-500">Submissions</span>
+                        <span class="text-gray-500">{{ __('admin.flash_sales.submissions') }}</span>
                         <span class="font-mono font-medium">{{ $submissionStats->sum() }}</span>
                     </div>
                     @if($flashSale->is_featured)
                         <div class="flex items-center gap-1.5 text-amber-700 text-xs font-medium">
                             <x-heroicon name="star" class="w-3.5 h-3.5" />
-                            Featured
+                            {{ __('admin.flash_sales.featured') }}
                         </div>
                     @endif
                     @if($flashSale->is_exclusive)
                         <div class="flex items-center gap-1.5 text-purple-700 text-xs font-medium">
                             <x-heroicon name="lock-closed" class="w-3.5 h-3.5" />
-                            Exclusive / Invite-Only
+                            {{ __('admin.flash_sales.exclusive_invite_only_badge') }}
                         </div>
                     @endif
                 </div>
             </x-card>
 
             {{-- Timeline --}}
-            <x-card title="Timeline">
+            <x-card title="{{ __('admin.flash_sales.timeline') }}">
                 <div class="space-y-2 text-xs text-gray-600">
                     @foreach([
-                        'Submissions Open'  => $flashSale->submission_opens_at,
-                        'Submissions Close' => $flashSale->submission_closes_at,
-                        'Review Deadline'   => $flashSale->review_deadline_at,
-                        'Sale Starts'       => $flashSale->sale_starts_at,
-                        'Sale Ends'         => $flashSale->sale_ends_at,
+                        __('admin.flash_sales.submissions_open')  => $flashSale->submission_opens_at,
+                        __('admin.flash_sales.submissions_close') => $flashSale->submission_closes_at,
+                        __('admin.flash_sales.review_deadline')   => $flashSale->review_deadline_at,
+                        __('admin.flash_sales.sale_starts')       => $flashSale->sale_starts_at,
+                        __('admin.flash_sales.sale_ends')         => $flashSale->sale_ends_at,
                     ] as $label => $date)
                         <div class="flex justify-between">
                             <span class="text-gray-500">{{ $label }}</span>
@@ -420,17 +428,17 @@
 
             {{-- Actions --}}
             @if(!in_array($flashSale->status, ['ended', 'cancelled']))
-                <x-card title="Actions">
+                <x-card title="{{ __('common.actions') }}">
                     <div class="space-y-2">
                         @php
                             $actionMap = [
-                                'submission_open'   => ['action' => 'open_submissions',  'label' => 'Open Submissions',  'color' => 'primary'],
-                                'submission_closed' => ['action' => 'close_submissions', 'label' => 'Close Submissions', 'color' => 'secondary'],
-                                'under_review'      => ['action' => 'move_to_review',    'label' => 'Move to Review',    'color' => 'info'],
-                                'approved'          => ['action' => 'mark_approved',     'label' => 'Mark Approved',     'color' => 'success'],
-                                'live'              => ['action' => 'start_sale',        'label' => 'Launch Sale',       'color' => 'success'],
-                                'ended'             => ['action' => 'end_sale',          'label' => 'End Sale',          'color' => 'secondary'],
-                                'cancelled'         => ['action' => 'cancel',            'label' => 'Cancel',            'color' => 'danger'],
+                                'submission_open'   => ['action' => 'open_submissions',  'label' => __('admin.flash_sales.open_submissions'),  'color' => 'primary'],
+                                'submission_closed' => ['action' => 'close_submissions', 'label' => __('admin.flash_sales.close_submissions'), 'color' => 'secondary'],
+                                'under_review'      => ['action' => 'move_to_review',    'label' => __('admin.flash_sales.move_to_review'),    'color' => 'info'],
+                                'approved'          => ['action' => 'mark_approved',     'label' => __('admin.flash_sales.mark_approved'),     'color' => 'success'],
+                                'live'              => ['action' => 'start_sale',        'label' => __('admin.flash_sales.launch_sale'),       'color' => 'success'],
+                                'ended'             => ['action' => 'end_sale',          'label' => __('admin.flash_sales.end_sale'),          'color' => 'secondary'],
+                                'cancelled'         => ['action' => 'cancel',            'label' => __('common.cancel'),            'color' => 'danger'],
                             ];
                         @endphp
                         @foreach($nextStatuses as $next)
@@ -449,7 +457,7 @@
                                 class="btn btn-danger w-full justify-center flash-sale-transition"
                                 data-action="cancel"
                                 data-needs-confirm="1">
-                                Cancel Sale
+                                {{ __('admin.flash_sales.cancel_sale') }}
                             </button>
                         @endif
                     </div>
@@ -459,8 +467,7 @@
             {{-- Meta --}}
             @if($flashSale->createdBy)
                 <div class="text-xs text-gray-400 text-center">
-                    Created by {{ $flashSale->createdBy->name }}
-                    on {{ $flashSale->created_at->format('M j, Y') }}
+                    {{ __('admin.flash_sales.created_by', ['name' => $flashSale->createdBy->name, 'date' => $flashSale->created_at->format('M j, Y')]) }}
                 </div>
             @endif
 
@@ -472,7 +479,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════════ --}}
 
     {{-- Review submission modal --}}
-    <x-modal id="review-modal" title="Review Submission" size="lg">
+    <x-modal id="review-modal" title="{{ __('admin.flash_sales.review_submission') }}" size="lg">
         <div class="space-y-4">
             <div id="review-product-info" class="flex items-center gap-3 pb-3 border-b border-gray-100 hidden">
                 <img id="review-product-img" src="" alt="" class="w-14 h-14 object-cover rounded-lg border border-gray-200">
@@ -488,63 +495,63 @@
             </div>
 
             <div id="review-price-history-wrap" class="bg-gray-50 rounded-lg p-3">
-                <p class="text-xs font-medium text-gray-500 uppercase mb-2">30-day Price History</p>
+                <p class="text-xs font-medium text-gray-500 uppercase mb-2">{{ __('admin.flash_sales.30d_price_history') }}</p>
                 <div id="review-price-chart" class="h-16 flex items-end gap-px overflow-hidden">
-                    <span class="text-xs text-gray-400">Loading…</span>
+                    <span class="text-xs text-gray-400">{{ __('admin.flash_sales.loading') }}</span>
                 </div>
             </div>
 
             <div id="fraud-warning" class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
-                <strong>⚠ Pricing Warning:</strong>
+                <strong>{{ __('admin.flash_sales.pricing_warning') }}</strong>
                 <ul id="fraud-reasons" class="mt-1 list-disc list-inside text-xs"></ul>
                 <label class="flex items-center gap-2 mt-2 cursor-pointer">
                     <input type="checkbox" id="override-fraud-check" class="form-checkbox">
-                    <span>I acknowledge this risk and approve anyway</span>
+                    <span>{{ __('admin.flash_sales.acknowledge_risk') }}</span>
                 </label>
             </div>
 
             <div id="review-stock-info" class="text-xs text-gray-500 flex gap-4 hidden">
-                <span>Max qty: <strong id="review-max-qty">—</strong></span>
-                <span>Sold: <strong id="review-qty-sold">—</strong></span>
-                <span>Remaining: <strong id="review-qty-remaining">—</strong></span>
+                <span>{{ __('admin.flash_sales.max_qty') }}: <strong id="review-max-qty">—</strong></span>
+                <span>{{ __('admin.flash_sales.qty_sold') }}: <strong id="review-qty-sold">—</strong></span>
+                <span>{{ __('admin.flash_sales.qty_remaining') }}: <strong id="review-qty-remaining">—</strong></span>
             </div>
 
             <div x-data="{ decision: 'approved' }">
-                <label class="form-label">Decision</label>
+                <label class="form-label">{{ __('admin.flash_sales.decision') }}</label>
                 <div class="flex gap-3 mt-1">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="radio" x-model="decision" value="approved" class="form-radio text-primary-600">
-                        <span class="text-sm font-medium text-emerald-700">Approve</span>
+                        <span class="text-sm font-medium text-emerald-700">{{ __('admin.flash_sales.approve') }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="radio" x-model="decision" value="rejected" class="form-radio text-danger-600">
-                        <span class="text-sm font-medium text-red-700">Reject</span>
+                        <span class="text-sm font-medium text-red-700">{{ __('admin.flash_sales.reject') }}</span>
                     </label>
                 </div>
 
                 <div x-show="decision === 'rejected'" class="mt-3 space-y-3">
                     <div>
-                        <label class="form-label">Rejection Code <span class="text-danger-500">*</span></label>
+                        <label class="form-label">{{ __('admin.flash_sales.rejection_code_required') }} <span class="text-danger-500">*</span></label>
                         <select id="review-rejection-code" class="form-select w-full">
-                            <option value="manual_rejection">Manual Review</option>
-                            <option value="price_too_low">Price Too Low</option>
-                            <option value="insufficient_discount">Insufficient Discount</option>
-                            <option value="fake_discount_detected">Fake Discount Detected</option>
-                            <option value="ineligible_category">Ineligible Category</option>
-                            <option value="ineligible_vendor">Ineligible Vendor</option>
-                            <option value="duplicate_submission">Duplicate Submission</option>
-                            <option value="other">Other</option>
+                            <option value="manual_rejection">{{ __('admin.flash_sales.rejection_manual_review') }}</option>
+                            <option value="price_too_low">{{ __('admin.flash_sales.rejection_price_too_low') }}</option>
+                            <option value="insufficient_discount">{{ __('admin.flash_sales.rejection_insufficient_discount') }}</option>
+                            <option value="fake_discount_detected">{{ __('admin.flash_sales.rejection_fake_discount') }}</option>
+                            <option value="ineligible_category">{{ __('admin.flash_sales.rejection_ineligible_category') }}</option>
+                            <option value="ineligible_vendor">{{ __('admin.flash_sales.rejection_ineligible_vendor') }}</option>
+                            <option value="duplicate_submission">{{ __('admin.flash_sales.rejection_duplicate_submission') }}</option>
+                            <option value="other">{{ __('admin.flash_sales.rejection_other') }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Reason</label>
-                        <textarea id="review-rejection-reason" rows="2" class="form-textarea w-full" placeholder="Reason for rejection…"></textarea>
+                        <label class="form-label">{{ __('admin.flash_sales.reason') }}</label>
+                        <textarea id="review-rejection-reason" rows="2" class="form-textarea w-full" placeholder="{{ __('admin.flash_sales.reason_for_rejection_placeholder') }}"></textarea>
                     </div>
                 </div>
 
                 <div class="mt-3">
-                    <label class="form-label">Admin Notes (optional)</label>
-                    <textarea id="review-admin-notes" rows="2" class="form-textarea w-full" placeholder="Internal notes…"></textarea>
+                    <label class="form-label">{{ __('admin.flash_sales.admin_notes_optional') }}</label>
+                    <textarea id="review-admin-notes" rows="2" class="form-textarea w-full" placeholder="{{ __('admin.flash_sales.internal_notes_placeholder') }}"></textarea>
                 </div>
 
                 <input type="hidden" id="review-submission-id">
@@ -552,105 +559,104 @@
             </div>
         </div>
         <x-slot:footer>
-            <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-            <button type="button" id="btn-confirm-review" class="btn btn-primary">Confirm Decision</button>
+            <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
+            <button type="button" id="btn-confirm-review" class="btn btn-primary">{{ __('admin.flash_sales.confirm_decision') }}</button>
         </x-slot:footer>
     </x-modal>
 
     {{-- Bulk reject modal --}}
-    <x-modal id="bulk-reject-modal" title="Bulk Reject Submissions" size="sm">
+    <x-modal id="bulk-reject-modal" title="{{ __('admin.flash_sales.bulk_reject_submissions') }}" size="sm">
         <div class="space-y-3">
-            <p class="text-sm text-gray-600">Reject <strong id="bulk-reject-count">0</strong> selected submission(s).</p>
+            <p class="text-sm text-gray-600">{!! __('admin.flash_sales.reject_count_selected', ['count' => '<strong id="bulk-reject-count">0</strong>']) !!}</p>
             <div>
-                <label class="form-label">Rejection Code <span class="text-danger-500">*</span></label>
+                <label class="form-label">{{ __('admin.flash_sales.rejection_code_required') }} <span class="text-danger-500">*</span></label>
                 <select id="bulk-rejection-code" class="form-select w-full">
-                    <option value="manual_rejection">Manual Review</option>
-                    <option value="insufficient_discount">Insufficient Discount</option>
-                    <option value="fake_discount_detected">Fake Discount Detected</option>
-                    <option value="ineligible_category">Ineligible Category</option>
-                    <option value="other">Other</option>
+                    <option value="manual_rejection">{{ __('admin.flash_sales.rejection_manual_review') }}</option>
+                    <option value="insufficient_discount">{{ __('admin.flash_sales.rejection_insufficient_discount') }}</option>
+                    <option value="fake_discount_detected">{{ __('admin.flash_sales.rejection_fake_discount') }}</option>
+                    <option value="ineligible_category">{{ __('admin.flash_sales.rejection_ineligible_category') }}</option>
+                    <option value="other">{{ __('admin.flash_sales.rejection_other') }}</option>
                 </select>
             </div>
             <div>
-                <label class="form-label">Reason</label>
+                <label class="form-label">{{ __('admin.flash_sales.reason') }}</label>
                 <textarea id="bulk-rejection-reason" rows="2" class="form-textarea w-full"></textarea>
             </div>
         </div>
         <x-slot:footer>
-            <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-            <button type="button" id="btn-confirm-bulk-reject" class="btn btn-danger">Reject All Selected</button>
+            <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
+            <button type="button" id="btn-confirm-bulk-reject" class="btn btn-danger">{{ __('admin.flash_sales.reject_all_selected') }}</button>
         </x-slot:footer>
     </x-modal>
 
     {{-- Cancel modal --}}
-    <x-modal id="cancel-modal" title="Cancel Flash Sale" size="sm">
+    <x-modal id="cancel-modal" title="{{ __('admin.flash_sales.cancel_flash_sale') }}" size="sm">
         <div class="space-y-3">
             <p class="text-sm text-gray-600">
-                Are you sure you want to cancel <strong>{{ $flashSale->name_en }}</strong>?
-                This cannot be undone.
+                {{ __('admin.flash_sales.cancel_confirm', ['name' => $flashSale->name_en]) }}
             </p>
             <div>
-                <label class="form-label">Cancellation Reason</label>
-                <textarea id="cancel-reason" rows="3" class="form-textarea w-full" placeholder="Why is this sale being cancelled?"></textarea>
+                <label class="form-label">{{ __('admin.flash_sales.cancellation_reason') }}</label>
+                <textarea id="cancel-reason" rows="3" class="form-textarea w-full" placeholder="{{ __('admin.flash_sales.cancellation_reason_hint') }}"></textarea>
             </div>
         </div>
         <x-slot:footer>
-            <button type="button" data-modal-close class="btn btn-ghost">Go Back</button>
-            <button type="button" id="btn-confirm-cancel" class="btn btn-danger">Cancel Sale</button>
+            <button type="button" data-modal-close class="btn btn-ghost">{{ __('admin.flash_sales.go_back') }}</button>
+            <button type="button" id="btn-confirm-cancel" class="btn btn-danger">{{ __('admin.flash_sales.cancel_sale') }}</button>
         </x-slot:footer>
     </x-modal>
 
     {{-- Auto-invite confirmation modal --}}
-    <x-modal id="auto-invite-modal" title="Auto-Invite Eligible Vendors" size="sm">
+    <x-modal id="auto-invite-modal" title="{{ __('admin.flash_sales.auto_invite_title') }}" size="sm">
         <div class="space-y-3">
             <div id="auto-invite-loading" class="py-6 text-center text-sm text-gray-400">
-                Checking eligible vendors…
+                {{ __('admin.flash_sales.checking_eligible_vendors') }}
             </div>
             <div id="auto-invite-content" class="hidden space-y-3">
                 <p class="text-sm text-gray-700">
                     <span id="auto-invite-count" class="font-bold text-gray-900 text-lg">0</span>
-                    vendor(s) match this flash sale's eligibility criteria and have not yet been invited.
+                    {{ __('admin.flash_sales.auto_invite_match_msg') }}
                 </p>
                 <div id="auto-invite-zero-msg" class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
-                    <strong>No new vendors to invite.</strong>
+                    <strong>{{ __('admin.flash_sales.no_new_vendors') }}</strong>
                     <p class="mt-1 text-xs" id="auto-invite-criteria-hint"></p>
                 </div>
                 <div id="auto-invite-confirm-area">
-                    <p class="text-xs text-gray-500">Invitations will be created as <em>Auto</em> type and notifications queued immediately.</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.flash_sales.auto_invite_note') }}</p>
                 </div>
             </div>
         </div>
         <x-slot:footer>
-            <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
+            <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
             <button type="button" id="btn-confirm-auto-invite" class="btn btn-secondary hidden">
-                Send Invitations
+                {{ __('admin.flash_sales.send_invitations') }}
             </button>
         </x-slot:footer>
     </x-modal>
 
     {{-- Decline reason modal --}}
-    <x-modal id="decline-reason-modal" title="Decline Reason" size="sm">
+    <x-modal id="decline-reason-modal" title="{{ __('admin.flash_sales.decline_reason') }}" size="sm">
         <div class="space-y-2">
             <p class="text-sm text-gray-600" id="decline-reason-vendor"></p>
             <blockquote class="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-800 italic" id="decline-reason-text"></blockquote>
         </div>
         <x-slot:footer>
-            <button type="button" data-modal-close class="btn btn-ghost">Close</button>
+            <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.close') }}</button>
         </x-slot:footer>
     </x-modal>
 
     {{-- Manual invite modal --}}
-    <x-modal id="manual-invite-modal" title="Invite Vendor Manually" size="sm">
+    <x-modal id="manual-invite-modal" title="{{ __('admin.flash_sales.invite_vendor_manually') }}" size="sm">
         <div class="space-y-3">
-            <p class="text-sm text-gray-500">Enter one vendor ID per line.</p>
+            <p class="text-sm text-gray-500">{{ __('admin.flash_sales.enter_vendor_ids') }}</p>
             <div>
-                <label class="form-label">Vendor IDs</label>
-                <textarea id="manual-invite-ids" rows="5" class="form-textarea w-full font-mono text-sm" placeholder="Paste UUIDs, one per line…"></textarea>
+                <label class="form-label">{{ __('admin.flash_sales.vendor_ids') }}</label>
+                <textarea id="manual-invite-ids" rows="5" class="form-textarea w-full font-mono text-sm" placeholder="{{ __('admin.flash_sales.vendor_ids_placeholder') }}"></textarea>
             </div>
         </div>
         <x-slot:footer>
-            <button type="button" data-modal-close class="btn btn-ghost">Cancel</button>
-            <button type="button" id="btn-confirm-manual-invite" class="btn btn-primary">Send Invitations</button>
+            <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
+            <button type="button" id="btn-confirm-manual-invite" class="btn btn-primary">{{ __('admin.flash_sales.send_invitations') }}</button>
         </x-slot:footer>
     </x-modal>
 

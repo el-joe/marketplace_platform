@@ -4,41 +4,41 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/ad-campaigns.js'])
 @endpush
 
-@section('title', 'Ad Campaigns')
+@section('title', __('admin.ad_campaigns.title'))
 
 @section('content')
 
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Ad Campaigns</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Review, approve, and manage vendor advertising campaigns.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.ad_campaigns.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.ad_campaigns.manage_desc') }}</p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('admin.ad-campaigns.fraud') }}" class="btn btn-secondary btn-sm">Fraud Alerts</a>
-            <a href="{{ route('admin.ad-slots.index') }}" class="btn btn-secondary btn-sm">Ad Slots</a>
-            <a href="{{ route('admin.paid-ad-bookings.index') }}" class="btn btn-primary btn-sm">Paid Bookings</a>
+            <a href="{{ route('admin.ad-campaigns.fraud') }}" class="btn btn-secondary btn-sm">{{ __('admin.ad_campaigns.fraud_alerts') }}</a>
+            <a href="{{ route('admin.ad-slots.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.ad_campaigns.ad_slots') }}</a>
+            <a href="{{ route('admin.paid-ad-bookings.index') }}" class="btn btn-primary btn-sm">{{ __('admin.ad_campaigns.paid_bookings') }}</a>
         </div>
     </div>
 
     {{-- ─── Stats ────────────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <x-stat-card
-            title="Pending Review"
+            title="{{ __('admin.ad_campaigns.pending_review') }}"
             :value="number_format($stats['pending'])"
             icon="clock"
             iconBg="bg-warning-100 text-warning-600" />
         <x-stat-card
-            title="Active Campaigns"
+            title="{{ __('admin.ad_campaigns.active_campaigns') }}"
             :value="number_format($stats['active'])"
             icon="check-circle"
             iconBg="bg-success-100 text-success-600" />
         <x-stat-card
-            title="Paused"
+            title="{{ __('admin.ad_campaigns.paused') }}"
             :value="number_format($stats['paused'])"
             icon="pause-circle"
             iconBg="bg-gray-100 text-gray-600" />
         <x-stat-card
-            title="Spend Today"
+            title="{{ __('admin.ad_campaigns.spend_today') }}"
             :value="'$' . number_format($stats['spend_today'] / 100, 2)"
             icon="trending-up"
             iconBg="bg-primary-100 text-primary-600" />
@@ -47,9 +47,9 @@
     {{-- ─── Tab navigation ──────────────────────────────────────────────────────── --}}
     <div class="flex border-b border-gray-200 mb-5 gap-1">
         @foreach([
-            'all'      => 'All Campaigns',
-            'cpc'      => 'CPC Campaigns',
-            'cpm'      => 'CPM Campaigns',
+            'all'      => __('admin.ad_campaigns.active_campaigns_tab'),
+            'cpc'      => __('admin.ad_campaigns.cpc_campaigns'),
+            'cpm'      => __('admin.ad_campaigns.cpm_campaigns'),
         ] as $typeVal => $typeLabel)
             <button
                 type="button"
@@ -65,39 +65,39 @@
     <x-card class="mb-5">
         <form id="filter-form" class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[160px]">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Search</label>
-                <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="Campaign name, vendor…">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ad_campaigns.search') }}</label>
+                <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="{{ __('admin.ad_campaigns.search_placeholder') }}">
             </div>
             <div class="w-40">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ad_campaigns.status') }}</label>
                 <select id="filter-status" class="form-input w-full text-sm">
-                    <option value="">All statuses</option>
-                    <option value="pending_review">Pending Review</option>
-                    <option value="active">Active</option>
-                    <option value="paused">Paused</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="ended">Ended</option>
-                    <option value="draft">Draft</option>
+                    <option value="">{{ __('admin.ad_campaigns.all_statuses') }}</option>
+                    <option value="pending_review">{{ __('admin.ad_campaigns.pending_review') }}</option>
+                    <option value="active">{{ __('admin.ad_campaigns.active') }}</option>
+                    <option value="paused">{{ __('admin.ad_campaigns.paused') }}</option>
+                    <option value="rejected">{{ __('admin.ad_campaigns.rejected') }}</option>
+                    <option value="ended">{{ __('admin.ad_campaigns.ended') }}</option>
+                    <option value="draft">{{ __('admin.ad_campaigns.draft') }}</option>
                 </select>
             </div>
             <div class="w-40">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Country</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.country') }}</label>
                 <select id="filter-country" class="form-input w-full text-sm">
-                    <option value="">All countries</option>
+                    <option value="">{{ __('admin.ad_campaigns.all_countries') }}</option>
                     @foreach($countries as $c)
                         <option value="{{ $c->id }}">{{ $c->flag_emoji ? $c->flag_emoji . ' ' : '' }}{{ $c->name_en }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Start from</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ad_campaigns.start_from') }}</label>
                 <input type="date" id="filter-date-from" class="form-input w-full text-sm">
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Ends by</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ad_campaigns.ends_by') }}</label>
                 <input type="date" id="filter-date-to" class="form-input w-full text-sm">
             </div>
-            <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">Reset</button>
+            <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('admin.ad_campaigns.reset') }}</button>
         </form>
     </x-card>
 
@@ -106,17 +106,17 @@
         <div class="overflow-x-auto">
             <table id="campaigns-table" class="w-full text-sm" style="width:100%">
                 <thead>
-                    <tr class="border-b border-gray-100 text-left">
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Vendor</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Campaign</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Type</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Budget</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Spend</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Utilization</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Quality</th>
-                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">Dates</th>
-                        <th class="py-2 text-xs font-medium text-gray-500 uppercase text-right">Actions</th>
+                    <tr class="border-b border-gray-100 text-start">
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.vendor') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.marketers.campaign') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.type') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.status') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.budget') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.spend') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.utilization') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.quality') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.ad_campaigns.dates') }}</th>
+                        <th class="py-2 text-xs font-medium text-gray-500 uppercase text-end">{{ __('admin.ad_campaigns.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -125,45 +125,45 @@
     </x-card>
 
     {{-- ─── Approve Confirm Modal ───────────────────────────────────────────────── --}}
-    <x-modal id="approve-modal" title="Approve Campaign" size="sm">
+    <x-modal id="approve-modal" title="{{ __('admin.ad_campaigns.approve_campaign_title') }}" size="sm">
         <p class="text-sm text-gray-600">
-            Approve campaign <strong id="approve-campaign-name"></strong>?
-            It will become active immediately.
+            {{ __('admin.marketers.approve') }} {{ __('admin.marketers.campaign') }} <strong id="approve-campaign-name"></strong>?
+            {{ __('admin.ad_campaigns.will_become_active_immediately') }}
         </p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#approve-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-approve-btn" class="btn btn-success">Approve</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#approve-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-approve-btn" class="btn btn-success">{{ __('admin.marketers.approve') }}</button>
         </div>
     </x-modal>
 
     {{-- ─── Reject Modal ────────────────────────────────────────────────────────── --}}
-    <x-modal id="reject-modal" title="Reject Campaign" size="md">
+    <x-modal id="reject-modal" title="{{ __('admin.ad_campaigns.reject_campaign_title') }}" size="md">
         <p class="text-sm text-gray-600 mb-3">
-            Reject campaign <strong id="reject-campaign-name"></strong>.
+            {{ __('admin.ad_campaigns.reject_campaign_title') }} <strong id="reject-campaign-name"></strong>.
         </p>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Rejection Reason <span class="text-red-500">*</span></label>
-        <textarea id="reject-reason-input" rows="3" class="form-input w-full text-sm" placeholder="Explain why this campaign is being rejected…"></textarea>
-        <p class="text-xs text-red-500 hidden mt-1" id="reject-reason-error">Reason is required.</p>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.ad_campaigns.rejection_reason') }} <span class="text-red-500">*</span></label>
+        <textarea id="reject-reason-input" rows="3" class="form-input w-full text-sm" placeholder="{{ __('admin.marketers.reject_campaign_reason_placeholder') }}"></textarea>
+        <p class="text-xs text-red-500 hidden mt-1" id="reject-reason-error">{{ __('admin.ad_campaigns.reason_required') }}</p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#reject-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-reject-btn" class="btn btn-danger">Reject</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#reject-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-reject-btn" class="btn btn-danger">{{ __('admin.marketers.reject') }}</button>
         </div>
     </x-modal>
 
     {{-- ─── Pause / Resume Confirm Modals ──────────────────────────────────────── --}}
-    <x-modal id="pause-modal" title="Pause Campaign" size="sm">
-        <p class="text-sm text-gray-600">Pause <strong id="pause-campaign-name"></strong>? The campaign will stop serving ads.</p>
+    <x-modal id="pause-modal" title="{{ __('admin.ad_campaigns.pause_campaign_title') }}" size="sm">
+        <p class="text-sm text-gray-600">{{ __('admin.ad_campaigns.pause') }} <strong id="pause-campaign-name"></strong>? {{ __('admin.ad_campaigns.will_stop_serving_ads') }}</p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#pause-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-pause-btn" class="btn btn-warning">Pause</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#pause-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-pause-btn" class="btn btn-warning">{{ __('admin.ad_campaigns.pause') }}</button>
         </div>
     </x-modal>
 
-    <x-modal id="resume-modal" title="Resume Campaign" size="sm">
-        <p class="text-sm text-gray-600">Resume <strong id="resume-campaign-name"></strong>? It will start serving ads again.</p>
+    <x-modal id="resume-modal" title="{{ __('admin.ad_campaigns.resume_campaign_title') }}" size="sm">
+        <p class="text-sm text-gray-600">{{ __('admin.ad_campaigns.resume') }} <strong id="resume-campaign-name"></strong>? {{ __('admin.ad_campaigns.will_start_serving_ads_again') }}</p>
         <div class="flex justify-end gap-3 mt-5">
-            <button type="button" class="btn btn-secondary" onclick="$('#resume-modal').modal('close')">Cancel</button>
-            <button type="button" id="confirm-resume-btn" class="btn btn-success">Resume</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#resume-modal').modal('close')">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-resume-btn" class="btn btn-success">{{ __('admin.ad_campaigns.resume') }}</button>
         </div>
     </x-modal>
 

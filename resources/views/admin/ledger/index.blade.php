@@ -4,7 +4,7 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/ledger.js'])
 @endpush
 
-@section('title', 'Ledger — Read Only')
+@section('title', __('admin.ledger.title') . ' — ' . __('admin.ledger.read_only'))
 
 @section('content')
 
@@ -12,16 +12,13 @@
     <div class="mb-5 flex items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">
-                Ledger
+                {{ __('admin.ledger_section.title') }}
                 <span
-                    class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">Read
-                    Only</span>
+                    class="ms-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">{{ __('admin.ledger_section.read_only') }}</span>
                 <span
-                    class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">Append
-                    Only</span>
+                    class="ms-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">{{ __('admin.ledger_section.append_only') }}</span>
             </h1>
-            <p class="text-sm text-gray-500 mt-0.5">Double-entry accounting ledger. All values shown in base currency units
-                (amount ÷ 100).</p>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.ledger.subtitle') }}</p>
         </div>
     </div>
 
@@ -32,28 +29,27 @@
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                 clip-rule="evenodd" />
         </svg>
-        <span>These records <strong>cannot be modified or deleted</strong>. This is an append-only ledger — every financial
-            event is permanently recorded.</span>
+        <span>{!! __('admin.ledger.readonly_warning') !!}</span>
     </div>
 
     {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-        <x-stat-card title="Total Debits" :value="'$' . number_format($stats['total_debit'] / 100, 2)"
+        <x-stat-card title="{{ __('admin.ledger_section.cards.total_debit') }}" :value="'$' . number_format($stats['total_debit'] / 100, 2)"
             iconBg="bg-green-100 text-green-600" />
 
-        <x-stat-card title="Total Credits" :value="'$' . number_format($stats['total_credit'] / 100, 2)"
+        <x-stat-card title="{{ __('admin.ledger_section.cards.total_credit') }}" :value="'$' . number_format($stats['total_credit'] / 100, 2)"
             iconBg="bg-blue-100 text-blue-600" />
 
         <div
             class="rounded-xl border {{ $stats['balanced'] ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50' }} p-4">
             <p class="text-xs font-medium {{ $stats['balanced'] ? 'text-green-600' : 'text-red-600' }} uppercase mb-1">
-                Balance Check</p>
+                {{ __('admin.ledger_section.cards.balance_check') }}</p>
             @if($stats['balanced'])
-                <p class="text-xl font-bold text-green-700">✓ Balanced</p>
-                <p class="text-xs text-green-600 mt-0.5">Σ Debit = Σ Credit</p>
+                <p class="text-xl font-bold text-green-700">✓ {{ __('admin.ledger_section.cards.balanced') }}</p>
+                <p class="text-xs text-green-600 mt-0.5">{{ __('admin.ledger_section.cards.balance_formula') }}</p>
             @else
-                <p class="text-xl font-bold text-red-700">⚠ Imbalance</p>
-                <p class="text-xs text-red-600 mt-0.5">Difference: ${{ number_format($stats['difference'] / 100, 2) }}</p>
+                <p class="text-xl font-bold text-red-700">⚠ {{ __('admin.ledger_section.cards.imbalance') }}</p>
+                <p class="text-xs text-red-600 mt-0.5" dir="ltr">{{ __('admin.ledger_section.cards.difference') }}: ${{ number_format($stats['difference'] / 100, 2) }}</p>
             @endif
         </div>
     </div>
@@ -62,42 +58,42 @@
     <x-card class="mb-5">
         <div class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[160px]">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Search description</label>
-                <input type="text" id="ledger-search-input" class="form-input w-full text-sm" placeholder="Description…">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger_section.search_description') }}</label>
+                <input type="text" id="ledger-search-input" class="form-input w-full text-sm" placeholder="{{ __('common.description') }}…">
             </div>
             <div class="w-48">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Account Type</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger_section.account_type') }}</label>
                 <select id="ledger-filter-account-type" class="form-input w-full text-sm">
-                    <option value="">All account types</option>
+                    <option value="">{{ __('admin.ledger_section.all_account_types') }}</option>
                     @foreach($accountTypes as $type)
                         <option value="{{ $type }}">{{ ucwords(str_replace('_', ' ', $type)) }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="w-28">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Currency</label>
-                <input type="text" id="ledger-filter-currency" class="form-input w-full text-sm" placeholder="USD">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.currency') }}</label>
+                <input type="text" id="ledger-filter-currency" class="form-input w-full text-sm" placeholder="USD" dir="ltr">
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Date from</label>
-                <input type="date" id="ledger-filter-date-from" class="form-input w-full text-sm">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.from') }}</label>
+                <input type="date" id="ledger-filter-date-from" class="form-input w-full text-sm" dir="ltr">
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Date to</label>
-                <input type="date" id="ledger-filter-date-to" class="form-input w-full text-sm">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.to') }}</label>
+                <input type="date" id="ledger-filter-date-to" class="form-input w-full text-sm" dir="ltr">
             </div>
             <div class="w-56">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Transaction Group ID</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger_section.transaction_group_id') }}</label>
                 <input type="text" id="ledger-filter-group-id" class="form-input w-full text-sm font-mono"
-                    placeholder="UUID…">
+                    placeholder="UUID…" dir="ltr">
             </div>
             <div class="w-36">
-                <label class="block text-xs font-medium text-gray-600 mb-1">Reference Type</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.ledger_section.reference_type') }}</label>
                 <input type="text" id="ledger-filter-reference-type" class="form-input w-full text-sm"
-                    placeholder="e.g. order">
+                    placeholder="{{ __('admin.ledger_section.reference_type_placeholder') }}">
             </div>
             <div>
-                <button type="button" id="ledger-clear-filters" class="btn btn-secondary btn-sm">Clear</button>
+                <button type="button" id="ledger-clear-filters" class="btn btn-secondary btn-sm">{{ __('common.clear') }}</button>
             </div>
         </div>
     </x-card>
@@ -107,15 +103,15 @@
         <table id="ledger-table" class="w-full" style="width:100%">
             <thead>
                 <tr>
-                    <th>Created At</th>
-                    <th>Group ID</th>
-                    <th>Account Type</th>
-                    <th>Holder</th>
-                    <th>Debit</th>
-                    <th>Credit</th>
-                    <th>Currency</th>
-                    <th>Reference</th>
-                    <th>Description</th>
+                    <th>{{ __('admin.ledger_section.data_table.created_at') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.group_id') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.account_type') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.holder') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.debit') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.credit') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.currency') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.reference') }}</th>
+                    <th>{{ __('admin.ledger_section.data_table.description') }}</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -123,12 +119,12 @@
     </x-card>
 
     {{-- ─── Transaction Group Modal ─────────────────────────────────────────────── --}}
-    <x-modal id="ledger-group-modal" title="Transaction Group" size="lg">
+    <x-modal id="ledger-group-modal" title="{{ __('admin.ledger.transaction_group') }}" size="lg">
         <div id="ledger-group-content">
-            <p class="text-sm text-gray-500">Loading…</p>
+            <p class="text-sm text-gray-500">{{ __('common.loading') }}</p>
         </div>
         <x-slot name="footer">
-            <button type="button" class="btn btn-secondary" onclick="$('#ledger-group-modal').modal('close')">Close</button>
+            <button type="button" class="btn btn-secondary" onclick="$('#ledger-group-modal').modal('close')">{{ __('common.close') }}</button>
         </x-slot>
     </x-modal>
 

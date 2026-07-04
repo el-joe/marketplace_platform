@@ -1,26 +1,45 @@
 @extends('layouts.marketer')
 
-@section('title', 'My Earnings')
-@section('page-title', 'My Earnings')
+@section('title', __('marketer.earnings.title'))
+@section('page-title', __('marketer.earnings.title'))
 
 @section('content')
 
 {{-- ── Summary Cards ────────────────────────────────────────────────────────── --}}
+{{-- Each card may show multiple currency rows when the marketer earns in more than one country. --}}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-gray-100 p-5">
-        <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Pending</p>
-        <p class="text-2xl font-extrabold text-yellow-600 mt-1">{{ number_format($summary['pending'] / 100, 2) }}</p>
-        <p class="text-xs text-gray-400 mt-0.5">Awaiting return window (14 days)</p>
+        <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">{{ __('marketer.earnings.pending_summary') }}</p>
+        @forelse($summary['pending'] as $currency => $cents)
+            <p class="text-2xl font-extrabold text-yellow-600 mt-1">
+                {{ number_format($cents / 100, 2) }} <span class="text-sm font-normal text-gray-400">{{ $currency }}</span>
+            </p>
+        @empty
+            <p class="text-2xl font-extrabold text-yellow-600 mt-1">—</p>
+        @endforelse
+        <p class="text-xs text-gray-400 mt-0.5">{{ __('marketer.earnings.awaiting_return_window') }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5">
-        <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Approved</p>
-        <p class="text-2xl font-extrabold text-blue-600 mt-1">{{ number_format($summary['approved'] / 100, 2) }}</p>
-        <p class="text-xs text-gray-400 mt-0.5">Ready for payout</p>
+        <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">{{ __('marketer.earnings.approved_summary') }}</p>
+        @forelse($summary['approved'] as $currency => $cents)
+            <p class="text-2xl font-extrabold text-blue-600 mt-1">
+                {{ number_format($cents / 100, 2) }} <span class="text-sm font-normal text-gray-400">{{ $currency }}</span>
+            </p>
+        @empty
+            <p class="text-2xl font-extrabold text-blue-600 mt-1">—</p>
+        @endforelse
+        <p class="text-xs text-gray-400 mt-0.5">{{ __('marketer.earnings.ready_for_payout') }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5">
-        <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Paid Out</p>
-        <p class="text-2xl font-extrabold text-green-600 mt-1">{{ number_format($summary['paid'] / 100, 2) }}</p>
-        <p class="text-xs text-gray-400 mt-0.5">Total received (SAR)</p>
+        <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">{{ __('marketer.earnings.paid_out') }}</p>
+        @forelse($summary['paid'] as $currency => $cents)
+            <p class="text-2xl font-extrabold text-green-600 mt-1">
+                {{ number_format($cents / 100, 2) }} <span class="text-sm font-normal text-gray-400">{{ $currency }}</span>
+            </p>
+        @empty
+            <p class="text-2xl font-extrabold text-green-600 mt-1">—</p>
+        @endforelse
+        <p class="text-xs text-gray-400 mt-0.5">{{ __('marketer.earnings.total_received') }}</p>
     </div>
 </div>
 
@@ -28,7 +47,7 @@
 <div x-data="{ tab: 'pending' }">
 
     <div class="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5 w-fit">
-        @foreach(['pending' => 'Pending', 'approved' => 'Approved', 'payouts' => 'Payout History'] as $key => $label)
+        @foreach(['pending' => __('marketer.earnings.pending_tab'), 'approved' => __('marketer.earnings.approved_tab'), 'payouts' => __('marketer.earnings.payout_history')] as $key => $label)
             <button type="button" @click="tab = '{{ $key }}'"
                     class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors"
                     :class="tab === '{{ $key }}' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
@@ -47,17 +66,17 @@
         @if($pending->isEmpty())
             <div class="bg-white rounded-2xl border border-gray-100 p-10 text-center">
                 <div class="text-3xl mb-2">⏳</div>
-                <p class="font-semibold text-gray-600">No pending commissions</p>
+                <p class="font-semibold text-gray-600">{{ __('marketer.earnings.no_pending') }}</p>
             </div>
         @else
             <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="text-left font-semibold text-gray-500 px-4 py-3">Campaign</th>
-                            <th class="text-right font-semibold text-gray-500 px-4 py-3">Order Value</th>
-                            <th class="text-right font-semibold text-gray-500 px-4 py-3">Commission</th>
-                            <th class="text-right font-semibold text-gray-500 px-4 py-3">Date</th>
+                            <th class="text-left font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.campaign') }}</th>
+                            <th class="text-right font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.order_value') }}</th>
+                            <th class="text-right font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.commission') }}</th>
+                            <th class="text-right font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.date') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -85,17 +104,17 @@
         @if($approved->isEmpty())
             <div class="bg-white rounded-2xl border border-gray-100 p-10 text-center">
                 <div class="text-3xl mb-2">✅</div>
-                <p class="font-semibold text-gray-600">No approved commissions yet</p>
+                <p class="font-semibold text-gray-600">{{ __('marketer.earnings.no_approved') }}</p>
             </div>
         @else
             <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="text-left font-semibold text-gray-500 px-4 py-3">Campaign</th>
-                            <th class="text-right font-semibold text-gray-500 px-4 py-3">Order Value</th>
-                            <th class="text-right font-semibold text-gray-500 px-4 py-3">Commission</th>
-                            <th class="text-right font-semibold text-gray-500 px-4 py-3">Approved</th>
+                            <th class="text-left font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.campaign') }}</th>
+                            <th class="text-right font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.order_value') }}</th>
+                            <th class="text-right font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.commission') }}</th>
+                            <th class="text-right font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.approved_on') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,19 +144,19 @@
         @if($payouts->isEmpty())
             <div class="bg-white rounded-2xl border border-gray-100 p-10 text-center">
                 <div class="text-3xl mb-2">💸</div>
-                <p class="font-semibold text-gray-600">No payouts yet</p>
-                <p class="text-sm text-gray-400 mt-1">Payouts are processed weekly once commissions are approved.</p>
+                <p class="font-semibold text-gray-600">{{ __('marketer.earnings.no_payouts') }}</p>
+                <p class="text-sm text-gray-400 mt-1">{{ __('marketer.earnings.payouts_processed_weekly') }}</p>
             </div>
         @else
             <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="text-left font-semibold text-gray-500 px-4 py-3">Payout #</th>
-                            <th class="text-left font-semibold text-gray-500 px-4 py-3">Period</th>
-                            <th class="text-right font-semibold text-gray-500 px-4 py-3">Conv.</th>
-                            <th class="text-right font-semibold text-gray-500 px-4 py-3">Net Amount</th>
-                            <th class="text-center font-semibold text-gray-500 px-4 py-3">Status</th>
+                            <th class="text-left font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.payout_number') }}</th>
+                            <th class="text-left font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.period') }}</th>
+                            <th class="text-right font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.conversions_count') }}</th>
+                            <th class="text-right font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.net_amount') }}</th>
+                            <th class="text-center font-semibold text-gray-500 px-4 py-3">{{ __('marketer.earnings.status') }}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -4,27 +4,27 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Orders')
+@section('title', __('admin.orders.title'))
 
 @section('content')
     @php
         $columns = [
             [
-                'title' => 'Order #',
+                'title' => __('admin.orders.order_number'),
                 'data' => 'order_number',
                 'name' => 'order_number',
                 'searchable' => true,
                 'render' => 'function(data,t,row){return "<a href=\""+row.show_url+"\" class=\"font-medium text-primary-600 hover:text-primary-800 hover:underline\">"+data+"</a>";}',
             ],
             [
-                'title' => 'Customer',
+                'title' => __('admin.orders.customer'),
                 'data' => 'customer',
                 'name' => 'customer',
                 'orderable' => false,
                 'searchable' => false,
             ],
             [
-                'title' => 'Items',
+                'title' => __('admin.orders.items'),
                 'data' => 'items_count',
                 'name' => 'items_count',
                 'orderable' => false,
@@ -32,45 +32,45 @@
                 'className' => 'text-center',
             ],
             [
-                'title' => 'Total',
+                'title' => __('common.total'),
                 'data' => 'total_formatted',
                 'name' => 'total_formatted',
                 'searchable' => false,
-                'className' => 'text-right font-medium',
+                'className' => 'text-end font-medium',
             ],
             [
-                'title' => 'Payment',
+                'title' => __('admin.orders.payment_method'),
                 'data' => 'payment_method',
                 'name' => 'payment_method',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                            card:          { label: "Card",          color: "primary" },
-                            wallet:        { label: "Wallet",        color: "primary" },
-                            cod:           { label: "Cash on Del.",  color: "gray"    },
-                            bnpl:          { label: "BNPL",          color: "warning" },
-                            bank_transfer: { label: "Bank Transfer", color: "gray"    }
+                            card:          { label: "' . __('admin.orders.payment_card') . '",          color: "primary" },
+                            wallet:        { label: "' . __('admin.orders.payment_wallet') . '",        color: "primary" },
+                            cod:           { label: "' . __('admin.orders.payment_cod') . '",  color: "gray"    },
+                            bnpl:          { label: "' . __('admin.orders.payment_bnpl') . '",          color: "warning" },
+                            bank_transfer: { label: "' . __('admin.orders.payment_bank_transfer') . '", color: "gray"    }
                         })',
             ],
             [
-                'title' => 'Status',
+                'title' => __('common.status'),
                 'data' => 'status',
                 'name' => 'status',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                            placed:              { label: "Placed",          color: "gray"    },
-                            confirmed:           { label: "Confirmed",       color: "primary" },
-                            partially_shipped:   { label: "Part. Shipped",   color: "primary" },
-                            shipped:             { label: "Shipped",         color: "primary" },
-                            partially_delivered: { label: "Part. Delivered", color: "primary" },
-                            delivered:           { label: "Delivered",       color: "success" },
-                            completed:           { label: "Completed",       color: "success" },
-                            cancelled:           { label: "Cancelled",       color: "danger"  },
-                            refunded:            { label: "Refunded",        color: "warning" },
-                            disputed:            { label: "Disputed",        color: "danger"  }
+                            placed:              { label: "' . __('common.order_status.placed') . '",          color: "gray"    },
+                            confirmed:           { label: "' . __('common.order_status.confirmed') . '",       color: "primary" },
+                            partially_shipped:   { label: "' . __('admin.orders.status_partially_shipped') . '",   color: "primary" },
+                            shipped:             { label: "' . __('common.order_status.shipped') . '",         color: "primary" },
+                            partially_delivered: { label: "' . __('admin.orders.status_partially_delivered') . '", color: "primary" },
+                            delivered:           { label: "' . __('common.order_status.delivered') . '",       color: "success" },
+                            completed:           { label: "' . __('common.order_status.completed') . '",       color: "success" },
+                            cancelled:           { label: "' . __('common.order_status.cancelled') . '",       color: "danger"  },
+                            refunded:            { label: "' . __('common.order_status.refunded') . '",        color: "warning" },
+                            disputed:            { label: "' . __('common.order_status.disputed') . '",        color: "danger"  }
                         })',
             ],
             [
-                'title' => 'Risk',
+                'title' => __('admin.orders.risk_score'),
                 'data' => 'risk_score',
                 'name' => 'risk_score',
                 'searchable' => false,
@@ -83,7 +83,7 @@
                         }',
             ],
             [
-                'title' => 'Placed',
+                'title' => __('admin.orders.placed'),
                 'data' => 'placed_at',
                 'name' => 'placed_at',
                 'searchable' => false,
@@ -95,59 +95,59 @@
                 'name' => 'actions',
                 'orderable' => false,
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'Renderers.actions([
-                            { type: "link", label: "View", url: ":show_url", class: "btn-primary btn-sm" }
+                            { type: "link", label: "' . __('common.view') . '", url: ":show_url", class: "btn-primary btn-sm" }
                         ])',
             ],
         ];
 
         $filters = [
-            ['type' => 'text', 'name' => 'search', 'label' => 'Order #', 'placeholder' => 'Search order #…'],
+            ['type' => 'text', 'name' => 'search', 'label' => __('admin.orders.order_number'), 'placeholder' => __('admin.orders.search_order_placeholder')],
             [
                 'type' => 'select',
                 'name' => 'status',
-                'label' => 'Status',
+                'label' => __('common.status'),
                 'options' => [
-                    'placed' => 'Placed',
-                    'confirmed' => 'Confirmed',
-                    'partially_shipped' => 'Partially Shipped',
-                    'shipped' => 'Shipped',
-                    'partially_delivered' => 'Partially Delivered',
-                    'delivered' => 'Delivered',
-                    'completed' => 'Completed',
-                    'cancelled' => 'Cancelled',
-                    'refunded' => 'Refunded',
-                    'disputed' => 'Disputed',
+                    'placed' => __('common.order_status.placed'),
+                    'confirmed' => __('common.order_status.confirmed'),
+                    'partially_shipped' => __('admin.orders.status_partially_shipped'),
+                    'shipped' => __('common.order_status.shipped'),
+                    'partially_delivered' => __('admin.orders.status_partially_delivered'),
+                    'delivered' => __('common.order_status.delivered'),
+                    'completed' => __('common.order_status.completed'),
+                    'cancelled' => __('common.order_status.cancelled'),
+                    'refunded' => __('common.order_status.refunded'),
+                    'disputed' => __('common.order_status.disputed'),
                 ],
             ],
             [
                 'type' => 'select',
                 'name' => 'payment_status',
-                'label' => 'Payment',
+                'label' => __('admin.orders.payment_status'),
                 'options' => [
-                    'pending' => 'Pending',
-                    'authorized' => 'Authorized',
-                    'captured' => 'Captured',
-                    'failed' => 'Failed',
-                    'refunded' => 'Refunded',
-                    'partially_refunded' => 'Partially Refunded',
+                    'pending' => __('common.pending'),
+                    'authorized' => __('admin.orders.payment_authorized'),
+                    'captured' => __('admin.orders.payment_captured'),
+                    'failed' => __('admin.orders.payment_failed'),
+                    'refunded' => __('common.order_status.refunded'),
+                    'partially_refunded' => __('admin.orders.payment_partially_refunded'),
                 ],
             ],
             [
                 'type' => 'select',
                 'name' => 'country_id',
-                'label' => 'Country',
+                'label' => __('common.country'),
                 'options' => $countries->toArray(),
             ],
-            ['type' => 'date_range', 'name' => 'date', 'label' => 'Placed date'],
-            ['type' => 'text', 'name' => 'min_total', 'label' => 'Min Total', 'placeholder' => 'e.g. 50'],
-            ['type' => 'text', 'name' => 'max_total', 'label' => 'Max Total', 'placeholder' => 'e.g. 500'],
+            ['type' => 'date_range', 'name' => 'date', 'label' => __('admin.orders.placed_date')],
+            ['type' => 'text', 'name' => 'min_total', 'label' => __('admin.orders.min_total'), 'placeholder' => 'e.g. 50'],
+            ['type' => 'text', 'name' => 'max_total', 'label' => __('admin.orders.max_total'), 'placeholder' => 'e.g. 500'],
             [
                 'type' => 'select',
                 'name' => 'risk_score_min',
-                'label' => 'Risk',
-                'options' => ['70' => 'High risk only (≥ 70)', '40' => 'Medium+ risk (≥ 40)'],
+                'label' => __('admin.orders.risk_score'),
+                'options' => ['70' => __('admin.orders.risk_high'), '40' => __('admin.orders.risk_medium')],
             ],
         ];
     @endphp

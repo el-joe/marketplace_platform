@@ -1,19 +1,19 @@
 @extends('layouts.marketer')
 
-@section('title', 'New Campaign')
-@section('page-title', 'Request a Campaign')
+@section('title', __('marketer.campaigns.new_campaign_title'))
+@section('page-title', __('marketer.campaigns.request_a_campaign'))
 
 @section('content')
 
 <div class="max-w-2xl">
 
     <div class="flex items-center gap-2 mb-6">
-        <a href="{{ route('marketer.campaigns.index') }}" class="text-sm text-gray-400 hover:text-gray-600">← Campaigns</a>
+        <a href="{{ route('marketer.campaigns.index') }}" class="text-sm text-gray-400 hover:text-gray-600">{{ __('marketer.campaigns.back_to_campaigns') }}</a>
     </div>
 
     <div class="bg-white rounded-2xl border border-gray-100 p-6">
         <p class="text-sm text-gray-500 mb-5">
-            Your campaign request will be reviewed by our team. Once approved, you can start sharing your tracking link.
+            {{ __('marketer.campaigns.request_review_notice') }}
         </p>
 
         <form action="{{ route('marketer.campaigns.store') }}" method="POST" id="campaign-form">
@@ -23,7 +23,7 @@
 
                 {{-- Name --}}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Campaign Name <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.name') }} <span class="text-red-500">*</span></label>
                     <input type="text" name="name" value="{{ old('name') }}"
                            class="form-input w-full text-sm @error('name') border-red-400 @enderror"
                            placeholder="e.g. Ramadan 2025 Collection">
@@ -34,10 +34,10 @@
 
                 {{-- Description --}}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.description') }}</label>
                     <textarea name="description" rows="3"
                               class="form-input w-full text-sm @error('description') border-red-400 @enderror"
-                              placeholder="Briefly describe what you're promoting…">{{ old('description') }}</textarea>
+                              placeholder="{{ __('marketer.campaigns.description_placeholder') }}">{{ old('description') }}</textarea>
                     @error('description')
                         <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                     @enderror
@@ -45,16 +45,16 @@
 
                 {{-- Campaign Type --}}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Campaign Type <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.campaign_type') }} <span class="text-red-500">*</span></label>
                     <select name="campaign_type" id="campaign-type-select" class="form-input w-full text-sm @error('campaign_type') border-red-400 @enderror">
-                        <option value="">Select type…</option>
+                        <option value="">{{ __('marketer.campaigns.select_type') }}</option>
                         @foreach([
-                            'referral_link'         => 'Referral Link',
-                            'discount_code'         => 'Discount Code',
-                            'product_specific'      => 'Product Specific',
-                            'brand_deal'            => 'Brand Deal',
-                            'classified_promotion'  => 'Promote a Classified Listing',
-                            'travel_promotion'      => 'Promote a Travel Package',
+                            'referral_link'         => __('marketer.campaigns.type_referral_link'),
+                            'discount_code'         => __('marketer.campaigns.type_discount_code'),
+                            'product_specific'      => __('marketer.campaigns.type_product_specific'),
+                            'brand_deal'            => __('marketer.campaigns.type_brand_deal'),
+                            'classified_promotion'  => __('marketer.campaigns.type_classified'),
+                            'travel_promotion'      => __('marketer.campaigns.type_travel'),
                         ] as $value => $label)
                             <option value="{{ $value }}" {{ old('campaign_type') === $value ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
@@ -66,10 +66,10 @@
 
                 {{-- Vendor (hidden for classified/travel) --}}
                 <div id="vendor-section">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Vendor <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.vendor') }} <span class="text-red-500">*</span></label>
                     <select name="vendor_id" id="vendor-select"
                             class="form-input w-full text-sm @error('vendor_id') border-red-400 @enderror">
-                        <option value="">Select a vendor…</option>
+                        <option value="">{{ __('marketer.campaigns.select_vendor') }}</option>
                         @foreach($vendors as $vendor)
                             <option value="{{ $vendor->id }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
                                 {{ $vendor->name }}
@@ -83,11 +83,11 @@
 
                 {{-- Classified Listing search (single-select) --}}
                 <div id="classified-section" class="hidden">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Classified Listing <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.classified_listing') }} <span class="text-red-500">*</span></label>
                     <div class="flex gap-2 mb-2">
                         <input type="text" id="classified-search-input" class="form-input flex-1 text-sm"
-                               placeholder="Search active listings…">
-                        <button type="button" id="classified-search-btn" class="btn btn-ghost btn-sm">Search</button>
+                               placeholder="{{ __('marketer.campaigns.search_listings') }}">
+                        <button type="button" id="classified-search-btn" class="btn btn-ghost btn-sm">{{ __('marketer.campaigns.search') }}</button>
                     </div>
                     <div id="classified-results" class="border border-gray-200 rounded-xl overflow-hidden hidden">
                         <ul id="classified-list" class="divide-y divide-gray-100 max-h-48 overflow-y-auto text-sm"></ul>
@@ -101,11 +101,11 @@
 
                 {{-- Travel Package search (single-select) --}}
                 <div id="travel-section" class="hidden">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Travel Package <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.travel_package') }} <span class="text-red-500">*</span></label>
                     <div class="flex gap-2 mb-2">
                         <input type="text" id="travel-search-input" class="form-input flex-1 text-sm"
-                               placeholder="Search active travel packages…">
-                        <button type="button" id="travel-search-btn" class="btn btn-ghost btn-sm">Search</button>
+                               placeholder="{{ __('marketer.campaigns.search_travel_packages') }}">
+                        <button type="button" id="travel-search-btn" class="btn btn-ghost btn-sm">{{ __('marketer.campaigns.search') }}</button>
                     </div>
                     <div id="travel-results" class="border border-gray-200 rounded-xl overflow-hidden hidden">
                         <ul id="travel-list" class="divide-y divide-gray-100 max-h-48 overflow-y-auto text-sm"></ul>
@@ -120,7 +120,7 @@
                 {{-- Dates --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Start Date</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.start_date') }}</label>
                         <input type="date" name="starts_at" value="{{ old('starts_at') }}"
                                class="form-input w-full text-sm @error('starts_at') border-red-400 @enderror">
                         @error('starts_at')
@@ -128,7 +128,7 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">End Date</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.end_date') }}</label>
                         <input type="date" name="ends_at" value="{{ old('ends_at') }}"
                                class="form-input w-full text-sm @error('ends_at') border-red-400 @enderror">
                         @error('ends_at')
@@ -139,11 +139,11 @@
 
                 {{-- Budget Cap --}}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Budget Cap (optional)</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.budget_cap') }}</label>
                     <input type="number" name="budget" value="{{ old('budget') }}" step="0.01" min="1"
                            class="form-input w-full text-sm @error('budget') border-red-400 @enderror"
-                           placeholder="Leave blank for unlimited">
-                    <p class="text-xs text-gray-400 mt-1">Campaign auto-pauses once this is spent.</p>
+                           placeholder="{{ __('marketer.campaigns.budget_cap_placeholder') }}">
+                    <p class="text-xs text-gray-400 mt-1">{{ __('marketer.campaigns.budget_cap_hint') }}</p>
                     @error('budget')
                         <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                     @enderror
@@ -151,13 +151,13 @@
 
                 {{-- Attribution Model --}}
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Attribution Model</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.attribution_model') }}</label>
                     <select name="attribution_model" class="form-input w-full text-sm @error('attribution_model') border-red-400 @enderror">
-                        <option value="last_click" {{ old('attribution_model', 'last_click') === 'last_click' ? 'selected' : '' }}>Last Click (default)</option>
-                        <option value="first_click" {{ old('attribution_model') === 'first_click' ? 'selected' : '' }}>First Click</option>
-                        <option value="linear" {{ old('attribution_model') === 'linear' ? 'selected' : '' }}>Linear (split credit)</option>
+                        <option value="last_click" {{ old('attribution_model', 'last_click') === 'last_click' ? 'selected' : '' }}>{{ __('marketer.campaigns.attribution_last_click') }}</option>
+                        <option value="first_click" {{ old('attribution_model') === 'first_click' ? 'selected' : '' }}>{{ __('marketer.campaigns.attribution_first_click') }}</option>
+                        <option value="linear" {{ old('attribution_model') === 'linear' ? 'selected' : '' }}>{{ __('marketer.campaigns.attribution_linear') }}</option>
                     </select>
-                    <p class="text-xs text-gray-400 mt-1">Determines which click gets credit when a customer clicks multiple of your links before purchasing.</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ __('marketer.campaigns.attribution_hint') }}</p>
                     @error('attribution_model')
                         <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                     @enderror
@@ -168,19 +168,19 @@
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="whatsapp_sharing_enabled" value="1" {{ old('whatsapp_sharing_enabled') ? 'checked' : '' }}
                                class="rounded border-gray-300">
-                        <span class="text-sm font-semibold text-gray-700">Enable WhatsApp incentive links for this campaign</span>
+                        <span class="text-sm font-semibold text-gray-700">{{ __('marketer.campaigns.enable_whatsapp') }}</span>
                     </label>
-                    <p class="text-xs text-gray-400 mt-1">Lets you generate shareable WhatsApp links with discount coupons once the campaign is approved.</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ __('marketer.campaigns.whatsapp_hint') }}</p>
                 </div>
 
                 {{-- Product Search --}}
                 <div id="product-search-section">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Products (optional)</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('marketer.campaigns.products_optional') }}</label>
                     <div class="flex gap-2 mb-2">
                         <input type="text" id="product-search-input" class="form-input flex-1 text-sm"
-                               placeholder="Search products from selected vendor…" disabled>
+                               placeholder="{{ __('marketer.campaigns.search_products') }}" disabled>
                         <button type="button" id="search-products-btn"
-                                class="btn btn-ghost btn-sm" disabled>Search</button>
+                                class="btn btn-ghost btn-sm" disabled>{{ __('marketer.campaigns.search') }}</button>
                     </div>
 
                     {{-- Results --}}
@@ -195,8 +195,8 @@
             </div>
 
             <div class="flex gap-3 justify-end mt-8 pt-5 border-t border-gray-100">
-                <a href="{{ route('marketer.campaigns.index') }}" class="btn btn-ghost btn-sm">Cancel</a>
-                <button type="submit" class="btn btn-primary btn-sm px-8">Submit for Review</button>
+                <a href="{{ route('marketer.campaigns.index') }}" class="btn btn-ghost btn-sm">{{ __('marketer.campaigns.cancel') }}</a>
+                <button type="submit" class="btn btn-primary btn-sm px-8">{{ __('marketer.campaigns.submit_for_review') }}</button>
             </div>
         </form>
     </div>
@@ -206,6 +206,9 @@
 
 @push('scripts')
 <script>
+var marketerCurrency = @json($marketer->country?->currency_code ?? '');
+var SELECTED_LABEL_TEMPLATE = @json(__('marketer.campaigns.selected', ['label' => ':label']));
+
 (function () {
     const campaignTypeSelect  = document.getElementById('campaign-type-select');
     const vendorSection       = document.getElementById('vendor-section');
@@ -262,7 +265,7 @@
             .then(products => {
                 productList.innerHTML = '';
                 if (!products.length) {
-                    productList.innerHTML = '<li class="px-4 py-2 text-gray-400">No products found.</li>';
+                    productList.innerHTML = '<li class="px-4 py-2 text-gray-400">' + @json(__('marketer.campaigns.no_products_found')) + '</li>';
                 } else {
                     products.forEach(p => {
                         const li = document.createElement('li');
@@ -271,7 +274,7 @@
                             <span>${p.text}</span>
                             <button type="button" data-id="${p.id}" data-name="${p.text}"
                                     class="add-product-btn text-xs bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg px-2 py-0.5">
-                                + Add
+                                ${@json(__('marketer.campaigns.add'))}
                             </button>`;
                         productList.appendChild(li);
                     });
@@ -300,7 +303,7 @@
             <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs rounded-lg px-2 py-1 font-medium">
                 ${p.name}
                 <button type="button" data-id="${p.id}" class="remove-product-btn ml-1 text-blue-400 hover:text-red-500">✕</button>
-                <input type="hidden" name="product_listing_ids[]" value="${p.id}">
+                <input type="hidden" name="products[]" value="${p.id}">
             </span>
         `).join('');
     }
@@ -321,18 +324,18 @@
                 .then(items => {
                     list.innerHTML = '';
                     if (!items.length) {
-                        list.innerHTML = '<li class="px-4 py-2 text-gray-400">No results found.</li>';
+                        list.innerHTML = '<li class="px-4 py-2 text-gray-400">' + @json(__('marketer.campaigns.no_results_found')) + '</li>';
                     } else {
                         items.forEach(item => {
                             const li = document.createElement('li');
                             li.className = 'px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between';
                             const label = item[labelKey] ?? item.title ?? item.id;
-                            const price = item.price ? ` — ${item.price} SAR` : '';
+                            const price = item.price ? ` — ${item.price} ${marketerCurrency}` : '';
                             li.innerHTML = `
                                 <span>${label}${price}</span>
                                 <button type="button" data-id="${item.id}" data-label="${label}"
                                         class="pick-btn text-xs bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold rounded-lg px-2 py-0.5">
-                                    Select
+                                    ${@json(__('marketer.campaigns.select'))}
                                 </button>`;
                             list.appendChild(li);
                         });
@@ -347,7 +350,7 @@
         list.addEventListener('click', function (e) {
             if (e.target.classList.contains('pick-btn')) {
                 hidden.value = e.target.dataset.id;
-                display.textContent = '✓ Selected: ' + e.target.dataset.label;
+                display.textContent = SELECTED_LABEL_TEMPLATE.replace(':label', e.target.dataset.label);
                 results.classList.add('hidden');
             }
         });

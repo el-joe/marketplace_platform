@@ -212,6 +212,7 @@ class FbnController extends Controller
             'paid' => FbnStorageFee::where('status', 'paid')->count(),
             'pending_cents' => FbnStorageFee::where('status', 'pending')->sum('total_fee_cents'),
             'paid_cents' => FbnStorageFee::where('status', 'paid')->sum('total_fee_cents'),
+            'currency' => FbnStorageFee::query()->value('currency') ?? '',
         ];
 
         // Distinct months for filter

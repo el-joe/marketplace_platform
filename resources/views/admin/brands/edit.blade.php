@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit: ' . e($brand->name_en))
+@section('title', __('common.edit') . ': ' . e($brand->name_en))
 
 @push('styles')
     @vite(['resources/js/components/slug-input.js', 'resources/js/admin/brands.js'])

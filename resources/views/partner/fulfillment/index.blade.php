@@ -1,6 +1,6 @@
 @extends('layouts.partner')
 
-@section('title', 'نظام التوصيل')
+@section('title', __('partner.fulfillment.title'))
 
 @push('styles')
     @vite(['resources/css/app.css', 'resources/js/partner/app.js'])
@@ -12,31 +12,31 @@
 
     {{-- ─── Page Header ─────────────────────────────────────────────────────── --}}
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">نظام التوصيل والتخزين</h1>
-        <p class="text-sm text-gray-500 mt-0.5">إدارة طريقة تخزين وشحن منتجاتك عبر المنصة.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('partner.fulfillment.title') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('partner.fulfillment.subtitle') }}</p>
     </div>
 
     {{-- ─── Stats ───────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-            <p class="text-xs text-indigo-500 uppercase tracking-wide mb-1">اكسبريس (FBN)</p>
+            <p class="text-xs text-indigo-500 uppercase tracking-wide mb-1">{{ __('partner.fulfillment.express_fbn') }}</p>
             <p class="text-2xl font-extrabold text-indigo-700">{{ $stats['fbn_count'] }}</p>
-            <p class="text-xs text-gray-400 mt-0.5">منتج</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('partner.fulfillment.product_unit') }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-            <p class="text-xs text-blue-500 uppercase tracking-wide mb-1">نظام التاجر (FBP)</p>
+            <p class="text-xs text-blue-500 uppercase tracking-wide mb-1">{{ __('partner.fulfillment.merchant_fbp') }}</p>
             <p class="text-2xl font-extrabold text-blue-700">{{ $stats['fbp_count'] }}</p>
-            <p class="text-xs text-gray-400 mt-0.5">منتج</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('partner.fulfillment.product_unit') }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-            <p class="text-xs text-green-500 uppercase tracking-wide mb-1">نظام الماركت</p>
+            <p class="text-xs text-green-500 uppercase tracking-wide mb-1">{{ __('partner.fulfillment.marketplace') }}</p>
             <p class="text-2xl font-extrabold text-green-700">{{ $stats['marketplace_count'] }}</p>
-            <p class="text-xs text-gray-400 mt-0.5">منتج</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('partner.fulfillment.product_unit') }}</p>
         </div>
         <div class="bg-white rounded-2xl border border-yellow-100 bg-yellow-50 p-4 text-center">
-            <p class="text-xs text-yellow-600 uppercase tracking-wide mb-1">طلبات معلقة</p>
+            <p class="text-xs text-yellow-600 uppercase tracking-wide mb-1">{{ __('partner.fulfillment.pending_requests') }}</p>
             <p class="text-2xl font-extrabold text-yellow-700">{{ $stats['pending_requests'] }}</p>
-            <p class="text-xs text-yellow-500 mt-0.5">طلبات FBN</p>
+            <p class="text-xs text-yellow-500 mt-0.5">{{ __('partner.fulfillment.fbn_requests') }}</p>
         </div>
     </div>
 
@@ -45,22 +45,22 @@
         <button @click="tab='fbn'"
                 :class="tab==='fbn' ? 'bg-white shadow text-indigo-700 font-semibold' : 'text-gray-500 hover:text-gray-700'"
                 class="px-4 py-2 rounded-lg text-sm transition-all">
-            🚀 اكسبريس (FBN)
+            {{ __('partner.fulfillment.tab_fbn') }}
         </button>
         <button @click="tab='fbp'"
                 :class="tab==='fbp' ? 'bg-white shadow text-blue-700 font-semibold' : 'text-gray-500 hover:text-gray-700'"
                 class="px-4 py-2 rounded-lg text-sm transition-all">
-            🏪 نظام التاجر (FBP)
+            {{ __('partner.fulfillment.tab_fbp') }}
         </button>
         <button @click="tab='marketplace'"
                 :class="tab==='marketplace' ? 'bg-white shadow text-green-700 font-semibold' : 'text-gray-500 hover:text-gray-700'"
                 class="px-4 py-2 rounded-lg text-sm transition-all">
-            🌐 نظام الماركت
+            {{ __('partner.fulfillment.tab_marketplace') }}
         </button>
         <button @click="tab='fees'; loadFees()"
                 :class="tab==='fees' ? 'bg-white shadow text-orange-700 font-semibold' : 'text-gray-500 hover:text-gray-700'"
                 class="px-4 py-2 rounded-lg text-sm transition-all">
-            💰 رسوم التخزين
+            {{ __('partner.fulfillment.tab_fees') }}
         </button>
     </div>
 
@@ -73,19 +73,19 @@
         <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex gap-3">
             <span class="text-2xl">🚀</span>
             <div>
-                <p class="font-semibold text-indigo-800">اكسبريس FBN — Fulfilled By Noon</p>
+                <p class="font-semibold text-indigo-800">{{ __('partner.fulfillment.fbn_explainer_title') }}</p>
                 <p class="text-sm text-indigo-600 mt-0.5">
-                    أرسل منتجاتك إلى مستودعاتنا وسنتولى التخزين والشحن. يتطلب موافقة الإدارة على كل طلب شحن.
+                    {{ __('partner.fulfillment.fbn_explainer_desc') }}
                 </p>
             </div>
         </div>
 
         {{-- Submit inbound request button --}}
         <div class="flex justify-between items-center">
-            <h2 class="text-base font-bold text-gray-700">طلبات الإرسال للمستودع</h2>
+            <h2 class="text-base font-bold text-gray-700">{{ __('partner.fulfillment.inbound_requests_title') }}</h2>
             @if($fbnListings->isNotEmpty())
                 <button type="button" @click="showFbnForm=true" class="btn btn-primary btn-sm">
-                    + طلب إرسال جديد
+                    {{ __('partner.fulfillment.new_inbound_request') }}
                 </button>
             @endif
         </div>
@@ -94,8 +94,8 @@
         @if($fbnListings->isEmpty())
             <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center text-gray-400">
                 <p class="text-2xl mb-2">📦</p>
-                <p class="font-medium">لا توجد قوائم FBN حتى الآن.</p>
-                <p class="text-sm mt-1">قم بتحويل قائمة إلى نظام "اكسبريس" من صفحة القوائم.</p>
+                <p class="font-medium">{{ __('partner.fulfillment.no_fbn_listings') }}</p>
+                <p class="text-sm mt-1">{{ __('partner.fulfillment.no_fbn_listings_desc') }}</p>
             </div>
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -111,9 +111,9 @@
                     @foreach($listing->warehouseInventories as $inv)
                         @if($inv->warehouse?->type === 'platform_fbn')
                         <div class="grid grid-cols-3 gap-1 text-center text-xs mt-2 bg-gray-50 rounded-lg p-2">
-                            <div><p class="text-gray-400">في المستودع</p><p class="font-bold text-gray-800">{{ $inv->quantity_on_hand }}</p></div>
-                            <div><p class="text-gray-400">في الطريق</p><p class="font-bold text-blue-600">{{ $inv->quantity_inbound }}</p></div>
-                            <div><p class="text-gray-400">متاح</p><p class="font-bold text-green-600">{{ $inv->quantity_available }}</p></div>
+                            <div><p class="text-gray-400">{{ __('partner.fulfillment.in_warehouse') }}</p><p class="font-bold text-gray-800">{{ $inv->quantity_on_hand }}</p></div>
+                            <div><p class="text-gray-400">{{ __('partner.fulfillment.in_transit') }}</p><p class="font-bold text-blue-600">{{ $inv->quantity_inbound }}</p></div>
+                            <div><p class="text-gray-400">{{ __('partner.fulfillment.available') }}</p><p class="font-bold text-green-600">{{ $inv->quantity_available }}</p></div>
                         </div>
                         @endif
                     @endforeach
@@ -123,21 +123,21 @@
 
             {{-- Inbound requests table --}}
             <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">طلبات الإرسال</div>
+                <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">{{ __('partner.fulfillment.requests_table_title') }}</div>
                 <div id="fbn-requests-container" class="p-4 text-center text-gray-400 text-sm">
-                    جارٍ التحميل…
+                    {{ __('partner.fulfillment.loading') }}
                 </div>
             </div>
         @endif
 
         {{-- FBN Submit form (Alpine toggle) --}}
         <div x-show="showFbnForm" x-cloak class="bg-white rounded-2xl border border-indigo-100 p-5">
-            <h3 class="font-bold text-gray-800 mb-4">طلب إرسال جديد للمستودع</h3>
+            <h3 class="font-bold text-gray-800 mb-4">{{ __('partner.fulfillment.new_inbound_form_title') }}</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="label-sm">القائمة (المنتج) <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('partner.fulfillment.listing_label') }} <span class="text-red-500">*</span></label>
                     <select id="fbn-listing" class="form-select w-full text-sm">
-                        <option value="">— اختر قائمة —</option>
+                        <option value="">{{ __('partner.fulfillment.select_listing') }}</option>
                         @foreach($fbnListings as $listing)
                             <option value="{{ $listing->id }}">
                                 {{ $listing->productVariant?->product?->name_ar ?? $listing->productVariant?->product?->name_en }}
@@ -147,26 +147,26 @@
                     </select>
                 </div>
                 <div>
-                    <label class="label-sm">المستودع <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('partner.fulfillment.warehouse_label') }} <span class="text-red-500">*</span></label>
                     <select id="fbn-warehouse" class="form-select w-full text-sm">
-                        <option value="">— اختر مستودع —</option>
+                        <option value="">{{ __('partner.fulfillment.select_warehouse') }}</option>
                         @foreach($warehouses as $wh)
                             <option value="{{ $wh->id }}">{{ $wh->name }} ({{ $wh->code }})</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="label-sm">الكمية المطلوب إرسالها <span class="text-red-500">*</span></label>
-                    <input type="number" id="fbn-qty" class="form-input w-full text-sm" min="1" placeholder="مثال: 50">
+                    <label class="label-sm">{{ __('partner.fulfillment.quantity_to_send') }} <span class="text-red-500">*</span></label>
+                    <input type="number" id="fbn-qty" class="form-input w-full text-sm" min="1" placeholder="{{ __('partner.fulfillment.quantity_placeholder') }}">
                 </div>
                 <div>
-                    <label class="label-sm">ملاحظات (اختياري)</label>
-                    <input type="text" id="fbn-notes" class="form-input w-full text-sm" placeholder="أي تعليمات خاصة...">
+                    <label class="label-sm">{{ __('partner.fulfillment.notes_optional') }}</label>
+                    <input type="text" id="fbn-notes" class="form-input w-full text-sm" placeholder="{{ __('partner.fulfillment.notes_placeholder') }}">
                 </div>
             </div>
             <div class="flex gap-3 justify-end mt-4">
-                <button type="button" @click="showFbnForm=false" class="btn btn-ghost btn-sm">إلغاء</button>
-                <button type="button" @click="submitFbnRequest()" class="btn btn-primary btn-sm">إرسال الطلب</button>
+                <button type="button" @click="showFbnForm=false" class="btn btn-ghost btn-sm">{{ __('partner.fulfillment.cancel') }}</button>
+                <button type="button" @click="submitFbnRequest()" class="btn btn-primary btn-sm">{{ __('partner.fulfillment.submit_request') }}</button>
             </div>
         </div>
 
@@ -180,22 +180,22 @@
         <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
             <span class="text-2xl">🏪</span>
             <div>
-                <p class="font-semibold text-blue-800">نظام التاجر FBP — Fulfilled By Partner</p>
+                <p class="font-semibold text-blue-800">{{ __('partner.fulfillment.fbp_explainer_title') }}</p>
                 <p class="text-sm text-blue-600 mt-0.5">
-                    منتجاتك معروضة على المنصة لكن تخزينها وشحنها مسؤوليتك. أنت المتحكم في المخزون.
+                    {{ __('partner.fulfillment.fbp_explainer_desc') }}
                 </p>
             </div>
         </div>
 
         <div class="flex justify-between items-center">
-            <h2 class="text-base font-bold text-gray-700">مخزون FBP</h2>
-            <button type="button" @click="loadFbpInventory()" class="btn btn-ghost btn-xs">🔄 تحديث</button>
+            <h2 class="text-base font-bold text-gray-700">{{ __('partner.fulfillment.fbp_inventory_title') }}</h2>
+            <button type="button" @click="loadFbpInventory()" class="btn btn-ghost btn-xs">{{ __('partner.fulfillment.refresh') }}</button>
         </div>
 
         @if($fbpListings->isEmpty())
             <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center text-gray-400">
                 <p class="text-2xl mb-2">🏪</p>
-                <p class="font-medium">لا توجد قوائم FBP حتى الآن.</p>
+                <p class="font-medium">{{ __('partner.fulfillment.no_fbp_listings') }}</p>
             </div>
         @else
             <div id="fbp-inventory-container">
@@ -203,13 +203,13 @@
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50 text-xs text-gray-500">
                             <tr>
-                                <th class="px-4 py-3 text-right">المنتج</th>
-                                <th class="px-4 py-3 text-right">المستودع</th>
-                                <th class="px-4 py-3 text-right">في المخزن</th>
-                                <th class="px-4 py-3 text-right">متاح</th>
-                                <th class="px-4 py-3 text-right">محجوز</th>
-                                <th class="px-4 py-3 text-right">الموقع</th>
-                                <th class="px-4 py-3 text-right">نقطة إعادة الطلب</th>
+                                <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.inventory_table.product') }}</th>
+                                <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.inventory_table.warehouse') }}</th>
+                                <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.inventory_table.on_hand') }}</th>
+                                <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.inventory_table.available') }}</th>
+                                <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.inventory_table.reserved') }}</th>
+                                <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.inventory_table.location') }}</th>
+                                <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.inventory_table.reorder_point') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -256,10 +256,9 @@
         <div class="bg-green-50 border border-green-100 rounded-2xl p-4 flex gap-3">
             <span class="text-2xl">🌐</span>
             <div>
-                <p class="font-semibold text-green-800">نظام الماركت — Marketplace</p>
+                <p class="font-semibold text-green-800">{{ __('partner.fulfillment.marketplace_explainer_title') }}</p>
                 <p class="text-sm text-green-600 mt-0.5">
-                    للمنتجات الكبيرة أو الثقيلة أو التي تحتاج تبريد أو شحن خاص.
-                    تنطبق عمولات وأسعار توصيل مختلفة على هذه المنتجات.
+                    {{ __('partner.fulfillment.marketplace_explainer_desc') }}
                 </p>
             </div>
         </div>
@@ -267,7 +266,7 @@
         @if($marketplaceListings->isEmpty())
             <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center text-gray-400">
                 <p class="text-2xl mb-2">🌐</p>
-                <p class="font-medium">لا توجد قوائم ماركت حتى الآن.</p>
+                <p class="font-medium">{{ __('partner.fulfillment.no_marketplace_listings') }}</p>
             </div>
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -280,24 +279,24 @@
                     @if($rule)
                         <div class="flex flex-wrap gap-1.5 mb-2">
                             @if($rule->requires_special_vehicle)
-                                <span class="badge badge-warning text-xs">سيارة خاصة</span>
+                                <span class="badge badge-warning text-xs">{{ __('partner.fulfillment.special_vehicle') }}</span>
                             @endif
                             @if($rule->requires_refrigeration)
-                                <span class="badge badge-primary text-xs">تبريد</span>
+                                <span class="badge badge-primary text-xs">{{ __('partner.fulfillment.refrigeration') }}</span>
                             @endif
                             @if($rule->max_weight_kg)
-                                <span class="badge badge-secondary text-xs">{{ $rule->max_weight_kg }} كج</span>
+                                <span class="badge badge-secondary text-xs">{{ $rule->max_weight_kg }} kg</span>
                             @endif
                         </div>
                         <dl class="grid grid-cols-2 gap-1 text-xs">
-                            <dt class="text-gray-400">نوع العمولة</dt>
+                            <dt class="text-gray-400">{{ __('partner.fulfillment.commission_type') }}</dt>
                             <dd class="font-medium text-gray-700">
-                                {{ match($rule->commission_type) { 'fixed' => 'ثابتة', 'percentage' => 'نسبة مئوية', 'mixed' => 'مختلطة', default => $rule->commission_type } }}
+                                {{ __('partner.fulfillment.commission_types.' . $rule->commission_type) }}
                             </dd>
-                            <dt class="text-gray-400">قيمة العمولة</dt>
+                            <dt class="text-gray-400">{{ __('partner.fulfillment.commission_value') }}</dt>
                             <dd class="font-semibold text-gray-900">{{ $rule->commissionLabel() }}</dd>
                             @if($rule->extra_delivery_fee_cents > 0)
-                                <dt class="text-gray-400">رسوم توصيل إضافية</dt>
+                                <dt class="text-gray-400">{{ __('partner.fulfillment.extra_delivery_fee') }}</dt>
                                 <dd class="font-medium text-orange-600">{{ $rule->extraFeeFormatted() }}</dd>
                             @endif
                         </dl>
@@ -305,7 +304,7 @@
                             <p class="text-xs text-gray-500 mt-2 bg-gray-50 rounded p-2">{{ $rule->special_handling_notes }}</p>
                         @endif
                     @else
-                        <p class="text-xs text-gray-400 italic">لا توجد قواعد شحن مخصصة (تُطبق الإعدادات الافتراضية).</p>
+                        <p class="text-xs text-gray-400 italic">{{ __('partner.fulfillment.no_custom_shipping_rules') }}</p>
                     @endif
                 </div>
                 @endforeach
@@ -319,19 +318,19 @@
     {{-- ─────────────────────────────────────────────────────────────────────── --}}
     <div x-show="tab==='fees'" x-cloak>
         <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">رسوم التخزين الشهرية (FBN)</div>
+            <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">{{ __('partner.fulfillment.storage_fees_title') }}</div>
             <div id="fees-container">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 text-xs text-gray-500">
                         <tr>
-                            <th class="px-4 py-3 text-right">الشهر</th>
-                            <th class="px-4 py-3 text-right">الوحدات المخزنة</th>
-                            <th class="px-4 py-3 text-right">المبلغ</th>
-                            <th class="px-4 py-3 text-right">الحالة</th>
+                            <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.storage_fees_table.month') }}</th>
+                            <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.storage_fees_table.units') }}</th>
+                            <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.storage_fees_table.amount') }}</th>
+                            <th class="px-4 py-3 text-right">{{ __('partner.fulfillment.storage_fees_table.status') }}</th>
                         </tr>
                     </thead>
                     <tbody id="fees-tbody">
-                        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">اضغط تبويب "رسوم التخزين" لتحميل البيانات.</td></tr>
+                        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">{{ __('partner.fulfillment.storage_fees_hint') }}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -343,6 +342,28 @@
 
 @push('scripts')
 <script>
+window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
+Object.assign(window.PARTNER_TRANSLATIONS, {
+    fulfillment: {
+        noRequestsYet: @json(__('partner.fulfillment.no_requests_yet')),
+        requestsTable: {
+            requestNumber: @json(__('partner.fulfillment.requests_table.request_number')),
+            product: @json(__('partner.fulfillment.requests_table.product')),
+            warehouse: @json(__('partner.fulfillment.requests_table.warehouse')),
+            quantity: @json(__('partner.fulfillment.requests_table.quantity')),
+            status: @json(__('partner.fulfillment.requests_table.status')),
+            tracking: @json(__('partner.fulfillment.requests_table.tracking')),
+            expectedArrival: @json(__('partner.fulfillment.requests_table.expected_arrival')),
+        },
+        cancelRequest: @json(__('partner.fulfillment.cancel_request')),
+        fillAllFields: @json(__('partner.fulfillment.fill_all_fields')),
+        genericError: @json(__('partner.fulfillment.generic_error')),
+        noStorageFees: @json(__('partner.fulfillment.no_storage_fees')),
+        inventoryUpdated: @json(__('partner.fulfillment.inventory_updated')),
+        cancelRequestConfirm: @json(__('partner.fulfillment.cancel_request_confirm')),
+    },
+});
+
 function fulfillmentApp() {
     return {
         tab: 'fbn',
@@ -362,27 +383,28 @@ function fulfillmentApp() {
             if (!container) return;
 
             if (!data.data?.length) {
-                container.innerHTML = '<p class="py-6 text-gray-400">لا توجد طلبات إرسال حتى الآن.</p>';
+                container.innerHTML = `<p class="py-6 text-gray-400">${window.PARTNER_TRANSLATIONS.fulfillment.noRequestsYet}</p>`;
                 return;
             }
 
+            const t = window.PARTNER_TRANSLATIONS.fulfillment.requestsTable;
             let html = `<table class="w-full text-xs">
                 <thead class="bg-gray-50 text-gray-500">
                     <tr>
-                        <th class="px-3 py-2 text-right">رقم الطلب</th>
-                        <th class="px-3 py-2 text-right">المنتج</th>
-                        <th class="px-3 py-2 text-right">المستودع</th>
-                        <th class="px-3 py-2 text-center">الكمية</th>
-                        <th class="px-3 py-2 text-right">الحالة</th>
-                        <th class="px-3 py-2 text-right">التتبع</th>
-                        <th class="px-3 py-2 text-right">الوصول المتوقع</th>
+                        <th class="px-3 py-2 text-right">${t.requestNumber}</th>
+                        <th class="px-3 py-2 text-right">${t.product}</th>
+                        <th class="px-3 py-2 text-right">${t.warehouse}</th>
+                        <th class="px-3 py-2 text-center">${t.quantity}</th>
+                        <th class="px-3 py-2 text-right">${t.status}</th>
+                        <th class="px-3 py-2 text-right">${t.tracking}</th>
+                        <th class="px-3 py-2 text-right">${t.expectedArrival}</th>
                         <th class="px-3 py-2"></th>
                     </tr>
                 </thead><tbody>`;
 
             data.data.forEach(r => {
                 const cancelBtn = r.can_cancel
-                    ? `<button class="btn btn-xs btn-danger" onclick="cancelFbnRequest('${r.id}')">إلغاء</button>`
+                    ? `<button class="btn btn-xs btn-danger" onclick="cancelFbnRequest('${r.id}')">${window.PARTNER_TRANSLATIONS.fulfillment.cancelRequest}</button>`
                     : '';
                 html += `<tr class="border-t border-gray-50 hover:bg-gray-50/50">
                     <td class="px-3 py-2 font-mono text-right text-gray-700">${r.request_number}</td>
@@ -407,7 +429,7 @@ function fulfillmentApp() {
             const notes        = document.getElementById('fbn-notes').value;
 
             if (!listing_id || !warehouse_id || !qty) {
-                window.Toast.error('يرجى تعبئة جميع الحقول المطلوبة.');
+                window.Toast.error(window.PARTNER_TRANSLATIONS.fulfillment.fillAllFields);
                 return;
             }
 
@@ -422,7 +444,7 @@ function fulfillmentApp() {
                 this.showFbnForm = false;
                 this.loadFbnRequests();
             } else {
-                window.Toast.error(data.message ?? 'حدث خطأ');
+                window.Toast.error(data.message ?? window.PARTNER_TRANSLATIONS.fulfillment.genericError);
             }
         },
 
@@ -434,7 +456,7 @@ function fulfillmentApp() {
             const data = await res.json();
             const tbody = document.getElementById('fees-tbody');
             if (!data.data?.length) {
-                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">لا توجد رسوم تخزين حتى الآن.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">${window.PARTNER_TRANSLATIONS.fulfillment.noStorageFees}</td></tr>`;
             } else {
                 tbody.innerHTML = data.data.map(f => `<tr class="border-t border-gray-50">
                     <td class="px-4 py-3 text-right font-medium text-gray-700">${f.month}</td>
@@ -451,13 +473,13 @@ function fulfillmentApp() {
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             });
             const data = await res.json();
-            window.Toast.info('المخزون محدّث.');
+            window.Toast.info(window.PARTNER_TRANSLATIONS.fulfillment.inventoryUpdated);
         },
     };
 }
 
 async function cancelFbnRequest(id) {
-    if (!confirm('هل أنت متأكد من إلغاء هذا الطلب؟')) return;
+    if (!confirm(window.PARTNER_TRANSLATIONS.fulfillment.cancelRequestConfirm)) return;
     const res = await fetch(`{{ url('partner/fulfillment/fbn') }}/${id}/cancel`, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
@@ -465,7 +487,7 @@ async function cancelFbnRequest(id) {
     });
     const data = await res.json();
     if (data.success) { window.Toast.success(data.message); location.reload(); }
-    else { window.Toast.error(data.message ?? 'حدث خطأ'); }
+    else { window.Toast.error(data.message ?? window.PARTNER_TRANSLATIONS.fulfillment.genericError); }
 }
 </script>
 @endpush

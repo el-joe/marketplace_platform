@@ -178,6 +178,7 @@ class OrderController extends Controller
                 'statusHistories' => fn($q) => $q->orderBy('created_at'),
                 'shipments.trackingEvents',
                 'carrier',
+                'shippingMethod',
             ])
             ->firstOrFail();
 
@@ -230,7 +231,6 @@ class OrderController extends Controller
     {
         $request->validate([
             'tracking_number' => ['required', 'string', 'max:100'],
-            'carrier_id' => ['required', 'exists:shipping_carriers,id'],
             'estimated_delivery_date' => ['required', 'date', 'after_or_equal:today'],
         ]);
 
@@ -238,6 +238,10 @@ class OrderController extends Controller
 
         if (!in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'packed'])) {
             return response()->json(['success' => false, 'message' => 'لا يمكن شحن هذا الطلب في حالته الحالية.'], 422);
+        }
+
+        if (is_null($subOrder->shipping_method_id)) {
+            return response()->json(['success' => false, 'message' => 'لم يتم تعيين طريقة شحن من قبل الإدارة. يرجى التواصل مع الدعم.'], 422);
         }
 
         $vendorId = $this->vendorId();
@@ -249,7 +253,6 @@ class OrderController extends Controller
                 // 1. Update sub_order
                 $subOrder->update([
                     'status' => 'shipped',
-                    'carrier_id' => $request->input('carrier_id'),
                     'tracking_number' => $request->input('tracking_number'),
                     'estimated_delivery_date' => $request->input('estimated_delivery_date'),
                     'shipped_at' => now(),
@@ -265,7 +268,7 @@ class OrderController extends Controller
 
                 $shipment = Shipment::create([
                     'sub_order_id' => $subOrder->id,
-                    'carrier_id' => $request->input('carrier_id'),
+                    'carrier_id' => $subOrder->carrier_id,
                     'tracking_number' => $request->input('tracking_number'),
                     'weight_grams' => $weightGrams,
                     'shipping_cost_actual' => $subOrder->shipping,
@@ -326,7 +329,7 @@ class OrderController extends Controller
                         'vendor_id' => $vendorId,
                         'vendor_admin' => Auth::guard('vendor')->user()->id,
                         'tracking_number' => $request->input('tracking_number'),
-                        'carrier_id' => $request->input('carrier_id'),
+                        'carrier_id' => $subOrder->carrier_id,
                         'action' => 'shipped',
                     ]),
                 ]);

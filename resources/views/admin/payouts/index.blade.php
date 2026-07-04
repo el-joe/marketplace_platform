@@ -4,71 +4,71 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Payouts')
+@section('title', __('admin.payouts.title'))
 
 @section('content')
     @php
         $columns = [
             [
-                'title' => 'Payout #',
+                'title' => __('admin.payouts.payout_number'),
                 'data' => 'payout_number',
                 'name' => 'payout_number',
                 'searchable' => true,
                 'render' => 'function(data,t,row){return "<a href=\""+row.show_url+"\" class=\"font-medium text-primary-600 hover:text-primary-800 hover:underline\">"+data+"</a>";}',
             ],
             [
-                'title' => 'Vendor',
+                'title' => __('admin.payouts.vendor'),
                 'data' => 'vendor_name',
                 'name' => 'vendor_name',
                 'searchable' => false,
             ],
             [
-                'title' => 'Period',
+                'title' => __('admin.payouts.period'),
                 'data' => 'period',
                 'name' => 'period',
                 'searchable' => false,
             ],
             [
-                'title' => 'Gross Sales',
+                'title' => __('admin.payouts.gross_sales'),
                 'data' => 'gross_formatted',
                 'name' => 'gross_formatted',
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
             ],
             [
-                'title' => 'Net Amount',
+                'title' => __('admin.payouts.net_amount'),
                 'data' => 'net_formatted',
                 'name' => 'net_formatted',
                 'searchable' => false,
-                'className' => 'text-right font-semibold',
+                'className' => 'text-end font-semibold',
             ],
             [
-                'title' => 'Method',
+                'title' => __('admin.payouts.method'),
                 'data' => 'payout_method',
                 'name' => 'payout_method',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                            bank_transfer: { label: "Bank Transfer", color: "primary" },
-                            wallet:        { label: "Wallet",        color: "primary" },
-                            paypal:        { label: "PayPal",        color: "primary" }
+                            bank_transfer: { label: "' . __('admin.payouts.bank_transfer') . '", color: "primary" },
+                            wallet:        { label: "' . __('admin.payouts.wallet') . '",        color: "primary" },
+                            paypal:        { label: "' . __('admin.payouts.paypal') . '",        color: "primary" }
                         })',
             ],
             [
-                'title' => 'Status',
+                'title' => __('admin.payouts.status'),
                 'data' => 'status',
                 'name' => 'status',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                            pending:    { label: "Pending",    color: "gray"    },
-                            approved:   { label: "Approved",   color: "primary" },
-                            processing: { label: "Processing", color: "primary" },
-                            completed:  { label: "Completed",  color: "success" },
-                            failed:     { label: "Failed",     color: "danger"  },
-                            on_hold:    { label: "On Hold",    color: "warning" }
+                            pending:    { label: "' . __('admin.payouts.pending') . '",    color: "gray"    },
+                            approved:   { label: "' . __('admin.payouts.approved') . '",   color: "primary" },
+                            processing: { label: "' . __('admin.payouts.processing') . '", color: "primary" },
+                            completed:  { label: "' . __('admin.payouts.completed') . '",  color: "success" },
+                            failed:     { label: "' . __('admin.payouts.failed') . '",     color: "danger"  },
+                            on_hold:    { label: "' . __('admin.payouts.on_hold') . '",    color: "warning" }
                         })',
             ],
             [
-                'title' => 'Processed',
+                'title' => __('admin.payouts.processed'),
                 'data' => 'processed_at',
                 'name' => 'processed_at',
                 'searchable' => false,
@@ -80,36 +80,39 @@
                 'name' => 'actions',
                 'orderable' => false,
                 'searchable' => false,
-                'className' => 'text-right',
+                'className' => 'text-end',
                 'render' => 'Renderers.actions([
-                            { type: "link", label: "View", url: ":show_url", class: "btn-primary btn-sm" }
+                            { type: "link", label: "' . __('common.view') . '", url: ":show_url", class: "btn-primary btn-sm" }
                         ])',
             ],
         ];
 
         $filters = [
-            ['type' => 'text', 'name' => 'search', 'label' => 'Payout #', 'placeholder' => 'Search payout #…'],
+            ['type' => 'text', 'name' => 'search', 'label' => __('admin.payouts.payout_number'), 'placeholder' => __('admin.payouts.payout_number') . '…'],
             [
                 'type' => 'select',
                 'name' => 'status',
-                'label' => 'Status',
+                'label' => __('admin.payouts.status'),
                 'options' => [
-                    'pending' => 'Pending',
-                    'approved' => 'Approved',
-                    'processing' => 'Processing',
-                    'completed' => 'Completed',
-                    'failed' => 'Failed',
-                    'on_hold' => 'On Hold',
+                    'pending' => __('admin.payouts.pending'),
+                    'approved' => __('admin.payouts.approved'),
+                    'processing' => __('admin.payouts.processing'),
+                    'completed' => __('admin.payouts.completed'),
+                    'failed' => __('admin.payouts.failed'),
+                    'on_hold' => __('admin.payouts.on_hold'),
                 ],
             ],
             [
                 'type' => 'select',
                 'name' => 'currency',
-                'label' => 'Currency',
-                'options' => ['USD' => 'USD', 'SAR' => 'SAR', 'AED' => 'AED', 'KWD' => 'KWD'],
+                'label' => __('common.currency'),
+                'options' => \App\Models\Currency::where('is_active', true)
+                    ->orderBy('code')
+                    ->pluck('code', 'code')
+                    ->toArray(),
             ],
-            ['type' => 'date_range', 'name' => 'date', 'label' => 'Period'],
-            ['type' => 'text', 'name' => 'min_amount', 'label' => 'Min Net', 'placeholder' => 'e.g. 100'],
+            ['type' => 'date_range', 'name' => 'date', 'label' => __('admin.payouts.period')],
+            ['type' => 'text', 'name' => 'min_amount', 'label' => __('admin.payouts.min_net'), 'placeholder' => 'e.g. 100'],
         ];
     @endphp
 

@@ -4,29 +4,29 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Marketer Conversions')
+@section('title', __('admin.marketers.marketer_conversions_title'))
 
 @section('content')
 
 {{-- ─── Page Header ─────────────────────────────────────────────────────────── --}}
 <div class="mb-6 flex items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Marketer Conversions</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Review and bulk-approve marketer commission conversions.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.marketers.marketer_conversions_title') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.marketers.marketer_conversions_desc') }}</p>
     </div>
     <button type="button" id="btn-bulk-approve"
             class="btn btn-success btn-sm" style="display:none;">
-        Approve Selected
+        {{ __('admin.marketers.approve_selected') }}
     </button>
 </div>
 
 {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
     @foreach([
-        ['Total',    $stats['total'],    'gray'],
-        ['Pending',  $stats['pending'],  'warning'],
-        ['Approved', $stats['approved'], 'success'],
-        ['Paid',     $stats['paid'],     'primary'],
+        [__('admin.marketers.total'),    $stats['total'],    'gray'],
+        [__('admin.marketers.pending'),  $stats['pending'],  'warning'],
+        [__('admin.marketers.approved'), $stats['approved'], 'success'],
+        [__('admin.marketers.paid_earnings'),     $stats['paid'],     'primary'],
     ] as [$label, $value, $color])
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ $label }}</p>
@@ -39,28 +39,28 @@
 <x-card class="mb-5">
     <div class="flex flex-wrap gap-3 items-end">
         <div class="flex-1 min-w-[180px]">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Search</label>
-            <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="Marketer name…">
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.marketers.search') }}</label>
+            <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="{{ __('admin.marketers.marketer') }}…">
         </div>
         <div class="w-36">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.status') }}</label>
             <select id="filter-status" class="form-input w-full text-sm">
-                <option value="">All</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="paid">Paid</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="">{{ __('admin.marketers.all') }}</option>
+                <option value="pending">{{ __('admin.marketers.pending') }}</option>
+                <option value="approved">{{ __('admin.marketers.approved') }}</option>
+                <option value="paid">{{ __('admin.marketers.paid_earnings') }}</option>
+                <option value="cancelled">{{ __('admin.marketers.cancelled') }}</option>
             </select>
         </div>
         <div class="w-36">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Date From</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.marketers.date_from') }}</label>
             <input type="date" id="filter-date-from" class="form-input w-full text-sm">
         </div>
         <div class="w-36">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Date To</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.marketers.date_to') }}</label>
             <input type="date" id="filter-date-to" class="form-input w-full text-sm">
         </div>
-        <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">Reset</button>
+        <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('admin.marketers.reset') }}</button>
     </div>
 </x-card>
 
@@ -70,12 +70,12 @@
         <thead>
             <tr>
                 <th><input type="checkbox" id="select-all"></th>
-                <th>Marketer</th>
-                <th>Campaign</th>
-                <th>Order Value</th>
-                <th>Commission</th>
-                <th>Status</th>
-                <th>Date</th>
+                <th>{{ __('admin.marketers.marketer') }}</th>
+                <th>{{ __('admin.marketers.campaign') }}</th>
+                <th>{{ __('admin.marketers.order_value') }}</th>
+                <th>{{ __('admin.marketers.commission') }}</th>
+                <th>{{ __('admin.status') }}</th>
+                <th>{{ __('admin.marketers.date') }}</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -85,6 +85,14 @@
 @endsection
 
 @push('scripts')
+<script>
+    window.TRANSLATIONS = window.TRANSLATIONS || {};
+    Object.assign(window.TRANSLATIONS, {
+        noRowsSelected: @json(__('admin.marketers.no_rows_selected')),
+        approveNConversions: @json(__('admin.marketers.approve_n_conversions')),
+        approveAll: @json(__('admin.marketers.approve_all')),
+    });
+</script>
 <script type="module">
 $(function () {
     const tok = '{{ csrf_token() }}';
@@ -147,9 +155,9 @@ $(function () {
         const ids = table.rows({ selected: true }).nodes().to$()
             .find('input[type="checkbox"]').map((i, el) => $(el).val()).toArray().filter(Boolean);
 
-        if (!ids.length) { window.Toast.warning('No rows selected.'); return; }
+        if (!ids.length) { window.Toast.warning(window.TRANSLATIONS.noRowsSelected); return; }
 
-        window.confirmDialog({ title: 'Approve ' + ids.length + ' conversion(s)?', confirmText: 'Approve All', onConfirm: () => {
+        window.confirmDialog({ title: window.TRANSLATIONS.approveNConversions.replace(':n', ids.length), confirmText: window.TRANSLATIONS.approveAll, onConfirm: () => {
             fetch('{{ route('admin.marketers.conversions.approve') }}', {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },

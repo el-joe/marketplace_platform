@@ -16,6 +16,8 @@ class MarketerSampleItem extends Model
         'sample_request_id',
         'vendor_listing_id',
         'quantity',
+        'marketer_quantity',
+        'admin_quantity',
         'is_mandatory',
         'sample_cost_cents',
         'created_at',
@@ -24,10 +26,12 @@ class MarketerSampleItem extends Model
     protected function casts(): array
     {
         return [
-            'quantity' => 'integer',
-            'is_mandatory' => 'boolean',
+            'quantity'          => 'integer',
+            'marketer_quantity' => 'integer',
+            'admin_quantity'    => 'integer',
+            'is_mandatory'      => 'boolean',
             'sample_cost_cents' => 'integer',
-            'created_at' => 'datetime',
+            'created_at'        => 'datetime',
         ];
     }
 

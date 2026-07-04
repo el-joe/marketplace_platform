@@ -1,21 +1,21 @@
 @extends('layouts.admin')
 
-@section('title', 'New Inventory Transfer')
+@section('title', __('admin.warehouses_section.new_inventory_transfer'))
 
 @section('content')
 
     {{-- ─── Breadcrumb ──────────────────────────────────────────────────────── --}}
     <nav class="mb-5 text-sm text-gray-500 flex items-center gap-1.5">
-        <a href="{{ route('admin.warehouses.index') }}" class="hover:text-primary-600">Warehouses</a>
+        <a href="{{ route('admin.warehouses.index') }}" class="hover:text-primary-600">{{ __('admin.warehouses_section.title') }}</a>
         <span>/</span>
-        <a href="{{ route('admin.warehouses.transfers.index') }}" class="hover:text-primary-600">Transfers</a>
+        <a href="{{ route('admin.warehouses.transfers.index') }}" class="hover:text-primary-600">{{ __('admin.warehouses_section.transfers') }}</a>
         <span>/</span>
-        <span class="text-gray-800 font-medium">New Transfer</span>
+        <span class="text-gray-800 font-medium">{{ __('admin.warehouses_section.new_transfer') }}</span>
     </nav>
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">New Inventory Transfer</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Move stock between warehouses.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.warehouses_section.new_inventory_transfer') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.warehouses_section.move_stock_desc') }}</p>
     </div>
 
     @if($errors->any())
@@ -32,14 +32,14 @@
             {{-- ─── Transfer Details ─────────────────────────────────────── --}}
             <div class="lg:col-span-2 space-y-5">
                 <x-card>
-                    <h3 class="text-sm font-semibold text-gray-800 mb-4">Transfer Details</h3>
+                    <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('admin.warehouses_section.transfer_details') }}</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">
-                                Source Warehouse <span class="text-red-500">*</span>
+                                {{ __('admin.warehouses_section.source_warehouse') }} <span class="text-red-500">*</span>
                             </label>
                             <select name="source_warehouse_id" class="form-input w-full text-sm" required>
-                                <option value="">Select source…</option>
+                                <option value="">{{ __('admin.warehouses_section.select_source') }}</option>
                                 @foreach($warehouses as $id => $name)
                                     <option value="{{ $id }}" {{ old('source_warehouse_id') == $id ? 'selected' : '' }}>
                                         {{ $name }}
@@ -52,10 +52,10 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">
-                                Destination Warehouse <span class="text-red-500">*</span>
+                                {{ __('admin.warehouses_section.destination_warehouse') }} <span class="text-red-500">*</span>
                             </label>
                             <select name="destination_warehouse_id" class="form-input w-full text-sm" required>
-                                <option value="">Select destination…</option>
+                                <option value="">{{ __('admin.warehouses_section.select_destination') }}</option>
                                 @foreach($warehouses as $id => $name)
                                     <option value="{{ $id }}" {{ old('destination_warehouse_id') == $id ? 'selected' : '' }}>
                                         {{ $name }}
@@ -67,9 +67,9 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1">Vendor (optional)</label>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.warehouses_section.vendor_optional') }}</label>
                             <select name="vendor_id" class="form-input w-full text-sm">
-                                <option value="">— Any vendor —</option>
+                                <option value="">{{ __('admin.warehouses_section.any_vendor') }}</option>
                                 @foreach($vendors as $id => $name)
                                     <option value="{{ $id }}" {{ old('vendor_id') == $id ? 'selected' : '' }}>
                                         {{ $name }}
@@ -78,14 +78,14 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1">Expected Arrival</label>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.warehouses_section.expected_arrival') }}</label>
                             <input type="date" name="expected_arrival_date" class="form-input w-full text-sm"
                                 value="{{ old('expected_arrival_date') }}" min="{{ now()->addDay()->format('Y-m-d') }}">
                         </div>
                         <div class="sm:col-span-2">
-                            <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.warehouses_section.notes') }}</label>
                             <textarea name="notes" rows="3" class="form-input w-full text-sm"
-                                placeholder="Optional notes…">{{ old('notes') }}</textarea>
+                                placeholder="{{ __('admin.warehouses_section.notes_placeholder') }}">{{ old('notes') }}</textarea>
                         </div>
                     </div>
                 </x-card>
@@ -93,8 +93,8 @@
                 {{-- ─── Line Items ────────────────────────────────────────── --}}
                 <x-card>
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-800">Items</h3>
-                        <button type="button" id="add-item-row" class="btn btn-secondary btn-xs">+ Add Item</button>
+                        <h3 class="text-sm font-semibold text-gray-800">{{ __('admin.warehouses_section.items') }}</h3>
+                        <button type="button" id="add-item-row" class="btn btn-secondary btn-xs">{{ __('admin.warehouses_section.add_item') }}</button>
                     </div>
 
                     <div id="items-container" class="space-y-3">
@@ -102,13 +102,13 @@
                         @foreach($oldItems as $i => $oldItem)
                             <div class="flex items-start gap-3 item-row">
                                 <div class="flex-1">
-                                    <label class="block text-xs text-gray-500 mb-1">Vendor Listing ID / SKU</label>
+                                    <label class="block text-xs text-gray-500 mb-1">{{ __('admin.warehouses_section.vendor_listing_id_sku') }}</label>
                                     <input type="text" name="items[{{ $i }}][vendor_listing_id]"
-                                        class="form-input w-full text-sm" placeholder="UUID of vendor listing"
+                                        class="form-input w-full text-sm" placeholder="{{ __('admin.warehouses_section.vendor_listing_id_placeholder') }}"
                                         value="{{ $oldItem['vendor_listing_id'] ?? '' }}" required>
                                 </div>
                                 <div class="w-32">
-                                    <label class="block text-xs text-gray-500 mb-1">Qty Requested</label>
+                                    <label class="block text-xs text-gray-500 mb-1">{{ __('admin.warehouses_section.qty_requested') }}</label>
                                     <input type="number" name="items[{{ $i }}][quantity_requested]"
                                         class="form-input w-full text-sm" placeholder="0" min="1"
                                         value="{{ $oldItem['quantity_requested'] ?? '' }}" required>
@@ -131,11 +131,11 @@
             {{-- ─── Sidebar Actions ──────────────────────────────────────── --}}
             <div class="space-y-5">
                 <x-card>
-                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Actions</h3>
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">{{ __('admin.warehouses_section.actions') }}</h3>
                     <div class="space-y-2">
-                        <button type="submit" class="btn btn-primary w-full">Create Transfer</button>
+                        <button type="submit" class="btn btn-primary w-full">{{ __('admin.warehouses_section.create_transfer') }}</button>
                         <a href="{{ route('admin.warehouses.transfers.index') }}"
-                            class="btn btn-ghost w-full text-gray-500">Cancel</a>
+                            class="btn btn-ghost w-full text-gray-500">{{ __('common.cancel') }}</a>
                     </div>
                 </x-card>
             </div>
@@ -147,6 +147,13 @@
 
 @push('scripts')
     <script type="module">
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            vendorListingIdSku: @json(__('admin.warehouses_section.vendor_listing_id_sku')),
+            vendorListingIdPlaceholder: @json(__('admin.warehouses_section.vendor_listing_id_placeholder')),
+            qtyRequested: @json(__('admin.warehouses_section.qty_requested')),
+        });
+
         document.getElementById('add-item-row').addEventListener('click', function () {
             const container = document.getElementById('items-container');
             const idx = container.querySelectorAll('.item-row').length;
@@ -155,12 +162,12 @@
             row.className = 'flex items-start gap-3 item-row';
             row.innerHTML = `
             <div class="flex-1">
-                <label class="block text-xs text-gray-500 mb-1">Vendor Listing ID / SKU</label>
+                <label class="block text-xs text-gray-500 mb-1">${window.TRANSLATIONS.vendorListingIdSku}</label>
                 <input type="text" name="items[${idx}][vendor_listing_id]"
-                    class="form-input w-full text-sm" placeholder="UUID of vendor listing" required>
+                    class="form-input w-full text-sm" placeholder="${window.TRANSLATIONS.vendorListingIdPlaceholder}" required>
             </div>
             <div class="w-32">
-                <label class="block text-xs text-gray-500 mb-1">Qty Requested</label>
+                <label class="block text-xs text-gray-500 mb-1">${window.TRANSLATIONS.qtyRequested}</label>
                 <input type="number" name="items[${idx}][quantity_requested]"
                     class="form-input w-full text-sm" placeholder="0" min="1" required>
             </div>

@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             BlockTypeSeeder::class,
             CountrySeeder::class,
             CitySeeder::class,
+            TravelCountrySeeder::class,
+            TravelCitySeeder::class,
             CategoryAttributeSeeder::class,
             BrandShippingSeeder::class,
             SettingsSeeder::class,
@@ -51,6 +53,9 @@ class DatabaseSeeder extends Seeder
 
                 // ── Travel categories starter set ─────────────────────────────
             TravelCategorySeeder::class,
+
+                // ── Blog module starter content ────────────────────────────────
+            BlogSeeder::class,
 
                 // ── Light cross-reference demo data (run last) ─────────────────
             DemoDataSeeder::class,

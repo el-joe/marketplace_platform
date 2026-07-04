@@ -4,7 +4,7 @@
     @vite('resources/js/admin/countries.js')
 @endpush
 
-@section('title', 'Add Country')
+@section('title', __('admin.geography.add_country_title'))
 
 @section('content')
     <form id="country-form" method="POST" action="{{ route('admin.countries.store') }}" novalidate>

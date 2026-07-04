@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\City;
 use App\Models\Country;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderStatusHistory;
+use App\Models\ShippingMethod;
+use App\Models\ShippingRate;
+use App\Models\ShippingZone;
 use App\Models\SubOrder;
 use App\Services\OrderInterventionService;
 use App\Traits\HasDataTable;
@@ -116,6 +121,8 @@ class OrderController extends Controller
             'subOrders.items.productVariant',
             'subOrders.vendor',
             'subOrders.carrier',
+            'subOrders.shippingMethod',
+            'subOrders.codSettlement.agent',
             'subOrders.statusHistories.changedByAdmin',
             'transactions.paymentMethod',
             'statusHistories.changedByAdmin',
@@ -338,6 +345,127 @@ class OrderController extends Controller
             Log::error('Fraud flag failed', ['order' => $id, 'error' => $e->getMessage()]);
             return response()->json(['message' => 'Flag failed.'], 500);
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Shipping method assignment
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function availableShippingMethods(Request $request, SubOrder $subOrder): JsonResponse
+    {
+        $snapshot = $subOrder->order->shipping_address_snapshot ?? [];
+        $cityId = $snapshot['city_id'] ?? null;
+
+        if (!$cityId) {
+            $cityName = $snapshot['city'] ?? $snapshot['city_en'] ?? null;
+            if ($cityName) {
+                $city = City::where('name_en', $cityName)
+                    ->first();
+                $cityId = $city?->id;
+            }
+        }
+
+        if (!$cityId) {
+            return response()->json([
+                'destination_zone' => null,
+                'methods' => ShippingMethod::where('is_active', true)
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'code', 'min_delivery_days', 'max_delivery_days'])
+                    ->map(fn($method) => [
+                        'id' => $method->id,
+                        'name' => $method->name,
+                        'code' => $method->code,
+                        'min_delivery_days' => $method->min_delivery_days,
+                        'max_delivery_days' => $method->max_delivery_days,
+                        'rates' => [],
+                    ]),
+            ]);
+        }
+
+        $destinationZoneId = City::find($cityId)?->shipping_zone_id;
+        abort_unless($destinationZoneId, 422, 'This city has no shipping zone assigned.');
+
+        $methods = ShippingMethod::where('is_active', true)
+            ->whereHas('shippingRates', fn($q) =>
+                $q->where('destination_zone_id', $destinationZoneId)
+                    ->where('is_active', true))
+            ->with([
+                'shippingRates' => fn($q) =>
+                    $q->where('destination_zone_id', $destinationZoneId)
+                        ->where('is_active', true)
+                        ->with('carrier')
+            ])
+            ->get()
+            ->map(fn($method) => [
+                'id' => $method->id,
+                'name' => $method->name,
+                'code' => $method->code,
+                'min_delivery_days' => $method->min_delivery_days,
+                'max_delivery_days' => $method->max_delivery_days,
+                'rates' => $method->shippingRates->map(fn($rate) => [
+                    'carrier_id' => $rate->carrier_id,
+                    'carrier_name' => $rate->carrier?->name,
+                    'base_fee_cents' => $rate->base_fee,
+                    'cod_extra_fee_cents' => $rate->cod_extra_fee,
+                    'free_shipping_threshold_cents' => $rate->free_shipping_threshold,
+                ]),
+            ]);
+
+        return response()->json([
+            'destination_zone' => ShippingZone::find($destinationZoneId)?->name,
+            'methods' => $methods,
+        ]);
+    }
+
+    public function assignShippingMethod(Request $request, SubOrder $subOrder): JsonResponse
+    {
+        $request->validate([
+            'shipping_method_id' => 'required|uuid|exists:shipping_methods,id',
+            'carrier_id' => 'nullable|uuid|exists:shipping_carriers,id',
+        ]);
+
+        if (in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) {
+            return response()->json(['success' => false, 'message' => 'لا يمكن تغيير طريقة الشحن بعد شحن الطلب.'], 422);
+        }
+
+        $snapshot = $subOrder->order->shipping_address_snapshot ?? [];
+        $cityId = $snapshot['city_id'] ?? null;
+
+        if ($cityId) {
+            $destinationZoneId = City::find($cityId)?->shipping_zone_id;
+
+            $eligible = ShippingRate::where('destination_zone_id', $destinationZoneId)
+                ->where('shipping_method_id', $request->shipping_method_id)
+                ->where('is_active', true)
+                ->exists();
+
+            abort_unless($eligible, 422, 'The selected shipping method is not available for this order\'s destination zone.');
+        }
+
+        $fromStatus = $subOrder->status;
+
+        $subOrder->update([
+            'shipping_method_id' => $request->shipping_method_id,
+            'carrier_id' => $request->carrier_id,
+        ]);
+
+        OrderStatusHistory::create([
+            'order_id' => $subOrder->order_id,
+            'sub_order_id' => $subOrder->id,
+            'from_status' => $fromStatus,
+            'to_status' => $fromStatus,
+            'changed_by_admin_id' => auth('admin')->id(),
+            'reason' => 'Shipping method assigned: ' . ShippingMethod::find($request->shipping_method_id)?->name,
+            'metadata' => json_encode([
+                'action' => 'shipping_method_assigned',
+                'shipping_method_id' => $request->shipping_method_id,
+                'carrier_id' => $request->carrier_id,
+                'assigned_by' => auth('admin')->id(),
+                'assigned_at' => now(),
+            ]),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'تم تعيين طريقة الشحن بنجاح.']);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

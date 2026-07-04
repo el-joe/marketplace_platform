@@ -4,7 +4,7 @@
     @vite(['resources/js/admin/marketer-tiers.js'])
 @endpush
 
-@section('title', 'Commission Tiers — ' . $marketer->name)
+@section('title', __('admin.marketers.commission_tiers_page_title', ['name' => $marketer->name]))
 
 @section('content')
 
@@ -15,13 +15,13 @@
         <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-5">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-800">Commission Tiers</h2>
+                    <h2 class="text-lg font-bold text-gray-800">{{ __('admin.marketers.commission_tiers_title') }}</h2>
                     <p class="text-sm text-gray-500 mt-0.5">
-                        Define sales thresholds that automatically increase the commission rate.
+                        {{ __('admin.marketers.define_thresholds_desc') }}
                     </p>
                 </div>
                 <button type="button" id="save-tiers-btn" data-url="{{ route('admin.marketers.all.tiers.store', $marketer) }}"
-                    class="btn btn-primary">Save Tiers</button>
+                    class="btn btn-primary">{{ __('admin.marketers.save_tiers') }}</button>
             </div>
 
             <div id="tiers-container"></div>
@@ -30,22 +30,22 @@
         {{-- Info sidebar --}}
         <div class="space-y-4">
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
-                <h3 class="font-semibold text-gray-700 mb-3">Marketer Stats</h3>
+                <h3 class="font-semibold text-gray-700 mb-3">{{ __('admin.marketers.marketer_stats') }}</h3>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-gray-400">Name</span>
+                        <span class="text-gray-400">{{ __('admin.marketers.name_label') }}</span>
                         <span class="font-medium">{{ $marketer->name }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-400">Default Rate</span>
+                        <span class="text-gray-400">{{ __('admin.marketers.default_rate') }}</span>
                         <span class="font-medium">{{ $marketer->commission_rate }}%</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-400">Total Conversions</span>
+                        <span class="text-gray-400">{{ __('admin.marketers.total_conversions') }}</span>
                         <span class="font-bold">{{ number_format($salesCount) }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-400">Current Tier</span>
+                        <span class="text-gray-400">{{ __('admin.marketers.current_tier') }}</span>
                         @php
                             $currentTier = $tiers->first(
                                 fn($t) =>
@@ -54,16 +54,15 @@
                             );
                         @endphp
                         <span class="font-bold {{ $currentTier ? 'text-primary-600' : 'text-gray-400' }}">
-                            {{ $currentTier ? 'Tier ' . $currentTier->tier_order . ' (' . $currentTier->commission_rate . '%)' : 'Default' }}
+                            {{ $currentTier ? __('admin.marketers.tier_n', ['n' => $currentTier->tier_order, 'rate' => $currentTier->commission_rate]) : __('admin.marketers.default_tier') }}
                         </span>
                     </div>
                 </div>
             </div>
 
             <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700">
-                <p class="font-semibold mb-1">How tiers work</p>
-                <p>The highest tier the marketer qualifies for (by sales count) is used. Tiers apply globally unless
-                    overridden per campaign.</p>
+                <p class="font-semibold mb-1">{{ __('admin.marketers.how_tiers_work') }}</p>
+                <p>{{ __('admin.marketers.how_tiers_work_desc') }}</p>
             </div>
         </div>
 

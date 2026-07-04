@@ -14,7 +14,7 @@ class VendorDocument extends Model
 
     protected $fillable = [
         'vendor_id',
-        'document_type',
+        'vendor_document_type_id',
         'file_path',
         'status',
         'verified_by_admin_id',
@@ -46,6 +46,11 @@ class VendorDocument extends Model
     public function scopePending(Builder $query): Builder
     {
         return $query->where('status', 'pending');
+    }
+
+    public function documentType(): BelongsTo
+    {
+        return $this->belongsTo(VendorDocumentType::class, 'vendor_document_type_id');
     }
 
     public function vendor(): BelongsTo

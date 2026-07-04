@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\ShippingMethod;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Kalnoy\Nestedset\NodeTrait;
 
@@ -40,11 +41,17 @@ class Category extends Model
         'description_ar',
         'description_en',
         'commission_rate',
+        'commission_fbp_pct',
+        'commission_fbp_fixed_cents',
+        'commission_fbn_pct',
+        'commission_fbn_fixed_cents',
         'sort_order',
         'product_count',
         'is_active',
         'is_visible',
         'is_featured',
+        'marketer_sample_quota',
+        'admin_sample_quota',
         'seo_title_ar',
         'seo_title_en',
         'seo_description_ar',
@@ -53,11 +60,17 @@ class Category extends Model
 
     protected $casts = [
         'commission_rate' => 'decimal:2',
+        'commission_fbp_pct' => 'decimal:2',
+        'commission_fbp_fixed_cents' => 'integer',
+        'commission_fbn_pct' => 'decimal:2',
+        'commission_fbn_fixed_cents' => 'integer',
         'sort_order' => 'integer',
         'product_count' => 'integer',
         'is_active' => 'boolean',
         'is_visible' => 'boolean',
         'is_featured' => 'boolean',
+        'marketer_sample_quota' => 'integer',
+        'admin_sample_quota' => 'integer',
     ];
 
     // ── Accessors ────────────────────────────────────────────────────────────
@@ -105,6 +118,19 @@ class Category extends Model
     public function files(): MorphMany
     {
         return $this->morphMany(File::class, 'model');
+    }
+
+    public function shippingMethods(): BelongsToMany
+    {
+        return $this->belongsToMany(ShippingMethod::class, 'category_shipping_methods')
+            ->withPivot(['is_default', 'is_available_for_express_fbn', 'is_available_for_merchant_fbp']);
+    }
+
+    public function defaultShippingMethod(): BelongsToMany
+    {
+        return $this->belongsToMany(ShippingMethod::class, 'category_shipping_methods')
+            ->withPivot(['is_default'])
+            ->wherePivot('is_default', true);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

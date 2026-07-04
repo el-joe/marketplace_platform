@@ -1,21 +1,21 @@
 @extends('layouts.partner')
 
-@section('title', 'نفد المخزون')
-@section('page-title', 'نفد المخزون')
+@section('title', __('partner.inventory.out_of_stock'))
+@section('page-title', __('partner.inventory.out_of_stock'))
 
 @section('content')
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
-        <p class="text-sm text-gray-500">المنتجات التي نفد مخزونها المتاح للبيع</p>
+        <p class="text-sm text-gray-500">{{ __('partner.inventory.out_of_stock_desc') }}</p>
         <div class="flex gap-2">
             <a href="{{ route('partner.inventory.low-stock') }}"
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors">
-                ⚠ مخزون منخفض
+                ⚠ {{ __('partner.inventory.low_stock') }}
             </a>
             <a href="{{ route('partner.inventory.index') }}"
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors">
-                ← المخزون
+                {{ __('partner.inventory.back_to_inventory') }}
             </a>
         </div>
     </div>
@@ -25,21 +25,21 @@
         @if($rows->isEmpty())
             <div class="py-16 text-center">
                 <div class="text-4xl mb-3">🎉</div>
-                <h3 class="font-semibold text-gray-800 mb-1">لا يوجد مخزون نافد</h3>
-                <p class="text-sm text-gray-400">جميع قوائمك تمتلك مخزوناً متاحاً للبيع.</p>
+                <h3 class="font-semibold text-gray-800 mb-1">{{ __('partner.inventory.out_of_stock_empty_title') }}</h3>
+                <p class="text-sm text-gray-400">{{ __('partner.inventory.out_of_stock_empty_desc') }}</p>
             </div>
         @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 border-b border-gray-100">
                         <tr class="text-xs text-gray-500 uppercase">
-                            <th class="text-right py-3 px-5 font-medium">المنتج</th>
-                            <th class="text-right py-3 px-4 font-medium">النسخة</th>
-                            <th class="text-right py-3 px-4 font-medium">المستودع</th>
-                            <th class="py-3 px-4 text-center font-medium">في المخزن</th>
-                            <th class="py-3 px-4 text-center font-medium">محجوز</th>
-                            <th class="py-3 px-4 text-center font-medium">متاح</th>
-                            <th class="py-3 px-4 text-center font-medium">حالة القائمة</th>
+                            <th class="text-right py-3 px-5 font-medium">{{ __('partner.inventory.table.product') }}</th>
+                            <th class="text-right py-3 px-4 font-medium">{{ __('partner.inventory.table_extra.variant') }}</th>
+                            <th class="text-right py-3 px-4 font-medium">{{ __('partner.inventory.table.warehouse') }}</th>
+                            <th class="py-3 px-4 text-center font-medium">{{ __('partner.inventory.table.on_hand') }}</th>
+                            <th class="py-3 px-4 text-center font-medium">{{ __('partner.inventory.table.reserved') }}</th>
+                            <th class="py-3 px-4 text-center font-medium">{{ __('partner.inventory.table.available') }}</th>
+                            <th class="py-3 px-4 text-center font-medium">{{ __('partner.inventory.listing_status') }}</th>
                             <th class="py-3 px-4"></th>
                         </tr>
                     </thead>
@@ -54,10 +54,10 @@
                                     'out_of_stock' => 'bg-red-100 text-red-700',
                                 ];
                                 $statusLabelMap = [
-                                    'active' => 'نشط',
-                                    'paused' => 'موقوف',
-                                    'pending_review' => 'قيد المراجعة',
-                                    'out_of_stock' => 'نفد المخزون',
+                                    'active' => __('partner.inventory.listing_status_values.active'),
+                                    'paused' => __('partner.inventory.listing_status_values.paused'),
+                                    'pending_review' => __('partner.inventory.listing_status_values.pending_review'),
+                                    'out_of_stock' => __('partner.inventory.listing_status_values.out_of_stock'),
                                 ];
                                 $statusCls = $statusMap[$row->listing_status] ?? 'bg-gray-100 text-gray-500';
                                 $statusLabel = $statusLabelMap[$row->listing_status] ?? $row->listing_status;
@@ -88,7 +88,7 @@
                                 </td>
                                 <td class="py-3 px-4 text-right">
                                     <a href="{{ route('partner.listings.show', $row->listing_id) }}"
-                                        class="text-xs text-blue-600 hover:underline whitespace-nowrap">عرض القائمة</a>
+                                        class="text-xs text-blue-600 hover:underline whitespace-nowrap">{{ __('partner.inventory.view_listing') }}</a>
                                 </td>
                             </tr>
                         @endforeach

@@ -56,6 +56,8 @@ export default defineConfig({
                 'resources/js/admin/secret-promotions.js',
                 'resources/js/admin/secret-promotion-detail.js',
                 'resources/js/admin/marketer-tiers.js',
+                'resources/js/admin/travel-packages.js',
+                'resources/js/admin/travel-bookings.js',
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
                 'resources/js/portal/registration.js',
@@ -82,6 +84,7 @@ export default defineConfig({
                 'resources/js/partner/classifieds.js',
                 // Delivery Agent Panel (delivery.noon.loc)
                 'resources/js/delivery/app.js',
+                'resources/js/marketer/app.js'
             ],
             refresh: [
                 'resources/views/**',

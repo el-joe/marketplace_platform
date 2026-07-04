@@ -8,39 +8,39 @@
         ?? $product->images->first();
 
     $statusMap = [
-        'active' => ['bg-green-100 text-green-700', 'نشط'],
-        'paused' => ['bg-gray-100 text-gray-600', 'موقوف مؤقتاً'],
-        'pending_review' => ['bg-yellow-100 text-yellow-700', 'قيد المراجعة'],
-        'draft' => ['bg-gray-100 text-gray-500', 'مسودة'],
-        'rejected' => ['bg-red-100 text-red-700', 'مرفوض'],
-        'out_of_stock' => ['bg-red-50 text-red-500', 'نفد المخزون'],
-        'archived' => ['bg-gray-100 text-gray-400', 'مؤرشف'],
+        'active' => ['bg-green-100 text-green-700', __('partner.listings.show.statuses.active')],
+        'paused' => ['bg-gray-100 text-gray-600', __('partner.listings.show.statuses.paused')],
+        'pending_review' => ['bg-yellow-100 text-yellow-700', __('partner.listings.show.statuses.pending_review')],
+        'draft' => ['bg-gray-100 text-gray-500', __('partner.listings.show.statuses.draft')],
+        'rejected' => ['bg-red-100 text-red-700', __('partner.listings.show.statuses.rejected')],
+        'out_of_stock' => ['bg-red-50 text-red-500', __('partner.listings.show.statuses.out_of_stock')],
+        'archived' => ['bg-gray-100 text-gray-400', __('partner.listings.show.statuses.archived')],
     ];
     [$statusClass, $statusLabel] = $statusMap[$listing->status] ?? ['bg-gray-100 text-gray-600', $listing->status];
 
     $fulfillmentLabels = [
-        'fbm' => 'FBM — شحن ذاتي',
-        'fbn' => 'FBN — تخزين لدينا',
-        'cross_dock' => 'Cross Dock',
+        'fbm' => __('partner.listings.show.fulfillment_labels.fbm'),
+        'fbn' => __('partner.listings.show.fulfillment_labels.fbn'),
+        'cross_dock' => __('partner.listings.show.fulfillment_labels.cross_dock'),
     ];
     $conditionLabels = [
-        'new' => 'جديد',
-        'like_new' => 'كالجديد',
-        'good' => 'جيد',
-        'acceptable' => 'مقبول',
-        'refurbished' => 'مُجدَّد',
+        'new' => __('partner.listings.show.condition_labels.new'),
+        'like_new' => __('partner.listings.show.condition_labels.like_new'),
+        'good' => __('partner.listings.show.condition_labels.good'),
+        'acceptable' => __('partner.listings.show.condition_labels.acceptable'),
+        'refurbished' => __('partner.listings.show.condition_labels.refurbished'),
     ];
     $movementTypeLabels = [
-        'inbound' => ['text-green-600', '↑ وارد'],
-        'outbound' => ['text-red-600', '↓ صادر'],
-        'adjustment' => ['text-blue-600', '± تعديل'],
-        'reservation' => ['text-purple-600', '🔒 حجز'],
-        'reservation_release' => ['text-teal-600', '🔓 إلغاء حجز'],
+        'inbound' => ['text-green-600', __('partner.listings.show.movement_types.inbound')],
+        'outbound' => ['text-red-600', __('partner.listings.show.movement_types.outbound')],
+        'adjustment' => ['text-blue-600', __('partner.listings.show.movement_types.adjustment')],
+        'reservation' => ['text-purple-600', __('partner.listings.show.movement_types.reservation')],
+        'reservation_release' => ['text-teal-600', __('partner.listings.show.movement_types.reservation_release')],
     ];
 @endphp
 
 @section('title', $product->name_ar ?: $product->name_en)
-@section('page-title', 'تفاصيل القائمة')
+@section('page-title', __('partner.listings.show.page_title'))
 
 @push('scripts')
     @vite('resources/js/partner/listings.js')
@@ -66,7 +66,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            العودة للقوائم
+            {{ __('partner.listings.show.back_to_listings') }}
         </a>
     </div>
 
@@ -111,8 +111,8 @@
 
                         <div class="mt-3 flex flex-wrap gap-4 text-sm text-gray-600">
                             <div>
-                                <span class="text-xs text-gray-400 block">النسخة</span>
-                                <span class="font-medium">{{ $variant->variant_name ?: 'الافتراضية' }}</span>
+                                <span class="text-xs text-gray-400 block">{{ __('partner.listings.show.variant') }}</span>
+                                <span class="font-medium">{{ $variant->variant_name ?: __('partner.inventory.default_variant') }}</span>
                             </div>
                             <div>
                                 <span class="text-xs text-gray-400 block">SKU</span>
@@ -120,7 +120,7 @@
                             </div>
                             @if($listing->vendor_sku)
                                 <div>
-                                    <span class="text-xs text-gray-400 block">SKU الخاص بك</span>
+                                    <span class="text-xs text-gray-400 block">{{ __('partner.listings.show.your_sku') }}</span>
                                     <span class="font-mono text-xs">{{ $listing->vendor_sku }}</span>
                                 </div>
                             @endif
@@ -131,49 +131,49 @@
 
             {{-- Listing Details --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 class="font-semibold text-gray-800 mb-4">تفاصيل القائمة</h3>
+                <h3 class="font-semibold text-gray-800 mb-4">{{ __('partner.listings.show.details_title') }}</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-5 text-sm">
                     <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">السعر</span>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.price') }}</span>
                         <span id="display-price" class="font-bold text-gray-900 text-lg">
                             {{ number_format($listing->price / 100, 2) }}
                         </span>
                         <span class="text-xs text-gray-500 mr-1">{{ $listing->currency }}</span>
                     </div>
                     <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">الحالة</span>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.condition') }}</span>
                         <span class="font-medium">{{ $conditionLabels[$listing->condition] ?? $listing->condition }}</span>
                     </div>
                     <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">نموذج التنفيذ</span>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.fulfillment_model') }}</span>
                         <span
                             class="font-medium">{{ $fulfillmentLabels[$listing->fulfillment_model] ?? $listing->fulfillment_model }}</span>
                     </div>
                     <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">إجمالي المباع</span>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.total_sold') }}</span>
                         <span class="font-medium">{{ number_format($listing->total_sold) }}</span>
                     </div>
                     <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">متوسط التقييم</span>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.avg_rating') }}</span>
                         <span
                             class="font-medium">{{ $listing->rating_avg ? number_format($listing->rating_avg, 1) . ' ★' : '—' }}</span>
                     </div>
                     <div>
-                        <span class="text-xs text-gray-400 block mb-0.5">حد التنبيه</span>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.show.alert_threshold') }}</span>
                         <span class="font-medium">{{ $listing->low_stock_threshold }}</span>
                     </div>
                 </div>
 
                 @if($listing->vendor_notes)
                     <div class="mt-4 pt-4 border-t border-gray-50">
-                        <span class="text-xs text-gray-400 block mb-1">ملاحظاتك الخاصة</span>
+                        <span class="text-xs text-gray-400 block mb-1">{{ __('partner.listings.show.your_notes') }}</span>
                         <p class="text-sm text-gray-700">{{ $listing->vendor_notes }}</p>
                     </div>
                 @endif
 
                 @if($listing->rejection_reason)
                     <div class="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
-                        <p class="text-xs font-semibold text-red-700 mb-1">سبب الرفض</p>
+                        <p class="text-xs font-semibold text-red-700 mb-1">{{ __('partner.listings.show.rejection_reason') }}</p>
                         <p class="text-sm text-red-800">{{ $listing->rejection_reason }}</p>
                     </div>
                 @endif
@@ -186,22 +186,22 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M20 7l-8-4-8 4m16 0v10l-8 4m-8-4V7m8 4v10" />
                     </svg>
-                    المخزون حسب المستودع
+                    {{ __('partner.listings.show.inventory_by_warehouse') }}
                 </h3>
 
                 @if($listing->warehouseInventories->isEmpty())
-                    <p class="text-sm text-gray-400 text-center py-6">لا يوجد مخزون مسجل بعد.</p>
+                    <p class="text-sm text-gray-400 text-center py-6">{{ __('partner.listings.show.no_inventory') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="text-xs text-gray-500 border-b border-gray-100">
-                                    <th class="text-right py-2 font-medium">المستودع</th>
-                                    <th class="py-2 text-center font-medium">متاح للبيع</th>
-                                    <th class="py-2 text-center font-medium">في المخزن</th>
-                                    <th class="py-2 text-center font-medium">محجوز</th>
-                                    <th class="py-2 text-center font-medium">وارد</th>
-                                    <th class="py-2 text-center font-medium">تالف</th>
+                                    <th class="text-right py-2 font-medium">{{ __('partner.listings.show.warehouse') }}</th>
+                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.available_for_sale') }}</th>
+                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.on_hand') }}</th>
+                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.reserved') }}</th>
+                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.inbound') }}</th>
+                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.damaged') }}</th>
                                     <th class="py-2"></th>
                                 </tr>
                             </thead>
@@ -233,7 +233,7 @@
                                                 class="btn-adjust-stock text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg transition-colors"
                                                 data-inv-id="{{ $inv->id }}" data-warehouse="{{ $inv->warehouse->name }}"
                                                 data-on-hand="{{ $inv->quantity_on_hand }}">
-                                                تعديل المخزون
+                                                {{ __('partner.listings.show.adjust_stock') }}
                                             </button>
                                         </td>
                                     </tr>
@@ -247,23 +247,23 @@
             {{-- Stock History --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-semibold text-gray-800">سجل الحركات (آخر 20)</h3>
+                    <h3 class="font-semibold text-gray-800">{{ __('partner.listings.show.stock_history') }}</h3>
                     <a href="{{ route('partner.inventory.movements', $listing->id) }}"
-                        class="text-xs text-blue-600 hover:underline">عرض الكل</a>
+                        class="text-xs text-blue-600 hover:underline">{{ __('partner.listings.show.view_all') }}</a>
                 </div>
 
                 @if($movements->isEmpty())
-                    <p class="text-sm text-gray-400 text-center py-4">لا توجد حركات مخزون مسجلة.</p>
+                    <p class="text-sm text-gray-400 text-center py-4">{{ __('partner.listings.show.no_movements') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs">
                             <thead>
                                 <tr class="text-gray-400 border-b border-gray-50">
-                                    <th class="text-right py-2 font-medium">النوع</th>
-                                    <th class="py-2 text-center font-medium">الكمية</th>
-                                    <th class="py-2 text-center font-medium">بعد</th>
-                                    <th class="text-right py-2 font-medium">السبب</th>
-                                    <th class="text-right py-2 font-medium">التاريخ</th>
+                                    <th class="text-right py-2 font-medium">{{ __('partner.listings.show.movement_type') }}</th>
+                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.quantity') }}</th>
+                                    <th class="py-2 text-center font-medium">{{ __('partner.listings.show.after') }}</th>
+                                    <th class="text-right py-2 font-medium">{{ __('partner.listings.show.reason') }}</th>
+                                    <th class="text-right py-2 font-medium">{{ __('partner.listings.show.date') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -299,7 +299,7 @@
 
             {{-- Quick Stats --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
-                <h4 class="font-semibold text-gray-800 text-sm mb-3">إجمالي المخزون</h4>
+                <h4 class="font-semibold text-gray-800 text-sm mb-3">{{ __('partner.listings.show.total_inventory') }}</h4>
                 @php
                     $totalOnHand = $listing->warehouseInventories->sum('quantity_on_hand');
                     $totalReserved = $listing->warehouseInventories->sum('quantity_reserved');
@@ -308,22 +308,22 @@
                 @endphp
                 <div class="space-y-3">
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">متاح للبيع</span>
+                        <span class="text-gray-500">{{ __('partner.listings.show.available_for_sale') }}</span>
                         <span @class(['font-bold', 'text-red-600' => $totalAvail <= 0, 'text-orange-500' => $totalAvail > 0 && $totalAvail <= $listing->low_stock_threshold, 'text-gray-900' => $totalAvail > $listing->low_stock_threshold])>
                             {{ $totalAvail }}
                         </span>
                     </div>
                     <div class="flex justify-between text-sm text-gray-600">
-                        <span>في المخزن</span>
+                        <span>{{ __('partner.listings.show.on_hand') }}</span>
                         <span>{{ $totalOnHand }}</span>
                     </div>
                     <div class="flex justify-between text-sm text-gray-600">
-                        <span>محجوز</span>
+                        <span>{{ __('partner.listings.show.reserved') }}</span>
                         <span>{{ $totalReserved }}</span>
                     </div>
                     @if($totalInbound > 0)
                         <div class="flex justify-between text-sm text-blue-600">
-                            <span>وارد قريباً</span>
+                            <span>{{ __('partner.listings.show.incoming_soon') }}</span>
                             <span>{{ $totalInbound }}</span>
                         </div>
                     @endif
@@ -332,27 +332,27 @@
 
             {{-- Actions --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
-                <h4 class="font-semibold text-gray-800 text-sm mb-3">الإجراءات</h4>
+                <h4 class="font-semibold text-gray-800 text-sm mb-3">{{ __('partner.listings.show.actions') }}</h4>
                 <div class="space-y-2">
 
                     {{-- Update Price --}}
                     <button id="btn-update-price"
                         class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-sm font-semibold py-2.5 rounded-xl transition-colors">
-                        تعديل السعر
+                        {{ __('partner.listings.show.update_price') }}
                     </button>
 
                     {{-- Toggle Status --}}
                     @if(in_array($listing->status, ['active', 'paused']))
                         <button id="btn-toggle-status"
                             class="w-full {{ $listing->status === 'active' ? 'border border-gray-200 hover:bg-gray-50 text-gray-700' : 'bg-green-600 hover:bg-green-700 text-white' }} text-sm font-semibold py-2.5 rounded-xl transition-colors">
-                            {{ $listing->status === 'active' ? 'إيقاف مؤقت' : 'تفعيل القائمة' }}
+                            {{ $listing->status === 'active' ? __('partner.listings.show.deactivate') : __('partner.listings.show.activate_listing') }}
                         </button>
                     @endif
 
                     {{-- Inventory movements link --}}
                     <a href="{{ route('partner.inventory.movements', $listing->id) }}"
                         class="w-full block text-center border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2.5 rounded-xl transition-colors">
-                        سجل حركات المخزون
+                        {{ __('partner.listings.show.movements_history') }}
                     </a>
 
                 </div>
@@ -367,7 +367,7 @@
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
             <div class="p-5 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                    <h3 class="font-semibold text-gray-900 text-sm">تعديل المخزون</h3>
+                    <h3 class="font-semibold text-gray-900 text-sm">{{ __('partner.listings.show.adjust_modal_title') }}</h3>
                     <p id="adjust-warehouse-name" class="text-xs text-gray-400"></p>
                 </div>
                 <button id="adjust-modal-close" class="text-gray-400 hover:text-gray-600">
@@ -379,39 +379,39 @@
             <form id="adjust-form" class="p-5 space-y-4">
                 <input type="hidden" id="adjust-inv-id" name="warehouse_inventory_id">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">المخزون الحالي</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.listings.show.current_stock') }}</label>
                     <p id="adjust-current-qty" class="text-2xl font-bold text-gray-900"></p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">التعديل <span
-                            class="text-xs text-gray-400">(موجب للإضافة، سالب للخصم)</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.inventory.adjustment_label') }} <span
+                            class="text-xs text-gray-400">{{ __('partner.listings.show.adjustment_hint') }}</span></label>
                     <input type="number" name="adjustment" required
                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                        placeholder="+10 أو -5">
+                        placeholder="{{ __('partner.inventory.adjustment_placeholder') }}">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">السبب <span
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.inventory.reason_label') }} <span
                             class="text-red-500">*</span></label>
                     <select name="reason" required
                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
-                        <option value="">اختر السبب...</option>
-                        <option value="received_stock">استلام مخزون جديد</option>
-                        <option value="damaged_goods">بضاعة تالفة</option>
-                        <option value="inventory_count">جرد مخزون</option>
-                        <option value="returned_to_vendor">مرتجع من العميل</option>
-                        <option value="transfer">نقل بين مستودعات</option>
-                        <option value="other">سبب آخر</option>
+                        <option value="">{{ __('partner.inventory.select_reason') }}</option>
+                        <option value="received_stock">{{ __('partner.inventory.reasons.received_stock') }}</option>
+                        <option value="damaged_goods">{{ __('partner.inventory.reasons.damaged_goods') }}</option>
+                        <option value="inventory_count">{{ __('partner.inventory.reasons.inventory_count') }}</option>
+                        <option value="returned_to_vendor">{{ __('partner.inventory.reasons.returned_to_vendor') }}</option>
+                        <option value="transfer">{{ __('partner.inventory.reasons.transfer') }}</option>
+                        <option value="other">{{ __('partner.inventory.reasons.other') }}</option>
                     </select>
                 </div>
                 <div id="adjust-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3"></div>
                 <div class="flex gap-2">
                     <button type="submit"
                         class="flex-1 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
-                        تأكيد التعديل
+                        {{ __('partner.listings.show.confirm_adjustment') }}
                     </button>
                     <button type="button" id="adjust-cancel-btn"
                         class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">
-                        إلغاء
+                        {{ __('partner.listings.show.cancel') }}
                     </button>
                 </div>
             </form>
@@ -422,7 +422,7 @@
     <div id="update-price-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
             <div class="p-5 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="font-semibold text-gray-900 text-sm">تعديل السعر</h3>
+                <h3 class="font-semibold text-gray-900 text-sm">{{ __('partner.listings.show.update_price_title') }}</h3>
                 <button id="price-modal-close-detail" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -431,7 +431,7 @@
             </div>
             <form id="price-update-form" class="p-5 space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">السعر الجديد</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.listings.show.new_price') }}</label>
                     <input type="number" id="new-price-input" name="price" step="0.01" min="0.01"
                         value="{{ $listing->price / 100 }}"
                         class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
@@ -439,9 +439,9 @@
                 <div id="price-update-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3"></div>
                 <div class="flex gap-2">
                     <button type="submit"
-                        class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-2.5 rounded-xl text-sm transition-colors">حفظ</button>
+                        class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-2.5 rounded-xl text-sm transition-colors">{{ __('partner.listings.show.save') }}</button>
                     <button type="button" id="price-close-btn"
-                        class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">إلغاء</button>
+                        class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">{{ __('partner.listings.show.cancel') }}</button>
                 </div>
             </form>
         </div>

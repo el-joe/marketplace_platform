@@ -64,7 +64,7 @@ class RecordMarketerConversion implements ShouldQueue
             'order_value_cents' => $orderValue,
             'commission_rate' => $effectiveRate,
             'commission_amount_cents' => $commissionAmount,
-            'currency' => $order->currency ?? 'SAR',
+            'currency' => $order->currency,
             'status' => 'pending',
         ]);
 

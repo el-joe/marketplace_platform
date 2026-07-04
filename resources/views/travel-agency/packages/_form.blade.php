@@ -9,6 +9,43 @@
 </div>
 @endif
 
+{{-- Contract File --}}
+<div class="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+    <div class="flex items-center gap-2">
+        <h3 class="font-bold text-gray-800">عقد الباقة</h3>
+        <span class="text-red-500 text-sm font-medium">*</span>
+    </div>
+
+    @if($pkg?->contract_file_path)
+    <div class="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm">
+        <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+        </svg>
+        <div class="flex-1 min-w-0">
+            <p class="text-gray-700">العقد الحالي: <span class="font-medium">{{ $pkg->contract_file_original_name }}</span></p>
+            @if($pkg->contract_uploaded_at)
+            <p class="text-xs text-gray-400 mt-0.5">رُفع في {{ $pkg->contract_uploaded_at->format('d M Y H:i') }}</p>
+            @endif
+        </div>
+        <a href="{{ route('travel-agency.packages.contract.download', $pkg) }}"
+           class="text-blue-600 hover:text-blue-800 font-medium shrink-0">عرض</a>
+    </div>
+    <p class="text-xs text-gray-400">ارفع ملفاً جديداً فقط إذا كنت تريد استبدال العقد الحالي.</p>
+    @endif
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+            Package Contract (PDF){{ $pkg?->contract_file_path ? '' : ' *' }}
+        </label>
+        <input type="file" name="contract_file" accept="application/pdf"
+               id="contract-file-input"
+               {{ !$pkg?->contract_file_path ? 'required' : '' }}
+               class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
+        <p class="mt-1 text-xs text-gray-400">PDF فقط — الحد الأقصى 10MB</p>
+        @error('contract_file') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+    </div>
+</div>
+
 {{-- Title (bilingual) --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
     <h3 class="font-bold text-gray-800">عنوان الباقة</h3>
@@ -32,13 +69,26 @@
     <div class="grid grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">الدولة المقصودة *</label>
-            <input type="text" name="destination_country" value="{{ old('destination_country', $pkg?->destination_country) }}" required
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+            <select name="destination_travel_country_id" id="travel-country-select" required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+                <option value="">— اختر الدولة —</option>
+                @foreach($travelCountries as $c)
+                    <option value="{{ $c->id }}"
+                        {{ old('destination_travel_country_id', $pkg?->destination_travel_country_id) == $c->id ? 'selected' : '' }}>
+                        {{ $c->flag_emoji }} {{ $c->name_en }}
+                    </option>
+                @endforeach
+            </select>
+            @error('destination_travel_country_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
-            <input type="text" name="destination_city" value="{{ old('destination_city', $pkg?->destination_city) }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+            <select name="destination_travel_city_id" id="travel-city-select"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400"
+                    {{ old('destination_travel_country_id', $pkg?->destination_travel_country_id) ? '' : 'disabled' }}>
+                <option value="">— اختر الدولة أولاً —</option>
+            </select>
+            @error('destination_travel_city_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ المغادرة *</label>
@@ -75,8 +125,17 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">العملة *</label>
-            <input type="text" name="currency" value="{{ old('currency', $pkg?->currency ?? 'SAR') }}" maxlength="3" required
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+            @php $selectedCurrency = old('currency', $pkg?->currency ?? auth()->guard('travel_agency')->user()?->country?->currency_code ?? ''); @endphp
+            <select name="currency" required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
+                <option value="">— اختر العملة —</option>
+                @foreach($currencies as $cur)
+                    <option value="{{ $cur->code }}" {{ $selectedCurrency === $cur->code ? 'selected' : '' }}>
+                        {{ $cur->code }} — {{ $cur->name }} ({{ $cur->symbol }})
+                    </option>
+                @endforeach
+            </select>
+            @error('currency') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">عدد المقاعد المتاحة</label>
@@ -152,3 +211,46 @@
         <p class="mt-1 text-xs text-gray-400">أنواع مقبولة: JPG, PNG, WEBP, MP4, MOV — الحد الأقصى 50MB لكل ملف</p>
     </div>
 </div>
+
+<script>
+(function () {
+    const countrySelect = document.getElementById('travel-country-select');
+    const citySelect    = document.getElementById('travel-city-select');
+    const citiesUrl     = '{{ rtrim(url('/packages/cities-for-country'), '/') }}/';
+    const preselectedCity = '{{ old('destination_travel_city_id', $pkg?->destination_travel_city_id ?? '') }}';
+
+    function populateCities(cities, selectedId) {
+        citySelect.innerHTML = '<option value="">— اختر المدينة (اختياري) —</option>';
+        cities.forEach(function (c) {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name_en + (c.name_ar ? ' / ' + c.name_ar : '');
+            if (c.id === selectedId) opt.selected = true;
+            citySelect.appendChild(opt);
+        });
+        citySelect.disabled = cities.length === 0;
+    }
+
+    function loadCities(countryId, selectedId) {
+        if (!countryId) {
+            citySelect.innerHTML = '<option value="">— اختر الدولة أولاً —</option>';
+            citySelect.disabled = true;
+            return;
+        }
+        fetch(citiesUrl + countryId)
+            .then(function (r) { return r.json(); })
+            .then(function (cities) { populateCities(cities, selectedId || ''); })
+            .catch(function () { citySelect.disabled = true; });
+    }
+
+    countrySelect.addEventListener('change', function () {
+        loadCities(this.value, '');
+    });
+
+    // On edit: pre-populate cities for the already-selected country
+    const initialCountry = countrySelect.value;
+    if (initialCountry) {
+        loadCities(initialCountry, preselectedCity);
+    }
+})();
+</script>

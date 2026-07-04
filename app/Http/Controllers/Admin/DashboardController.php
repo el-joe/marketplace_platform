@@ -88,55 +88,81 @@ class DashboardController extends Controller
 
         $countryId = $request->input('country_id');
 
-        // Build date-bucketed GMV
+        // Build date-bucketed GMV grouped by currency to avoid blending amounts across currencies.
+        // When country_id is supplied the join guarantees a single currency; without it each
+        // currency produces its own row so the chart can render separate series.
         $orderRows = Order::query()
-            ->selectRaw('DATE(placed_at) as date, SUM(total) as gmv')
-            ->whereBetween('placed_at', [$start, $end])
-            ->whereNotIn('status', ['cancelled'])
-            ->when($countryId, fn($q) => $q->whereHas(
-                'customer', fn($cq) => $cq->where('country_id', $countryId)
-            ))
-            ->groupBy('date')
+            ->join('customers as c', 'c.id', '=', 'orders.customer_id')
+            ->selectRaw('DATE(orders.placed_at) as date, orders.currency, SUM(orders.total) as gmv')
+            ->whereBetween('orders.placed_at', [$start, $end])
+            ->whereNotIn('orders.status', ['cancelled'])
+            ->when($countryId, fn($q) => $q->where('c.country_id', $countryId))
+            ->groupBy('date', 'orders.currency')
             ->get()
-            ->keyBy('date');
+            ->groupBy('date');
 
         // Commission is sourced from order_items.commission_amount in this schema.
         $commRows = collect();
         if (Schema::hasTable('order_items') && Schema::hasColumn('order_items', 'commission_amount')) {
             $commRows = OrderItem::query()->from('order_items as oi')
                 ->join('orders as o', 'o.id', '=', 'oi.order_id')
-                ->selectRaw('DATE(o.placed_at) as date, SUM(oi.commission_amount) as commission')
+                ->join('customers as c', 'c.id', '=', 'o.customer_id')
+                ->selectRaw('DATE(o.placed_at) as date, o.currency, SUM(oi.commission_amount) as commission')
                 ->whereBetween('o.placed_at', [$start, $end])
                 ->whereNotIn('o.status', ['cancelled'])
-                ->when($countryId, function ($q) use ($countryId) {
-                    $q->whereExists(function ($sub) use ($countryId) {
-                        $sub->from('customers')
-                            ->whereColumn('customers.id', 'o.customer_id')
-                            ->where('customers.country_id', $countryId);
-                    });
-                })
-                ->groupBy('date')
+                ->when($countryId, fn($q) => $q->where('c.country_id', $countryId))
+                ->groupBy('date', 'o.currency')
                 ->get()
-                ->keyBy('date');
+                ->groupBy('date');
         }
 
-        $labels = [];
-        $gmvData = [];
-        $commData = [];
         $labelFmt = $days > 30 ? 'M d' : 'd M';
 
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
-            $labels[] = now()->subDays($i)->format($labelFmt);
-            $gmvData[] = (int) ($orderRows[$date]->gmv ?? 0);
-            $commData[] = (int) ($commRows[$date]->commission ?? 0);
+        // Determine currencies present in this result set.
+        $allCurrencies = $orderRows->flatMap(fn($rows) => $rows->pluck('currency'))
+            ->unique()->sort()->values()->all();
+
+        // Single-currency path (country filter applied, or all data happens to be one currency).
+        if (count($allCurrencies) <= 1) {
+            $currency = $allCurrencies[0] ?? null;
+            $labels = $gmvData = $commData = [];
+            for ($i = $days - 1; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $labels[]   = now()->subDays($i)->format($labelFmt);
+                $gmvData[]  = (int) ($orderRows->get($date)?->first()?->gmv ?? 0);
+                $commData[] = (int) ($commRows->get($date)?->first()?->commission ?? 0);
+            }
+            return response()->json([
+                'data' => [
+                    'labels'     => $labels,
+                    'gmv'        => $gmvData,
+                    'commission' => $commData,
+                    'currency'   => $currency,
+                ],
+            ]);
         }
 
+        // Multi-currency path: one dataset per currency so the chart renders separate lines.
+        $allDates = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $allDates[] = now()->subDays($i)->format('Y-m-d');
+        }
+        $labels = array_map(fn($d) => Carbon::parse($d)->format($labelFmt), $allDates);
+        $datasets = [];
+        foreach ($allCurrencies as $currency) {
+            $gmvData = $commData = [];
+            foreach ($allDates as $date) {
+                $gmvRow  = collect($orderRows[$date] ?? [])->firstWhere('currency', $currency);
+                $commRow = collect($commRows[$date] ?? [])->firstWhere('currency', $currency);
+                $gmvData[]  = (int) ($gmvRow->gmv ?? 0);
+                $commData[] = (int) ($commRow->commission ?? 0);
+            }
+            $datasets[$currency] = ['gmv' => $gmvData, 'commission' => $commData];
+        }
         return response()->json([
             'data' => [
-                'labels' => $labels,
-                'gmv' => $gmvData,
-                'commission' => $commData,
+                'labels'   => $labels,
+                'datasets' => $datasets,
             ],
         ]);
     }
@@ -221,29 +247,39 @@ class DashboardController extends Controller
 
     /**
      * AJAX — top 10 sellers by GMV (last 30 days).
+     * Accepts: country_id — mandatory to ensure single-currency sums.
+     * Without a country filter, vendors span multiple currencies; SUM(line_total)
+     * across currencies is meaningless, so we return per-currency breakdowns instead.
      */
-    public function topSellers(): JsonResponse
+    public function topSellers(Request $request): JsonResponse
     {
+        $countryId = $request->input('country_id');
+
+        // GROUP BY currency so amounts are never blended across currencies.
         $sellers = OrderItem::query()->from('order_items as oi')
             ->select([
                 'v.id',
                 'v.business_name',
+                'o.currency',
                 DB::raw('SUM(oi.line_total) as gmv'),
                 DB::raw('COUNT(DISTINCT oi.order_id) as order_count'),
                 DB::raw('AVG(v.store_rating_avg) as rating'),
             ])
             ->join('vendors as v', 'v.id', '=', 'oi.vendor_id')
             ->join('orders as o', 'o.id', '=', 'oi.order_id')
+            ->join('customers as c', 'c.id', '=', 'o.customer_id')
             ->where('o.created_at', '>=', now()->subDays(30))
             ->whereNotIn('o.status', ['cancelled', 'refunded'])
-            ->groupBy('v.id', 'v.business_name', 'v.store_rating_avg')
+            ->when($countryId, fn($q) => $q->where('c.country_id', $countryId))
+            ->groupBy('v.id', 'v.business_name', 'v.store_rating_avg', 'o.currency')
             ->orderByDesc('gmv')
             ->limit(10)
             ->get()
             ->map(fn($row) => [
                 'id' => $row->id,
                 'business_name' => $row->business_name,
-                'gmv' => $this->formatMoney($row->gmv),
+                'currency' => $row->currency,
+                'gmv' => $this->formatMoney($row->gmv, $row->currency),
                 'order_count' => (int) $row->order_count,
                 'rating' => $row->rating ? number_format($row->rating, 1) : '—',
             ]);

@@ -137,6 +137,12 @@ class PermissionSeeder extends Seeder
             'marketers.samples.view',
             'marketers.samples.approve',
             'marketers.samples.dispatch',
+            // Travel
+            'travel.view',
+            'travel.approve',
+            'travel.reject',
+            'travel.suspend',
+            'travel.geography.manage',
         ];
 
         foreach ($permissions as $name) {

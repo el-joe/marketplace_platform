@@ -152,6 +152,7 @@ class CountryController extends Controller
         $country = Country::with([
             'countryPaymentMethods',
             'countryShippingSettings.shippingMethod',
+            'currency',
         ])->findOrFail($id);
 
         $allShippingMethods = ShippingMethod::where('is_active', true)

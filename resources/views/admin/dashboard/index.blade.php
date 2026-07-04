@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard')
+@section('title', __('admin.nav.dashboard'))
 
 @push('styles')
     @vite(['resources/js/admin/dashboard.js'])
@@ -11,15 +11,15 @@
         {{-- ── HEADER ────────────────────────────────────────────────────────── --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p class="text-sm text-gray-500 mt-0.5">Welcome back — here's what's happening today.</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.nav.dashboard') }}</h1>
+                <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.dashboard.welcome_back') }}</p>
             </div>
 
             {{-- Country filter + Period toggle --}}
             <div class="flex flex-wrap items-center gap-2">
                 <select id="dashboard-country-filter"
                     class="text-sm rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 w-48">
-                    <option value="">All countries</option>
+                    <option value="">{{ __('admin.dashboard.all_countries') }}</option>
                     @foreach($countries as $c)
                         <option value="{{ $c->id }}"
                             {{ $defaultCountryId == $c->id ? 'selected' : '' }}>
@@ -31,13 +31,13 @@
                 <div class="inline-flex items-center rounded-lg bg-gray-100 p-1 gap-0.5">
                     <button
                         class="stat-period-btn px-3 py-1.5 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900"
-                        data-period="today">Today</button>
+                        data-period="today">{{ __('admin.dashboard.today') }}</button>
                     <button
                         class="stat-period-btn px-3 py-1.5 text-sm font-medium rounded-md transition-all bg-white shadow-sm text-gray-900 active"
-                        data-period="week">This Week</button>
+                        data-period="week">{{ __('admin.dashboard.this_week') }}</button>
                     <button
                         class="stat-period-btn px-3 py-1.5 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-900"
-                        data-period="month">This Month</button>
+                        data-period="month">{{ __('admin.dashboard.this_month') }}</button>
                 </div>
             </div>
         </div>
@@ -49,7 +49,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                        <p class="text-sm font-medium text-gray-500">Gross Merchandise Value</p>
+                        <p class="text-sm font-medium text-gray-500">{{ __('admin.dashboard.gmv') }}</p>
                         <p class="mt-1 text-2xl font-bold text-gray-900 stat-value" id="stat-gmv">
                             <span class="inline-block h-8 w-28 bg-gray-200 rounded animate-pulse"></span>
                         </p>
@@ -66,7 +66,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                        <p class="text-sm font-medium text-gray-500">Total Orders</p>
+                        <p class="text-sm font-medium text-gray-500">{{ __('admin.dashboard.total_orders') }}</p>
                         <p class="mt-1 text-2xl font-bold text-gray-900 stat-value" id="stat-orders">
                             <span class="inline-block h-8 w-16 bg-gray-200 rounded animate-pulse"></span>
                         </p>
@@ -83,7 +83,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                        <p class="text-sm font-medium text-gray-500">Commission Revenue</p>
+                        <p class="text-sm font-medium text-gray-500">{{ __('admin.dashboard.commission_revenue') }}</p>
                         <p class="mt-1 text-2xl font-bold text-gray-900 stat-value" id="stat-revenue">
                             <span class="inline-block h-8 w-28 bg-gray-200 rounded animate-pulse"></span>
                         </p>
@@ -100,7 +100,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                        <p class="text-sm font-medium text-gray-500">Active Sellers</p>
+                        <p class="text-sm font-medium text-gray-500">{{ __('admin.dashboard.active_sellers') }}</p>
                         <p class="mt-1 text-2xl font-bold text-gray-900 stat-value" id="stat-sellers">
                             <span class="inline-block h-8 w-16 bg-gray-200 rounded animate-pulse"></span>
                         </p>
@@ -120,7 +120,7 @@
             {{-- Revenue line chart (2/3) --}}
             <x-card class="xl:col-span-2" padding="none">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <h3 class="font-semibold text-gray-900">Revenue Overview</h3>
+                    <h3 class="font-semibold text-gray-900">{{ __('admin.dashboard.revenue_chart') }}</h3>
                     <div class="inline-flex items-center rounded-lg bg-gray-100 p-0.5 gap-0.5">
                         <button
                             class="chart-range-btn px-2.5 py-1 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-900"
@@ -143,7 +143,7 @@
             {{-- Orders by status donut (1/3) --}}
             <x-card padding="none">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h3 class="font-semibold text-gray-900">Orders by Status</h3>
+                    <h3 class="font-semibold text-gray-900">{{ __('admin.dashboard.orders_by_status') }}</h3>
                 </div>
                 <div class="p-5">
                     <div class="relative h-52 flex items-center justify-center">
@@ -160,29 +160,29 @@
             {{-- Recent orders (2/3) --}}
             <x-card class="xl:col-span-2" padding="none">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <h3 class="font-semibold text-gray-900">Recent Orders</h3>
+                    <h3 class="font-semibold text-gray-900">{{ __('admin.dashboard.recent_orders') }}</h3>
                     <a href="{{ route('admin.orders.index') }}"
-                        class="text-sm text-primary-600 hover:text-primary-700 font-medium">View all →</a>
+                        class="text-sm text-primary-600 hover:text-primary-700 font-medium">{{ __('admin.dashboard.view_all_orders') }} →</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="border-b border-gray-100 bg-gray-50">
                                 <th
-                                    class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Order</th>
+                                    class="px-5 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('admin.orders.order_number') }}</th>
                                 <th
-                                    class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Customer</th>
+                                    class="px-5 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('admin.orders.customer') }}</th>
                                 <th
-                                    class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Amount</th>
+                                    class="px-5 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('common.amount') }}</th>
                                 <th
-                                    class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Status</th>
+                                    class="px-5 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('common.status') }}</th>
                                 <th
-                                    class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Time</th>
+                                    class="px-5 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('admin.dashboard.time') }}</th>
                             </tr>
                         </thead>
                         <tbody id="recent-orders-tbody" class="divide-y divide-gray-100">
@@ -214,8 +214,8 @@
             {{-- Pending approvals (1/3) --}}
             <x-card padding="none">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h3 class="font-semibold text-gray-900">Pending Approvals</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Items needing your attention</p>
+                    <h3 class="font-semibold text-gray-900">{{ __('admin.dashboard.pending_approvals') }}</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ __('admin.dashboard.items_needing_attention') }}</p>
                 </div>
                 <ul id="pending-list" class="divide-y divide-gray-100">
                     <li class="px-5 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
@@ -224,8 +224,8 @@
                                 <x-heroicon name="cube" class="w-4 h-4 text-warning-600" />
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900">Products</p>
-                                <p class="text-xs text-gray-500">Pending review</p>
+                                <p class="text-sm font-medium text-gray-900">{{ __('admin.nav.products') }}</p>
+                                <p class="text-xs text-gray-500">{{ __('admin.dashboard.pending_review') }}</p>
                             </div>
                         </div>
                         <span class="pending-badge text-sm font-bold text-gray-900" id="pending-products">—</span>
@@ -236,8 +236,8 @@
                                 <x-heroicon name="building-storefront" class="w-4 h-4 text-primary-600" />
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900">Vendors</p>
-                                <p class="text-xs text-gray-500">Pending approval</p>
+                                <p class="text-sm font-medium text-gray-900">{{ __('admin.nav.vendors') }}</p>
+                                <p class="text-xs text-gray-500">{{ __('admin.dashboard.pending_approval') }}</p>
                             </div>
                         </div>
                         <span class="pending-badge text-sm font-bold text-gray-900" id="pending-vendors">—</span>
@@ -248,8 +248,8 @@
                                 <x-heroicon name="shield-exclamation" class="w-4 h-4 text-danger-600" />
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900">Disputes</p>
-                                <p class="text-xs text-gray-500">Open cases</p>
+                                <p class="text-sm font-medium text-gray-900">{{ __('admin.nav.disputes') }}</p>
+                                <p class="text-xs text-gray-500">{{ __('admin.dashboard.open_cases') }}</p>
                             </div>
                         </div>
                         <span class="pending-badge text-sm font-bold text-gray-900" id="pending-disputes">—</span>
@@ -260,8 +260,8 @@
                                 <x-heroicon name="banknotes" class="w-4 h-4 text-success-600" />
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900">Withdrawals</p>
-                                <p class="text-xs text-gray-500">Awaiting payout</p>
+                                <p class="text-sm font-medium text-gray-900">{{ __('admin.dashboard.withdrawals') }}</p>
+                                <p class="text-xs text-gray-500">{{ __('admin.dashboard.awaiting_payout') }}</p>
                             </div>
                         </div>
                         <span class="pending-badge text-sm font-bold text-gray-900" id="pending-withdrawals">—</span>
@@ -272,8 +272,8 @@
                                 <x-heroicon name="arrow-uturn-left" class="w-4 h-4 text-gray-600" />
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900">Returns</p>
-                                <p class="text-xs text-gray-500">Pending action</p>
+                                <p class="text-sm font-medium text-gray-900">{{ __('admin.dashboard.returns') }}</p>
+                                <p class="text-xs text-gray-500">{{ __('admin.dashboard.pending_action') }}</p>
                             </div>
                         </div>
                         <span class="pending-badge text-sm font-bold text-gray-900" id="pending-returns">—</span>
@@ -289,28 +289,28 @@
             <x-card padding="none">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <div>
-                        <h3 class="font-semibold text-gray-900">Top Sellers</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Last 30 days by GMV</p>
+                        <h3 class="font-semibold text-gray-900">{{ __('admin.dashboard.top_sellers') }}</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ __('admin.dashboard.last_30_days_gmv') }}</p>
                     </div>
                     <a href="{{ route('admin.vendors.index') }}"
-                        class="text-sm text-primary-600 hover:text-primary-700 font-medium">View all →</a>
+                        class="text-sm text-primary-600 hover:text-primary-700 font-medium">{{ __('admin.dashboard.view_all_vendors') }} →</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="border-b border-gray-100 bg-gray-50">
                                 <th
-                                    class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    class="px-5 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                     #</th>
                                 <th
-                                    class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Seller</th>
+                                    class="px-5 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('admin.dashboard.seller') }}</th>
                                 <th
-                                    class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    GMV</th>
+                                    class="px-5 py-3 text-end text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('admin.dashboard.gmv') }}</th>
                                 <th
-                                    class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Orders</th>
+                                    class="px-5 py-3 text-end text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('admin.nav.orders') }}</th>
                             </tr>
                         </thead>
                         <tbody id="top-sellers-tbody" class="divide-y divide-gray-100">
@@ -322,10 +322,10 @@
                                     <td class="px-5 py-3">
                                         <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
                                     </td>
-                                    <td class="px-5 py-3 text-right">
+                                    <td class="px-5 py-3 text-end">
                                         <div class="h-4 w-20 bg-gray-200 rounded animate-pulse ml-auto"></div>
                                     </td>
-                                    <td class="px-5 py-3 text-right">
+                                    <td class="px-5 py-3 text-end">
                                         <div class="h-4 w-8 bg-gray-200 rounded animate-pulse ml-auto"></div>
                                     </td>
                                 </tr>
@@ -339,25 +339,25 @@
             <x-card padding="none">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <div>
-                        <h3 class="font-semibold text-gray-900">Low Stock Alerts</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Products with ≤ 5 units remaining</p>
+                        <h3 class="font-semibold text-gray-900">{{ __('admin.dashboard.low_stock_alerts') }}</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ __('admin.dashboard.low_stock_subtitle') }}</p>
                     </div>
                     <a href="{{ route('admin.products.index') }}"
-                        class="text-sm text-primary-600 hover:text-primary-700 font-medium">View all →</a>
+                        class="text-sm text-primary-600 hover:text-primary-700 font-medium">{{ __('admin.dashboard.view_all_products') }} →</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="border-b border-gray-100 bg-gray-50">
                                 <th
-                                    class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Product</th>
+                                    class="px-5 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('admin.dashboard.low_stock_product') }}</th>
                                 <th
-                                    class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Seller</th>
+                                    class="px-5 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('admin.dashboard.seller') }}</th>
                                 <th
-                                    class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                    Stock</th>
+                                    class="px-5 py-3 text-end text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {{ __('admin.dashboard.current_stock') }}</th>
                             </tr>
                         </thead>
                         <tbody id="low-stock-tbody" class="divide-y divide-gray-100">
@@ -369,7 +369,7 @@
                                     <td class="px-5 py-3">
                                         <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                                     </td>
-                                    <td class="px-5 py-3 text-right">
+                                    <td class="px-5 py-3 text-end">
                                         <div class="h-5 w-10 bg-gray-200 rounded-full animate-pulse ml-auto"></div>
                                     </td>
                                 </tr>

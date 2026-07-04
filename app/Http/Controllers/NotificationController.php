@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Vendor;
+use App\Models\VendorAdmin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -27,18 +29,22 @@ class NotificationController extends Controller
 {
     /** Ordered list of panel guards — only one is authenticated per subdomain request. */
     private const GUARDS = [
-        'admin'               => 'layouts.admin',
-        'vendor'              => 'layouts.partner',
-        'marketer'            => 'layouts.marketer',
+        'admin' => 'layouts.admin',
+        'vendor' => 'layouts.partner',
+        'marketer' => 'layouts.marketer',
         'shipping_supervisor' => 'layouts.carrier',
-        'travel_agency'       => 'layouts.travel-agency',
-        'delivery'            => 'layouts.delivery',
+        'travel_agency' => 'layouts.travel-agency',
+        'delivery' => 'layouts.delivery',
     ];
 
     private function notifiable(): ?object
     {
         foreach (array_keys(self::GUARDS) as $guard) {
             if ($user = auth($guard)->user()) {
+                if ($user instanceof VendorAdmin) {
+                    $user = $user->vendor;
+                }
+
                 return $user;
             }
         }
@@ -57,7 +63,7 @@ class NotificationController extends Controller
 
     public function index(): \Illuminate\View\View
     {
-        $user   = $this->notifiable();
+        $user = $this->notifiable();
         $layout = $this->layout();
 
         $notifications = DB::table('notifications')
@@ -68,11 +74,11 @@ class NotificationController extends Controller
             ->through(function ($n) {
                 $data = is_string($n->data) ? json_decode($n->data, true) : (array) $n->data;
                 return (object) [
-                    'id'         => $n->id,
-                    'title'      => $data['title'] ?? 'Notification',
-                    'message'    => $data['message'] ?? '',
-                    'url'        => $data['url'] ?? '#',
-                    'read'       => !is_null($n->read_at),
+                    'id' => $n->id,
+                    'title' => $data['title'] ?? 'Notification',
+                    'message' => $data['message'] ?? '',
+                    'url' => $data['url'] ?? '#',
+                    'read' => !is_null($n->read_at),
                     'created_at' => $n->created_at,
                 ];
             });
@@ -168,11 +174,11 @@ class NotificationController extends Controller
     {
         $data = is_string($n->data) ? json_decode($n->data, true) : (array) $n->data;
         return [
-            'id'         => $n->id,
-            'title'      => $data['title'] ?? 'Notification',
-            'message'    => $data['message'] ?? '',
-            'url'        => $data['url'] ?? '#',
-            'read'       => !is_null($n->read_at),
+            'id' => $n->id,
+            'title' => $data['title'] ?? 'Notification',
+            'message' => $data['message'] ?? '',
+            'url' => $data['url'] ?? '#',
+            'read' => !is_null($n->read_at),
             'created_at' => $n->created_at,
         ];
     }

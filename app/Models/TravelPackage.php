@@ -22,6 +22,8 @@ class TravelPackage extends Model
         'description_ar',
         'destination_country',
         'destination_city',
+        'destination_travel_country_id',
+        'destination_travel_city_id',
         'price_cents',
         'currency',
         'duration_days',
@@ -34,6 +36,10 @@ class TravelPackage extends Model
         'status',
         'approved_by_admin_id',
         'approved_at',
+        'rejection_reason',
+        'contract_file_path',
+        'contract_file_original_name',
+        'contract_uploaded_at',
     ];
 
     protected static function booted(): void
@@ -50,10 +56,10 @@ class TravelPackage extends Model
     protected function casts(): array
     {
         return [
-            'inclusions'    => 'array',
+            'inclusions' => 'array',
             'departure_date' => 'date',
-            'return_date'   => 'date',
-            'approved_at'   => 'datetime',
+            'return_date' => 'date',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -79,16 +85,31 @@ class TravelPackage extends Model
         return $this->hasMany(TravelBooking::class);
     }
 
+    public function inquiries(): HasMany
+    {
+        return $this->hasMany(TravelPackageInquiry::class);
+    }
+
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(TravelCategory::class, 'travel_package_categories');
+    }
+
+    public function destinationCountry(): BelongsTo
+    {
+        return $this->belongsTo(TravelCountry::class, 'destination_travel_country_id');
+    }
+
+    public function destinationCity(): BelongsTo
+    {
+        return $this->belongsTo(TravelCity::class, 'destination_travel_city_id');
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     public function priceFormatted(): string
     {
-        return $this->currency . ' ' . number_format($this->price_cents / 100, 2);
+        return \App\Helpers\CurrencyFormatter::formatPrice($this->price_cents, $this->currency);
     }
 
     public function seatsRemaining(): ?int

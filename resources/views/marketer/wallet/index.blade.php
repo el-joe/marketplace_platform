@@ -1,6 +1,7 @@
 @extends('layouts.marketer')
 
-@section('title', 'My Wallet')
+@section('title', __('marketer.wallet.title'))
+@section('page-title', __('marketer.wallet.title'))
 
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6 py-6 px-4">
@@ -11,41 +12,41 @@
 
     {{-- Balance Card --}}
     <div class="bg-gradient-to-br from-purple-600 to-purple-900 rounded-2xl p-6 text-white shadow-lg">
-        <p class="text-sm font-medium text-purple-200 mb-1">Available Balance</p>
+        <p class="text-sm font-medium text-purple-200 mb-1">{{ __('marketer.wallet.available_balance') }}</p>
         <p class="text-4xl font-extrabold tracking-tight">{{ number_format($wallet->balance_cents / 100, 2) }} <span class="text-xl font-semibold text-purple-300">{{ $wallet->currency }}</span></p>
         @if($wallet->pending_balance_cents > 0)
-            <p class="text-sm text-purple-300 mt-2">+ {{ number_format($wallet->pending_balance_cents / 100, 2) }} {{ $wallet->currency }} pending</p>
+            <p class="text-sm text-purple-300 mt-2">+ {{ number_format($wallet->pending_balance_cents / 100, 2) }} {{ $wallet->currency }} {{ __('marketer.wallet.pending_balance') }}</p>
         @endif
         @if($wallet->is_frozen)
-            <div class="mt-3 inline-flex items-center gap-1.5 bg-red-500/30 text-red-100 text-xs font-medium px-3 py-1 rounded-full">Wallet Frozen</div>
+            <div class="mt-3 inline-flex items-center gap-1.5 bg-red-500/30 text-red-100 text-xs font-medium px-3 py-1 rounded-full">{{ __('marketer.wallet.wallet_frozen') }}</div>
         @endif
     </div>
 
     {{-- Withdraw --}}
     @unless($wallet->is_frozen)
     <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
-        <h2 class="font-semibold text-gray-800 mb-4">Request Withdrawal</h2>
+        <h2 class="font-semibold text-gray-800 mb-4">{{ __('marketer.wallet.request_withdrawal') }}</h2>
         <form method="POST" action="{{ route('marketer.wallet.withdraw') }}" class="space-y-4">
             @csrf
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount ({{ $wallet->currency }})</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('marketer.wallet.amount', ['currency' => $wallet->currency]) }}</label>
                     <input type="number" name="amount" min="1" step="0.01" required max="{{ $wallet->balance_cents / 100 }}"
                            class="w-full form-input rounded-lg border-gray-300 text-sm" placeholder="0.00">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('marketer.wallet.bank_name') }}</label>
                     <input type="text" name="bank_name" required maxlength="150"
                            class="w-full form-input rounded-lg border-gray-300 text-sm">
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank IBAN</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('marketer.wallet.bank_iban') }}</label>
                     <input type="text" name="bank_iban" required maxlength="50"
                            class="w-full form-input rounded-lg border-gray-300 text-sm font-mono">
                 </div>
             </div>
             <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl hover:bg-purple-700 transition">
-                Request Withdrawal
+                {{ __('marketer.wallet.request_withdrawal') }}
             </button>
         </form>
     </div>
@@ -55,7 +56,7 @@
     @if($withdrawalRequests->isNotEmpty())
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100">
-            <h2 class="font-semibold text-gray-800">Recent Withdrawal Requests</h2>
+            <h2 class="font-semibold text-gray-800">{{ __('marketer.wallet.recent_withdrawals') }}</h2>
         </div>
         <div class="divide-y divide-gray-100">
             @foreach($withdrawalRequests as $wr)
@@ -75,7 +76,7 @@
     {{-- Transaction History --}}
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100">
-            <h2 class="font-semibold text-gray-800">Transaction History</h2>
+            <h2 class="font-semibold text-gray-800">{{ __('marketer.wallet.transaction_history') }}</h2>
         </div>
         @forelse($transactions as $tx)
             <div class="px-5 py-3 flex items-center justify-between border-b border-gray-50 last:border-0">
@@ -88,7 +89,7 @@
                 </p>
             </div>
         @empty
-            <div class="px-5 py-8 text-center text-sm text-gray-400">No transactions yet.</div>
+            <div class="px-5 py-8 text-center text-sm text-gray-400">{{ __('marketer.wallet.no_transactions') }}</div>
         @endforelse
         @if($transactions->hasPages())
             <div class="px-5 py-3 border-t border-gray-100">{{ $transactions->links() }}</div>

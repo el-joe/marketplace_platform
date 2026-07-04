@@ -31,13 +31,21 @@ class DashboardService
                 ? round(($todayConversions / $todayClicks) * 100, 2)
                 : 0.0;
 
-            $pendingEarningsCents = MarketerConversion::where('marketer_id', $marketer->id)
+            $pendingEarningsByCurrency = MarketerConversion::where('marketer_id', $marketer->id)
                 ->whereIn('status', ['pending', 'approved'])
-                ->sum('commission_amount_cents');
+                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->groupBy('currency')
+                ->pluck('total', 'currency')
+                ->map(fn($v) => (int) $v)
+                ->all();
 
-            $paidEarningsCents = MarketerPayout::where('marketer_id', $marketer->id)
+            $paidEarningsByCurrency = MarketerPayout::where('marketer_id', $marketer->id)
                 ->where('status', 'paid')
-                ->sum('net_amount_cents');
+                ->selectRaw('currency, SUM(net_amount_cents) as total')
+                ->groupBy('currency')
+                ->pluck('total', 'currency')
+                ->map(fn($v) => (int) $v)
+                ->all();
 
             // Tier progress
             $salesCount = MarketerConversion::where('marketer_id', $marketer->id)
@@ -119,8 +127,8 @@ class DashboardService
                 'today_clicks'        => $todayClicks,
                 'today_conversions'   => $todayConversions,
                 'conversion_rate'     => $conversionRate,
-                'pending_earnings_cents' => (int) $pendingEarningsCents,
-                'paid_earnings_cents'    => (int) $paidEarningsCents,
+                'pending_earnings_by_currency' => $pendingEarningsByCurrency,
+                'paid_earnings_by_currency'    => $paidEarningsByCurrency,
                 'current_tier'        => $tierData,
                 'revenue_chart'       => $revenueChart,
                 'recent_conversions'  => $recentConversions,

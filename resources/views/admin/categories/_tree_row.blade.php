@@ -31,21 +31,48 @@
         </div>
     </td>
 
-    <td class="px-4 py-2 text-right text-gray-600 text-sm">
+    <td class="px-4 py-2 text-end text-gray-600 text-sm">
         {{ number_format($category->product_count ?? 0) }}
     </td>
 
-    <td class="px-4 py-2 text-right text-gray-600 text-sm">
-        {{ number_format((float) $category->commission_rate, 2) }}%
+    <td class="px-4 py-2 text-end text-gray-600 text-sm">
+        <div class="text-xs space-y-0.5">
+            <div>
+                <span class="text-blue-500 font-medium">FBP</span>
+                {{ number_format((float) $category->commission_fbp_pct, 2) }}%
+                @if($category->commission_fbp_fixed_cents > 0)
+                    + {{ number_format($category->commission_fbp_fixed_cents / 100, 2) }}
+                @endif
+            </div>
+            <div>
+                <span class="text-green-500 font-medium">FBN</span>
+                {{ number_format((float) $category->commission_fbn_pct, 2) }}%
+                @if($category->commission_fbn_fixed_cents > 0)
+                    + {{ number_format($category->commission_fbn_fixed_cents / 100, 2) }}
+                @endif
+            </div>
+        </div>
+    </td>
+
+    <td class="px-4 py-2">
+        @php $dsm = $defaultShippingByCategory[$category->id] ?? null; @endphp
+        @if($dsm)
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold"
+                style="background:{{ $dsm->badge_color_hex }}; color:{{ $dsm->badge_text_color_hex }}">
+                {{ $dsm->badge_label_en ?: $dsm->name }}
+            </span>
+        @else
+            <span class="text-xs text-gray-300">—</span>
+        @endif
     </td>
 
     <td class="px-4 py-2">
         @if($category->is_active && $category->is_visible)
-            <x-badge color="success">Active</x-badge>
+            <x-badge color="success">{{ __('common.active') }}</x-badge>
         @elseif($category->is_active && !$category->is_visible)
-            <x-badge color="warning">Hidden</x-badge>
+            <x-badge color="warning">{{ __('admin.categories.hidden') }}</x-badge>
         @else
-            <x-badge color="gray">Inactive</x-badge>
+            <x-badge color="gray">{{ __('common.inactive') }}</x-badge>
         @endif
     </td>
 
@@ -56,17 +83,17 @@
             data-id="{{ $category->id }}" data-featured="{{ $category->is_featured ? '1' : '0' }}"
             data-url="{{ route('admin.categories.toggle-featured', $category->id) }}">
             <x-heroicon name="star" class="w-3.5 h-3.5" />
-            <span>{{ $category->is_featured ? 'Featured' : 'Add' }}</span>
+            <span>{{ $category->is_featured ? __('admin.categories.featured') : __('admin.add') }}</span>
         </button>
     </td>
 
-    <td class="px-4 py-2 text-right">
+    <td class="px-4 py-2 text-end">
         <div class="flex items-center justify-end gap-1">
-            <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-ghost btn-xs">Edit</a>
+            <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-ghost btn-xs">{{ __('common.edit') }}</a>
             <button type="button" class="btn btn-ghost btn-xs text-red-600 hover:bg-red-50 delete-cat-btn"
                 data-id="{{ $category->id }}" data-name="{{ addslashes($category->name_en) }}"
                 data-url="{{ route('admin.categories.destroy', $category->id) }}">
-                Delete
+                {{ __('common.delete') }}
             </button>
         </div>
     </td>
@@ -74,6 +101,6 @@
 
 @if($hasChildren)
     @foreach($category->children as $child)
-        @include('admin.categories._tree_row', ['category' => $child, 'depth' => $depth + 1])
+        @include('admin.categories._tree_row', ['category' => $child, 'depth' => $depth + 1, 'defaultShippingByCategory' => $defaultShippingByCategory])
     @endforeach
 @endif

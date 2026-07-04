@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
-@section('title', 'Shipping Fallback Rules')
+@section('title', __('admin.shipping_section.fallback_rules_title'))
 
 @section('content')
 
 <div class="mb-6 flex items-center justify-between gap-4">
     <div>
-        <a href="{{ route('admin.shipping-companies.index') }}" class="text-sm text-indigo-600 hover:underline">← Shipping Companies</a>
-        <h1 class="text-2xl font-bold text-gray-900 mt-1">Fallback Rules</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Configure which carrier handles cities not explicitly served by any company.</p>
+        <a href="{{ route('admin.shipping-companies.index') }}" class="text-sm text-indigo-600 hover:underline">{{ __('admin.shipping_section.back_to_shipping_companies') }}</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ __('admin.shipping_section.fallback_rules_title') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.shipping_section.fallback_rules_desc') }}</p>
     </div>
 </div>
 
@@ -17,15 +17,15 @@
     {{-- ─── Add Rule Form ───────────────────────────────────────────────────── --}}
     <div class="lg:col-span-1">
         <div class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="font-bold text-gray-900 mb-4">Add Rule</h2>
+            <h2 class="font-bold text-gray-900 mb-4">{{ __('admin.shipping_section.add_rule') }}</h2>
             <form method="POST" action="{{ route('admin.shipping-companies.fallback-rules.store') }}" class="space-y-4">
                 @csrf
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Unserved City</label>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{{ __('admin.shipping_section.unserved_city_col') }}</label>
                     <select name="unserved_city_id" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Select city…</option>
+                        <option value="">{{ __('admin.shipping_section.select_city') }}</option>
                         @foreach($cities as $city)
                         <option value="{{ $city->id }}">{{ $city->name_en }} ({{ $city->name_ar }})</option>
                         @endforeach
@@ -34,10 +34,10 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Fallback Carrier</label>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{{ __('admin.shipping_section.fallback_carrier_col') }}</label>
                     <select name="fallback_shipping_company_id" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Select company…</option>
+                        <option value="">{{ __('admin.shipping_section.select_company') }}</option>
                         @foreach($companies as $company)
                         <option value="{{ $company->id }}">{{ $company->name }}</option>
                         @endforeach
@@ -46,13 +46,13 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Priority <span class="text-gray-400 font-normal">(lower = tried first)</span></label>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{{ __('admin.shipping_section.priority') }} <span class="text-gray-400 font-normal">{{ __('admin.shipping_section.priority_hint') }}</span></label>
                     <input type="number" name="priority" value="{{ old('priority', 1) }}" min="1"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     @error('priority')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                <button type="submit" class="w-full btn btn-primary btn-sm">Add Rule</button>
+                <button type="submit" class="w-full btn btn-primary btn-sm">{{ __('admin.shipping_section.add_rule') }}</button>
             </form>
         </div>
     </div>
@@ -64,10 +64,10 @@
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 text-xs text-gray-500 uppercase border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-3 text-left font-semibold">Unserved City</th>
-                            <th class="px-6 py-3 text-left font-semibold">Fallback Carrier</th>
-                            <th class="px-6 py-3 text-left font-semibold">Priority</th>
-                            <th class="px-6 py-3 text-left font-semibold">Actions</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.unserved_city_col') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.fallback_carrier_col') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.priority_col') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.actions_col') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -88,15 +88,15 @@
                             <td class="px-6 py-3">
                                 <form method="POST"
                                       action="{{ route('admin.shipping-companies.fallback-rules.destroy', $rule->id) }}"
-                                      onsubmit="return confirm('Delete this rule?')">
+                                      onsubmit="return confirm('{{ __('admin.shipping_section.delete_rule_confirm') }}')">
                                     @csrf @method('DELETE')
-                                    <button class="text-red-500 hover:underline text-xs font-medium">Delete</button>
+                                    <button class="text-red-500 hover:underline text-xs font-medium">{{ __('admin.shipping_section.delete') }}</button>
                                 </form>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-12 text-center text-gray-400 text-sm">No fallback rules configured.</td>
+                            <td colspan="4" class="px-6 py-12 text-center text-gray-400 text-sm">{{ __('admin.no_fallback_rules') }}</td>
                         </tr>
                         @endforelse
                     </tbody>

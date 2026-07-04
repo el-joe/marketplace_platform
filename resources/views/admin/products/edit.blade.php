@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit: ' . e($product->name_en))
+@section('title', __('common.edit') . ': ' . e($product->name_en))
 
 @push('styles')
 @vite([

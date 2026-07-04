@@ -5,9 +5,9 @@
         <div class="sm:col-span-2">
             <x-form-input
                 name="name"
-                label="Slot Name"
+                label="{{ __('admin.ad_slots.slot_name') }}"
                 :value="old('name', $adSlot?->name)"
-                placeholder="e.g. Homepage Hero Banner"
+                placeholder="{{ __('admin.ad_slots.slot_name_placeholder') }}"
                 required />
         </div>
 
@@ -15,13 +15,13 @@
         <div>
             <x-form-input
                 name="slot_code"
-                label="Slot Code"
+                label="{{ __('admin.ad_slots.slot_code') }}"
                 :value="old('slot_code', $adSlot?->slot_code)"
-                placeholder="e.g. homepage_hero_001"
+                placeholder="{{ __('admin.ad_slots.slot_code_placeholder') }}"
                 required
                 :readonly="(bool)$adSlot" />
             @if($adSlot)
-                <p class="text-xs text-gray-400 mt-1">Slot code cannot be changed after creation.</p>
+                <p class="text-xs text-gray-400 mt-1">{{ __('admin.ad_slots.slot_code_immutable') }}</p>
             @endif
         </div>
 
@@ -29,9 +29,9 @@
         <div>
             <x-form-select
                 name="banner_placement_definition_id"
-                label="Placement"
+                label="{{ __('admin.ad_slots.placement') }}"
                 :value="old('banner_placement_definition_id', $adSlot?->banner_placement_definition_id)">
-                <option value="">— Select placement —</option>
+                <option value="">{{ __('admin.ad_slots.select_placement') }}</option>
                 @foreach($placements as $p)
                     <option value="{{ $p->id }}" {{ old('banner_placement_definition_id', $adSlot?->banner_placement_definition_id) == $p->id ? 'selected' : '' }}>
                         {{ $p->name }} ({{ $p->placement_key }})
@@ -44,10 +44,10 @@
         <div>
             <x-form-select
                 name="country_id"
-                label="Country"
+                label="{{ __('admin.ad_slots.country') }}"
                 :value="old('country_id', $adSlot?->country_id)"
                 required>
-                <option value="">— Select country —</option>
+                <option value="">{{ __('admin.ad_slots.select_country') }}</option>
                 @foreach($countries as $c)
                     <option value="{{ $c->id }}" {{ old('country_id', $adSlot?->country_id) == $c->id ? 'selected' : '' }}>
                         {{ $c->flag_emoji ? $c->flag_emoji . ' ' : '' }}{{ $c->name_en }}
@@ -60,19 +60,19 @@
         <div>
             <x-form-select
                 name="pricing_model"
-                label="Pricing Model"
+                label="{{ __('admin.ad_slots.pricing_model') }}"
                 :value="old('pricing_model', $adSlot?->pricing_model)"
                 required>
-                <option value="">— Select model —</option>
-                <option value="flat" {{ old('pricing_model', $adSlot?->pricing_model) === 'flat' ? 'selected' : '' }}>Flat Rate</option>
-                <option value="daily" {{ old('pricing_model', $adSlot?->pricing_model) === 'daily' ? 'selected' : '' }}>Daily Rate</option>
-                <option value="weekly" {{ old('pricing_model', $adSlot?->pricing_model) === 'weekly' ? 'selected' : '' }}>Weekly Rate</option>
+                <option value="">{{ __('admin.ad_slots.select_model') }}</option>
+                <option value="flat" {{ old('pricing_model', $adSlot?->pricing_model) === 'flat' ? 'selected' : '' }}>{{ __('admin.ad_slots.flat_rate') }}</option>
+                <option value="daily" {{ old('pricing_model', $adSlot?->pricing_model) === 'daily' ? 'selected' : '' }}>{{ __('admin.ad_slots.daily_rate') }}</option>
+                <option value="weekly" {{ old('pricing_model', $adSlot?->pricing_model) === 'weekly' ? 'selected' : '' }}>{{ __('admin.ad_slots.weekly_rate') }}</option>
             </x-form-select>
         </div>
 
         {{-- Base Rate (in cents) --}}
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Base Rate ($) <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.ad_slots.base_rate_usd') }} <span class="text-red-500">*</span></label>
             @php
                 $baseRateDisplay = $adSlot?->base_rate_cents ? number_format($adSlot->base_rate_cents / 100, 2) : old('base_rate_display');
             @endphp
@@ -88,14 +88,14 @@
             @error('base_rate_display')
                 <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
             @enderror
-            <p class="text-xs text-gray-400 mt-1">Enter in dollars. Stored in cents.</p>
+            <p class="text-xs text-gray-400 mt-1">{{ __('admin.ad_slots.base_rate_dollars_note') }}</p>
         </div>
 
         {{-- Currency --}}
         <div>
             <x-form-input
                 name="currency"
-                label="Currency"
+                label="{{ __('admin.ad_slots.currency') }}"
                 :value="old('currency', $adSlot?->currency ?? 'USD')"
                 placeholder="USD"
                 required />
@@ -106,7 +106,7 @@
             <x-form-input
                 type="number"
                 name="min_booking_days"
-                label="Min Booking Days"
+                label="{{ __('admin.ad_slots.min_booking_days') }}"
                 :value="old('min_booking_days', $adSlot?->min_booking_days ?? 1)"
                 min="1"
                 placeholder="1" />
@@ -117,7 +117,7 @@
             <x-form-input
                 type="number"
                 name="max_booking_days"
-                label="Max Booking Days"
+                label="{{ __('admin.ad_slots.max_booking_days') }}"
                 :value="old('max_booking_days', $adSlot?->max_booking_days)"
                 min="1"
                 placeholder="e.g. 90" />
@@ -127,19 +127,19 @@
         <div>
             <x-form-input
                 name="min_seller_tier"
-                label="Min Seller Tier"
+                label="{{ __('admin.ad_slots.min_seller_tier') }}"
                 :value="old('min_seller_tier', $adSlot?->min_seller_tier)"
-                placeholder="e.g. gold" />
+                placeholder="{{ __('admin.ad_slots.min_seller_tier_placeholder') }}" />
         </div>
 
         {{-- Notes for Vendors --}}
         <div class="sm:col-span-2">
             <x-form-textarea
                 name="notes_for_vendors"
-                label="Notes for Vendors"
+                label="{{ __('admin.ad_slots.notes_for_vendors') }}"
                 :value="old('notes_for_vendors', $adSlot?->notes_for_vendors)"
                 rows="3"
-                placeholder="Any important information vendors should know about this slot…" />
+                placeholder="{{ __('admin.ad_slots.notes_for_vendors_placeholder') }}" />
         </div>
 
         {{-- Toggles --}}
@@ -151,7 +151,7 @@
                 value="1"
                 class="form-checkbox"
                 {{ old('is_available', $adSlot?->is_available ?? true) ? 'checked' : '' }}>
-            <label for="is_available" class="text-sm font-medium text-gray-700">Available for booking</label>
+            <label for="is_available" class="text-sm font-medium text-gray-700">{{ __('admin.ad_slots.available_for_booking') }}</label>
         </div>
         <div class="flex items-center gap-2">
             <input
@@ -161,15 +161,15 @@
                 value="1"
                 class="form-checkbox"
                 {{ old('requires_approval', $adSlot?->requires_approval ?? true) ? 'checked' : '' }}>
-            <label for="requires_approval" class="text-sm font-medium text-gray-700">Requires admin approval</label>
+            <label for="requires_approval" class="text-sm font-medium text-gray-700">{{ __('admin.ad_slots.requires_admin_approval') }}</label>
         </div>
 
     </div>
 </x-card>
 
 <div class="flex items-center justify-end gap-3">
-    <a href="{{ route('admin.ad-slots.index') }}" class="btn btn-secondary">Cancel</a>
+    <a href="{{ route('admin.ad-slots.index') }}" class="btn btn-secondary">{{ __('common.cancel') }}</a>
     <button type="submit" class="btn btn-primary">
-        {{ $adSlot ? 'Save Changes' : 'Create Slot' }}
+        {{ $adSlot ? __('admin.ad_slots.save_changes') : __('admin.ad_slots.create_slot') }}
     </button>
 </div>

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Role: ' . e($role->name))
+@section('title', __('admin.roles_section.edit_role_title', ['name' => $role->name]))
 
 @push('styles')
     @vite(['resources/js/admin/admins.js'])

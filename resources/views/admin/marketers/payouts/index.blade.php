@@ -4,28 +4,28 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
-@section('title', 'Marketer Payouts')
+@section('title', __('admin.marketers.marketer_payouts_title'))
 
 @section('content')
 
 {{-- ─── Page Header ─────────────────────────────────────────────────────────── --}}
 <div class="mb-6 flex items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Marketer Payouts</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Generate and process marketer commission payouts.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.marketers.marketer_payouts_title') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.marketers.marketer_payouts_desc') }}</p>
     </div>
     <button type="button" id="btn-generate-payout" class="btn btn-primary btn-sm">
-        Generate Payout
+        {{ __('admin.marketers.generate_payout_btn') }}
     </button>
 </div>
 
 {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
     @foreach([
-        ['Total Payouts',   $stats['total'],                                           'gray'],
-        ['Pending',         $stats['pending'],                                   'warning'],
-        ['Approved',  number_format($stats['approved'] / 100, 2),         'primary'],
-        ['Paid Out',  number_format($stats['paid'] / 100, 2),             'success'],
+        [__('admin.marketers.total_payouts'),   $stats['total'],                                           'gray'],
+        [__('admin.marketers.pending'),         $stats['pending'],                                   'warning'],
+        [__('admin.marketers.approved'),  number_format($stats['approved'] / 100, 2),         'primary'],
+        [__('admin.marketers.paid_out'),  number_format($stats['paid'] / 100, 2),             'success'],
     ] as [$label, $value, $color])
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ $label }}</p>
@@ -38,20 +38,20 @@
 <x-card class="mb-5">
     <div class="flex flex-wrap gap-3 items-end">
         <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Marketer</label>
-            <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="Name, email…">
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.marketers.marketer') }}</label>
+            <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="{{ __('admin.marketers.search_placeholder') }}">
         </div>
         <div class="w-36">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.status') }}</label>
             <select id="filter-status" class="form-input w-full text-sm">
-                <option value="">All</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="paid">Paid</option>
-                <option value="failed">Failed</option>
+                <option value="">{{ __('admin.marketers.all') }}</option>
+                <option value="pending">{{ __('admin.marketers.pending') }}</option>
+                <option value="approved">{{ __('admin.marketers.approved') }}</option>
+                <option value="paid">{{ __('admin.marketers.paid_earnings') }}</option>
+                <option value="failed">{{ __('admin.marketers.failed') }}</option>
             </select>
         </div>
-        <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">Reset</button>
+        <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('admin.marketers.reset') }}</button>
     </div>
 </x-card>
 
@@ -60,15 +60,15 @@
     <table id="payouts-table" class="w-full text-sm" style="width:100%">
         <thead>
             <tr>
-                <th>Payout #</th>
-                <th>Marketer</th>
-                <th>Period</th>
-                <th>Conv.</th>
-                <th>Gross (SAR)</th>
-                <th>Net (SAR)</th>
-                <th>Status</th>
-                <th>Processed</th>
-                <th>Actions</th>
+                <th>{{ __('admin.marketers.payout_number') }}</th>
+                <th>{{ __('admin.marketers.marketer') }}</th>
+                <th>{{ __('admin.marketers.period') }}</th>
+                <th>{{ __('admin.marketers.conv') }}</th>
+                <th>{{ __('admin.marketers.gross') }}</th>
+                <th>{{ __('admin.marketers.net') }}</th>
+                <th>{{ __('admin.status') }}</th>
+                <th>{{ __('admin.marketers.processed') }}</th>
+                <th>{{ __('admin.marketers.actions') }}</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -83,8 +83,8 @@
         <!-- Header -->
         <div class="px-6 py-4 border-b border-gray-100 flex items-start justify-between">
             <div>
-                <h3 class="text-lg font-semibold text-gray-900">Generate Payout</h3>
-                <p class="text-sm text-gray-500 mt-1">Specify the marketer and period to calculate earnings.</p>
+                <h3 class="text-lg font-semibold text-gray-900">{{ __('admin.marketers.generate_payout_btn') }}</h3>
+                <p class="text-sm text-gray-500 mt-1">{{ __('admin.marketers.generate_payout_desc') }}</p>
             </div>
             <button type="button" id="cancel-generate-payout" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200" aria-label="Close modal">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -98,10 +98,10 @@
             <!-- Marketer Select -->
             <div>
                 <label for="payout-marketer-id" class="block text-sm font-medium text-gray-700 mb-1.5">
-                    Marketer <span class="text-red-500" aria-hidden="true">*</span>
+                    {{ __('admin.marketers.marketer') }} <span class="text-red-500" aria-hidden="true">*</span>
                 </label>
                 <select id="payout-marketer-id" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm">
-                    <option value="">— Select a marketer —</option>
+                    <option value="">{{ __('admin.marketers.select_marketer') }}</option>
                     @foreach($marketers as $marketer)
                         <option value="{{ $marketer->id }}">{{ $marketer->name }}</option>
                     @endforeach
@@ -112,13 +112,13 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="payout-period-start" class="block text-sm font-medium text-gray-700 mb-1.5">
-                        Period Start <span class="text-red-500" aria-hidden="true">*</span>
+                        {{ __('admin.marketers.period_start') }} <span class="text-red-500" aria-hidden="true">*</span>
                     </label>
                     <input type="date" id="payout-period-start" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm">
                 </div>
                 <div>
                     <label for="payout-period-end" class="block text-sm font-medium text-gray-700 mb-1.5">
-                        Period End <span class="text-red-500" aria-hidden="true">*</span>
+                        {{ __('admin.marketers.period_end') }} <span class="text-red-500" aria-hidden="true">*</span>
                     </label>
                     <input type="date" id="payout-period-end" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm">
                 </div>
@@ -128,10 +128,10 @@
         <!-- Footer -->
         <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 rounded-b-xl">
             <button type="button" id="cancel-generate-payout-footer" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
-                Cancel
+                {{ __('common.cancel') }}
             </button>
             <button type="button" id="confirm-generate-payout" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                Generate Payout
+                {{ __('admin.marketers.generate_payout_btn') }}
             </button>
         </div>
 
@@ -142,19 +142,19 @@
 <div id="process-payout-modal" class="modal-backdrop hidden">
     <div class="modal-box max-w-md">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold">Process Payout</h3>
+            <h3 class="text-lg font-semibold">{{ __('admin.marketers.process_payout_title') }}</h3>
             <button type="button" id="cancel-process-payout"
                 class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
         </div>
         <input type="hidden" id="process-payout-id">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Reference <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.marketers.payment_reference') }} <span class="text-red-500">*</span></label>
             <input type="text" id="process-payment-ref" class="form-input w-full text-sm"
-                placeholder="Bank transfer ID, wire ref…">
+                placeholder="{{ __('admin.marketers.payment_reference_placeholder') }}">
         </div>
         <div class="pt-4 border-t flex gap-3 justify-end mt-5">
-            <button type="button" id="cancel-process-payout-footer" class="btn btn-ghost btn-sm">Cancel</button>
-            <button type="button" id="confirm-process-payout" class="btn btn-success btn-sm">Mark as Paid</button>
+            <button type="button" id="cancel-process-payout-footer" class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+            <button type="button" id="confirm-process-payout" class="btn btn-success btn-sm">{{ __('admin.marketers.mark_as_paid') }}</button>
         </div>
     </div>
 </div>
@@ -162,6 +162,15 @@
 @endsection
 
 @push('scripts')
+<script>
+    window.TRANSLATIONS = window.TRANSLATIONS || {};
+    Object.assign(window.TRANSLATIONS, {
+        selectMarketerPeriodWarning: @json(__('admin.marketers.select_marketer_period_warning')),
+        approvePayoutConfirm: @json(__('admin.marketers.approve_payout_confirm')),
+        approve: @json(__('admin.marketers.approve')),
+        paymentReferenceRequired: @json(__('admin.marketers.payment_reference_required')),
+    });
+</script>
 <script type="module">
 $(function () {
     const tok = '{{ csrf_token() }}';
@@ -203,7 +212,7 @@ $(function () {
         const marketerId   = $('#payout-marketer-id').val().trim();
         const periodStart  = $('#payout-period-start').val();
         const periodEnd    = $('#payout-period-end').val();
-        if (!marketerId || !periodStart || !periodEnd) { window.Toast.warning('Please select a marketer and period.'); return; }
+        if (!marketerId || !periodStart || !periodEnd) { window.Toast.warning(window.TRANSLATIONS.selectMarketerPeriodWarning); return; }
 
         fetch('{{ route('admin.marketers.payouts.generate') }}', {
             method: 'POST',
@@ -218,7 +227,7 @@ $(function () {
     // ── Approve Payout ────────────────────────────────────────────────────────
     $(document).on('click', '.btn-approve-payout', function () {
         const id = $(this).data('id');
-        window.confirmDialog({ title: 'Approve payout?', confirmText: 'Approve', onConfirm: () => {
+        window.confirmDialog({ title: window.TRANSLATIONS.approvePayoutConfirm, confirmText: window.TRANSLATIONS.approve, onConfirm: () => {
             fetch('/marketers/payouts/' + id + '/approve', {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
@@ -240,7 +249,7 @@ $(function () {
     $('#confirm-process-payout').on('click', function () {
         const id  = $('#process-payout-id').val();
         const ref = $('#process-payment-ref').val().trim();
-        if (!ref) { window.Toast.warning('Payment reference is required.'); return; }
+        if (!ref) { window.Toast.warning(window.TRANSLATIONS.paymentReferenceRequired); return; }
 
         fetch('/marketers/payouts/' + id + '/process', {
             method: 'POST',

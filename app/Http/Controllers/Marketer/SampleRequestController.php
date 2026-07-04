@@ -34,7 +34,7 @@ class SampleRequestController extends Controller
         $marketer = $this->marketer();
         abort_if(! (new CampaignPolicy())->manageSamples($marketer, $campaign), 403);
 
-        $existing = MarketerSampleRequest::with('items')
+        $existing = MarketerSampleRequest::with(['items' => fn($q) => $q->where('is_mandatory', false)])
             ->where('marketer_id', $marketer->id)
             ->where('campaign_id', $campaign->id)
             ->latest()
@@ -84,7 +84,7 @@ class SampleRequestController extends Controller
     // GET /api/marketer/v1/sample-requests
     public function index(): JsonResponse
     {
-        $paginator = MarketerSampleRequest::with('items')
+        $paginator = MarketerSampleRequest::with(['items' => fn($q) => $q->where('is_mandatory', false)])
             ->where('marketer_id', $this->marketer()->id)
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -97,7 +97,7 @@ class SampleRequestController extends Controller
     {
         abort_if(! (new SampleRequestPolicy())->view($this->marketer(), $sampleRequest), 403);
 
-        $sampleRequest->load('items');
+        $sampleRequest->load(['items' => fn($q) => $q->where('is_mandatory', false)]);
 
         return ApiResponse::success(new SampleRequestResource($sampleRequest));
     }

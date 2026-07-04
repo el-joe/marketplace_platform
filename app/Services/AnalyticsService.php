@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\FlashSaleAnalytic;
+use App\Traits\HasCurrencyAwareAggregates;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -9,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
 {
+    use HasCurrencyAwareAggregates;
+
     // ── Period resolution ────────────────────────────────────────────────────
 
     /**
@@ -82,9 +86,25 @@ class AnalyticsService
         ];
     }
 
-    private function countryJoin(string $alias = 'o'): string
+    /**
+     * Build currency-grouped changePct for a multi-currency collection.
+     *
+     * @param array $curRows  rows from DB::select, each with ->currency and ->$valueKey
+     * @param array $prevRows same shape, prior period
+     * @param string $valueKey column name (already in display units, not cents)
+     */
+    private function changePctByCurrency(array $curRows, array $prevRows, string $valueKey): array
     {
-        return '';  // Applied per-query where country_id is directly available
+        $cur  = collect($curRows)->keyBy('currency');
+        $prev = collect($prevRows)->keyBy('currency');
+        $currencies = $cur->keys()->merge($prev->keys())->unique();
+
+        return $currencies->map(function ($c) use ($cur, $prev, $valueKey) {
+            return array_merge(
+                ['currency' => $c],
+                $this->changePct($cur[$c]->{$valueKey} ?? 0, $prev[$c]->{$valueKey} ?? 0)
+            );
+        })->values()->all();
     }
 
     // ── Overview ─────────────────────────────────────────────────────────────
@@ -98,50 +118,95 @@ class AnalyticsService
             $r = $this->dateRange($request);
             $countryId = $request->input('country_id');
 
-            $countryJoin = $countryId ? 'JOIN customers c ON o.customer_id = c.id' : '';
+            // Always JOIN customers so we can group by country; filter when countryId is set.
             $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
-            $bindings = fn($from, $to) => array_filter(
+            $bindings = fn($from, $to) => array_values(array_filter(
                 [$from->toDateTimeString(), $to->toDateTimeString(), $countryId ?: null],
                 fn($v) => $v !== null
-            );
+            ));
 
-            // Current-period order metrics
-            $cur = DB::selectOne("
+            // FIX lines 111-112, 126-127: GROUP BY o.currency — never blend across currencies.
+            $sql = "
                 SELECT
+                    o.currency,
                     COALESCE(SUM(o.total), 0)                            AS gmv,
                     COALESCE(SUM(so.commission), 0)                      AS commission,
                     COUNT(DISTINCT o.id)                                  AS orders_count
                 FROM orders o
-                {$countryJoin}
+                JOIN customers c ON c.id = o.customer_id
                 LEFT JOIN (
                     SELECT order_id, SUM(platform_commission) AS commission
                     FROM sub_orders GROUP BY order_id
                 ) so ON so.order_id = o.id
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
                 {$countryWhere}
-            ", array_values($bindings($r['from'], $r['to'])));
+                GROUP BY o.currency
+            ";
 
-            $prev = DB::selectOne("
-                SELECT
-                    COALESCE(SUM(o.total), 0)                            AS gmv,
-                    COALESCE(SUM(so.commission), 0)                      AS commission,
-                    COUNT(DISTINCT o.id)                                  AS orders_count
-                FROM orders o
-                {$countryJoin}
-                LEFT JOIN (
-                    SELECT order_id, SUM(platform_commission) AS commission
-                    FROM sub_orders GROUP BY order_id
-                ) so ON so.order_id = o.id
-                WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
-                {$countryWhere}
-            ", array_values($bindings($r['prevFrom'], $r['prevTo'])));
+            $cur  = DB::select($sql, $bindings($r['from'], $r['to']));
+            $prev = DB::select($sql, $bindings($r['prevFrom'], $r['prevTo']));
 
-            $curGmv = $cur->gmv / 100;
-            $prevGmv = $prev->gmv / 100;
-            $curOrders = (int) $cur->orders_count;
-            $prevOrders = (int) $prev->orders_count;
-            $curAov = $curOrders > 0 ? $curGmv / $curOrders : 0;
-            $prevAov = $prevOrders > 0 ? $prevGmv / $prevOrders : 0;
+            $curByCur  = collect($cur)->keyBy('currency');
+            $prevByCur = collect($prev)->keyBy('currency');
+            $currencies = $curByCur->keys()->merge($prevByCur->keys())->unique();
+
+            // Build per-currency totals for consolidatedUsd (trait method).
+            $curGmvColl  = collect($cur)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->gmv]);
+            $prevGmvColl = collect($prev)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->gmv]);
+            $curCommColl  = collect($cur)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->commission]);
+            $prevCommColl = collect($prev)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->commission]);
+
+            $curGmvUsd   = $this->consolidatedUsd($curGmvColl);
+            $prevGmvUsd  = $this->consolidatedUsd($prevGmvColl);
+            $curCommUsd  = $this->consolidatedUsd($curCommColl);
+            $prevCommUsd = $this->consolidatedUsd($prevCommColl);
+
+            $curOrders  = (int) collect($cur)->sum('orders_count');
+            $prevOrders = (int) collect($prev)->sum('orders_count');
+            $curAov     = $curOrders > 0 ? $curGmvUsd / $curOrders : 0;
+            $prevAov    = $prevOrders > 0 ? $prevGmvUsd / $prevOrders : 0;
+
+            if ($currencies->count() === 1) {
+                // Single-currency path: return native amounts.
+                $c = $currencies->first();
+                $curGmvNative  = ($curByCur[$c]->gmv ?? 0) / 100;
+                $prevGmvNative = ($prevByCur[$c]->gmv ?? 0) / 100;
+                $curCommNative  = ($curByCur[$c]->commission ?? 0) / 100;
+                $prevCommNative = ($prevByCur[$c]->commission ?? 0) / 100;
+                $curOrdersSingle  = (int) ($curByCur[$c]->orders_count ?? 0);
+                $prevOrdersSingle = (int) ($prevByCur[$c]->orders_count ?? 0);
+                $curAovNative  = $curOrdersSingle > 0 ? $curGmvNative / $curOrdersSingle : 0;
+                $prevAovNative = $prevOrdersSingle > 0 ? $prevGmvNative / $prevOrdersSingle : 0;
+
+                $gmvShape = array_merge($this->changePct($curGmvNative, $prevGmvNative), ['currency' => $c]);
+                $revShape = array_merge($this->changePct($curCommNative, $prevCommNative), ['currency' => $c]);
+                $aovShape = array_merge($this->changePct($curAovNative, $prevAovNative), ['currency' => $c]);
+            } else {
+                // Multi-currency: expose per-currency breakdown + USD equivalent via consolidatedUsd().
+                $gmvByCurrency = $this->changePctByCurrency(
+                    $curByCur->map(fn($r) => (object)['currency' => $r->currency, 'value' => $r->gmv / 100])->values()->all(),
+                    $prevByCur->map(fn($r) => (object)['currency' => $r->currency, 'value' => $r->gmv / 100])->values()->all(),
+                    'value'
+                );
+                $commByCurrency = $this->changePctByCurrency(
+                    $curByCur->map(fn($r) => (object)['currency' => $r->currency, 'value' => $r->commission / 100])->values()->all(),
+                    $prevByCur->map(fn($r) => (object)['currency' => $r->currency, 'value' => $r->commission / 100])->values()->all(),
+                    'value'
+                );
+
+                $gmvShape = array_merge(
+                    $this->changePct($curGmvUsd, $prevGmvUsd),
+                    ['currency' => 'USD', 'is_usd_equivalent' => true, 'by_currency' => $gmvByCurrency]
+                );
+                $revShape = array_merge(
+                    $this->changePct($curCommUsd, $prevCommUsd),
+                    ['currency' => 'USD', 'is_usd_equivalent' => true, 'by_currency' => $commByCurrency]
+                );
+                $aovShape = array_merge(
+                    $this->changePct($curAov, $prevAov),
+                    ['currency' => 'USD', 'is_usd_equivalent' => true]
+                );
+            }
 
             // New customers
             $newCur = DB::selectOne(
@@ -202,10 +267,10 @@ class AnalyticsService
             $retRatePrev = $prevOrders > 0 ? round(($retPrev->cnt / $prevOrders) * 100, 2) : 0.0;
 
             return [
-                'gmv' => $this->changePct($curGmv, $prevGmv),
-                'revenue' => $this->changePct($cur->commission / 100, $prev->commission / 100),
+                'gmv' => $gmvShape,
+                'revenue' => $revShape,
                 'orders_count' => $this->changePct($curOrders, $prevOrders),
-                'avg_order_value' => $this->changePct($curAov, $prevAov),
+                'avg_order_value' => $aovShape,
                 'new_customers' => $this->changePct($newCur->cnt, $newPrev->cnt),
                 'active_vendors' => $this->changePct($avCur->cnt, $avPrev->cnt),
                 'sla_compliance' => $this->changePct($slaCompCur, $slaCompPrev),
@@ -223,15 +288,30 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
+            $countryId = $request->input('country_id');
+
+            // FIX lines 230-233: GROUP BY (date, o.currency) — never blend across currencies.
+            // Always join customers to resolve currency via country. Filter when countryId is set.
+            $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [
+                    $r['from']->toDateTimeString(),
+                    $r['to']->toDateTimeString(),
+                    $countryId ?: null,
+                ],
+                fn($v) => $v !== null
+            ));
 
             $rows = DB::select("
                 SELECT
                     DATE(o.placed_at)                           AS date,
+                    o.currency,
                     COALESCE(SUM(o.total), 0)                   AS gmv,
                     COALESCE(SUM(so.commission), 0)             AS commission,
                     COALESCE(SUM(so.payout), 0)                 AS vendor_payouts,
                     COALESCE(SUM(rf.refunded), 0)               AS refunds
                 FROM orders o
+                JOIN customers c ON c.id = o.customer_id
                 LEFT JOIN (
                     SELECT order_id,
                            SUM(platform_commission) AS commission,
@@ -244,22 +324,46 @@ class AnalyticsService
                     GROUP BY order_id
                 ) rf ON rf.order_id = o.id
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
-                GROUP BY DATE(o.placed_at)
-                ORDER BY date ASC
-            ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
+                {$countryWhere}
+                GROUP BY DATE(o.placed_at), o.currency
+                ORDER BY date ASC, o.currency ASC
+            ", $bindings);
 
-            $labels = [];
-            $gmv = $commission = $payouts = $refunds = [];
+            // Group rows by currency, each currency gets its own time-series dataset.
+            $byCurrency = collect($rows)->groupBy('currency');
+            $currencies = $byCurrency->keys()->sort()->values()->all();
 
-            foreach ($rows as $row) {
-                $labels[] = $row->date;
-                $gmv[] = (float) ($row->gmv / 100);
-                $commission[] = (float) ($row->commission / 100);
-                $payouts[] = (float) ($row->vendor_payouts / 100);
-                $refunds[] = (float) ($row->refunds / 100);
+            if (\count($currencies) === 1) {
+                // Single currency (country filter applied): return flat arrays, same shape as before.
+                $currency = $currencies[0];
+                $labels = $gmv = $commission = $payouts = $refunds = [];
+                foreach ($byCurrency[$currency] as $row) {
+                    $labels[]     = $row->date;
+                    $gmv[]        = (float) ($row->gmv / 100);
+                    $commission[] = (float) ($row->commission / 100);
+                    $payouts[]    = (float) ($row->vendor_payouts / 100);
+                    $refunds[]    = (float) ($row->refunds / 100);
+                }
+                return compact('labels', 'gmv', 'commission', 'payouts', 'refunds', 'currency');
             }
 
-            return compact('labels', 'gmv', 'commission', 'payouts', 'refunds');
+            // Multi-currency: return one dataset per currency so the chart renders separate lines.
+            $allDates = collect($rows)->pluck('date')->unique()->sort()->values()->all();
+            $datasets = [];
+            foreach ($currencies as $currency) {
+                $byDate = collect($byCurrency[$currency])->keyBy('date');
+                $gmv = $commission = $payouts = $refunds = [];
+                foreach ($allDates as $date) {
+                    $row          = $byDate[$date] ?? null;
+                    $gmv[]        = $row ? (float) ($row->gmv / 100) : 0;
+                    $commission[] = $row ? (float) ($row->commission / 100) : 0;
+                    $payouts[]    = $row ? (float) ($row->vendor_payouts / 100) : 0;
+                    $refunds[]    = $row ? (float) ($row->refunds / 100) : 0;
+                }
+                $datasets[$currency] = compact('gmv', 'commission', 'payouts', 'refunds');
+            }
+
+            return ['labels' => $allDates, 'currencies' => $currencies, 'datasets_by_currency' => $datasets];
         });
     }
 
@@ -315,25 +419,49 @@ class AnalyticsService
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
 
+            // FIX extra SUM(total) by payment method: group by (payment_method, currency).
             $rows = DB::select("
                 SELECT
                     payment_method,
+                    currency,
                     COUNT(*) AS orders_count,
                     COALESCE(SUM(total), 0) AS total_amount
                 FROM orders
                 WHERE placed_at >= ? AND placed_at <= ? AND deleted_at IS NULL
-                GROUP BY payment_method
+                GROUP BY payment_method, currency
                 ORDER BY total_amount DESC
             ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
 
-            $labels = $counts = $amounts = [];
+            // Collapse by payment_method, keeping per-currency revenue breakdown.
+            $byMethod = [];
             foreach ($rows as $row) {
-                $labels[] = strtoupper($row->payment_method);
-                $counts[] = (int) $row->orders_count;
-                $amounts[] = (float) ($row->total_amount / 100);
+                $m = $row->payment_method;
+                if (!isset($byMethod[$m])) {
+                    $byMethod[$m] = ['payment_method' => $m, 'orders_count' => 0, 'amount_by_currency' => []];
+                }
+                $byMethod[$m]['orders_count'] += (int) $row->orders_count;
+                $byMethod[$m]['amount_by_currency'][] = [
+                    'currency' => $row->currency,
+                    'amount'   => (float) ($row->total_amount / 100),
+                ];
             }
 
-            return compact('labels', 'counts', 'amounts');
+            $labels = $counts = $amounts = [];
+            foreach ($byMethod as $m => $data) {
+                $labels[]  = strtoupper($m);
+                $counts[]  = $data['orders_count'];
+                // For the bar chart axis, sum via consolidatedUsd so lengths are comparable.
+                $coll = collect($data['amount_by_currency'])
+                    ->map(fn($c) => (object)['currency' => $c['currency'], 'total' => $c['amount'] * 100]);
+                $amounts[] = round($this->consolidatedUsd($coll), 2);
+            }
+
+            return [
+                'labels'  => $labels,
+                'counts'  => $counts,
+                'amounts' => $amounts,           // USD-equivalent for chart axis
+                'rows'    => array_values($byMethod), // full per-currency detail
+            ];
         });
     }
 
@@ -347,11 +475,13 @@ class AnalyticsService
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
 
+            // FIX lines 355-356: GROUP BY (product, o.currency) — never blend revenue across currencies.
             $rows = DB::select("
                 SELECT
                     p.id,
                     p.name_en                           AS name,
                     MAX(COALESCE(vl.vendor_sku, oi.sku)) AS sku,
+                    o.currency,
                     SUM(oi.quantity)                    AS units_sold,
                     COALESCE(SUM(oi.line_total), 0)     AS revenue
                 FROM order_items oi
@@ -367,18 +497,34 @@ class AnalyticsService
                 ) vl ON vl.product_variant_id = oi.product_variant_id AND vl.vendor_id = oi.vendor_id
                 JOIN orders o            ON o.id  = oi.order_id
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
-                GROUP BY p.id, p.name_en
-                ORDER BY units_sold DESC
-                LIMIT 20
+                GROUP BY p.id, p.name_en, o.currency
+                ORDER BY p.id ASC
             ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
 
-            return array_map(fn($row) => [
-                'id' => $row->id,
-                'name' => $row->name,
-                'sku' => $row->sku,
-                'units_sold' => (int) $row->units_sold,
-                'revenue' => round($row->revenue / 100, 2),
-            ], $rows);
+            // Collapse per-product, accumulate revenue_by_currency.
+            $products = [];
+            foreach ($rows as $row) {
+                $id = $row->id;
+                if (!isset($products[$id])) {
+                    $products[$id] = [
+                        'id'                 => $row->id,
+                        'name'               => $row->name,
+                        'sku'                => $row->sku,
+                        'units_sold'         => 0,
+                        'revenue_by_currency' => [],
+                    ];
+                }
+                $products[$id]['units_sold'] += (int) $row->units_sold;
+                $products[$id]['revenue_by_currency'][] = [
+                    'currency' => $row->currency,
+                    'revenue'  => round($row->revenue / 100, 2),
+                ];
+            }
+
+            // Rank by units_sold (currency-agnostic).
+            usort($products, fn($a, $b) => $b['units_sold'] - $a['units_sold']);
+
+            return \array_slice(array_values($products), 0, 20);
         });
     }
 
@@ -392,11 +538,15 @@ class AnalyticsService
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
 
+            // FIX lines 401-402: GROUP BY (vendor, o.currency) — vendors on a multi-country
+            // platform could theoretically have orders in different currencies; the raw SUM
+            // would blend them. Group by currency and rank by USD equivalent via consolidatedUsd().
             $rows = DB::select("
                 SELECT
                     v.id,
                     v.store_name                                  AS store_name,
                     v.store_rating_avg                            AS rating,
+                    o.currency,
                     COUNT(DISTINCT so.id)                         AS orders_count,
                     COALESCE(SUM(so.subtotal), 0)                 AS gmv,
                     COALESCE(SUM(so.platform_commission), 0)      AS commission
@@ -404,19 +554,46 @@ class AnalyticsService
                 JOIN vendors v  ON v.id  = so.vendor_id
                 JOIN orders o   ON o.id  = so.order_id
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
-                GROUP BY v.id, v.store_name, v.store_rating_avg
-                ORDER BY gmv DESC
-                LIMIT 20
+                GROUP BY v.id, v.store_name, v.store_rating_avg, o.currency
+                ORDER BY v.id ASC
             ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
 
-            return array_map(fn($row) => [
-                'id' => $row->id,
-                'store_name' => $row->store_name,
-                'rating' => (float) $row->rating,
-                'orders_count' => (int) $row->orders_count,
-                'gmv' => round($row->gmv / 100, 2),
-                'commission' => round($row->commission / 100, 2),
-            ], $rows);
+            // Collapse per-vendor, accumulate per-currency GMV/commission.
+            $vendors = [];
+            foreach ($rows as $row) {
+                $id = $row->id;
+                if (!isset($vendors[$id])) {
+                    $vendors[$id] = [
+                        'id'                    => $row->id,
+                        'store_name'            => $row->store_name,
+                        'rating'                => (float) $row->rating,
+                        'orders_count'          => 0,
+                        'gmv_by_currency'       => [],
+                        'commission_by_currency' => [],
+                    ];
+                }
+                $vendors[$id]['orders_count'] += (int) $row->orders_count;
+                $vendors[$id]['gmv_by_currency'][] = [
+                    'currency' => $row->currency,
+                    'gmv'      => round($row->gmv / 100, 2),
+                ];
+                $vendors[$id]['commission_by_currency'][] = [
+                    'currency'   => $row->currency,
+                    'commission' => round($row->commission / 100, 2),
+                ];
+            }
+
+            // Rank by USD-equivalent GMV using consolidatedUsd() from the trait.
+            foreach ($vendors as &$vendor) {
+                $coll = collect($vendor['gmv_by_currency'])
+                    ->map(fn($c) => (object)['currency' => $c['currency'], 'total' => $c['gmv'] * 100]);
+                $vendor['gmv_usd_equivalent'] = $this->consolidatedUsd($coll);
+            }
+            unset($vendor);
+
+            usort($vendors, fn($a, $b) => $b['gmv_usd_equivalent'] <=> $a['gmv_usd_equivalent']);
+
+            return \array_slice(array_values($vendors), 0, 20);
         });
     }
 
@@ -430,10 +607,15 @@ class AnalyticsService
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
 
+            // FIX lines 437-438: GROUP BY (category, o.currency) — mirrors the topProducts fix.
+            // NOTE: this is a SEPARATE code path from topProducts (categories vs products);
+            // they are not duplicates — topProducts ranks individual SKUs, topCategories
+            // rolls up to category level for the donut chart.
             $rows = DB::select("
                 SELECT
                     cat.id,
                     cat.name_en                             AS name,
+                    o.currency,
                     SUM(oi.quantity)                        AS units_sold,
                     COALESCE(SUM(oi.line_total), 0)         AS revenue
                 FROM order_items oi
@@ -442,15 +624,41 @@ class AnalyticsService
                 JOIN categories cat      ON cat.id = p.category_id
                 JOIN orders o            ON o.id  = oi.order_id
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
-                GROUP BY cat.id, cat.name_en
-                ORDER BY revenue DESC
-                LIMIT 15
+                GROUP BY cat.id, cat.name_en, o.currency
+                ORDER BY cat.id ASC
             ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
 
-            $labels = $revenues = [];
+            // Collapse per-category, accumulate revenue_by_currency; rank by USD equivalent.
+            $categories = [];
             foreach ($rows as $row) {
-                $labels[] = $row->name;
-                $revenues[] = round($row->revenue / 100, 2);
+                $id = $row->id;
+                if (!isset($categories[$id])) {
+                    $categories[$id] = [
+                        'id'                  => $row->id,
+                        'name'                => $row->name,
+                        'revenue_by_currency' => [],
+                    ];
+                }
+                $categories[$id]['revenue_by_currency'][] = [
+                    'currency' => $row->currency,
+                    'revenue'  => round($row->revenue / 100, 2),
+                ];
+            }
+
+            foreach ($categories as &$cat) {
+                $coll = collect($cat['revenue_by_currency'])
+                    ->map(fn($c) => (object)['currency' => $c['currency'], 'total' => $c['revenue'] * 100]);
+                $cat['revenue_usd_equivalent'] = $this->consolidatedUsd($coll);
+            }
+            unset($cat);
+
+            usort($categories, fn($a, $b) => $b['revenue_usd_equivalent'] <=> $a['revenue_usd_equivalent']);
+            $top = \array_slice(array_values($categories), 0, 15);
+
+            $labels = $revenues = [];
+            foreach ($top as $cat) {
+                $labels[]   = $cat['name'];
+                $revenues[] = round($cat['revenue_usd_equivalent'], 2);
             }
 
             return compact('labels', 'revenues');
@@ -750,29 +958,67 @@ class AnalyticsService
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
             $countryId = $request->input('country_id');
-            $bindings = [$r['from']->toDateString(), $r['to']->toDateString()];
-            $where = 'WHERE ads.date >= ? AND ads.date <= ?';
+
+            // FIX lines 765-768, 776-781, 793-796:
+            // ad_daily_stats has country_id. Make the join to countries MANDATORY so every
+            // row carries its currency. Never SUM spend/revenue across countries (= currencies).
+            $dateWhere  = 'ads.date >= ? AND ads.date <= ?';
+            $bindings   = [$r['from']->toDateString(), $r['to']->toDateString()];
             if ($countryId) {
-                $where .= ' AND ads.country_id = ?';
-                $bindings[] = $countryId;
+                $countryFilter = ' AND ads.country_id = ?';
+                $bindings[]    = $countryId;
+            } else {
+                $countryFilter = '';
             }
 
-            $totals = DB::selectOne("
+            // Totals: GROUP BY country so spend/revenue are never blended across currencies.
+            $totalRows = DB::select("
                 SELECT
+                    ads.country_id,
+                    co.currency_code                                  AS currency,
+                    co.name_en                                        AS country_name,
                     COALESCE(SUM(ads.impressions), 0)                 AS impressions,
                     COALESCE(SUM(ads.clicks), 0)                      AS clicks,
                     COALESCE(SUM(ads.conversions), 0)                 AS conversions,
                     COALESCE(SUM(ads.spend_cents), 0)                 AS spend_cents,
-                    COALESCE(SUM(ads.revenue_attributed_cents), 0)    AS revenue_cents,
-                    ROUND(SUM(ads.clicks) * 100.0 / NULLIF(SUM(ads.impressions), 0), 4) AS avg_ctr,
-                    ROUND(SUM(ads.spend_cents) * 100.0 / NULLIF(SUM(ads.revenue_attributed_cents), 0), 4) AS avg_acos
+                    COALESCE(SUM(ads.revenue_attributed_cents), 0)    AS revenue_cents
                 FROM ad_daily_stats ads
-                {$where}
+                JOIN countries co ON co.id = ads.country_id
+                WHERE {$dateWhere}{$countryFilter}
+                GROUP BY ads.country_id, co.currency_code, co.name_en
+                ORDER BY spend_cents DESC
             ", $bindings);
 
+            // Aggregate CTR/ACOS only after grouping.
+            $totalImpressions = array_sum(array_column($totalRows, 'impressions'));
+            $totalClicks      = array_sum(array_column($totalRows, 'clicks'));
+            $totalConversions = array_sum(array_column($totalRows, 'conversions'));
+            $avgCtr = $totalImpressions > 0
+                ? round($totalClicks * 100.0 / $totalImpressions, 4)
+                : 0;
+
+            // Spend and revenue are per-currency; use consolidatedUsd() for a single display number.
+            $spendColl   = collect($totalRows)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->spend_cents]);
+            $revenueColl = collect($totalRows)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->revenue_cents]);
+            $totalSpendUsd   = $this->consolidatedUsd($spendColl);
+            $totalRevenueUsd = $this->consolidatedUsd($revenueColl);
+            $avgAcos = $totalRevenueUsd > 0
+                ? round($totalSpendUsd * 100.0 / $totalRevenueUsd, 4)
+                : 0;
+
+            $spendByCountry = array_map(fn($r) => [
+                'country_id'   => $r->country_id,
+                'country_name' => $r->country_name,
+                'currency'     => $r->currency,
+                'spend'        => round($r->spend_cents / 100, 2),
+                'revenue'      => round($r->revenue_cents / 100, 2),
+            ], $totalRows);
+
+            // Top campaigns: GROUP BY (campaign, country) so spend is per-currency.
             $topCampaigns = DB::select("
                 SELECT
                     ac.name                                          AS campaign_name,
+                    co.currency_code                                 AS currency,
                     SUM(ads.impressions)                            AS impressions,
                     SUM(ads.clicks)                                 AS clicks,
                     COALESCE(SUM(ads.spend_cents), 0)               AS spend_cents,
@@ -781,49 +1027,81 @@ class AnalyticsService
                     ROUND(SUM(ads.spend_cents) * 100.0 / NULLIF(SUM(ads.revenue_attributed_cents), 0), 4) AS acos
                 FROM ad_daily_stats ads
                 JOIN ad_campaigns ac ON ac.id = ads.ad_campaign_id
-                {$where}
-                GROUP BY ac.id, ac.name
+                JOIN countries co    ON co.id = ads.country_id
+                WHERE {$dateWhere}{$countryFilter}
+                GROUP BY ac.id, ac.name, co.currency_code
                 ORDER BY spend_cents DESC
                 LIMIT 20
             ", $bindings);
 
-            $perfChart = DB::select("
+            // Performance chart: GROUP BY (date, country) — one data-point per (date, currency).
+            $perfRows = DB::select("
                 SELECT
                     ads.date,
+                    co.currency_code                                 AS currency,
                     SUM(ads.impressions)                            AS impressions,
                     SUM(ads.clicks)                                 AS clicks,
                     COALESCE(SUM(ads.spend_cents), 0)               AS spend_cents,
                     COALESCE(SUM(ads.revenue_attributed_cents), 0)  AS revenue_cents
                 FROM ad_daily_stats ads
-                {$where}
-                GROUP BY ads.date
-                ORDER BY ads.date ASC
+                JOIN countries co ON co.id = ads.country_id
+                WHERE {$dateWhere}{$countryFilter}
+                GROUP BY ads.date, co.currency_code
+                ORDER BY ads.date ASC, co.currency_code ASC
             ", $bindings);
 
+            // Group perf chart by currency.
+            $perfByCurrency = collect($perfRows)->groupBy('currency');
+            $perfCurrencies = $perfByCurrency->keys()->sort()->values()->all();
+            $allPerfDates   = collect($perfRows)->pluck('date')->unique()->sort()->values()->all();
+
+            if (\count($perfCurrencies) === 1) {
+                $currency = $perfCurrencies[0];
+                $byDate   = collect($perfByCurrency[$currency])->keyBy('date');
+                $perfChart = [
+                    'labels'      => $allPerfDates,
+                    'currency'    => $currency,
+                    'impressions' => array_map(fn($d) => (int) ($byDate[$d]->impressions ?? 0), $allPerfDates),
+                    'clicks'      => array_map(fn($d) => (int) ($byDate[$d]->clicks ?? 0), $allPerfDates),
+                    'spend'       => array_map(fn($d) => round(($byDate[$d]->spend_cents ?? 0) / 100, 2), $allPerfDates),
+                    'revenue'     => array_map(fn($d) => round(($byDate[$d]->revenue_cents ?? 0) / 100, 2), $allPerfDates),
+                ];
+            } else {
+                $datasets = [];
+                foreach ($perfCurrencies as $currency) {
+                    $byDate = collect($perfByCurrency[$currency])->keyBy('date');
+                    $datasets[$currency] = [
+                        'spend'   => array_map(fn($d) => round(($byDate[$d]->spend_cents ?? 0) / 100, 2), $allPerfDates),
+                        'revenue' => array_map(fn($d) => round(($byDate[$d]->revenue_cents ?? 0) / 100, 2), $allPerfDates),
+                    ];
+                }
+                $perfChart = [
+                    'labels'               => $allPerfDates,
+                    'currencies'           => $perfCurrencies,
+                    'datasets_by_currency' => $datasets,
+                ];
+            }
+
             return [
-                'total_impressions' => (int) $totals->impressions,
-                'total_clicks' => (int) $totals->clicks,
-                'total_conversions' => (int) $totals->conversions,
-                'total_spend' => round($totals->spend_cents / 100, 2),
-                'total_revenue' => round($totals->revenue_cents / 100, 2),
-                'avg_ctr' => (float) ($totals->avg_ctr ?? 0),
-                'avg_acos' => (float) ($totals->avg_acos ?? 0),
-                'top_campaigns' => array_map(fn($row) => [
-                    'name' => $row->campaign_name,
+                'total_impressions'  => $totalImpressions,
+                'total_clicks'       => $totalClicks,
+                'total_conversions'  => $totalConversions,
+                'total_spend'        => round($totalSpendUsd, 2),
+                'total_revenue'      => round($totalRevenueUsd, 2),
+                'spend_by_country'   => $spendByCountry,
+                'avg_ctr'            => (float) $avgCtr,
+                'avg_acos'           => (float) $avgAcos,
+                'top_campaigns'      => array_map(fn($row) => [
+                    'name'        => $row->campaign_name,
+                    'currency'    => $row->currency,
                     'impressions' => (int) $row->impressions,
-                    'clicks' => (int) $row->clicks,
-                    'spend' => round($row->spend_cents / 100, 2),
-                    'revenue' => round($row->revenue_cents / 100, 2),
-                    'ctr' => (float) $row->ctr,
-                    'acos' => (float) $row->acos,
+                    'clicks'      => (int) $row->clicks,
+                    'spend'       => round($row->spend_cents / 100, 2),
+                    'revenue'     => round($row->revenue_cents / 100, 2),
+                    'ctr'         => (float) $row->ctr,
+                    'acos'        => (float) $row->acos,
                 ], $topCampaigns),
-                'performance_chart' => [
-                    'labels' => array_column($perfChart, 'date'),
-                    'impressions' => array_map(fn($r) => (int) $r->impressions, $perfChart),
-                    'clicks' => array_map(fn($r) => (int) $r->clicks, $perfChart),
-                    'spend' => array_map(fn($r) => round($r->spend_cents / 100, 2), $perfChart),
-                    'revenue' => array_map(fn($r) => round($r->revenue_cents / 100, 2), $perfChart),
-                ],
+                'performance_chart' => $perfChart,
             ];
         });
     }
@@ -837,62 +1115,94 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
-            $bindings = [$r['from']->toDateString(), $r['to']->toDateString()];
 
-            $totals = DB::selectOne("
+            // FIX lines 844-845: flash_sale_analytics already has a currency column written
+            // correctly by FlashSaleAnalyticsJob. The read-side just needs GROUP BY currency.
+            // Use sumByCurrency() from the trait for the per-currency revenue breakdown.
+            $revenueByMoneyCol = $this->sumByCurrency(
+                FlashSaleAnalytic::query()
+                    ->where('date', '>=', $r['from']->toDateString())
+                    ->where('date', '<=', $r['to']->toDateString()),
+                'gross_revenue'
+            );
+            $discountByMoneyCol = $this->sumByCurrency(
+                FlashSaleAnalytic::query()
+                    ->where('date', '>=', $r['from']->toDateString())
+                    ->where('date', '<=', $r['to']->toDateString()),
+                'discount_given'
+            );
+
+            // USD equivalents via consolidatedUsd() for single-number KPI display.
+            $totalRevenueUsd  = $this->consolidatedUsd($revenueByMoneyCol);
+            $totalDiscountUsd = $this->consolidatedUsd($discountByMoneyCol);
+
+            $revenueByCurrency  = $revenueByMoneyCol->map(fn($r) => [
+                'currency' => $r->currency,
+                'revenue'  => round($r->total / 100, 2),
+            ])->values()->all();
+            $discountByCurrency = $discountByMoneyCol->map(fn($r) => [
+                'currency' => $r->currency,
+                'discount' => round($r->total / 100, 2),
+            ])->values()->all();
+
+            $scalars = DB::selectOne("
                 SELECT
                     COALESCE(SUM(units_sold), 0)             AS total_units,
-                    COALESCE(SUM(gross_revenue), 0)          AS total_revenue,
-                    COALESCE(SUM(discount_given), 0)         AS total_discount,
                     ROUND(AVG(conversion_rate) * 100, 4)     AS avg_conversion_rate,
                     COUNT(DISTINCT flash_sale_id)             AS total_flash_sales
                 FROM flash_sale_analytics
                 WHERE date >= ? AND date <= ?
-            ", $bindings);
+            ", [$r['from']->toDateString(), $r['to']->toDateString()]);
 
             $topSales = DB::select("
                 SELECT
                     fs.title                                  AS title,
+                    fsa.currency,
                     SUM(fsa.units_sold)                      AS units_sold,
                     COALESCE(SUM(fsa.gross_revenue), 0)      AS revenue,
                     ROUND(AVG(fsa.conversion_rate) * 100, 2) AS avg_cvr
                 FROM flash_sale_analytics fsa
                 JOIN flash_sales fs ON fs.id = fsa.flash_sale_id
                 WHERE fsa.date >= ? AND fsa.date <= ?
-                GROUP BY fs.id, fs.title
+                GROUP BY fs.id, fs.title, fsa.currency
                 ORDER BY revenue DESC
                 LIMIT 10
-            ", $bindings);
+            ", [$r['from']->toDateString(), $r['to']->toDateString()]);
 
             $topVendors = DB::select("
                 SELECT
                     v.store_name,
+                    fsa.currency,
                     SUM(fsa.units_sold)                      AS units_sold,
                     COALESCE(SUM(fsa.gross_revenue), 0)      AS revenue
                 FROM flash_sale_analytics fsa
                 JOIN vendors v ON v.id = fsa.vendor_id
                 WHERE fsa.date >= ? AND fsa.date <= ?
-                GROUP BY v.id, v.store_name
+                GROUP BY v.id, v.store_name, fsa.currency
                 ORDER BY revenue DESC
                 LIMIT 10
-            ", $bindings);
+            ", [$r['from']->toDateString(), $r['to']->toDateString()]);
 
             return [
-                'total_units_sold' => (int) $totals->total_units,
-                'total_revenue' => round($totals->total_revenue / 100, 2),
-                'total_discount' => round($totals->total_discount / 100, 2),
-                'avg_conversion_rate' => (float) ($totals->avg_conversion_rate ?? 0),
-                'total_flash_sales' => (int) $totals->total_flash_sales,
-                'top_performing_sales' => array_map(fn($row) => [
-                    'title' => $row->title,
+                'total_units_sold'       => (int) $scalars->total_units,
+                'total_revenue'          => round($totalRevenueUsd, 2),
+                'total_revenue_by_currency' => $revenueByCurrency,
+                'total_discount'         => round($totalDiscountUsd, 2),
+                'total_discount_by_currency' => $discountByCurrency,
+                'avg_conversion_rate'    => (float) ($scalars->avg_conversion_rate ?? 0),
+                'total_flash_sales'      => (int) $scalars->total_flash_sales,
+                'top_performing_sales'   => array_map(fn($row) => [
+                    'title'      => $row->title,
+                    'currency'   => $row->currency,
                     'units_sold' => (int) $row->units_sold,
-                    'revenue' => round($row->revenue / 100, 2),
-                    'avg_cvr' => (float) $row->avg_cvr,
+                    'revenue'    => round($row->revenue / 100, 2),
+                    'avg_cvr'    => (float) $row->avg_cvr,
                 ], $topSales),
                 'top_performing_vendors' => array_map(fn($row) => [
                     'store_name' => $row->store_name,
+                    'currency'   => $row->currency,
                     'units_sold' => (int) $row->units_sold,
-                    'revenue' => round($row->revenue / 100, 2),
+                    'revenue'    => round($row->revenue / 100, 2),
                 ], $topVendors),
             ];
         });

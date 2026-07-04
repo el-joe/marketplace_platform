@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\AdCampaignController;
+use App\Http\Controllers\Admin\VendorCampaignOfferController;
 use App\Http\Controllers\Admin\AdSlotController;
 use App\Http\Controllers\Admin\PaidAdBookingController;
 use App\Http\Controllers\Admin\VendorApplicationController;
@@ -34,6 +35,7 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ShippingZoneController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\FinancialReportController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ShippingMethodController;
 use App\Http\Controllers\Admin\DeliveryAgentController;
@@ -137,12 +139,12 @@ Route::middleware('auth.admin')->group(function () {
     Route::prefix('notifications')->name('notifications.')
         ->controller(NotificationController::class)
         ->group(function () {
-            Route::get('/',              'index')->name('index');
-            Route::get('/recent',        'recent')->name('recent');
-            Route::get('/unread-count',  'unreadCount')->name('unread-count');
-            Route::get('/unread',        'unread')->name('unread');
-            Route::post('/mark-all-read','markAllRead')->name('mark-all-read');
-            Route::post('/{id}/read',    'markRead')->name('mark-read');
+            Route::get('/', 'index')->name('index');
+            Route::get('/recent', 'recent')->name('recent');
+            Route::get('/unread-count', 'unreadCount')->name('unread-count');
+            Route::get('/unread', 'unread')->name('unread');
+            Route::post('/mark-all-read', 'markAllRead')->name('mark-all-read');
+            Route::post('/{id}/read', 'markRead')->name('mark-read');
         });
 
 
@@ -158,6 +160,8 @@ Route::middleware('auth.admin')->group(function () {
         Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         Route::post('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggle-featured');
         Route::post('/{category}/sync-attributes', [CategoryController::class, 'syncAttributes'])->name('sync-attributes');
+        Route::get('/{category}/shipping-methods', [CategoryController::class, 'shippingMethods'])->name('shipping-methods');
+        Route::post('/{category}/shipping-methods', [CategoryController::class, 'updateShippingMethods'])->name('shipping-methods.update');
 
 
         Route::get('/search', function (Request $request) {
@@ -224,6 +228,8 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{id}/flag-fraud', [OrderController::class, 'flagFraud'])->name('flag-fraud');
     });
     Route::get('/sub-orders/{id}/next-statuses', [OrderController::class, 'nextStatuses'])->middleware('admin.permission:orders.view')->name('sub-orders.next-statuses');
+    Route::get('/sub-orders/{subOrder}/shipping-methods', [OrderController::class, 'availableShippingMethods'])->middleware('admin.permission:orders.view')->name('orders.sub-orders.shipping-methods');
+    Route::post('/sub-orders/{subOrder}/assign-shipping', [OrderController::class, 'assignShippingMethod'])->middleware('admin.permission:orders.view')->name('orders.sub-orders.assign-shipping');
     // ─── Payouts ──────────────────────────────────────────────────────────────────
 
     Route::prefix('payouts')->name('payouts.')->middleware('admin.permission:payouts.view')->group(function () {
@@ -541,6 +547,15 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{campaign}/resume', [AdCampaignController::class, 'resumeCampaign'])->name('resume');
     });
 
+    // ─── Vendor Campaign Offers ───────────────────────────────────────────────────
+    Route::prefix('vendor-campaign-offers')->name('vendor-campaign-offers.')->middleware('admin.permission:campaign_offers.view')->group(function () {
+        Route::get('/', [VendorCampaignOfferController::class, 'index'])->name('index');
+        Route::post('/datatable', [VendorCampaignOfferController::class, 'datatable'])->name('datatable');
+        Route::get('/{offer}', [VendorCampaignOfferController::class, 'show'])->name('show');
+        Route::post('/{offer}/approve', [VendorCampaignOfferController::class, 'approve'])->name('approve');
+        Route::post('/{offer}/reject', [VendorCampaignOfferController::class, 'reject'])->name('reject');
+    });
+
     // ─── Ad Slots ──────────────────────────────────────────────────────────────────
     Route::prefix('ad-slots')->name('ad-slots.')->middleware('admin.permission:ad_campaigns.view')->group(function () {
         Route::post('/datatable', [AdSlotController::class, 'datatable'])->name('datatable');
@@ -703,6 +718,13 @@ Route::middleware('auth.admin')->group(function () {
     });
 
     // ─── Analytics ───────────────────────────────────────────────────────────────
+    // ─── Financial Reports ────────────────────────────────────────────────────
+    Route::prefix('reports/financial')->name('reports.financial.')->middleware('admin.permission:analytics.view')->group(function () {
+        Route::get('/', [FinancialReportController::class, 'index'])->name('index');
+        Route::get('/data', [FinancialReportController::class, 'data'])->name('data');
+        Route::get('/export', [FinancialReportController::class, 'export'])->name('export');
+    });
+
     Route::prefix('analytics')->name('analytics.')->middleware('admin.permission:analytics.view')->group(function () {
         Route::get('/', [AnalyticsController::class, 'index'])->name('index');
         Route::get('/overview', [AnalyticsController::class, 'overview'])->name('overview');
@@ -739,6 +761,16 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{method}/toggle', [PaymentMethodController::class, 'toggleActive'])->name('toggle')->middleware('admin.permission:settings.edit');
         Route::post('/{method}/test-connection', [PaymentMethodController::class, 'testConnection'])->name('test-connection')->middleware('admin.permission:settings.edit');
         Route::get('/{method}/webhook-logs', [PaymentMethodController::class, 'webhookLogs'])->name('webhook-logs');
+    });
+
+    // ─── Vendor Document Types ────────────────────────────────────────────────
+    Route::prefix('vendor-document-types')->name('vendor-document-types.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'store'])->name('store')->middleware('admin.permission:settings.edit');
+        Route::post('/requirements', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'updateRequirement'])->name('requirements.update')->middleware('admin.permission:settings.edit');
+        Route::put('/{type}', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'update'])->name('update')->middleware('admin.permission:settings.edit');
+        Route::delete('/{type}', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'destroy'])->name('destroy')->middleware('admin.permission:settings.edit');
+        Route::post('/{type}/toggle', [\App\Http\Controllers\Admin\VendorDocumentTypeController::class, 'toggleActive'])->name('toggle')->middleware('admin.permission:settings.edit');
     });
 
     // ─── Shipping Methods ─────────────────────────────────────────────────────
@@ -807,6 +839,14 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/payouts/generate', [DeliveryPayoutController::class, 'generate'])->name('payouts.generate');
         Route::post('/payouts/{payout}/approve', [DeliveryPayoutController::class, 'approve'])->name('payouts.approve');
         Route::post('/payouts/{payout}/process', [DeliveryPayoutController::class, 'process'])->name('payouts.process');
+        // COD Settlements
+        Route::prefix('cod-settlements')->name('cod-settlements.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\CodSettlementController::class, 'index'])->name('index');
+            Route::post('/generate', [\App\Http\Controllers\Admin\CodSettlementController::class, 'generate'])->name('generate');
+            Route::get('/{settlement}', [\App\Http\Controllers\Admin\CodSettlementController::class, 'show'])->name('show');
+            Route::post('/{settlement}/settle', [\App\Http\Controllers\Admin\CodSettlementController::class, 'markSettled'])->name('settle');
+            Route::post('/{settlement}/dispute', [\App\Http\Controllers\Admin\CodSettlementController::class, 'dispute'])->name('dispute');
+        });
     });
 
     // ── Marketers ─────────────────────────────────────────────────────────────────
@@ -999,10 +1039,36 @@ Route::middleware('auth.admin')->group(function () {
 
         Route::prefix('packages')->name('packages.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\TravelPackageController::class, 'index'])->name('index');
+            Route::post('/datatable', [\App\Http\Controllers\Admin\TravelPackageController::class, 'datatable'])->name('datatable');
             Route::get('/{travelPackage}', [\App\Http\Controllers\Admin\TravelPackageController::class, 'show'])->name('show');
             Route::post('/{travelPackage}/approve', [\App\Http\Controllers\Admin\TravelPackageController::class, 'approve'])->name('approve');
             Route::post('/{travelPackage}/reject', [\App\Http\Controllers\Admin\TravelPackageController::class, 'reject'])->name('reject');
             Route::post('/{travelPackage}/expire', [\App\Http\Controllers\Admin\TravelPackageController::class, 'expire'])->name('expire');
+            Route::get('/{travelPackage}/contract', [\App\Http\Controllers\Admin\TravelPackageController::class, 'downloadContract'])->name('contract.download');
+        });
+
+        Route::prefix('bookings')->name('bookings.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelBookingController::class, 'index'])->name('index');
+            Route::post('/datatable', [\App\Http\Controllers\Admin\TravelBookingController::class, 'datatable'])->name('datatable');
+            Route::get('/{travelBooking}', [\App\Http\Controllers\Admin\TravelBookingController::class, 'show'])->name('show');
+        });
+
+        Route::prefix('countries')->name('countries.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelCountryController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Admin\TravelCountryController::class, 'store'])->name('store');
+            Route::put('/{travelCountry}', [\App\Http\Controllers\Admin\TravelCountryController::class, 'update'])->name('update');
+            Route::delete('/{travelCountry}', [\App\Http\Controllers\Admin\TravelCountryController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('cities')->name('cities.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelCityController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Admin\TravelCityController::class, 'store'])->name('store');
+            Route::put('/{travelCity}', [\App\Http\Controllers\Admin\TravelCityController::class, 'update'])->name('update');
+            Route::delete('/{travelCity}', [\App\Http\Controllers\Admin\TravelCityController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('inquiries')->name('inquiries.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelPackageInquiryController::class, 'index'])->name('index');
         });
     });
 
@@ -1088,6 +1154,30 @@ Route::middleware('auth.admin')->group(function () {
         Route::patch('/requests/{packagingSupplyRequest}/approve', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'approveRequest'])->name('approve-request');
         Route::patch('/requests/{packagingSupplyRequest}/reject', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'rejectRequest'])->name('reject-request');
         Route::patch('/requests/{packagingSupplyRequest}/status', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'updateRequestStatus'])->name('update-request-status');
+    });
+
+
+    // ─── Blog Categories ──────────────────────────────────────────────────────
+    Route::prefix('blog/categories')->name('blog.categories.')->middleware('admin.permission:pages.view')->group(function () {
+        Route::post('/reorder', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'reorder'])->name('reorder');
+        Route::get('/', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'store'])->name('store');
+        Route::put('/{category}', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'update'])->name('update');
+        Route::delete('/{category}', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'destroy'])->name('destroy');
+        Route::post('/{category}/toggle', [\App\Http\Controllers\Admin\BlogCategoryController::class, 'toggleActive'])->name('toggle');
+    });
+
+    // ─── Blog Posts ───────────────────────────────────────────────────────────
+    Route::prefix('blog/posts')->name('blog.posts.')->middleware('admin.permission:pages.view')->group(function () {
+        Route::post('/datatable', [\App\Http\Controllers\Admin\BlogPostController::class, 'datatable'])->name('datatable');
+        Route::get('/create', [\App\Http\Controllers\Admin\BlogPostController::class, 'create'])->name('create');
+        Route::get('/', [\App\Http\Controllers\Admin\BlogPostController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\BlogPostController::class, 'store'])->name('store');
+        Route::get('/{post}/edit', [\App\Http\Controllers\Admin\BlogPostController::class, 'edit'])->name('edit');
+        Route::put('/{post}', [\App\Http\Controllers\Admin\BlogPostController::class, 'update'])->name('update');
+        Route::delete('/{post}', [\App\Http\Controllers\Admin\BlogPostController::class, 'destroy'])->name('destroy');
+        Route::post('/{post}/archive', [\App\Http\Controllers\Admin\BlogPostController::class, 'archive'])->name('archive');
+        Route::post('/{post}/feature', [\App\Http\Controllers\Admin\BlogPostController::class, 'feature'])->name('feature');
     });
 
 }); // end auth.admin middleware group

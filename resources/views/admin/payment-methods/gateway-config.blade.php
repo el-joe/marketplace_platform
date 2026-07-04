@@ -1,18 +1,18 @@
 @extends('layouts.admin')
 
-@section('title', 'Gateway Configuration')
+@section('title', __('admin.payment_section.gateway_config'))
 
 @section('content')
 
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Gateway Configuration</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Verify API credentials and test gateway connections.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.payment_section.gateway_config') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.payment_section.gateway_config_desc') }}</p>
         </div>
         <a href="{{ route('admin.payment-methods.index') }}"
             class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
             <x-heroicon name="arrow-left" class="w-4 h-4" />
-            Back to Methods
+            {{ __('admin.payment_section.back_to_methods') }}
         </a>
     </div>
 
@@ -38,19 +38,19 @@
                             class="btn-test-gateway inline-flex items-center gap-1 rounded-lg bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 hover:bg-primary-100 border border-primary-200"
                             data-provider="{{ $code }}">
                             <x-heroicon name="signal" class="w-3.5 h-3.5" />
-                            Test Connection
+                            {{ __('admin.payment_section.test_connection') }}
                         </button>
                     </div>
                 </div>
 
                 <div class="p-4 space-y-3">
                     <div class="flex items-center gap-2 text-sm">
-                        <span class="font-medium text-gray-600">Code:</span>
+                        <span class="font-medium text-gray-600">{{ __('admin.payment_section.code_label') }}</span>
                         <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-700">{{ $code }}</code>
                     </div>
 
                     <div class="flex items-center gap-2 text-sm">
-                        <span class="font-medium text-gray-600">Supported types:</span>
+                        <span class="font-medium text-gray-600">{{ __('admin.payment_section.supported_types') }}</span>
                         <div class="flex flex-wrap gap-1">
                             @foreach($gateway->getSupportedMethodTypes() as $type)
                                 <span
@@ -61,7 +61,7 @@
 
                     @if(count($envKeys) > 0)
                         <div class="mt-3">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Required ENV Variables</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">{{ __('admin.payment_section.required_env_vars') }}</p>
                             <ul class="space-y-1">
                                 @foreach($envKeys as $envKey)
                                     @php $isSet = !empty(env($envKey)); @endphp
@@ -73,14 +73,14 @@
                                         @endif
                                         <code class="font-mono text-gray-600">{{ $envKey }}</code>
                                         <span class="{{ $isSet ? 'text-success-600' : 'text-danger-600' }}">
-                                            {{ $isSet ? 'Set' : 'Missing' }}
+                                            {{ $isSet ? __('admin.payment_section.set_status') : __('admin.payment_section.missing_status') }}
                                         </span>
                                     </li>
                                 @endforeach
                             </ul>
                         </div>
                     @else
-                        <p class="text-xs text-gray-400 italic">No API credentials required.</p>
+                        <p class="text-xs text-gray-400 italic">{{ __('admin.payment_section.no_api_credentials') }}</p>
                     @endif
 
                     {{-- Test result area --}}

@@ -45,14 +45,14 @@
 
             {{-- Tab navigation bar --}}
             <div class="bg-white rounded-t-xl border border-gray-200 overflow-hidden">
-                <nav class="flex overflow-x-auto border-b border-gray-100" aria-label="Product form tabs">
+                <nav class="flex overflow-x-auto border-b border-gray-100" aria-label="{{ __('admin.products.form_tabs_aria') }}">
                     @foreach([
-                        ['id' => 'basic',     'label' => 'Basic Info',  'icon' => 'information-circle'],
-                        ['id' => 'content',   'label' => 'Content',     'icon' => 'document-text'],
-                        ['id' => 'variants',  'label' => 'Variants',    'icon' => 'cube'],
-                        ['id' => 'images',    'label' => 'Images',      'icon' => 'photo'],
-                        ['id' => 'countries', 'label' => 'Countries',   'icon' => 'globe-alt'],
-                        ['id' => 'seo',       'label' => 'SEO',         'icon' => 'magnifying-glass'],
+                        ['id' => 'basic',     'label' => __('admin.products.tab_basic_info'),  'icon' => 'information-circle'],
+                        ['id' => 'content',   'label' => __('admin.products.tab_content'),     'icon' => 'document-text'],
+                        ['id' => 'variants',  'label' => __('admin.products.tab_variants'),    'icon' => 'cube'],
+                        ['id' => 'images',    'label' => __('admin.products.tab_images'),      'icon' => 'photo'],
+                        ['id' => 'countries', 'label' => __('admin.products.tab_countries'),   'icon' => 'globe-alt'],
+                        ['id' => 'seo',       'label' => __('admin.products.tab_seo'),          'icon' => 'magnifying-glass'],
                     ] as $tab)
                     <button
                         type="button"
@@ -76,7 +76,7 @@
                         class="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium -mb-px whitespace-nowrap transition-colors"
                     >
                         <x-heroicon name="lock-closed" class="w-4 h-4" />
-                        تكلفة المنتج
+                        {{ __('admin.products.cost_tab') }}
                     </button>
                     @endif
                 </nav>
@@ -92,39 +92,40 @@
                 <div class="grid grid-cols-2 gap-4">
                     <x-form.input
                         name="name_en"
-                        label="Name (English)"
+                        label="{{ __('admin.name_en') }}"
                         :value="$val('name_en')"
                         required
                         maxlength="255"
-                        placeholder="e.g. Apple iPhone 15 Pro"
+                        dir="ltr"
+                        placeholder="{{ __('admin.products.name_en_placeholder') }}"
                     />
                     <x-form.input
                         name="name_ar"
-                        label="الاسم بالعربي"
+                        label="{{ __('admin.products.name_ar_label') }}"
                         :value="$val('name_ar')"
                         required
                         maxlength="255"
                         dir="rtl"
-                        placeholder="مثال: آيفون 15 برو"
+                        placeholder="{{ __('admin.products.name_ar_placeholder') }}"
                     />
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <x-form.async-select
                         name="category_id"
-                        label="Category"
+                        label="{{ __('admin.category') }}"
                         required
                         search-url="{{ route('admin.categories.search') }}"
-                        placeholder="Search categories…"
+                        placeholder="{{ __('admin.products.category_search_placeholder') }}"
                         :min-length="0"
                         :value="$isEdit ? $product->category_id : null"
                         :value-label="$isEdit && $product->category_id ? ($categories[$product->category_id] ?? '') : null"
                     />
                     <x-form.async-select
                         name="brand_id"
-                        label="Brand"
+                        label="{{ __('admin.brand') }}"
                         search-url="{{ route('admin.brands.search') }}"
-                        placeholder="Search brands…"
+                        placeholder="{{ __('admin.products.brand_search_placeholder') }}"
                         :min-length="0"
                         :value="$isEdit ? $product->brand_id : null"
                         :value-label="$isEdit && $product->brand_id ? ($brands[$product->brand_id] ?? '') : null"
@@ -136,21 +137,23 @@
                         <x-form.input
                             name="gtin"
                             id="gtin-input"
-                            label="Barcode (EAN-13 / UPC)"
+                            label="{{ __('admin.products.barcode_label') }}"
                             :value="$val('gtin')"
                             maxlength="13"
-                            placeholder="13-digit barcode"
-                            help="Leave blank if no barcode. Must be exactly 13 digits."
+                            dir="ltr"
+                            placeholder="{{ __('admin.products.barcode_placeholder') }}"
+                            help="{{ __('admin.products.barcode_help') }}"
                         />
                         {{-- Duplicate warning injected by JS --}}
                         <div id="gtin-warning" class="hidden mt-2 rounded-lg bg-warning-50 border border-warning-200 p-3 text-sm text-warning-800"></div>
                     </div>
                     <x-form.input
                         name="model_number"
-                        label="Model Number"
+                        label="{{ __('admin.products.model_number') }}"
                         :value="$val('model_number')"
                         maxlength="100"
-                        placeholder="e.g. MQ9T3LL/A"
+                        dir="ltr"
+                        placeholder="{{ __('admin.products.model_number_placeholder') }}"
                     />
                 </div>
             </div>
@@ -164,35 +167,35 @@
             >
                 <x-form.rich-editor
                     name="description_en"
-                    label="Description (English)"
+                    label="{{ __('admin.products.description_en') }}"
                     :value="$val('description_en')"
                 />
                 <x-form.rich-editor
                     name="description_ar"
-                    label="وصف المنتج بالعربية"
+                    label="{{ __('admin.products.description_ar') }}"
                     :value="$val('description_ar')"
                 />
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <div class="flex items-center justify-between mb-1">
-                            <label class="form-label">Short Description (EN)</label>
+                            <label class="form-label">{{ __('admin.products.short_description_en') }}</label>
                             <span class="text-xs text-gray-400" data-char-counter="short_desc_en" data-max="500">0 / 500</span>
                         </div>
                         <textarea name="short_desc_en" id="short_desc_en"
-                            maxlength="500" rows="4"
+                            maxlength="500" rows="4" dir="ltr"
                             class="form-textarea w-full @error('short_desc_en') is-invalid @enderror"
-                            placeholder="Brief product summary…">{{ $val('short_desc_en') }}</textarea>
+                            placeholder="{{ __('admin.products.short_desc_en_placeholder') }}">{{ $val('short_desc_en') }}</textarea>
                         @error('short_desc_en') <p class="form-error">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-1">
-                            <label class="form-label" dir="rtl">وصف قصير بالعربية</label>
+                            <label class="form-label" dir="rtl">{{ __('admin.products.short_description_ar') }}</label>
                             <span class="text-xs text-gray-400" data-char-counter="short_desc_ar" data-max="500">0 / 500</span>
                         </div>
                         <textarea name="short_desc_ar" id="short_desc_ar"
                             maxlength="500" rows="4" dir="rtl"
                             class="form-textarea w-full @error('short_desc_ar') is-invalid @enderror"
-                            placeholder="ملخص قصير…">{{ $val('short_desc_ar') }}</textarea>
+                            placeholder="{{ __('admin.products.short_desc_ar_placeholder') }}">{{ $val('short_desc_ar') }}</textarea>
                         @error('short_desc_ar') <p class="form-error">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -207,13 +210,13 @@
             >
                 <div x-show="!hasVariants" class="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-700 flex items-start gap-2">
                     <x-heroicon name="information-circle" class="w-5 h-5 flex-shrink-0 mt-0.5" />
-                    <span>Enable <strong>Has Variants</strong> in the Classification card (right sidebar) to configure product variants.</span>
+                    <span>{{ __('admin.products.has_variants_hint', ['field' => __('admin.products.has_variants_field')]) }}</span>
                 </div>
 
                 <div x-show="hasVariants" class="space-y-5">
                     {{-- Attribute checkboxes --}}
                     <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Variant Attributes</h4>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.products.variant_attributes') }}</h4>
                         <div id="variant-attributes-container" class="grid grid-cols-3 gap-3">
                             @foreach($categoryAttributes ?? [] as $attr)
                             <label class="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 text-sm">
@@ -230,7 +233,7 @@
                         </div>
                         @if(empty($categoryAttributes))
                         <p class="text-sm text-gray-400 italic" id="no-attrs-msg">
-                            Select a category first. Variant attributes load automatically.
+                            {{ __('admin.products.select_category_first') }}
                         </p>
                         @endif
                     </div>
@@ -239,7 +242,7 @@
                     <button type="button" id="generate-variants-btn"
                         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-primary-300 bg-primary-50 text-primary-700 text-sm font-medium hover:bg-primary-100 transition-colors">
                         <x-heroicon name="cube" class="w-4 h-4" />
-                        Generate combinations
+                        {{ __('admin.products.generate_combinations') }}
                     </button>
 
                     {{-- Variants table --}}
@@ -247,12 +250,12 @@
                         <table class="min-w-full text-sm" id="variants-table">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Variant</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">SKU</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Barcode</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Weight (g)</th>
-                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">Default</th>
-                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">Active</th>
+                                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.variant_column') }}</th>
+                                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">{{ __('admin.sku') }}</th>
+                                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">{{ __('admin.products.barcode') }}</th>
+                                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">{{ __('admin.products.weight_grams_column') }}</th>
+                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-20">{{ __('admin.products.default_column') }}</th>
+                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">{{ __('admin.products.active_column') }}</th>
                                     <th class="px-4 py-3 w-10"></th>
                                 </tr>
                             </thead>
@@ -261,7 +264,7 @@
                                 @foreach($variants ?? [] as $vi => $variant)
                                 <tr class="variant-row hover:bg-gray-50">
                                     <td class="px-4 py-3 font-medium text-gray-800">
-                                        {{ $variant->name ?? 'Default variant' }}
+                                        {{ $variant->name ?? __('admin.products.default_variant') }}
                                         <input type="hidden" name="variants[{{ $vi }}][id]" value="{{ $variant->id }}" />
                                     </td>
                                     <td class="px-4 py-3">
@@ -292,7 +295,7 @@
                                             {{ $variant->is_active ? 'checked' : '' }} />
                                     </td>
                                     <td class="px-4 py-3">
-                                        <button type="button" class="remove-variant-row text-gray-400 hover:text-red-600 transition-colors" title="Remove">
+                                        <button type="button" class="remove-variant-row text-gray-400 hover:text-red-600 transition-colors" title="{{ __('admin.products.remove') }}">
                                             <x-heroicon name="x-circle" class="w-4 h-4" />
                                         </button>
                                     </td>
@@ -302,7 +305,7 @@
                             </tbody>
                         </table>
                         <div id="no-variants-msg" class="{{ ($isEdit && count($variants ?? []) > 0) ? 'hidden' : '' }} px-4 py-6 text-center text-sm text-gray-400">
-                            No variants yet. Select attributes above and click <em>Generate combinations</em>.
+                            {{ __('admin.products.no_variants_yet', ['action' => __('admin.products.generate_combinations')]) }}
                         </div>
                     </div>
                 </div>
@@ -316,8 +319,7 @@
                 class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-4"
             >
                 <p class="text-sm text-gray-500">
-                    Upload product images. The <strong>first image</strong> will be set as the primary image.
-                    Drag to reorder. Max 5 MB per image.
+                    {{ __('admin.products.upload_images_hint', ['primary' => __('admin.products.primary_image')]) }}
                 </p>
 
                 {{-- FilePond mount point — initialized in products.js --}}
@@ -358,15 +360,15 @@
                 class="bg-white rounded-b-xl border border-t-0 border-gray-200 shadow-sm"
             >
                 <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <h4 class="text-sm font-semibold text-gray-700">Country Availability</h4>
+                    <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.products.country_availability') }}</h4>
                     <div class="flex gap-2">
                         <button type="button" id="enable-all-countries"
                             class="text-xs px-3 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 font-medium">
-                            Enable all
+                            {{ __('admin.products.enable_all') }}
                         </button>
                         <button type="button" id="disable-all-countries"
                             class="text-xs px-3 py-1.5 rounded-md border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-medium">
-                            Disable all
+                            {{ __('admin.products.disable_all') }}
                         </button>
                     </div>
                 </div>
@@ -375,10 +377,10 @@
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Country</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Available</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name Override</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Cert Required</th>
+                                <th class="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.country_column') }}</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">{{ __('admin.products.available_column') }}</th>
+                                <th class="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.products.name_override_column') }}</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">{{ __('admin.products.cert_required_column') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -412,7 +414,7 @@
                                         name="countries[{{ $country->id }}][name_override_en]"
                                         value="{{ $cNameOverride }}"
                                         :disabled="!avail"
-                                        placeholder="Same as default"
+                                        placeholder="{{ __('admin.product_form.countries_placeholder.same_as_default') }}"
                                         class="form-input text-sm py-1.5 w-full disabled:opacity-40 disabled:cursor-not-allowed"
                                     />
                                 </td>
@@ -447,32 +449,32 @@
             >
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label for="seo_title" class="form-label">SEO Title</label>
+                        <label for="seo_title" class="form-label">{{ __('admin.product_form.seo_title') }}</label>
                         <span class="text-xs text-gray-400" data-char-counter="seo_title" data-max="70">0 / 70</span>
                     </div>
                     <input type="text" name="seo_title" id="seo_title"
                         value="{{ $val('seo_title') }}" maxlength="70"
                         class="form-input w-full @error('seo_title') is-invalid @enderror"
-                        placeholder="Appears in browser tab &amp; search results…"
+                        placeholder="{{ __('admin.product_form.seo_placeholder.title') }}"
                     />
                     @error('seo_title') <p class="form-error">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label for="seo_description" class="form-label">SEO Description</label>
+                        <label for="seo_description" class="form-label">{{ __('admin.product_form.seo_description') }}</label>
                         <span class="text-xs text-gray-400" data-char-counter="seo_description" data-max="160">0 / 160</span>
                     </div>
                     <textarea name="seo_description" id="seo_description"
                         maxlength="160" rows="3"
                         class="form-textarea w-full @error('seo_description') is-invalid @enderror"
-                        placeholder="Brief description for search engines (max 160 chars)…">{{ $val('seo_description') }}</textarea>
+                        placeholder="{{ __('admin.product_form.seo_placeholder.description') }}">{{ $val('seo_description') }}</textarea>
                     @error('seo_description') <p class="form-error">{{ $message }}</p> @enderror
                 </div>
 
                 <x-form.slug-input
                     name="slug"
-                    label="URL Slug"
+                    label="{{ __('admin.product_form.seo_slug') }}"
                     source-field="name_en"
                     :value="$val('slug')"
                     :prefix="rtrim(config('app.url'), '/') . '/products/'"
@@ -480,13 +482,13 @@
 
                 {{-- SEO preview card --}}
                 <div class="rounded-xl border border-gray-200 p-4 bg-gray-50">
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Search Preview</p>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ __('admin.product_form.search_preview') }}</p>
                     <p id="seo-preview-title" class="text-base font-medium text-blue-700 hover:underline cursor-pointer truncate">
                         {{ $val('seo_title') ?: $val('name_en') ?: 'Product title' }}
                     </p>
                     <p class="text-xs text-green-700 mb-1">{{ rtrim(config('app.url'), '/') }}/products/<span id="seo-preview-slug">{{ $val('slug') ?: 'product-slug' }}</span></p>
                     <p id="seo-preview-desc" class="text-sm text-gray-600 line-clamp-2">
-                        {{ $val('seo_description') ?: 'Add a meta description to improve search engine visibility.' }}
+                        {{ $val('seo_description') ?: __('admin.product_form.seo_placeholder.search_preview_placeholder') }}
                     </p>
                 </div>
             </div>
@@ -504,16 +506,16 @@
 
             {{-- Status card --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
-                <h3 class="text-sm font-semibold text-gray-800">Status</h3>
+                <h3 class="text-sm font-semibold text-gray-800">{{ __('admin.product_form.status') }}</h3>
                 <x-form.select
                     name="status"
                     label=""
                     :value="$val('status', 'draft')"
                     :options="[
-                        'draft'        => 'Draft',
-                        'active'       => 'Active',
-                        'discontinued' => 'Discontinued',
-                        'restricted'   => 'Restricted',
+                        'draft'        => __('admin.product_form.Draft'),
+                        'active'       => __('admin.product_form.Active'),
+                        'discontinued' => __('admin.product_form.Discontinued'),
+                        'restricted'   => __('admin.product_form.Restricted'),
                     ]"
                 />
                 @if($isEdit)
@@ -534,7 +536,7 @@
 
             {{-- Classification card --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-1">
-                <h3 class="text-sm font-semibold text-gray-800 mb-3">Classification</h3>
+                <h3 class="text-sm font-semibold text-gray-800 mb-3">{{ __('admin.classification') }}</h3>
 
                 {{-- has_variants — synced to Alpine hasVariants --}}
                 <label class="flex items-center gap-3 py-2 cursor-pointer select-none w-full group">
@@ -547,12 +549,12 @@
                         <span class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
                             :class="hasVariants ? 'translate-x-5' : 'translate-x-0'"></span>
                     </div>
-                    <span class="text-sm text-gray-700 group-hover:text-gray-900">Has variants</span>
+                    <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ __('admin.has_variant') }}</span>
                 </label>
 
-                <x-form.toggle name="is_featured"         label="Featured on homepage" :value="$bool('is_featured')" />
-                <x-form.toggle name="requires_brand_auth" label="Requires brand auth"  :value="$bool('requires_brand_auth')" />
-                <x-form.toggle name="is_hazardous"        label="Hazardous item"       :value="$bool('is_hazardous')" />
+                <x-form.toggle name="is_featured"         label="{{ __('admin.featured_on_homepage') }}" :value="$bool('is_featured')" />
+                <x-form.toggle name="requires_brand_auth" label="{{ __('admin.requires_brand_auth') }}"  :value="$bool('requires_brand_auth')" />
+                <x-form.toggle name="is_hazardous"        label="{{ __('admin.is_hazardous') }}"       :value="$bool('is_hazardous')" />
 
                 {{-- is_age_restricted — synced to Alpine isAgeRestricted --}}
                 <label class="flex items-center gap-3 py-2 cursor-pointer select-none w-full group">
@@ -565,13 +567,13 @@
                         <span class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
                             :class="isAgeRestricted ? 'translate-x-5' : 'translate-x-0'"></span>
                     </div>
-                    <span class="text-sm text-gray-700 group-hover:text-gray-900">Age restricted</span>
+                    <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ __('admin.age_restricted') }}</span>
                 </label>
 
                 <div x-show="isAgeRestricted" x-cloak class="mt-1 pl-14">
                     <x-form.input
                         name="min_age"
-                        label="Minimum age"
+                        label="{{ __('admin.product_form.minimum_age') }}"
                         type="number"
                         :value="$val('min_age')"
                         min="1" max="99"
@@ -591,11 +593,11 @@
 
                 <button type="submit" id="submit-btn"
                     class="btn btn-primary w-full justify-center">
-                    {{ $isEdit ? 'Save changes' : 'Create product' }}
+                    {{ $isEdit ? __('admin.product_form.save_changes') : __('admin.product_form.create_product') }}
                 </button>
                 <a href="{{ route('admin.products.index') }}"
                     class="btn btn-ghost w-full justify-center text-center block">
-                    Cancel
+                    {{ __('admin.product_form.cancel') }}
                 </a>
             </div>
 

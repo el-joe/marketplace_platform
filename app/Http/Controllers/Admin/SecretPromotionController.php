@@ -157,19 +157,39 @@ class SecretPromotionController extends Controller
             ->latest()
             ->get();
 
-        // Chart data (last 30 days by default)
+        // Chart data (last 30 days by default).
+        // GROUP BY (date, currency) to prevent blending revenue amounts across currencies.
         $chartRows = $promotion->conversions()
             ->where('created_at', '>=', now()->subDays(30))
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count, SUM(COALESCE(commission_amount_cents,0) * (total_commission_pct - marketer_share_pct) / NULLIF(total_commission_pct,0)) as admin_revenue')
-            ->groupBy('date')
+            ->selectRaw('DATE(created_at) as date, currency, COUNT(*) as count, SUM(COALESCE(commission_amount_cents,0) * (total_commission_pct - marketer_share_pct) / NULLIF(total_commission_pct,0)) as admin_revenue')
+            ->groupBy('date', 'currency')
             ->orderBy('date')
             ->get();
 
-        $chartData = [
-            'labels' => $chartRows->pluck('date')->toArray(),
-            'counts' => $chartRows->pluck('count')->toArray(),
-            'admin_revenue' => $chartRows->pluck('admin_revenue')->map(fn($v) => (int) round($v))->toArray(),
-        ];
+        // Group by currency so the chart renders separate series when multiple currencies exist.
+        $byCurrency = $chartRows->groupBy('currency');
+        $currencies = $byCurrency->keys()->sort()->values()->all();
+
+        if (count($currencies) <= 1) {
+            $rows = $byCurrency->first() ?? collect();
+            $chartData = [
+                'labels'       => $rows->pluck('date')->toArray(),
+                'counts'       => $rows->pluck('count')->map(fn($v) => (int) $v)->toArray(),
+                'admin_revenue' => $rows->pluck('admin_revenue')->map(fn($v) => (int) round($v))->toArray(),
+                'currency'     => $currencies[0] ?? null,
+            ];
+        } else {
+            $allDates = $chartRows->pluck('date')->unique()->sort()->values()->all();
+            $datasets = [];
+            foreach ($currencies as $currency) {
+                $byDate = $byCurrency[$currency]->keyBy('date');
+                $datasets[$currency] = [
+                    'counts'        => array_map(fn($d) => (int) ($byDate[$d]->count ?? 0), $allDates),
+                    'admin_revenue' => array_map(fn($d) => (int) round($byDate[$d]->admin_revenue ?? 0), $allDates),
+                ];
+            }
+            $chartData = ['labels' => $allDates, 'datasets' => $datasets];
+        }
 
         $marketers = Marketer::where('status', 'active')->orderBy('name')->get(['id', 'name', 'type']);
 

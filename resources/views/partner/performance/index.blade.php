@@ -1,7 +1,7 @@
 @extends('layouts.partner')
 
-@section('title', 'الأداء والتحليلات')
-@section('page-title', 'الأداء والتحليلات')
+@section('title', __('partner.performance.title'))
+@section('page-title', __('partner.performance.title'))
 
 @push('scripts')
     @vite('resources/js/partner/performance.js')
@@ -21,7 +21,7 @@
 
             <div class="flex flex-col gap-2 items-start sm:items-end">
                 <div class="inline-flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm gap-0.5" role="tablist">
-                    @foreach (['week' => 'أسبوع', 'month' => 'شهر', 'quarter' => 'ربع سنة', 'custom' => 'مخصص'] as $key => $label)
+                    @foreach (['week' => __('partner.performance.period_week'), 'month' => __('partner.performance.period_month'), 'quarter' => __('partner.performance.period_quarter'), 'custom' => __('partner.performance.period_custom')] as $key => $label)
                         <button type="button" role="tab" data-period="{{ $key }}"
                             class="period-tab rounded-lg px-3.5 py-1.5 text-sm font-medium text-gray-600 transition-all hover:bg-gray-100
                                 {{ $key === 'month' ? 'bg-primary-600 text-white shadow-sm hover:bg-primary-600' : '' }}">
@@ -38,7 +38,7 @@
                         class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500" />
                     <button id="btn-apply-custom"
                         class="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors">
-                        تطبيق
+                        {{ __('partner.performance.apply') }}
                     </button>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <p class="text-xs font-medium text-gray-500 mb-1">إجمالي المبيعات (GMV)</p>
+                <p class="text-xs font-medium text-gray-500 mb-1">{{ __('partner.performance.gmv') }}</p>
                 <p class="text-2xl font-bold text-gray-900 tabular-nums" id="kpi-gmv">
                     <span class="block h-7 w-28 animate-pulse rounded-lg bg-gray-100"></span>
                 </p>
@@ -69,7 +69,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                 </div>
-                <p class="text-xs font-medium text-gray-500 mb-1">عدد الطلبات</p>
+                <p class="text-xs font-medium text-gray-500 mb-1">{{ __('partner.performance.order_count') }}</p>
                 <p class="text-2xl font-bold text-gray-900 tabular-nums" id="kpi-orders">
                     <span class="block h-7 w-20 animate-pulse rounded-lg bg-gray-100"></span>
                 </p>
@@ -83,7 +83,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
                     </svg>
                 </div>
-                <p class="text-xs font-medium text-gray-500 mb-1">متوسط قيمة الطلب</p>
+                <p class="text-xs font-medium text-gray-500 mb-1">{{ __('partner.performance.aov') }}</p>
                 <p class="text-2xl font-bold text-gray-900 tabular-nums" id="kpi-aov">
                     <span class="block h-7 w-24 animate-pulse rounded-lg bg-gray-100"></span>
                 </p>
@@ -97,7 +97,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <p class="text-xs font-medium text-gray-500 mb-1">الالتزام بالمواعيد</p>
+                <p class="text-xs font-medium text-gray-500 mb-1">{{ __('partner.performance.sla_compliance') }}</p>
                 <p class="text-2xl font-bold tabular-nums" id="kpi-sla">
                     <span class="block h-7 w-16 animate-pulse rounded-lg bg-gray-100"></span>
                 </p>
@@ -111,14 +111,14 @@
             {{-- Revenue chart --}}
             <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="font-semibold text-gray-800">إيرادات المبيعات</h2>
-                    <span id="chart-loading" class="text-xs text-gray-400 animate-pulse">جاري التحميل...</span>
+                    <h2 class="font-semibold text-gray-800">{{ __('partner.performance.sales_revenue') }}</h2>
+                    <span id="chart-loading" class="text-xs text-gray-400 animate-pulse">{{ __('partner.performance.loading') }}</span>
                 </div>
                 <div class="p-5">
                     <div class="relative h-56">
                         <canvas id="revenue-chart"></canvas>
                         <div id="revenue-chart-empty" class="hidden absolute inset-0 items-center justify-center">
-                            <p class="text-sm text-gray-400">لا توجد بيانات للفترة المحددة</p>
+                            <p class="text-sm text-gray-400">{{ __('partner.performance.no_data_for_period') }}</p>
                         </div>
                     </div>
                 </div>
@@ -127,13 +127,13 @@
             {{-- Performance indicators --}}
             <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="font-semibold text-gray-800">مؤشرات الأداء</h2>
+                    <h2 class="font-semibold text-gray-800">{{ __('partner.performance.performance_indicators') }}</h2>
                 </div>
                 <div class="p-5 space-y-5">
 
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-medium text-gray-500">الالتزام بمواعيد الشحن</span>
+                            <span class="text-xs font-medium text-gray-500">{{ __('partner.performance.shipping_sla_compliance') }}</span>
                             <span class="text-sm font-bold" id="ind-sla-value">—</span>
                         </div>
                         <div class="h-1.5 w-full rounded-full bg-gray-100">
@@ -146,7 +146,7 @@
 
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-medium text-gray-500">معدل الإرجاع</span>
+                            <span class="text-xs font-medium text-gray-500">{{ __('partner.performance.return_rate') }}</span>
                             <span class="text-sm font-bold" id="ind-return-value">—</span>
                         </div>
                         <div class="h-1.5 w-full rounded-full bg-gray-100">
@@ -159,7 +159,7 @@
 
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-medium text-gray-500">معدل الإلغاء</span>
+                            <span class="text-xs font-medium text-gray-500">{{ __('partner.performance.cancellation_rate') }}</span>
                             <span class="text-sm font-bold" id="ind-cancel-value">—</span>
                         </div>
                         <div class="h-1.5 w-full rounded-full bg-gray-100">
@@ -172,7 +172,7 @@
 
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-medium text-gray-500">تقييم المتجر</span>
+                            <span class="text-xs font-medium text-gray-500">{{ __('partner.performance.store_rating') }}</span>
                             <span class="text-sm font-bold" id="ind-rating-value">—</span>
                         </div>
                         <div class="h-1.5 w-full rounded-full bg-gray-100">
@@ -184,7 +184,7 @@
                     </div>
 
                     <div class="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 flex items-center justify-between">
-                        <span class="text-xs font-medium text-gray-500">المخالفات النشطة</span>
+                        <span class="text-xs font-medium text-gray-500">{{ __('partner.performance.active_strikes') }}</span>
                         <span class="text-sm font-bold" id="ind-strikes">
                             <span class="block h-4 w-6 animate-pulse rounded bg-gray-200"></span>
                         </span>
@@ -200,16 +200,16 @@
             {{-- Top 5 products --}}
             <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="font-semibold text-gray-800">أفضل 5 منتجات</h2>
+                    <h2 class="font-semibold text-gray-800">{{ __('partner.performance.top_5_products') }}</h2>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-right">
                         <thead class="bg-gray-50 border-b border-gray-100">
                             <tr>
                                 <th class="px-5 py-3 text-xs font-medium text-gray-400">#</th>
-                                <th class="px-4 py-3 text-xs font-medium text-gray-400 text-right">المنتج</th>
-                                <th class="px-4 py-3 text-xs font-medium text-gray-400 text-right">الإيرادات</th>
-                                <th class="px-4 py-3 text-xs font-medium text-gray-400 text-right">وحدات</th>
+                                <th class="px-4 py-3 text-xs font-medium text-gray-400 text-right">{{ __('partner.performance.product') }}</th>
+                                <th class="px-4 py-3 text-xs font-medium text-gray-400 text-right">{{ __('partner.performance.revenue') }}</th>
+                                <th class="px-4 py-3 text-xs font-medium text-gray-400 text-right">{{ __('partner.performance.units') }}</th>
                             </tr>
                         </thead>
                         <tbody id="top-products-body" class="divide-y divide-gray-50">
@@ -229,14 +229,14 @@
             {{-- Reviews distribution --}}
             <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="font-semibold text-gray-800">توزيع التقييمات</h2>
+                    <h2 class="font-semibold text-gray-800">{{ __('partner.performance.reviews_distribution') }}</h2>
                     <span class="text-xs text-gray-400" id="reviews-total">—</span>
                 </div>
                 <div class="p-5">
                     <div class="relative h-56">
                         <canvas id="reviews-chart"></canvas>
                         <div id="reviews-chart-empty" class="hidden absolute inset-0 items-center justify-center">
-                            <p class="text-sm text-gray-400">لا توجد تقييمات في هذه الفترة</p>
+                            <p class="text-sm text-gray-400">{{ __('partner.performance.no_reviews_for_period') }}</p>
                         </div>
                     </div>
                 </div>
@@ -253,15 +253,15 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                         </svg>
                     </div>
-                    <span class="text-sm font-semibold text-purple-800">عروض الفلاش في هذه الفترة</span>
+                    <span class="text-sm font-semibold text-purple-800">{{ __('partner.performance.flash_sales_this_period') }}</span>
                 </div>
                 <div class="flex gap-6">
                     <div>
-                        <p class="text-xs text-purple-500 mb-0.5">وحدات مباعة</p>
+                        <p class="text-xs text-purple-500 mb-0.5">{{ __('partner.performance.units_sold') }}</p>
                         <p class="text-base font-bold text-purple-900" id="flash-units">0</p>
                     </div>
                     <div>
-                        <p class="text-xs text-purple-500 mb-0.5">الإيرادات</p>
+                        <p class="text-xs text-purple-500 mb-0.5">{{ __('partner.performance.revenue') }}</p>
                         <p class="text-base font-bold text-purple-900" id="flash-revenue">0</p>
                     </div>
                 </div>

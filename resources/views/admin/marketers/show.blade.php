@@ -31,16 +31,16 @@
 
         <div class="space-y-2 text-sm">
             @foreach([
-                'Email'    => $marketer->email,
-                'Phone'    => $marketer->phone ?? '—',
-                'Country'  => $marketer->country?->name_en ?? '—',
-                'Niche'    => $marketer->niche ?? '—',
-                'Ref Code' => $marketer->referral_code,
-                'Joined'   => $marketer->created_at->format('d M Y'),
+                __('admin.marketers.email_label')   => $marketer->email,
+                __('admin.marketers.phone_label')   => $marketer->phone ?? '—',
+                __('admin.marketers.country_label') => $marketer->country?->name_en ?? '—',
+                __('admin.marketers.niche_label')   => $marketer->niche ?? '—',
+                __('admin.marketers.ref_code')       => $marketer->referral_code,
+                __('admin.marketers.joined')         => $marketer->created_at->format('d M Y'),
             ] as $label => $value)
                 <div class="flex justify-between gap-2">
                     <span class="text-gray-400">{{ $label }}</span>
-                    <span class="font-medium text-gray-700 text-right">{{ $value }}</span>
+                    <span class="font-medium text-gray-700 text-end">{{ $value }}</span>
                 </div>
             @endforeach
         </div>
@@ -71,12 +71,12 @@
         {{-- Action buttons --}}
         <div class="flex gap-2 mt-5 pt-4 border-t border-gray-100">
             @if($marketer->status === 'pending')
-                <button type="button" class="btn btn-success btn-sm flex-1" id="btn-approve">Approve</button>
-                <button type="button" class="btn btn-danger btn-sm flex-1" id="btn-reject">Reject</button>
+                <button type="button" class="btn btn-success btn-sm flex-1" id="btn-approve">{{ __('admin.marketers.approve') }}</button>
+                <button type="button" class="btn btn-danger btn-sm flex-1" id="btn-reject">{{ __('admin.marketers.reject') }}</button>
             @elseif($marketer->status === 'active')
-                <button type="button" class="btn btn-warning btn-sm flex-1" id="btn-suspend">Suspend</button>
+                <button type="button" class="btn btn-warning btn-sm flex-1" id="btn-suspend">{{ __('admin.marketers.suspend') }}</button>
             @elseif($marketer->status === 'suspended')
-                <button type="button" class="btn btn-success btn-sm flex-1" id="btn-activate">Activate</button>
+                <button type="button" class="btn btn-success btn-sm flex-1" id="btn-activate">{{ __('admin.marketers.activate') }}</button>
             @endif
         </div>
     </div>
@@ -84,12 +84,12 @@
     {{-- Stats Column --}}
     <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4 content-start">
         @foreach([
-            ['Campaigns',        $stats['total_campaigns'],    'total'],
-            ['Active Campaigns', $stats['active_campaigns'],   'active'],
-            ['Conversions',      $stats['total_conversions'],  'conversions'],
-            ['Followers',        number_format($marketer->followers_count), 'followers'],
-            ['Total Clicks',     number_format($marketer->total_clicks),    'clicks'],
-            ['Comm. Rate',       $marketer->commission_rate . '%',          'rate'],
+            [__('admin.marketers.campaigns'),        $stats['total_campaigns'],    'total'],
+            [__('admin.marketers.active_campaigns'), $stats['active_campaigns'],   'active'],
+            [__('admin.marketers.conversions'),      $stats['total_conversions'],  'conversions'],
+            [__('admin.marketers.followers'),        number_format($marketer->followers_count), 'followers'],
+            [__('admin.marketers.total_clicks'),     number_format($marketer->total_clicks),    'clicks'],
+            [__('admin.marketers.comm_rate'),        $marketer->commission_rate . '%',          'rate'],
         ] as [$label, $value, $key])
             <div class="bg-white rounded-xl border border-gray-200 p-4">
                 <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ $label }}</p>
@@ -98,12 +98,20 @@
         @endforeach
 
         <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-            <p class="text-xs font-medium text-yellow-600 uppercase tracking-wide">Pending Earnings</p>
-            <p class="mt-1 text-2xl font-bold text-yellow-700">{{ number_format($stats['pending_earnings'] / 100, 2) }} SAR</p>
+            <p class="text-xs font-medium text-yellow-600 uppercase tracking-wide">{{ __('admin.marketers.pending_earnings') }}</p>
+            @forelse($stats['pending_by_currency'] as $currency => $cents)
+                <p class="mt-1 text-xl font-bold text-yellow-700">{{ number_format($cents / 100, 2) }} {{ $currency }}</p>
+            @empty
+                <p class="mt-1 text-2xl font-bold text-yellow-700">—</p>
+            @endforelse
         </div>
         <div class="bg-green-50 border border-green-200 rounded-xl p-4">
-            <p class="text-xs font-medium text-green-600 uppercase tracking-wide">Paid Earnings</p>
-            <p class="mt-1 text-2xl font-bold text-green-700">{{ number_format($stats['paid_earnings'] / 100, 2) }} SAR</p>
+            <p class="text-xs font-medium text-green-600 uppercase tracking-wide">{{ __('admin.marketers.paid_earnings') }}</p>
+            @forelse($stats['paid_by_currency'] as $currency => $cents)
+                <p class="mt-1 text-xl font-bold text-green-700">{{ number_format($cents / 100, 2) }} {{ $currency }}</p>
+            @empty
+                <p class="mt-1 text-2xl font-bold text-green-700">—</p>
+            @endforelse
         </div>
     </div>
 </div>
@@ -114,11 +122,11 @@
 
     <div class="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5 flex-wrap">
         @foreach([
-            'campaigns'     => 'Campaigns',
-            'conversions'   => 'Conversions',
-            'tiers'         => '📈 Tiers',
-            'samples'       => '📦 Samples',
-            'secret_promos' => '🔒 Secret Promos',
+            'campaigns'     => __('admin.marketers.tab_campaigns'),
+            'conversions'   => __('admin.marketers.tab_conversions'),
+            'tiers'         => '📈 ' . __('admin.marketers.tab_tiers'),
+            'samples'       => '📦 ' . __('admin.marketers.tab_samples'),
+            'secret_promos' => '🔒 ' . __('admin.marketers.tab_secret_promos'),
         ] as $key => $label)
             <button type="button" @click="tab = '{{ $key }}'"
                     class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors"
@@ -134,14 +142,14 @@
             <table id="marketer-campaigns-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Campaign</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Clicks</th>
-                        <th>Conv.</th>
-                        <th>Revenue (SAR)</th>
-                        <th>Created</th>
-                        <th>Actions</th>
+                        <th>{{ __('admin.marketers.campaign') }}</th>
+                        <th>{{ __('admin.marketers.type') }}</th>
+                        <th>{{ __('admin.status') }}</th>
+                        <th>{{ __('admin.marketers.clicks') }}</th>
+                        <th>{{ __('admin.marketers.conv') }}</th>
+                        <th>{{ __('admin.marketers.revenue') }}</th>
+                        <th>{{ __('admin.marketers.created') }}</th>
+                        <th>{{ __('admin.marketers.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -155,13 +163,13 @@
             <table id="marketer-conversions-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Marketer</th>
-                        <th>Campaign</th>
-                        <th>Order Value</th>
-                        <th>Commission</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th>Bulk</th>
+                        <th>{{ __('admin.marketers.marketer') }}</th>
+                        <th>{{ __('admin.marketers.campaign') }}</th>
+                        <th>{{ __('admin.marketers.order_value') }}</th>
+                        <th>{{ __('admin.marketers.commission') }}</th>
+                        <th>{{ __('admin.status') }}</th>
+                        <th>{{ __('admin.marketers.date') }}</th>
+                        <th>{{ __('admin.marketers.bulk') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -174,14 +182,14 @@
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-5">
                 <div>
-                    <h3 class="text-lg font-bold text-gray-800">Commission Tiers (العمولات المتدرجة)</h3>
-                    <p class="text-sm text-gray-500 mt-1">Current sales: <strong>{{ $stats['total_conversions'] }}</strong></p>
+                    <h3 class="text-lg font-bold text-gray-800">{{ __('admin.marketers.commission_tiers_title') }}</h3>
+                    <p class="text-sm text-gray-500 mt-1">{{ __('admin.marketers.current_sales') }}: <strong>{{ $stats['total_conversions'] }}</strong></p>
                 </div>
-                <a href="{{ route('admin.marketers.all.tiers.show', $marketer) }}" class="btn btn-primary btn-sm">Edit Tiers</a>
+                <a href="{{ route('admin.marketers.all.tiers.show', $marketer) }}" class="btn btn-primary btn-sm">{{ __('admin.marketers.edit_tiers') }}</a>
             </div>
             @php $tiers = $marketer->commissionTiers()->whereNull('campaign_id')->orderBy('tier_order')->get(); @endphp
             @if($tiers->isEmpty())
-                <p class="text-sm text-gray-400 italic">No tiers configured. Default rate: {{ $marketer->commission_rate }}%</p>
+                <p class="text-sm text-gray-400 italic">{{ __('admin.marketers.no_tiers_configured', ['rate' => $marketer->commission_rate]) }}</p>
             @else
                 <div class="space-y-3">
                     @foreach($tiers as $tier)
@@ -190,12 +198,12 @@
                             <div class="w-8 h-8 rounded-full {{ $isCurrent ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-600' }} flex items-center justify-center font-bold text-sm">{{ $tier->tier_order }}</div>
                             <div class="flex-1">
                                 <p class="text-sm font-semibold">
-                                    {{ number_format($tier->min_sales_count) }} – {{ $tier->max_sales_count ? number_format($tier->max_sales_count) : '∞' }} sales
+                                    {{ __('admin.marketers.sales_range', ['min' => number_format($tier->min_sales_count), 'max' => $tier->max_sales_count ? number_format($tier->max_sales_count) : __('admin.marketers.unlimited_sales')]) }}
                                 </p>
-                                <p class="text-xs text-gray-500">Commission: <strong>{{ $tier->commission_rate }}%</strong></p>
+                                <p class="text-xs text-gray-500">{{ __('admin.marketers.commission') }}: <strong>{{ $tier->commission_rate }}%</strong></p>
                             </div>
                             @if($isCurrent)
-                                <span class="badge badge-primary">Current Tier</span>
+                                <span class="badge badge-primary">{{ __('admin.marketers.current_tier') }}</span>
                             @endif
                         </div>
                     @endforeach
@@ -210,10 +218,10 @@
             <table id="marketer-samples-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Vendor</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th>Actions</th>
+                        <th>{{ __('admin.marketers.sample_vendor') }}</th>
+                        <th>{{ __('admin.status') }}</th>
+                        <th>{{ __('admin.marketers.sample_date') }}</th>
+                        <th>{{ __('admin.marketers.sample_actions') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -227,10 +235,10 @@
             <table id="marketer-secret-promos-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Vendor / Product</th>
-                        <th>Total %</th>
-                        <th>Status</th>
-                        <th>Valid Until</th>
+                        <th>{{ __('admin.marketers.vendor') }} / {{ __('admin.marketers.product') }}</th>
+                        <th>{{ __('admin.marketers.total_pct') }}</th>
+                        <th>{{ __('admin.status') }}</th>
+                        <th>{{ __('admin.marketers.valid_until') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -243,6 +251,16 @@
 @endsection
 
 @push('scripts')
+<script>
+    window.TRANSLATIONS = window.TRANSLATIONS || {};
+    Object.assign(window.TRANSLATIONS, {
+        approveMarketerConfirm: @json(__('admin.marketers.approve_campaign_confirm')),
+        approve: @json(__('admin.marketers.approve')),
+        rejectionReasonPrompt: @json(__('admin.marketers.rejection_reason_prompt')),
+        suspendMarketerConfirm: @json(__('admin.marketers.suspend_marketer_confirm_title')),
+        errorGeneric: @json(__('admin.marketers.error_generic')),
+    });
+</script>
 <script type="module">
 $(function () {
     const markId = '{{ $marketer->id }}';
@@ -299,30 +317,30 @@ $(function () {
 
     // ── Approve / Reject / Suspend / Activate ─────────────────────────────────
     $('#btn-approve').on('click', function () {
-        window.confirmDialog({ title: 'Approve marketer?', confirmText: 'Approve', onConfirm: () => {
+        window.confirmDialog({ title: window.TRANSLATIONS.approveMarketerConfirm, confirmText: window.TRANSLATIONS.approve, onConfirm: () => {
             $.post('/marketers/' + markId + '/approve', { _token: tok })
                 .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
-                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
         }});
     });
     $('#btn-reject').on('click', function () {
-        const reason = prompt('Rejection reason:');
+        const reason = prompt(window.TRANSLATIONS.rejectionReasonPrompt);
         if (!reason) return;
         $.post('/marketers/' + markId + '/reject', { _token: tok, reason })
             .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
-            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
     });
     $('#btn-suspend').on('click', function () {
-        window.confirmDialog({ title: 'Suspend marketer?', onConfirm: () => {
+        window.confirmDialog({ title: window.TRANSLATIONS.suspendMarketerConfirm, onConfirm: () => {
             $.post('/marketers/' + markId + '/suspend', { _token: tok })
                 .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
-                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
         }});
     });
     $('#btn-activate').on('click', function () {
         $.post('/marketers/' + markId + '/activate', { _token: tok })
             .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
-            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
     });
 
     // ── Sample datatable actions (delegated) ──────────────────────────────────
@@ -330,13 +348,13 @@ $(function () {
         const id = $(this).data('id');
         $.post('{{ url('marketer-samples') }}/' + id + '/approve', { _token: tok })
             .done(r => { window.Toast.success(r.message); $('#marketer-samples-table').DataTable().ajax.reload(); })
-            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
     });
     $(document).on('click', '.btn-dispatch-sample', function () {
         const id = $(this).data('id');
         $.post('{{ url('marketer-samples') }}/' + id + '/dispatch', { _token: tok })
             .done(r => { window.Toast.success(r.message); $('#marketer-samples-table').DataTable().ajax.reload(); })
-            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Error'));
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
     });
 });
 </script>

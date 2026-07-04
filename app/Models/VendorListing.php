@@ -35,6 +35,8 @@ class VendorListing extends Model
         'rating_avg',
         'approved_by_admin_id',
         'approved_at',
+        'global_system_type',
+        'primary_shipping_method_id',
         'score',
         'price_score',
         'fulfillment_score',
@@ -82,5 +84,10 @@ class VendorListing extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function primaryShippingMethod(): BelongsTo
+    {
+        return $this->belongsTo(ShippingMethod::class, 'primary_shipping_method_id');
     }
 }
