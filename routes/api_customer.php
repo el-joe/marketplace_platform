@@ -21,6 +21,8 @@ use App\Http\Controllers\Customer\NavigationController;
 use App\Http\Controllers\Customer\HomeController;
 use App\Http\Controllers\Customer\PageController;
 use App\Http\Controllers\Customer\AccountController;
+use App\Http\Controllers\Customer\VendorPageController;
+use App\Http\Controllers\Customer\BrandPageController;
 use App\Models\Country;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +54,9 @@ Route::prefix('v1/{country}')
         // GET /browse/{type}/{slug}  — type IN (product, classified, travel)
         Route::get('browse/{type}/{slug}', [BrowseController::class, 'show'])->name('customer.browse.show');
 
+        // GET /travel — all active travel packages, unfiltered (same as browse/travel/all)
+        Route::get('travel', [BrowseController::class, 'travelIndex'])->name('customer.travel.index');
+
         // ── Unified listing detail (public) ───────────────────────────────────
         // GET  /listings/{type}/{slug} — type IN (product, classified, travel)
         //   product:    slug = product slug
@@ -81,11 +86,13 @@ Route::prefix('v1/{country}')
         )->middleware('auth:customer')->name('customer.listings.travel.bookings.contract');
 
         // Legacy alias: GET /categories/{slug} → browse/product/{slug}
-        Route::get('categories/{slug}', fn (Country $country, string $slug) =>
+        Route::get(
+            'categories/{slug}',
+            fn(Country $country, string $slug) =>
             redirect()->route('customer.browse.show', [
                 'country' => $country->site_code,
-                'type'    => 'product',
-                'slug'    => $slug,
+                'type' => 'product',
+                'slug' => $slug,
             ], 301)
         )->name('customer.categories.show.legacy');
 
@@ -96,6 +103,14 @@ Route::prefix('v1/{country}')
 
         // ── Page Renderer (public) ────────────────────────────────────────────
         Route::get('pages/{type}', [PageController::class, 'show'])->name('customer.pages.show');
+
+        // ── Vendor storefront page (public) ───────────────────────────────────
+        Route::get('vendors/{vendor_id}', [VendorPageController::class, 'show'])
+            ->name('customer.vendors.show');
+
+        // ── Brand page (public) ───────────────────────────────────────────────
+        Route::get('brands/{slug}', [BrandPageController::class, 'show'])
+            ->name('customer.brands.show');
 
         // ── Search (public) ───────────────────────────────────────────────────
         Route::prefix('search')->name('customer.search.')->group(function (): void {

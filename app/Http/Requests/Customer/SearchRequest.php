@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Customer;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SearchRequest extends FormRequest
 {
@@ -15,6 +16,7 @@ class SearchRequest extends FormRequest
     {
         return [
             'q'                 => ['required', 'string', 'min:1', 'max:255'],
+            'source_type'       => ['nullable', 'string', Rule::in(['product', 'classified', 'travel', 'all'])],
             'category'          => ['nullable', 'uuid'],
             'brand'             => ['nullable', 'uuid'],
             'price_min'         => ['nullable', 'numeric', 'min:0'],

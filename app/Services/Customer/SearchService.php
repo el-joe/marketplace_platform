@@ -2,14 +2,18 @@
 
 namespace App\Services\Customer;
 
+use App\Models\ClassifiedListing;
 use App\Models\Country;
 use App\Models\Product;
+use App\Models\TravelPackage;
+use App\Models\Vendor;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class SearchService
 {
     public function __construct(
         private readonly ProductQueryService $productQuery,
+        private readonly UnifiedCategoryService $unifiedCategories,
     ) {}
 
     public function search(
@@ -26,7 +30,11 @@ class SearchService
                   ->orWhere('products.name_ar', 'like', "%{$query}%")
                   ->orWhere('products.short_desc_en', 'like', "%{$query}%")
                   ->orWhere('products.model_number', 'like', "%{$query}%");
-            });
+            })
+            ->whereHas('variants.vendorListings', fn ($q) => $q
+                ->where('country_id', $country->id)
+                ->where('status', 'active')
+                ->whereHas('vendor', fn ($q2) => $q2->where('global_status', 'active')));
 
         $builder = $this->productQuery->applyFilters($builder, $filters);
         $builder = $this->productQuery->applySort($builder, $filters['sort'] ?? 'relevance');
@@ -46,6 +54,40 @@ class SearchService
         return $paginator;
     }
 
+    public function searchClassifieds(string $query, array $filters = [], int $perPage = 20): LengthAwarePaginator
+    {
+        return ClassifiedListing::where('status', 'active')
+            ->where(function ($q) use ($query) {
+                $q->where('title_en', 'like', "%{$query}%")
+                  ->orWhere('title_ar', 'like', "%{$query}%")
+                  ->orWhere('description_en', 'like', "%{$query}%");
+            })
+            ->with(['images', 'classifiedCategory', 'city'])
+            ->when(!empty($filters['category']), fn ($q) => $q->where('classified_category_id', $filters['category']))
+            ->when(!empty($filters['price_min']), fn ($q) => $q->where('price_cents', '>=', (int) ($filters['price_min'] * 100)))
+            ->when(!empty($filters['price_max']), fn ($q) => $q->where('price_cents', '<=', (int) ($filters['price_max'] * 100)))
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+    }
+
+    public function searchTravel(string $query, int $perPage = 20): LengthAwarePaginator
+    {
+        return TravelPackage::where('status', 'active')
+            ->where(function ($q) use ($query) {
+                $q->where('title_en', 'like', "%{$query}%")
+                  ->orWhere('title_ar', 'like', "%{$query}%")
+                  ->orWhere('destination_country', 'like', "%{$query}%")
+                  ->orWhere('destination_city', 'like', "%{$query}%");
+            })
+            ->with([
+                'agency:id,name',
+                'categories:id,name_en,name_ar,slug',
+                'media' => fn ($q) => $q->orderBy('position')->limit(1),
+            ])
+            ->orderByDesc('departure_date')
+            ->paginate($perPage);
+    }
+
     public function suggestions(Country $country, string $query): array
     {
         $products = Product::query()
@@ -63,12 +105,34 @@ class SearchService
             ->limit(10)
             ->get();
 
-        return $products->map(fn($p) => [
+        $productSuggestions = $products->map(fn ($p) => [
             'id'   => $p->id,
             'slug' => $p->slug,
             'name' => app()->getLocale() === 'ar' ? $p->name_ar : $p->name_en,
             'type' => 'product',
-        ])->toArray();
+        ]);
+
+        $queries = $productSuggestions->pluck('name')->filter()->unique()->values()->take(5)->all();
+
+        $vendors = Vendor::query()
+            ->where('store_name', 'like', "%{$query}%")
+            ->where('global_status', 'active')
+            ->select('id', 'store_name', 'store_slug', 'store_rating_avg')
+            ->limit(3)
+            ->get()
+            ->map(fn ($vendor) => [
+                'id'         => $vendor->id,
+                'store_name' => $vendor->store_name,
+                'slug'       => $vendor->store_slug,
+                'rating'     => $vendor->store_rating_avg,
+            ]);
+
+        return [
+            'queries'    => $queries,
+            'products'   => $productSuggestions->toArray(),
+            'categories' => $this->unifiedCategories->search($query),
+            'vendors'    => $vendors->toArray(),
+        ];
     }
 
     // Delegates to ProductQueryService so /search and /products share one query implementation.

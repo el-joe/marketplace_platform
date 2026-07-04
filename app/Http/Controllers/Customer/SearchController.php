@@ -4,10 +4,9 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\SearchRequest;
-use App\Http\Resources\Customer\ProductListResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Country;
-use App\Models\Wishlist;
+use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\SearchService;
 use App\Services\Customer\SponsoredProductService;
 use Illuminate\Http\JsonResponse;
@@ -18,13 +17,29 @@ class SearchController extends Controller
     public function __construct(
         private readonly SearchService $search,
         private readonly SponsoredProductService $sponsored,
+        private readonly ListingQueryService $listings,
     ) {}
 
     public function search(SearchRequest $request, Country $country): JsonResponse
     {
-        $data    = $request->validated();
-        $perPage = (int) ($data['per_page'] ?? 20);
-        $page    = (int) ($data['page'] ?? 1);
+        $data       = $request->validated();
+        $perPage    = (int) ($data['per_page'] ?? 20);
+        $page       = (int) ($data['page'] ?? 1);
+        // Absent source_type must preserve pre-existing product-only search behavior;
+        // 'all' only runs when explicitly requested.
+        $sourceType = $data['source_type'] ?? 'product';
+
+        if ($sourceType === 'all') {
+            return $this->searchAll($request, $country, $data);
+        }
+
+        if ($sourceType === 'classified') {
+            return $this->searchClassified($data, $perPage);
+        }
+
+        if ($sourceType === 'travel') {
+            return $this->searchTravel($data, $perPage);
+        }
 
         $paginator = $this->search->search(
             country: $country,
@@ -35,15 +50,26 @@ class SearchController extends Controller
             sessionId: $request->session()->getId() ?? '',
         );
 
-        $wishlistIds = $this->wishlistIds();
+        $paginator->load('images', 'variants');
 
-        $items = ProductListResource::collection($paginator->load('images'))
-            ->map(function (ProductListResource $r) use ($wishlistIds) {
-                $r->resource->is_sponsored  = false;
-                $r->resource->is_wishlisted = in_array($r->resource->id, $wishlistIds);
-                return $r->toArray(request());
-            })
-            ->toArray();
+        $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
+        $buyBox      = $this->listings->getBuyBoxForProducts($paginator->getCollection(), $country);
+
+        $items = [];
+        foreach ($paginator as $product) {
+            $listing = $buyBox[$product->id] ?? null;
+            if (!$listing) {
+                continue;
+            }
+
+            $items[] = $this->listings->toCardShape(
+                listing: $listing,
+                product: $product,
+                country: $country,
+                isWishlisted: in_array($product->id, $wishlistIds),
+                isSponsored: false,
+            );
+        }
 
         $items = $this->sponsored->inject($items, $country, $page, 'search_results', $data['q']);
 
@@ -64,6 +90,123 @@ class SearchController extends Controller
         ]);
     }
 
+    private function searchClassified(array $data, int $perPage): JsonResponse
+    {
+        $paginator = $this->search->searchClassifieds($data['q'], $data, $perPage);
+
+        $items = $paginator->getCollection()
+            ->map(fn ($listing) => $this->listings->toClassifiedCardShape($listing))
+            ->toArray();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'source_type' => 'classified',
+                'items'       => $items,
+                'meta'        => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page'    => $paginator->lastPage(),
+                    'per_page'     => $paginator->perPage(),
+                    'total'        => $paginator->total(),
+                    'query'        => $data['q'],
+                ],
+            ],
+        ]);
+    }
+
+    private function searchTravel(array $data, int $perPage): JsonResponse
+    {
+        $paginator = $this->search->searchTravel($data['q'], $perPage);
+
+        $items = $paginator->getCollection()
+            ->map(fn ($package) => $this->listings->toTravelCardShape($package))
+            ->toArray();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'source_type' => 'travel',
+                'items'       => $items,
+                'meta'        => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page'    => $paginator->lastPage(),
+                    'per_page'     => $paginator->perPage(),
+                    'total'        => $paginator->total(),
+                    'query'        => $data['q'],
+                ],
+            ],
+        ]);
+    }
+
+    private function searchAll(SearchRequest $request, Country $country, array $data): JsonResponse
+    {
+        $query = $data['q'];
+
+        $productPaginator = $this->search->search(
+            country: $country,
+            query: $query,
+            filters: $data,
+            perPage: 4,
+            customerId: auth('customer')->id(),
+            sessionId: $request->session()->getId() ?? '',
+        );
+
+        $productPaginator->load('images', 'variants');
+        $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
+        $buyBox      = $this->listings->getBuyBoxForProducts($productPaginator->getCollection(), $country);
+
+        $productItems = [];
+        foreach ($productPaginator as $product) {
+            $listing = $buyBox[$product->id] ?? null;
+            if (!$listing) {
+                continue;
+            }
+
+            $productItems[] = $this->listings->toCardShape(
+                listing: $listing,
+                product: $product,
+                country: $country,
+                isWishlisted: in_array($product->id, $wishlistIds),
+                isSponsored: false,
+            );
+        }
+
+        $classifiedPaginator = $this->search->searchClassifieds($query, $data, 4);
+        $classifiedItems     = $classifiedPaginator->getCollection()
+            ->map(fn ($listing) => $this->listings->toClassifiedCardShape($listing))
+            ->toArray();
+
+        $travelPaginator = $this->search->searchTravel($query, 4);
+        $travelItems     = $travelPaginator->getCollection()
+            ->map(fn ($package) => $this->listings->toTravelCardShape($package))
+            ->toArray();
+
+        $totalResults = $productPaginator->total() + $classifiedPaginator->total() + $travelPaginator->total();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'source_type' => 'all',
+                'products'    => [
+                    'items' => array_slice($productItems, 0, 4),
+                    'total' => $productPaginator->total(),
+                ],
+                'classifieds' => [
+                    'items' => $classifiedItems,
+                    'total' => $classifiedPaginator->total(),
+                ],
+                'travel' => [
+                    'items' => $travelItems,
+                    'total' => $travelPaginator->total(),
+                ],
+                'meta' => [
+                    'query'         => $query,
+                    'total_results' => $totalResults,
+                ],
+            ],
+        ]);
+    }
+
     public function suggestions(Request $request, Country $country): JsonResponse
     {
         $request->validate(['q' => ['required', 'string', 'min:1', 'max:255']]);
@@ -71,15 +214,5 @@ class SearchController extends Controller
         $results = $this->search->suggestions($country, $request->query('q'));
 
         return ApiResponse::success($results);
-    }
-
-    private function wishlistIds(): array
-    {
-        $customerId = auth('customer')->id();
-        if (!$customerId) {
-            return [];
-        }
-
-        return Wishlist::where('customer_id', $customerId)->pluck('product_id')->toArray();
     }
 }
