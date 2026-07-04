@@ -21,7 +21,6 @@ class HomeService
     ];
 
     public function __construct(
-        private readonly PageRendererService $pageRenderer,
         private readonly NavigationService $navigation,
         private readonly PageBuilderService $pageBuilder,
         private readonly ListingQueryService $listingQuery,
@@ -30,21 +29,17 @@ class HomeService
     public function getHomeData(
         Country $country,
         ?Customer $customer,
-        string $sessionId,
         string $deviceTarget = 'all',
         string $audience = 'guest',
     ): array {
-        $page = $this->pageRenderer->render('home', null, $country, $customer, $sessionId);
-        $nav  = $this->navigation->getTree($country);
+        $nav = $this->navigation->getTree($country);
 
         $wishlistProductIds = $customer
             ? $this->listingQuery->wishlistProductIds($customer->id)
             : [];
 
         return [
-            'page' => $page,
             'nav' => $nav,
-            'flash_sale_banner' => $this->activeFlashSaleBanner($country),
             'page_builder' => $this->pageBuilder->resolve($country, 'home', null, $deviceTarget, $audience),
             'sections' => $this->buildSections($country, $wishlistProductIds),
             'meta' => [

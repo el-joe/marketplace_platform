@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Services\Customer\ListingIdentifierService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,6 +17,9 @@ class CartItemResource extends JsonResource
         return [
             'id'                => $this->id,
             'vendor_listing_id' => $this->vendor_listing_id,
+            'listing_ref'       => $listing ? app(ListingIdentifierService::class)->buildListingRef($listing) : null,
+            'sku'               => $variant?->sku,
+            'vendor_sku'        => $listing?->vendor_sku,
             'quantity'          => $this->quantity,
             'unit_price'        => round($this->unit_price / 100, 2),
             'line_total'        => round(($this->unit_price * $this->quantity) / 100, 2),

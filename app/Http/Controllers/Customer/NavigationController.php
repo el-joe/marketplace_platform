@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Services\Customer\UnifiedCategoryService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class NavigationController extends Controller
 {
@@ -33,8 +34,9 @@ class NavigationController extends Controller
      * GET /api/customer/v1/{country}/nav
      * Unified category nav tree: products → classifieds → travel.
      */
-    public function index(Country $country): JsonResponse
+    public function index(Request $request, $country): JsonResponse
     {
+        $country = $request->attributes->get('country');
         $tree = $this->unifiedCategoryService->getMergedTree($country);
 
         $nav = array_map(function (array $section) {

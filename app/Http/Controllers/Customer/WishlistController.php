@@ -7,6 +7,7 @@ use App\Http\Requests\Customer\WishlistStoreRequest;
 use App\Http\Resources\Customer\WishlistResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Country;
+use App\Models\VendorListing;
 use App\Models\Wishlist;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
@@ -20,7 +21,31 @@ class WishlistController extends Controller
             ->latest('added_at')
             ->paginate(20);
 
+        $items->getCollection()->transform(function (Wishlist $wishlistItem) use ($country) {
+            $wishlistItem->setRelation('bestListing', $this->resolveBestListing($wishlistItem->product_id, $country));
+
+            return $wishlistItem;
+        });
+
         return ApiResponse::paginated($items, WishlistResource::class);
+    }
+
+    private function resolveBestListing(string $productId, Country $country): ?VendorListing
+    {
+        return VendorListing::whereHas(
+            'productVariant',
+            fn ($q) => $q->where('product_id', $productId)
+        )
+            ->where('country_id', $country->id)
+            ->where('status', 'active')
+            ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
+            ->orderBy('price')
+            ->with([
+                'productVariant:id,sku,product_id',
+                'vendor:id,store_name',
+                'primaryShippingMethod',
+            ])
+            ->first();
     }
 
     public function store(WishlistStoreRequest $request, Country $country): JsonResponse

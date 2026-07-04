@@ -60,7 +60,7 @@ class CheckoutController extends Controller
             return ApiResponse::error('Payment failed: ' . $e->getMessage(), [], 422);
         }
 
-        $order->load('subOrders.items');
+        $order->load('subOrders.items.vendorListing');
 
         return ApiResponse::success(new OrderResource($order), 'Order placed successfully', 201);
     }
@@ -69,7 +69,7 @@ class CheckoutController extends Controller
     {
         $customer = auth('customer')->user();
 
-        $order = Order::with(['subOrders.items', 'subOrders.vendor'])
+        $order = Order::with(['subOrders.items.vendorListing', 'subOrders.vendor'])
             ->where('order_number', $orderNumber)
             ->where('customer_id', $customer->id)
             ->firstOrFail();

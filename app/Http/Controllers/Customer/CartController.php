@@ -6,15 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\AddCartItemRequest;
 use App\Http\Requests\Customer\ApplyCouponRequest;
 use App\Http\Requests\Customer\UpdateCartItemRequest;
+use App\Http\Resources\Customer\CartItemResource;
 use App\Http\Resources\Customer\CartResource;
 use App\Http\Responses\ApiResponse;
 use App\Services\Customer\CartService;
+use App\Services\Customer\ListingIdentifierService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
-    public function __construct(private readonly CartService $cartService) {}
+    public function __construct(
+        private readonly CartService $cartService,
+        private readonly ListingIdentifierService $listingIdentifierService,
+    ) {}
 
     public function show(Request $request): JsonResponse
     {
@@ -34,14 +39,19 @@ class CartController extends Controller
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
         try {
-            $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity);
+            $item = $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity);
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
         $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
+        $item->load(['vendorListing.vendor', 'vendorListing.productVariant.product.images']);
 
-        return ApiResponse::success(new CartResource($cart), 'Item added to cart', 201);
+        return ApiResponse::success([
+            'cart'        => new CartResource($cart),
+            'item'        => new CartItemResource($item),
+            'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
+        ], 'Item added to cart', 201);
     }
 
     public function updateItem(UpdateCartItemRequest $request, string $id): JsonResponse
@@ -51,7 +61,7 @@ class CartController extends Controller
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
         try {
-            $this->cartService->updateItem($cart, $id, $request->quantity);
+            $item = $this->cartService->updateItem($cart, $id, $request->quantity);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return ApiResponse::error('Cart item not found.', [], 404);
         } catch (\DomainException $e) {
@@ -59,8 +69,13 @@ class CartController extends Controller
         }
 
         $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
+        $item->load(['vendorListing.vendor', 'vendorListing.productVariant.product.images']);
 
-        return ApiResponse::success(new CartResource($cart), 'Cart item updated');
+        return ApiResponse::success([
+            'cart'        => new CartResource($cart),
+            'item'        => new CartItemResource($item),
+            'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
+        ], 'Cart item updated');
     }
 
     public function removeItem(Request $request, string $id): JsonResponse

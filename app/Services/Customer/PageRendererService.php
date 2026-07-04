@@ -40,7 +40,7 @@ class PageRendererService
             ->orderByRaw('CASE WHEN country_id IS NOT NULL THEN 0 ELSE 1 END')
             ->first();
 
-        if (! $page) {
+        if (!$page) {
             return [];
         }
 
@@ -75,7 +75,7 @@ class PageRendererService
             $variantSuffix ? md5($variantSuffix) : 'novariants',
         ]));
 
-        return Cache::tags(['pages'])->remember($cacheKey, 300, function () use ($page, $country, $chosenVariants) {
+        return Cache::remember($cacheKey, 300, function () use ($page, $country, $chosenVariants) {
             return $this->assemble($page, $country, $chosenVariants);
         });
     }
@@ -108,9 +108,9 @@ class PageRendererService
 
             if ($hydrated->isNotEmpty()) {
                 $sectionsData[] = [
-                    'id'       => $section->id,
+                    'id' => $section->id,
                     'position' => $section->position,
-                    'blocks'   => $hydrated->all(),
+                    'blocks' => $hydrated->all(),
                 ];
             }
         }
@@ -121,17 +121,17 @@ class PageRendererService
             $hydrated = $this->hydrateBlocks($unsectioned, $country);
             if ($hydrated->isNotEmpty()) {
                 $sectionsData[] = [
-                    'id'       => null,
+                    'id' => null,
                     'position' => 0,
-                    'blocks'   => $hydrated->all(),
+                    'blocks' => $hydrated->all(),
                 ];
             }
         }
 
         return [
             'page' => [
-                'type'    => $page->page_type,
-                'slug'    => $page->slug,
+                'type' => $page->page_type,
+                'slug' => $page->slug,
                 'version' => $page->version,
             ],
             'sections' => $sectionsData,
@@ -145,7 +145,7 @@ class PageRendererService
                 return true;
             }
             // Skip blocks whose test is not in our running set.
-            if (! isset($chosenVariants[$block->ab_test_id])) {
+            if (!isset($chosenVariants[$block->ab_test_id])) {
                 return false;
             }
             return $block->ab_variant === $chosenVariants[$block->ab_test_id];
@@ -165,13 +165,13 @@ class PageRendererService
     public function hydrateBlock(PageBlock $block, Country $country): ?array
     {
         $data = match ($block->block_type) {
-            'hero_slider'    => $this->hydrateHeroSlider($block),
-            'ad_grid'        => $this->hydrateAdGrid($block),
-            'product_rail'   => $this->hydrateProductRail($block, $country),
-            'seller_rail'    => $this->hydrateSellerRail($block, $country),
+            'hero_slider' => $this->hydrateHeroSlider($block),
+            'ad_grid' => $this->hydrateAdGrid($block),
+            'product_rail' => $this->hydrateProductRail($block, $country),
+            'seller_rail' => $this->hydrateSellerRail($block, $country),
             'category_tiles' => $this->hydrateCategoryTiles($block),
-            'paid_banner'    => $this->hydratePaidBanner($block),
-            default          => $block->config ?? [],
+            'paid_banner' => $this->hydratePaidBanner($block),
+            default => $block->config ?? [],
         };
 
         if ($data === null) {
@@ -179,10 +179,10 @@ class PageRendererService
         }
 
         return [
-            'id'       => $block->id,
-            'type'     => $block->block_type,
+            'id' => $block->id,
+            'type' => $block->block_type,
             'position' => $block->position,
-            'data'     => $data,
+            'data' => $data,
         ];
     }
 
@@ -208,22 +208,22 @@ class PageRendererService
         return [
             'config' => $block->config ?? [],
             'slides' => $slides->map(fn($s) => [
-                'id'               => $s->id,
-                'position'         => $s->position,
-                'desktop_url'      => $s->desktop_url,
-                'mobile_url'       => $s->mobile_url,
-                'title_en'         => $s->title_en,
-                'title_ar'         => $s->title_ar,
-                'subtitle_en'      => $s->subtitle_en,
-                'subtitle_ar'      => $s->subtitle_ar,
-                'cta_label_en'     => $s->cta_label_en,
-                'cta_label_ar'     => $s->cta_label_ar,
-                'cta_url'          => $s->cta_url,
+                'id' => $s->id,
+                'position' => $s->position,
+                'desktop_url' => $s->desktop_url,
+                'mobile_url' => $s->mobile_url,
+                'title_en' => $s->title_en,
+                'title_ar' => $s->title_ar,
+                'subtitle_en' => $s->subtitle_en,
+                'subtitle_ar' => $s->subtitle_ar,
+                'cta_label_en' => $s->cta_label_en,
+                'cta_label_ar' => $s->cta_label_ar,
+                'cta_url' => $s->cta_url,
                 'cta_open_new_tab' => $s->cta_open_new_tab,
-                'text_color'       => $s->text_color,
-                'text_position'    => $s->text_position,
-                'overlay_opacity'  => (float) $s->overlay_opacity,
-                'link_type'        => $s->link_type,
+                'text_color' => $s->text_color,
+                'text_position' => $s->text_position,
+                'overlay_opacity' => (float) $s->overlay_opacity,
+                'link_type' => $s->link_type,
                 'link_reference_id' => $s->link_reference_id,
             ])->all(),
         ];
@@ -238,18 +238,18 @@ class PageRendererService
 
         return [
             'config' => $block->config ?? [],
-            'items'  => $items->map(fn($i) => [
-                'id'                => $i->id,
-                'position'          => $i->position,
-                'url'               => $i->file_url,
-                'title_en'          => $i->title_en,
-                'title_ar'          => $i->title_ar,
-                'link_url'          => $i->link_url,
+            'items' => $items->map(fn($i) => [
+                'id' => $i->id,
+                'position' => $i->position,
+                'url' => $i->file_url,
+                'title_en' => $i->title_en,
+                'title_ar' => $i->title_ar,
+                'link_url' => $i->link_url,
                 'link_open_new_tab' => $i->link_open_new_tab,
-                'alt_text_en'       => $i->alt_text_en,
-                'alt_text_ar'       => $i->alt_text_ar,
+                'alt_text_en' => $i->alt_text_en,
+                'alt_text_ar' => $i->alt_text_ar,
                 'show_title_overlay' => $i->show_title_overlay,
-                'aspect_ratio'      => $i->aspect_ratio,
+                'aspect_ratio' => $i->aspect_ratio,
             ])->all(),
         ];
     }
@@ -278,13 +278,13 @@ class PageRendererService
         $products = $blockProducts
             ->filter(fn($bp) => $bp->productVariant
                 && $bp->productVariant->product_id
-                && ! isset($unavailableIds[$bp->productVariant->product_id]))
+                && !isset($unavailableIds[$bp->productVariant->product_id]))
             ->map(fn($bp) => $bp->productVariant->product)
             ->filter()
             ->values();
 
         return [
-            'config'   => $block->config ?? [],
+            'config' => $block->config ?? [],
             'products' => $products->map(fn($p) => (new ProductListResource($p))->toArray(request()))->all(),
         ];
     }
@@ -298,7 +298,7 @@ class PageRendererService
 
         $sellers = $blockSellers
             ->filter(function ($bs) use ($country) {
-                if (! $bs->seller) {
+                if (!$bs->seller) {
                     return false;
                 }
                 return VendorListing::where('vendor_id', $bs->seller->id)
@@ -307,17 +307,17 @@ class PageRendererService
                     ->exists();
             })
             ->map(fn($bs) => [
-                'id'         => $bs->seller->id,
+                'id' => $bs->seller->id,
                 'store_name' => $bs->seller->store_name,
                 'store_slug' => $bs->seller->store_slug,
-                'avatar'     => $bs->seller->avatar,
+                'avatar' => $bs->seller->avatar,
                 'rating_avg' => (float) $bs->seller->store_rating_avg,
                 'rating_count' => (int) $bs->seller->store_rating_count,
             ])
             ->values();
 
         return [
-            'config'  => $block->config ?? [],
+            'config' => $block->config ?? [],
             'sellers' => $sellers->all(),
         ];
     }
@@ -330,14 +330,14 @@ class PageRendererService
             ->get();
 
         return [
-            'config'     => $block->config ?? [],
+            'config' => $block->config ?? [],
             'categories' => $blockCategories
                 ->filter(fn($bc) => $bc->category !== null)
                 ->map(fn($bc) => [
-                    'id'      => $bc->category->id,
+                    'id' => $bc->category->id,
                     'name_en' => $bc->category->name_en,
                     'name_ar' => $bc->category->name_ar,
-                    'slug'    => $bc->category->slug,
+                    'slug' => $bc->category->slug,
                 ])
                 ->values()
                 ->all(),
@@ -354,14 +354,14 @@ class PageRendererService
             ->where('booked_until', '>=', $today)
             ->first();
 
-        if (! $booking) {
+        if (!$booking) {
             return null;
         }
 
         return [
             'image_url' => $booking->image_url,
-            'link_url'  => $booking->link_url,
-            'alt_text'  => $booking->alt_text,
+            'link_url' => $booking->link_url,
+            'alt_text' => $booking->alt_text,
         ];
     }
 }

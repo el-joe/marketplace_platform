@@ -26,20 +26,23 @@ class ProductController extends Controller
         private readonly BuyBoxService $buyBox,
         private readonly ProductViewService $viewService,
         private readonly SponsoredProductService $sponsored,
-    ) {}
+    ) {
+    }
 
-    public function index(ProductListRequest $request, Country $country): JsonResponse
+    public function index(ProductListRequest $request, $country): JsonResponse
     {
+        $country = $request->attributes->get('country');
         $filters = $request->validated();
         $perPage = (int) ($filters['per_page'] ?? 20);
-        $page    = (int) ($filters['page'] ?? 1);
+        $page = (int) ($filters['page'] ?? 1);
 
         $builder = VendorListing::where('country_id', $country->id)
             ->where('status', 'active')
-            ->whereHas('productVariant.product', fn ($q) => $q->where('status', 'active'))
-            ->whereHas('vendor', fn ($q) => $q->where('global_status', 'active'))
+            ->whereHas('productVariant.product', fn($q) => $q->where('status', 'active'))
+            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'))
             ->with([
                 'vendor:id,store_name,store_rating_avg',
+                'productVariant:id,sku,product_id',
                 'productVariant.product.images',
                 'productVariant.product.category:id,name_en,name_ar,slug',
                 'primaryShippingMethod:id,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
@@ -71,14 +74,14 @@ class ProductController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => [
-                'items'  => $items,
+            'data' => [
+                'items' => $items,
                 'facets' => $facets,
-                'meta'   => [
+                'meta' => [
                     'current_page' => $paginator->currentPage(),
-                    'last_page'    => $paginator->lastPage(),
-                    'per_page'     => $paginator->perPage(),
-                    'total'        => $paginator->total(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
                 ],
             ],
         ]);
@@ -88,9 +91,11 @@ class ProductController extends Controller
     {
         $product = Product::where('slug', $slug)
             ->where('status', 'active')
-            ->whereHas('countrySettings', fn($q) => $q
-                ->where('country_id', $country->id)
-                ->where('is_available', true)
+            ->whereHas(
+                'countrySettings',
+                fn($q) => $q
+                    ->where('country_id', $country->id)
+                    ->where('is_available', true)
             )
             ->with([
                 'brand',
@@ -143,19 +148,23 @@ class ProductController extends Controller
         $query = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', 'active')
-            ->whereHas('countrySettings', fn($q) => $q
-                ->where('country_id', $country->id)
-                ->where('is_available', true)
+            ->whereHas(
+                'countrySettings',
+                fn($q) => $q
+                    ->where('country_id', $country->id)
+                    ->where('is_available', true)
             )
             ->with('images');
 
         if ($buyBoxPrice) {
-            $low  = (int) ($buyBoxPrice * 0.7);
+            $low = (int) ($buyBoxPrice * 0.7);
             $high = (int) ($buyBoxPrice * 1.3);
-            $query->whereHas('variants.vendorListings', fn($q) => $q
-                ->where('country_id', $country->id)
-                ->where('status', 'active')
-                ->whereBetween('price', [$low, $high])
+            $query->whereHas(
+                'variants.vendorListings',
+                fn($q) => $q
+                    ->where('country_id', $country->id)
+                    ->where('status', 'active')
+                    ->whereBetween('price', [$low, $high])
             );
         }
 

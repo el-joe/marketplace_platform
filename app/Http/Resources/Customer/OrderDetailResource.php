@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Services\Customer\ListingIdentifierService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -46,6 +47,10 @@ class OrderDetailResource extends JsonResource
                     'items'                  => $so->items->map(fn ($item) => [
                         'id'               => $item->id,
                         'sku'              => $item->sku,
+                        'listing_ref'      => $item->vendorListing
+                            ? app(ListingIdentifierService::class)->buildListingRef($item->vendorListing)
+                            : null,
+                        'vendor_sku'       => $item->vendorListing?->vendor_sku,
                         'product_snapshot' => $item->product_snapshot,
                         'quantity'         => $item->quantity,
                         'unit_price'       => $item->unit_price / 100,

@@ -12,8 +12,9 @@ class NavigationService
 {
     /**
      * Unified nav tree merging all 3 category verticals.
-     * Cached 10 min per country, tagged 'nav' so any vertical's admin
-     * create/update/delete can flush it via Cache::tags(['nav'])->flush().
+     * Cached 10 min per country. The 'database' cache store doesn't support
+     * tagging, so this uses a plain key; call self::forgetTree() (or let the
+     * 10 min TTL expire) after category create/update/delete.
      *
      * Order: products → classifieds → travel (products are the primary business).
      * // VERIFY: confirm this ordering with the nav UI design before shipping.
@@ -29,14 +30,18 @@ class NavigationService
      */
     public function getTree(Country $country): array
     {
-        return Cache::tags(['nav'])
-            ->remember("nav_tree:{$country->id}", 600, function () {
-                return array_merge(
-                    $this->productNodes(),
-                    $this->classifiedNodes(),
-                    $this->travelNodes(),
-                );
-            });
+        return Cache::remember("nav_tree:{$country->id}", 600, function () {
+            return array_merge(
+                $this->productNodes(),
+                $this->classifiedNodes(),
+                $this->travelNodes(),
+            );
+        });
+    }
+
+    public function forgetTree(Country $country): void
+    {
+        Cache::forget("nav_tree:{$country->id}");
     }
 
     private function productNodes(): array
