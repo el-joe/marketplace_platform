@@ -98,6 +98,7 @@ return [
         'order_updated' => 'تم تحديث الطلب بنجاح',
         'order_shipped' => 'تم شحن الطلب بنجاح',
         'order_cancelled' => 'تم إلغاء الطلب بنجاح',
+        'page_title' => 'الطلبات',
     ],
 
     'listings' => [

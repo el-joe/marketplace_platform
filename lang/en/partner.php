@@ -110,6 +110,7 @@ return [
         'order_updated' => 'Order updated successfully',
         'order_shipped' => 'Order shipped successfully',
         'order_cancelled' => 'Order cancelled successfully',
+        'page_title' => 'Orders',
     ],
 
     'listings' => [
