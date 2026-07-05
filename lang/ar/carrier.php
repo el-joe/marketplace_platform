@@ -35,6 +35,8 @@ return [
         'supervisors'   => 'المشرفون',
         'unassigned'    => 'غير معيّنة',
         'logout'        => 'خروج',
+        'lang_en'       => 'English',
+        'lang_ar'       => 'العربية',
     ],
 
     'common' => [

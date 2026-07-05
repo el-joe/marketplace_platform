@@ -12,6 +12,7 @@
 
     {{-- Top Nav --}}
     <nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <style>[x-cloak] { display: none !important; }</style>
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <span class="bg-indigo-600 text-white font-black text-lg px-2.5 py-1 rounded">🚚</span>
@@ -21,7 +22,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-6 text-sm font-medium">
+            <div class="flex items-center gap-4 text-sm font-medium">
                 <x-notification-bell guard="shipping_supervisor" />
                 <a href="{{ route('carrier.dashboard') }}"
                    class="text-gray-600 hover:text-indigo-600 transition {{ request()->routeIs('carrier.dashboard') ? 'text-indigo-600 font-bold' : '' }}">
@@ -47,6 +48,59 @@
                     {{ __('carrier.nav.supervisors') }}
                 </a>
                 @endif
+
+                {{-- Language switcher (AR / EN) --}}
+                <div class="relative" x-data="{ open: false }">
+                    <button type="button" @click="open = !open"
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium
+                               text-gray-700 hover:bg-gray-100 border border-gray-200 transition-colors">
+                        {{-- Globe icon --}}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10
+                                   5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                        </svg>
+                        <span>{{ strtoupper(app()->getLocale()) }}</span>
+                        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="open" @click.outside="open = false" x-cloak
+                         class="absolute end-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                        {{-- English --}}
+                        <form method="POST" action="{{ route('carrier.locale.switch') }}">
+                            @csrf
+                            <input type="hidden" name="locale" value="en">
+                            <button type="submit"
+                                class="w-full text-start px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                                       flex items-center justify-between">
+                                <span>{{ __('carrier.nav.lang_en') }}</span>
+                                @if(app()->getLocale() === 'en')
+                                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                @endif
+                            </button>
+                        </form>
+                        {{-- Arabic --}}
+                        <form method="POST" action="{{ route('carrier.locale.switch') }}">
+                            @csrf
+                            <input type="hidden" name="locale" value="ar">
+                            <button type="submit"
+                                class="w-full text-start px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                                       flex items-center justify-between">
+                                <span>{{ __('carrier.nav.lang_ar') }}</span>
+                                @if(app()->getLocale() === 'ar')
+                                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                @endif
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
                 <form method="POST" action="{{ route('carrier.logout') }}" class="inline">
                     @csrf
                     <button type="submit" class="text-red-500 hover:text-red-700 transition font-medium">{{ __('carrier.nav.logout') }}</button>

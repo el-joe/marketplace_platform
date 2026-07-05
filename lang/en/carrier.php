@@ -35,6 +35,8 @@ return [
         'supervisors'   => 'Supervisors',
         'unassigned'    => 'Unassigned',
         'logout'        => 'Logout',
+        'lang_en'       => 'English',
+        'lang_ar'       => 'العربية',
     ],
 
     'common' => [
