@@ -12,7 +12,7 @@
 {{-- Contract File --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
     <div class="flex items-center gap-2">
-        <h3 class="font-bold text-gray-800">عقد الباقة</h3>
+        <h3 class="font-bold text-gray-800">{{ __('travel.packages.package_contract') }}</h3>
         <span class="text-red-500 text-sm font-medium">*</span>
     </div>
 
@@ -22,41 +22,41 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
         </svg>
         <div class="flex-1 min-w-0">
-            <p class="text-gray-700">العقد الحالي: <span class="font-medium">{{ $pkg->contract_file_original_name }}</span></p>
+            <p class="text-gray-700">{{ __('travel.packages.current_contract') }} <span class="font-medium">{{ $pkg->contract_file_original_name }}</span></p>
             @if($pkg->contract_uploaded_at)
-            <p class="text-xs text-gray-400 mt-0.5">رُفع في {{ $pkg->contract_uploaded_at->format('d M Y H:i') }}</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('travel.packages.uploaded_at') }}{{ $pkg->contract_uploaded_at->format('d M Y H:i') }}</p>
             @endif
         </div>
         <a href="{{ route('travel-agency.packages.contract.download', $pkg) }}"
-           class="text-blue-600 hover:text-blue-800 font-medium shrink-0">عرض</a>
+           class="text-blue-600 hover:text-blue-800 font-medium shrink-0">{{ __('travel.packages.view') }}</a>
     </div>
-    <p class="text-xs text-gray-400">ارفع ملفاً جديداً فقط إذا كنت تريد استبدال العقد الحالي.</p>
+    <p class="text-xs text-gray-400">{{ __('travel.packages.upload_new_contract') }}</p>
     @endif
 
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-            Package Contract (PDF){{ $pkg?->contract_file_path ? '' : ' *' }}
+            {{ __('travel.packages.package_contract_pdf') }}{{ $pkg?->contract_file_path ? '' : ' *' }}
         </label>
         <input type="file" name="contract_file" accept="application/pdf"
                id="contract-file-input"
                {{ !$pkg?->contract_file_path ? 'required' : '' }}
                class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
-        <p class="mt-1 text-xs text-gray-400">PDF فقط — الحد الأقصى 10MB</p>
+        <p class="mt-1 text-xs text-gray-400">{{ __('travel.packages.pdf_only') }}</p>
         @error('contract_file') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
     </div>
 </div>
 
 {{-- Title (bilingual) --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-    <h3 class="font-bold text-gray-800">عنوان الباقة</h3>
+    <h3 class="font-bold text-gray-800">{{ __('travel.packages.package_title') }}</h3>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">العنوان بالعربية *</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.title_ar') }} *</label>
         <input type="text" name="title_ar" value="{{ old('title_ar', $pkg?->title_ar) }}" required
                class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
         @error('title_ar') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Title in English *</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.title_en') }} *</label>
         <input type="text" name="title_en" value="{{ old('title_en', $pkg?->title_en) }}" required dir="ltr"
                class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
         @error('title_en') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -65,13 +65,13 @@
 
 {{-- Destination + Dates --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-    <h3 class="font-bold text-gray-800">تفاصيل الرحلة</h3>
+    <h3 class="font-bold text-gray-800">{{ __('travel.packages.trip_details') }}</h3>
     <div class="grid grid-cols-2 gap-4">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">الدولة المقصودة *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.destination_travel_country') }} *</label>
             <select name="destination_travel_country_id" id="travel-country-select" required
                     class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
-                <option value="">— اختر الدولة —</option>
+                <option value="">— {{ __('travel.packages.destination_travel_country') }} —</option>
                 @foreach($travelCountries as $c)
                     <option value="{{ $c->id }}"
                         {{ old('destination_travel_country_id', $pkg?->destination_travel_country_id) == $c->id ? 'selected' : '' }}>
@@ -82,31 +82,31 @@
             @error('destination_travel_country_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.travel_city') }} *</label>
             <select name="destination_travel_city_id" id="travel-city-select"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 disabled:bg-gray-100 disabled:text-gray-400"
                     {{ old('destination_travel_country_id', $pkg?->destination_travel_country_id) ? '' : 'disabled' }}>
-                <option value="">— اختر الدولة أولاً —</option>
+                <option value="">{{ __('travel.packages.travel_city_placeholder') }}</option>
             </select>
             @error('destination_travel_city_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ المغادرة *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.departure_date') }} *</label>
             <input type="date" name="departure_date" value="{{ old('departure_date', $pkg?->departure_date?->toDateString()) }}" required
                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">تاريخ العودة *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.return_date') }} *</label>
             <input type="date" name="return_date" value="{{ old('return_date', $pkg?->return_date?->toDateString()) }}" required
                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">عدد الأيام *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.duration_days') }} *</label>
             <input type="number" name="duration_days" value="{{ old('duration_days', $pkg?->duration_days) }}" min="1" required
                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">عدد الليالي *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.duration_nights') }} *</label>
             <input type="number" name="duration_nights" value="{{ old('duration_nights', $pkg?->duration_nights) }}" min="0" required
                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
         </div>
@@ -115,20 +115,20 @@
 
 {{-- Pricing + Seats --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-    <h3 class="font-bold text-gray-800">السعر والمقاعد</h3>
+    <h3 class="font-bold text-gray-800">{{ __('travel.packages.pricing_seats') }}</h3>
     <div class="grid grid-cols-3 gap-4">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">السعر (فلس/هللة) *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.price_cents') }} *</label>
             <input type="number" name="price_cents" value="{{ old('price_cents', $pkg?->price_cents) }}" min="1" required
                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
                    placeholder="e.g. 250000 = 2500.00">
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">العملة *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.currency') }} *</label>
             @php $selectedCurrency = old('currency', $pkg?->currency ?? auth()->guard('travel_agency')->user()?->country?->currency_code ?? ''); @endphp
             <select name="currency" required
                     class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
-                <option value="">— اختر العملة —</option>
+                <option value="">— {{ __('travel.packages.currency_placeholder') }} —</option>
                 @foreach($currencies as $cur)
                     <option value="{{ $cur->code }}" {{ $selectedCurrency === $cur->code ? 'selected' : '' }}>
                         {{ $cur->code }} — {{ $cur->name }} ({{ $cur->symbol }})
@@ -138,20 +138,20 @@
             @error('currency') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">عدد المقاعد المتاحة</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.available_seats_no') }}</label>
             <input type="number" name="available_seats" value="{{ old('available_seats', $pkg?->available_seats) }}" min="1"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
-                   placeholder="اتركه فارغاً لعدم التحديد">
+                   placeholder="{{ __('travel.packages.available_seats_no_placeholder') }}">
         </div>
     </div>
 </div>
 
 {{-- Inclusions --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-    <h3 class="font-bold text-gray-800">ما يشمله السعر</h3>
-    <p class="text-xs text-gray-500">حدد ما يشمله السعر</p>
+    <h3 class="font-bold text-gray-800">{{ __('travel.packages.inclusions') }}</h3>
+    <p class="text-xs text-gray-500">{{ __('travel.packages.inclusions_description') }}</p>
     @php
-    $inclusionOptions = ['flights' => 'تذاكر طيران', 'hotel' => 'إقامة فندقية', 'meals' => 'وجبات', 'tours' => 'جولات سياحية', 'visa' => 'تأشيرة', 'insurance' => 'تأمين سفر', 'transfers' => 'مواصلات'];
+    $inclusionOptions = ['flights' => __('travel.packages.flights'), 'hotel' => __('travel.packages.hotel'), 'meals' => __('travel.packages.meals'), 'tours' => __('travel.packages.tours'), 'visa' => __('travel.packages.visa'), 'insurance' => __('travel.packages.insurance'), 'transfers' => __('travel.packages.transfers')];
     $selected = old('inclusions', $pkg?->inclusions ?? []);
     @endphp
     <div class="grid grid-cols-3 gap-3">
@@ -168,14 +168,14 @@
 
 {{-- Descriptions --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-    <h3 class="font-bold text-gray-800">وصف الباقة</h3>
+    <h3 class="font-bold text-gray-800">{{ __('travel.packages.description') }}</h3>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">الوصف بالعربية</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.description_ar') }}</label>
         <textarea name="description_ar" rows="4"
                   class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">{{ old('description_ar', $pkg?->description_ar) }}</textarea>
     </div>
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Description in English</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.description_en') }}</label>
         <textarea name="description_en" rows="4" dir="ltr"
                   class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">{{ old('description_en', $pkg?->description_en) }}</textarea>
     </div>
@@ -183,7 +183,7 @@
 
 {{-- Media Upload --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-    <h3 class="font-bold text-gray-800">الصور والفيديو</h3>
+    <h3 class="font-bold text-gray-800">{{ __('travel.packages.media') }}</h3>
 
     @if($pkg && $pkg->media->count())
     <div class="grid grid-cols-4 gap-3 mb-4">
@@ -205,10 +205,10 @@
     @endif
 
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">رفع ملفات (صور / فيديو) — بحد أقصى 10 ملفات</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.file_max_upload_title') }}</label>
         <input type="file" name="media[]" multiple accept="image/*,video/mp4,video/quicktime"
                class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
-        <p class="mt-1 text-xs text-gray-400">أنواع مقبولة: JPG, PNG, WEBP, MP4, MOV — الحد الأقصى 50MB لكل ملف</p>
+        <p class="mt-1 text-xs text-gray-400">{{ __('travel.packages.file_max_upload_subtitle') }}</p>
     </div>
 </div>
 
