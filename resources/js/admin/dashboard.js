@@ -138,9 +138,10 @@ function renderChange(selector, pct) {
         ? '<svg class="inline w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>'
         : '<svg class="inline w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"/></svg>';
     const sign = isUp ? '+' : '';
+    const vsLastPeriod = window.TRANSLATIONS?.vsLastPeriod || 'vs last period';
     $(selector).html(
         `<span class="${color} font-semibold">${arrow} ${sign}${pct.toFixed(1)}%</span>
-         <span class="text-gray-400 font-normal ml-1">vs last period</span>`
+         <span class="text-gray-400 font-normal ml-1">${vsLastPeriod}</span>`
     );
 }
 
@@ -168,7 +169,7 @@ function loadRevenueChart(days, countryId = '') {
                         labels: d.labels,
                         datasets: [
                             {
-                                label: 'GMV',
+                                label: window.TRANSLATIONS?.gmv || 'GMV',
                                 data: d.gmv,
                                 borderColor: '#0284c7',
                                 backgroundColor: 'rgba(2,132,199,0.08)',
@@ -178,7 +179,7 @@ function loadRevenueChart(days, countryId = '') {
                                 pointHoverRadius: 5,
                             },
                             {
-                                label: 'Commission',
+                                label: window.TRANSLATIONS?.commission || 'Commission',
                                 data: d.commission,
                                 borderColor: '#16a34a',
                                 backgroundColor: 'transparent',
@@ -303,15 +304,16 @@ function loadRecentOrders(countryId = '') {
                     <td class="px-5 py-3 font-medium text-gray-900 whitespace-nowrap">${escapeHtml(order.total)}</td>
                     <td class="px-5 py-3 whitespace-nowrap">
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}">
-                            ${escapeHtml(order.status)}
+                            ${escapeHtml(order.status_label || order.status)}
                         </span>
                     </td>
                     <td class="px-5 py-3 text-gray-500 text-xs whitespace-nowrap">${escapeHtml(order.created_at)}</td>
                 </tr>`;
             }).join('');
 
+            const noOrdersYet = window.TRANSLATIONS?.noOrdersYet || 'No orders yet';
             $('#recent-orders-tbody').html(
-                rows || '<tr><td colspan="5" class="px-5 py-8 text-center text-gray-400 text-sm">No orders yet</td></tr>'
+                rows || `<tr><td colspan="5" class="px-5 py-8 text-center text-gray-400 text-sm">${noOrdersYet}</td></tr>`
             );
         },
     });
@@ -334,8 +336,9 @@ function loadTopSellers() {
                 </tr>`
             ).join('');
 
+            const noSellersData = window.TRANSLATIONS?.noSellersData || 'No data yet';
             $('#top-sellers-tbody').html(
-                rows || '<tr><td colspan="4" class="px-5 py-8 text-center text-gray-400 text-sm">No data yet</td></tr>'
+                rows || `<tr><td colspan="4" class="px-5 py-8 text-center text-gray-400 text-sm">${noSellersData}</td></tr>`
             );
         },
     });
@@ -391,8 +394,9 @@ function loadLowStock() {
                 </tr>`;
             }).join('');
 
+            const noLowStockItems = window.TRANSLATIONS?.noLowStockItems || 'No low-stock items';
             $('#low-stock-tbody').html(
-                rows || '<tr><td colspan="3" class="px-5 py-8 text-center text-gray-400 text-sm">No low-stock items</td></tr>'
+                rows || `<tr><td colspan="3" class="px-5 py-8 text-center text-gray-400 text-sm">${noLowStockItems}</td></tr>`
             );
         },
     });

@@ -419,6 +419,21 @@ return [
         'last_30_days_gmv'      => 'Last 30 days by GMV',
         'view_all_products'     => 'View all',
         'low_stock_subtitle'    => 'Products with ≤ 5 units remaining',
+        'guest'                 => 'Guest',
+        'no_sellers_data'       => 'No data yet',
+        'no_low_stock_items'    => 'No low-stock items',
+        'no_recent_orders'      => 'No orders yet',
+        'range_7d'              => '7D',
+        'range_30d'             => '30D',
+        'range_90d'             => '90D',
+        'order_status_groups'   => [
+            'pending'    => 'Pending',
+            'processing' => 'Processing',
+            'shipped'    => 'Shipped',
+            'delivered'  => 'Delivered',
+            'cancelled'  => 'Cancelled',
+            'refunded'   => 'Refunded',
+        ],
     ],
 
     // ─── Orders ──────────────────────────────────────────────────────────────

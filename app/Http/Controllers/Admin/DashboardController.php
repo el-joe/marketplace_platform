@@ -29,7 +29,7 @@ class DashboardController extends Controller
 
         return view('admin.dashboard.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard'],
+                ['label' => __('admin.nav.dashboard')],
             ],
             'countries' => $countries,
             'defaultCountryId' => $defaultCountryId,
@@ -179,21 +179,21 @@ class DashboardController extends Controller
 
         // Maps the 6 UI labels to the actual orders.status enum values
         $statusGroups = [
-            'Pending'    => ['placed'],
-            'Processing' => ['confirmed', 'partially_shipped'],
-            'Shipped'    => ['shipped', 'partially_delivered'],
-            'Delivered'  => ['delivered', 'completed'],
-            'Cancelled'  => ['cancelled'],
-            'Refunded'   => ['refunded'],
+            'pending'    => ['placed'],
+            'processing' => ['confirmed', 'partially_shipped'],
+            'shipped'    => ['shipped', 'partially_delivered'],
+            'delivered'  => ['delivered', 'completed'],
+            'cancelled'  => ['cancelled'],
+            'refunded'   => ['refunded'],
         ];
 
         $colors = [
-            'Pending'    => '#f59e0b',
-            'Processing' => '#3b82f6',
-            'Shipped'    => '#8b5cf6',
-            'Delivered'  => '#22c55e',
-            'Cancelled'  => '#ef4444',
-            'Refunded'   => '#6b7280',
+            'pending'    => '#f59e0b',
+            'processing' => '#3b82f6',
+            'shipped'    => '#8b5cf6',
+            'delivered'  => '#22c55e',
+            'cancelled'  => '#ef4444',
+            'refunded'   => '#6b7280',
         ];
 
         $base = Order::query()
@@ -204,11 +204,11 @@ class DashboardController extends Controller
 
         $labels = $values = $colorList = [];
 
-        foreach ($statusGroups as $label => $statuses) {
+        foreach ($statusGroups as $key => $statuses) {
             $count = (int) (clone $base)->whereIn('status', $statuses)->count();
-            $labels[] = $label;
+            $labels[] = __("admin.dashboard.order_status_groups.{$key}");
             $values[] = $count;
-            $colorList[] = $colors[$label];
+            $colorList[] = $colors[$key];
         }
 
         return response()->json(['data' => [
@@ -236,9 +236,10 @@ class DashboardController extends Controller
             ->map(fn($order) => [
                 'id' => $order->id,
                 'order_number' => $order->order_number ?? '#—',
-                'customer_name' => $order->customer?->name ?? 'Guest',
+                'customer_name' => $order->customer?->name ?? __('admin.dashboard.guest'),
                 'total' => number_format($order->total / 100, 2) . ' ' . ($order->currency ?? ''),
                 'status' => $order->status,
+                'status_label' => __("common.order_status.{$order->status}"),
                 'created_at' => Carbon::parse($order->placed_at)->diffForHumans(),
             ]);
 

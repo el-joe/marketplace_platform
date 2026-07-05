@@ -6,6 +6,20 @@
     @vite(['resources/js/admin/dashboard.js'])
 @endpush
 
+@push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            gmv: @json(__('admin.dashboard.gmv')),
+            commission: @json(__('admin.commission')),
+            vsLastPeriod: @json(__('admin.dashboard.vs_last_period')),
+            noOrdersYet: @json(__('admin.dashboard.no_recent_orders')),
+            noSellersData: @json(__('admin.dashboard.no_sellers_data')),
+            noLowStockItems: @json(__('admin.dashboard.no_low_stock_items')),
+        });
+    </script>
+@endpush
+
 @section('content')
     <div class="space-y-6">
         {{-- ── HEADER ────────────────────────────────────────────────────────── --}}
@@ -124,13 +138,13 @@
                     <div class="inline-flex items-center rounded-lg bg-gray-100 p-0.5 gap-0.5">
                         <button
                             class="chart-range-btn px-2.5 py-1 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-900"
-                            data-range="7">7D</button>
+                            data-range="7">{{ __('admin.dashboard.range_7d') }}</button>
                         <button
                             class="chart-range-btn px-2.5 py-1 text-xs font-medium rounded-md transition-all bg-white shadow-sm text-gray-900 active"
-                            data-range="30">30D</button>
+                            data-range="30">{{ __('admin.dashboard.range_30d') }}</button>
                         <button
                             class="chart-range-btn px-2.5 py-1 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-900"
-                            data-range="90">90D</button>
+                            data-range="90">{{ __('admin.dashboard.range_90d') }}</button>
                     </div>
                 </div>
                 <div class="p-5">

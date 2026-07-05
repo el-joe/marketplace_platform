@@ -424,6 +424,21 @@ return [
         'last_30_days_gmv'      => 'آخر 30 يوماً حسب إجمالي المبيعات',
         'view_all_products'     => 'عرض الكل',
         'low_stock_subtitle'    => 'منتجات بها 5 وحدات أو أقل متبقية',
+        'guest'                 => 'زائر',
+        'no_sellers_data'       => 'لا توجد بيانات بعد',
+        'no_low_stock_items'    => 'لا توجد عناصر منخفضة المخزون',
+        'no_recent_orders'      => 'لا توجد طلبات بعد',
+        'range_7d'              => '٧ أيام',
+        'range_30d'             => '٣٠ يوم',
+        'range_90d'             => '٩٠ يوم',
+        'order_status_groups'   => [
+            'pending'    => 'قيد الانتظار',
+            'processing' => 'قيد المعالجة',
+            'shipped'    => 'تم الشحن',
+            'delivered'  => 'تم التسليم',
+            'cancelled'  => 'ملغى',
+            'refunded'   => 'مُسترد',
+        ],
     ],
 
     // ─── Orders ──────────────────────────────────────────────────────────────
