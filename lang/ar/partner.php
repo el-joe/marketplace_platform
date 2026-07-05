@@ -327,7 +327,7 @@ return [
         'impressions' => 'مرات الظهور',
         'clicks' => 'النقرات',
         'ctr' => 'معدل النقر',
-        'status' => [
+        'statuses' => [
             'draft' => 'مسودة',
             'pending_review' => 'بانتظار المراجعة',
             'active' => 'نشطة',

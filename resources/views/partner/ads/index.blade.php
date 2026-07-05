@@ -53,13 +53,13 @@
         </div>
         <select id="ads-filter-status" class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-400/40">
             <option value="">{{ __('partner.ads.all_statuses') }}</option>
-            <option value="draft">{{ __('common.draft') }}</option>
-            <option value="pending_review">{{ __('partner.ads.status_pending_review') }}</option>
-            <option value="active">{{ __('common.active') }}</option>
-            <option value="paused">{{ __('partner.ads.status_paused') }}</option>
-            <option value="budget_exhausted">{{ __('partner.ads.status_budget_exhausted') }}</option>
-            <option value="ended">{{ __('partner.ads.status_ended') }}</option>
-            <option value="rejected">{{ __('common.rejected') }}</option>
+            <option value="draft">{{ __('partner.ads.statuses.draft') }}</option>
+            <option value="pending_review">{{ __('partner.ads.statuses.pending_review') }}</option>
+            <option value="active">{{ __('partner.ads.statuses.active') }}</option>
+            <option value="paused">{{ __('partner.ads.statuses.paused') }}</option>
+            <option value="budget_exhausted">{{ __('partner.ads.statuses.budget_exhausted') }}</option>
+            <option value="ended">{{ __('partner.ads.statuses.ended') }}</option>
+            <option value="rejected">{{ __('partner.ads.statuses.rejected') }}</option>
         </select>
     </div>
 

@@ -18,13 +18,13 @@
 @section('content')
 @php
     $statusMap = [
-        'draft'            => ['label' => __('partner.ads.status.draft'),            'cls' => 'bg-gray-100 text-gray-700'],
-        'pending_review'   => ['label' => __('partner.ads.status.pending_review'), 'cls' => 'bg-amber-100 text-amber-700'],
-        'active'           => ['label' => __('partner.ads.status.active'),             'cls' => 'bg-emerald-100 text-emerald-700'],
-        'paused'           => ['label' => __('partner.ads.status.paused'),           'cls' => 'bg-blue-100 text-blue-700'],
-        'budget_exhausted' => ['label' => __('partner.ads.status.budget_exhausted'),    'cls' => 'bg-red-100 text-red-700'],
-        'ended'            => ['label' => __('partner.ads.status.ended'),           'cls' => 'bg-gray-100 text-gray-500'],
-        'rejected'         => ['label' => __('partner.ads.status.rejected'),           'cls' => 'bg-red-100 text-red-700'],
+        'draft'            => ['label' => __('partner.ads.statuses.draft'),            'cls' => 'bg-gray-100 text-gray-700'],
+        'pending_review'   => ['label' => __('partner.ads.statuses.pending_review'), 'cls' => 'bg-amber-100 text-amber-700'],
+        'active'           => ['label' => __('partner.ads.statuses.active'),             'cls' => 'bg-emerald-100 text-emerald-700'],
+        'paused'           => ['label' => __('partner.ads.statuses.paused'),           'cls' => 'bg-blue-100 text-blue-700'],
+        'budget_exhausted' => ['label' => __('partner.ads.statuses.budget_exhausted'),    'cls' => 'bg-red-100 text-red-700'],
+        'ended'            => ['label' => __('partner.ads.statuses.ended'),           'cls' => 'bg-gray-100 text-gray-500'],
+        'rejected'         => ['label' => __('partner.ads.statuses.rejected'),           'cls' => 'bg-red-100 text-red-700'],
     ];
     $st = $statusMap[$campaign->status] ?? ['label' => $campaign->status, 'cls' => 'bg-gray-100 text-gray-600'];
     $adCurrency = $campaign->country?->currency_code ?? '';
