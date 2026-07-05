@@ -10,20 +10,23 @@ class CartResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'                  => $this->id,
-            'currency'            => $this->currency,
-            'item_count'          => $this->items->count(),
-            'items'               => CartItemResource::collection($this->items),
-            'subtotal'            => round($this->subtotal / 100, 2),
-            'discount'            => round($this->discount / 100, 2),
-            'estimated_shipping'  => round($this->estimated_shipping / 100, 2),
-            'estimated_tax'       => round($this->estimated_tax / 100, 2),
-            'estimated_total'     => round($this->estimated_total / 100, 2),
-            'coupon'              => $this->when($this->coupon, fn() => [
+            'cart_id'  => $this->id,
+            'currency' => $this->currency,
+            'summary'  => [
+                'subtotal_cents'           => $this->subtotal,
+                'discount_cents'           => $this->discount,
+                'estimated_shipping_cents' => $this->estimated_shipping,
+                'estimated_tax_cents'      => $this->estimated_tax,
+                'estimated_total_cents'    => $this->estimated_total,
+                'item_count'               => $this->items->count(),
+            ],
+            'coupon' => $this->coupon ? [
                 'code'        => $this->coupon->code,
                 'type'        => $this->coupon->type,
                 'description' => $this->coupon->description,
-            ]),
+            ] : null,
+            'items'      => CartItemResource::collection($this->items),
+            'expires_at' => $this->expires_at,
         ];
     }
 }

@@ -51,6 +51,8 @@ class Order extends Model
         'placed_at',
         'completed_at',
         'cancelled_at',
+        'marketer_id',
+        'marketer_campaign_id',
     ];
 
     public function customer(): BelongsTo
@@ -66,6 +68,11 @@ class Order extends Model
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    public function marketerCampaign(): BelongsTo
+    {
+        return $this->belongsTo(MarketerCampaign::class);
     }
 
     public function subOrders(): HasMany

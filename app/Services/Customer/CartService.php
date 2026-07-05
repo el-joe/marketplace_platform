@@ -6,17 +6,28 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
+use App\Models\Country;
 use App\Models\Customer;
 use App\Models\VendorListing;
-use Illuminate\Support\Facades\DB;
 
 class CartService
 {
     private const MAX_ITEMS = 50;
 
+    private const ITEM_EAGER_LOADS = [
+        'items.vendorListing.vendor',
+        'items.vendorListing.productVariant.product.images',
+        'items.vendorListing.primaryShippingMethod',
+        'items.vendorListing.warehouseInventories',
+    ];
+
+    public function __construct(
+        private readonly CheckoutCalculationService $calculationService,
+    ) {}
+
     public function getOrCreateCart(Customer $customer, string $countryId, string $currency): Cart
     {
-        return Cart::firstOrCreate(
+        $cart = Cart::firstOrCreate(
             ['user_id' => $customer->id, 'country_id' => $countryId],
             [
                 'currency'           => $currency,
@@ -27,6 +38,10 @@ class CartService
                 'estimated_total'    => 0,
             ]
         );
+
+        $this->recalculateCart($cart);
+
+        return $cart;
     }
 
     public function addItem(Cart $cart, string $vendorListingId, int $quantity): CartItem
@@ -64,7 +79,7 @@ class CartService
             ]);
         }
 
-        $this->recalcTotals($cart);
+        $this->recalculateCart($cart);
 
         return $item->fresh();
     }
@@ -83,7 +98,7 @@ class CartService
         }
 
         $item->update(['quantity' => $quantity]);
-        $this->recalcTotals($cart);
+        $this->recalculateCart($cart);
 
         return $item->fresh();
     }
@@ -91,20 +106,14 @@ class CartService
     public function removeItem(Cart $cart, string $itemId): void
     {
         $cart->items()->findOrFail($itemId)->delete();
-        $this->recalcTotals($cart);
+        $this->recalculateCart($cart);
     }
 
     public function clearCart(Cart $cart): void
     {
         $cart->items()->delete();
-        $cart->update([
-            'coupon_id'          => null,
-            'subtotal'           => 0,
-            'discount'           => 0,
-            'estimated_shipping' => 0,
-            'estimated_tax'      => 0,
-            'estimated_total'    => 0,
-        ]);
+        $cart->update(['coupon_id' => null]);
+        $this->recalculateCart($cart);
     }
 
     public function applyCoupon(Cart $cart, Customer $customer, string $code): Coupon
@@ -127,7 +136,7 @@ class CartService
             throw new \DomainException('You have already used this coupon the maximum number of times.');
         }
 
-        $subtotal = $this->computeSubtotal($cart);
+        $subtotal = (int) $cart->items()->get()->sum(fn (CartItem $item) => $item->unit_price * $item->quantity);
 
         if ($coupon->min_order_amount !== null && $subtotal < $coupon->min_order_amount) {
             $minFormatted = number_format($coupon->min_order_amount / 100, 2);
@@ -135,55 +144,83 @@ class CartService
         }
 
         $cart->update(['coupon_id' => $coupon->id]);
-        $this->recalcTotals($cart);
+        $this->recalculateCart($cart);
 
         return $coupon;
     }
 
     public function removeCoupon(Cart $cart): void
     {
-        $cart->update(['coupon_id' => null, 'discount' => 0]);
-        $this->recalcTotals($cart);
+        $cart->update(['coupon_id' => null]);
+        $this->recalculateCart($cart);
     }
 
-    public function recalcTotals(Cart $cart): void
+    /**
+     * Recalculates cart totals from scratch using live vendor_listing prices.
+     * Called after every cart mutation so totals can never go stale.
+     *
+     * Syncs unit_price to the listing's current price, drops items whose
+     * listing is no longer active, recomputes discount via
+     * CheckoutCalculationService (coupon scope/eligibility can change between
+     * requests), and recomputes tax from the cart's country VAT rate.
+     *
+     * Annotates each surviving CartItem with a transient (non-persisted)
+     * `price_changed` attribute so the API response can flag "price updated"
+     * items to the client.
+     */
+    private function recalculateCart(Cart $cart): void
     {
-        $cart->load('items', 'coupon');
+        $cart->load(array_merge(self::ITEM_EAGER_LOADS, ['coupon', 'customer']));
 
-        $subtotal = $this->computeSubtotal($cart);
-        $discount = 0;
+        $priceChanges = [];
 
-        if ($cart->coupon) {
-            $discount = $this->computeDiscount($cart->coupon, $subtotal);
+        foreach ($cart->items as $item) {
+            $listing = $item->vendorListing;
+
+            if (! $listing || $listing->status !== 'active') {
+                $item->delete();
+                continue;
+            }
+
+            $livePrice = (int) $listing->price;
+            if ((int) $item->unit_price !== $livePrice) {
+                $priceChanges[$item->id] = true;
+                $item->update(['unit_price' => $livePrice]);
+            }
         }
 
-        $estimatedTotal = max(0, $subtotal - $discount + $cart->estimated_shipping + $cart->estimated_tax);
+        $cart->unsetRelation('items');
+        $cart->load(self::ITEM_EAGER_LOADS);
+
+        $subtotal = (int) $cart->items->sum(fn (CartItem $item) => $item->unit_price * $item->quantity);
+
+        $discount = 0;
+        if ($cart->coupon && $cart->customer) {
+            $result = $this->calculationService->applyCoupon(
+                $cart->coupon,
+                $cart->customer,
+                $subtotal,
+                $cart->currency,
+                $cart->items->all(),
+            );
+            $discount = $result['error'] ? 0 : $result['discount'];
+        }
+
+        $country = Country::find($cart->country_id);
+        $taxable = max(0, $subtotal - $discount);
+        $estimatedTax = $country ? $this->calculationService->calculateTax($taxable, $country) : 0;
 
         $cart->update([
-            'subtotal'        => $subtotal,
-            'discount'        => $discount,
-            'estimated_total' => $estimatedTotal,
+            'subtotal'           => $subtotal,
+            'discount'           => $discount,
+            'estimated_shipping' => 0,
+            'estimated_tax'      => $estimatedTax,
+            'estimated_total'    => max(0, $subtotal - $discount + $estimatedTax),
+            'expires_at'         => now()->addDays(30),
         ]);
-    }
 
-    public function computeDiscount(Coupon $coupon, int $subtotal): int
-    {
-        $discount = match ($coupon->type) {
-            'percentage'   => (int) round($subtotal * ($coupon->value / 100)),
-            'fixed_amount' => (int) round($coupon->value * 100),
-            'free_shipping' => 0,
-            default        => 0,
-        };
-
-        if ($coupon->max_discount !== null) {
-            $discount = min($discount, (int) $coupon->max_discount);
+        foreach ($cart->items as $item) {
+            $item->setAttribute('price_changed', $priceChanges[$item->id] ?? false);
         }
-
-        return min($discount, $subtotal);
-    }
-
-    private function computeSubtotal(Cart $cart): int
-    {
-        return (int) $cart->items->sum(fn($item) => $item->unit_price * $item->quantity);
     }
 }

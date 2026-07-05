@@ -211,16 +211,19 @@ class FinancialReportService
      *
      * Returns both the VAT stored on the order (orders.tax) and the amount
      * that would be expected given the country's current vat_rate applied to
-     * the taxable base (subtotal + shipping, consistent with OrderAssemblerService).
+     * the taxable base (subtotal + shipping).
      *
      * Discrepancies between collected_vat_cents and expected_vat_cents indicate
      * either historical miscalculation or a vat_rate change since the order was
      * placed.  These rows should be reviewed by the finance team.
      *
-     * NOTE: "taxable base = subtotal + shipping" matches the formula used in
-     * OrderAssemblerService at checkout time.  If this platform ever applies
-     * VAT to subtotal-only (some jurisdictions exempt shipping), update both
-     * here and in the assembler together.
+     * NOTE: "taxable base = subtotal + shipping" was the formula used at checkout
+     * time prior to 2026-07-05. CheckoutController now computes tax via
+     * CheckoutCalculationService, which taxes (subtotal - discount) at the order
+     * level and plain per-item subtotal at the sub-order/line level — shipping is
+     * no longer part of the taxable base. Orders placed after that date will show
+     * as discrepancies here until this formula (or the checkout one) is reconciled
+     * by whoever owns tax policy.
      */
     public function vatCollectedByCountry(Carbon $from, Carbon $to): Collection
     {

@@ -16,27 +16,28 @@ class RecordMarketerConversion implements ShouldQueue
         $subOrder = $event->subOrder;
         $order = $subOrder->order;
 
-        if (!$order) {
+        if (! $order || ! $order->marketer_campaign_id) {
             return;
         }
 
-        // Resolve attribution: session > cookie
-        $campaignId = session('marketer_ref') ?? ($_COOKIE['marketer_ref'] ?? null);
+        // Attribution is resolved synchronously at checkout (CheckoutController::placeOrder)
+        // from the customer's session and snapshotted onto the order — this listener runs on
+        // a queue worker, which has no access to the original HTTP session/cookies.
+        $campaign = MarketerCampaign::find($order->marketer_campaign_id);
 
-        if (!$campaignId) {
-            return;
-        }
-
-        $campaign = MarketerCampaign::find($campaignId);
-
-        if (!$campaign || $campaign->status !== 'active') {
+        if (! $campaign || $campaign->status !== 'active') {
             return;
         }
 
         $marketer = $campaign->marketer;
 
-        // Calculate commission — prefer secret promotion's marketer_share_pct when active
-        $orderValue = $order->total ?? $subOrder->total ?? 0;
+        if (! $marketer) {
+            return;
+        }
+
+        // Conversion is recorded per sub-order (per vendor), so the commission base is the
+        // sub-order's own subtotal, not the whole (potentially multi-vendor) order total.
+        $orderValue = $subOrder->subtotal ?? 0;
 
         $secretPromotion = $campaign->secret_promotion_id
             ? MarketerSecretPromotion::find($campaign->secret_promotion_id)
@@ -57,7 +58,7 @@ class RecordMarketerConversion implements ShouldQueue
         $conversion = MarketerConversion::create([
             'campaign_id' => $campaign->id,
             'marketer_id' => $marketer->id,
-            'click_id' => $this->resolveClickId($campaign->id, $order->id),
+            'click_id' => $this->resolveClickId($campaign->id, $order->customer_id),
             'order_id' => $order->id,
             'customer_id' => $order->customer_id,
             'vendor_id' => $subOrder->vendor_id,
@@ -86,11 +87,16 @@ class RecordMarketerConversion implements ShouldQueue
         }
     }
 
-    private function resolveClickId(string $campaignId, string $orderId): ?string
+    private function resolveClickId(string $campaignId, ?string $customerId): ?string
     {
-        // Find the most recent click for this campaign in the current session
+        if (! $customerId) {
+            return null;
+        }
+
+        // Queue workers have no access to the original HTTP session, so attribution
+        // is resolved via the customer's most recent unconverted click instead.
         return MarketerClick::where('campaign_id', $campaignId)
-            ->where('session_id', session()->getId())
+            ->where('customer_id', $customerId)
             ->where('converted', false)
             ->latest('clicked_at')
             ->value('id');

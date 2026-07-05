@@ -133,6 +133,11 @@ class SubOrder extends Model
         return $this->hasMany(Shipment::class);
     }
 
+    public function deliveryAssignments(): HasMany
+    {
+        return $this->hasMany(DeliveryAssignment::class);
+    }
+
     public function payoutItems(): HasMany
     {
         return $this->hasMany(PayoutItem::class);

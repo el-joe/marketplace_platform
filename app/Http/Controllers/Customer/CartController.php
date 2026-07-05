@@ -27,7 +27,6 @@ class CartController extends Controller
         $country  = $request->attributes->get('country');
 
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
-        $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
 
         return ApiResponse::success(new CartResource($cart));
     }
@@ -44,8 +43,12 @@ class CartController extends Controller
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
-        $item->load(['vendorListing.vendor', 'vendorListing.productVariant.product.images']);
+        $item->load([
+            'vendorListing.vendor',
+            'vendorListing.productVariant.product.images',
+            'vendorListing.primaryShippingMethod',
+            'vendorListing.warehouseInventories',
+        ]);
 
         return ApiResponse::success([
             'cart'        => new CartResource($cart),
@@ -68,8 +71,12 @@ class CartController extends Controller
         //     return ApiResponse::error($e->getMessage(), [], 422);
         // }
 
-        $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
-        $item->load(['vendorListing.vendor', 'vendorListing.productVariant.product.images']);
+        $item->load([
+            'vendorListing.vendor',
+            'vendorListing.productVariant.product.images',
+            'vendorListing.primaryShippingMethod',
+            'vendorListing.warehouseInventories',
+        ]);
 
         return ApiResponse::success([
             'cart'        => new CartResource($cart),
@@ -90,8 +97,6 @@ class CartController extends Controller
             return ApiResponse::error('Cart item not found.', [], 404);
         }
 
-        $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
-
         return ApiResponse::success(new CartResource($cart), 'Item removed from cart');
     }
 
@@ -111,7 +116,6 @@ class CartController extends Controller
         $customer = auth('customer')->user();
         $country  = $request->attributes->get('country');
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
-        $cart->load('items');
 
         try {
             $coupon = $this->cartService->applyCoupon($cart, $customer, $request->code);
@@ -120,8 +124,6 @@ class CartController extends Controller
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
-
-        $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
 
         return ApiResponse::success(new CartResource($cart), "Coupon \"{$coupon->code}\" applied");
     }
@@ -133,7 +135,6 @@ class CartController extends Controller
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
         $this->cartService->removeCoupon($cart);
-        $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
 
         return ApiResponse::success(new CartResource($cart), 'Coupon removed');
     }

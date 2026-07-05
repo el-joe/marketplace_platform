@@ -18,9 +18,10 @@ class PaymentService
     public function initiatePayment(
         Order $order,
         CountryPaymentMethod $methodConfig,
+        ?string $idempotencyKey = null,
     ): PaymentInitiationResult {
         $gateway        = PaymentGatewayFactory::make($methodConfig);
-        $idempotencyKey = (string) Str::uuid();
+        $idempotencyKey ??= (string) Str::uuid();
 
         $data = new PaymentInitiationData(
             orderId: $order->id,

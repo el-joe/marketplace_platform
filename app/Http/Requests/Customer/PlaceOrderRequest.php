@@ -15,11 +15,14 @@ class PlaceOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'address_id'         => ['required', 'uuid', 'exists:addresses,id'],
+            'address_id'         => ['required', 'integer', 'exists:addresses,id'],
             'shipping_method_id' => ['required', 'uuid', 'exists:shipping_methods,id'],
             'payment_method'     => ['required', Rule::in(['card', 'wallet', 'cod', 'bnpl', 'bank_transfer'])],
-            'payment_token'      => ['nullable', 'string', 'max:500'],
-            'idempotency_key'    => ['required', 'uuid'],
+            'coupon_code'        => ['nullable', 'string', 'max:50'],
+            'customer_notes'     => ['nullable', 'string', 'max:500'],
+            'idempotency_key'    => ['required', 'string', 'max:100'],
+            'gateway_token'      => ['required_if:payment_method,card', 'nullable', 'string'],
+            'gateway'            => ['required_if:payment_method,card', 'nullable', 'string', Rule::in(['thawani', 'stripe', 'tap'])],
         ];
     }
 }
