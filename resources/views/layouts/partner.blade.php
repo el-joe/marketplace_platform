@@ -12,6 +12,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/partner/app.js'])
     @stack('head')
+    @stack('styles')
     <style>[x-cloak]{display:none!important}</style>
 </head>
 

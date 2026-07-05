@@ -9,12 +9,14 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+    @if(session('locale', 'ar') === 'ar')
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+    @endif
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             flatpickr('#date-range-picker', {
                 mode: 'range',
-                locale: 'ar',
+                locale: '{{ session('locale', 'ar') }}',
                 dateFormat: 'Y-m-d',
                 defaultDate: [
                     '{{ $dateFrom->format('Y-m-d') }}',
