@@ -15,6 +15,9 @@ return [
         'referral_code'    => 'Referral Code',
         'sign_out'         => 'Sign out',
         'toggle_menu'      => 'Toggle menu',
+        'language'         => 'Language',
+        'lang_en'          => 'EN — English',
+        'lang_ar'          => 'AR — العربية',
     ],
 
     'dashboard' => [

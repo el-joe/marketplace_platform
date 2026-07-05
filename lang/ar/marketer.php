@@ -15,6 +15,9 @@ return [
         'referral_code'    => 'كود الإحالة',
         'sign_out'         => 'تسجيل الخروج',
         'toggle_menu'      => 'تبديل القائمة',
+        'language'         => 'اللغة',
+        'lang_en'          => 'EN — English',
+        'lang_ar'          => 'AR — العربية',
     ],
 
     'dashboard' => [
