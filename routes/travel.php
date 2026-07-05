@@ -10,6 +10,21 @@ use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
+// ── Locale switcher (travel-agency subdomain) ─────────────────────────────
+Route::middleware('web')
+    ->post('/locale/switch', function (\Illuminate\Http\Request $request) {
+        $locale = $request->input('locale');
+        abort_unless(in_array($locale, config('app.available_locales', ['ar', 'en'])), 422);
+        $request->session()->put([
+            'locale'          => $locale,
+            'locale_override' => $locale,
+            'dir'             => $locale === 'ar' ? 'rtl' : 'ltr',
+        ]);
+        \Carbon\Carbon::setLocale($locale);
+        \Illuminate\Support\Facades\App::setLocale($locale);
+        return back();
+    })->name('travel-agency.locale.switch');
+
 Route::name('travel-agency.')
     ->group(function () {
 

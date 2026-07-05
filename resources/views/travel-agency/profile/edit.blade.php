@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="max-w-2xl space-y-6">
-    <h1 class="text-2xl font-black text-gray-900">الملف الشخصي</h1>
+    <h1 class="text-2xl font-black text-gray-900">{{ __('travel.profile.title') }}</h1>
 
     <form method="POST" action="{{ route('travel-agency.profile.update') }}" enctype="multipart/form-data"
           class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
@@ -12,7 +12,7 @@
 
         {{-- Logo --}}
         <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">الشعار</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">{{  }}</label>
             @if($agency->logo_path)
             <div class="mb-3">
                 <img src="{{ asset('storage/'.$agency->logo_path) }}" alt="logo"

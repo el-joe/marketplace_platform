@@ -8,6 +8,8 @@ return [
         'inquiries' => 'الاستفسارات',
         'profile' => 'الملف الشخصي',
         'logout' => 'خروج',
+        'lang_en' => 'English',
+        'lang_ar' => 'العربية',
     ],
 
     'packages' => [
@@ -79,5 +81,16 @@ return [
         'all_packages' => 'كل الباقات',
         'no_inquiries' => 'لا توجد طلبات اهتمام حتى الآن.',
         'view_booking' => 'عرض الحجز',
+    ],
+
+    'profile' => [
+        'title' => 'الملف الشخصي',
+        'logo' => 'الشعار',
+        'name' => 'اسم الشركة *',
+        'phone' => 'رقم الهاتف',
+        'license_number' => 'رقم الترخيص',
+        'email' => 'البريد الإلكتروني',
+        'status' => 'حالة الحساب',
+        'save' => 'حفظ التغييرات',
     ],
 ];

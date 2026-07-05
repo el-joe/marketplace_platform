@@ -8,6 +8,8 @@ return [
         'inquiries' => 'Inquiries',
         'profile' => 'Profile',
         'logout' => 'Logout',
+        'lang_en' => 'English',
+        'lang_ar' => 'العربية',
     ],
 
     'packages' => [
@@ -79,5 +81,16 @@ return [
         'all_packages' => 'All Packages',
         'no_inquiries' => 'No inquiries yet.',
         'view_booking' => 'View Booking',
+    ],
+
+    'profile' => [
+        'title' => 'Profile',
+        'logo' => 'Logo',
+        'name' => 'Company Name *',
+        'phone' => 'Phone',
+        'license_number' => 'License Number',
+        'email' => 'Email',
+        'status' => 'Account Status',
+        'save' => 'Save Changes',
     ],
 ];
