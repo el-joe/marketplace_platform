@@ -60,6 +60,7 @@ class TravelPackage extends Model
             'departure_date' => 'date',
             'return_date' => 'date',
             'approved_at' => 'datetime',
+            'contract_uploaded_at' => 'datetime',
         ];
     }
 
