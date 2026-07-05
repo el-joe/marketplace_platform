@@ -13,6 +13,7 @@ use App\Listeners\InvalidateVendorDashboardCache;
 use App\Listeners\RecordMarketerConversion;
 use App\Services\Payment\PaymentGatewayFactory;
 use App\Services\Shared\PageBuilderService;
+use App\Services\Customer\CheckoutCalculationService;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\UnifiedCategoryService;
@@ -72,6 +73,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ListingQueryService::class);
         $this->app->singleton(ListingIdentifierService::class);
         $this->app->singleton(UnifiedCategoryService::class);
+        $this->app->singleton(CheckoutCalculationService::class);
 
         // Replace Laravel's built-in DatabaseChannel with our custom one that
         // writes to the platform's non-standard notifications table schema
