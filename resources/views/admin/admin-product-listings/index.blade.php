@@ -17,6 +17,15 @@
         </a>
     </div>
 
+    <form method="GET" class="flex flex-wrap gap-3">
+        <input name="search" value="{{ request('search') }}" placeholder="{{ __('admin.admin_product_listings.search_placeholder') }}"
+               class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-64">
+        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm">{{ __('admin.filter') }}</button>
+        @if(request('search'))
+        <a href="{{ route('admin.admin-product-listings.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">{{ __('common.reset') }}</a>
+        @endif
+    </form>
+
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <table class="w-full text-sm">
             <thead>

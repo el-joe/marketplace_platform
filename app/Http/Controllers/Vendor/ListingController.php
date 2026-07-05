@@ -32,7 +32,9 @@ class ListingController extends Controller
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->search, fn($q) => $q->whereHas('productVariant.product', function ($pq) use ($request) {
                 $pq->where('name_en', 'like', "%{$request->search}%")
-                    ->orWhere('name_ar', 'like', "%{$request->search}%");
+                    ->orWhere('name_ar', 'like', "%{$request->search}%")
+                    ->orWhere('short_desc_en', 'like', "%{$request->search}%")
+                    ->orWhere('model_number', 'like', "%{$request->search}%");
             }))
             ->latest();
 

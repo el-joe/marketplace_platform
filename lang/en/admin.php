@@ -6407,6 +6407,7 @@ return [
     'admin_product_listings' => [
         'title'             => 'Admin Product Listings',
         'page_subtitle'     => 'Manage products sold directly by admin — powers the Now Nawy feed.',
+        'search_placeholder' => 'Search by product name or model number…',
         'new_listing'       => 'New Listing',
         'product_col'       => 'Product',
         'country_col'       => 'Country',

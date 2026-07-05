@@ -15,11 +15,20 @@ use Illuminate\View\View;
 
 class AdminProductListingController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = $request->query('search');
+
         $listings = AdminProductListing::with(['productVariant.product', 'country', 'nawyCategory'])
+            ->when($search, fn($q) => $q->whereHas('productVariant.product', function ($pq) use ($search) {
+                $pq->where('name_en', 'like', "%{$search}%")
+                    ->orWhere('name_ar', 'like', "%{$search}%")
+                    ->orWhere('short_desc_en', 'like', "%{$search}%")
+                    ->orWhere('model_number', 'like', "%{$search}%");
+            }))
             ->latest()
-            ->paginate(30);
+            ->paginate(30)
+            ->withQueryString();
 
         return view('admin.admin-product-listings.index', [
             'listings'    => $listings,
