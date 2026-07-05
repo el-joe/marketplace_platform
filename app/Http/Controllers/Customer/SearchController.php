@@ -199,8 +199,11 @@ class SearchController extends Controller
         ]);
     }
 
-    public function suggestions(Request $request, Country $country): JsonResponse
+    public function suggestions(Request $request, $country): JsonResponse
     {
+
+        $country = $request->attributes->get('country');
+
         $request->validate(['q' => ['required', 'string', 'min:1', 'max:255']]);
 
         $results = $this->search->suggestions($country, $request->query('q'));
