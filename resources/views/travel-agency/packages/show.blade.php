@@ -14,32 +14,38 @@
             <div class="flex gap-2">
                 @if(in_array($package->status, ['draft', 'pending_review']))
                     <a href="{{ route('travel-agency.packages.edit', $package) }}"
-                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">تعديل</a>
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">{{ __('travel.packages.edit') }}</a>
                 @endif
                 @if($package->status === 'draft')
                     <form method="POST" action="{{ route('travel-agency.packages.submit', $package) }}" class="inline">
                         @csrf
                         <button type="submit"
                             class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-400">
-                            إرسال للمراجعة
+                            {{ __('travel.packages.submit_for_review') }}
                         </button>
                     </form>
                 @endif
                 @if($package->status === 'active' && ($package->seatsRemaining() === null || $package->seatsRemaining() > 0))
                     <a href="{{ route('travel-agency.bookings.create', $package) }}"
                         class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500">
-                        + حجز جديد
+                        + {{ __('travel.bookings.new_booking') }}
                     </a>
                 @endif
                 <a href="{{ route('travel-agency.packages.index') }}"
-                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm">← رجوع</a>
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm">{{ __('travel.packages.back') }}</a>
             </div>
         </div>
 
         {{-- Status --}}
         @php
             $colors = ['draft' => 'bg-gray-100 text-gray-600', 'pending_review' => 'bg-amber-100 text-amber-700', 'active' => 'bg-emerald-100 text-emerald-700', 'sold_out' => 'bg-purple-100 text-purple-700', 'expired' => 'bg-gray-100 text-gray-500'];
-            $labels = ['draft' => 'مسودة', 'pending_review' => 'قيد المراجعة', 'active' => 'نشطة', 'sold_out' => 'مكتملة المقاعد', 'expired' => 'منتهية'];
+            $labels = [
+                'draft' => __('travel.dashboard.draft'),
+                'pending_review' => __('travel.dashboard.pending_review'),
+                'active' => __('travel.dashboard.active'),
+                'sold_out' => __('travel.dashboard.sold_out'),
+                'expired' => __('travel.dashboard.expired')
+            ];
         @endphp
         <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $colors[$package->status] ?? '' }}">
             {{ $labels[$package->status] ?? $package->status }}
@@ -48,45 +54,53 @@
         {{-- Details --}}
         <div class="grid grid-cols-2 gap-4">
             <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-                <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">تفاصيل الرحلة</h3>
+                <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">{{ __('travel.packages.trip_details') }}</h3>
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">الوجهة</dt>
+                        <dt class="text-gray-500">{{ __('travel.packages.destination') }}</dt>
                         <dd class="text-gray-900">
                             {{ $package->destinationCountry?->name_en ?? '-' }} , {{ $package->destinationCity?->name_en ?? '-' }}
                         </dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">المغادرة</dt>
+                        <dt class="text-gray-500">{{ __('travel.packages.departure') }}</dt>
                         <dd class="text-gray-900">{{ $package->departure_date->format('d M Y') }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">العودة</dt>
+                        <dt class="text-gray-500">{{ __('travel.packages.return') }}</dt>
                         <dd class="text-gray-900">{{ $package->return_date->format('d M Y') }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">المدة</dt>
-                        <dd class="text-gray-900">{{ $package->duration_days }} أيام / {{ $package->duration_nights }} ليالي
+                        <dt class="text-gray-500">{{ __('travel.packages.duration') }}</dt>
+                        <dd class="text-gray-900">{{ $package->duration_days }} {{ __('travel.packages.days') }} / {{ $package->duration_nights }} {{ __('travel.packages.nights') }}
                         </dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">السعر للفرد</dt>
+                        <dt class="text-gray-500">{{ __('travel.packages.price_per_person') }}</dt>
                         <dd class="text-gray-900 font-bold">{{ $package->priceFormatted() }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">المقاعد</dt>
-                        <dd class="text-gray-900">{{ $package->seats_booked }} محجوزة /
-                            {{ $package->available_seats ?? '∞' }} متاح</dd>
+                        <dt class="text-gray-500">{{ __('travel.packages.seats') }}</dt>
+                        <dd class="text-gray-900">{{ $package->seats_booked }} {{ __('travel.packages.booked_seats_label') }} /
+                            {{ $package->available_seats ?? '∞' }} {{ __('travel.packages.available') }}</dd>
                     </div>
                 </dl>
             </div>
 
             <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-                <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">ما يشمله السعر</h3>
+                <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">{{ __('travel.packages.inclusions') }}</h3>
                 @if($package->inclusions)
                     <ul class="space-y-1 text-sm text-gray-700">
                         @php
-                            $inclusionLabels = ['flights' => 'تذاكر طيران', 'hotel' => 'إقامة فندقية', 'meals' => 'وجبات', 'tours' => 'جولات سياحية', 'visa' => 'تأشيرة', 'insurance' => 'تأمين سفر', 'transfers' => 'مواصلات'];
+                            $inclusionLabels = [
+                                'flights' => __('travel.packages.flights'),
+                                'hotel' => __('travel.packages.hotel'),
+                                'meals' => __('travel.packages.meals'),
+                                'tours' => __('travel.packages.tours'),
+                                'visa' => __('travel.packages.visa'),
+                                'insurance' => __('travel.packages.insurance'),
+                                'transfers' => __('travel.packages.transfers')
+                            ];
                         @endphp
                         @foreach($package->inclusions as $item)
                             <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span>
@@ -94,7 +108,7 @@
                         @endforeach
                     </ul>
                 @else
-                    <p class="text-sm text-gray-400">لم يحدد</p>
+                    <p class="text-sm text-gray-400">{{ __('travel.packages.not_specified') }}</p>
                 @endif
             </div>
         </div>
@@ -102,7 +116,7 @@
         {{-- Media --}}
         @if($package->media->count())
             <div class="bg-white rounded-xl border border-gray-200 p-5">
-                <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide mb-4">الصور والفيديو</h3>
+                <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide mb-4">{{ __('travel.packages.media') }}</h3>
                 <div class="grid grid-cols-4 gap-3">
                     @foreach($package->media as $m)
                         @if($m->media_type === 'image')
@@ -120,17 +134,17 @@
         @if($package->bookings->count())
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h3 class="font-semibold text-gray-900">الحجوزات ({{ $package->bookings->count() }})</h3>
+                    <h3 class="font-semibold text-gray-900">{{ __('travel.bookings.title') }} ({{ $package->bookings->count() }})</h3>
                 </div>
                 <table class="min-w-full divide-y divide-gray-100 text-sm">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-4 py-3 text-start font-semibold text-gray-700">رقم الحجز</th>
-                            <th class="px-4 py-3 text-start font-semibold text-gray-700">العميل</th>
-                            <th class="px-4 py-3 text-start font-semibold text-gray-700">المسافرون</th>
-                            <th class="px-4 py-3 text-start font-semibold text-gray-700">الإجمالي</th>
-                            <th class="px-4 py-3 text-start font-semibold text-gray-700">الحالة</th>
-                            <th class="px-4 py-3 text-start font-semibold text-gray-700">التاريخ</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.booking_number') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.customer') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.travelers') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.total') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.status') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.date') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
