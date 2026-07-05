@@ -123,11 +123,12 @@ function initGtinCheck() {
                 const product = data.product;
 
                 // Show inline warning
+                const T = window.TRANSLATIONS || {};
                 const $warn = $('#gtin-warning');
                 $warn.html(
-                    '<strong>Duplicate barcode:</strong> ' + esc(product.name_en) +
+                    '<strong>' + esc(T.duplicateBarcodePrefix || 'Duplicate barcode:') + '</strong> ' + esc(product.name_en) +
                     ' <span class="text-xs opacity-70">(' + esc(product.status) + ')</span> — ' +
-                    '<a href="' + esc(product.url) + '" target="_blank" class="underline font-medium">View product</a>'
+                    '<a href="' + esc(product.url) + '" target="_blank" class="underline font-medium">' + esc(T.viewProduct || 'View product') + '</a>'
                 ).removeClass('hidden');
 
                 // Also show Alpine modal
@@ -160,7 +161,8 @@ function initCategoryAttributes() {
             $container.empty();
 
             if (attrs.length === 0) {
-                $container.html('<p class="text-sm text-gray-400 italic col-span-3">No variant attributes for this category.</p>');
+                const msg = (window.TRANSLATIONS || {}).noVariantAttrsForCategory || 'No variant attributes for this category.';
+                $container.html('<p class="text-sm text-gray-400 italic col-span-3">' + esc(msg) + '</p>');
                 return;
             }
 
@@ -181,17 +183,18 @@ function initCategoryAttributes() {
 
 function initGenerateVariants() {
     $(document).on('click', '#generate-variants-btn', function () {
+        const T = window.TRANSLATIONS || {};
         const attrIds = [];
         document.querySelectorAll('.variant-attr-cb:checked').forEach(function (cb) {
             attrIds.push(cb.value);
         });
 
         if (attrIds.length === 0) {
-            window.Toast && window.Toast.warning('Select at least one variant attribute first.');
+            window.Toast && window.Toast.warning(T.selectVariantAttributeFirst || 'Select at least one variant attribute first.');
             return;
         }
 
-        const $btn = $(this).prop('disabled', true).text('Generating…');
+        const $btn = $(this).prop('disabled', true).text(T.generatingEllipsis || 'Generating…');
 
         $.ajax({
             url: window.location.pathname.replace(/\/(create|[^/]+\/edit).*/, '') + '/generate-variants',
@@ -202,10 +205,10 @@ function initGenerateVariants() {
                 renderVariantRows(res.data ?? []);
             })
             .fail(function () {
-                window.Toast && window.Toast.error('Failed to generate variants.');
+                window.Toast && window.Toast.error(T.generateVariantsFailed || 'Failed to generate variants.');
             })
             .always(function () {
-                $btn.prop('disabled', false).text('Generate combinations');
+                $btn.prop('disabled', false).text(T.generateCombinations || 'Generate combinations');
             });
     });
 }
@@ -221,12 +224,16 @@ function renderVariantRows(variants) {
 
     $('#no-variants-msg').addClass('hidden');
 
+    const T = window.TRANSLATIONS || {};
+    const skuPlaceholder = esc(T.skuAutoGeneratePlaceholder || 'Auto-generate');
+    const removeLabel = esc(T.removeLabel || 'Remove');
+
     variants.forEach(function (v) {
         const i = v.index;
         const row = `
 <tr class="variant-row hover:bg-gray-50">
   <td class="px-4 py-3 font-medium text-gray-800">${esc(v.name)}</td>
-  <td class="px-4 py-3"><input type="text" name="variants[${i}][sku]" value="${esc(v.sku)}" placeholder="Auto-generate" class="form-input text-sm py-1.5 w-full" /></td>
+  <td class="px-4 py-3"><input type="text" name="variants[${i}][sku]" value="${esc(v.sku)}" placeholder="${skuPlaceholder}" class="form-input text-sm py-1.5 w-full" /></td>
   <td class="px-4 py-3"><input type="text" name="variants[${i}][barcode]" value="${esc(v.barcode)}" class="form-input text-sm py-1.5 w-full" /></td>
   <td class="px-4 py-3"><input type="number" name="variants[${i}][weight_grams]" value="${esc(v.weight_grams)}" min="0" class="form-input text-sm py-1.5 w-full" /></td>
   <td class="px-4 py-3 text-center">
@@ -237,7 +244,7 @@ function renderVariantRows(variants) {
     <input type="checkbox" name="variants[${i}][is_active]" value="1" class="rounded text-primary-600 border-gray-300" ${v.is_active ? 'checked' : ''} />
   </td>
   <td class="px-4 py-3">
-    <button type="button" class="remove-variant-row text-gray-400 hover:text-red-600 transition-colors" title="Remove">
+    <button type="button" class="remove-variant-row text-gray-400 hover:text-red-600 transition-colors" title="${removeLabel}">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
       </svg>
@@ -300,26 +307,31 @@ function setAllCountries(enable) {
 // ─── SEO preview live update ──────────────────────────────────────────────────
 
 function initSeoPreview() {
+    const T = window.TRANSLATIONS || {};
+    const titlePlaceholder = T.productTitlePlaceholder || 'Product title';
+    const slugPlaceholder = T.productSlugPlaceholder || 'product-slug';
+    const descPlaceholder = T.seoSearchPreviewPlaceholder || 'Add a meta description to improve search engine visibility.';
+
     $(document).on('input', '#seo_title', function () {
         const val = $(this).val().trim();
-        $('#seo-preview-title').text(val || $('[name="name_en"]').val() || 'Product title');
+        $('#seo-preview-title').text(val || $('[name="name_en"]').val() || titlePlaceholder);
     });
 
     $(document).on('input', '#seo_description', function () {
         const val = $(this).val().trim();
-        $('#seo-preview-desc').text(val || 'Add a meta description to improve search engine visibility.');
+        $('#seo-preview-desc').text(val || descPlaceholder);
     });
 
     $(document).on('input', '[name="name_en"]', function () {
         const title = $('#seo_title').val().trim();
         if (!title) {
-            $('#seo-preview-title').text($(this).val() || 'Product title');
+            $('#seo-preview-title').text($(this).val() || titlePlaceholder);
         }
     });
 
     // Update slug preview from the slug-input component's hidden field
     $(document).on('input', '[name="slug"]', function () {
-        $('#seo-preview-slug').text($(this).val() || 'product-slug');
+        $('#seo-preview-slug').text($(this).val() || slugPlaceholder);
     });
 }
 
@@ -339,13 +351,15 @@ function initFilePond() {
     }));
 
 
+    const T = window.TRANSLATIONS || {};
+
     const pond = FilePond.create(inputEl, {
         allowMultiple: true,
         allowReorder: true,
         maxFiles: 20,
         acceptedFileTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
         maxFileSize: '5MB',
-        labelIdle: 'Drag &amp; drop images or <span class="filepond--label-action">Browse</span>',
+        labelIdle: T.filepondLabelIdle || 'Drag &amp; drop images or <span class="filepond--label-action">Browse</span>',
 
         server: {
             process: {
@@ -361,7 +375,7 @@ function initFilePond() {
 
                 const existingImage = existingMap.get(String(source));
                 if (!existingImage || !existingImage.url) {
-                    error('Image URL not found.');
+                    error(T.imageUrlNotFound || 'Image URL not found.');
                     return { abort: function () { abort(); } };
                 }
 
@@ -373,12 +387,12 @@ function initFilePond() {
                     if (request.status >= 200 && request.status < 300) {
                         load(request.response);
                     } else {
-                        error('Failed to load image preview.');
+                        error(T.imagePreviewLoadFailed || 'Failed to load image preview.');
                     }
                 };
 
                 request.onerror = function () {
-                    error('Failed to load image preview.');
+                    error(T.imagePreviewLoadFailed || 'Failed to load image preview.');
                 };
 
                 request.onprogress = function (e) {
@@ -399,7 +413,7 @@ function initFilePond() {
                     url: revertBase + '/' + encodeURIComponent(uniqueFileId),
                     method: 'DELETE',
                     headers: { 'X-CSRF-TOKEN': csrfToken() },
-                }).done(load).fail(function () { error('Failed to revert upload.'); });
+                }).done(load).fail(function () { error(T.imageRevertFailed || 'Failed to revert upload.'); });
             },
         },
     });
@@ -440,7 +454,8 @@ function initFormSubmit() {
     $('#product-form').on('submit', function (e) {
         e.preventDefault();
 
-        const $btn = $('#submit-btn').prop('disabled', true).text('Saving…');
+        const T = window.TRANSLATIONS || {};
+        const $btn = $('#submit-btn').prop('disabled', true).text(T.savingEllipsis || 'Saving…');
         const formData = new FormData(this);
         formData.set('_method', 'PUT');
 
@@ -454,19 +469,19 @@ function initFormSubmit() {
             contentType: false,
         })
             .done(function (res) {
-                window.Toast && window.Toast.success(res.message || 'Product saved.');
+                window.Toast && window.Toast.success(res.message || T.productSaved || 'Product saved.');
             })
             .fail(function (xhr) {
                 if (xhr.status === 422) {
                     const errors = xhr.responseJSON?.errors ?? {};
                     const msgs = Object.values(errors).flat();
-                    window.Toast && window.Toast.error(msgs[0] || 'Validation error.');
+                    window.Toast && window.Toast.error(msgs[0] || T.validationError || 'Validation error.');
                 } else {
-                    window.Toast && window.Toast.error(xhr.responseJSON?.message || 'Save failed. Please try again.');
+                    window.Toast && window.Toast.error(xhr.responseJSON?.message || T.saveFailedRetry || 'Save failed. Please try again.');
                 }
             })
             .always(function () {
-                $btn.prop('disabled', false).text('Save changes');
+                $btn.prop('disabled', false).text(T.saveChangesBtn || 'Save changes');
             });
     });
 }

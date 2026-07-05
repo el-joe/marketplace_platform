@@ -16,11 +16,22 @@
 /* =========================================================
    TIME AGO HELPER  (no external dependency)
    ========================================================= */
+const _isAr = document.documentElement.lang === 'ar';
+
 function timeAgo(dateStr) {
     if (!dateStr) return '—';
     const now = Date.now();
     const then = new Date(dateStr).getTime();
     const diff = Math.floor((now - then) / 1000);
+
+    if (_isAr) {
+        if (diff < 60) return `منذ ${diff} ث`;
+        if (diff < 3600) return `منذ ${Math.floor(diff / 60)} د`;
+        if (diff < 86400) return `منذ ${Math.floor(diff / 3600)} س`;
+        if (diff < 2592000) return `منذ ${Math.floor(diff / 86400)} يوم`;
+        if (diff < 31536000) return `منذ ${Math.floor(diff / 2592000)} شهر`;
+        return `منذ ${Math.floor(diff / 31536000)} سنة`;
+    }
 
     if (diff < 60) return `${diff}s ago`;
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;

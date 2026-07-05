@@ -56,8 +56,8 @@ class CategoryController extends Controller
 
         return view('admin.categories.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Categories'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.categories')],
             ],
             'roots' => $roots,
             'defaultShippingByCategory' => $defaultShippingByCategory,
@@ -160,7 +160,7 @@ class CategoryController extends Controller
         }
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Category created successfully.');
+            ->with('success', __('admin.categories.category_created'));
 
         // } catch (\Throwable $e) {
         //     DB::rollBack();
@@ -186,8 +186,8 @@ class CategoryController extends Controller
 
         return view('admin.categories.edit', array_merge($this->formData(), [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Categories', 'url' => route('admin.categories.index')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.categories'), 'url' => route('admin.categories.index')],
                 ['label' => e($categoryModel->name_en)],
             ],
             'category' => $categoryModel,
@@ -271,7 +271,7 @@ class CategoryController extends Controller
 
         DB::commit();
 
-        return response()->json(['success' => true, 'message' => 'Category updated successfully.']);
+        return response()->json(['success' => true, 'message' => __('admin.categories.category_updated')]);
 
         // } catch (\Throwable $e) {
         //     DB::rollBack();
@@ -290,7 +290,7 @@ class CategoryController extends Controller
 
         try {
             $this->service->delete($categoryModel, auth('admin')->id());
-            return response()->json(['success' => true, 'message' => 'Category deleted.']);
+            return response()->json(['success' => true, 'message' => __('admin.categories.category_deleted')]);
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
@@ -347,7 +347,7 @@ class CategoryController extends Controller
             auth('admin')->id()
         );
 
-        return response()->json(['success' => true, 'message' => "{$updated} categor" . ($updated === 1 ? 'y' : 'ies') . " updated."]);
+        return response()->json(['success' => true, 'message' => trans_choice('admin.categories.bulk_commission_updated', $updated)]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -367,7 +367,7 @@ class CategoryController extends Controller
 
         $this->service->syncAttributes($categoryModel, $request->input('attributes', []));
 
-        return response()->json(['success' => true, 'message' => 'Attributes synced.']);
+        return response()->json(['success' => true, 'message' => __('admin.categories.attributes_synced')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -418,7 +418,7 @@ class CategoryController extends Controller
 
         $defaults = collect($request->methods)->where('is_default', true);
         if ($defaults->count() !== 1) {
-            return response()->json(['message' => 'Exactly one method must be set as the default.'], 422);
+            return response()->json(['message' => __('admin.categories.default_method_required')], 422);
         }
 
         DB::transaction(function () use ($request, $category) {
@@ -445,7 +445,7 @@ class CategoryController extends Controller
             dispatch(new RecomputeListingShippingMethodsJob([$category->id]));
         }
 
-        return response()->json(['success' => true, 'message' => 'Delivery options saved.']);
+        return response()->json(['success' => true, 'message' => __('admin.categories.delivery_options_saved')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

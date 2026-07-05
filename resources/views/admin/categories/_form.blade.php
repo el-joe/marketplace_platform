@@ -482,6 +482,10 @@ Object.assign(window.TRANSLATIONS, {
     failedLoadMethods: @json(__('admin.categories.failed_load_methods')),
     saveFailed: @json(__('admin.categories.save_failed')),
     networkError: @json(__('admin.products.network_error')),
+    categorySaved: @json(__('admin.categories.category_saved')),
+    validationError: @json(__('admin.products.validation_error')),
+    saveFailedRetry: @json(__('admin.products.save_failed_retry')),
+    saveChangesBtn: @json(__('admin.categories.save_changes_btn')),
 });
 
 function categoryShippingMethods(getUrl, postUrl) {

@@ -431,7 +431,7 @@
                             @empty
                             <tr>
                                 <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-400 italic">
-                                    No launched countries configured yet.
+                                    {{ __('admin.products.no_countries_configured') }}
                                 </td>
                             </tr>
                             @endforelse
@@ -484,9 +484,9 @@
                 <div class="rounded-xl border border-gray-200 p-4 bg-gray-50">
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ __('admin.product_form.search_preview') }}</p>
                     <p id="seo-preview-title" class="text-base font-medium text-blue-700 hover:underline cursor-pointer truncate">
-                        {{ $val('seo_title') ?: $val('name_en') ?: 'Product title' }}
+                        {{ $val('seo_title') ?: $val('name_en') ?: __('admin.products.product_title_placeholder') }}
                     </p>
-                    <p class="text-xs text-green-700 mb-1">{{ rtrim(config('app.url'), '/') }}/products/<span id="seo-preview-slug">{{ $val('slug') ?: 'product-slug' }}</span></p>
+                    <p class="text-xs text-green-700 mb-1">{{ rtrim(config('app.url'), '/') }}/products/<span id="seo-preview-slug">{{ $val('slug') ?: __('admin.products.product_slug_placeholder') }}</span></p>
                     <p id="seo-preview-desc" class="text-sm text-gray-600 line-clamp-2">
                         {{ $val('seo_description') ?: __('admin.product_form.seo_placeholder.search_preview_placeholder') }}
                     </p>
@@ -521,12 +521,12 @@
                 @if($isEdit)
                 <div class="pt-2 border-t border-gray-100 space-y-1.5 text-xs text-gray-500">
                     <div class="flex justify-between">
-                        <span>Created</span>
+                        <span>{{ __('admin.products.created_label') }}</span>
                         <span>{{ \Carbon\Carbon::parse($product->created_at)->format('M j, Y') }}</span>
                     </div>
                     @if($product->updated_at && $product->updated_at !== $product->created_at)
                     <div class="flex justify-between">
-                        <span>Updated</span>
+                        <span>{{ __('admin.products.updated_label') }}</span>
                         <span>{{ \Carbon\Carbon::parse($product->updated_at)->format('M j, Y') }}</span>
                     </div>
                     @endif
@@ -605,6 +605,33 @@
 
     </div>{{-- /flex row --}}
 
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            duplicateBarcodePrefix: @json(__('admin.products.duplicate_barcode_prefix')),
+            viewProduct: @json(__('admin.products.view_product')),
+            noVariantAttrsForCategory: @json(__('admin.products.no_variant_attrs_for_category')),
+            selectVariantAttributeFirst: @json(__('admin.products.select_variant_attribute_first')),
+            generatingEllipsis: @json(__('admin.products.generating_ellipsis')),
+            generateCombinations: @json(__('admin.products.generate_combinations')),
+            generateVariantsFailed: @json(__('admin.products.generate_variants_failed')),
+            skuAutoGeneratePlaceholder: @json(__('admin.products.sku_auto_generate_placeholder')),
+            removeLabel: @json(__('admin.products.remove')),
+            productTitlePlaceholder: @json(__('admin.products.product_title_placeholder')),
+            productSlugPlaceholder: @json(__('admin.products.product_slug_placeholder')),
+            seoSearchPreviewPlaceholder: @json(__('admin.product_form.seo_placeholder.search_preview_placeholder')),
+            imageUrlNotFound: @json(__('admin.products.image_url_not_found')),
+            imagePreviewLoadFailed: @json(__('admin.products.image_preview_load_failed')),
+            imageRevertFailed: @json(__('admin.products.image_revert_failed')),
+            filepondLabelIdle: @json(__('admin.products.filepond_label_idle')),
+            savingEllipsis: @json(__('admin.products.saving_ellipsis')),
+            productSaved: @json(__('admin.products.product_saved')),
+            validationError: @json(__('admin.products.validation_error')),
+            saveFailedRetry: @json(__('admin.products.save_failed_retry')),
+            saveChangesBtn: @json(__('admin.product_form.save_changes')),
+        });
+    </script>
+
     {{-- ─────────────────────────────────────────────────────────────── --}}
     {{-- GTIN Duplicate warning modal                                   --}}
     {{-- ─────────────────────────────────────────────────────────────── --}}
@@ -618,20 +645,20 @@
                     <x-heroicon name="exclamation-triangle" class="w-5 h-5 text-amber-600" />
                 </div>
                 <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900">Duplicate Barcode Found</h3>
-                    <p class="text-sm text-gray-600 mt-1">This GTIN is already used by:</p>
+                    <h3 class="font-semibold text-gray-900">{{ __('admin.products.duplicate_barcode_found') }}</h3>
+                    <p class="text-sm text-gray-600 mt-1">{{ __('admin.products.duplicate_gtin_used_by') }}</p>
                     <div class="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <p class="text-sm font-medium text-gray-900" x-text="duplicateProduct?.name_en"></p>
-                        <p class="text-xs text-gray-500 mt-0.5" x-text="'Status: ' + (duplicateProduct?.status ?? '')"></p>
+                        <p class="text-xs text-gray-500 mt-0.5" x-text="'{{ __('admin.products.duplicate_status_label') }}: ' + (duplicateProduct?.status ?? '')"></p>
                     </div>
                     <div class="flex gap-2 mt-4">
                         <button type="button" @click="showDuplicate = false"
                             class="btn btn-ghost btn-sm flex-1">
-                            Continue anyway
+                            {{ __('admin.products.continue_anyway') }}
                         </button>
                         <a :href="duplicateProduct?.url" target="_blank"
                             class="btn btn-primary btn-sm flex-1 text-center">
-                            View product
+                            {{ __('admin.products.view_product') }}
                         </a>
                     </div>
                 </div>

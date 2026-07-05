@@ -76,7 +76,19 @@
 
     <script>
         window.TRANSLATIONS = window.TRANSLATIONS || {};
-        Object.assign(window.TRANSLATIONS, {});
+        Object.assign(window.TRANSLATIONS, {
+            commissionUpdated: @json(__('admin.categories.commission_updated')),
+            commissionUpdateFailed: @json(__('admin.categories.commission_update_failed')),
+            featuredBadge: @json(__('admin.categories.featured_badge')),
+            addBadge: @json(__('admin.categories.add_badge')),
+            markedFeatured: @json(__('admin.categories.marked_featured')),
+            removedFeatured: @json(__('admin.categories.removed_featured')),
+            toggleFeaturedFailed: @json(__('admin.categories.toggle_featured_failed')),
+            deleteConfirmTitle: @json(__('admin.categories.delete_confirm_title')),
+            deleteConfirmMessage: @json(__('admin.categories.delete_confirm_message')),
+            categoryDeleted: @json(__('admin.categories.category_deleted')),
+            deleteFailed: @json(__('admin.categories.delete_failed')),
+        });
 
         window.ROUTES_CAT = {
             bulkCommission: '{{ route('admin.categories.bulk-commission') }}',

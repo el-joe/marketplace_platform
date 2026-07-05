@@ -168,7 +168,7 @@ $(document).on('click', '[data-bulk-action]', async function () {
     const tableId = $(this).data('table');
     const needConfirm = $(this).data('confirm') !== false;
     const message = $(this).data('confirm-message')
-        || 'Are you sure you want to perform this action on the selected items?';
+        || (_isAr ? 'هل أنت متأكد من تنفيذ هذا الإجراء على العناصر المحددة؟' : 'Are you sure you want to perform this action on the selected items?');
     const ids = getSelectedIds(tableId);
 
     if (!ids.length) {
@@ -196,7 +196,7 @@ $(document).on('click', '[data-bulk-action]', async function () {
             const confirmed = await window.confirmBulkAction(message, ids.length, { destructive: isDeleteAction });
             if (!confirmed) return;
             executeAction();
-        } else if (window.confirm(`${message}\n\n${ids.length} item(s) selected.`)) {
+        } else if (window.confirm(`${message}\n\n${ids.length} ${_isAr ? 'عنصر محدد.' : 'item(s) selected.'}`)) {
             executeAction();
         }
     } else {
@@ -273,7 +273,7 @@ window.initDataTable = function (tableId, options) {
                 if (xhr.status === 401) {
                     window.location.href = '/login';
                 } else {
-                    window.Toast && window.Toast.error('Failed to load table data.');
+                    window.Toast && window.Toast.error(_isAr ? 'فشل تحميل بيانات الجدول.' : 'Failed to load table data.');
                 }
             },
         },
@@ -368,12 +368,12 @@ window.bulkPost = function (url, ids, tableId, successMessage) {
         data: { ids },
     })
         .done(function (res) {
-            const msg = res.message || successMessage || 'Done.';
+            const msg = res.message || successMessage || (_isAr ? 'تم.' : 'Done.');
             window.Toast && window.Toast.success(msg);
             window.reloadDataTable(tableId);
         })
         .fail(function (xhr) {
-            const msg = xhr.responseJSON?.message || 'Action failed.';
+            const msg = xhr.responseJSON?.message || (_isAr ? 'فشل الإجراء.' : 'Action failed.');
             window.Toast && window.Toast.error(msg);
         });
 };
@@ -390,7 +390,7 @@ window.bulkConfirmModal = function (message, count, callback) {
         return;
     }
 
-    if (window.confirm(`${message}\n\n${count} item(s) will be affected.`)) {
+    if (window.confirm(`${message}\n\n${count} ${_isAr ? 'عنصر سيتأثر.' : 'item(s) will be affected.'}`)) {
         callback();
     }
 };

@@ -21,6 +21,10 @@ function isEditMode() {
     return $('#form-mode').val() === 'edit';
 }
 
+function T() {
+    return window.TRANSLATIONS || {};
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -142,11 +146,11 @@ function initBulkCommission() {
             contentType: 'application/json',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         }).done(function (res) {
-            window.Toast?.success(res.message || 'Commission updated.');
+            window.Toast?.success(res.message || T().commissionUpdated || 'Commission updated.');
             modal?.classList.add('hidden');
             setTimeout(function () { window.location.reload(); }, 800);
         }).fail(function (xhr) {
-            window.Toast?.error(xhr.responseJSON?.message || 'Failed to update commission.');
+            window.Toast?.error(xhr.responseJSON?.message || T().commissionUpdateFailed || 'Failed to update commission.');
         });
     });
 }
@@ -172,16 +176,16 @@ function initFeaturedToggle() {
             if (isFeatured) {
                 btn.classList.remove('bg-gray-100', 'text-gray-500');
                 btn.classList.add('bg-amber-100', 'text-amber-700');
-                btn.querySelector('span').textContent = 'Featured';
+                btn.querySelector('span').textContent = T().featuredBadge || 'Featured';
             } else {
                 btn.classList.remove('bg-amber-100', 'text-amber-700');
                 btn.classList.add('bg-gray-100', 'text-gray-500');
-                btn.querySelector('span').textContent = 'Add';
+                btn.querySelector('span').textContent = T().addBadge || 'Add';
             }
 
-            window.Toast?.success(isFeatured ? 'Marked as featured.' : 'Removed from featured.');
+            window.Toast?.success(isFeatured ? (T().markedFeatured || 'Marked as featured.') : (T().removedFeatured || 'Removed from featured.'));
         }).fail(function (xhr) {
-            window.Toast?.error(xhr.responseJSON?.message || 'Failed to toggle featured.');
+            window.Toast?.error(xhr.responseJSON?.message || T().toggleFeaturedFailed || 'Failed to toggle featured.');
         });
     });
 }
@@ -205,9 +209,10 @@ function initDeleteCategory() {
         const url = btn.dataset.url;
         const id = btn.dataset.id;
 
+        const confirmMessage = (T().deleteConfirmMessage || 'Delete ":name"? This cannot be undone.').replace(':name', name);
         const confirmed = window.confirmDelete
-            ? await window.confirmDelete('Delete "' + name + '"? This cannot be undone.', { title: 'Delete category?' })
-            : window.confirm('Delete "' + name + '"? This cannot be undone.');
+            ? await window.confirmDelete(confirmMessage, { title: T().deleteConfirmTitle || 'Delete category?' })
+            : window.confirm(confirmMessage);
         if (!confirmed) return;
 
         $.ajax({
@@ -215,11 +220,11 @@ function initDeleteCategory() {
             method: 'DELETE',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         }).done(function (res) {
-            window.Toast?.success(res.message || 'Category deleted.');
+            window.Toast?.success(res.message || T().categoryDeleted || 'Category deleted.');
             removeDescendantRows(id);
             btn.closest('tr')?.remove();
         }).fail(function (xhr) {
-            window.Toast?.error(xhr.responseJSON?.message || 'Failed to delete category.');
+            window.Toast?.error(xhr.responseJSON?.message || T().deleteFailed || 'Failed to delete category.');
         });
     });
 }
@@ -232,7 +237,7 @@ function initFormSubmit() {
     $('#category-form').on('submit', function (e) {
         e.preventDefault();
 
-        const $btn = $('#submit-btn').prop('disabled', true).text('Saving…');
+        const $btn = $('#submit-btn').prop('disabled', true).text(T().savingEllipsis || 'Saving…');
         const formData = new FormData(this);
         formData.set('_method', 'PUT');
 
@@ -244,19 +249,19 @@ function initFormSubmit() {
             contentType: false,
         })
             .done(function (res) {
-                window.Toast?.success(res.message || 'Category saved.');
+                window.Toast?.success(res.message || T().categorySaved || 'Category saved.');
             })
             .fail(function (xhr) {
                 if (xhr.status === 422) {
                     const errors = xhr.responseJSON?.errors ?? {};
                     const msgs = Object.values(errors).flat();
-                    window.Toast?.error(msgs[0] || 'Validation error.');
+                    window.Toast?.error(msgs[0] || T().validationError || 'Validation error.');
                 } else {
-                    window.Toast?.error(xhr.responseJSON?.message || 'Save failed. Please try again.');
+                    window.Toast?.error(xhr.responseJSON?.message || T().saveFailedRetry || 'Save failed. Please try again.');
                 }
             })
             .always(function () {
-                $btn.prop('disabled', false).text('Save changes');
+                $btn.prop('disabled', false).text(T().saveChangesBtn || 'Save changes');
             });
     });
 }
