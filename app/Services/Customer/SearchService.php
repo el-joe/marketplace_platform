@@ -4,9 +4,9 @@ namespace App\Services\Customer;
 
 use App\Models\ClassifiedListing;
 use App\Models\Country;
-use App\Models\Product;
 use App\Models\TravelPackage;
 use App\Models\Vendor;
+use App\Models\VendorListing;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class SearchService
@@ -94,27 +94,35 @@ class SearchService
 
     public function suggestions(Country $country, string $query): array
     {
-        $products = Product::query()
-            ->select('products.id', 'products.name_en', 'products.name_ar', 'products.slug')
-            ->join('product_country_settings as pcs', function ($j) use ($country) {
-                $j->on('pcs.product_id', '=', 'products.id')
-                    ->where('pcs.country_id', $country->id)
-                    ->where('pcs.is_available', true);
+        // Listing-centric, same as search(): one row per active vendor listing
+        // matching the query, so a product sold by several vendors can surface
+        // more than once here too.
+        $listings = VendorListing::where('country_id', $country->id)
+            ->where('status', 'active')
+            ->whereHas('productVariant.product', function ($q) use ($query) {
+                $q->where('status', 'active')
+                    ->where(function ($q2) use ($query) {
+                        $q2->where('name_en', 'like', "%{$query}%")
+                            ->orWhere('name_ar', 'like', "%{$query}%");
+                    });
             })
-            ->where('products.status', 'active')
-            ->where(function ($q) use ($query) {
-                $q->where('products.name_en', 'like', "%{$query}%")
-                    ->orWhere('products.name_ar', 'like', "%{$query}%");
-            })
+            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'))
+            ->with(['productVariant.product:id,name_en,name_ar,slug', 'vendor:id,store_name'])
             ->limit(10)
             ->get();
 
-        $productSuggestions = $products->map(fn($p) => [
-            'id' => $p->id,
-            'slug' => $p->slug,
-            'name' => app()->getLocale() === 'ar' ? $p->name_ar : $p->name_en,
-            'type' => 'product',
-        ]);
+        $productSuggestions = $listings->map(function ($listing) {
+            $product = $listing->productVariant->product;
+
+            return [
+                'id' => $listing->id,
+                'product_id' => $product->id,
+                'slug' => $product->slug,
+                'name' => app()->getLocale() === 'ar' ? $product->name_ar : $product->name_en,
+                'vendor' => $listing->vendor->store_name,
+                'type' => 'product',
+            ];
+        });
 
         $queries = $productSuggestions->pluck('name')->filter()->unique()->values()->take(5)->all();
 
