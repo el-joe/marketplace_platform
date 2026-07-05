@@ -34,14 +34,14 @@ class HomeService
     ): array {
         $nav = $this->navigation->getTree($country);
 
-        $wishlistProductIds = $customer
-            ? $this->listingQuery->wishlistProductIds($customer->id)
+        $wishlistListingIds = $customer
+            ? $this->listingQuery->wishlistListingIds($customer->id)
             : [];
 
         return [
             'nav' => $nav,
             'page_builder' => $this->pageBuilder->resolve($country, 'home', null, $deviceTarget, $audience),
-            'sections' => $this->buildSections($country, $wishlistProductIds),
+            'sections' => $this->buildSections($country, $wishlistListingIds),
             'meta' => [
                 'country_code' => strtolower($country->iso_code_2),
                 'currency' => $country->currency_code,
@@ -66,7 +66,7 @@ class HomeService
         ];
     }
 
-    private function buildSections(Country $country, array $wishlistProductIds): array
+    private function buildSections(Country $country, array $wishlistListingIds): array
     {
         $sections = [
             [
@@ -75,7 +75,7 @@ class HomeService
             ],
         ];
 
-        $flashSaleSection = $this->flashSaleSection($country, $wishlistProductIds);
+        $flashSaleSection = $this->flashSaleSection($country, $wishlistListingIds);
         if ($flashSaleSection !== null) {
             $sections[] = $flashSaleSection;
         }
@@ -89,7 +89,7 @@ class HomeService
         $sections[] = [
             'section_type' => 'product_carousel',
             'title' => 'Top Picks for You',
-            'items' => $this->topPicks($country, $wishlistProductIds),
+            'items' => $this->topPicks($country, $wishlistListingIds),
         ];
 
         return $sections;
@@ -107,7 +107,7 @@ class HomeService
             ->first();
     }
 
-    private function flashSaleSection(Country $country, array $wishlistProductIds): ?array
+    private function flashSaleSection(Country $country, array $wishlistListingIds): ?array
     {
         $sale = $this->activeFlashSale($country);
 
@@ -131,7 +131,7 @@ class HomeService
             ->values();
 
         $items = $ordered
-            ->map(function ($submission) use ($country, $wishlistProductIds) {
+            ->map(function ($submission) use ($country, $wishlistListingIds) {
                 $listing = $submission->vendorListing;
                 $product = $listing->productVariant->product;
 
@@ -139,7 +139,7 @@ class HomeService
                     $listing,
                     $product,
                     $country,
-                    in_array($product->id, $wishlistProductIds, true),
+                    in_array($listing->id, $wishlistListingIds, true),
                 );
             })
             ->all();
@@ -177,7 +177,7 @@ class HomeService
             ->all();
     }
 
-    private function topPicks(Country $country, array $wishlistProductIds): array
+    private function topPicks(Country $country, array $wishlistListingIds): array
     {
         $unavailableIds = ProductCountrySetting::where('country_id', $country->id)
             ->where('is_available', false)
@@ -205,7 +205,7 @@ class HomeService
                 $pair[1],
                 $pair[0],
                 $country,
-                in_array($pair[0]->id, $wishlistProductIds, true),
+                in_array($pair[1]->id, $wishlistListingIds, true),
             ))
             ->all();
     }

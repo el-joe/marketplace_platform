@@ -53,7 +53,7 @@ class SearchController extends Controller
             sessionId: $request->hasSession() ? $request->session()->getId() : '',
         );
 
-        $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
+        $wishlistIds = $this->listings->wishlistListingIds(auth('customer')->id());
 
         $items = [];
         foreach ($paginator as $listing) {
@@ -63,7 +63,7 @@ class SearchController extends Controller
                 listing: $listing,
                 product: $product,
                 country: $country,
-                isWishlisted: in_array($product->id, $wishlistIds),
+                isWishlisted: in_array($listing->id, $wishlistIds),
                 isSponsored: false,
             );
         }
@@ -148,7 +148,7 @@ class SearchController extends Controller
             sessionId: $request->hasSession() ? $request->session()->getId() : '',
         );
 
-        $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
+        $wishlistIds = $this->listings->wishlistListingIds(auth('customer')->id());
 
         $productItems = [];
         foreach ($productPaginator as $listing) {
@@ -158,7 +158,7 @@ class SearchController extends Controller
                 listing: $listing,
                 product: $product,
                 country: $country,
-                isWishlisted: in_array($product->id, $wishlistIds),
+                isWishlisted: in_array($listing->id, $wishlistIds),
                 isSponsored: false,
             );
         }

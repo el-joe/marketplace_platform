@@ -14,6 +14,8 @@ use App\Models\Customer;
 use App\Models\IdempotencyKey;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\CountryShippingSetting;
+use App\Models\ShippingRate;
 use App\Models\SubOrder;
 use App\Models\VendorListing;
 use App\Services\LedgerService;
@@ -32,6 +34,78 @@ class CustomerCheckoutService
         private readonly PaymentService $paymentService,
         private readonly LedgerService $ledgerService,
     ) {}
+
+    /**
+     * List shipping methods available for the cart's current contents at the given
+     * address, with the total shipping cost estimated across all vendor sub-orders
+     * (mirrors how prepare()/placeOrder() sum per-vendor shipping via the assembler).
+     * COD surcharge is reported separately since the payment method isn't chosen yet.
+     */
+    public function availableShippingMethods(Cart $cart, Customer $customer, string $addressId): array
+    {
+        $address = $customer->addresses()->findOrFail($addressId);
+
+        $cart->load('items.vendorListing');
+        if ($cart->items->isEmpty()) {
+            throw new \DomainException('Cart is empty.');
+        }
+
+        $destinationZoneId = $this->assembler->resolveDestinationZone($address->city_id);
+        if (! $destinationZoneId) {
+            return [];
+        }
+
+        $vendorSubtotals = $cart->items
+            ->groupBy(fn($item) => $item->vendorListing->vendor_id)
+            ->map(fn($items) => (int) $items->sum(fn($i) => $i->unit_price * $i->quantity));
+
+        $rates = ShippingRate::where('destination_zone_id', $destinationZoneId)
+            ->where('is_active', true)
+            ->whereHas('shippingMethod', fn($q) => $q->where('is_active', true))
+            ->with('shippingMethod')
+            ->get()
+            ->unique('shipping_method_id');
+
+        $countrySettings = CountryShippingSetting::where('country_id', $address->country_id)
+            ->whereIn('shipping_method_id', $rates->pluck('shipping_method_id'))
+            ->get()
+            ->keyBy('shipping_method_id');
+
+        $options = [];
+        foreach ($rates as $rate) {
+            $setting = $countrySettings->get($rate->shipping_method_id);
+            if ($setting && ! $setting->is_active) {
+                continue;
+            }
+
+            $costCents = 0;
+            foreach ($vendorSubtotals as $subtotal) {
+                $costCents += $this->assembler->computeShipping(
+                    $subtotal,
+                    $rate->shipping_method_id,
+                    $destinationZoneId,
+                    false
+                );
+            }
+
+            $options[] = [
+                'method' => $rate->shippingMethod,
+                'currency' => $cart->currency,
+                'cost_cents' => $costCents,
+                'is_free' => $costCents === 0,
+                'cod_extra_fee_cents' => (int) $rate->cod_extra_fee,
+                'free_shipping_threshold_cents' => $setting?->free_shipping_threshold_cents
+                    ?? $rate->free_shipping_threshold,
+            ];
+        }
+
+        usort(
+            $options,
+            fn($a, $b) => ($a['method']->display_priority ?? PHP_INT_MAX) <=> ($b['method']->display_priority ?? PHP_INT_MAX)
+        );
+
+        return $options;
+    }
 
     /**
      * Prepare checkout: validate stock, acquire 15-min locks, compute totals.

@@ -15,7 +15,7 @@ class CheckoutPrepareRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'address_id'         => ['required', 'uuid', 'exists:addresses,id'],
+            'address_id'         => ['required', 'exists:addresses,id'],
             'shipping_method_id' => ['required', 'uuid', 'exists:shipping_methods,id'],
             'payment_method'     => ['required', Rule::in(['card', 'wallet', 'cod', 'bnpl', 'bank_transfer'])],
         ];

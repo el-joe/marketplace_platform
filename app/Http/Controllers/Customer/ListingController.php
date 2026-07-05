@@ -170,9 +170,9 @@ class ListingController extends Controller
         $product->setRelation('related', $related);
 
         $isWishlisted = false;
-        if ($customerId = auth('customer')->id()) {
+        if (($customerId = auth('customer')->id()) && ($buyBoxListing = $listings->first())) {
             $isWishlisted = Wishlist::where('customer_id', $customerId)
-                ->where('product_id', $product->id)
+                ->where('vendor_listing_id', $buyBoxListing->id)
                 ->exists();
         }
 

@@ -24,7 +24,7 @@ class CartController extends Controller
     public function show(Request $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->route('country');
+        $country  = $request->attributes->get('country');
 
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
         $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
@@ -35,7 +35,7 @@ class CartController extends Controller
     public function addItem(AddCartItemRequest $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->route('country');
+        $country  = $request->attributes->get('country');
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
         try {
@@ -54,19 +54,19 @@ class CartController extends Controller
         ], 'Item added to cart', 201);
     }
 
-    public function updateItem(UpdateCartItemRequest $request, string $id): JsonResponse
+    public function updateItem(UpdateCartItemRequest $request,$country, string $id): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->route('country');
+        $country  = $request->attributes->get('country');
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
-        try {
+        // try {
             $item = $this->cartService->updateItem($cart, $id, $request->quantity);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
-            return ApiResponse::error('Cart item not found.', [], 404);
-        } catch (\DomainException $e) {
-            return ApiResponse::error($e->getMessage(), [], 422);
-        }
+        // } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        //     return ApiResponse::error('Cart item not found.', [], 404);
+        // } catch (\DomainException $e) {
+        //     return ApiResponse::error($e->getMessage(), [], 422);
+        // }
 
         $cart->load(['items.vendorListing.vendor', 'items.vendorListing.productVariant.product.images', 'coupon']);
         $item->load(['vendorListing.vendor', 'vendorListing.productVariant.product.images']);
@@ -78,10 +78,10 @@ class CartController extends Controller
         ], 'Cart item updated');
     }
 
-    public function removeItem(Request $request, string $id): JsonResponse
+    public function removeItem(Request $request,$country, string $id): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->route('country');
+        $country  = $request->attributes->get('country');
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
         try {
@@ -98,7 +98,7 @@ class CartController extends Controller
     public function clear(Request $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->route('country');
+        $country  = $request->attributes->get('country');
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
         $this->cartService->clearCart($cart);
@@ -109,7 +109,7 @@ class CartController extends Controller
     public function applyCoupon(ApplyCouponRequest $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->route('country');
+        $country  = $request->attributes->get('country');
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
         $cart->load('items');
 
@@ -129,7 +129,7 @@ class CartController extends Controller
     public function removeCoupon(Request $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->route('country');
+        $country  = $request->attributes->get('country');
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
         $this->cartService->removeCoupon($cart);

@@ -275,13 +275,13 @@ class ListingQueryService
         ];
     }
 
-    public function wishlistProductIds(?string $customerId): array
+    public function wishlistListingIds(?string $customerId): array
     {
         if ($customerId === null) {
             return [];
         }
 
-        return Wishlist::where('customer_id', $customerId)->pluck('product_id')->toArray();
+        return Wishlist::where('customer_id', $customerId)->pluck('vendor_listing_id')->toArray();
     }
 
     /**

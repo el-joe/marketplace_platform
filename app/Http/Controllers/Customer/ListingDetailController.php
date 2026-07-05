@@ -40,7 +40,7 @@ class ListingDetailController extends Controller
         $isWishlisted = false;
         if ($customerId = auth('customer')->id()) {
             $isWishlisted = Wishlist::where('customer_id', $customerId)
-                ->where('product_id', $product->id)
+                ->where('vendor_listing_id', $listing->id)
                 ->exists();
         }
 

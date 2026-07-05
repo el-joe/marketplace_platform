@@ -184,7 +184,7 @@ Route::prefix('v1/{country}')
             Route::prefix('wishlist')->name('customer.wishlist.')->group(function (): void {
                 Route::get('/', [WishlistController::class, 'index'])->name('index');
                 Route::post('/', [WishlistController::class, 'store'])->name('store');
-                Route::delete('{product_id}', [WishlistController::class, 'destroy'])->name('destroy');
+                Route::delete('{vendor_listing_id}', [WishlistController::class, 'destroy'])->name('destroy');
             });
 
             // Addresses
@@ -209,6 +209,7 @@ Route::prefix('v1/{country}')
 
             // Checkout
             Route::prefix('checkout')->name('customer.checkout.')->group(function (): void {
+                Route::get('shipping-methods', [CheckoutController::class, 'shippingMethods'])->name('shipping-methods');
                 Route::post('prepare', [CheckoutController::class, 'prepare'])->name('prepare');
                 Route::post('place-order', [CheckoutController::class, 'placeOrder'])
                     ->middleware('throttle:5,1')

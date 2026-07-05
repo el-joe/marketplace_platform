@@ -204,6 +204,11 @@ class ProductQueryService
             return [];
         }
 
-        return Wishlist::where('customer_id', $customerId)->pluck('product_id')->toArray();
+        return Wishlist::where('wishlists.customer_id', $customerId)
+            ->join('vendor_listings', 'vendor_listings.id', '=', 'wishlists.vendor_listing_id')
+            ->join('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
+            ->pluck('product_variants.product_id')
+            ->unique()
+            ->toArray();
     }
 }

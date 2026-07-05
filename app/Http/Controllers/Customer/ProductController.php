@@ -53,7 +53,7 @@ class ProductController extends Controller
 
         $paginator = $builder->paginate($perPage);
 
-        $wishlistIds = $this->listings->wishlistProductIds(auth('customer')->id());
+        $wishlistIds = $this->listings->wishlistListingIds(auth('customer')->id());
 
         $items = [];
         foreach ($paginator as $listing) {
@@ -63,7 +63,7 @@ class ProductController extends Controller
                 listing: $listing,
                 product: $product,
                 country: $country,
-                isWishlisted: in_array($product->id, $wishlistIds),
+                isWishlisted: in_array($listing->id, $wishlistIds),
                 isSponsored: false,
             );
         }
@@ -122,9 +122,9 @@ class ProductController extends Controller
         $product->setRelation('related', $this->relatedProducts($product, $country, $buyBoxPrice));
 
         $isWishlisted = false;
-        if ($customerId = auth('customer')->id()) {
+        if (($customerId = auth('customer')->id()) && ($buyBoxListing = $listings->first())) {
             $isWishlisted = Wishlist::where('customer_id', $customerId)
-                ->where('product_id', $product->id)
+                ->where('vendor_listing_id', $buyBoxListing->id)
                 ->exists();
         }
 

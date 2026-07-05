@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\CheckoutPrepareRequest;
 use App\Http\Requests\Customer\PlaceOrderRequest;
+use App\Http\Requests\Customer\ShippingMethodsRequest;
 use App\Http\Resources\Customer\CheckoutPreviewResource;
 use App\Http\Resources\Customer\OrderResource;
+use App\Http\Resources\Customer\ShippingMethodOptionResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Order;
 use App\Services\Customer\CartService;
@@ -24,7 +26,7 @@ class CheckoutController extends Controller
     public function prepare(CheckoutPrepareRequest $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->route('country');
+        $country  = $request->attributes->get('country');
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
         try {
@@ -38,10 +40,31 @@ class CheckoutController extends Controller
         return ApiResponse::success(new CheckoutPreviewResource($preview), 'Checkout preview ready');
     }
 
+    public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
+    {
+        $customer = auth('customer')->user();
+        $country  = $request->attributes->get('country');
+        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+
+        try {
+            $options = $this->checkoutService->availableShippingMethods(
+                $cart,
+                $customer,
+                $request->validated('address_id')
+            );
+        } catch (\DomainException $e) {
+            return ApiResponse::error($e->getMessage(), [], 422);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return ApiResponse::error('Address not found.', [], 404);
+        }
+
+        return ApiResponse::success(ShippingMethodOptionResource::collection($options), 'Shipping methods retrieved');
+    }
+
     public function placeOrder(PlaceOrderRequest $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->route('country');
+        $country  = $request->attributes->get('country');
         $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
 
         try {

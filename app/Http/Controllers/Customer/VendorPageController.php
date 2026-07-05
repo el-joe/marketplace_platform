@@ -51,16 +51,16 @@ class VendorPageController extends Controller
             ->orderBy('price')
             ->paginate($request->integer('per_page', 20));
 
-        $wishlistProductIds = $this->listings->wishlistProductIds(auth('customer')->id());
+        $wishlistListingIds = $this->listings->wishlistListingIds(auth('customer')->id());
 
-        $items = $paginator->getCollection()->map(function ($listing) use ($country, $wishlistProductIds) {
+        $items = $paginator->getCollection()->map(function ($listing) use ($country, $wishlistListingIds) {
             $product = $listing->productVariant->product;
 
             return $this->listings->toCardShape(
                 $listing,
                 $product,
                 $country,
-                in_array($product->id, $wishlistProductIds),
+                in_array($listing->id, $wishlistListingIds),
             );
         })->toArray();
 
