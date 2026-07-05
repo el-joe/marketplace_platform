@@ -22,6 +22,42 @@
     {{-- Right actions --}}
     <div class="flex items-center gap-3">
 
+        {{-- Language switcher --}}
+        <div class="flex items-center">
+
+            {{-- Hidden forms for each locale --}}
+            <form id="form-locale-ar" method="POST" action="{{ route('partner.locale.switch') }}" class="hidden">
+                @csrf
+                <input type="hidden" name="locale" value="ar">
+            </form>
+            <form id="form-locale-en" method="POST" action="{{ route('partner.locale.switch') }}" class="hidden">
+                @csrf
+                <input type="hidden" name="locale" value="en">
+            </form>
+
+            {{-- Pill toggle --}}
+            <div class="flex items-center bg-gray-100 rounded-xl p-0.5 gap-0.5">
+                <button
+                    type="button"
+                    onclick="document.getElementById('form-locale-ar').submit()"
+                    id="lang-btn-ar"
+                    class="px-3 py-1 rounded-lg text-xs font-bold transition-all duration-200
+                           {{ $isAr
+                                ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/60'
+                                : 'text-gray-400 hover:text-gray-600' }}"
+                >ع</button>
+                <button
+                    type="button"
+                    onclick="document.getElementById('form-locale-en').submit()"
+                    id="lang-btn-en"
+                    class="px-3 py-1 rounded-lg text-xs font-bold transition-all duration-200
+                           {{ !$isAr
+                                ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/60'
+                                : 'text-gray-400 hover:text-gray-600' }}"
+                >EN</button>
+            </div>
+        </div>
+
         {{-- Notifications --}}
         <x-notification-bell guard="vendor" />
 

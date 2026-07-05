@@ -53,6 +53,20 @@ Route::post('/logout', [PartnerAuthController::class, 'logout'])
     ->middleware('vendor.auth')
     ->name('logout');
 
+// ── Locale switch ─────────────────────────────────────────────────────────
+Route::post('/locale/switch', function (\Illuminate\Http\Request $request) {
+    $locale = $request->input('locale');
+    abort_unless(in_array($locale, config('app.available_locales', ['ar', 'en'])), 422);
+    session([
+        'locale'          => $locale,
+        'locale_override' => $locale,   // prevents SetVendorLocale from overriding
+        'dir'             => $locale === 'ar' ? 'rtl' : 'ltr',
+    ]);
+    \Carbon\Carbon::setLocale($locale);
+    \Illuminate\Support\Facades\App::setLocale($locale);
+    return back();
+})->name('locale.switch')->middleware('web');
+
 // ── Broadcasting auth (Reverb channel authorization for vendor guard) ────────────
 Broadcast::routes(['middleware' => ['web', 'vendor.auth']]);
 

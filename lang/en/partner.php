@@ -69,6 +69,8 @@ return [
         'my_warehouse'         => 'My Warehouse',
         'classifieds'          => 'Classifieds',
         'campaign_offers'      => 'Campaign Offers',
+        'layout_default'       => 'Default Layout',
+        'layout_compact'       => 'Compact Layout',
     ],
 
     'auth' => [

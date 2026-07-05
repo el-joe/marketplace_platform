@@ -69,6 +69,8 @@ return [
         'my_warehouse' => 'مستودعي',
         'classifieds' => 'الإعلانات المبوّبة',
         'campaign_offers' => 'عروض الحملات',
+        'layout_default' => 'التخطيط العادي',
+        'layout_compact' => 'التخطيط المضغوط',
     ],
 
     'orders' => [

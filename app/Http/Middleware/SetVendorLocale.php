@@ -11,6 +11,14 @@ class SetVendorLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // If the user explicitly switched language, honour that choice.
+        if (session()->has('locale_override')) {
+            $locale = session('locale_override');
+            app()->setLocale($locale);
+            session(['locale' => $locale]);
+            return $next($request);
+        }
+
         $vendorAdmin = Auth::guard('vendor')->user();
 
         if ($vendorAdmin && $vendorAdmin->vendor) {
