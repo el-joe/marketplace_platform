@@ -9,6 +9,8 @@ return [
         'cod_payments' => 'مدفوعاتي النقدية',
         'profile' => 'ملفي',
         'logout' => 'خروج',
+        'lang_en' => 'English',
+        'lang_ar' => 'العربية',
     ],
 
     'auth' => [

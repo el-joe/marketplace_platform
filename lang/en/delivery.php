@@ -9,6 +9,8 @@ return [
         'cod_payments' => 'My COD Payments',
         'profile' => 'Profile',
         'logout' => 'Logout',
+        'lang_en' => 'English',
+        'lang_ar' => 'العربية',
     ],
 
     'auth' => [

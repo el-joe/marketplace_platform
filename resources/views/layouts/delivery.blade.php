@@ -18,6 +18,8 @@
     @stack('head')
 
     <style>
+        [x-cloak] { display: none !important; }
+
         :root {
             --safe-bottom: env(safe-area-inset-bottom, 0px);
             --nav-height: calc(64px + var(--safe-bottom));
@@ -241,6 +243,57 @@
                 <div class="flex items-center gap-3">
                     @auth('delivery')
                         <x-notification-bell guard="delivery" />
+
+                        {{-- Language Switcher (AR / EN) --}}
+                        <div class="relative" x-data="{ open: false }">
+                            <button type="button" @click="open = !open"
+                                class="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold
+                                       text-slate-300 hover:text-yellow-400 hover:bg-slate-700/60 border border-slate-700
+                                       transition-colors -webkit-tap-highlight-color: transparent;">
+                                {{-- Globe icon --}}
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                        d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10
+                                           5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                                </svg>
+                                <span>{{ strtoupper(app()->getLocale()) }}</span>
+                            </button>
+
+                            <div x-show="open" @click.outside="open = false" x-cloak
+                                 class="absolute end-0 mt-2 w-36 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 z-50 py-1 overflow-hidden">
+                                {{-- English --}}
+                                <form method="POST" action="{{ route('delivery.locale.switch') }}">
+                                    @csrf
+                                    <input type="hidden" name="locale" value="en">
+                                    <button type="submit"
+                                        class="w-full text-start px-3 py-2.5 text-sm text-slate-200 hover:bg-slate-700
+                                               flex items-center justify-between transition-colors">
+                                        <span>{{ __('delivery.nav.lang_en') }}</span>
+                                        @if(app()->getLocale() === 'en')
+                                            <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        @endif
+                                    </button>
+                                </form>
+                                {{-- Arabic --}}
+                                <form method="POST" action="{{ route('delivery.locale.switch') }}">
+                                    @csrf
+                                    <input type="hidden" name="locale" value="ar">
+                                    <button type="submit"
+                                        class="w-full text-start px-3 py-2.5 text-sm text-slate-200 hover:bg-slate-700
+                                               flex items-center justify-between transition-colors">
+                                        <span>{{ __('delivery.nav.lang_ar') }}</span>
+                                        @if(app()->getLocale() === 'ar')
+                                            <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        @endif
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
                         @yield('header-right', '')
                     @endauth
                 </div>
