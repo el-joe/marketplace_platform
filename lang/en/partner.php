@@ -342,7 +342,6 @@ return [
         'status_rejected' => 'Rejected',
         'status_draft' => 'Draft',
         'status_active' => 'Active',
-        
         'confirm_pause_campaign' => 'Do you want to pause this campaign?',
         'confirm_resume_campaign' => 'Do you want to resume this campaign?',
         'create_campaign' => 'Create Campaign',
