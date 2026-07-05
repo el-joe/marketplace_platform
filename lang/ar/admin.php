@@ -6410,6 +6410,15 @@ return [
         'satisfaction_score'    => 'درجة الرضا',
         'tickets_by_category'   => 'التذاكر حسب الفئة',
         'resolution_trend'      => 'اتجاه الحل',
+        'vs_prev_period'        => 'مقابل الفترة السابقة',
+        'vendor_payouts'        => 'مدفوعات التجار',
+        'refunds'               => 'المبالغ المستردة',
+        'usd_equiv'             => 'ما يعادله بالدولار',
+        'equiv_of'              => 'ما يعادل :currency',
+        'breach_rate_pct'       => 'معدل الإخلال %',
+        'tickets'               => 'التذاكر',
+        'created'               => 'تم الإنشاء',
+        'resolved'              => 'تم الحل',
     ],
 
     // ─── Admin Product Listings (Now Nawy) ────────────────────────────────────

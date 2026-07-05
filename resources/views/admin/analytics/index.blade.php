@@ -4,6 +4,31 @@
     @vite('resources/js/admin/analytics.js')
 @endpush
 
+@push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            vsPrevPeriod: @json(__('admin.analytics.vs_prev_period')),
+            gmvLabel: @json(__('admin.analytics.gmv_col')),
+            platformRevenue: @json(__('admin.analytics.platform_revenue')),
+            revenueLabel: @json(__('admin.analytics.revenue')),
+            vendorPayouts: @json(__('admin.analytics.vendor_payouts')),
+            refunds: @json(__('admin.analytics.refunds')),
+            ordersLabel: @json(__('admin.analytics.orders')),
+            newCustomersLabel: @json(__('admin.analytics.new_customers')),
+            breachRatePct: @json(__('admin.analytics.breach_rate_pct')),
+            spendLabel: @json(__('admin.analytics.spend')),
+            ticketsLabel: @json(__('admin.analytics.tickets')),
+            returnsLabel: @json(__('admin.analytics.tab_returns')),
+            createdLabel: @json(__('admin.analytics.created')),
+            resolvedLabel: @json(__('admin.analytics.resolved')),
+            usdEquiv: @json(__('admin.analytics.usd_equiv')),
+            equivOf: @json(__('admin.analytics.equiv_of')),
+            noData: @json(__('admin.no_data')),
+        });
+    </script>
+@endpush
+
 @section('title', __('admin.analytics.title'))
 
 @section('content')

@@ -76,7 +76,10 @@ function formatPct(v) {
  */
 function formatMoneyWithCurrency(metric) {
     const currency = metric.currency ?? 'USD';
-    const label = metric.is_usd_equivalent ? `${formatMoney(metric.value)} ${currency} equiv.` : `${formatMoney(metric.value)} ${currency}`;
+    const equivOf = window.TRANSLATIONS?.equivOf || ':currency equiv.';
+    const label = metric.is_usd_equivalent
+        ? `${formatMoney(metric.value)} ${equivOf.replace(':currency', currency)}`
+        : `${formatMoney(metric.value)} ${currency}`;
     return label;
 }
 
@@ -86,7 +89,8 @@ function changeHtml(metric) {
     const arrow = isUp ? '↑' : '↓';
     const cls = isUp ? 'text-success-600' : 'text-danger-600';
     const sign = isUp ? '+' : '';
-    return `<p class="mt-2 text-xs ${cls} font-medium">${arrow} ${sign}${metric.change_pct.toFixed(1)}% <span class="text-gray-400 font-normal">vs prev. period</span></p>`;
+    const vsPrevPeriod = window.TRANSLATIONS?.vsPrevPeriod || 'vs prev. period';
+    return `<p class="mt-2 text-xs ${cls} font-medium">${arrow} ${sign}${metric.change_pct.toFixed(1)}% <span class="text-gray-400 font-normal">${vsPrevPeriod}</span></p>`;
 }
 
 function updateKpiCard(containerId, value, change) {
@@ -150,13 +154,15 @@ function loadRevenueChart(rangePeriod) {
 
         if (d.datasets_by_currency) {
             // Multi-currency: one line per currency for GMV.
+            const gmvLabel = window.TRANSLATIONS?.gmvLabel || 'GMV';
+            const revenueLabel = window.TRANSLATIONS?.revenueLabel || 'Revenue';
             const currencies = d.currencies;
             const datasets = currencies.flatMap((currency, i) => {
                 const color = CURRENCY_COLORS[i % CURRENCY_COLORS.length];
                 const ds = d.datasets_by_currency[currency];
                 return [
                     {
-                        label: `GMV (${currency})`,
+                        label: `${gmvLabel} (${currency})`,
                         currency,
                         data: ds.gmv,
                         borderColor: color,
@@ -165,7 +171,7 @@ function loadRevenueChart(rangePeriod) {
                         tension: 0.3,
                     },
                     {
-                        label: `Revenue (${currency})`,
+                        label: `${revenueLabel} (${currency})`,
                         currency,
                         data: ds.commission,
                         borderColor: color,
@@ -192,13 +198,17 @@ function loadRevenueChart(rangePeriod) {
         } else {
             // Single currency (country filter applied).
             const currency = d.currency ?? '';
+            const gmvLabel = window.TRANSLATIONS?.gmvLabel || 'GMV';
+            const platformRevenueLabel = window.TRANSLATIONS?.platformRevenue || 'Platform Revenue';
+            const vendorPayoutsLabel = window.TRANSLATIONS?.vendorPayouts || 'Vendor Payouts';
+            const refundsLabel = window.TRANSLATIONS?.refunds || 'Refunds';
             revenueChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: d.labels,
                     datasets: [
                         {
-                            label: `GMV (${currency})`,
+                            label: `${gmvLabel} (${currency})`,
                             currency,
                             data: d.gmv,
                             borderColor: '#6366f1',
@@ -207,7 +217,7 @@ function loadRevenueChart(rangePeriod) {
                             tension: 0.3,
                         },
                         {
-                            label: `Platform Revenue (${currency})`,
+                            label: `${platformRevenueLabel} (${currency})`,
                             currency,
                             data: d.commission,
                             borderColor: '#22c55e',
@@ -215,7 +225,7 @@ function loadRevenueChart(rangePeriod) {
                             tension: 0.3,
                         },
                         {
-                            label: `Vendor Payouts (${currency})`,
+                            label: `${vendorPayoutsLabel} (${currency})`,
                             currency,
                             data: d.payouts,
                             borderColor: '#f59e0b',
@@ -223,7 +233,7 @@ function loadRevenueChart(rangePeriod) {
                             tension: 0.3,
                         },
                         {
-                            label: `Refunds (${currency})`,
+                            label: `${refundsLabel} (${currency})`,
                             currency,
                             data: d.refunds,
                             borderColor: '#ef4444',
@@ -287,7 +297,7 @@ function loadPaymentMethods() {
                 labels: d.labels,
                 datasets: [
                     {
-                        label: 'Orders',
+                        label: window.TRANSLATIONS?.ordersLabel || 'Orders',
                         data: d.counts,
                         backgroundColor: '#6366f1',
                         borderRadius: 4,
@@ -313,13 +323,14 @@ function loadTopCategories() {
         if (!ctx) return;
 
         // revenues are now USD-equivalent for cross-currency comparability.
+        const revenueUsdEquivLabel = `${window.TRANSLATIONS?.revenueLabel || 'Revenue'} (${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'})`;
         categoryChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: d.labels,
                 datasets: [
                     {
-                        label: 'Revenue (USD equiv.)',
+                        label: revenueUsdEquivLabel,
                         data: d.revenues,
                         backgroundColor: '#22c55e',
                         borderRadius: 4,
@@ -347,7 +358,7 @@ function loadTopProducts() {
         if (!tbody) return;
 
         if (!res.data || !res.data.length) {
-            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-gray-400 text-sm">No data</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-400 text-sm">${window.TRANSLATIONS?.noData || 'No data'}</td></tr>`;
             return;
         }
 
@@ -378,7 +389,7 @@ function loadTopVendors() {
         if (!tbody) return;
 
         if (!res.data || !res.data.length) {
-            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-gray-400 text-sm">No data</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-gray-400 text-sm">${window.TRANSLATIONS?.noData || 'No data'}</td></tr>`;
             return;
         }
 
@@ -424,7 +435,7 @@ function loadCustomerStats() {
                 labels: d.acquisition_chart.labels,
                 datasets: [
                     {
-                        label: 'New Customers',
+                        label: window.TRANSLATIONS?.newCustomersLabel || 'New Customers',
                         data: d.acquisition_chart.counts,
                         backgroundColor: '#6366f1',
                         borderRadius: 3,
@@ -455,7 +466,7 @@ function loadSearchAnalytics() {
         if (!tbody) return;
 
         if (!d.top_queries || !d.top_queries.length) {
-            tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-4 text-center text-gray-400 text-xs">No data</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-400 text-xs">${window.TRANSLATIONS?.noData || 'No data'}</td></tr>`;
             return;
         }
 
@@ -506,7 +517,7 @@ function loadSlaMetrics() {
             data: {
                 labels: d.trend.labels,
                 datasets: [{
-                    label: 'Breach Rate %',
+                    label: window.TRANSLATIONS?.breachRatePct || 'Breach Rate %',
                     data: d.trend.breach_rates,
                     borderColor: '#ef4444',
                     backgroundColor: 'rgba(239,68,68,0.08)',
@@ -535,10 +546,10 @@ function loadAdPerformance() {
         // Show per-country spend breakdown if multiple countries, otherwise native amount.
         const spendLabel = d.spend_by_country.length === 1
             ? `${formatMoney(d.total_spend)} ${d.spend_by_country[0].currency}`
-            : `${formatMoney(d.total_spend)} USD equiv.`;
+            : `${formatMoney(d.total_spend)} ${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'}`;
         const revenueLabel = d.spend_by_country.length === 1
             ? `${formatMoney(d.total_revenue)} ${d.spend_by_country[0].currency}`
-            : `${formatMoney(d.total_revenue)} USD equiv.`;
+            : `${formatMoney(d.total_revenue)} ${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'}`;
         setText('ads-spend', spendLabel);
         setText('ads-revenue', revenueLabel);
 
@@ -563,18 +574,20 @@ function loadAdPerformance() {
         const pc = d.performance_chart;
 
         if (pc.datasets_by_currency) {
+            const spendLabel = window.TRANSLATIONS?.spendLabel || 'Spend';
+            const revenueLabel = window.TRANSLATIONS?.revenueLabel || 'Revenue';
             const currencies = pc.currencies;
             const datasets = currencies.flatMap((currency, i) => {
                 const color = CURRENCY_COLORS[i % CURRENCY_COLORS.length];
                 return [
                     {
-                        label: `Spend (${currency})`,
+                        label: `${spendLabel} (${currency})`,
                         data: pc.datasets_by_currency[currency].spend,
                         borderColor: color,
                         tension: 0.3,
                     },
                     {
-                        label: `Revenue (${currency})`,
+                        label: `${revenueLabel} (${currency})`,
                         data: pc.datasets_by_currency[currency].revenue,
                         borderColor: color,
                         borderDash: [4, 2],
@@ -594,13 +607,15 @@ function loadAdPerformance() {
             });
         } else {
             const currency = pc.currency ?? '';
+            const spendLabel = window.TRANSLATIONS?.spendLabel || 'Spend';
+            const revenueLabel = window.TRANSLATIONS?.revenueLabel || 'Revenue';
             adsPerfChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: pc.labels,
                     datasets: [
-                        { label: `Spend (${currency})`, data: pc.spend, borderColor: '#f59e0b', tension: 0.3 },
-                        { label: `Revenue (${currency})`, data: pc.revenue, borderColor: '#22c55e', tension: 0.3 },
+                        { label: `${spendLabel} (${currency})`, data: pc.spend, borderColor: '#f59e0b', tension: 0.3 },
+                        { label: `${revenueLabel} (${currency})`, data: pc.revenue, borderColor: '#22c55e', tension: 0.3 },
                     ],
                 },
                 options: {
@@ -625,10 +640,10 @@ function loadFlashSales() {
         // Revenue and discount: show per-currency if multiple, otherwise native + currency.
         const revStr = (d.total_revenue_by_currency || []).length === 1
             ? `${formatMoney(d.total_revenue_by_currency[0].revenue)} ${d.total_revenue_by_currency[0].currency}`
-            : `${formatMoney(d.total_revenue)} USD equiv.`;
+            : `${formatMoney(d.total_revenue)} ${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'}`;
         const discStr = (d.total_discount_by_currency || []).length === 1
             ? `${formatMoney(d.total_discount_by_currency[0].discount)} ${d.total_discount_by_currency[0].currency}`
-            : `${formatMoney(d.total_discount)} USD equiv.`;
+            : `${formatMoney(d.total_discount)} ${window.TRANSLATIONS?.usdEquiv || 'USD equiv.'}`;
         setText('flash-revenue', revStr);
         setText('flash-discount', discStr);
 
@@ -699,7 +714,7 @@ function loadReturns() {
                 data: {
                     labels: d.monthly_trend.labels,
                     datasets: [{
-                        label: 'Returns',
+                        label: window.TRANSLATIONS?.returnsLabel || 'Returns',
                         data: d.monthly_trend.counts,
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239,68,68,0.08)',
@@ -736,7 +751,7 @@ function loadSupportMetrics() {
                 data: {
                     labels: (d.by_category || []).map(r => r.category),
                     datasets: [{
-                        label: 'Tickets',
+                        label: window.TRANSLATIONS?.ticketsLabel || 'Tickets',
                         data: (d.by_category || []).map(r => r.count),
                         backgroundColor: '#6366f1',
                         borderRadius: 4,
@@ -761,13 +776,13 @@ function loadSupportMetrics() {
                     labels: d.resolution_trend.labels,
                     datasets: [
                         {
-                            label: 'Created',
+                            label: window.TRANSLATIONS?.createdLabel || 'Created',
                             data: d.resolution_trend.created,
                             borderColor: '#6366f1',
                             tension: 0.3,
                         },
                         {
-                            label: 'Resolved',
+                            label: window.TRANSLATIONS?.resolvedLabel || 'Resolved',
                             data: d.resolution_trend.resolved,
                             borderColor: '#22c55e',
                             tension: 0.3,

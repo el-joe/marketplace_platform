@@ -6416,6 +6416,15 @@ return [
         'satisfaction_score'    => 'Satisfaction Score',
         'tickets_by_category'   => 'Tickets by Category',
         'resolution_trend'      => 'Resolution Trend',
+        'vs_prev_period'        => 'vs prev. period',
+        'vendor_payouts'        => 'Vendor Payouts',
+        'refunds'               => 'Refunds',
+        'usd_equiv'             => 'USD equiv.',
+        'equiv_of'              => ':currency equiv.',
+        'breach_rate_pct'       => 'Breach Rate %',
+        'tickets'               => 'Tickets',
+        'created'               => 'Created',
+        'resolved'              => 'Resolved',
     ],
 
     // ─── Admin Product Listings (Now Nawy) ────────────────────────────────────
