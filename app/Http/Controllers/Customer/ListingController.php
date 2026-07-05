@@ -34,8 +34,10 @@ class ListingController extends Controller
         private readonly ProductViewService $viewService,
     ) {}
 
-    public function show(Request $request, Country $country, string $type, string $slug): JsonResponse
+    public function show(Request $request,$country, string $type, string $slug): JsonResponse
     {
+        $country = $request->attributes->get("country");
+        
         return match ($type) {
             'product'    => $this->showProduct($request, $country, $slug),
             'classified' => $this->showClassified($request, $country, $slug),

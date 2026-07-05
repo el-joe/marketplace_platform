@@ -77,19 +77,19 @@ class UnifiedCategoryService
     }
 
     /**
-     * Single unified node by slug + source_type, without children.
+     * Single unified node by id + source_type, without children.
      */
-    public function findBySlug(string $slug, string $sourceType): ?array
+    public function findById(string $id, string $sourceType): ?array
     {
         $category = match ($sourceType) {
-            'product' => Category::where('slug', $slug)
+            'product' => Category::where('id', $id)
                 ->where('is_active', 1)
                 ->where('is_visible', 1)
                 ->first(),
-            'classified' => ClassifiedCategory::where('slug', $slug)
+            'classified' => ClassifiedCategory::where('id', $id)
                 ->where('is_active', 1)
                 ->first(),
-            'travel' => TravelCategory::where('slug', $slug)
+            'travel' => TravelCategory::where('id', $id)
                 ->where('is_active', 1)
                 ->first(),
             default => null,
@@ -229,8 +229,8 @@ class UnifiedCategoryService
     private function linkFor(mixed $category, string $sourceType): string
     {
         return match ($sourceType) {
-            'product' => "/browse/product/{$category->slug}",
-            'classified' => "/browse/classified/{$category->slug}",
+            'product' => "/browse/product/{$category->id}",
+            'classified' => "/browse/classified/{$category->id}",
             'travel' => '/travel',
         };
     }

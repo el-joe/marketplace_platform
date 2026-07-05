@@ -27,9 +27,9 @@ class BrowseController extends Controller
     ) {}
 
     /**
-     * GET /api/customer/v1/{country}/browse/{type}/{slug}
+     * GET /api/customer/v1/{country}/browse/{type}/{id}
      */
-    public function show(Request $request, $country, string $type, string $slug): JsonResponse
+    public function show(Request $request, $country, string $type, string $id): JsonResponse
     {
         $country = $request->attributes->get('country');
 
@@ -42,9 +42,9 @@ class BrowseController extends Controller
         }
 
         return match ($type) {
-            'product'    => $this->browseProduct($request, $country, $slug),
-            'classified' => $this->browseClassified($request, $country, $slug),
-            'travel'     => $this->browseTravel($request, $country, $slug),
+            'product'    => $this->browseProduct($request, $country, $id),
+            'classified' => $this->browseClassified($request, $country, $id),
+            'travel'     => $this->browseTravel($request, $country, $id),
         };
     }
 
@@ -60,9 +60,9 @@ class BrowseController extends Controller
 
     // ── Products ──────────────────────────────────────────────────────────────
 
-    private function browseProduct(Request $request, Country $country, string $slug): JsonResponse
+    private function browseProduct(Request $request, Country $country, string $id): JsonResponse
     {
-        $category = Category::where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $category = Category::where('id', $id)->where('is_active', true)->firstOrFail();
 
         $filters     = $request->only([
             'price_min', 'price_max', 'brand', 'rating_min', 'condition',
@@ -72,7 +72,7 @@ class BrowseController extends Controller
         $page        = $request->integer('page', 1);
         $categoryIds = $this->categories->getDescendantIds($category);
 
-        $categoryNode = $this->unifiedCategories->findBySlug($slug, 'product');
+        $categoryNode = $this->unifiedCategories->findById($id, 'product');
 
         $pageBuilder = $this->pageBuilder->resolve(
             $country,
@@ -130,9 +130,9 @@ class BrowseController extends Controller
 
     // ── Classifieds ───────────────────────────────────────────────────────────
 
-    private function browseClassified(Request $request, Country $country, string $slug): JsonResponse
+    private function browseClassified(Request $request, Country $country, string $id): JsonResponse
     {
-        $categoryNode = $this->unifiedCategories->findBySlug($slug, 'classified');
+        $categoryNode = $this->unifiedCategories->findById($id, 'classified');
 
         if (!$categoryNode) {
             return response()->json(['success' => false, 'message' => 'Category not found.'], 404);
@@ -165,7 +165,7 @@ class BrowseController extends Controller
                     'name_ar'     => $category->name_ar,
                     'slug'        => $category->slug,
                     'icon'        => $category->icon,
-                    'link'        => "/browse/classified/{$category->slug}",
+                    'link'        => "/browse/classified/{$category->id}",
                 ],
                 'page_builder' => $pageBuilder,
                 'listings'     => [
@@ -183,12 +183,12 @@ class BrowseController extends Controller
 
     // ── Travel ────────────────────────────────────────────────────────────────
 
-    private function browseTravel(Request $request, Country $country, string $slug): JsonResponse
+    private function browseTravel(Request $request, Country $country, string $id): JsonResponse
     {
         $travelCategory = null;
 
-        if ($slug !== 'all' && $slug !== '') {
-            $travelCategory = TravelCategory::where('slug', $slug)->where('is_active', 1)->first();
+        if ($id !== 'all' && $id !== '') {
+            $travelCategory = TravelCategory::where('id', $id)->where('is_active', 1)->first();
 
             if (!$travelCategory) {
                 return response()->json(['success' => false, 'message' => 'Category not found.'], 404);

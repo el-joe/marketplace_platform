@@ -59,8 +59,8 @@ Route::prefix('v1/{country}')
             ->name('customer.listing.show');
 
         // ── Unified browse (public) ───────────────────────────────────────────
-        // GET /browse/{type}/{slug}  — type IN (product, classified, travel)
-        Route::get('browse/{type}/{slug}', [BrowseController::class, 'show'])->name('customer.browse.show');
+        // GET /browse/{type}/{id}  — type IN (product, classified, travel); id = category UUID
+        Route::get('browse/{type}/{id}', [BrowseController::class, 'show'])->name('customer.browse.show');
 
         // GET /travel — all active travel packages, unfiltered (same as browse/travel/all)
         Route::get('travel', [BrowseController::class, 'travelIndex'])->name('customer.travel.index');
@@ -93,15 +93,22 @@ Route::prefix('v1/{country}')
             [ListingController::class, 'signContract']
         )->middleware('auth:customer')->name('customer.listings.travel.bookings.contract');
 
-        // Legacy alias: GET /categories/{slug} → browse/product/{slug}
+        // Legacy alias: GET /categories/{slug} → browse/product/{id}
         Route::get(
             'categories/{slug}',
-            fn(Country $country, string $slug) =>
-            redirect()->route('customer.browse.show', [
-                'country' => $country->site_code,
-                'type' => 'product',
-                'slug' => $slug,
-            ], 301)
+            function (\Illuminate\Http\Request $request, $country, string $slug) {
+                $country = $request->attributes->get('country');
+
+                $category = \App\Models\Category::where('slug', $slug)
+                    ->where('is_active', true)
+                    ->firstOrFail();
+
+                return redirect()->route('customer.browse.show', [
+                    'country' => $country->site_code,
+                    'type' => 'product',
+                    'id' => $category->id,
+                ], 301);
+            }
         )->name('customer.categories.show.legacy');
 
         // ── Categories (public) ───────────────────────────────────────────────
@@ -117,7 +124,7 @@ Route::prefix('v1/{country}')
             ->name('customer.vendors.show');
 
         // ── Brand page (public) ───────────────────────────────────────────────
-        Route::get('brands/{slug}', [BrandPageController::class, 'show'])
+        Route::get('brands/{id}', [BrandPageController::class, 'show'])
             ->name('customer.brands.show');
 
         // ── Search (public) ───────────────────────────────────────────────────

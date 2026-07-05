@@ -15,8 +15,9 @@ class PageController extends Controller
         private readonly PageRendererService $renderer,
     ) {}
 
-    public function show(string $type, Request $request, Country $country): JsonResponse
+    public function show(string $type, Request $request,$country): JsonResponse
     {
+        $country = $request->attributes->get('country');
         $slug      = $request->query('slug');
         $sessionId = $request->header('X-Session-Id') ?? $request->cookie('session_id') ?? session()->getId();
         $customer  = $request->user('customer');

@@ -23,9 +23,11 @@ class BrandPageController extends Controller
      * GET /brands/{slug}
      * Brand page: brand metadata, page_builder, and live listing grid.
      */
-    public function show(Request $request, Country $country, string $slug): JsonResponse
+    public function show(Request $request, $country, string $id): JsonResponse
     {
-        $brand = Brand::where('slug', $slug)
+        $country = $request->attributes->get("country");
+
+        $brand = Brand::where('id', $id)
             ->where('is_active', true)
             ->firstOrFail();
 

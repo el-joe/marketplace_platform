@@ -22,8 +22,9 @@ class VendorPageController extends Controller
      * GET /vendors/{vendor_id}
      * Vendor storefront page: vendor metadata, page_builder, and live listing grid.
      */
-    public function show(Request $request, Country $country, string $vendorId): JsonResponse
+    public function show(Request $request,$country, string $vendorId): JsonResponse
     {
+        $country = $request->attributes->get('country');
         $vendor = Vendor::where('id', $vendorId)
             ->where('global_status', 'active')
             ->with('country:id,name_en,name_ar')
