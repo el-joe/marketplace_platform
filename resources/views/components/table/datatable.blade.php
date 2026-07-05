@@ -55,8 +55,8 @@ pageLength, order, selectable, responsive, optionsJson
                         @include('components.table.filter-field', ['filter' => $filter, 'tableId' => $id])
                     @endforeach
                     <div class="flex items-end gap-2">
-                        <button type="submit" class="btn btn-primary btn-sm">Apply</button>
-                        <button type="button" id="{{ $id }}-clear-filters" class="btn btn-ghost btn-sm">Clear</button>
+                        <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.apply') }}</button>
+                        <button type="button" id="{{ $id }}-clear-filters" class="btn btn-ghost btn-sm">{{ __('admin.clear') }}</button>
                     </div>
                 </form>
             </x-card>
@@ -68,19 +68,19 @@ pageLength, order, selectable, responsive, optionsJson
         <div id="{{ $id }}-bulk-bar" class="hidden items-center gap-3 bg-primary-50 border border-primary-200
                                                             rounded-lg px-4 py-3">
             <span id="{{ $id }}-selected-count" class="text-sm font-medium text-primary-700">
-                0 selected
+                {{ str_replace(':count', 0, __('admin.selected_count')) }}
             </span>
             <div class="w-px h-4 bg-primary-300"></div>
             @foreach($bulkActions as $action)
                 <button type="button" class="btn btn-sm {{ $action['class'] ?? 'btn-ghost' }}"
                     data-bulk-action="{{ $action['id'] }}" data-table="{{ $id }}"
                     data-confirm="{{ $action['confirm'] ?? true }}"
-                    data-confirm-message="{{ $action['confirmMessage'] ?? 'Are you sure you want to perform this action on the selected items?' }}">
+                    data-confirm-message="{{ $action['confirmMessage'] ?? __('admin.confirm_bulk_action_default') }}">
                     {{ $action['label'] }}
                 </button>
             @endforeach
             <button type="button" id="{{ $id }}-deselect-all" class="ml-auto text-xs text-primary-600 hover:underline">
-                Deselect all
+                {{ __('admin.deselect_all') }}
             </button>
         </div>
     @endif
@@ -95,7 +95,7 @@ pageLength, order, selectable, responsive, optionsJson
                             <th class="w-10 px-4 py-3 text-center">
                                 <input type="checkbox" id="{{ $id }}-select-all" class="rounded border-gray-300 text-primary-600
                                                                                       focus:ring-primary-500"
-                                    title="Select all on this page">
+                                    title="{{ __('admin.select_all_page') }}">
                             </th>
                         @endif
                         @foreach($columns as $column)

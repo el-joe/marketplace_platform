@@ -30,8 +30,8 @@ class AttributeController extends Controller
     {
         return view('admin.attributes.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Attributes'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.attributes')],
             ],
         ]);
     }
@@ -82,9 +82,9 @@ class AttributeController extends Controller
     {
         return view('admin.attributes.create', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Attributes', 'url' => route('admin.attributes.index')],
-                ['label' => 'New Attribute'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.attributes'), 'url' => route('admin.attributes.index')],
+                ['label' => __('admin.attributes_section.new_attribute')],
             ],
         ]);
     }
@@ -138,14 +138,14 @@ class AttributeController extends Controller
             }
 
             return redirect()->route('admin.attributes.index')
-                ->with('success', 'Attribute created successfully.');
+                ->with('success', __('admin.attributes_section.created_success'));
 
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Attribute creation failed', ['error' => $e->getMessage()]);
 
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Failed to create attribute.'], 500);
+                return response()->json(['message' => __('admin.attributes_section.create_failed')], 500);
             }
 
             return back()->withInput()->withErrors(['error' => $e->getMessage()]);
@@ -162,8 +162,8 @@ class AttributeController extends Controller
 
         return view('admin.attributes.edit', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Attributes', 'url' => route('admin.attributes.index')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.attributes'), 'url' => route('admin.attributes.index')],
                 ['label' => e($attributeModel->name_en)],
             ],
             'attribute' => $attributeModel,
@@ -189,12 +189,12 @@ class AttributeController extends Controller
 
             DB::commit();
 
-            return response()->json(['success' => true, 'message' => 'Attribute updated successfully.']);
+            return response()->json(['success' => true, 'message' => __('admin.attributes_section.updated_success')]);
 
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Attribute update failed', ['id' => $attribute, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to update attribute.'], 500);
+            return response()->json(['message' => __('admin.attributes_section.update_failed')], 500);
         }
     }
 
@@ -212,7 +212,7 @@ class AttributeController extends Controller
 
         if ($inUse > 0) {
             return response()->json([
-                'message' => "Cannot delete: this attribute is used by {$inUse} product variant(s).",
+                'message' => trans_choice('admin.attributes_section.cannot_delete_in_use', $inUse, ['count' => $inUse]),
             ], 422);
         }
 
@@ -220,7 +220,7 @@ class AttributeController extends Controller
         CategoryAttribute::query()->where('attribute_id', $attribute)->delete();
         Attribute::query()->where('id', $attribute)->delete();
 
-        return response()->json(['success' => true, 'message' => 'Attribute deleted.']);
+        return response()->json(['success' => true, 'message' => __('admin.attributes_section.deleted_success')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -283,7 +283,7 @@ class AttributeController extends Controller
                 'updated_at' => now(),
             ]);
 
-        return response()->json(['success' => true, 'message' => 'Value updated.']);
+        return response()->json(['success' => true, 'message' => __('admin.attributes_section.value_updated')]);
     }
 
     public function destroyValue(string $attribute, string $value): JsonResponse
@@ -293,7 +293,9 @@ class AttributeController extends Controller
             ->count();
 
         if ($inUse > 0) {
-            return response()->json(['message' => "Cannot delete: value is used by {$inUse} variant(s)."], 422);
+            return response()->json([
+                'message' => trans_choice('admin.attributes_section.cannot_delete_value_in_use', $inUse, ['count' => $inUse]),
+            ], 422);
         }
 
         AttributeValue::query()
@@ -301,7 +303,7 @@ class AttributeController extends Controller
             ->where('attribute_id', $attribute)
             ->delete();
 
-        return response()->json(['success' => true, 'message' => 'Value deleted.']);
+        return response()->json(['success' => true, 'message' => __('admin.attributes_section.value_deleted')]);
     }
 
     public function reorderValues(Request $request, string $attribute): JsonResponse
@@ -331,11 +333,11 @@ class AttributeController extends Controller
     private function columnDefinitions(): array
     {
         return [
-            ['name' => 'name_en', 'data' => 'name_en', 'title' => 'Name'],
-            ['name' => 'code', 'data' => 'code', 'title' => 'Code'],
-            ['name' => 'type', 'data' => 'type', 'title' => 'Type', 'searchable' => false],
-            ['name' => 'unit', 'data' => 'unit', 'title' => 'Unit', 'searchable' => false],
-            ['name' => 'created_at', 'data' => 'created_at', 'title' => 'Created', 'searchable' => false],
+            ['name' => 'name_en', 'data' => 'name_en', 'title' => __('common.name')],
+            ['name' => 'code', 'data' => 'code', 'title' => __('admin.attributes_section.code')],
+            ['name' => 'type', 'data' => 'type', 'title' => __('admin.attributes_section.type'), 'searchable' => false],
+            ['name' => 'unit', 'data' => 'unit', 'title' => __('admin.attributes_section.unit_col'), 'searchable' => false],
+            ['name' => 'created_at', 'data' => 'created_at', 'title' => __('admin.created_at'), 'searchable' => false],
             ['name' => 'actions', 'data' => 'actions', 'title' => '', 'orderable' => false, 'searchable' => false],
         ];
     }

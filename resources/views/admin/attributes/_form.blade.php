@@ -270,3 +270,35 @@
     </div>{{-- /flex row --}}
 
 </div>{{-- /x-data root --}}
+
+@push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            valueEnLabel: @json(__('admin.attributes_section.value_en')),
+            valueArLabel: @json(__('admin.attributes_section.value_ar')),
+            hexColorLabel: @json(__('admin.attributes_section.hex_color')),
+            valueEnPlaceholder: @json(__('admin.attributes_section.value_en_placeholder')),
+            valueArPlaceholder: @json(__('admin.attributes_section.value_ar_placeholder')),
+            remove: @json(__('admin.remove')),
+            valueEnRequired: @json(__('admin.attributes_section.value_en_required')),
+            valueAdded: @json(__('admin.attributes_section.value_added')),
+            valueAddFailed: @json(__('admin.attributes_section.value_add_failed')),
+            deleteValueConfirm: @json(__('admin.attributes_section.delete_value_confirm')),
+            deleteValueTitle: @json(__('admin.attributes_section.delete_value_title')),
+            valueDeleted: @json(__('admin.attributes_section.value_deleted')),
+            valueDeleteFailed: @json(__('admin.attributes_section.value_delete_failed')),
+            promptValueEn: @json(__('admin.attributes_section.prompt_value_en')),
+            promptValueAr: @json(__('admin.attributes_section.prompt_value_ar')),
+            valueUpdated: @json(__('admin.attributes_section.value_updated')),
+            valueUpdateFailed: @json(__('admin.attributes_section.value_update_failed')),
+            edit: @json(__('common.edit')),
+            delete: @json(__('common.delete')),
+            savingEllipsis: @json(__('admin.attributes_section.saving_ellipsis')),
+            saveChanges: @json(__('admin.attributes_section.save_changes')),
+            attributeSaved: @json(__('admin.attributes_section.attribute_saved')),
+            validationError: @json(__('admin.attributes_section.validation_error')),
+            saveFailedGeneric: @json(__('admin.attributes_section.save_failed_generic')),
+        });
+    </script>
+@endpush

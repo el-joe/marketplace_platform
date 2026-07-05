@@ -12,6 +12,10 @@ import $ from 'jquery';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function T() {
+    return window.TRANSLATIONS || {};
+}
+
 function csrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 }
@@ -40,9 +44,10 @@ function initDatatableDelete() {
         const url = (window.ROUTES_ATTR?.destroy ?? '').replace(':id', id);
 
         if (!url) return;
+        const confirmMessage = T().deleteConfirm || 'Delete this attribute? This cannot be undone.';
         const confirmed = window.confirmDelete
-            ? await window.confirmDelete('Delete this attribute? This cannot be undone.', { title: 'Delete attribute?' })
-            : window.confirm('Delete this attribute? This cannot be undone.');
+            ? await window.confirmDelete(confirmMessage, { title: T().deleteConfirmTitle || 'Delete attribute?' })
+            : window.confirm(confirmMessage);
         if (!confirmed) return;
 
         $.ajax({
@@ -50,10 +55,10 @@ function initDatatableDelete() {
             method: 'DELETE',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         }).done(function (res) {
-            window.Toast?.success(res.message || 'Attribute deleted.');
+            window.Toast?.success(res.message || T().deletedSuccess || 'Attribute deleted.');
             window.reloadDataTable?.('attributes-table');
         }).fail(function (xhr) {
-            window.Toast?.error(xhr.responseJSON?.message || 'Failed to delete attribute.');
+            window.Toast?.error(xhr.responseJSON?.message || T().deleteFailed || 'Failed to delete attribute.');
         });
     });
 }
@@ -73,20 +78,20 @@ function initCreateValueRows() {
         const html = `
             <div class="value-row grid grid-cols-12 gap-2 items-end">
                 <div class="col-span-4">
-                    <label class="text-xs font-medium text-gray-600">Value (EN)</label>
-                    <input type="text" name="values[${idx}][value_en]" class="input w-full mt-1" placeholder="English" />
+                    <label class="text-xs font-medium text-gray-600">${esc(T().valueEnLabel || 'Value (EN)')}</label>
+                    <input type="text" name="values[${idx}][value_en]" class="input w-full mt-1" placeholder="${esc(T().valueEnPlaceholder || 'English')}" />
                 </div>
                 <div class="col-span-4">
-                    <label class="text-xs font-medium text-gray-600">Value (AR)</label>
-                    <input type="text" name="values[${idx}][value_ar]" class="input w-full mt-1" placeholder="العربية" dir="rtl" />
+                    <label class="text-xs font-medium text-gray-600">${esc(T().valueArLabel || 'Value (AR)')}</label>
+                    <input type="text" name="values[${idx}][value_ar]" class="input w-full mt-1" placeholder="${esc(T().valueArPlaceholder || 'العربية')}" dir="rtl" />
                 </div>
                 <div class="col-span-3" ${isColor ? '' : 'style="display:none"'}>
-                    <label class="text-xs font-medium text-gray-600">Hex Color</label>
+                    <label class="text-xs font-medium text-gray-600">${esc(T().hexColorLabel || 'Hex Color')}</label>
                     <input type="color" name="values[${idx}][color_hex]" class="w-full h-9 mt-1 rounded border border-gray-300 cursor-pointer" value="#000000" />
                 </div>
                 <input type="hidden" name="values[${idx}][sort_order]" value="${idx}" />
                 <div class="col-span-1 flex items-end pb-0.5">
-                    <button type="button" class="remove-value-row text-gray-300 hover:text-red-500 transition-colors" title="Remove">
+                    <button type="button" class="remove-value-row text-gray-300 hover:text-red-500 transition-colors" title="${esc(T().remove || 'Remove')}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
@@ -116,7 +121,7 @@ function initEditValueActions() {
             || document.getElementById('new-color-hex')?.value || null;
 
         if (!valueEn) {
-            window.Toast?.error('English value is required.');
+            window.Toast?.error(T().valueEnRequired || 'English value is required.');
             return;
         }
 
@@ -136,9 +141,9 @@ function initEditValueActions() {
             // Clear inputs
             if (document.getElementById('new-value-en')) document.getElementById('new-value-en').value = '';
             if (document.getElementById('new-value-ar')) document.getElementById('new-value-ar').value = '';
-            window.Toast?.success('Value added.');
+            window.Toast?.success(T().valueAdded || 'Value added.');
         }).fail(function (xhr) {
-            window.Toast?.error(xhr.responseJSON?.message || 'Failed to add value.');
+            window.Toast?.error(xhr.responseJSON?.message || T().valueAddFailed || 'Failed to add value.');
         });
     });
 
@@ -156,9 +161,10 @@ function initEditValueActions() {
     $(document).on('click', '.delete-value-btn', async function () {
         const id = $(this).data('id');
         const url = $(this).data('url');
+        const confirmMessage = T().deleteValueConfirm || 'Delete this value?';
         const confirmed = window.confirmDelete
-            ? await window.confirmDelete('Delete this value?', { title: 'Delete value?' })
-            : window.confirm('Delete this value?');
+            ? await window.confirmDelete(confirmMessage, { title: T().deleteValueTitle || 'Delete value?' })
+            : window.confirm(confirmMessage);
         if (!confirmed) return;
 
         $.ajax({
@@ -167,9 +173,9 @@ function initEditValueActions() {
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         }).done(function (res) {
             $(`[data-id="${id}"].value-item`).remove();
-            window.Toast?.success(res.message || 'Value deleted.');
+            window.Toast?.success(res.message || T().valueDeleted || 'Value deleted.');
         }).fail(function (xhr) {
-            window.Toast?.error(xhr.responseJSON?.message || 'Failed to delete value.');
+            window.Toast?.error(xhr.responseJSON?.message || T().valueDeleteFailed || 'Failed to delete value.');
         });
     });
 
@@ -177,11 +183,11 @@ function initEditValueActions() {
     $(document).on('click', '.edit-value-btn', function () {
         const id = $(this).data('id');
         const valueEn = $(this).data('value-en');
-        const newEn = window.prompt('English value:', valueEn);
+        const newEn = window.prompt(T().promptValueEn || 'English value:', valueEn);
         if (newEn === null || newEn.trim() === '') return;
 
         const valueAr = $(this).data('value-ar');
-        const newAr = window.prompt('Arabic value:', valueAr ?? '');
+        const newAr = window.prompt(T().promptValueAr || 'Arabic value:', valueAr ?? '');
         const colorHex = $(this).data('color-hex');
 
         const url = (window.ROUTES_ATTR_EDIT.updateValue || '').replace(':value_id', id);
@@ -198,9 +204,9 @@ function initEditValueActions() {
                 item.querySelector('span.flex-1').textContent = newEn.trim();
             }
             $(`.edit-value-btn[data-id="${id}"]`).data('value-en', newEn.trim()).data('value-ar', newAr?.trim());
-            window.Toast?.success('Value updated.');
+            window.Toast?.success(T().valueUpdated || 'Value updated.');
         }).fail(function (xhr) {
-            window.Toast?.error(xhr.responseJSON?.message || 'Failed to update value.');
+            window.Toast?.error(xhr.responseJSON?.message || T().valueUpdateFailed || 'Failed to update value.');
         });
     });
 }
@@ -218,11 +224,11 @@ function buildValueRow(v) {
                 data-id="${esc(v.id)}"
                 data-value-en="${esc(v.value_en)}"
                 data-value-ar="${esc(v.value_ar ?? '')}"
-                data-color-hex="${esc(v.color_hex ?? '')}">Edit</button>
+                data-color-hex="${esc(v.color_hex ?? '')}">${esc(T().edit || 'Edit')}</button>
             <button type="button"
                 class="delete-value-btn text-xs text-red-500 hover:underline"
                 data-id="${esc(v.id)}"
-                data-url="${esc(destroyUrl)}">Delete</button>
+                data-url="${esc(destroyUrl)}">${esc(T().delete || 'Delete')}</button>
         </div>`;
 }
 
@@ -240,7 +246,7 @@ function initFormSubmit() {
     $('#attribute-form').on('submit', function (e) {
         e.preventDefault();
 
-        const $btn = $('#submit-btn').prop('disabled', true).text('Saving…');
+        const $btn = $('#submit-btn').prop('disabled', true).text(T().savingEllipsis || 'Saving…');
         const formData = new FormData(this);
         formData.set('_method', 'PUT');
 
@@ -252,19 +258,19 @@ function initFormSubmit() {
             contentType: false,
         })
             .done(function (res) {
-                window.Toast?.success(res.message || 'Attribute saved.');
+                window.Toast?.success(res.message || T().attributeSaved || 'Attribute saved.');
             })
             .fail(function (xhr) {
                 if (xhr.status === 422) {
                     const errors = xhr.responseJSON?.errors ?? {};
                     const msgs = Object.values(errors).flat();
-                    window.Toast?.error(msgs[0] || 'Validation error.');
+                    window.Toast?.error(msgs[0] || T().validationError || 'Validation error.');
                 } else {
-                    window.Toast?.error(xhr.responseJSON?.message || 'Save failed. Please try again.');
+                    window.Toast?.error(xhr.responseJSON?.message || T().saveFailedGeneric || 'Save failed. Please try again.');
                 }
             })
             .always(function () {
-                $btn.prop('disabled', false).text('Save changes');
+                $btn.prop('disabled', false).text(T().saveChanges || 'Save changes');
             });
     });
 }

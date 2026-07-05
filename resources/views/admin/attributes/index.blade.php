@@ -72,5 +72,13 @@
         window.ROUTES_ATTR = {
             destroy: '{{ url('attributes') }}/:id',
         };
+
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            deleteConfirm: @json(__('admin.attributes_section.delete_confirm')),
+            deleteConfirmTitle: @json(__('admin.attributes_section.delete_confirm_title')),
+            deletedSuccess: @json(__('admin.attributes_section.deleted_success')),
+            deleteFailed: @json(__('admin.attributes_section.delete_failed')),
+        });
     </script>
 @endsection

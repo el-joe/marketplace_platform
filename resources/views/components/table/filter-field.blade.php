@@ -32,7 +32,7 @@ min_length: int (for 'async_select' type, default 2)
 
     @elseif($type === 'select')
         <select id="{{ $tableId }}-filter-{{ $name }}" name="{{ $name }}" class="form-select text-sm">
-            <option value="">{{ $placeholder ?: 'All' }}</option>
+            <option value="">{{ $placeholder ?: __('admin.all') }}</option>
             @foreach($options as $val => $lbl)
                 <option value="{{ $val }}">{{ $lbl }}</option>
             @endforeach
