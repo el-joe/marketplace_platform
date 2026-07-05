@@ -12,7 +12,7 @@
 
         {{-- Logo --}}
         <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">{{  }}</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">{{ __('travel.profile.logo') }}</label>
             @if($agency->logo_path)
             <div class="mb-3">
                 <img src="{{ asset('storage/'.$agency->logo_path) }}" alt="logo"
@@ -26,7 +26,7 @@
 
         {{-- Name --}}
         <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">اسم الشركة <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('travel.profile.company_name') }}<span class="text-red-500">*</span></label>
             <input type="text" name="name" value="{{ old('name', $agency->name) }}" required
                    class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
             @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -34,7 +34,7 @@
 
         {{-- Phone --}}
         <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">رقم الهاتف</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('travel.profile.phone') }}<span class="text-red-500">*</span></label>
             <input type="text" name="phone" value="{{ old('phone', $agency->phone) }}"
                    class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
             @error('phone') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -42,7 +42,7 @@
 
         {{-- License number --}}
         <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">رقم الترخيص</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('travel.profile.license_number') }}</label>
             <input type="text" name="license_number" value="{{ old('license_number', $agency->license_number) }}"
                    class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
             @error('license_number') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -51,22 +51,21 @@
         {{-- Read-only fields --}}
         <div class="grid md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-1">البريد الإلكتروني</label>
+                <label class="block text-sm font-semibold text-gray-500 mb-1">{{ __('travel.profile.email') }}</label>
                 <input type="text" value="{{ $agency->email }}" disabled
                        class="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-500 cursor-not-allowed">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-gray-500 mb-1">حالة الحساب</label>
-                @php $statusLabels = ['pending'=>'قيد المراجعة','active'=>'نشط','suspended'=>'موقوف']; @endphp
+                <label class="block text-sm font-semibold text-gray-500 mb-1">{{ __('travel.profile.status') }}</label>
+                @php $statusLabels = ['pending'=>__('travel.profile.pending'),'active'=>__('travel.profile.active'),'suspended'=>__('travel.profile.suspended')]; @endphp
                 <input type="text" value="{{ $statusLabels[$agency->status] ?? $agency->status }}" disabled
                        class="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-500 cursor-not-allowed">
             </div>
         </div>
 
         <div class="pt-2">
-            <button type="submit"
-                    class="px-6 py-2.5 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-400 transition-colors">
-                حفظ التغييرات
+            <button type="submit" class="px-6 py-2.5 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-400 transition-colors">
+                {{ __('travel.profile.save') }}
             </button>
         </div>
     </form>
