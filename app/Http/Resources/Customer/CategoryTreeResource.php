@@ -17,12 +17,13 @@ class CategoryTreeResource extends JsonResource
 
         return [
             'id'            => $this->id,
+            'type'          => 'product',
             'name'          => $this->{'name_' . $lang},
             'slug'          => $this->slug,
             'parent_id'     => $this->parent_id,
             'image_url'     => $this->image_url,
             'product_count' => (int) $this->product_count,
-            'children'      => CategoryTreeResource::collection($this->children),
+            'children'      => CategoryTreeResource::collection($this->children)->resolve(),
         ];
     }
 }

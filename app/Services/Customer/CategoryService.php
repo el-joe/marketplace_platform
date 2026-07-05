@@ -3,9 +3,13 @@
 namespace App\Services\Customer;
 
 use App\Http\Resources\Customer\CategoryTreeResource;
+use App\Http\Resources\Customer\ClassifiedCategoryTreeResource;
+use App\Http\Resources\Customer\TravelCategoryTreeResource;
 use App\Models\Category;
+use App\Models\ClassifiedCategory;
 use App\Models\Country;
 use App\Models\Page;
+use App\Models\TravelCategory;
 use App\Services\PageBuilderService;
 use Illuminate\Support\Facades\Cache;
 
@@ -16,20 +20,38 @@ class CategoryService
     ) {}
 
     /**
-     * Full nested category tree for nav/menu use.
+     * Full nested category tree for nav/menu use, merging product categories
+     * with classified and travel categories into a single array. Every node
+     * carries a 'type' of 'product', 'classified', or 'travel'.
      * Cached 10 min per country, tagged 'categories' so admin publishes can flush it.
      */
     public function getTree(Country $country): array
     {
         return Cache::remember("category_tree:{$country->id}", 600, function () {
                 // toTree() builds the hierarchy in PHP from a single lft/rgt-ordered query.
-                $nodes = Category::where('is_active', true)
+                $productNodes = Category::where('is_active', true)
                     ->where('is_visible', true)
                     ->orderBy('sort_order')
                     ->get()
                     ->toTree();
 
-                return CategoryTreeResource::collection($nodes)->resolve();
+                $classifiedNodes = ClassifiedCategory::whereNull('parent_id')
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
+                    ->get();
+
+                $travelNodes = TravelCategory::whereNull('parent_id')
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
+                    ->get();
+
+                return array_merge(
+                    CategoryTreeResource::collection($productNodes)->resolve(),
+                    ClassifiedCategoryTreeResource::collection($classifiedNodes)->resolve(),
+                    TravelCategoryTreeResource::collection($travelNodes)->resolve(),
+                );
             });
     }
 
