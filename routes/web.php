@@ -24,7 +24,17 @@ Route::post('/locale/switch', function (Request $request) {
 | Admin subdomain routes
 |--------------------------------------------------------------------------
 */
-Route::domain('admin.' . env('APP_DOMAIN', 'localhost'))->name('admin.')->group(function () {
+$appDomain = env('APP_DOMAIN', 'localhost');
+$adminDomain = env('APP_ADMIN_SUBDOMAIN', 'admin') . '.' . $appDomain;
+$portalDomain = env('APP_PORTAL_SUBDOMAIN', 'portal') . '.' . $appDomain;
+$partnerDomain = env('APP_PARTNER_SUBDOMAIN', 'partner') . '.' . $appDomain;
+$deliveryDomain = env('APP_DELIVERY_SUBDOMAIN', 'delivery') . '.' . $appDomain;
+$marketerDomain = env('APP_MARKETER_SUBDOMAIN', 'marketer') . '.' . $appDomain;
+$travelDomain = env('APP_TRAVEL_SUBDOMAIN', 'travel-agency') . '.' . $appDomain;
+$carrierDomain = env('APP_CARRIER_SUBDOMAIN', 'carrier') . '.' . $appDomain;
+
+
+Route::domain($adminDomain)->name('admin.')->group(function () {
     require __DIR__ . '/admin.php';
 });
 
@@ -34,7 +44,7 @@ Route::domain('admin.' . env('APP_DOMAIN', 'localhost'))->name('admin.')->group(
 | portal.noon.loc
 |--------------------------------------------------------------------------
 */
-Route::domain('portal.' . env('APP_DOMAIN', 'localhost'))->name('portal.')->group(
+Route::domain($portalDomain)->name('portal.')->group(
     base_path('routes/portal.php')
 );
 
@@ -44,7 +54,7 @@ Route::domain('portal.' . env('APP_DOMAIN', 'localhost'))->name('portal.')->grou
 | partner.noon.loc
 |--------------------------------------------------------------------------
 */
-Route::domain('partner.' . env('APP_DOMAIN', 'localhost'))->name('partner.')->group(
+Route::domain($partnerDomain)->name('partner.')->group(
     base_path('routes/partner.php')
 );
 
@@ -54,7 +64,7 @@ Route::domain('partner.' . env('APP_DOMAIN', 'localhost'))->name('partner.')->gr
 | delivery.noon.loc
 |--------------------------------------------------------------------------
 */
-Route::domain('delivery.' . env('APP_DOMAIN', 'localhost'))->group(
+Route::domain($deliveryDomain)->group(
     base_path('routes/delivery.php')
 );
 
@@ -64,7 +74,7 @@ Route::domain('delivery.' . env('APP_DOMAIN', 'localhost'))->group(
 | marketer.noon.loc
 |--------------------------------------------------------------------------
 */
-Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))->group(
+Route::domain($marketerDomain)->group(
     base_path('routes/marketer.php')
 );
 
@@ -74,7 +84,7 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))->group(
 | travel-agency.noon.loc
 |--------------------------------------------------------------------------
 */
-Route::domain('travel-agency.' . env('APP_DOMAIN', 'localhost'))->group(
+Route::domain($travelDomain)->group(
     base_path('routes/travel.php')
 );
 
@@ -84,7 +94,7 @@ Route::domain('travel-agency.' . env('APP_DOMAIN', 'localhost'))->group(
 | carrier.noon.loc
 |--------------------------------------------------------------------------
 */
-Route::domain('carrier.' . env('APP_DOMAIN', 'localhost'))->group(
+Route::domain($carrierDomain)->group(
     base_path('routes/carrier.php')
 );
 
