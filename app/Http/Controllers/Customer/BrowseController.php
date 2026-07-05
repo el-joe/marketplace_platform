@@ -50,8 +50,9 @@ class BrowseController extends Controller
      * GET /api/customer/v1/{country}/travel
      * Same as browse/travel/all — every active package, unfiltered by category.
      */
-    public function travelIndex(Request $request, Country $country): JsonResponse
+    public function travelIndex(Request $request, $country): JsonResponse
     {
+        $country = $request->attributes->get('country');
         return $this->browseTravel($request, $country, 'all');
     }
 
