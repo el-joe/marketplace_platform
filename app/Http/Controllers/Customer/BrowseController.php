@@ -29,8 +29,10 @@ class BrowseController extends Controller
     /**
      * GET /api/customer/v1/{country}/browse/{type}/{slug}
      */
-    public function show(Request $request, Country $country, string $type, string $slug): JsonResponse
+    public function show(Request $request, $country, string $type, string $slug): JsonResponse
     {
+        $country = $request->attributes->get('country');
+
         $request->validate([
             'type' => [Rule::in(['product', 'classified', 'travel'])],
         ]);
