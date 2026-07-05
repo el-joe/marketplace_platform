@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'portal_title' => 'Travel Agency Portal',
     'dashboard' => [
         'title' => 'Dashboard',
         'data_table' => [
@@ -97,6 +98,7 @@ return [
 
     'bookings' => [
         'title' => 'Bookings',
+        'new_booking' => 'New Booking',
         'booking_number' => 'Booking Number',
         'traveler_name' => 'Traveler Name',
         'travelers_count' => 'Travelers Count',
@@ -114,6 +116,17 @@ return [
         'status_confirmed' => 'Confirmed',
         'status_cancelled' => 'Cancelled',
         'status_completed' => 'Completed',
+        'unlimited' => 'Unlimited',
+        'prefill_inquiry_message' => 'The data is automatically filled from the inquiry request. Review the data before saving.',
+        'search_customer' => 'Search by name, email or phone',
+        'write_to_search' => 'Type to search...',
+        'full_name' => 'Full Name',
+        'phone' => 'Phone Number',
+        'email' => 'Email Address',
+        'password_reset_message' => 'The client will be able to set the password later via "Forgot Password".',
+        'booking_details' => 'Booking Details',
+        'maximum_travelers' => 'Maximum Travelers',
+        'cancel' => 'Cancel',
     ],
 
     'inquiries' => [
@@ -151,5 +164,25 @@ return [
         'save' => 'Save Changes',
         'required' => 'Required',
         'optional' => 'Optional',
+    ],
+
+    'auth' => [
+        'login_subtitle' => 'Enter your travel agency dashboard',
+        'login' => 'Login',
+        'email' => 'Email',
+        'password' => 'Password',
+        'remember' => 'Remember me',
+        'login_button' => 'Login',
+        'forgot_password' => 'Forgot Password?',
+        'reset_password' => 'Reset Password',
+        'send_password_reset_link' => 'Send Password Reset Link',
+        'confirm_password' => 'Confirm Password',
+        'register' => 'Register',
+        'name' => 'Name',
+        'phone' => 'Phone Number',
+        'confirm_password_password' => 'Confirm Password',
+        'already_registered' => 'Already registered?',
+        'login_instead' => 'Login instead',
+        'register_subtitle' => 'For new travel agency registration, please contact the administration.',
     ],
 ];

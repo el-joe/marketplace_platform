@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'portal_title' => 'بوابة شركات السفر',
     'dashboard' => [
         'title' => 'لوحة التحكم',
         'data_table' => [
@@ -96,6 +97,7 @@ return [
 
     'bookings' => [
         'title' => 'الحجوزات',
+        'new_booking' => 'حجز جديد',
         'booking_number' => 'رقم الحجز',
         'traveler_name' => 'اسم المسافر',
         'travelers_count' => 'عدد المسافرين',
@@ -113,6 +115,17 @@ return [
         'status_confirmed' => 'مؤكد',
         'status_cancelled' => 'ملغى',
         'status_completed' => 'مكتمل',
+        'unlimited' => 'غير محدود',
+        'prefill_inquiry_message' => 'يتم تعبئة البيانات تلقائياً من طلب الاهتمام. راجع البيانات قبل الحفظ.',
+        'customer_data' => 'بيانات العميل',
+        'search_customer' => 'ابحث بالاسم أو البريد أو الهاتف',
+        'write_to_search' => 'اكتب للبحث...',
+        'full_name' => 'الاسم الكامل',
+        'phone' => 'رقم الهاتف',
+        'email' => 'البريد الإلكتروني',
+        'password_reset_message' => 'سيتمكن العميل من تعيين كلمة المرور لاحقاً عبر "نسيت كلمة المرور".',
+        'booking_details' => 'تفاصيل الحجز',
+        'cancel' => 'إلغاء',
     ],
 
     'inquiries' => [
@@ -150,5 +163,25 @@ return [
         'save' => 'حفظ التغييرات',
         'required' => 'مطلوب',
         'optional' => 'اختياري',
+    ],
+
+    'auth' => [
+        'login_subtitle' => 'ادخل إلى لوحة تحكم وكالتك السياحية',
+        'login' => 'تسجيل الدخول',
+        'email' => 'البريد الإلكتروني',
+        'password' => 'كلمة المرور',
+        'remember' => 'تذكرني',
+        'login_button' => 'تسجيل الدخول',
+        'forgot_password' => 'نسيت كلمة المرور؟',
+        'reset_password' => 'إعادة تعيين كلمة المرور',
+        'send_password_reset_link' => 'إرسال رابط إعادة تعيين كلمة المرور',
+        'confirm_password' => 'تأكيد كلمة المرور',
+        'register' => 'تسجيل',
+        'name' => 'الاسم',
+        'phone' => 'رقم الهاتف',
+        'confirm_password_password' => 'تأكيد كلمة المرور',
+        'already_registered' => 'هل أنت مسجل بالفعل؟',
+        'login_instead' => 'تسجيل الدخول بدلاً من ذلك',
+        'register_subtitle' => 'للتسجيل كوكالة سفر جديدة، يرجى التواصل مع الإدارة.',
     ],
 ];

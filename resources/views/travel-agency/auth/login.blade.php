@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>تسجيل الدخول | بوابة شركات السفر</title>
+    <title>{{ __('travel.auth.login') }} | {{ __('travel.portal_title') }} </title>
     <link href="https://fonts.bunny.net/css?family=cairo:400,600,700,800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/portal/app.js'])
 </head>
@@ -16,10 +16,10 @@
         <div class="text-center mb-8">
             <div class="inline-flex items-center gap-2 mb-4">
                 <span class="bg-blue-500 text-white font-black text-2xl px-3 py-1 rounded">✈</span>
-                <span class="text-white font-bold text-lg">بوابة شركات السفر</span>
+                <span class="text-white font-bold text-lg">{{ __('travel.portal_title') }}</span>
             </div>
-            <h1 class="text-2xl font-black text-white">تسجيل الدخول</h1>
-            <p class="mt-1 text-gray-400 text-sm">ادخل إلى لوحة تحكم وكالتك السياحية</p>
+            <h1 class="text-2xl font-black text-white">{{ __('travel.auth.login') }}</h1>
+            <p class="mt-1 text-gray-400 text-sm">{{ __('travel.auth.login_subtitle') }}</p>
         </div>
 
         @if(session('error'))
@@ -33,7 +33,7 @@
                 @csrf
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1.5">البريد الإلكتروني</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ __('travel.auth.email') }}</label>
                     <input type="email" name="email" value="{{ old('email') }}" required autofocus
                            dir="ltr"
                            class="w-full bg-gray-800 border {{ $errors->has('email') ? 'border-red-500' : 'border-gray-700' }} text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
@@ -43,7 +43,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1.5">كلمة المرور</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ __('travel.auth.password') }}</label>
                     <input type="password" name="password" required
                            dir="ltr"
                            class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
@@ -52,18 +52,18 @@
                 <div class="flex items-center gap-3 flex-row-reverse justify-end">
                     <input type="checkbox" name="remember" id="remember"
                            class="w-4 h-4 rounded border-gray-600 bg-gray-800 text-blue-400 focus:ring-blue-400 focus:ring-offset-gray-900">
-                    <label for="remember" class="text-sm text-gray-400">تذكرني</label>
+                    <label for="remember" class="text-sm text-gray-400">{{ __('travel.auth.remember') }}</label>
                 </div>
 
                 <button type="submit"
                         class="w-full bg-blue-500 hover:bg-blue-400 text-white font-black py-3.5 rounded-xl transition-colors text-base">
-                    دخول
+                    {{ __('travel.auth.login_button') }}
                 </button>
             </form>
         </div>
 
         <p class="mt-6 text-center text-xs text-gray-600">
-            للتسجيل كوكالة سفر جديدة، يرجى التواصل مع الإدارة.
+            {{ __('travel.auth.register_subtitle') }}
         </p>
     </div>
 
