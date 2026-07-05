@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -51,32 +52,36 @@ class BookingController extends Controller
 
     // ── Create ────────────────────────────────────────────────────────────────
 
-    public function create(TravelPackage $package): View
+    public function create(Request $request): View
     {
-        $this->authorisePackage($package);
+        $packages = TravelPackage::where('travel_agency_id', $this->agencyId())
+            ->where('status', 'active')
+            ->orderBy('departure_date')
+            ->get()
+            ->filter(fn (TravelPackage $pkg) => $pkg->available_seats === null || $pkg->seatsRemaining() > 0)
+            ->values();
 
-        if ($package->status !== 'active') {
-            return redirect()->route('travel-agency.packages.show', $package)
-                ->with('error', 'لا يمكن إنشاء حجز لباقة غير نشطة.');
-        }
+        $selectedPackageId = old('travel_package_id', $request->query('package_id'));
 
-        if ($package->available_seats !== null && $package->seatsRemaining() <= 0) {
-            return redirect()->route('travel-agency.packages.show', $package)
-                ->with('error', 'لا توجد مقاعد متاحة في هذه الباقة.');
-        }
+        $package = $selectedPackageId
+            ? $packages->firstWhere('id', $selectedPackageId)
+            : null;
 
-        return view('travel-agency.bookings.create', compact('package'));
+        return view('travel-agency.bookings.create', compact('packages', 'package'));
     }
 
     // ── Store ─────────────────────────────────────────────────────────────────
 
-    public function store(Request $request, TravelPackage $package): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        $this->authorisePackage($package);
-
         $mode = $request->input('customer_mode', 'existing');
 
         $rules = [
+            'travel_package_id' => [
+                'required',
+                'uuid',
+                Rule::exists('travel_packages', 'id')->where('travel_agency_id', $this->agencyId()),
+            ],
             'travelers_count' => ['required', 'integer', 'min:1'],
             'customer_mode'   => ['required', 'in:existing,new'],
         ];
@@ -91,8 +96,8 @@ class BookingController extends Controller
 
         $validated = $request->validate($rules);
 
-        $booking = DB::transaction(function () use ($request, $package, $validated, $mode) {
-            $pkg = TravelPackage::lockForUpdate()->findOrFail($package->id);
+        $booking = DB::transaction(function () use ($validated, $mode) {
+            $pkg = TravelPackage::lockForUpdate()->findOrFail($validated['travel_package_id']);
 
             $this->authorisePackage($pkg);
 

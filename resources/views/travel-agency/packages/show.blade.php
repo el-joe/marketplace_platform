@@ -26,7 +26,7 @@
                     </form>
                 @endif
                 @if($package->status === 'active' && ($package->seatsRemaining() === null || $package->seatsRemaining() > 0))
-                    <a href="{{ route('travel-agency.bookings.create', $package) }}"
+                    <a href="{{ route('travel-agency.bookings.create', ['package_id' => $package->id]) }}"
                         class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500">
                         + {{ __('travel.bookings.new_booking') }}
                     </a>

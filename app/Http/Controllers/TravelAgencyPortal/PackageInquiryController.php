@@ -78,14 +78,15 @@ class PackageInquiryController extends Controller
             return back()->withErrors(['status' => 'هذا الطلب لا يمكن تحويله لحجز.']);
         }
 
-        return redirect()->route('travel-agency.bookings.create', $inquiry->package)
+        return redirect()->route('travel-agency.bookings.create', ['package_id' => $inquiry->travel_package_id])
             ->with('prefill_inquiry', $inquiry->id)
             ->withInput([
-                'from_inquiry'    => $inquiry->id,
-                'customer_mode'   => 'new',
-                'new_name'        => $inquiry->name,
-                'new_phone'       => $inquiry->phone,
-                'travelers_count' => $inquiry->travelers_count ?? 1,
+                'from_inquiry'      => $inquiry->id,
+                'travel_package_id' => $inquiry->travel_package_id,
+                'customer_mode'     => 'new',
+                'new_name'          => $inquiry->name,
+                'new_phone'         => $inquiry->phone,
+                'travelers_count'   => $inquiry->travelers_count ?? 1,
             ]);
     }
 

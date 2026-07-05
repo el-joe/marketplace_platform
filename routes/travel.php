@@ -70,14 +70,12 @@ Route::name('travel-agency.')
             // Bookings
             Route::prefix('bookings')->name('bookings.')->group(function () {
                 Route::get('/', [BookingController::class, 'index'])->name('index');
+                Route::get('/create', [BookingController::class, 'create'])->name('create');
+                Route::post('/', [BookingController::class, 'store'])->name('store');
                 Route::get('/customer-search', [BookingController::class, 'customerSearch'])->name('customer-search');
                 Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
                 Route::patch('/{booking}/status', [BookingController::class, 'updateStatus'])->name('status');
             });
-
-            // Create booking scoped to a package
-            Route::get('/packages/{package}/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
-            Route::post('/packages/{package}/bookings', [BookingController::class, 'store'])->name('bookings.store');
 
             // Package Inquiries (lead management)
             Route::prefix('inquiries')->name('inquiries.')->group(function () {
