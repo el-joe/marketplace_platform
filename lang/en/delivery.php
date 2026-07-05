@@ -105,6 +105,11 @@ return [
         'otp_verified' => 'Verified ✓',
         'delivery_address' => 'Delivery Address',
         'customer_phone' => 'Customer Phone',
+        'status_assigned' => 'Assigned',
+        'status_accepted' => 'Accepted',
+        'status_picked_up' => 'Picked Up',
+        'status_delivered' => 'Delivered',
+        'status_failed' => 'Failed',
     ],
 
     'cod' => [

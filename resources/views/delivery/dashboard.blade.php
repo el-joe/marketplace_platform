@@ -96,13 +96,13 @@
                         <div>
                             <p class="font-semibold text-sm">#{{ $a->subOrder?->sub_order_number ?? $a->id }}</p>
                             <p class="text-xs text-slate-400 mt-0.5">
-                                {{ $a->subOrder?->items?->count() ?? 0 }} items
+                                {{ $a->subOrder?->items?->count() ?? 0 }} {{ __('delivery.assignments.items') }}
                                 @if($a->assigned_at)
                                     · {{ $a->assigned_at->format('H:i') }}
                                 @endif
                             </p>
                         </div>
-                        <span class="chip {{ $chipClass }}">{{ ucfirst(str_replace('_', ' ', $a->status)) }}</span>
+                        <span class="chip {{ $chipClass }}">{{ __('delivery.assignments.status_' . $a->status) }}</span>
                     </div>
                     <div class="flex items-center gap-2 mt-3">
                         <span class="flex-1 btn-action {{ $actionColor }} text-sm min-h-[46px]">{{ $actionLabel }}</span>

@@ -105,6 +105,11 @@ return [
         'otp_verified' => 'تم التحقق ✓',
         'delivery_address' => 'عنوان التوصيل',
         'customer_phone' => 'هاتف العميل',
+        'status_assigned' => 'مُسند',
+        'status_accepted' => 'مقبول',
+        'status_picked_up' => 'مستلم',
+        'status_delivered' => 'تم التسليم',
+        'status_failed' => 'فشل',
     ],
 
     'cod' => [
