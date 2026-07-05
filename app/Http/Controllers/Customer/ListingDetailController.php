@@ -64,13 +64,13 @@ class ListingDetailController extends Controller
             'listing' => $this->listingShape($listing, $country, $isWishlisted),
             'seller' => $this->sellerShape($listing),
             'delivery_options' => $deliveryOptions->map(fn($method) => $this->deliveryOptionShape($method))->values()->all(),
-            'product' => $this->productShape($product),
+            'product' => $this->productShape($product, $listing),
             'variant' => $this->variantShape($listing->productVariant),
             'other_sellers' => $siblings['same_variant']->map(fn(VendorListing $l) => $this->otherSellerShape($l, $country))->values()->all(),
             'other_variants' => $siblings['other_variants']->map(fn(VendorListing $l) => $this->otherVariantShape($l))->values()->all(),
             'reviews' => [
-                'rating_avg' => (float) $product->rating_avg,
-                'rating_count' => (int) $product->rating_count,
+                'rating_avg' => (float) $listing->rating_avg,
+                'rating_count' => (int) $listing->rating_count,
                 'items' => $reviews->map(fn($review) => $this->reviewShape($review))->values()->all(),
             ],
         ]);
@@ -126,6 +126,7 @@ class ListingDetailController extends Controller
             'max_order_quantity' => $listing->max_order_quantity,
             'total_sold' => $listing->total_sold,
             'rating_avg' => $listing->rating_avg,
+            'rating_count' => $listing->rating_count,
             'is_global_shipping' => $listing->fulfillment_model === 'marketplace',
             'is_wishlisted' => $isWishlisted,
         ];
@@ -158,7 +159,7 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function productShape($product): array
+    private function productShape($product, VendorListing $listing): array
     {
         return [
             'id' => $product->id,
@@ -184,8 +185,8 @@ class ListingDetailController extends Controller
                 'url' => $img->url,
                 'is_primary' => $img->is_primary,
             ])->values()->all(),
-            'rating_avg' => (float) $product->rating_avg,
-            'rating_count' => (int) $product->rating_count,
+            'rating_avg' => (float) $listing->rating_avg,
+            'rating_count' => (int) $listing->rating_count,
             'attributes_summary' => $this->attributesSummary($product),
             'seo' => [
                 'title_en' => $product->seo_title_en,

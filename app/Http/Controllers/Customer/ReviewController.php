@@ -39,7 +39,7 @@ class ReviewController extends Controller
             return ApiResponse::error('Product not found.', [], 404);
         }
 
-        $countryModel = request()->route('countryModel');
+        $countryModel = request()->attributes->get('country');
 
         $paginator = $this->reviewService->listForProduct($product, $countryModel->id);
 

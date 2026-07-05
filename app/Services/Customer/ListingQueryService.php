@@ -75,7 +75,7 @@ class ListingQueryService
             $builder->where('price', '<=', (int) ($filters['price_max'] * 100));
         }
         if (!empty($filters['rating_min'])) {
-            $builder->whereHas('productVariant.product', fn($q) => $q->where('rating_avg', '>=', $filters['rating_min']));
+            $builder->where('rating_avg', '>=', $filters['rating_min']);
         }
         if (!empty($filters['condition'])) {
             $builder->where('condition', $filters['condition']);
@@ -267,8 +267,8 @@ class ListingQueryService
                 'delivery_days_min' => $listing->primaryShippingMethod->min_delivery_days,
                 'delivery_days_max' => $listing->primaryShippingMethod->max_delivery_days,
             ] : null,
-            'rating_avg' => $product->rating_avg,
-            'rating_count' => $product->rating_count,
+            'rating_avg' => $listing->rating_avg,
+            'rating_count' => $listing->rating_count,
             'total_sold' => $listing->total_sold,
             'is_wishlisted' => $isWishlisted,
             'is_sponsored' => $isSponsored,

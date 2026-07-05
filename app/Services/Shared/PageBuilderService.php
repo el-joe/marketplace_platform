@@ -260,11 +260,11 @@ class PageBuilderService
 
         match ($source) {
             'new_arrivals' => $query->orderByDesc('published_at')->orderByDesc('created_at'),
-            'top_rated' => $query->orderByDesc('rating_avg')->orderByDesc('rating_count'),
+            'top_rated' => $query->orderByRating(),
             'trending' => $query->orderByDesc('view_count')->orderByDesc('total_sold'),
             'category' => $query->orderByDesc('total_sold'),
             // No personalization engine yet; fall back to a rating/sales blend.
-            'personalized' => $query->orderByDesc('rating_avg')->orderByDesc('total_sold'),
+            'personalized' => $query->orderByRating()->orderByDesc('total_sold'),
             default => $query->orderByDesc('total_sold'), // best_sellers
         };
 

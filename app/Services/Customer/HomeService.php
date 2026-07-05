@@ -185,8 +185,7 @@ class HomeService
 
         $products = Product::whereNotIn('id', $unavailableIds)
             ->with(['variants', 'images'])
-            ->orderByDesc('rating_avg')
-            ->orderByDesc('rating_count')
+            ->orderByRating()
             ->limit(12)
             ->get();
 

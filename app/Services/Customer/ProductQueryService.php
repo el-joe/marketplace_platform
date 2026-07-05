@@ -114,6 +114,8 @@ class ProductQueryService
                 DB::raw('MAX(vl.price) as max_price'),
                 DB::raw('COUNT(DISTINCT vl.id) as active_seller_count'),
                 DB::raw('COALESCE(SUM(wi.quantity_available), 0) as total_stock'),
+                DB::raw('COALESCE(SUM(vl.rating_avg * vl.rating_count) / NULLIF(SUM(vl.rating_count), 0), 0) as rating_avg'),
+                DB::raw('COALESCE(SUM(vl.rating_count), 0) as rating_count'),
             )
             ->join('product_country_settings as pcs', function ($j) use ($country) {
                 $j->on('pcs.product_id', '=', 'products.id')
@@ -151,7 +153,7 @@ class ProductQueryService
             $builder->havingRaw('MAX(vl.price) <= ?', [(int) ($filters['price_max'] * 100)]);
         }
         if (!empty($filters['rating_min'])) {
-            $builder->where('products.rating_avg', '>=', $filters['rating_min']);
+            $builder->havingRaw('COALESCE(SUM(vl.rating_avg * vl.rating_count) / NULLIF(SUM(vl.rating_count), 0), 0) >= ?', [$filters['rating_min']]);
         }
         if (!empty($filters['condition'])) {
             $builder->where('vl.condition', $filters['condition']);
@@ -185,10 +187,11 @@ class ProductQueryService
         return match ($sort) {
             'price_asc' => $builder->orderByRaw('MIN(vl.price) ASC'),
             'price_desc' => $builder->orderByRaw('MAX(vl.price) DESC'),
-            'rating' => $builder->orderBy('products.rating_avg', 'desc'),
+            'rating' => $builder->orderByRaw('COALESCE(SUM(vl.rating_avg * vl.rating_count) / NULLIF(SUM(vl.rating_count), 0), 0) desc'),
             'newest' => $builder->orderBy('products.published_at', 'desc'),
             'best_selling' => $builder->orderBy('products.total_sold', 'desc'),
-            default => $builder->orderBy('products.is_featured', 'desc')->orderBy('products.rating_avg', 'desc'),
+            default => $builder->orderBy('products.is_featured', 'desc')
+                ->orderByRaw('COALESCE(SUM(vl.rating_avg * vl.rating_count) / NULLIF(SUM(vl.rating_count), 0), 0) desc'),
         };
     }
 

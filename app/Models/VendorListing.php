@@ -33,6 +33,7 @@ class VendorListing extends Model
         'buy_box_won_at',
         'total_sold',
         'rating_avg',
+        'rating_count',
         'approved_by_admin_id',
         'approved_at',
         'global_system_type',

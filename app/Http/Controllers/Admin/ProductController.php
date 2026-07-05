@@ -76,7 +76,6 @@ class ProductController extends Controller
                 'products.name_ar',
                 'products.status',
                 'products.is_featured',
-                'products.rating_avg',
                 'products.total_sold',
                 'products.created_at',
                 'c.name_en as category_name',
@@ -89,6 +88,11 @@ class ProductController extends Controller
                     ->orderBy('position')
                     ->limit(1),
                 'seller_count' => VendorListing::selectRaw('COUNT(*)')
+                    ->join('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
+                    ->whereColumn('product_variants.product_id', 'products.id')
+                    ->where('vendor_listings.status', 'active')
+                    ->whereNull('vendor_listings.deleted_at'),
+                'rating_avg' => VendorListing::selectRaw('SUM(vendor_listings.rating_avg * vendor_listings.rating_count) / NULLIF(SUM(vendor_listings.rating_count), 0)')
                     ->join('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
                     ->whereColumn('product_variants.product_id', 'products.id')
                     ->where('vendor_listings.status', 'active')
@@ -799,7 +803,7 @@ class ProductController extends Controller
             ['title' => 'Brand', 'data' => 'brand', 'name' => 'brand', 'orderable_column' => 'b.name', 'searchable' => false],
             ['title' => 'Status', 'data' => 'status', 'name' => 'status', 'orderable_column' => 'products.status', 'searchable' => false],
             ['title' => 'Sellers', 'data' => 'seller_count', 'name' => 'seller_count', 'orderable' => false, 'searchable' => false, 'className' => 'text-right'],
-            ['title' => 'Rating', 'data' => 'rating_avg', 'name' => 'rating_avg', 'orderable_column' => 'products.rating_avg', 'searchable' => false, 'className' => 'text-right'],
+            ['title' => 'Rating', 'data' => 'rating_avg', 'name' => 'rating_avg', 'orderable_column' => 'rating_avg', 'searchable' => false, 'className' => 'text-right'],
             ['title' => 'Sold', 'data' => 'total_sold', 'name' => 'total_sold', 'orderable_column' => 'products.total_sold', 'searchable' => false, 'className' => 'text-right'],
             ['title' => 'Created', 'data' => 'created_at', 'name' => 'created_at', 'orderable_column' => 'products.created_at', 'searchable' => false],
             ['title' => '', 'data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false, 'className' => 'text-right'],

@@ -159,7 +159,7 @@ class ListingController extends Controller
                 ->where('status', 'active')
                 ->whereBetween('price', [(int) ($buyBoxPrice * 0.7), (int) ($buyBoxPrice * 1.3)])
             ))
-            ->orderByDesc('rating_avg')
+            ->orderByRating()
             ->limit(8)
             ->get();
         $product->setRelation('related', $related);

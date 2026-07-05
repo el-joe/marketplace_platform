@@ -21,8 +21,7 @@ class CategoryService
      */
     public function getTree(Country $country): array
     {
-        return Cache::tags(['categories'])
-            ->remember("category_tree:{$country->id}", 600, function () {
+        return Cache::remember("category_tree:{$country->id}", 600, function () {
                 // toTree() builds the hierarchy in PHP from a single lft/rgt-ordered query.
                 $nodes = Category::where('is_active', true)
                     ->where('is_visible', true)

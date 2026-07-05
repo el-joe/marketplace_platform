@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class ReviewModerationService
 {
     /**
-     * Approve a review: publish it and recalculate the product rating.
+     * Approve a review: publish it and recalculate the listing rating.
      */
     public function approve(Review $review, Admin $admin): void
     {
@@ -19,7 +19,7 @@ class ReviewModerationService
                 'moderated_by_admin_id' => $admin->id,
             ]);
 
-            $this->recalculateProductRating($review->product_id);
+            $this->recalculateListingRating($review);
         });
     }
 
@@ -34,22 +34,42 @@ class ReviewModerationService
                 'moderated_by_admin_id' => $admin->id,
             ]);
 
-            $this->recalculateProductRating($review->product_id);
+            $this->recalculateListingRating($review);
 
             $review->delete(); // soft delete
         });
     }
 
     /**
-     * Recalculate rating_avg and rating_count for a product.
+     * Recalculate rating_avg and rating_count for whichever listing this review is
+     * attributed to. Ratings live on vendor_listings / admin_product_listings, not
+     * on products, since the same product can be sold by many sellers with very
+     * different review experiences.
      */
-    public function recalculateProductRating(string $productId): void
+    public function recalculateListingRating(Review $review): void
     {
-        DB::table('products')
-            ->where('id', $productId)
+        if ($review->vendor_listing_id !== null) {
+            $this->recalculate('vendor_listings', 'vendor_listing_id', $review->vendor_listing_id);
+        }
+
+        if ($review->admin_product_listing_id !== null) {
+            $this->recalculate('admin_product_listings', 'admin_product_listing_id', $review->admin_product_listing_id);
+        }
+    }
+
+    private function recalculate(string $table, string $column, string $listingId): void
+    {
+        $stats = Review::where($column, $listingId)
+            ->where('status', 'published')
+            ->whereNull('deleted_at')
+            ->selectRaw('AVG(rating) as rating_avg, COUNT(*) as rating_count')
+            ->first();
+
+        DB::table($table)
+            ->where('id', $listingId)
             ->update([
-                'rating_avg' => DB::raw("(SELECT AVG(rating) FROM reviews WHERE product_id = '{$productId}' AND status = 'published' AND deleted_at IS NULL)"),
-                'rating_count' => DB::raw("(SELECT COUNT(*) FROM reviews WHERE product_id = '{$productId}' AND status = 'published' AND deleted_at IS NULL)"),
+                'rating_avg' => $stats->rating_count > 0 ? round($stats->rating_avg, 2) : null,
+                'rating_count' => $stats->rating_count,
                 'updated_at' => now(),
             ]);
     }

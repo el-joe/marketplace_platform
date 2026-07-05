@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Product extends Model
 {
@@ -34,8 +35,6 @@ class Product extends Model
         'has_variants',
         'ai_quality_score',
         'seller_count',
-        'rating_avg',
-        'rating_count',
         'total_sold',
         'view_count',
         'seo_title_en',
@@ -54,10 +53,8 @@ class Product extends Model
         'has_variants' => 'boolean',
         'min_age' => 'integer',
         'seller_count' => 'integer',
-        'rating_count' => 'integer',
         'total_sold' => 'integer',
         'view_count' => 'integer',
-        'rating_avg' => 'decimal:2',
         'ai_quality_score' => 'integer',
         'published_at' => 'datetime',
     ];
@@ -107,5 +104,52 @@ class Product extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Order products by their vendor listings' rating, since rating is no longer
+     * stored on products. Used by list/carousel queries that sort products directly
+     * (not listing-first queries, which already sort on vendor_listings.rating_avg).
+     */
+    public function scopeOrderByRating($query, string $direction = 'desc')
+    {
+        return $query->orderByRaw(
+            "(SELECT COALESCE(SUM(vl.rating_avg * vl.rating_count) / NULLIF(SUM(vl.rating_count), 0), 0)
+              FROM vendor_listings vl
+              JOIN product_variants pv ON pv.id = vl.product_variant_id
+              WHERE pv.product_id = products.id AND vl.status = 'active' AND vl.deleted_at IS NULL
+             ) " . $direction
+        );
+    }
+
+    /**
+     * Rating is tracked per listing (vendor_listings / admin_product_listings), not on
+     * products. This aggregates across this product's active listings on read, weighted
+     * by each listing's own rating_count.
+     */
+    public function ratingSummary(): array
+    {
+        $vendorAgg = DB::table('vendor_listings as vl')
+            ->join('product_variants as pv', 'pv.id', '=', 'vl.product_variant_id')
+            ->where('pv.product_id', $this->id)
+            ->where('vl.status', 'active')
+            ->whereNull('vl.deleted_at')
+            ->selectRaw('COALESCE(SUM(vl.rating_avg * vl.rating_count), 0) as weighted, COALESCE(SUM(vl.rating_count), 0) as count')
+            ->first();
+
+        $adminAgg = DB::table('admin_product_listings as apl')
+            ->join('product_variants as pv', 'pv.id', '=', 'apl.product_variant_id')
+            ->where('pv.product_id', $this->id)
+            ->where('apl.status', 'active')
+            ->selectRaw('COALESCE(SUM(apl.rating_avg * apl.rating_count), 0) as weighted, COALESCE(SUM(apl.rating_count), 0) as count')
+            ->first();
+
+        $count = (int) $vendorAgg->count + (int) $adminAgg->count;
+        $weighted = (float) $vendorAgg->weighted + (float) $adminAgg->weighted;
+
+        return [
+            'rating_avg' => $count > 0 ? round($weighted / $count, 2) : 0.0,
+            'rating_count' => $count,
+        ];
     }
 }

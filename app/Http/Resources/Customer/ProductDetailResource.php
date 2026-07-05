@@ -29,8 +29,8 @@ class ProductDetailResource extends JsonResource
             'min_age'          => $this->min_age,
             'is_hazardous'     => $this->is_hazardous,
             'has_variants'     => $this->has_variants,
-            'rating_avg'       => (float) $this->rating_avg,
-            'rating_count'     => (int) $this->rating_count,
+            'rating_avg'       => (float) ($this->relationLoaded('activeListings') ? ($this->activeListings->first()->rating_avg ?? 0) : 0),
+            'rating_count'     => (int) ($this->relationLoaded('activeListings') ? ($this->activeListings->first()->rating_count ?? 0) : 0),
             'total_sold'       => (int) $this->total_sold,
             'brand'            => $this->whenLoaded('brand', fn() => [
                 'id'   => $this->brand->id,

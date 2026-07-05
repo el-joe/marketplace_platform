@@ -168,6 +168,6 @@ class ProductController extends Controller
             );
         }
 
-        return $query->orderByDesc('rating_avg')->limit(8)->get();
+        return $query->orderByRating()->limit(8)->get();
     }
 }

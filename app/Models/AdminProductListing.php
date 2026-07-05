@@ -28,6 +28,8 @@ class AdminProductListing extends Model
         'available_for_vendors',
         'available_for_marketers',
         'created_by_admin_id',
+        'rating_avg',
+        'rating_count',
     ];
 
     protected $casts = [
@@ -39,6 +41,8 @@ class AdminProductListing extends Model
         'featured_in_nawy'   => 'boolean',
         'available_for_vendors'   => 'boolean',
         'available_for_marketers' => 'boolean',
+        'rating_avg'          => 'decimal:2',
+        'rating_count'        => 'integer',
     ];
 
     public function productVariant(): BelongsTo

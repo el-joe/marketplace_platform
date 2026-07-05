@@ -11,6 +11,7 @@ use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\ProductQueryService;
 use App\Services\Shared\PageBuilderService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -25,8 +26,9 @@ class CategoryController extends Controller
      * GET /categories
      * Full nested tree for nav/menu. Cached 10 min per country.
      */
-    public function index(Country $country): JsonResponse
+    public function index(Request $request,$country): JsonResponse
     {
+        $country = $request->attributes->get('country');
         return response()->json([
             'success' => true,
             'data'    => $this->categories->getTree($country),

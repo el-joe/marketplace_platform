@@ -16,6 +16,7 @@ class Review extends Model
     protected $fillable = [
         'product_id',
         'vendor_listing_id',
+        'admin_product_listing_id',
         'customer_id',
         'order_item_id',
         'country_id',
@@ -38,6 +39,11 @@ class Review extends Model
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class);
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class);
     }
 
     public function customer(): BelongsTo
