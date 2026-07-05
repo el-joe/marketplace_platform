@@ -14,8 +14,9 @@ use Illuminate\Support\Str;
 
 class WishlistController extends Controller
 {
-    public function index(Country $country): JsonResponse
+    public function index($country): JsonResponse
     {
+        $country = request()->attributes->get("country");
         $items = Wishlist::where('customer_id', auth('customer')->id())
             ->with(['product.images'])
             ->latest('added_at')
@@ -30,8 +31,9 @@ class WishlistController extends Controller
         return ApiResponse::paginated($items, WishlistResource::class);
     }
 
-    private function resolveBestListing(string $productId, Country $country): ?VendorListing
+    private function resolveBestListing(string $productId, $country): ?VendorListing
     {
+        $country = request()->attributes->get("country");
         return VendorListing::whereHas(
             'productVariant',
             fn ($q) => $q->where('product_id', $productId)
@@ -48,8 +50,9 @@ class WishlistController extends Controller
             ->first();
     }
 
-    public function store(WishlistStoreRequest $request, Country $country): JsonResponse
+    public function store(WishlistStoreRequest $request, $country): JsonResponse
     {
+        $country = request()->attributes->get("country");
         $customerId = auth('customer')->id();
         $data       = $request->validated();
 
@@ -77,8 +80,9 @@ class WishlistController extends Controller
         );
     }
 
-    public function destroy(Country $country, string $productId): JsonResponse
+    public function destroy($country, string $productId): JsonResponse
     {
+        $country = request()->attributes->get("country");
         $deleted = Wishlist::where('customer_id', auth('customer')->id())
             ->where('product_id', $productId)
             ->delete();

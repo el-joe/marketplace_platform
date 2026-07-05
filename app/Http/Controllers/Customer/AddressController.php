@@ -47,10 +47,8 @@ class AddressController extends Controller
         return ApiResponse::success(new AddressResource($address), 'Address created.', 201);
     }
 
-    public function update(UpdateAddressRequest $request, Address $address): JsonResponse
+    public function update(UpdateAddressRequest $request,$country, Address $address): JsonResponse
     {
-        $this->authorize('update', $address);
-
         $data = $request->validated();
 
         if (!empty($data['is_default'])) {
@@ -63,10 +61,8 @@ class AddressController extends Controller
         return ApiResponse::success(new AddressResource($address->fresh()), 'Address updated.');
     }
 
-    public function destroy(Address $address): JsonResponse
+    public function destroy($country,Address $address): JsonResponse
     {
-        $this->authorize('delete', $address);
-
         if (!$this->addressService->canDelete($address)) {
             return ApiResponse::error(
                 'This address is in use and cannot be deleted.',
@@ -80,10 +76,8 @@ class AddressController extends Controller
         return ApiResponse::success(null, 'Address deleted.');
     }
 
-    public function setDefault(Address $address): JsonResponse
+    public function setDefault($country, Address $address): JsonResponse
     {
-        $this->authorize('setDefault', $address);
-
         $this->addressService->setDefault(auth('customer')->user(), $address);
 
         return ApiResponse::success(new AddressResource($address->fresh()), 'Default address updated.');

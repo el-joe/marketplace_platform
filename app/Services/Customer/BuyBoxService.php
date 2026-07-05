@@ -22,7 +22,7 @@ class BuyBoxService
             ->pluck('id');
 
         return \App\Models\VendorListing::query()
-            ->with(['vendor:id,store_name,store_slug,rating_avg', 'warehouseInventories'])
+            ->with(['vendor:id,store_name,store_slug,store_rating_avg', 'warehouseInventories'])
             ->whereIn('product_variant_id', $variantIds)
             ->where('country_id', $country->id)
             ->where('status', 'active')

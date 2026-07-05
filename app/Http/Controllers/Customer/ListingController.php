@@ -37,7 +37,7 @@ class ListingController extends Controller
     public function show(Request $request,$country, string $type, string $slug): JsonResponse
     {
         $country = $request->attributes->get("country");
-        
+
         return match ($type) {
             'product'    => $this->showProduct($request, $country, $slug),
             'classified' => $this->showClassified($request, $country, $slug),
@@ -48,9 +48,10 @@ class ListingController extends Controller
 
     public function createInquiry(
         CreateInquiryRequest $request,
-        Country $country,
+        $country,
         string $slug,
     ): JsonResponse {
+        $country = $request->attributes->get('country');
         $listing = $this->classifiedDetail->findActive($slug, $country);
 
         abort_if(! $listing, 404, 'Listing not found or no longer active.');
@@ -69,9 +70,10 @@ class ListingController extends Controller
 
     public function createBooking(
         CreateBookingRequest $request,
-        Country $_country,
+        $_country,
         string $slug,
     ): JsonResponse {
+        $_country = $request->attributes->get('country');
         $package = $this->travelDetail->findActive($slug);
 
         if (! $package) {
@@ -96,10 +98,11 @@ class ListingController extends Controller
 
     public function signContract(
         SignContractRequest $request,
-        Country $_country,
+        $_country,
         string $slug,
         string $bookingNumber,
     ): JsonResponse {
+        $_country = $request->attributes->get('country');
         // Verify the package still exists (even if expired — contract signing can happen post-departure)
         $packageExists = \App\Models\TravelPackage::where('slug', $slug)->exists();
         abort_if(! $packageExists, 404, 'Travel package not found.');
