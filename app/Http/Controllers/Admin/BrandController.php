@@ -32,8 +32,8 @@ class BrandController extends Controller
     {
         return view('admin.brands.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Brands'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.brands')],
             ],
         ]);
     }
@@ -97,9 +97,9 @@ class BrandController extends Controller
     {
         return view('admin.brands.create', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Brands', 'url' => route('admin.brands.index')],
-                ['label' => 'New Brand'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.brands'), 'url' => route('admin.brands.index')],
+                ['label' => __('admin.brands.new_brand')],
             ],
         ]);
     }
@@ -114,9 +114,9 @@ class BrandController extends Controller
             DB::rollBack();
             Log::error('BrandController@store failed', ['error' => $e->getMessage()]);
             if ($request->wantsJson()) {
-                return response()->json(['message' => 'Failed to create brand.'], 500);
+                return response()->json(['message' => __('admin.brands.create_failed')], 500);
             }
-            return back()->withInput()->withErrors(['error' => 'Failed to create brand.']);
+            return back()->withInput()->withErrors(['error' => __('admin.brands.create_failed')]);
         }
 
         if ($request->wantsJson()) {
@@ -127,7 +127,7 @@ class BrandController extends Controller
         }
 
         return redirect()->route('admin.brands.edit', $brand->id)
-            ->with('success', 'Brand created successfully.');
+            ->with('success', __('admin.brands.created_success'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -141,9 +141,9 @@ class BrandController extends Controller
         return view('admin.brands.edit', [
             'brand' => $model,
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Brands', 'url' => route('admin.brands.index')],
-                ['label' => $model->name_en],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.brands'), 'url' => route('admin.brands.index')],
+                ['label' => e($model->name_en)],
             ],
         ]);
     }
@@ -159,7 +159,7 @@ class BrandController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('BrandController@update failed', ['brand' => $brand, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to update brand.'], 500);
+            return response()->json(['message' => __('admin.brands.update_failed')], 500);
         }
 
         return response()->json(['success' => true]);
@@ -180,7 +180,7 @@ class BrandController extends Controller
 
         if ($productCount > 0) {
             return response()->json([
-                'message' => "Cannot delete brand: {$productCount} product(s) are assigned to it.",
+                'message' => trans_choice('admin.brands.cannot_delete_has_products', $productCount, ['count' => $productCount]),
             ], 422);
         }
 

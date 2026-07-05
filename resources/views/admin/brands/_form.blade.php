@@ -259,4 +259,15 @@
 
     </div>{{-- /flex --}}
 
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            savingEllipsis: @json(__('admin.brands.saving_ellipsis')),
+            brandSavedSuccess: @json(__('admin.brands.saved_success')),
+            saveFailedGeneric: @json(__('admin.brands.save_failed_generic')),
+            networkErrorRetry: @json(__('admin.brands.network_error_retry')),
+            saveChangesBtn: @json(__('admin.brands_section.save_changes')),
+        });
+    </script>
+
 </div>{{-- /space-y-6 --}}

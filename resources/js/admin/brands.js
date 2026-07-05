@@ -1,6 +1,10 @@
 /**
  * brands.js — admin brand form & datatable JS
  */
+function T() {
+    return window.TRANSLATIONS || {};
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // ─── Slug auto-generation from name_en ───────────────────────────────────
@@ -34,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
 
             const btn = document.getElementById('brand-save-btn');
-            if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+            if (btn) { btn.disabled = true; btn.textContent = T().savingEllipsis || 'Saving…'; }
 
             try {
                 const fd = new FormData(form);
@@ -47,17 +51,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json().catch(() => ({}));
 
                 if (res.ok && data.success) {
-                    window.Toast?.success('Brand saved successfully.');
+                    window.Toast?.success(T().brandSavedSuccess || 'Brand saved successfully.');
                 } else {
                     const msg = data.message || data.errors
                         ? Object.values(data.errors || {}).flat().join('\n')
-                        : 'Save failed.';
+                        : (T().saveFailedGeneric || 'Save failed.');
                     window.Toast?.error(msg);
                 }
             } catch (err) {
-                window.Toast?.error('Network error. Please try again.');
+                window.Toast?.error(T().networkErrorRetry || 'Network error. Please try again.');
             } finally {
-                if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+                if (btn) { btn.disabled = false; btn.textContent = T().saveChangesBtn || 'Save Changes'; }
             }
         });
     }
