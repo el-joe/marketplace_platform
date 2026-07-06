@@ -9,6 +9,7 @@ use App\Jobs\NotifyOperationsTeamJob;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentEarning;
 use App\Models\DeliveryAssignment;
+use App\Models\PaymentTransaction;
 use App\Models\Setting;
 use App\Models\ShipmentTrackingEvent;
 use App\Notifications\Carrier\DeliveryFailed as DeliveryFailedNotification;
@@ -303,6 +304,11 @@ class AssignmentService
                 ]);
 
                 $assignment->subOrder->update(['status' => 'cancelled']);
+
+                PaymentTransaction::where('order_id', $order->id)
+                    ->where('gateway', 'cod')
+                    ->where('status', 'pending')
+                    ->update(['status' => 'cancelled']);
             }
         });
 

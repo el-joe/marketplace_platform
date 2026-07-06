@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
 use App\Models\DeliveryAgentEarning;
+use App\Models\PaymentTransaction;
 use App\Services\FileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -215,6 +216,11 @@ class AssignmentController extends Controller
             // Virtual capture for COD — cash physically changed hands
             if ($isCod && $order) {
                 $order->update(['payment_status' => 'captured']);
+
+                PaymentTransaction::where('order_id', $order->id)
+                    ->where('gateway', 'cod')
+                    ->where('status', 'pending')
+                    ->update(['status' => 'succeeded', 'processed_at' => now()]);
             }
 
             $assignment->agent?->increment('total_deliveries');

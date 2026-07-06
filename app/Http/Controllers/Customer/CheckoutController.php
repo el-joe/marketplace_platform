@@ -250,7 +250,7 @@ class CheckoutController extends Controller
         $validated = $request->validated();
 
         $existingTransaction = PaymentTransaction::where('idempotency_key', $validated['idempotency_key'])->first();
-        if ($existingTransaction && $existingTransaction->status === 'succeeded') {
+        if ($existingTransaction && in_array($existingTransaction->status, ['pending', 'succeeded'], true)) {
             $order = Order::where('id', $existingTransaction->order_id)->first();
             if ($order) {
                 return ApiResponse::error('Order already placed.', ['order_number' => $order->order_number], 409);
@@ -492,6 +492,9 @@ class CheckoutController extends Controller
         $order = $result['order'];
 
         if ($isCod) {
+            // Cash hasn't changed hands yet — this transaction (and order.payment_status,
+            // already 'pending' from creation above) only becomes 'succeeded'/'captured' once
+            // the delivery agent actually collects payment (see AssignmentController::confirmDelivery).
             PaymentTransaction::create([
                 'id' => (string) Str::uuid(),
                 'order_id' => $order->id,
@@ -502,8 +505,8 @@ class CheckoutController extends Controller
                 'idempotency_key' => $validated['idempotency_key'],
                 'amount' => $order->total,
                 'currency' => $order->currency,
-                'status' => 'succeeded',
-                'processed_at' => now(),
+                'status' => 'pending',
+                'processed_at' => null,
             ]);
         } else {
             $methodConfig = CountryPaymentMethod::where('method_type', $validated['payment_method'])
