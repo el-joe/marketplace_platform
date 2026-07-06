@@ -567,7 +567,7 @@ class CheckoutController extends Controller
         ], 'Order placed successfully', 201);
     }
 
-    public function confirmation(Request $request, string $orderNumber): JsonResponse
+    public function confirmation(Request $request,$country, string $orderNumber): JsonResponse
     {
         $customer = auth('customer')->user();
 

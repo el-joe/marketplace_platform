@@ -99,7 +99,8 @@ class OrderTrackingService
                 'shipments.trackingEvents',
                 'deliveryAssignments.agent:id,name',
             ])
-            ->find($subOrderId);
+            ->where('sub_order_number', $subOrderId)
+            ->first();
 
         if (!$subOrder) {
             return null;
@@ -136,6 +137,7 @@ class OrderTrackingService
     private function buildSubOrder(SubOrder $subOrder, Collection $reviewedItemIds): array
     {
         return [
+            "id"                => $subOrder->id,
             'sub_order_number'  => $subOrder->sub_order_number,
             'status'            => $subOrder->status,
             'fulfillment_model' => $subOrder->fulfillment_model,
@@ -247,6 +249,7 @@ class OrderTrackingService
             && !$reviewedItemIds->contains($item->id);
 
         return [
+            'id'                    => $item->id,
             'sku'                   => $item->sku,
             'listing_ref'           => $item->vendorListing
                 ? app(ListingIdentifierService::class)->buildListingRef($item->vendorListing)

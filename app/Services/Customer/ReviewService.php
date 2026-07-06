@@ -18,30 +18,40 @@ class ReviewService
 
     public function canReview(Customer $customer, OrderItem $item): bool
     {
+        return $this->reviewBlockReason($customer, $item) === null;
+    }
+
+    private function reviewBlockReason(Customer $customer, OrderItem $item): ?string
+    {
         if ($item->fulfillment_status !== 'delivered') {
-            return false;
+            return 'This item has not been delivered yet.';
         }
 
         $alreadyReviewed = Review::where('customer_id', $customer->id)
             ->where('order_item_id', $item->id)
             ->exists();
 
-        return !$alreadyReviewed;
+        if ($alreadyReviewed) {
+            return 'You have already reviewed this item.';
+        }
+
+        return null;
     }
 
     public function store(Customer $customer, Order $order, array $data): Review
     {
-        $item = OrderItem::where('id', $data['order_item_id'] ?? null)
+        $item = OrderItem::with('productVariant.product')
+            ->where('id', $data['order_item_id'] ?? null)
             ->where('order_id', $order->id)
             ->firstOrFail();
 
-        if (!$this->canReview($customer, $item)) {
+        if ($reason = $this->reviewBlockReason($customer, $item)) {
             throw ValidationException::withMessages([
-                'order_item_id' => ['You cannot review this item.'],
+                'order_item_id' => [$reason],
             ]);
         }
 
-        $product = Product::where('id', $data['product_id'])->firstOrFail();
+        $product = $item->productVariant->product;
 
         return DB::transaction(function () use ($customer, $item, $product, $data, $order): Review {
             $review = Review::create([
