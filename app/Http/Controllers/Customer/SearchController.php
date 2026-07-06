@@ -135,8 +135,10 @@ class SearchController extends Controller
         ]);
     }
 
-    private function searchAll(SearchRequest $request, Country $country, array $data): JsonResponse
+    private function searchAll(SearchRequest $request, $country, array $data): JsonResponse
     {
+        $country = $request->attributes->get('country');
+
         $query = $data['q'];
 
         $productPaginator = $this->search->search(

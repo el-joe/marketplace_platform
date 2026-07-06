@@ -87,8 +87,10 @@ class ProductController extends Controller
         ]);
     }
 
-    public function show(Request $request, Country $country, string $slug): JsonResponse
+    public function show(Request $request, $country, string $slug): JsonResponse
     {
+        $country = $request->attributes->get('country');
+
         $product = Product::where('slug', $slug)
             ->where('status', 'active')
             ->whereHas(
@@ -143,8 +145,10 @@ class ProductController extends Controller
         return ApiResponse::success($resource->toArray($request));
     }
 
-    private function relatedProducts(Product $product, Country $country, ?int $buyBoxPrice): \Illuminate\Database\Eloquent\Collection
+    private function relatedProducts(Product $product, $country, ?int $buyBoxPrice): \Illuminate\Database\Eloquent\Collection
     {
+        $country = $request->attributes->get('country');
+
         $query = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', 'active')

@@ -76,8 +76,10 @@ class ListingDetailController extends Controller
         ]);
     }
 
-    private function resolveListing(string $identifier, Country $country): ?VendorListing
+    private function resolveListing(string $identifier, $country): ?VendorListing
     {
+        $country = $request->attributes->get('country');
+
         if (str_contains($identifier, '--')) {
             $parsed = $this->identifiers->parseListingRef($identifier);
 
@@ -106,8 +108,10 @@ class ListingDetailController extends Controller
         return $this->identifiers->resolve($identifier, $type, $country);
     }
 
-    private function listingShape(VendorListing $listing, Country $country, bool $isWishlisted): array
+    private function listingShape(VendorListing $listing, $country, bool $isWishlisted): array
     {
+        $country = $request->attributes->get('country');
+
         return [
             'listing_id' => $listing->id,
             'listing_ref' => $this->identifiers->buildListingRef($listing),
@@ -225,8 +229,10 @@ class ListingDetailController extends Controller
         ];
     }
 
-    private function otherSellerShape(VendorListing $listing, Country $country): array
+    private function otherSellerShape(VendorListing $listing, $country): array
     {
+        $country = $request->attributes->get('country');
+
         return [
             'listing_id' => $listing->id,
             'listing_ref' => $this->identifiers->buildListingRef($listing),

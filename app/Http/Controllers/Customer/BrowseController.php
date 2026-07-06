@@ -60,8 +60,10 @@ class BrowseController extends Controller
 
     // ── Products ──────────────────────────────────────────────────────────────
 
-    private function browseProduct(Request $request, Country $country, string $id): JsonResponse
+    private function browseProduct(Request $request, $country, string $id): JsonResponse
     {
+        $country = $request->attributes->get('country');
+
         $category = Category::where('id', $id)->where('is_active', true)->firstOrFail();
 
         $filters     = $request->only([
@@ -130,8 +132,10 @@ class BrowseController extends Controller
 
     // ── Classifieds ───────────────────────────────────────────────────────────
 
-    private function browseClassified(Request $request, Country $country, string $id): JsonResponse
+    private function browseClassified(Request $request, $country, string $id): JsonResponse
     {
+        $country = $request->attributes->get('country');
+
         $categoryNode = $this->unifiedCategories->findById($id, 'classified');
 
         if (!$categoryNode) {
@@ -183,8 +187,10 @@ class BrowseController extends Controller
 
     // ── Travel ────────────────────────────────────────────────────────────────
 
-    private function browseTravel(Request $request, Country $country, string $id): JsonResponse
+    private function browseTravel(Request $request, $country, string $id): JsonResponse
     {
+        $country = $request->attributes->get('country');
+
         $travelCategory = null;
 
         if ($id !== 'all' && $id !== '') {

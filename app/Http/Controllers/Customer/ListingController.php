@@ -121,8 +121,10 @@ class ListingController extends Controller
 
     // ── Private branch methods ────────────────────────────────────────────────
 
-    private function showProduct(Request $request, Country $country, string $slug): JsonResponse
+    private function showProduct(Request $request, $country, string $slug): JsonResponse
     {
+        $country = $request->attributes->get('country');
+
         $product = Product::where('slug', $slug)
             ->where('status', 'active')
             ->whereHas('countrySettings', fn ($q) => $q
@@ -191,8 +193,10 @@ class ListingController extends Controller
         return ApiResponse::success($resource->toArray($request));
     }
 
-    private function showClassified(Request $request, Country $country, string $listingNumber): JsonResponse
+    private function showClassified(Request $request, $country, string $listingNumber): JsonResponse
     {
+        $country = $request->attributes->get('country');
+
         $listing = $this->classifiedDetail->findActive($listingNumber, $country);
 
         abort_if(! $listing, 404, 'Listing not found or no longer active.');
