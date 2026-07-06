@@ -18,7 +18,7 @@ class OrderController extends Controller
         private readonly OrderTrackingService $orderTrackingService,
     ) {}
 
-    public function index(OrderListRequest $request): JsonResponse
+    public function index(OrderListRequest $request, string $country): JsonResponse
     {
         $customer = auth('customer')->user();
         $paginator = $this->orderService->listForCustomer($customer, $request->validated());

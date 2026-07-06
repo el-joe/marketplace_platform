@@ -31,8 +31,9 @@ class AccountController extends Controller
 
     // ── Dashboard ─────────────────────────────────────────────────────────────
 
-    public function dashboard(Country $country): JsonResponse
+    public function dashboard(Request $request,$country): JsonResponse
     {
+        $country = $request->attributes->get("country");
         /** @var Customer $customer */
         $customer = auth('customer')->user();
 
@@ -43,8 +44,9 @@ class AccountController extends Controller
 
     // ── My Classified Listings (customer as seller) ───────────────────────────
 
-    public function listingsIndex(Request $request, Country $country): JsonResponse
+    public function listingsIndex(Request $request, $country): JsonResponse
     {
+        $country = $request->attributes->get("country");
         $request->validate([
             'status' => 'nullable|in:draft,pending_contract,pending_review,active,paused,sold,expired,rejected',
             'page'   => 'nullable|integer|min:1',
@@ -61,8 +63,9 @@ class AccountController extends Controller
         return ApiResponse::paginated($query->paginate(20), CustomerClassifiedListingListResource::class);
     }
 
-    public function listingsShow(Country $country, string $listingNumber): JsonResponse
+    public function listingsShow(Request $request,$country, string $listingNumber): JsonResponse
     {
+        $country = $request->attributes->get("country");
         $listing = $this->findOwnedListing($listingNumber);
 
         $listing->load(['classifiedCategory', 'images', 'attachments', 'inquiries']);
@@ -70,8 +73,9 @@ class AccountController extends Controller
         return ApiResponse::success(new CustomerClassifiedListingDetailResource($listing));
     }
 
-    public function listingsStore(StoreClassifiedListingRequest $request, Country $country): JsonResponse
+    public function listingsStore(StoreClassifiedListingRequest $request, $country): JsonResponse
     {
+        $country = $request->attributes->get("country");
         /** @var Customer $customer */
         $customer = auth('customer')->user();
 
@@ -80,8 +84,9 @@ class AccountController extends Controller
         return ApiResponse::success(new CustomerClassifiedListingDetailResource($listing), 'Listing created.', 201);
     }
 
-    public function listingsUpdate(UpdateClassifiedListingRequest $request, Country $country, string $listingNumber): JsonResponse
+    public function listingsUpdate(UpdateClassifiedListingRequest $request, $country, string $listingNumber): JsonResponse
     {
+        $country = $request->attributes->get("country");
         $listing = $this->findOwnedListing($listingNumber);
 
         if (! $this->listingService->canEdit($listing)) {
@@ -93,8 +98,9 @@ class AccountController extends Controller
         return ApiResponse::success(new CustomerClassifiedListingDetailResource($listing), 'Listing updated.');
     }
 
-    public function listingsDestroy(Country $country, string $listingNumber): JsonResponse
+    public function listingsDestroy(Request $request,$country, string $listingNumber): JsonResponse
     {
+        $country = $request->attributes->get("country");
         $listing = $this->findOwnedListing($listingNumber);
 
         if (! in_array($listing->status, ['draft', 'rejected', 'expired'], true)) {
@@ -106,8 +112,9 @@ class AccountController extends Controller
         return ApiResponse::success(message: 'Listing deleted.');
     }
 
-    public function listingInquiries(Country $country, string $listingNumber): JsonResponse
+    public function listingInquiries(Request $request,$country, string $listingNumber): JsonResponse
     {
+        $country = $request->attributes->get("country");
         $listing = $this->findOwnedListing($listingNumber);
 
         $inquiries = $listing->inquiries()->with('customer')->latest()->paginate(20);
@@ -117,8 +124,9 @@ class AccountController extends Controller
 
     // ── My Travel Bookings ────────────────────────────────────────────────────
 
-    public function travelBookingsIndex(Request $request, Country $country): JsonResponse
+    public function travelBookingsIndex(Request $request, $country): JsonResponse
     {
+        $country = $request->attributes->get("country");
         $request->validate([
             'status' => 'nullable|in:pending_documents,confirmed,cancelled,completed',
             'page'   => 'nullable|integer|min:1',
@@ -132,8 +140,9 @@ class AccountController extends Controller
         return ApiResponse::paginated($paginator, TravelBookingResource::class);
     }
 
-    public function travelBookingsShow(Country $country, string $id): JsonResponse
+    public function travelBookingsShow(Request $request,$country, string $id): JsonResponse
     {
+        $country = $request->attributes->get("country");
         /** @var Customer $customer */
         $customer = auth('customer')->user();
 
@@ -142,8 +151,9 @@ class AccountController extends Controller
         return ApiResponse::success(new TravelBookingResource($booking));
     }
 
-    public function travelBookingsCancel(Request $request, Country $country, string $id): JsonResponse
+    public function travelBookingsCancel(Request $request, $country, string $id): JsonResponse
     {
+        $country = $request->attributes->get("country");
         $request->validate([
             'reason' => 'required|string|max:500',
         ]);
@@ -161,8 +171,9 @@ class AccountController extends Controller
 
     // ── My Classified Inquiries (customer as buyer) ───────────────────────────
 
-    public function inquiriesIndex(Request $request, Country $country): JsonResponse
+    public function inquiriesIndex(Request $request, $country): JsonResponse
     {
+        $country = $request->attributes->get("country");
         $request->validate([
             'status' => 'nullable|in:new,replied,closed',
             'page'   => 'nullable|integer|min:1',
@@ -180,8 +191,9 @@ class AccountController extends Controller
         return ApiResponse::paginated($paginator, ClassifiedInquiryAsBuyerResource::class);
     }
 
-    public function inquiriesShow(Country $country, string $id): JsonResponse
+    public function inquiriesShow(Request $request,$country, string $id): JsonResponse
     {
+        $country = $request->attributes->get("country");
         /** @var Customer $customer */
         $customer = auth('customer')->user();
 
