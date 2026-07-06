@@ -139,7 +139,7 @@ class FlashSaleController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Flash sale created.',
+            'message' => __('admin.flash_sales.created_message'),
             'redirect' => route('admin.flash-sales.edit', $sale->id),
         ], 201);
     }
@@ -215,16 +215,16 @@ class FlashSaleController extends Controller
     {
         $this->flashSaleService->update($flashSale, $request->validated(), auth('admin')->user());
 
-        return response()->json(['success' => true, 'message' => 'Flash sale updated.']);
+        return response()->json(['success' => true, 'message' => __('admin.flash_sales.updated_message')]);
     }
 
     public function destroy(FlashSale $flashSale): JsonResponse
     {
         if ($flashSale->status !== 'draft') {
-            return response()->json(['message' => 'Only draft flash sales can be deleted.'], 422);
+            return response()->json(['message' => __('admin.flash_sales.only_draft_deletable')], 422);
         }
         $flashSale->delete();
-        return response()->json(['success' => true, 'message' => 'Flash sale deleted.']);
+        return response()->json(['success' => true, 'message' => __('admin.flash_sales.deleted_message')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -250,6 +250,16 @@ class FlashSaleController extends Controller
 
         $newStatus = $actionToStatus[$request->action];
         $admin = auth('admin')->user();
+        $statusLabels = [
+            'draft'             => __('admin.flash_sales.status_draft'),
+            'submission_open'   => __('admin.flash_sales.status_submission_open'),
+            'submission_closed' => __('admin.flash_sales.status_submission_closed'),
+            'under_review'      => __('admin.flash_sales.status_under_review'),
+            'approved'          => __('admin.flash_sales.status_approved'),
+            'live'              => __('admin.flash_sales.status_live'),
+            'ended'             => __('admin.flash_sales.status_ended'),
+            'cancelled'         => __('admin.flash_sales.status_cancelled'),
+        ];
 
         try {
             if ($request->action === 'open_submissions') {
@@ -260,7 +270,7 @@ class FlashSaleController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Flash sale status updated to ' . FlashSale::STATUS_LABELS[$newStatus] . '.',
+                'message' => __('admin.flash_sales.status_updated_to', ['status' => $statusLabels[$newStatus] ?? $newStatus]),
                 'new_status' => $flashSale->fresh()->status,
             ]);
         } catch (\LogicException $e) {
@@ -295,7 +305,9 @@ class FlashSaleController extends Controller
             return response()->json([
                 'success' => true,
                 'count' => $invited,
-                'message' => "{$invited} vendor(s) invited" . ($skipped ? ", {$skipped} not found." : '.'),
+                'message' => $skipped
+                    ? __('admin.flash_sales.vendors_invited_with_skipped', ['invited' => $invited, 'skipped' => $skipped])
+                    : __('admin.flash_sales.vendors_invited_result', ['count' => $invited]),
             ]);
         }
 
@@ -303,7 +315,7 @@ class FlashSaleController extends Controller
         return response()->json([
             'success' => true,
             'count' => $count,
-            'message' => "{$count} eligible vendor(s) invited.",
+            'message' => __('admin.flash_sales.vendors_invited_result', ['count' => $count]),
         ]);
     }
 
@@ -354,17 +366,17 @@ class FlashSaleController extends Controller
     public function resendInvitation(FlashSale $flashSale, FlashSaleVendorInvitition $invitation): JsonResponse
     {
         if ($invitation->flash_sale_id !== $flashSale->id) {
-            return response()->json(['message' => 'Invitation does not belong to this flash sale.'], 403);
+            return response()->json(['message' => __('admin.flash_sales.invitation_not_belong')], 403);
         }
 
         if (!in_array($invitation->status, ['pending', 'declined'], true)) {
-            return response()->json(['message' => 'Notifications can only be resent for pending or declined invitations.'], 422);
+            return response()->json(['message' => __('admin.flash_sales.notifications_resend_restricted')], 422);
         }
 
         $invitation->update(['notified_at' => now()]);
         \App\Jobs\FlashSaleInviteBulkJob::dispatch($flashSale->id, [$invitation->vendor_id]);
 
-        return response()->json(['success' => true, 'message' => 'Notification queued for resend.']);
+        return response()->json(['success' => true, 'message' => __('admin.flash_sales.notification_queued_resend')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -462,7 +474,11 @@ class FlashSaleController extends Controller
                 auth('admin')->user()
             );
 
-            return response()->json(['success' => true, 'message' => 'Submission ' . $request->decision . '.']);
+            $decisionLabel = $request->decision === 'approved'
+                ? __('admin.flash_sales.status_approved')
+                : __('admin.flash_sales.status_rejected');
+
+            return response()->json(['success' => true, 'message' => __('admin.flash_sales.submission_decision_message', ['decision' => $decisionLabel])]);
         } catch (\LogicException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
@@ -572,7 +588,7 @@ class FlashSaleController extends Controller
     public function liveMonitorData(FlashSale $flashSale): JsonResponse
     {
         if ($flashSale->status !== 'live') {
-            return response()->json(['message' => 'Sale is not live.'], 422);
+            return response()->json(['message' => __('admin.flash_sales.sale_not_live')], 422);
         }
 
         // A flash sale is scoped to one country_id and therefore one currency; all submissions
@@ -623,7 +639,7 @@ class FlashSaleController extends Controller
     public function analyticsData(FlashSale $flashSale): JsonResponse
     {
         if (!in_array($flashSale->status, ['live', 'ended'])) {
-            return response()->json(['message' => 'Analytics are available once the sale is live or has ended.'], 422);
+            return response()->json(['message' => __('admin.flash_sales.analytics_available_after_live')], 422);
         }
 
         $byDay = FlashSaleAnalytic::where('flash_sale_id', $flashSale->id)

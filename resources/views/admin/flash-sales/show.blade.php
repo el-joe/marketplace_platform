@@ -54,6 +54,71 @@
             submissionDetail:  '{{ url('/flash-sales/submissions') }}',
         };
         window.MIN_DISCOUNT_PCT = {{ (float) $flashSale->min_discount_pct }};
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            statusSubmitted: @json(__('admin.flash_sales.submitted')),
+            statusUnderReview: @json(__('admin.flash_sales.status_under_review')),
+            statusApproved: @json(__('admin.flash_sales.status_approved')),
+            statusLive: @json(__('admin.flash_sales.status_live')),
+            statusSoldOut: @json(__('admin.flash_sales.sold_out')),
+            statusRejected: @json(__('admin.flash_sales.status_rejected')),
+            statusWithdrawn: @json(__('admin.flash_sales.status_withdrawn')),
+            statusEnded: @json(__('admin.flash_sales.status_ended')),
+            product: @json(__('admin.flash_sales.product')),
+            flashPrice: @json(__('admin.flash_sales.flash_price')),
+            originalShort: @json(__('admin.flash_sales.original_short')),
+            discShort: @json(__('admin.flash_sales.disc_short')),
+            minDiscountShort: @json(__('admin.flash_sales.min_discount_short')),
+            qty: @json(__('admin.flash_sales.qty')),
+            status: @json(__('admin.status')),
+            submitted: @json(__('admin.flash_sales.submitted')),
+            reviewBtn: @json(__('admin.flash_sales.review_btn')),
+            loading: @json(__('admin.flash_sales.loading')),
+            possibleFakeDiscount: @json(__('admin.flash_sales.possible_fake_discount')),
+            bulkRejectCount: @json(__('admin.flash_sales.bulk_reject_count')),
+            vendor: @json(__('admin.flash_sales.vendor')),
+            typeLabel: @json(__('admin.flash_sales.type_label')),
+            manualInviteType: @json(__('admin.flash_sales.manual_invite_type')),
+            autoInviteType: @json(__('admin.flash_sales.auto_invite_type')),
+            slots: @json(__('admin.flash_sales.slots')),
+            invitedLabel: @json(__('admin.flash_sales.invited_label')),
+            notifiedLabel: @json(__('admin.flash_sales.notified_label')),
+            respondedLabel: @json(__('admin.flash_sales.responded_label')),
+            viewReason: @json(__('admin.flash_sales.view_reason')),
+            resend: @json(__('admin.flash_sales.resend')),
+            resendNotificationTooltip: @json(__('admin.flash_sales.resend_notification_tooltip')),
+            notificationQueued: @json(__('admin.flash_sales.notification_queued')),
+            resendFailed: @json(__('admin.flash_sales.resend_failed')),
+            statusPending: @json(__('admin.flash_sales.pending')),
+            statusAccepted: @json(__('admin.flash_sales.accepted')),
+            statusDeclined: @json(__('admin.flash_sales.declined')),
+            failedLoadPricing: @json(__('admin.flash_sales.failed_load_pricing')),
+            noPriceHistoryData: @json(__('admin.flash_sales.no_price_history_data')),
+            acknowledgeWarningRequired: @json(__('admin.flash_sales.acknowledge_warning_required')),
+            saving: @json(__('admin.flash_sales.saving')),
+            confirmDecision: @json(__('admin.flash_sales.confirm_decision')),
+            reviewFailed: @json(__('admin.flash_sales.review_failed')),
+            decisionSaved: @json(__('admin.flash_sales.decision_saved')),
+            bulkRejectResult: @json(__('admin.flash_sales.bulk_reject_result')),
+            bulkRejectFailed: @json(__('admin.flash_sales.bulk_reject_failed')),
+            confirmGenericAction: @json(__('admin.flash_sales.confirm_generic_action')),
+            statusUpdated: @json(__('admin.flash_sales.status_updated')),
+            transitionFailed: @json(__('admin.flash_sales.transition_failed')),
+            failedLoadEligibleCount: @json(__('admin.flash_sales.failed_load_eligible_count')),
+            inviting: @json(__('admin.flash_sales.inviting')),
+            sendInvitations: @json(__('admin.flash_sales.send_invitations')),
+            vendorsInvitedResult: @json(__('admin.flash_sales.vendors_invited_result')),
+            inviteFailed: @json(__('admin.flash_sales.invite_failed')),
+            activeCriteriaHint: @json(__('admin.flash_sales.active_criteria_hint')),
+            noCriteriaHint: @json(__('admin.flash_sales.no_criteria_hint')),
+            minDiscountCriteria: @json(__('admin.flash_sales.min_discount_criteria')),
+            vendorsInvitedGeneric: @json(__('admin.flash_sales.vendors_invited_generic')),
+            inviteVendorsFailed: @json(__('admin.flash_sales.invite_vendors_failed')),
+            noDataYet: @json(__('admin.flash_sales.no_data_yet')),
+            ended: @json(__('admin.flash_sales.ended')),
+            analyticsUnavailable: @json(__('admin.flash_sales.analytics_unavailable')),
+            noDailyData: @json(__('admin.flash_sales.no_daily_data')),
+        });
     </script>
 
     <div class="flex gap-6 items-start">
@@ -110,10 +175,20 @@
                                 'withdrawn'    => 'bg-gray-100 text-gray-500',
                                 'ended'        => 'bg-gray-100 text-gray-500',
                             ];
+                            $submissionStatusLabels = [
+                                'submitted'    => __('admin.flash_sales.submitted'),
+                                'under_review' => __('admin.flash_sales.status_under_review'),
+                                'approved'     => __('admin.flash_sales.status_approved'),
+                                'live'         => __('admin.flash_sales.status_live'),
+                                'sold_out'     => __('admin.flash_sales.sold_out'),
+                                'rejected'     => __('admin.flash_sales.status_rejected'),
+                                'withdrawn'    => __('admin.flash_sales.status_withdrawn'),
+                                'ended'        => __('admin.flash_sales.status_ended'),
+                            ];
                         @endphp
                         @foreach($submissionStats as $status => $count)
                             <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium {{ $pillColors[$status] ?? 'bg-gray-100 text-gray-700' }}">
-                                {{ ucwords(str_replace('_', ' ', $status)) }}
+                                {{ $submissionStatusLabels[$status] ?? ucwords(str_replace('_', ' ', $status)) }}
                                 <span class="font-bold">{{ $count }}</span>
                             </span>
                         @endforeach
@@ -122,13 +197,13 @@
                             <select id="sub-filter-status" class="form-select form-select-sm">
                                 <option value="">{{ __('admin.flash_sales.all_statuses') }}</option>
                                 @foreach([
-                                    'submitted'    => __('admin.flash_sales.submitted'),
-                                    'under_review' => __('admin.flash_sales.status_under_review'),
-                                    'approved'     => __('admin.flash_sales.status_approved'),
-                                    'rejected'     => __('admin.flash_sales.reject'),
-                                    'live'         => __('admin.flash_sales.status_live'),
-                                    'sold_out'     => __('admin.flash_sales.sold_out'),
-                                    'ended'        => __('admin.flash_sales.status_ended'),
+                                    'submitted'    => $submissionStatusLabels['submitted'],
+                                    'under_review' => $submissionStatusLabels['under_review'],
+                                    'approved'     => $submissionStatusLabels['approved'],
+                                    'rejected'     => $submissionStatusLabels['rejected'],
+                                    'live'         => $submissionStatusLabels['live'],
+                                    'sold_out'     => $submissionStatusLabels['sold_out'],
+                                    'ended'        => $submissionStatusLabels['ended'],
                                 ] as $v => $l)
                                     <option value="{{ $v }}">{{ $l }}</option>
                                 @endforeach
@@ -487,7 +562,7 @@
                     <p id="review-product-name" class="font-medium text-gray-900 text-sm"></p>
                     <p class="text-xs text-gray-500 mt-0.5">
                         <span id="review-flash-price" class="font-semibold text-primary-600"></span>
-                        <span class="mx-1 text-gray-300">vs</span>
+                        <span class="mx-1 text-gray-300">{{ __('admin.flash_sales.vs') }}</span>
                         <span id="review-original-price" class="line-through text-gray-400"></span>
                         <span id="review-discount-pct" class="ml-1.5 font-medium text-emerald-600"></span>
                     </p>

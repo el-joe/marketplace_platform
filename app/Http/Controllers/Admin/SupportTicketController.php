@@ -94,7 +94,11 @@ class SupportTicketController extends Controller
             };
             $categoryBadge = 'bg-gray-100 text-gray-600';
 
-            $roleLabel = $t->requester_role === 'seller' ? 'Vendor' : 'Customer';
+            $statusLabelKey = ['waiting_customer' => 'waiting'][$t->status] ?? $t->status;
+
+            $roleLabel = $t->requester_role === 'seller'
+                ? __('admin.support_tickets.vendor_seller')
+                : __('admin.support_tickets.customer');
             $roleBadge = $t->requester_role === 'seller' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700';
 
             // Response time
@@ -111,14 +115,14 @@ class SupportTicketController extends Controller
                 'DT_RowClass' => $t->priority === 'urgent' && !in_array($t->status, ['resolved', 'closed']) ? 'bg-red-50' : '',
                 'ticket_number' => '<a href="' . $showUrl . '" class="font-mono font-medium text-primary-600 hover:underline text-xs">' . e($t->ticket_number) . '</a>',
                 'requester' => '<div class="flex items-center gap-1.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ' . $roleBadge . '">' . $roleLabel . '</span><span class="text-xs font-mono text-gray-500">' . e(substr($t->requester_user_id, 0, 8)) . '</span></div>',
-                'category' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $categoryBadge . '">' . e(str_replace('_', ' ', $t->category)) . '</span>',
-                'priority' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $priorityBadge . '">' . ucfirst($t->priority) . '</span>',
-                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e(str_replace('_', ' ', $t->status)) . '</span>',
+                'category' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $categoryBadge . '">' . e(__('admin.support_tickets.category_' . $t->category)) . '</span>',
+                'priority' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $priorityBadge . '">' . e(__('admin.support_tickets.' . $t->priority)) . '</span>',
+                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e(__('admin.support_tickets.' . $statusLabelKey)) . '</span>',
                 'subject' => '<span class="text-sm text-gray-800">' . e(\Illuminate\Support\Str::limit($t->subject, 60)) . '</span>',
-                'assigned_to' => $t->assigned_admin_name ? '<span class="text-xs text-gray-700">' . e($t->assigned_admin_name) . '</span>' : '<span class="text-xs text-gray-300 italic">Unassigned</span>',
+                'assigned_to' => $t->assigned_admin_name ? '<span class="text-xs text-gray-700">' . e($t->assigned_admin_name) . '</span>' : '<span class="text-xs text-gray-300 italic">' . e(__('admin.support_tickets.unassigned')) . '</span>',
                 'response_time' => '<span class="text-xs tabular-nums ' . ($t->first_response_at ? 'text-gray-600' : 'text-orange-500') . '">' . $responseTime . '</span>',
                 'created_at' => '<span class="text-xs text-gray-500 whitespace-nowrap">' . \Carbon\Carbon::parse($t->created_at)->format('M d, Y H:i') . '</span>',
-                'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-secondary">View</a>',
+                'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-secondary">' . e(__('admin.view')) . '</a>',
             ];
         });
     }
@@ -197,10 +201,10 @@ class SupportTicketController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Failed to send reply.'], 500);
+            return response()->json(['message' => __('admin.support_tickets.failed_send_reply')], 500);
         }
 
-        return response()->json(['message' => 'Reply sent.', 'status' => $ticket->fresh()->status]);
+        return response()->json(['message' => __('admin.support_tickets.reply_sent'), 'status' => $ticket->fresh()->status]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -223,7 +227,9 @@ class SupportTicketController extends Controller
             : null;
 
         return response()->json([
-            'message' => $assigneeName ? "Assigned to {$assigneeName}." : 'Unassigned.',
+            'message' => $assigneeName
+                ? __('admin.support_tickets.assigned_to_message', ['name' => $assigneeName])
+                : __('admin.support_tickets.unassigned_message'),
             'assignee_name' => $assigneeName,
         ]);
     }
@@ -239,7 +245,7 @@ class SupportTicketController extends Controller
 
         $ticket->update(['assigned_to_admin_id' => $admin->id]);
 
-        return response()->json(['message' => 'Ticket assigned to you.', 'assignee_name' => $admin->name]);
+        return response()->json(['message' => __('admin.support_tickets.ticket_assigned_to_you'), 'assignee_name' => $admin->name]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -265,7 +271,7 @@ class SupportTicketController extends Controller
 
         $ticket->update($updates);
 
-        return response()->json(['message' => 'Status updated.', 'status' => $data['status']]);
+        return response()->json(['message' => __('admin.support_tickets.status_updated'), 'status' => $data['status']]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -283,6 +289,6 @@ class SupportTicketController extends Controller
 
         $ticket->update(['priority' => $data['priority']]);
 
-        return response()->json(['message' => 'Priority updated.', 'priority' => $data['priority']]);
+        return response()->json(['message' => __('admin.support_tickets.priority_updated'), 'priority' => $data['priority']]);
     }
 }

@@ -45,19 +45,21 @@ $(function () {
 
 // ─── Submissions DataTable ────────────────────────────────────────────────────
 
-const STATUS_BADGES = {
-    submitted: { label: 'Submitted', color: 'gray' },
-    under_review: { label: 'Under Review', color: 'warning' },
-    approved: { label: 'Approved', color: 'primary' },
-    live: { label: 'Live', color: 'success' },
-    sold_out: { label: 'Sold Out', color: 'danger' },
-    rejected: { label: 'Rejected', color: 'danger' },
-    withdrawn: { label: 'Withdrawn', color: 'gray' },
-    ended: { label: 'Ended', color: 'gray' },
-};
+const T = () => window.TRANSLATIONS || {};
+
+const STATUS_BADGES = () => ({
+    submitted: { label: T().statusSubmitted || 'Submitted', color: 'gray' },
+    under_review: { label: T().statusUnderReview || 'Under Review', color: 'warning' },
+    approved: { label: T().statusApproved || 'Approved', color: 'primary' },
+    live: { label: T().statusLive || 'Live', color: 'success' },
+    sold_out: { label: T().statusSoldOut || 'Sold Out', color: 'danger' },
+    rejected: { label: T().statusRejected || 'Rejected', color: 'danger' },
+    withdrawn: { label: T().statusWithdrawn || 'Withdrawn', color: 'gray' },
+    ended: { label: T().statusEnded || 'Ended', color: 'gray' },
+});
 
 function badge(status) {
-    const b = STATUS_BADGES[status] || { label: status, color: 'gray' };
+    const b = STATUS_BADGES()[status] || { label: status, color: 'gray' };
     return `<span class="badge badge-${b.color}">${b.label}</span>`;
 }
 
@@ -77,13 +79,13 @@ function initSubmissionsTable() {
             },
             {
                 data: 'product_name',
-                title: 'Product',
+                title: T().product || 'Product',
                 render: (d, t, row) => {
                     const img = row.product_image_url
                         ? `<img src="${row.product_image_url}" class="w-8 h-8 rounded object-cover flex-shrink-0">`
                         : `<div class="w-8 h-8 rounded bg-gray-100"></div>`;
                     const suspect = row.is_suspect
-                        ? `<span class="ml-1 text-amber-500" title="Possible fake discount">⚠</span>`
+                        ? `<span class="ml-1 text-amber-500" title="${T().possibleFakeDiscount || 'Possible fake discount'}">⚠</span>`
                         : '';
                     return `<div class="flex items-center gap-2">${img}<div>
                         <span class="font-medium text-gray-900 text-sm">${row.product_name}${suspect}</span>
@@ -93,7 +95,7 @@ function initSubmissionsTable() {
             },
             {
                 data: 'flash_price_formatted',
-                title: 'Flash Price',
+                title: T().flashPrice || 'Flash Price',
                 className: 'text-right font-semibold',
                 render: (d, t, row) => {
                     const ok = row.discount_ok;
@@ -102,22 +104,23 @@ function initSubmissionsTable() {
             },
             {
                 data: 'original_price_formatted',
-                title: 'Original',
+                title: T().originalShort || 'Original',
                 className: 'text-right text-gray-400 line-through',
             },
             {
                 data: 'calculated_discount_pct',
-                title: 'Disc.',
+                title: T().discShort || 'Disc.',
                 className: 'text-right',
                 render: (d, t, row) => {
                     const ok = row.discount_ok;
+                    const minLabel = (T().minDiscountShort || 'Min: :pct%').replace(':pct', row.min_discount_pct);
                     return `<span class="font-mono font-medium ${ok ? 'text-emerald-600' : 'text-danger-600'}">${d}%</span>
-                            ${!ok ? `<div class="text-xs text-danger-500">Min: ${row.min_discount_pct}%</div>` : ''}`;
+                            ${!ok ? `<div class="text-xs text-danger-500">${minLabel}</div>` : ''}`;
                 },
             },
             {
                 data: 'quantity_sold',
-                title: 'Qty',
+                title: T().qty || 'Qty',
                 orderable: false,
                 className: 'text-right font-mono',
                 render: (d, t, row) =>
@@ -125,12 +128,12 @@ function initSubmissionsTable() {
             },
             {
                 data: 'status',
-                title: 'Status',
+                title: T().status || 'Status',
                 render: d => badge(d),
             },
             {
                 data: 'submitted_at_human',
-                title: 'Submitted',
+                title: T().submitted || 'Submitted',
                 render: d => d ? `<span class="text-gray-400 text-xs">${d}</span>` : '—',
             },
             {
@@ -142,7 +145,7 @@ function initSubmissionsTable() {
                     const canReview = ['submitted', 'under_review'].includes(row.status);
                     if (!canReview) return '';
                     return `<button type="button" class="btn btn-secondary btn-xs btn-review-submission"
-                        data-id="${row.id}">Review</button>`;
+                        data-id="${row.id}">${T().reviewBtn || 'Review'}</button>`;
                 },
             },
         ],
@@ -180,7 +183,7 @@ function updateBulkRejectVisibility() {
     if (!btn) return;
     if (selectedSubmissionIds.size > 0) {
         btn.classList.remove('hidden');
-        btn.textContent = `Bulk Reject (${selectedSubmissionIds.size})`;
+        btn.textContent = (T().bulkRejectCount || 'Bulk Reject (:count)').replace(':count', selectedSubmissionIds.size);
     } else {
         btn.classList.add('hidden');
     }
@@ -200,7 +203,7 @@ function openReviewModal(submissionId) {
     document.getElementById('review-rejection-reason').value = '';
     document.getElementById('review-rejection-code').value = 'manual_rejection';
     document.getElementById('fraud-warning').classList.add('hidden');
-    document.getElementById('review-price-chart').innerHTML = '<span class="text-xs text-gray-400">Loading…</span>';
+    document.getElementById('review-price-chart').innerHTML = `<span class="text-xs text-gray-400">${T().loading || 'Loading…'}</span>`;
     document.getElementById('review-product-info').classList.add('hidden');
     document.getElementById('review-stock-info').classList.add('hidden');
 
@@ -217,7 +220,7 @@ function openReviewModal(submissionId) {
         .done(res => populateReviewModal(res.data))
         .fail(() => {
             document.getElementById('review-price-chart').innerHTML =
-                '<span class="text-xs text-danger-600">Failed to load pricing data.</span>';
+                `<span class="text-xs text-danger-600">${T().failedLoadPricing || 'Failed to load pricing data.'}</span>`;
         });
 }
 
@@ -257,7 +260,7 @@ function populateReviewModal(data) {
 function renderMiniPriceChart(history) {
     const container = document.getElementById('review-price-chart');
     if (!history.length) {
-        container.innerHTML = '<span class="text-xs text-gray-400">No price history data.</span>';
+        container.innerHTML = `<span class="text-xs text-gray-400">${T().noPriceHistoryData || 'No price history data.'}</span>`;
         return;
     }
 
@@ -286,14 +289,14 @@ function confirmReview() {
         const fraudWarn = document.getElementById('fraud-warning');
         const override = document.getElementById('override-fraud-check');
         if (!fraudWarn.classList.contains('hidden') && !override?.checked) {
-            alert('Please acknowledge the pricing warning before approving.');
+            alert(T().acknowledgeWarningRequired || 'Please acknowledge the pricing warning before approving.');
             return;
         }
     }
 
     const btn = document.getElementById('btn-confirm-review');
     btn.disabled = true;
-    btn.textContent = 'Saving…';
+    btn.textContent = T().saving || 'Saving…';
 
     const url = `${window.URLS.submissionDetail}/${submissionId}/review`;
 
@@ -309,17 +312,17 @@ function confirmReview() {
         },
         success(res) {
             btn.disabled = false;
-            btn.textContent = 'Confirm Decision';
+            btn.textContent = T().confirmDecision || 'Confirm Decision';
             $('#review-modal').modal('close');
-            window.Toast.success(res.message || 'Submission reviewed.');
+            window.Toast.success(res.message || T().decisionSaved || 'Submission reviewed.');
             if ($.fn.DataTable.isDataTable('#submissions-table')) {
                 $('#submissions-table').DataTable().ajax.reload(null, false);
             }
         },
         error(xhr) {
             btn.disabled = false;
-            btn.textContent = 'Confirm Decision';
-            const msg = xhr.responseJSON?.message || 'Review failed.';
+            btn.textContent = T().confirmDecision || 'Confirm Decision';
+            const msg = xhr.responseJSON?.message || T().reviewFailed || 'Review failed.';
             window.Toast.error(msg);
         },
     });
@@ -351,7 +354,9 @@ function initBulkReject() {
             success(res) {
                 $('#bulk-reject-modal').modal('close');
                 const d = res.data;
-                window.Toast.success(`Rejected: ${d.rejected}, Failed: ${d.failed}`);
+                const msg = (T().bulkRejectResult || 'Rejected: :rejected, Failed: :failed')
+                    .replace(':rejected', d.rejected).replace(':failed', d.failed);
+                window.Toast.success(msg);
                 selectedSubmissionIds.clear();
                 updateBulkRejectVisibility();
                 if ($.fn.DataTable.isDataTable('#submissions-table')) {
@@ -359,7 +364,7 @@ function initBulkReject() {
                 }
             },
             error(xhr) {
-                const msg = xhr.responseJSON?.message || 'Bulk reject failed.';
+                const msg = xhr.responseJSON?.message || T().bulkRejectFailed || 'Bulk reject failed.';
                 window.Toast.error(msg);
             },
         });
@@ -379,7 +384,7 @@ function initTransitionButtons() {
         }
 
         if (needsConfirm) {
-            if (!confirm('Are you sure you want to proceed with this action?')) return;
+            if (!confirm(T().confirmGenericAction || 'Are you sure you want to proceed with this action?')) return;
         }
 
         doTransition(action);
@@ -396,11 +401,11 @@ function doTransition(action, reason = '') {
             _token: $('meta[name="csrf-token"]').attr('content'),
         },
         success(res) {
-            window.Toast.success(res.message || 'Status updated.');
+            window.Toast.success(res.message || T().statusUpdated || 'Status updated.');
             setTimeout(() => window.location.reload(), 800);
         },
         error(xhr) {
-            const msg = xhr.responseJSON?.message || 'Transition failed.';
+            const msg = xhr.responseJSON?.message || T().transitionFailed || 'Transition failed.';
             window.Toast.error(msg);
         },
     });
@@ -418,12 +423,12 @@ function initCancelModal() {
 
 // ─── Invitations DataTable ────────────────────────────────────────────────────
 
-const INV_STATUS_BADGES = {
-    pending:   { label: 'Pending',   color: 'warning' },
-    accepted:  { label: 'Accepted',  color: 'success' },
-    declined:  { label: 'Declined',  color: 'danger' },
-    submitted: { label: 'Submitted', color: 'primary' },
-};
+const INV_STATUS_BADGES = () => ({
+    pending:   { label: T().statusPending || 'Pending',   color: 'warning' },
+    accepted:  { label: T().statusAccepted || 'Accepted',  color: 'success' },
+    declined:  { label: T().statusDeclined || 'Declined',  color: 'danger' },
+    submitted: { label: T().statusSubmitted || 'Submitted', color: 'primary' },
+});
 
 function initInvitationsTable() {
     if (!document.getElementById('invitations-table')) return;
@@ -434,45 +439,45 @@ function initInvitationsTable() {
         columns: [
             {
                 data: 'store_name',
-                title: 'Vendor',
+                title: T().vendor || 'Vendor',
                 render: (d, t, row) =>
                     `<span class="font-medium text-gray-900">${d}</span>`
                     + (row.vendor_id ? `<div class="text-xs text-gray-400 font-mono">${row.vendor_id.slice(0, 8)}…</div>` : ''),
             },
             {
                 data: 'invitation_type',
-                title: 'Type',
+                title: T().typeLabel || 'Type',
                 render: d => d === 'manual'
-                    ? '<span class="text-xs font-medium text-purple-700">✋ Manual</span>'
-                    : '<span class="text-xs font-medium text-blue-600">🤖 Auto</span>',
+                    ? `<span class="text-xs font-medium text-purple-700">${T().manualInviteType || '✋ Manual'}</span>`
+                    : `<span class="text-xs font-medium text-blue-600">${T().autoInviteType || '🤖 Auto'}</span>`,
             },
             {
                 data: 'status',
-                title: 'Status',
+                title: T().status || 'Status',
                 render: (d, t, row) => {
-                    const b = INV_STATUS_BADGES[d] || { label: d, color: 'gray' };
+                    const b = INV_STATUS_BADGES()[d] || { label: d, color: 'gray' };
                     let html = `<span class="badge badge-${b.color}">${b.label}</span>`;
                     if (d === 'declined' && row.decline_reason) {
                         html += ` <button type="button" class="btn-view-decline text-xs text-gray-400 underline ml-1"
-                            data-vendor="${row.store_name}" data-reason="${row.decline_reason.replace(/"/g, '&quot;')}">view reason</button>`;
+                            data-vendor="${row.store_name}" data-reason="${row.decline_reason.replace(/"/g, '&quot;')}">${T().viewReason || 'view reason'}</button>`;
                     }
                     return html;
                 },
             },
             {
                 data: 'slots_allocated',
-                title: 'Slots',
+                title: T().slots || 'Slots',
                 className: 'text-right font-mono text-sm',
                 render: d => d != null ? d : '—',
             },
             {
                 data: 'invited_at',
-                title: 'Invited',
+                title: T().invitedLabel || 'Invited',
                 render: d => d ? `<span class="text-xs text-gray-500">${new Date(d).toLocaleDateString()}</span>` : '—',
             },
             {
                 data: 'responded_at',
-                title: 'Responded',
+                title: T().respondedLabel || 'Responded',
                 render: d => d ? `<span class="text-xs text-gray-500">${new Date(d).toLocaleDateString()}</span>` : '—',
             },
             {
@@ -483,12 +488,12 @@ function initInvitationsTable() {
                 render: (d, t, row) => {
                     if (!row.can_resend) return '';
                     return `<button type="button" class="btn btn-ghost btn-xs btn-resend-invitation"
-                        data-id="${row.id}" title="Resend notification">
+                        data-id="${row.id}" title="${T().resendNotificationTooltip || 'Resend notification'}">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
-                        Resend
+                        ${T().resend || 'Resend'}
                     </button>`;
                 },
             },
@@ -524,11 +529,11 @@ function initInvitationsTable() {
             data: { _token: $('meta[name="csrf-token"]').attr('content') },
             success(res) {
                 btn.disabled = false;
-                window.Toast.success(res.message || 'Notification queued.');
+                window.Toast.success(res.message || T().notificationQueued || 'Notification queued.');
             },
             error(xhr) {
                 btn.disabled = false;
-                const msg = xhr.responseJSON?.message || 'Resend failed.';
+                const msg = xhr.responseJSON?.message || T().resendFailed || 'Resend failed.';
                 window.Toast.error(msg);
             },
         });
@@ -566,14 +571,14 @@ function initAutoInvite() {
                 }
             })
             .fail(() => {
-                document.getElementById('auto-invite-loading').textContent = 'Failed to load eligible vendor count.';
+                document.getElementById('auto-invite-loading').textContent = T().failedLoadEligibleCount || 'Failed to load eligible vendor count.';
             });
     });
 
     document.getElementById('btn-confirm-auto-invite')?.addEventListener('click', () => {
         const btn = document.getElementById('btn-confirm-auto-invite');
         btn.disabled = true;
-        btn.textContent = 'Inviting…';
+        btn.textContent = T().inviting || 'Inviting…';
 
         $.ajax({
             url: window.URLS.inviteVendors,
@@ -581,17 +586,17 @@ function initAutoInvite() {
             data: { _token: $('meta[name="csrf-token"]').attr('content') },
             success(res) {
                 btn.disabled = false;
-                btn.textContent = 'Send Invitations';
+                btn.textContent = T().sendInvitations || 'Send Invitations';
                 $('#auto-invite-modal').modal('close');
-                window.Toast.success(res.message || `${res.count} vendor(s) invited.`);
+                window.Toast.success(res.message || (T().vendorsInvitedResult || ':count vendor(s) invited.').replace(':count', res.count));
                 if ($.fn.DataTable.isDataTable('#invitations-table')) {
                     $('#invitations-table').DataTable().ajax.reload(null, false);
                 }
             },
             error(xhr) {
                 btn.disabled = false;
-                btn.textContent = 'Send Invitations';
-                const msg = xhr.responseJSON?.message || 'Invite failed.';
+                btn.textContent = T().sendInvitations || 'Send Invitations';
+                const msg = xhr.responseJSON?.message || T().inviteFailed || 'Invite failed.';
                 window.Toast.error(msg);
             },
         });
@@ -600,10 +605,10 @@ function initAutoInvite() {
 
 function buildCriteriaHint() {
     const parts = [];
-    if (window.MIN_DISCOUNT_PCT) parts.push(`min discount ${window.MIN_DISCOUNT_PCT}%`);
+    if (window.MIN_DISCOUNT_PCT) parts.push((T().minDiscountCriteria || 'min discount :pct%').replace(':pct', window.MIN_DISCOUNT_PCT));
     const hint = parts.length
-        ? `Active criteria: ${parts.join(', ')}. All eligible vendors may already be invited.`
-        : 'All eligible vendors may already be invited, or no active vendors meet the criteria.';
+        ? (T().activeCriteriaHint || 'Active criteria: :criteria. All eligible vendors may already be invited.').replace(':criteria', parts.join(', '))
+        : (T().noCriteriaHint || 'All eligible vendors may already be invited, or no active vendors meet the criteria.');
     const el = document.getElementById('auto-invite-criteria-hint');
     if (el) el.textContent = hint;
 }
@@ -628,13 +633,13 @@ function initManualInvite() {
             },
             success(res) {
                 $('#manual-invite-modal').modal('close');
-                window.Toast.success(res.message || 'Vendors invited.');
+                window.Toast.success(res.message || T().vendorsInvitedGeneric || 'Vendors invited.');
                 if ($.fn.DataTable.isDataTable('#invitations-table')) {
                     $('#invitations-table').DataTable().ajax.reload(null, false);
                 }
             },
             error(xhr) {
-                const msg = xhr.responseJSON?.message || 'Failed to invite vendors.';
+                const msg = xhr.responseJSON?.message || T().inviteVendorsFailed || 'Failed to invite vendors.';
                 window.Toast.error(msg);
             },
         });
@@ -667,7 +672,7 @@ function updateLiveStats(data) {
     countdownInterval = setInterval(() => {
         if (secs <= 0) {
             clearInterval(countdownInterval);
-            setText('live-countdown', 'Ended');
+            setText('live-countdown', T().ended || 'Ended');
             return;
         }
         secs--;
@@ -686,7 +691,7 @@ function updateLiveStats(data) {
                 <td class="px-4 py-3 text-right font-mono text-sm">${s.quantity_sold}</td>
                 <td class="px-4 py-3 text-right font-mono text-sm">${s.quantity_remaining}</td>
                 <td class="px-4 py-3 text-right font-mono text-sm">${s.revenue_formatted}</td>
-            </tr>`).join('') || '<tr><td colspan="4" class="py-6 text-center text-gray-400 text-sm">No data yet.</td></tr>';
+            </tr>`).join('') || `<tr><td colspan="4" class="py-6 text-center text-gray-400 text-sm">${T().noDataYet || 'No data yet.'}</td></tr>`;
     }
 }
 
@@ -697,7 +702,7 @@ function loadAnalytics() {
         .done(res => renderAnalytics(res.data))
         .fail(() => {
             const el = document.getElementById('analytics-tbody');
-            if (el) el.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-gray-400 text-sm">Analytics unavailable.</td></tr>';
+            if (el) el.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-gray-400 text-sm">${T().analyticsUnavailable || 'Analytics unavailable.'}</td></tr>`;
         });
 }
 
@@ -722,7 +727,7 @@ function renderAnalytics(data) {
                 <td class="px-4 py-2 text-right font-mono text-sm">${row.units_sold}</td>
                 <td class="px-4 py-2 text-right font-mono text-sm">${formatMoney(row.gross_revenue)}</td>
                 <td class="px-4 py-2 text-right font-mono text-sm">${formatMoney(row.discount_given)}</td>
-            </tr>`).join('') || '<tr><td colspan="4" class="py-4 text-center text-gray-400 text-sm">No daily data.</td></tr>';
+            </tr>`).join('') || `<tr><td colspan="4" class="py-4 text-center text-gray-400 text-sm">${T().noDailyData || 'No daily data.'}</td></tr>`;
     }
 }
 

@@ -31,8 +31,8 @@ class CouponController extends Controller
     {
         return view('admin.coupons.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Coupons'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.coupons')],
             ],
         ]);
     }
@@ -107,9 +107,9 @@ class CouponController extends Controller
     {
         return view('admin.coupons.create', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Coupons', 'url' => route('admin.coupons.index')],
-                ['label' => 'New Coupon'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.coupons'), 'url' => route('admin.coupons.index')],
+                ['label' => __('admin.coupons_section.new_coupon')],
             ],
             'vendors' => Vendor::query()->orderBy('store_name')->get(['id', 'store_name']),
             'categories' => Category::query()->where('is_active', true)->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en']),
@@ -141,9 +141,9 @@ class CouponController extends Controller
             Log::error('CouponController@store failed', ['error' => $e->getMessage()]);
 
             if ($request->wantsJson()) {
-                return response()->json(['message' => 'Failed to create coupon.'], 500);
+                return response()->json(['message' => __('admin.coupons_section.create_failed')], 500);
             }
-            return back()->withInput()->withErrors(['error' => 'Failed to create coupon.']);
+            return back()->withInput()->withErrors(['error' => __('admin.coupons_section.create_failed')]);
         }
 
         if ($request->wantsJson()) {
@@ -154,7 +154,7 @@ class CouponController extends Controller
         }
 
         return redirect()->route('admin.coupons.edit', $coupon->id)
-            ->with('success', 'Coupon created successfully.');
+            ->with('success', __('admin.coupons_section.coupon_created'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -171,8 +171,8 @@ class CouponController extends Controller
             'coupon' => $model,
             'usageCount' => $usageCount,
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Coupons', 'url' => route('admin.coupons.index')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.coupons'), 'url' => route('admin.coupons.index')],
                 ['label' => e($model->code)],
             ],
             'vendors' => Vendor::query()->orderBy('store_name')->get(['id', 'store_name']),
@@ -203,7 +203,7 @@ class CouponController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('CouponController@update failed', ['coupon' => $coupon, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Failed to update coupon.'], 500);
+            return response()->json(['message' => __('admin.coupons_section.update_failed')], 500);
         }
 
         return response()->json(['success' => true]);
@@ -220,7 +220,7 @@ class CouponController extends Controller
         $usageCount = CouponUsage::query()->where('coupon_id', $model->id)->count();
         if ($usageCount > 0) {
             return response()->json([
-                'message' => "Cannot delete coupon: it has been used {$usageCount} time(s).",
+                'message' => __('admin.coupons_section.delete_blocked_used', ['count' => $usageCount]),
             ], 422);
         }
 
@@ -239,12 +239,12 @@ class CouponController extends Controller
         $ids = $request->input('ids', []);
 
         if (empty($ids) || !is_array($ids)) {
-            return response()->json(['message' => 'No coupons selected.'], 422);
+            return response()->json(['message' => __('admin.coupons_section.no_coupons_selected')], 422);
         }
 
         $allowed = ['activate', 'deactivate', 'delete'];
         if (!in_array($action, $allowed, true)) {
-            return response()->json(['message' => 'Invalid action.'], 422);
+            return response()->json(['message' => __('admin.coupons_section.invalid_action')], 422);
         }
 
         match ($action) {

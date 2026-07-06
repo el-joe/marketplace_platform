@@ -34,7 +34,7 @@ const registry = {};
 const _isRtl = document.documentElement.dir === 'rtl';
 const _isAr  = document.documentElement.lang === 'ar';
 
-const _dtLanguage = _isAr
+export const dtLanguage = _isAr
     ? {
         processing:  '<div class="flex items-center justify-center gap-2 py-6 text-sm text-gray-500">'
             + '<svg class="w-5 h-5 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24">'
@@ -241,7 +241,7 @@ window.initDataTable = function (tableId, options) {
         responsive: options.responsive !== false,
         pageLength: options.pageLength || 25,
         order: options.order || [[0, 'desc']],
-        language: _dtLanguage,
+        language: dtLanguage,
         // Custom DOM layout — we render info + paginator only; search/filter is handled manually
         dom: 'rt<"dt-footer flex items-center justify-between px-4 py-3 border-t border-gray-100"<"text-sm text-gray-500"i><"flex items-center gap-1"p>>',
         ajax: {

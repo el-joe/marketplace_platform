@@ -14,6 +14,7 @@
 import $ from 'jquery';
 
 const Toast = window.Toast || { success: console.log, error: console.warn, info: console.log };
+const T = () => window.TRANSLATIONS || {};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -74,11 +75,11 @@ function renderTimelineVisual() {
     if (!$el.length) return;
 
     const fields = [
-        { label: 'Submissions Open', selector: '[name=submission_opens_at]' },
-        { label: 'Submissions Close', selector: '[name=submission_closes_at]' },
-        { label: 'Review Deadline', selector: '[name=review_deadline_at]' },
-        { label: 'Sale Starts', selector: '[name=sale_starts_at]' },
-        { label: 'Sale Ends', selector: '[name=sale_ends_at]' },
+        { label: T().timelineSubOpens || 'Submissions Open', selector: '[name=submission_opens_at]' },
+        { label: T().timelineSubCloses || 'Submissions Close', selector: '[name=submission_closes_at]' },
+        { label: T().timelineReview || 'Review Deadline', selector: '[name=review_deadline_at]' },
+        { label: T().timelineSaleStart || 'Sale Starts', selector: '[name=sale_starts_at]' },
+        { label: T().timelineSaleEnd || 'Sale Ends', selector: '[name=sale_ends_at]' },
     ];
 
     const values = fields.map(f => ({
@@ -117,19 +118,19 @@ $(function () {
 
     $form.on('submit', function (e) {
         e.preventDefault();
-        const $btn = $('#flash-sale-submit-btn').prop('disabled', true).text('Creating…');
+        const $btn = $('#flash-sale-submit-btn').prop('disabled', true).text(T().creating || 'Creating…');
 
         ajax('POST', window.FLASH_SALE_STORE_URL, $(this).serialize())
             .done(function (res) {
-                Toast.success(res.message ?? 'Flash sale created.');
+                Toast.success(res.message ?? T().createdMessage ?? 'Flash sale created.');
                 if (res.redirect) setTimeout(() => { window.location.href = res.redirect; }, 500);
             })
             .fail(function (xhr) {
                 const json = xhr.responseJSON ?? {};
                 if (json.errors) showErrors(json.errors);
-                else Toast.error(json.message ?? 'Failed to create flash sale.');
+                else Toast.error(json.message ?? T().createFailed ?? 'Failed to create flash sale.');
             })
-            .always(() => $btn.prop('disabled', false).text('Create Flash Sale'));
+            .always(() => $btn.prop('disabled', false).text(T().createFlashSale || 'Create Flash Sale'));
     });
 });
 
@@ -143,7 +144,7 @@ $(function () {
     // ── Save details / rules form ─────────────────────────────────────────────
     $(document).on('submit', '#flash-sale-form, #flash-sale-form-rules', function (e) {
         e.preventDefault();
-        const $btn = $(this).find('[type=submit]').prop('disabled', true).text('Saving…');
+        const $btn = $(this).find('[type=submit]').prop('disabled', true).text(T().saving || 'Saving…');
         const data = {};
         // Collect form values, aggregating checkbox[] groups into arrays
         $(this).serializeArray().forEach(p => {
@@ -163,13 +164,13 @@ $(function () {
         });
 
         ajax('PUT', window.FLASH_SALE_UPDATE_URL, data)
-            .done(function (res) { Toast.success(res.message ?? 'Saved.'); })
+            .done(function (res) { Toast.success(res.message ?? T().saved ?? 'Saved.'); })
             .fail(function (xhr) {
                 const json = xhr.responseJSON ?? {};
                 if (json.errors) showErrors(json.errors);
-                else Toast.error(json.message ?? 'Failed to save.');
+                else Toast.error(json.message ?? T().saveFailed ?? 'Failed to save.');
             })
-            .always(function () { $btn.prop('disabled', false).text('Save Changes'); });
+            .always(function () { $btn.prop('disabled', false).text(T().saveChanges || 'Save Changes'); });
     });
 
     // timeline visual on date change
@@ -188,19 +189,19 @@ $(function () {
         }
 
         const messages = {
-            open_submissions: 'Open submissions for this flash sale?',
-            close_submissions: 'Close submissions early?',
-            mark_approved: 'Mark this flash sale as approved?',
-            start_sale: 'Start the sale now?',
-            end_sale: 'End the sale early?',
+            open_submissions: T().confirmOpenSubmissions || 'Open submissions for this flash sale?',
+            close_submissions: T().confirmCloseSubmissions || 'Close submissions early?',
+            mark_approved: T().confirmMarkApproved || 'Mark this flash sale as approved?',
+            start_sale: T().confirmStartSale || 'Start the sale now?',
+            end_sale: T().confirmEndSale || 'End the sale early?',
         };
-        const msg = messages[action] ?? 'Confirm this action?';
+        const msg = messages[action] ?? T().confirmGenericAction ?? 'Confirm this action?';
 
         confirm2(msg).then(() => {
             $btn.prop('disabled', true);
             ajax('POST', window.TRANSITION_URL, { action })
-                .done(res => { Toast.success(res.message ?? 'Status updated.'); setTimeout(() => location.reload(), 600); })
-                .fail(xhr => { Toast.error(xhr.responseJSON?.message ?? 'Transition failed.'); $btn.prop('disabled', false); });
+                .done(res => { Toast.success(res.message ?? T().statusUpdated ?? 'Status updated.'); setTimeout(() => location.reload(), 600); })
+                .fail(xhr => { Toast.error(xhr.responseJSON?.message ?? T().transitionFailed ?? 'Transition failed.'); $btn.prop('disabled', false); });
         }).catch(() => { });
     });
 
@@ -208,32 +209,33 @@ $(function () {
     $('#cancel-form').on('submit', function (e) {
         e.preventDefault();
         const reason = $('[name=cancellation_reason]', this).val().trim();
-        if (!reason) { Toast.error('Cancellation reason is required.'); return; }
+        if (!reason) { Toast.error(T().cancellationReasonRequired || 'Cancellation reason is required.'); return; }
         const $btn = $('#cancel-submit-btn').prop('disabled', true);
         ajax('POST', window.TRANSITION_URL, { action: 'cancel', reason })
-            .done(res => { Toast.success(res.message ?? 'Cancelled.'); setTimeout(() => location.reload(), 600); })
-            .fail(xhr => { Toast.error(xhr.responseJSON?.message ?? 'Cancel failed.'); $btn.prop('disabled', false); });
+            .done(res => { Toast.success(res.message ?? T().cancelledMessage ?? 'Cancelled.'); setTimeout(() => location.reload(), 600); })
+            .fail(xhr => { Toast.error(xhr.responseJSON?.message ?? T().cancelFailed ?? 'Cancel failed.'); $btn.prop('disabled', false); });
     });
 
     // ── Invite vendors ────────────────────────────────────────────────────────
     $('#invite-vendors-btn').on('click', function () {
-        const $btn = $(this).prop('disabled', true).text('Loading count…');
+        const $btn = $(this).prop('disabled', true).text(T().loadingCount || 'Loading count…');
 
         ajax('GET', window.ELIGIBLE_COUNT_URL)
             .done(res => {
                 const count = res.count ?? 0;
-                if (!count) { Toast.info('No eligible vendors found.'); $btn.prop('disabled', false).text('Invite Eligible Vendors'); return; }
-                confirm2(`Invite ${count} eligible vendor(s) to this flash sale?`)
+                const inviteBtnLabel = T().inviteEligibleVendorsBtn || 'Invite Eligible Vendors';
+                if (!count) { Toast.info(T().noEligibleVendorsFound || 'No eligible vendors found.'); $btn.prop('disabled', false).text(inviteBtnLabel); return; }
+                confirm2((T().confirmInviteEligible || 'Invite :count eligible vendor(s) to this flash sale?').replace(':count', count))
                     .then(() => {
-                        $btn.text('Sending invitations…');
+                        $btn.text(T().sendingInvitations || 'Sending invitations…');
                         ajax('POST', window.INVITE_URL)
-                            .done(r => { Toast.success(r.message ?? `${r.count} vendor(s) invited.`); if (window._invitationsTable) window._invitationsTable.ajax.reload(); })
-                            .fail(xhr => Toast.error(xhr.responseJSON?.message ?? 'Invite failed.'))
-                            .always(() => $btn.prop('disabled', false).text('Invite Eligible Vendors'));
+                            .done(r => { Toast.success(r.message ?? (T().vendorsInvitedResult || ':count vendor(s) invited.').replace(':count', r.count)); if (window._invitationsTable) window._invitationsTable.ajax.reload(); })
+                            .fail(xhr => Toast.error(xhr.responseJSON?.message ?? T().inviteFailed ?? 'Invite failed.'))
+                            .always(() => $btn.prop('disabled', false).text(inviteBtnLabel));
                     })
-                    .catch(() => $btn.prop('disabled', false).text('Invite Eligible Vendors'));
+                    .catch(() => $btn.prop('disabled', false).text(inviteBtnLabel));
             })
-            .fail(() => { Toast.error('Failed to fetch eligible vendor count.'); $btn.prop('disabled', false).text('Invite Eligible Vendors'); });
+            .fail(() => { Toast.error(T().failedLoadEligibleCount || 'Failed to fetch eligible vendor count.'); $btn.prop('disabled', false).text(T().inviteEligibleVendorsBtn || 'Invite Eligible Vendors'); });
     });
 
     // ── Invitations DataTable ─────────────────────────────────────────────────
@@ -241,13 +243,13 @@ $(function () {
         window._invitationsTable = initDataTable('invitations-table', {
             url: window.INVITATIONS_DATATABLE_URL,
             columns: [
-                { data: 'vendor_name', title: 'Vendor' },
+                { data: 'vendor_name', title: T().vendor || 'Vendor' },
                 {
-                    data: 'status', title: 'Status',
+                    data: 'status', title: T().status || 'Status',
                     render: d => `<span class="badge badge-gray">${d}</span>`
                 },
-                { data: 'notified_at', title: 'Notified' },
-                { data: 'responded_at', title: 'Responded' },
+                { data: 'notified_at', title: T().notifiedLabel || 'Notified' },
+                { data: 'responded_at', title: T().respondedLabel || 'Responded' },
             ],
         });
     }
@@ -264,12 +266,12 @@ $(function () {
                     data: null, title: '<input type="checkbox" id="submissions-table-select-all">', orderable: false,
                     render: (d, t, r) => `<input type="checkbox" class="row-check" value="${r.id}">`
                 },
-                { data: 'product_name', title: 'Product' },
-                { data: 'vendor_name', title: 'Vendor' },
-                { data: 'flash_price_formatted', title: 'Flash Price' },
-                { data: 'original_price_formatted', title: 'Original' },
+                { data: 'product_name', title: T().product || 'Product' },
+                { data: 'vendor_name', title: T().vendor || 'Vendor' },
+                { data: 'flash_price_formatted', title: T().flashPrice || 'Flash Price' },
+                { data: 'original_price_formatted', title: T().originalShort || 'Original' },
                 {
-                    data: 'discount_pct', title: 'Discount',
+                    data: 'discount_pct', title: T().discount || 'Discount',
                     render: (d, t, r) => {
                         const minDisc = window.FLASH_SALE_MIN_DISC ?? 0;
                         const ok = parseFloat(d) >= minDisc;
@@ -278,18 +280,18 @@ $(function () {
                 },
                 {
                     data: 'is_suspect', title: '⚠',
-                    render: (d) => d ? '<span title="Fake discount suspected" class="text-warning-500 font-bold">⚠</span>' : ''
+                    render: (d) => d ? `<span title="${T().possibleFakeDiscount || 'Fake discount suspected'}" class="text-warning-500 font-bold">⚠</span>` : ''
                 },
                 {
-                    data: 'status', title: 'Status',
+                    data: 'status', title: T().status || 'Status',
                     render: (d) => `<span class="badge badge-gray">${d}</span>`
                 },
-                { data: 'quantity_approved', title: 'Qty' },
+                { data: 'quantity_approved', title: T().qty || 'Qty' },
                 {
                     data: null, title: '', orderable: false,
                     render: (d, t, r) => {
                         if (!['submitted', 'under_review'].includes(r.status)) return '';
-                        return `<button class="btn btn-primary btn-xs review-btn" data-id="${r.id}">Review</button>`;
+                        return `<button class="btn btn-primary btn-xs review-btn" data-id="${r.id}">${T().reviewBtn || 'Review'}</button>`;
                     }
                 },
             ],
@@ -317,9 +319,9 @@ $(function () {
         $('#review-form [name=rejection_reason]').val('');
         $('#review-form [name=admin_notes]').val('');
         $('#review-product-img').attr('src', '');
-        $('#review-product-name').text('Loading…');
+        $('#review-product-name').text(T().loading || 'Loading…');
         $('#review-variant-name, #review-vendor-name, #review-vendor-country, #review-vendor-rating').text('');
-        $('#review-stock-tbody').html('<tr><td colspan="3" class="text-center py-2">Loading…</td></tr>');
+        $('#review-stock-tbody').html(`<tr><td colspan="3" class="text-center py-2">${T().loading || 'Loading…'}</td></tr>`);
         $('#review-original-price, #review-flash-price, #review-discount-pct').text('');
         $('#review-discount-check').html('');
         $('#review-30d-row').addClass('hidden');
@@ -363,8 +365,8 @@ $(function () {
         $('#review-discount-pct').text(disc.toFixed(2) + '%')
             .removeClass('text-success-700 text-danger-700').addClass(ok ? 'text-success-700' : 'text-danger-700');
         $('#review-discount-check').html(
-            ok ? '<span class="badge badge-success">✓ Meets minimum</span>'
-                : `<span class="badge badge-danger">✗ Below ${minDisc}% minimum</span>`
+            ok ? `<span class="badge badge-success">${T().meetsMinimum || '✓ Meets minimum'}</span>`
+                : `<span class="badge badge-danger">${(T().belowMinimum || '✗ Below :pct% minimum').replace(':pct', minDisc)}</span>`
         );
 
         // 30-day avg
@@ -373,7 +375,7 @@ $(function () {
             const diff = (((row.flash_price / avgPrice) - 1) * 100).toFixed(1);
             const sign = diff >= 0 ? '+' : '';
             $('#review-30d-price').text(fmtMoney(avgPrice));
-            $('#review-30d-diff').text(`${sign}${diff}% vs avg`);
+            $('#review-30d-diff').text((T().vsAvg || ':diff% vs avg').replace(':diff', `${sign}${diff}`));
             $('#review-30d-row').removeClass('hidden');
         }
 
@@ -383,7 +385,7 @@ $(function () {
             $('#fake-discount-warnings')
                 .removeClass('hidden')
                 .html(`<div class="bg-warning-50 border border-warning-300 rounded-lg p-3">
-                    <p class="text-sm font-semibold text-warning-800 mb-1">⚠ Potential fake discount detected</p>
+                    <p class="text-sm font-semibold text-warning-800 mb-1">${T().potentialFakeDiscountDetected || '⚠ Potential fake discount detected'}</p>
                     <ul class="text-xs text-warning-700 list-disc list-inside space-y-0.5">
                         ${reasons.map(r => `<li>${r}</li>`).join('')}
                     </ul>
@@ -420,9 +422,9 @@ $(function () {
                         data: {
                             labels,
                             datasets: [
-                                { label: 'Historical Price', data: prices, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3, pointRadius: 2 },
-                                { label: 'Flash Price', data: Array(labels.length).fill(flashPrice / 100), borderColor: '#f59e0b', borderDash: [4, 4], pointRadius: 0 },
-                                { label: 'Original Price', data: Array(labels.length).fill(originalPrice / 100), borderColor: '#6b7280', borderDash: [2, 4], pointRadius: 0 },
+                                { label: T().historicalPrice || 'Historical Price', data: prices, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3, pointRadius: 2 },
+                                { label: T().flashPrice || 'Flash Price', data: Array(labels.length).fill(flashPrice / 100), borderColor: '#f59e0b', borderDash: [4, 4], pointRadius: 0 },
+                                { label: T().originalPrice || 'Original Price', data: Array(labels.length).fill(originalPrice / 100), borderColor: '#6b7280', borderDash: [2, 4], pointRadius: 0 },
                             ],
                         },
                         options: {
@@ -440,18 +442,18 @@ $(function () {
         e.preventDefault();
         const submissionId = $('[name=submission_id]', this).val();
         const decision = $('[name=decision]:checked', this).val();
-        if (!decision) { Toast.error('Please select a decision.'); return; }
+        if (!decision) { Toast.error(T().selectDecision || 'Please select a decision.'); return; }
         if (decision === 'rejected' && !$('[name=rejection_code]', this).val()) {
-            Toast.error('Please select a rejection reason.'); return;
+            Toast.error(T().selectRejectionReason || 'Please select a rejection reason.'); return;
         }
 
         const data = {};
         $(this).serializeArray().forEach(p => { data[p.name] = p.value; });
-        const $btn = $('#review-submit-btn').prop('disabled', true).text('Saving…');
+        const $btn = $('#review-submit-btn').prop('disabled', true).text(T().saving || 'Saving…');
 
         ajax('POST', `/flash-sales/submissions/${submissionId}/review`, data)
             .done(res => {
-                Toast.success(res.message ?? 'Decision saved.');
+                Toast.success(res.message ?? T().decisionSaved ?? 'Decision saved.');
                 closeModal('review-modal');
                 if (window._submissionsTable) window._submissionsTable.ajax.reload();
                 loadSubmissionStats();
@@ -459,24 +461,25 @@ $(function () {
             .fail(xhr => {
                 const json = xhr.responseJSON ?? {};
                 if (json.errors) showErrors(json.errors);
-                else Toast.error(json.message ?? 'Failed to save decision.');
+                else Toast.error(json.message ?? T().saveDecisionFailed ?? 'Failed to save decision.');
             })
-            .always(() => $btn.prop('disabled', false).text('Save Decision'));
+            .always(() => $btn.prop('disabled', false).text(T().saveDecision || 'Save Decision'));
     });
 
     // ── Bulk approve ──────────────────────────────────────────────────────────
     $('#bulk-approve-submissions').on('click', function () {
         const ids = getSelectedSubmissionIds();
-        if (!ids.length) { Toast.info('Select at least one submission.'); return; }
-        confirm2(`Approve ${ids.length} selected submission(s)?`).then(() => {
+        if (!ids.length) { Toast.info(T().selectAtLeastOneSubmission || 'Select at least one submission.'); return; }
+        confirm2((T().confirmApproveSelected || 'Approve :count selected submission(s)?').replace(':count', ids.length)).then(() => {
             const $btn = $(this).prop('disabled', true);
             ajax('POST', window.BULK_REVIEW_URL, { ids, decision: 'approved' })
                 .done(res => {
-                    Toast.success(`Approved: ${res.approved}, Rejected: ${res.rejected}, Failed: ${res.failed}`);
+                    Toast.success((T().bulkReviewResult || 'Approved: :approved, Rejected: :rejected, Failed: :failed')
+                        .replace(':approved', res.approved).replace(':rejected', res.rejected).replace(':failed', res.failed));
                     window._submissionsTable?.ajax.reload();
                     loadSubmissionStats();
                 })
-                .fail(xhr => Toast.error(xhr.responseJSON?.message ?? 'Bulk approve failed.'))
+                .fail(xhr => Toast.error(xhr.responseJSON?.message ?? T().bulkApproveFailed ?? 'Bulk approve failed.'))
                 .always(() => $btn.prop('disabled', false));
         }).catch(() => { });
     });
@@ -484,7 +487,7 @@ $(function () {
     // ── Bulk reject ───────────────────────────────────────────────────────────
     $('#bulk-reject-submissions').on('click', function () {
         const ids = getSelectedSubmissionIds();
-        if (!ids.length) { Toast.info('Select at least one submission.'); return; }
+        if (!ids.length) { Toast.info(T().selectAtLeastOneSubmission || 'Select at least one submission.'); return; }
         $('[name=bulk_ids]', '#bulk-reject-form').val(ids.join(','));
         openModal('bulk-reject-modal');
     });
@@ -494,16 +497,17 @@ $(function () {
         const ids = $('[name=bulk_ids]', this).val().split(',').filter(Boolean);
         const code = $('[name=bulk_rejection_code]', this).val();
         const reason = $('[name=bulk_rejection_reason]', this).val();
-        if (!code) { Toast.error('Select a rejection reason.'); return; }
+        if (!code) { Toast.error(T().selectRejectionReason || 'Select a rejection reason.'); return; }
         const $btn = $('#bulk-reject-submit').prop('disabled', true);
         ajax('POST', window.BULK_REVIEW_URL, { ids, decision: 'rejected', rejection_code: code, rejection_reason: reason })
             .done(res => {
-                Toast.success(`Approved: ${res.approved}, Rejected: ${res.rejected}, Failed: ${res.failed}`);
+                Toast.success((T().bulkReviewResult || 'Approved: :approved, Rejected: :rejected, Failed: :failed')
+                    .replace(':approved', res.approved).replace(':rejected', res.rejected).replace(':failed', res.failed));
                 closeModal('bulk-reject-modal');
                 window._submissionsTable?.ajax.reload();
                 loadSubmissionStats();
             })
-            .fail(xhr => Toast.error(xhr.responseJSON?.message ?? 'Bulk reject failed.'))
+            .fail(xhr => Toast.error(xhr.responseJSON?.message ?? T().bulkRejectFailed ?? 'Bulk reject failed.'))
             .always(() => $btn.prop('disabled', false));
     });
 
@@ -579,9 +583,9 @@ $(function () {
                         data: {
                             labels: byDay.map(d => d.date),
                             datasets: [
-                                { label: 'Gross Revenue', data: byDay.map(d => (d.gross_revenue ?? 0) / 100), backgroundColor: 'rgba(99,102,241,0.7)', yAxisID: 'y' },
-                                { label: 'Discount', data: byDay.map(d => (d.discount_given ?? 0) / 100), backgroundColor: 'rgba(245,158,11,0.7)', yAxisID: 'y' },
-                                { label: 'Units Sold', data: byDay.map(d => d.units_sold ?? 0), type: 'line', borderColor: '#10b981', backgroundColor: 'transparent', yAxisID: 'y2', tension: 0.3 },
+                                { label: T().grossRevenue || 'Gross Revenue', data: byDay.map(d => (d.gross_revenue ?? 0) / 100), backgroundColor: 'rgba(99,102,241,0.7)', yAxisID: 'y' },
+                                { label: T().discount || 'Discount', data: byDay.map(d => (d.discount_given ?? 0) / 100), backgroundColor: 'rgba(245,158,11,0.7)', yAxisID: 'y' },
+                                { label: T().unitsSoldChart || 'Units Sold', data: byDay.map(d => d.units_sold ?? 0), type: 'line', borderColor: '#10b981', backgroundColor: 'transparent', yAxisID: 'y2', tension: 0.3 },
                             ],
                         },
                         options: {

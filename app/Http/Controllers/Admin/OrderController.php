@@ -41,8 +41,8 @@ class OrderController extends Controller
 
         return view('admin.orders.index', [
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Orders'],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.orders.title')],
             ],
             'countries' => $countries,
         ]);
@@ -134,8 +134,8 @@ class OrderController extends Controller
         return view('admin.orders.show', [
             'order' => $order,
             'breadcrumbs' => [
-                ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
-                ['label' => 'Orders', 'url' => route('admin.orders.index')],
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.orders.title'), 'url' => route('admin.orders.index')],
                 ['label' => '#' . $order->order_number],
             ],
         ]);
@@ -164,13 +164,13 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Order status updated to ' . ucwords(str_replace('_', ' ', $request->new_status)),
+                'message' => __('admin.orders.order_status_updated_to', ['status' => $this->statusLabel($request->new_status)]),
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => collect($e->errors())->flatten()->first()], 422);
         } catch (\Throwable $e) {
             Log::error('Order status update failed', ['order' => $id, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Status update failed.'], 500);
+            return response()->json(['message' => __('admin.orders.update_failed')], 500);
         }
     }
 
@@ -200,12 +200,12 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Status updated to ' . (SubOrder::STATUS_LABELS[$request->new_status] ?? $request->new_status),
+                'message' => __('admin.orders.sub_order_status_updated_to', ['status' => $this->statusLabel($request->new_status)]),
                 'new_status' => $request->new_status,
             ]);
         } catch (\Throwable $e) {
             Log::error('SubOrder status update failed', ['error' => $e->getMessage()]);
-            return response()->json(['message' => 'Update failed.'], 500);
+            return response()->json(['message' => __('admin.orders.update_failed')], 500);
         }
     }
 
@@ -240,19 +240,19 @@ class OrderController extends Controller
                 auth('admin')->id()
             );
 
-            return response()->json(['success' => true, 'message' => 'Order force-cancelled successfully.']);
+            return response()->json(['success' => true, 'message' => __('admin.orders.force_cancelled_successfully')]);
         } catch (\RuntimeException $e) {
             if (str_starts_with($e->getMessage(), 'blocked:')) {
                 return response()->json([
-                    'message' => 'One or more sub-orders are already shipped/delivered. Set force=true to override.',
+                    'message' => __('admin.orders.force_cancel_blocked'),
                     'blocked' => explode(',', substr($e->getMessage(), 8)),
                 ], 422);
             }
             Log::error('Force cancel failed', ['order' => $id, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Cancel failed.'], 500);
+            return response()->json(['message' => __('admin.orders.cancel_failed')], 500);
         } catch (\Throwable $e) {
             Log::error('Force cancel failed', ['order' => $id, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Cancel failed.'], 500);
+            return response()->json(['message' => __('admin.orders.cancel_failed')], 500);
         }
     }
 
@@ -285,12 +285,12 @@ class OrderController extends Controller
                 auth('admin')->id()
             );
 
-            return response()->json(['success' => true, 'message' => 'Refund queued for processing.']);
+            return response()->json(['success' => true, 'message' => __('admin.orders.refund_queued')]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['message' => $e->errors()], 422);
         } catch (\Throwable $e) {
             Log::error('Refund creation failed', ['order' => $id, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Refund creation failed.'], 500);
+            return response()->json(['message' => __('admin.orders.refund_creation_failed')], 500);
         }
     }
 
@@ -319,11 +319,11 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Dispute escalated: ' . $dispute->dispute_number,
+                'message' => __('admin.orders.dispute_escalated', ['number' => $dispute->dispute_number]),
             ]);
         } catch (\Throwable $e) {
             Log::error('Dispute creation failed', ['order' => $id, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Dispute creation failed.'], 500);
+            return response()->json(['message' => __('admin.orders.dispute_creation_failed')], 500);
         }
     }
 
@@ -340,10 +340,10 @@ class OrderController extends Controller
         try {
             $this->interventionService->flagFraud($order, $request->reason, auth('admin')->id());
 
-            return response()->json(['success' => true, 'message' => 'Order flagged as potential fraud.']);
+            return response()->json(['success' => true, 'message' => __('admin.orders.fraud_flagged_successfully')]);
         } catch (\Throwable $e) {
             Log::error('Fraud flag failed', ['order' => $id, 'error' => $e->getMessage()]);
-            return response()->json(['message' => 'Flag failed.'], 500);
+            return response()->json(['message' => __('admin.orders.flag_failed')], 500);
         }
     }
 
@@ -383,7 +383,7 @@ class OrderController extends Controller
         }
 
         $destinationZoneId = City::find($cityId)?->shipping_zone_id;
-        abort_unless($destinationZoneId, 422, 'This city has no shipping zone assigned.');
+        abort_unless($destinationZoneId, 422, __('admin.orders.shipping_zone_not_assigned'));
 
         $methods = ShippingMethod::where('is_active', true)
             ->whereHas('shippingRates', fn($q) =>
@@ -425,7 +425,7 @@ class OrderController extends Controller
         ]);
 
         if (in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) {
-            return response()->json(['success' => false, 'message' => 'لا يمكن تغيير طريقة الشحن بعد شحن الطلب.'], 422);
+            return response()->json(['success' => false, 'message' => __('admin.orders.cannot_change_shipping_after_shipped')], 422);
         }
 
         $snapshot = $subOrder->order->shipping_address_snapshot ?? [];
@@ -439,7 +439,7 @@ class OrderController extends Controller
                 ->where('is_active', true)
                 ->exists();
 
-            abort_unless($eligible, 422, 'The selected shipping method is not available for this order\'s destination zone.');
+            abort_unless($eligible, 422, __('admin.orders.shipping_method_not_available_for_zone'));
         }
 
         $fromStatus = $subOrder->status;
@@ -455,7 +455,7 @@ class OrderController extends Controller
             'from_status' => $fromStatus,
             'to_status' => $fromStatus,
             'changed_by_admin_id' => auth('admin')->id(),
-            'reason' => 'Shipping method assigned: ' . ShippingMethod::find($request->shipping_method_id)?->name,
+            'reason' => __('admin.orders.shipping_method_assigned_reason', ['method' => ShippingMethod::find($request->shipping_method_id)?->name]),
             'metadata' => json_encode([
                 'action' => 'shipping_method_assigned',
                 'shipping_method_id' => $request->shipping_method_id,
@@ -465,12 +465,33 @@ class OrderController extends Controller
             ]),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'تم تعيين طريقة الشحن بنجاح.']);
+        return response()->json(['success' => true, 'message' => __('admin.orders.shipping_method_assigned')]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Private helpers
     // ─────────────────────────────────────────────────────────────────────────
+
+    private function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'placed' => __('common.order_status.placed'),
+            'confirmed' => __('common.order_status.confirmed'),
+            'processing' => __('admin.orders.status_processing'),
+            'packed' => __('admin.orders.status_packed'),
+            'partially_shipped' => __('admin.orders.status_partially_shipped'),
+            'shipped' => __('common.order_status.shipped'),
+            'out_for_delivery' => __('admin.orders.status_out_for_delivery'),
+            'partially_delivered' => __('admin.orders.status_partially_delivered'),
+            'delivered' => __('common.order_status.delivered'),
+            'completed' => __('common.order_status.completed'),
+            'cancelled' => __('common.order_status.cancelled'),
+            'returned' => __('admin.orders.status_returned'),
+            'refunded' => __('common.order_status.refunded'),
+            'disputed' => __('common.order_status.disputed'),
+            default => ucwords(str_replace('_', ' ', $status)),
+        };
+    }
 
     private function columnDefinitions(): array
     {

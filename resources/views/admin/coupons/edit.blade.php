@@ -13,3 +13,16 @@
         @include('admin.coupons._form', ['mode' => 'edit', 'coupon' => $coupon])
     </form>
 @endsection
+
+@push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            generateCodeFailed: @json(__('admin.coupons_section.generate_code_failed')),
+            saving: @json(__('admin.coupons_section.saving')),
+            couponSaved: @json(__('admin.coupons_section.coupon_saved')),
+            saveFailed: @json(__('admin.coupons_section.save_failed')),
+            networkErrorRetry: @json(__('admin.coupons_section.network_error_retry')),
+        });
+    </script>
+@endpush

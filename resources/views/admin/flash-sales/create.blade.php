@@ -21,7 +21,7 @@
             {{-- Tab nav --}}
             <div x-data="{ tab: 'details' }" class="space-y-6">
                 <div class="border-b border-gray-200">
-                    <nav class="-mb-px flex" aria-label="Flash sale form tabs">
+                    <nav class="-mb-px flex" aria-label="{{ __('admin.flash_sales.form_tabs_aria_label') }}">
                         <button type="button" @click="tab='details'"
                             :class="tab==='details' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
                             class="border-b-2 py-3 px-6 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
@@ -134,6 +134,28 @@
 
     <script>
         window.FLASH_SALE_STORE_URL = '{{ route('admin.flash-sales.store') }}';
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            timelineSubOpens: @json(__('admin.flash_sales.timeline_sub_opens')),
+            timelineSubCloses: @json(__('admin.flash_sales.timeline_sub_closes')),
+            timelineReview: @json(__('admin.flash_sales.timeline_review')),
+            timelineSaleStart: @json(__('admin.flash_sales.timeline_sale_start')),
+            timelineSaleEnd: @json(__('admin.flash_sales.timeline_sale_end')),
+            timelineFillDatesHint: @json(__('admin.flash_sales.timeline_fill_dates_hint')),
+            previewNamePlaceholder: @json(__('admin.flash_sales.preview_name_placeholder')),
+            saving: @json(__('admin.flash_sales.saving')),
+            saveChanges: @json(__('admin.flash_sales.save_changes')),
+            save: @json(__('common.save')),
+            saved: @json(__('admin.flash_sales.saved')),
+            genericError: @json(__('admin.flash_sales.generic_error')),
+            confirmCloseSubmissions: @json(__('admin.flash_sales.confirm_close_submissions')),
+            confirmEndSale: @json(__('admin.flash_sales.confirm_end_sale')),
+            confirmMarkApproved: @json(__('admin.flash_sales.confirm_mark_approved')),
+            confirmStartSale: @json(__('admin.flash_sales.confirm_start_sale')),
+            statusUpdated: @json(__('admin.flash_sales.status_updated')),
+            actionFailed: @json(__('admin.flash_sales.action_failed')),
+            cancelling: @json(__('admin.flash_sales.cancelling')),
+        });
     </script>
 
 @endsection

@@ -89,8 +89,8 @@ class DisputeController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, function ($d) {
             $statusBadge = $this->statusBadgeClass($d->status);
-            $reasonLabel = ucwords(str_replace('_', ' ', $d->reason));
-            $statusLabel = ucwords(str_replace('_', ' ', $d->status));
+            $reasonLabel = __('admin.disputes_section.reason_' . $d->reason);
+            $statusLabel = __('admin.disputes_section.' . $d->status);
 
             $isHot = in_array($d->status, ['open', 'escalated'], true)
                 && \Carbon\Carbon::parse($d->created_at)->diffInHours(now()) > 48;
@@ -112,9 +112,9 @@ class DisputeController extends Controller
                 'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e($statusLabel) . '</span>',
                 'assigned_to' => $d->assigned_admin_name
                     ? '<span class="text-xs text-gray-700">' . e($d->assigned_admin_name) . '</span>'
-                    : '<span class="text-xs text-gray-300 italic">Unassigned</span>',
+                    : '<span class="text-xs text-gray-300 italic">' . e(__('admin.disputes_section.unassigned')) . '</span>',
                 'created_at' => '<span class="text-xs text-gray-500 whitespace-nowrap">' . \Carbon\Carbon::parse($d->created_at)->format('M d, Y H:i') . '</span>',
-                'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-secondary">View</a>',
+                'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-secondary">' . e(__('common.view')) . '</a>',
             ];
         });
     }
@@ -180,7 +180,7 @@ class DisputeController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Failed to send reply.'], 500);
+            return response()->json(['message' => __('admin.disputes_section.reply_failed')], 500);
         }
 
         $dispute->refresh();
@@ -191,7 +191,9 @@ class DisputeController extends Controller
         }
 
         return response()->json([
-            'message' => $isInternal ? 'Internal note saved.' : 'Reply sent.',
+            'message' => $isInternal
+                ? __('admin.disputes_section.internal_note_saved')
+                : __('admin.disputes_section.reply_sent'),
             'status' => $dispute->status,
             'sender_name' => $admin->name,
         ]);
@@ -217,7 +219,9 @@ class DisputeController extends Controller
             : null;
 
         return response()->json([
-            'message' => $assigneeName ? "Assigned to {$assigneeName}." : 'Unassigned.',
+            'message' => $assigneeName
+                ? __('admin.disputes_section.assigned_to_message', ['name' => $assigneeName])
+                : __('admin.disputes_section.unassigned_message'),
             'assignee_name' => $assigneeName,
         ]);
     }
@@ -234,7 +238,7 @@ class DisputeController extends Controller
         $dispute->update(['assigned_to_admin_id' => $admin->id]);
 
         return response()->json([
-            'message' => 'Dispute assigned to you.',
+            'message' => __('admin.disputes_section.assigned_to_you'),
             'assignee_name' => $admin->name,
         ]);
     }
@@ -270,7 +274,7 @@ class DisputeController extends Controller
         }
 
         return response()->json([
-            'message' => 'Status updated.',
+            'message' => __('admin.disputes_section.status_updated'),
             'status' => $data['status'],
         ]);
     }
@@ -312,10 +316,11 @@ class DisputeController extends Controller
                 'sender_user_id' => $admin->id,
                 'sender_role' => 'admin',
                 'message' => sprintf(
-                    "[Resolution] %s%s%s",
-                    ucwords(str_replace('_', ' ', $data['resolution'])),
+                    "[%s] %s%s%s",
+                    __('admin.disputes_section.resolution'),
+                    __('admin.disputes_section.' . $data['resolution']),
                     isset($data['compensation']) && (float) $data['compensation'] > 0
-                    ? ' — Compensation: ' . number_format((float) $data['compensation'], 2)
+                    ? ' — ' . __('admin.disputes_section.compensation_col') . ': ' . number_format((float) $data['compensation'], 2)
                     : '',
                     !empty($data['resolution_notes']) ? "\n" . $data['resolution_notes'] : ''
                 ),
@@ -326,7 +331,7 @@ class DisputeController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Failed to resolve dispute.'], 500);
+            return response()->json(['message' => __('admin.disputes_section.resolve_failed')], 500);
         }
 
         $dispute->refresh();
@@ -337,7 +342,7 @@ class DisputeController extends Controller
         }
 
         return response()->json([
-            'message' => 'Dispute resolved.',
+            'message' => __('admin.disputes_section.resolved_message'),
             'status' => $dispute->status,
         ]);
     }

@@ -13,12 +13,14 @@ import flatpickr from 'flatpickr';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TIMELINE_FIELDS = [
-    { name: 'submission_opens_at', label: 'Sub. Opens', color: '#3B82F6' },
-    { name: 'submission_closes_at', label: 'Sub. Closes', color: '#F59E0B' },
-    { name: 'review_deadline_at', label: 'Review', color: '#8B5CF6' },
-    { name: 'sale_starts_at', label: 'Sale Start', color: '#10B981' },
-    { name: 'sale_ends_at', label: 'Sale End', color: '#EF4444' },
+const T = () => window.TRANSLATIONS || {};
+
+const TIMELINE_FIELDS = () => [
+    { name: 'submission_opens_at', label: T().timelineSubOpens || 'Sub. Opens', color: '#3B82F6' },
+    { name: 'submission_closes_at', label: T().timelineSubCloses || 'Sub. Closes', color: '#F59E0B' },
+    { name: 'review_deadline_at', label: T().timelineReview || 'Review', color: '#8B5CF6' },
+    { name: 'sale_starts_at', label: T().timelineSaleStart || 'Sale Start', color: '#10B981' },
+    { name: 'sale_ends_at', label: T().timelineSaleEnd || 'Sale End', color: '#EF4444' },
 ];
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
@@ -46,7 +48,7 @@ function initDatePickers() {
         },
     };
 
-    TIMELINE_FIELDS.forEach(({ name }) => {
+    TIMELINE_FIELDS().forEach(({ name }) => {
         const el = document.querySelector(`[name="${name}"]`);
         if (el && !el._flatpickr) {
             flatpickr(el, { ...commonOpts });
@@ -56,7 +58,7 @@ function initDatePickers() {
 
 function updateChronologicalConstraints() {
     const vals = {};
-    TIMELINE_FIELDS.forEach(({ name }) => {
+    TIMELINE_FIELDS().forEach(({ name }) => {
         const el = document.querySelector(`[name="${name}"]`);
         vals[name] = el?._flatpickr?.selectedDates[0] ?? null;
     });
@@ -82,7 +84,7 @@ function renderTimelineVisual() {
     const container = document.getElementById('timeline-visual');
     if (!container) return;
 
-    const dates = TIMELINE_FIELDS.map(({ name, label, color }) => {
+    const dates = TIMELINE_FIELDS().map(({ name, label, color }) => {
         const el = document.querySelector(`[name="${name}"]`);
         const fp = el?._flatpickr;
         const ts = fp?.selectedDates[0]?.getTime() ?? null;
@@ -90,7 +92,7 @@ function renderTimelineVisual() {
     }).filter(d => d.ts !== null);
 
     if (dates.length < 2) {
-        container.innerHTML = '<p class="text-xs text-gray-400 mt-2">Fill in dates to see timeline preview.</p>';
+        container.innerHTML = `<p class="text-xs text-gray-400 mt-2">${T().timelineFillDatesHint || 'Fill in dates to see timeline preview.'}</p>`;
         return;
     }
 
@@ -128,7 +130,7 @@ function initPreviewUpdates() {
     const previewName = document.getElementById('preview-sale-name');
     if (nameEn && previewName) {
         nameEn.addEventListener('input', () => {
-            previewName.textContent = nameEn.value || 'Flash Sale Name';
+            previewName.textContent = nameEn.value || T().previewNamePlaceholder || 'Flash Sale Name';
         });
     }
 
@@ -211,7 +213,7 @@ function handleFormSubmit(e) {
 
     if (btn) {
         btn.disabled = true;
-        btn.textContent = 'Saving…';
+        btn.textContent = T().saving || 'Saving…';
     }
 
     $.ajax({
@@ -223,8 +225,8 @@ function handleFormSubmit(e) {
             if (res.redirect) {
                 window.location.href = res.redirect;
             } else {
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: res.message || 'Saved.' } }));
-                if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: res.message || T().saved || 'Saved.' } }));
+                if (btn) { btn.disabled = false; btn.textContent = T().saveChanges || 'Save Changes'; }
             }
         },
         error(xhr) {
@@ -232,9 +234,9 @@ function handleFormSubmit(e) {
             if (xhr.status === 422 && body?.errors) {
                 displayValidationErrors(form, body.errors);
             } else {
-                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: body?.message || 'An error occurred.' } }));
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: body?.message || T().genericError || 'An error occurred.' } }));
             }
-            if (btn) { btn.disabled = false; btn.textContent = btn.dataset.originalText || 'Save'; }
+            if (btn) { btn.disabled = false; btn.textContent = btn.dataset.originalText || T().save || 'Save'; }
         },
     });
 }
@@ -262,13 +264,13 @@ function displayValidationErrors(form, errors) {
 
 // ─── Status transitions ───────────────────────────────────────────────────────
 
-const TRANSITION_CONFIRMS = {
-    close_submissions: 'Close submissions early? Vendors will no longer be able to submit.',
-    end_sale: 'End the sale early? This cannot be undone.',
-    mark_approved: 'Mark this sale as approved and ready to go live?',
-    start_sale: 'Start the sale now? This will make it live immediately.',
+const TRANSITION_CONFIRMS = () => ({
+    close_submissions: T().confirmCloseSubmissions || 'Close submissions early? Vendors will no longer be able to submit.',
+    end_sale: T().confirmEndSale || 'End the sale early? This cannot be undone.',
+    mark_approved: T().confirmMarkApproved || 'Mark this sale as approved and ready to go live?',
+    start_sale: T().confirmStartSale || 'Start the sale now? This will make it live immediately.',
     open_submissions: null,
-};
+});
 
 function initTransitions() {
     // Expose global openModal / closeModal for inline onclick attributes in Blade
@@ -284,7 +286,7 @@ function initTransitions() {
             return;
         }
 
-        const msg = TRANSITION_CONFIRMS[action];
+        const msg = TRANSITION_CONFIRMS()[action];
         if (msg && !confirm(msg)) return;
 
         doTransition(action);
@@ -309,7 +311,7 @@ function doTransition(action, reason = '') {
             _token: $('meta[name="csrf-token"]').attr('content'),
         },
         success(res) {
-            const msg = res.message || 'Status updated.';
+            const msg = res.message || T().statusUpdated || 'Status updated.';
             // Use toast if available, otherwise alert
             if (window.dispatchEvent) {
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: msg } }));
@@ -319,7 +321,7 @@ function doTransition(action, reason = '') {
         },
         error(xhr) {
             $('[data-transition]').prop('disabled', false);
-            const msg = xhr.responseJSON?.message || 'Action failed. Please try again.';
+            const msg = xhr.responseJSON?.message || T().actionFailed || 'Action failed. Please try again.';
             if (window.dispatchEvent) {
                 window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
             } else {
@@ -348,7 +350,7 @@ function initCancelModal() {
         reasonEl?.classList.remove('input-error');
 
         const btn = document.getElementById('cancel-submit-btn');
-        if (btn) { btn.disabled = true; btn.textContent = 'Cancelling…'; }
+        if (btn) { btn.disabled = true; btn.textContent = T().cancelling || 'Cancelling…'; }
 
         $('#cancel-modal').modal('close');
         doTransition('cancel', reason);

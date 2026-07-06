@@ -4,6 +4,33 @@
     @vite(['resources/js/admin/support-tickets.js'])
 @endpush
 
+@push('scripts')
+<script type="module">
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    replySent: @json(__('admin.support_tickets.reply_sent')),
+    failedSendReply: @json(__('admin.support_tickets.failed_send_reply')),
+    statusUpdated: @json(__('admin.support_tickets.status_updated')),
+    failedUpdateStatus: @json(__('admin.support_tickets.failed_update_status')),
+    priorityUpdated: @json(__('admin.support_tickets.priority_updated')),
+    failedUpdatePriority: @json(__('admin.support_tickets.failed_update_priority')),
+    failedAssign: @json(__('admin.support_tickets.failed_assign')),
+    reassigned: @json(__('admin.support_tickets.reassigned')),
+    failedReassign: @json(__('admin.support_tickets.failed_reassign')),
+    unassigned: @json(__('admin.support_tickets.unassigned')),
+    supportAgent: @json(__('admin.support_tickets.support_agent')),
+    internalNoteBadge: @json(__('admin.support_tickets.internal_note_badge')),
+    statusLabels: {
+        open: @json(__('admin.support_tickets.open')),
+        in_progress: @json(__('admin.support_tickets.in_progress')),
+        waiting_customer: @json(__('admin.support_tickets.waiting')),
+        resolved: @json(__('admin.support_tickets.resolved')),
+        closed: @json(__('admin.support_tickets.closed')),
+    },
+});
+</script>
+@endpush
+
 @section('title', $ticket->ticket_number . ' — ' . __('admin.support_tickets.ticket_case_title'))
 
 @section('content')
@@ -27,7 +54,8 @@
         $requester = $ticket->requester_role === 'seller'
             ? $ticket->requesterVendor
             : $ticket->requesterCustomer;
-        $requesterName = $requester->store_name ?? $requester->name ?? 'Unknown';
+        $requesterName = $requester->store_name ?? $requester->name ?? __('admin.support_tickets.unknown');
+        $statusLabelKey = ['waiting_customer' => 'waiting'][$ticket->status] ?? $ticket->status;
         $requesterRoute = $ticket->requester_role === 'seller'
             ? route('admin.vendors.show', $ticket->requester_user_id)
             : route('admin.customers.show', $ticket->requester_user_id);
@@ -53,15 +81,15 @@
                     <span class="font-mono text-sm text-gray-500">{{ $ticket->ticket_number }}</span>
                     <span
                         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $statusBadge }} js-status-badge">
-                        {{ str_replace('_', ' ', $ticket->status) }}
+                        {{ __('admin.support_tickets.' . $statusLabelKey) }}
                     </span>
                     <span
                         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $priorityBadge }} js-priority-badge">
-                        {{ ucfirst($ticket->priority) }}
+                        {{ __('admin.support_tickets.' . $ticket->priority) }}
                     </span>
                     <span
                         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                        {{ str_replace('_', ' ', $ticket->category) }}
+                        {{ __('admin.support_tickets.category_' . $ticket->category) }}
                     </span>
                 </div>
                 <h1 class="text-lg font-semibold text-gray-900">{{ $ticket->subject }}</h1>
@@ -99,7 +127,7 @@
                                         class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">{{ __('admin.support_tickets.internal_note_badge') }}</span>
                                 @elseif($isAi)
                                     <span
-                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-200 text-purple-800">AI</span>
+                                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-200 text-purple-800">{{ __('admin.support_tickets.ai_badge') }}</span>
                                 @endif
                                 <span class="text-xs text-gray-400 ml-auto">
                                     {{ $msg->created_at ? \Carbon\Carbon::parse($msg->created_at)->format('M d, Y H:i') : '' }}
@@ -175,7 +203,7 @@
                                 class="form-input text-xs py-1 pr-7">
                                 @foreach(['open', 'in_progress', 'waiting_customer', 'resolved', 'closed'] as $s)
                                     <option value="{{ $s }}" {{ $ticket->status === $s ? 'selected' : '' }}>
-                                        {{ ucwords(str_replace('_', ' ', $s)) }}
+                                        {{ __('admin.support_tickets.' . (['waiting_customer' => 'waiting'][$s] ?? $s)) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -190,7 +218,7 @@
                                 class="form-input text-xs py-1 pr-7">
                                 @foreach(['low', 'normal', 'high', 'urgent'] as $p)
                                     <option value="{{ $p }}" {{ $ticket->priority === $p ? 'selected' : '' }}>
-                                        {{ ucfirst($p) }}
+                                        {{ __('admin.support_tickets.' . $p) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -202,7 +230,7 @@
                         <dd>
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                                {{ ucwords(str_replace('_', ' ', $ticket->category)) }}
+                                {{ __('admin.support_tickets.category_' . $ticket->category) }}
                             </span>
                         </dd>
                     </div>

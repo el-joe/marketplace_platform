@@ -141,8 +141,8 @@
                 'options' => $countries->toArray(),
             ],
             ['type' => 'date_range', 'name' => 'date', 'label' => __('admin.orders.placed_date')],
-            ['type' => 'text', 'name' => 'min_total', 'label' => __('admin.orders.min_total'), 'placeholder' => 'e.g. 50'],
-            ['type' => 'text', 'name' => 'max_total', 'label' => __('admin.orders.max_total'), 'placeholder' => 'e.g. 500'],
+            ['type' => 'text', 'name' => 'min_total', 'label' => __('admin.orders.min_total'), 'placeholder' => __('admin.orders.min_total_placeholder')],
+            ['type' => 'text', 'name' => 'max_total', 'label' => __('admin.orders.max_total'), 'placeholder' => __('admin.orders.max_total_placeholder')],
             [
                 'type' => 'select',
                 'name' => 'risk_score_min',

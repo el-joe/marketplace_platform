@@ -68,15 +68,15 @@
         ];
 
         $disputeReasonLabels = [
-            'item_not_received' => __('admin.disputes.reason_item_not_received'),
-            'item_damaged' => __('admin.disputes.reason_item_damaged'),
-            'item_not_as_described' => __('admin.disputes.reason_not_as_described'),
-            'counterfeit' => __('admin.disputes.reason_counterfeit'),
-            'wrong_item' => __('admin.disputes.reason_wrong_item_sent'),
-            'quality_issue' => __('admin.disputes.reason_quality_issue'),
-            'seller_unresponsive' => __('admin.disputes.reason_seller_unresponsive'),
-            'refund_not_received' => __('admin.disputes.reason_refund_not_received'),
-            'other' => __('admin.disputes.reason_other'),
+            'item_not_received' => __('admin.disputes_section.reason_item_not_received'),
+            'item_damaged' => __('admin.disputes_section.reason_item_damaged'),
+            'item_not_as_described' => __('admin.disputes_section.reason_item_not_as_described'),
+            'counterfeit' => __('admin.disputes_section.reason_counterfeit'),
+            'wrong_item' => __('admin.disputes_section.reason_wrong_item'),
+            'quality_issue' => __('admin.disputes_section.reason_quality_issue'),
+            'seller_unresponsive' => __('admin.disputes_section.reason_seller_unresponsive'),
+            'refund_not_received' => __('admin.disputes_section.reason_refund_not_received'),
+            'other' => __('admin.disputes_section.reason_other'),
         ];
 
         $refundReasonLabels = [
@@ -88,6 +88,86 @@
             'late_delivery' => __('admin.orders.refund_reason_late_delivery'),
             'duplicate_order' => __('admin.orders.refund_reason_duplicate_order'),
             'other' => __('admin.orders.refund_reason_other'),
+        ];
+
+        $orderStatusLabels = [
+            'placed' => __('common.order_status.placed'),
+            'confirmed' => __('common.order_status.confirmed'),
+            'partially_shipped' => __('admin.orders.status_partially_shipped'),
+            'shipped' => __('common.order_status.shipped'),
+            'partially_delivered' => __('admin.orders.status_partially_delivered'),
+            'delivered' => __('common.order_status.delivered'),
+            'completed' => __('common.order_status.completed'),
+            'cancelled' => __('common.order_status.cancelled'),
+            'refunded' => __('common.order_status.refunded'),
+            'disputed' => __('common.order_status.disputed'),
+        ];
+        $subOrderStatusLabels = [
+            'placed' => __('common.order_status.placed'),
+            'confirmed' => __('common.order_status.confirmed'),
+            'processing' => __('admin.orders.status_processing'),
+            'packed' => __('admin.orders.status_packed'),
+            'shipped' => __('common.order_status.shipped'),
+            'out_for_delivery' => __('admin.orders.status_out_for_delivery'),
+            'delivered' => __('common.order_status.delivered'),
+            'completed' => __('common.order_status.completed'),
+            'cancelled' => __('common.order_status.cancelled'),
+            'returned' => __('admin.orders.status_returned'),
+            'refunded' => __('common.order_status.refunded'),
+        ];
+        $allStatusLabels = $orderStatusLabels + $subOrderStatusLabels;
+
+        $fulfillmentStatusLabels = [
+            'pending' => __('common.pending'),
+            'picked' => __('admin.orders.item_status_picked'),
+            'packed' => __('admin.orders.status_packed'),
+            'shipped' => __('common.order_status.shipped'),
+            'delivered' => __('common.order_status.delivered'),
+            'returned' => __('admin.orders.status_returned'),
+            'cancelled' => __('common.order_status.cancelled'),
+        ];
+
+        $txTypeLabels = [
+            'authorization' => __('admin.orders.tx_type_authorization'),
+            'capture' => __('admin.orders.tx_type_capture'),
+            'sale' => __('admin.orders.tx_type_sale'),
+            'refund' => __('admin.orders.tx_type_refund'),
+            'void' => __('admin.orders.tx_type_void'),
+            'chargeback' => __('admin.orders.tx_type_chargeback'),
+        ];
+
+        $txStatusLabels = [
+            'pending' => __('common.pending'),
+            'succeeded' => __('common.succeeded'),
+            'failed' => __('common.failed'),
+            'cancelled' => __('common.cancelled'),
+        ];
+
+        $disputeStatusLabels = [
+            'open' => __('admin.disputes_section.open'),
+            'seller_responded' => __('admin.disputes_section.seller_responded'),
+            'under_review' => __('admin.disputes_section.under_review'),
+            'escalated' => __('admin.disputes_section.escalated'),
+            'resolved' => __('admin.disputes_section.resolved'),
+            'closed' => __('admin.disputes_section.closed'),
+        ];
+
+        $refundStatusLabels = [
+            'pending' => __('common.pending'),
+            'approved' => __('common.approved'),
+            'processing' => __('common.processing'),
+            'completed' => __('common.completed'),
+            'failed' => __('common.failed'),
+            'rejected' => __('common.rejected'),
+        ];
+
+        $payStatusLabels = [
+            'pending' => __('common.pending'),
+            'authorized' => __('admin.orders.payment_authorized'),
+            'captured' => __('admin.orders.payment_captured'),
+            'failed' => __('admin.orders.payment_failed'),
+            'refunded' => __('common.order_status.refunded'),
+            'partially_refunded' => __('admin.orders.payment_partially_refunded'),
         ];
     @endphp
 
@@ -129,7 +209,7 @@
                                         <span class="text-xs text-gray-400 ml-2">{{ $subOrder->sub_order_number }}</span>
                                     </div>
                                     <x-badge :color="$subStatusColors[$subOrder->status] ?? 'gray'">
-                                        {{ ucwords(str_replace('_', ' ', $subOrder->status)) }}
+                                        {{ $subOrderStatusLabels[$subOrder->status] ?? ucwords(str_replace('_', ' ', $subOrder->status)) }}
                                     </x-badge>
                                     @if($subOrder->fulfillment_model === 'fbn')
                                         <x-badge color="primary">{{ __('admin.orders.fbn') }}</x-badge>
@@ -214,7 +294,7 @@
                                                     </td>
                                                     <td class="px-4 py-3 text-center">
                                                         <x-badge color="gray" class="text-xs">
-                                                            {{ ucfirst(str_replace('_', ' ', $item->fulfillment_status)) }}
+                                                            {{ $fulfillmentStatusLabels[$item->fulfillment_status] ?? ucfirst(str_replace('_', ' ', $item->fulfillment_status)) }}
                                                         </x-badge>
                                                     </td>
                                                 </tr>
@@ -328,14 +408,14 @@
                     <div class="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
                         <div class="flex-shrink-0 mt-0.5">
                             <x-badge :color="$txTypeColors[$tx->type] ?? 'gray'">
-                                {{ ucfirst($tx->type) }}
+                                {{ $txTypeLabels[$tx->type] ?? ucfirst($tx->type) }}
                             </x-badge>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between">
                                 <p class="text-sm font-medium text-gray-900">{{ $fmt($tx->amount) }}</p>
                                 <x-badge :color="$tx->status === 'succeeded' ? 'success' : ($tx->status === 'failed' ? 'danger' : 'gray')">
-                                    {{ ucfirst($tx->status) }}
+                                    {{ $txStatusLabels[$tx->status] ?? ucfirst($tx->status) }}
                                 </x-badge>
                             </div>
                             <p class="text-xs text-gray-500 mt-0.5">
@@ -379,14 +459,14 @@
                                         </span>
                                     @endif
                                     <x-badge :color="$subStatusColors[$history->from_status] ?? 'gray'">
-                                        {{ ucwords(str_replace('_', ' ', $history->from_status)) }}
+                                        {{ $allStatusLabels[$history->from_status] ?? ucwords(str_replace('_', ' ', $history->from_status)) }}
                                     </x-badge>
                                     <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 5l7 7-7 7" />
                                     </svg>
                                     <x-badge :color="$subStatusColors[$history->to_status] ?? ($statusColors[$history->to_status] ?? 'gray')">
-                                        {{ ucwords(str_replace('_', ' ', $history->to_status)) }}
+                                        {{ $allStatusLabels[$history->to_status] ?? ucwords(str_replace('_', ' ', $history->to_status)) }}
                                     </x-badge>
                                 </div>
                                 @if($history->reason)
@@ -420,7 +500,7 @@
                                     <span
                                         class="font-mono text-sm font-semibold text-gray-700">{{ $dispute->dispute_number }}</span>
                                     <x-badge :color="in_array($dispute->status, ['resolved', 'closed']) ? 'success' : ($dispute->status === 'escalated' ? 'danger' : 'warning')">
-                                        {{ ucwords(str_replace('_', ' ', $dispute->status)) }}
+                                        {{ $disputeStatusLabels[$dispute->status] ?? ucwords(str_replace('_', ' ', $dispute->status)) }}
                                     </x-badge>
                                 </div>
                                 <span class="text-xs text-gray-400">
@@ -428,12 +508,12 @@
                                 </span>
                             </div>
                             <p class="text-xs font-medium text-gray-500 mb-1">
-                                {{ __('admin.disputes.reason') }}: {{ $disputeReasonLabels[$dispute->reason] ?? $dispute->reason }}
+                                {{ __('admin.disputes_section.reason') }}: {{ $disputeReasonLabels[$dispute->reason] ?? $dispute->reason }}
                             </p>
                             <p class="text-sm text-gray-700">{{ $dispute->description }}</p>
                             @if($dispute->resolution_notes)
                                 <div class="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-600">
-                                    <span class="font-medium">{{ __('admin.disputes.resolution') }}:</span> {{ $dispute->resolution_notes }}
+                                    <span class="font-medium">{{ __('admin.disputes_section.resolution') }}:</span> {{ $dispute->resolution_notes }}
                                 </div>
                             @endif
                         </div>
@@ -470,7 +550,7 @@
                     <div class="flex items-center justify-between">
                         <span class="text-gray-500">{{ __('common.status') }}</span>
                         <x-badge :color="$statusColors[$order->status] ?? 'gray'">
-                            {{ ucwords(str_replace('_', ' ', $order->status)) }}
+                            {{ $allStatusLabels[$order->status] ?? ucwords(str_replace('_', ' ', $order->status)) }}
                         </x-badge>
                     </div>
                 </div>
@@ -509,7 +589,7 @@
                     <span
                         class="text-gray-500">{{ $payMethodLabels[$order->payment_method] ?? $order->payment_method }}</span>
                     <x-badge :color="$payStatusColors[$order->payment_status] ?? 'gray'">
-                        {{ ucwords(str_replace('_', ' ', $order->payment_status)) }}
+                        {{ $payStatusLabels[$order->payment_status] ?? ucwords(str_replace('_', ' ', $order->payment_status)) }}
                     </x-badge>
                 </div>
 
@@ -648,7 +728,7 @@
                                 <p class="text-xs text-gray-400">{{ $refundReasonLabels[$refund->reason] ?? $refund->reason }}</p>
                             </div>
                             <x-badge :color="$refund->status === 'completed' ? 'success' : ($refund->status === 'rejected' || $refund->status === 'failed' ? 'danger' : 'warning')">
-                                {{ ucfirst($refund->status) }}
+                                {{ $refundStatusLabels[$refund->status] ?? ucfirst($refund->status) }}
                             </x-badge>
                         </div>
                     @endforeach
@@ -717,7 +797,7 @@
                 <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-sm text-gray-700">
                     {{ __('admin.orders.current_status') }}:
                     <x-badge :color="$statusColors[$order->status] ?? 'gray'" class="ml-1">
-                        {{ ucwords(str_replace('_', ' ', $order->status)) }}
+                        {{ $allStatusLabels[$order->status] ?? ucwords(str_replace('_', ' ', $order->status)) }}
                     </x-badge>
                 </div>
                 <div>
@@ -729,7 +809,7 @@
                         <select id="order-new-status" name="new_status" class="form-select w-full">
                             <option value="">{{ __('admin.orders.select_new_status') }}</option>
                             @foreach($allowedNextStatuses as $s)
-                                <option value="{{ $s }}">{{ ucwords(str_replace('_', ' ', $s)) }}</option>
+                                <option value="{{ $s }}">{{ $allStatusLabels[$s] ?? ucwords(str_replace('_', ' ', $s)) }}</option>
                             @endforeach
                         </select>
                     @endif

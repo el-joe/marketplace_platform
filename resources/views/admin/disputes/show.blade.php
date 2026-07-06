@@ -18,8 +18,8 @@
             'closed' => 'bg-gray-100 text-gray-500',
             default => 'bg-gray-100 text-gray-500',
         };
-        $reasonLabel = ucwords(str_replace('_', ' ', $dispute->reason));
-        $statusLabel = ucwords(str_replace('_', ' ', $dispute->status));
+        $reasonLabel = __('admin.disputes_section.reason_' . $dispute->reason);
+        $statusLabel = __('admin.disputes_section.' . $dispute->status);
         $isClosed = in_array($dispute->status, ['resolved', 'closed'], true);
         $currency = $dispute->order->currency ?? 'USD';
         $compensation = $dispute->compensation_cents
@@ -131,7 +131,7 @@
                 </div>
             @else
                 <div class="text-center text-sm text-gray-400 py-4">
-                    {{ __('admin.disputes_section.dispute_status_reopen', ['status' => $dispute->status]) }}
+                    {{ __('admin.disputes_section.dispute_status_reopen', ['status' => $statusLabel]) }}
                 </div>
             @endif
 
@@ -203,7 +203,7 @@
                                 class="form-input text-xs py-1 pr-7">
                                 @foreach(['open', 'seller_responded', 'under_review', 'escalated', 'resolved', 'closed'] as $s)
                                     <option value="{{ $s }}" {{ $dispute->status === $s ? 'selected' : '' }}>
-                                        {{ ucwords(str_replace('_', ' ', $s)) }}
+                                        {{ __('admin.disputes_section.' . $s) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -226,7 +226,7 @@
                             <dd>
                                 <span
                                     class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                                    {{ ucwords(str_replace('_', ' ', $dispute->resolution)) }}
+                                    {{ __('admin.disputes_section.' . $dispute->resolution) }}
                                 </span>
                             </dd>
                         </div>
@@ -351,3 +351,33 @@
     </div>
 
 @endsection
+
+@push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            replySent: @json(__('admin.disputes_section.reply_sent')),
+            replyFailed: @json(__('admin.disputes_section.reply_failed')),
+            supportAgent: @json(__('admin.disputes_section.support_agent')),
+            statusUpdated: @json(__('admin.disputes_section.status_updated')),
+            statusUpdateFailed: @json(__('admin.disputes_section.status_update_failed')),
+            assignFailed: @json(__('admin.disputes_section.assign_failed')),
+            reassignFailed: @json(__('admin.disputes_section.reassign_failed')),
+            unassigned: @json(__('admin.disputes_section.unassigned')),
+            resolveConfirmTitle: @json(__('admin.disputes_section.resolve_confirm_title')),
+            resolveConfirmText: @json(__('admin.disputes_section.resolve_confirm_text')),
+            resolveConfirmButton: @json(__('admin.disputes_section.resolve_confirm_button')),
+            resolvedMessage: @json(__('admin.disputes_section.resolved_message')),
+            resolveFailed: @json(__('admin.disputes_section.resolve_failed')),
+            internalNoteBadge: @json(__('admin.disputes_section.internal_note_badge')),
+            statusLabels: {
+                open: @json(__('admin.disputes_section.open')),
+                seller_responded: @json(__('admin.disputes_section.seller_responded')),
+                under_review: @json(__('admin.disputes_section.under_review')),
+                escalated: @json(__('admin.disputes_section.escalated')),
+                resolved: @json(__('admin.disputes_section.resolved')),
+                closed: @json(__('admin.disputes_section.closed')),
+            },
+        });
+    </script>
+@endpush

@@ -1,4 +1,10 @@
 import DataTable from 'datatables.net';
+import { dtLanguage } from '../components/datatable.js';
+
+// ─── Locale helpers ────────────────────────────────────────────────────────────
+
+const isAr = document.documentElement.lang === 'ar';
+const t = (key, fallback) => window.TRANSLATIONS?.[key] ?? fallback;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -52,6 +58,7 @@ function initDisputesTable() {
     const dt = new DataTable('#disputes-table', {
         processing: true,
         serverSide: true,
+        language: dtLanguage,
         order: [[7, 'desc']],
         ajax: {
             url: tableEl.dataset.url,
@@ -178,15 +185,15 @@ function initDisputeShowPage() {
                 is_internal_note: internal,
             });
 
-            window.Toast?.success(res.message ?? 'Reply sent.');
-            appendMessage(message, internal, res.sender_name ?? 'Support Agent');
+            window.Toast?.success(res.message ?? t('replySent', 'Reply sent.'));
+            appendMessage(message, internal, res.sender_name ?? t('supportAgent', 'Support Agent'));
             document.getElementById('reply-message').value = '';
             if (internalChk) internalChk.checked = false;
             if (replyBg) replyBg.classList.remove('border-yellow-300', 'bg-yellow-50');
 
             if (res.status) updateStatusBadge(res.status);
         } catch (err) {
-            window.Toast?.error(err.message ?? 'Failed to send reply.');
+            window.Toast?.error(err.message ?? t('replyFailed', 'Failed to send reply.'));
         } finally {
             if (btn) btn.disabled = false;
         }
@@ -195,11 +202,11 @@ function initDisputeShowPage() {
     // Status select
     document.getElementById('status-select')?.addEventListener('change', async function () {
         try {
-            await sendJson(this.dataset.url, 'POST', { status: this.value });
-            window.Toast?.success('Status updated.');
+            const res = await sendJson(this.dataset.url, 'POST', { status: this.value });
+            window.Toast?.success(res.message ?? t('statusUpdated', 'Status updated.'));
             updateStatusBadge(this.value);
         } catch (err) {
-            window.Toast?.error(err.message ?? 'Failed to update status.');
+            window.Toast?.error(err.message ?? t('statusUpdateFailed', 'Failed to update status.'));
         }
     });
 
@@ -207,11 +214,11 @@ function initDisputeShowPage() {
     document.getElementById('btn-assign-me')?.addEventListener('click', async function () {
         try {
             const res = await sendJson(this.dataset.url, 'POST');
-            window.Toast?.success(res.message ?? 'Assigned.');
+            window.Toast?.success(res.message);
             const nameEl = document.getElementById('assignee-name');
             if (nameEl) nameEl.textContent = res.assignee_name ?? this.dataset.myName;
         } catch (err) {
-            window.Toast?.error(err.message ?? 'Failed to assign.');
+            window.Toast?.error(err.message ?? t('assignFailed', 'Failed to assign.'));
         }
     });
 
@@ -220,11 +227,11 @@ function initDisputeShowPage() {
         const adminId = document.getElementById('reassign-select')?.value;
         try {
             const res = await sendJson(this.dataset.url, 'POST', { admin_id: adminId || null });
-            window.Toast?.success(res.message ?? 'Reassigned.');
+            window.Toast?.success(res.message);
             const nameEl = document.getElementById('assignee-name');
-            if (nameEl) nameEl.textContent = res.assignee_name ?? 'Unassigned';
+            if (nameEl) nameEl.textContent = res.assignee_name ?? t('unassigned', 'Unassigned');
         } catch (err) {
-            window.Toast?.error(err.message ?? 'Failed to reassign.');
+            window.Toast?.error(err.message ?? t('reassignFailed', 'Failed to reassign.'));
         }
     });
 
@@ -234,11 +241,11 @@ function initDisputeShowPage() {
         e.preventDefault();
         const confirmed = window.confirmDialog
             ? await window.confirmDialog({
-                title: 'Resolve dispute?',
-                text: 'This will finalize the resolution and close the dispute thread if marked.',
-                confirmButtonText: 'Resolve',
+                title: t('resolveConfirmTitle', 'Resolve dispute?'),
+                text: t('resolveConfirmText', 'This will finalize the resolution and close the dispute thread if marked.'),
+                confirmButtonText: t('resolveConfirmButton', 'Resolve'),
             })
-            : confirm('Resolve this dispute?');
+            : confirm(t('resolveConfirmTitle', 'Resolve dispute?'));
         if (!confirmed) return;
 
         const btn = document.getElementById('btn-resolve');
@@ -253,10 +260,10 @@ function initDisputeShowPage() {
                 close: fd.get('close') ? 1 : 0,
             };
             const res = await sendJson(resolveForm.dataset.url, 'POST', payload);
-            window.Toast?.success(res.message ?? 'Resolved.');
+            window.Toast?.success(res.message ?? t('resolvedMessage', 'Dispute resolved.'));
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            window.Toast?.error(err.message ?? 'Failed to resolve.');
+            window.Toast?.error(err.message ?? t('resolveFailed', 'Failed to resolve dispute.'));
             if (btn) btn.disabled = false;
         }
     });
@@ -270,7 +277,7 @@ function appendMessage(text, isInternal, senderName) {
         ? 'bg-yellow-50 border border-yellow-200'
         : 'bg-blue-50 border border-blue-200';
 
-    const now = new Date().toLocaleString('en-US', {
+    const now = new Date().toLocaleString(isAr ? 'ar-EG' : 'en-US', {
         month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
 
@@ -279,7 +286,7 @@ function appendMessage(text, isInternal, senderName) {
     el.innerHTML = `<div class="rounded-xl p-4 ${bgClass}">
         <div class="flex items-center gap-2 mb-2">
             <span class="text-xs font-semibold text-gray-700">${escapeHtml(senderName)}</span>
-            ${isInternal ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">Internal note</span>' : ''}
+            ${isInternal ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-200 text-yellow-800">${escapeHtml(t('internalNoteBadge', 'Internal note'))}</span>` : ''}
             <span class="text-xs text-gray-400 ml-auto">${now}</span>
         </div>
         <div class="text-sm text-gray-800 whitespace-pre-wrap">${escapeHtml(text)}</div>
@@ -295,7 +302,7 @@ function updateStatusBadge(status) {
     badge.className = 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium js-status-badge';
     const cls = statusClass[status] ?? 'bg-gray-100 text-gray-500';
     badge.classList.add(...cls.split(' '));
-    badge.textContent = status.replace(/_/g, ' ');
+    badge.textContent = window.TRANSLATIONS?.statusLabels?.[status] ?? status.replace(/_/g, ' ');
 
     const sel = document.getElementById('status-select');
     if (sel) sel.value = status;

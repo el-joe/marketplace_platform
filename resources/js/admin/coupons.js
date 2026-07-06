@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('code').value = data.code;
                 }
             } catch {
-                window.Toast?.error('Could not generate code.');
+                window.Toast?.error(window.TRANSLATIONS?.generateCodeFailed || 'Could not generate code.');
             } finally {
                 generateBtn.disabled = false;
             }
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btn = document.getElementById('save-btn');
             const originalText = btn ? btn.textContent : '';
-            if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
+            if (btn) { btn.disabled = true; btn.textContent = window.TRANSLATIONS?.saving || 'Saving\u2026'; }
 
             try {
                 const fd = new FormData(form);
@@ -58,16 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json().catch(() => ({}));
 
                 if (res.ok && data.success) {
-                    window.Toast?.success(isEdit ? 'Coupon saved.' : 'Coupon created.');
+                    const savedMessage = isEdit ? window.TRANSLATIONS?.couponSaved : window.TRANSLATIONS?.couponCreated;
+                    window.Toast?.success(savedMessage || (isEdit ? 'Coupon saved.' : 'Coupon created.'));
                     if (!isEdit && data.redirect) {
                         window.location.href = data.redirect;
                     }
                 } else {
                     const errors = data.errors ? Object.values(data.errors).flat().join('\n') : null;
-                    window.Toast?.error(errors || data.message || 'Save failed.');
+                    window.Toast?.error(errors || data.message || window.TRANSLATIONS?.saveFailed || 'Save failed.');
                 }
             } catch (err) {
-                window.Toast?.error('Network error. Please try again.');
+                window.Toast?.error(window.TRANSLATIONS?.networkErrorRetry || 'Network error. Please try again.');
             } finally {
                 if (btn) { btn.disabled = false; btn.textContent = originalText; }
             }

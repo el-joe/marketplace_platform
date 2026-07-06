@@ -39,7 +39,7 @@ class FlashSaleService
     public function update(FlashSale $sale, array $data, Admin $admin): FlashSale
     {
         if (in_array($sale->status, ['live', 'ended', 'cancelled'], true)) {
-            throw new \LogicException("Cannot update a {$sale->status} flash sale.");
+            throw new \LogicException(__('admin.flash_sales.cannot_update_status', ['status' => $sale->status]));
         }
 
         $sale->update([
@@ -57,7 +57,7 @@ class FlashSaleService
     public function transition(FlashSale $sale, string $newStatus, Admin $admin, string $reason = ''): FlashSale
     {
         if (!$sale->canTransitionTo($newStatus)) {
-            throw new \LogicException("Cannot transition from '{$sale->status}' to '{$newStatus}'.");
+            throw new \LogicException(__('admin.flash_sales.cannot_transition', ['from' => $sale->status, 'to' => $newStatus]));
         }
 
         $updates = [
@@ -188,7 +188,7 @@ class FlashSaleService
         $flashSale = $submission->flashSale;
 
         if ($flashSale->status === 'live') {
-            throw new \LogicException('Cannot review submissions while the sale is live.');
+            throw new \LogicException(__('admin.flash_sales.cannot_review_while_live'));
         }
 
         $fromStatus = $submission->status;
@@ -196,10 +196,10 @@ class FlashSaleService
         DB::transaction(function () use ($submission, $decision, $data, $admin, $flashSale, $fromStatus) {
             if ($decision === 'approved') {
                 if ((float) $submission->calculated_discount_pct < (float) $flashSale->min_discount_pct) {
-                    throw new \LogicException('Discount too low. Minimum required: ' . $flashSale->min_discount_pct . '%');
+                    throw new \LogicException(__('admin.flash_sales.discount_too_low_min', ['pct' => $flashSale->min_discount_pct]));
                 }
                 if ($flashSale->max_total_slots && $flashSale->approved_slots_count >= $flashSale->max_total_slots) {
-                    throw new \LogicException('Slot limit reached for this flash sale.');
+                    throw new \LogicException(__('admin.flash_sales.slot_limit_reached_sale'));
                 }
 
                 $submission->update([
