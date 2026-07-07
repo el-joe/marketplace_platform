@@ -35,6 +35,8 @@ class AuthController extends Controller
             'password'         => Hash::make($request->password),
             'phone'            => $request->phone,
             'type'             => $request->type,
+            'country_id'       => $request->country_id,
+            'followers_count'  => $request->followers_count,
             'niche'            => $request->niche,
             'bio'              => $request->bio,
             'social_instagram' => $links['instagram'] ?? null,

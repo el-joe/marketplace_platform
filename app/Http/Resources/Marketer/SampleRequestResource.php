@@ -12,6 +12,8 @@ class SampleRequestResource extends JsonResource
         return [
             'id'               => $this->id,
             'campaign_id'      => $this->campaign_id,
+            'campaign_name'    => $this->whenLoaded('campaign', fn() => $this->campaign?->name),
+            'vendor_name'      => $this->whenLoaded('vendor', fn() => $this->vendor?->store_name ?? $this->vendor?->business_name),
             'status'           => $this->status,
             'notes'            => $this->notes,
             'rejection_reason' => $this->rejection_reason,

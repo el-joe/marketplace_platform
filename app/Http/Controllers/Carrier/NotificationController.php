@@ -85,4 +85,20 @@ class NotificationController extends Controller
 
         return ApiResponse::success(null, 'All notifications marked as read.');
     }
+
+    /**
+     * GET /api/carrier/v1/notifications/unread-count
+     */
+    public function unreadCount(): JsonResponse
+    {
+        $supervisor = auth('shipping_supervisor_api')->user();
+
+        $count = DB::table('notifications')
+            ->where('notifiable_type', 'App\\Models\\ShippingCompanySupervisor')
+            ->where('notifiable_id', $supervisor->id)
+            ->whereNull('read_at')
+            ->count();
+
+        return ApiResponse::success(['unread_count' => $count]);
+    }
 }

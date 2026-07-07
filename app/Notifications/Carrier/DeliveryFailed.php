@@ -15,6 +15,25 @@ class DeliveryFailed extends BaseDatabaseBroadcastNotification
         return 'delivery_failed';
     }
 
+    public function via(object $notifiable): array
+    {
+        return ['database', 'broadcast', 'push'];
+    }
+
+    public function toPush(object $notifiable): array
+    {
+        $agent = $this->assignment->agent;
+
+        return [
+            'title' => 'Delivery Failed',
+            'body'  => "Agent {$agent->name} failed to deliver order #{$this->assignment->id}.",
+            'data'  => [
+                'screen' => 'agent_assignments',
+                'id'     => $agent->id,
+            ],
+        ];
+    }
+
     public function notificationData(object $notifiable): array
     {
         $agent = $this->assignment->agent;

@@ -15,6 +15,23 @@ class NewUnassignedShipmentArrived extends BaseDatabaseBroadcastNotification
         return 'new_unassigned_shipment_arrived';
     }
 
+    public function via(object $notifiable): array
+    {
+        return ['database', 'broadcast', 'push'];
+    }
+
+    public function toPush(object $notifiable): array
+    {
+        return [
+            'title' => 'New Unassigned Shipment',
+            'body'  => 'New shipment awaiting agent assignment',
+            'data'  => [
+                'screen' => 'unassigned_shipments',
+                'id'     => null,
+            ],
+        ];
+    }
+
     public function notificationData(object $notifiable): array
     {
         return [

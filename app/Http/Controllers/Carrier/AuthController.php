@@ -7,8 +7,10 @@ use App\Http\Requests\Carrier\Auth\LoginRequest;
 use App\Http\Resources\Carrier\ShippingCompanyResource;
 use App\Http\Resources\Carrier\SupervisorResource;
 use App\Http\Responses\ApiResponse;
+use App\Models\DeviceToken;
 use App\Models\ShippingCompanySupervisor;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -58,13 +60,69 @@ class AuthController extends Controller
 
         $supervisor->load('company.country');
 
+        if ($request->filled('fcm_token') && $request->filled('platform')) {
+            DeviceToken::updateOrCreate(
+                [
+                    'tokenable_type' => ShippingCompanySupervisor::class,
+                    'tokenable_id'   => $supervisor->id,
+                ],
+                [
+                    'token'        => $request->fcm_token,
+                    'platform'     => $request->platform,
+                    'is_active'    => 1,
+                    'last_used_at' => now(),
+                ]
+            );
+        }
+
         return ApiResponse::success(array_merge(
             [
-                'supervisor' => new SupervisorResource($supervisor),
-                'company'    => new ShippingCompanyResource($supervisor->company),
+                'supervisor'  => new SupervisorResource($supervisor),
+                'company'     => new ShippingCompanyResource($supervisor->company),
+                'permissions' => $supervisor->permissions ?? [],
             ],
             $this->issueTokenPair($supervisor)
         ));
+    }
+
+    // ── Device Token (FCM) ───────────────────────────────────────────────────
+
+    public function registerDeviceToken(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token'    => ['required', 'string', 'max:255'],
+            'platform' => ['required', 'string', 'in:ios,android'],
+        ]);
+
+        /** @var ShippingCompanySupervisor $supervisor */
+        $supervisor = auth('shipping_supervisor_api')->user();
+
+        DeviceToken::updateOrCreate(
+            [
+                'tokenable_type' => ShippingCompanySupervisor::class,
+                'tokenable_id'   => $supervisor->id,
+            ],
+            [
+                'token'        => $request->token,
+                'platform'     => $request->platform,
+                'is_active'    => 1,
+                'last_used_at' => now(),
+            ]
+        );
+
+        return ApiResponse::success(null, 'Device registered for push notifications.');
+    }
+
+    public function removeDeviceToken(): JsonResponse
+    {
+        /** @var ShippingCompanySupervisor $supervisor */
+        $supervisor = auth('shipping_supervisor_api')->user();
+
+        DeviceToken::where('tokenable_type', ShippingCompanySupervisor::class)
+            ->where('tokenable_id', $supervisor->id)
+            ->update(['is_active' => 0]);
+
+        return ApiResponse::success(null, 'Device token removed.');
     }
 
     // ── Logout ────────────────────────────────────────────────────────────────

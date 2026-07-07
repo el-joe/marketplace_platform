@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Marketer\AuthController;
 use App\Http\Controllers\Marketer\CampaignController;
+use App\Http\Controllers\Marketer\CountryController;
 use App\Http\Controllers\Marketer\DashboardController;
 use App\Http\Controllers\Marketer\EarningsController;
 use App\Http\Controllers\Marketer\NotificationController;
@@ -39,6 +40,9 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('throttle:5,1');
         Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
     });
+
+    // Public — needed to populate the country picker on the registration form.
+    Route::get('countries', [CountryController::class, 'index'])->name('marketer.countries.index');
 
     // ── Authenticated ─────────────────────────────────────────────────────────
     Route::middleware(['marketer.api.auth', 'marketer.api.active'])->group(function (): void {
@@ -110,6 +114,7 @@ Route::prefix('v1')->group(function (): void {
         Route::prefix('sample-requests')->name('marketer.sample-requests.')->group(function (): void {
             Route::get('/',                        [SampleRequestController::class, 'index'])->name('index');
             Route::get('/{sampleRequest}',         [SampleRequestController::class, 'show'])->name('show');
+            Route::post('/{sampleRequest}/mark-received', [SampleRequestController::class, 'markReceived'])->name('mark-received');
         });
 
         // ── Earnings (Conversions) ────────────────────────────────────────────

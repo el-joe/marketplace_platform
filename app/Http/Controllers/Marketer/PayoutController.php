@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Marketer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Marketer\Payout\PayoutListRequest;
 use App\Http\Resources\Marketer\PayoutDetailResource;
 use App\Http\Resources\Marketer\PayoutResource;
 use App\Http\Responses\ApiResponse;
@@ -13,10 +14,10 @@ class PayoutController extends Controller
 {
     public function __construct(private readonly EarningsService $earningsService) {}
 
-    public function index(): JsonResponse
+    public function index(PayoutListRequest $request): JsonResponse
     {
         $marketer  = auth('marketer_api')->user();
-        $paginator = $this->earningsService->listPayouts($marketer);
+        $paginator = $this->earningsService->listPayouts($marketer, $request->validated());
 
         return ApiResponse::paginated($paginator, PayoutResource::class);
     }

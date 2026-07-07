@@ -12,6 +12,7 @@ use App\Models\DeliveryAssignment;
 use App\Models\PaymentTransaction;
 use App\Models\Setting;
 use App\Models\ShipmentTrackingEvent;
+use App\Notifications\Carrier\DeliveryCompleted as DeliveryCompletedNotification;
 use App\Notifications\Carrier\DeliveryFailed as DeliveryFailedNotification;
 use App\Notifications\Vendor\OrderReturnInTransit;
 use Carbon\Carbon;
@@ -248,6 +249,8 @@ class AssignmentService
             Carbon::now()->startOfMonth(),
             Carbon::now()->endOfMonth()
         );
+
+        $this->notifyCarrierSupervisors($assignment, new DeliveryCompletedNotification($assignment));
     }
 
     // ── fail ──────────────────────────────────────────────────────────────────

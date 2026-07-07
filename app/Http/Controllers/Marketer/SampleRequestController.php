@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Marketer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Marketer\Sample\SampleListRequest;
 use App\Http\Requests\Marketer\Sample\StoreSampleRequestRequest;
 use App\Http\Resources\Marketer\SampleRequestResource;
 use App\Http\Responses\ApiResponse;
@@ -82,12 +83,20 @@ class SampleRequestController extends Controller
     }
 
     // GET /api/marketer/v1/sample-requests
-    public function index(): JsonResponse
+    public function index(SampleListRequest $request): JsonResponse
     {
-        $paginator = MarketerSampleRequest::with(['items' => fn($q) => $q->where('is_mandatory', false)])
-            ->where('marketer_id', $this->marketer()->id)
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $query = MarketerSampleRequest::with([
+                'vendor:id,store_name,business_name',
+                'campaign:id,name',
+                'items' => fn($q) => $q->where('is_mandatory', false),
+            ])
+            ->where('marketer_id', $this->marketer()->id);
+
+        if ($status = $request->validated('status')) {
+            $query->where('status', $status);
+        }
+
+        $paginator = $query->orderByDesc('created_at')->paginate(20);
 
         return ApiResponse::paginated($paginator, SampleRequestResource::class);
     }
@@ -97,8 +106,29 @@ class SampleRequestController extends Controller
     {
         abort_if(! (new SampleRequestPolicy())->view($this->marketer(), $sampleRequest), 403);
 
-        $sampleRequest->load(['items' => fn($q) => $q->where('is_mandatory', false)]);
+        $sampleRequest->load([
+            'vendor:id,store_name,business_name',
+            'campaign:id,name',
+            'items' => fn($q) => $q->where('is_mandatory', false),
+        ]);
 
         return ApiResponse::success(new SampleRequestResource($sampleRequest));
+    }
+
+    // POST /api/marketer/v1/sample-requests/{sampleRequest}/mark-received
+    public function markReceived(MarketerSampleRequest $sampleRequest): JsonResponse
+    {
+        abort_if(! (new SampleRequestPolicy())->view($this->marketer(), $sampleRequest), 403);
+
+        if ($sampleRequest->status !== 'dispatched') {
+            return ApiResponse::error('Sample must be dispatched before it can be marked as received.', [], 422);
+        }
+
+        $sampleRequest->update([
+            'status'      => 'received',
+            'received_at' => now(),
+        ]);
+
+        return ApiResponse::success(new SampleRequestResource($sampleRequest), 'Sample marked as received.');
     }
 }

@@ -84,11 +84,15 @@ class EarningsService
             ->first();
     }
 
-    public function listPayouts(Marketer $marketer): LengthAwarePaginator
+    public function listPayouts(Marketer $marketer, array $filters = []): LengthAwarePaginator
     {
-        return MarketerPayout::where('marketer_id', $marketer->id)
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $query = MarketerPayout::where('marketer_id', $marketer->id);
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->orderByDesc('created_at')->paginate(20);
     }
 
     public function findPayout(Marketer $marketer, string $payoutId): ?MarketerPayout

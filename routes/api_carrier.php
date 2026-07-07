@@ -34,6 +34,8 @@ Route::prefix('v1')->group(function (): void {
             Route::post('logout',        [AuthController::class, 'logout'])->name('logout');
             Route::post('refresh-token', [AuthController::class, 'refresh'])->name('refresh');
             Route::get('me',             [AuthController::class, 'me'])->name('me');
+            Route::post('device-token',   [AuthController::class, 'registerDeviceToken'])->name('device-token.store');
+            Route::delete('device-token', [AuthController::class, 'removeDeviceToken'])->name('device-token.destroy');
         });
 
         // ── Dashboard (no extra permission — authenticated only) ──────────────
@@ -55,7 +57,8 @@ Route::prefix('v1')->group(function (): void {
         // ── Notifications ─────────────────────────────────────────────────────
         Route::prefix('notifications')->name('carrier.notifications.')->group(function (): void {
             Route::get('/',              [NotificationController::class, 'index'])->name('index');
-            // read-all must be declared before {id}/read to avoid route ambiguity
+            // unread-count and read-all must be declared before {id}/read to avoid route ambiguity
+            Route::get('unread-count',   [NotificationController::class, 'unreadCount'])->name('unread-count');
             Route::put('read-all',       [NotificationController::class, 'markAllRead'])->name('read-all');
             Route::put('{id}/read',      [NotificationController::class, 'markRead'])->name('read');
         });

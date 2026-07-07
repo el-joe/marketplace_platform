@@ -4,7 +4,9 @@ namespace App\Services\Delivery;
 
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentShift;
+use App\Notifications\Carrier\AgentWentOffline;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use RuntimeException;
 
 class ShiftService
@@ -62,5 +64,15 @@ class ShiftService
                     'status'     => 'completed',
                 ]);
         });
+
+        $company = $agent->shippingCompany;
+
+        if ($company) {
+            $supervisors = $company->supervisors()->receivingNotifications()->get();
+
+            if ($supervisors->isNotEmpty()) {
+                Notification::send($supervisors, new AgentWentOffline($agent));
+            }
+        }
     }
 }

@@ -18,6 +18,8 @@ class RegisterRequest extends FormRequest
             'password_confirmation' => ['required', 'string'],
             'phone'                 => ['nullable', 'string', 'max:30'],
             'type'                  => ['required', 'in:influencer,celebrity,affiliate,brand_ambassador'],
+            'country_id'            => ['required', 'uuid', 'exists:countries,id'],
+            'followers_count'       => ['nullable', 'integer', 'min:0'],
             'niche'                 => ['nullable', 'string', 'max:100'],
             'bio'                   => ['nullable', 'string', 'max:2000'],
             // social_links accepted as structured object; each field optional URL
