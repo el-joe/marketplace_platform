@@ -2,8 +2,12 @@
 
 namespace App\Services\Vendor;
 
+use App\Models\Dispute;
+use App\Models\Payout;
+use App\Models\ReturnRequest;
 use App\Models\SubOrder;
 use App\Models\VendorAdmin;
+use App\Models\VendorListing;
 use App\Models\WarehouseInventory;
 use Illuminate\Support\Facades\Cache;
 
@@ -38,10 +42,53 @@ class DashboardService
                 ->count();
 
             $recentOrders = SubOrder::where('vendor_id', $vendorId)
-                ->with(['items', 'order:id,shipping_address_snapshot'])
+                ->with(['items', 'order:id,shipping_address_snapshot,placed_at'])
                 ->latest()
                 ->limit(5)
                 ->get();
+
+            $todayOrdersCount = SubOrder::where('vendor_id', $vendorId)
+                ->whereDate('created_at', today())
+                ->count();
+
+            $activeListingsCount = VendorListing::where('vendor_id', $vendorId)
+                ->where('status', 'active')
+                ->count();
+
+            $openDisputesCount = Dispute::where('vendor_id', $vendorId)
+                ->whereNotIn('status', ['resolved', 'closed'])
+                ->count();
+
+            $openReturnsCount = ReturnRequest::where('vendor_id', $vendorId)
+                ->whereNotIn('status', ['completed', 'cancelled', 'rejected'])
+                ->count();
+
+            $pendingPayoutCents = (int) Payout::where('vendor_id', $vendorId)
+                ->where('status', 'pending')
+                ->sum('net_amount');
+
+            $currency = Payout::where('vendor_id', $vendorId)->value('currency')
+                ?? VendorListing::where('vendor_id', $vendorId)->value('currency')
+                ?? 'AED';
+
+            $revenueByDay = SubOrder::where('vendor_id', $vendorId)
+                ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+                ->whereNotIn('status', ['cancelled', 'refunded'])
+                ->selectRaw('DATE(created_at) as date, SUM(vendor_payout) as amount_cents, COUNT(*) as order_count')
+                ->groupBy('date')
+                ->get()
+                ->keyBy('date');
+
+            $revenueLast7Days = collect(range(6, 0))->map(function ($daysAgo) use ($revenueByDay) {
+                $date = now()->subDays($daysAgo)->toDateString();
+                $row  = $revenueByDay->get($date);
+
+                return [
+                    'date'         => $date,
+                    'amount_cents' => (int) ($row->amount_cents ?? 0),
+                    'order_count'  => (int) ($row->order_count ?? 0),
+                ];
+            })->values()->all();
 
             // On-time ship rate (last 30 days)
             $shippedLast30 = SubOrder::where('vendor_id', $vendorId)
@@ -76,7 +123,14 @@ class DashboardService
             return [
                 'today_revenue_cents'       => (int) $todayRevenue,
                 'pending_orders_count'      => $pendingCount,
+                'today_orders_count'        => $todayOrdersCount,
+                'active_listings_count'     => $activeListingsCount,
                 'low_stock_count'           => $lowStockCount,
+                'open_disputes_count'       => $openDisputesCount,
+                'open_returns_count'        => $openReturnsCount,
+                'pending_payout_cents'      => $pendingPayoutCents,
+                'currency'                  => $currency,
+                'revenue_last_7_days'       => $revenueLast7Days,
                 'unread_notifications_count' => $unreadCount,
                 'recent_orders'             => $recentOrders,
                 'performance'               => [

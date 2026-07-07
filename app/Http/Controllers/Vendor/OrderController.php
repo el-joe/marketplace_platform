@@ -22,10 +22,16 @@ class OrderController extends Controller
     {
         $vendorId = auth('vendor')->user()->vendor_id;
 
+        $issueStatuses = ['cancelled', 'returned', 'refunded'];
+
         $query = SubOrder::where('vendor_id', $vendorId)
-            ->with(['order:id,shipping_address_snapshot'])
+            ->with(['order:id,shipping_address_snapshot,currency,placed_at'])
             ->withCount('items')
-            ->when($request->status,    fn ($q) => $q->where('status', $request->status))
+            ->when($request->boolean('issues'), fn ($q) => $q->where(
+                fn ($q) => $q->where('sla_breached', true)->orWhereIn('status', $issueStatuses)
+            ))
+            ->when(! $request->boolean('issues') && $request->statuses(), fn ($q) => $q->whereIn('status', $request->statuses()))
+            ->when($request->filled('search'), fn ($q) => $q->where('sub_order_number', 'like', '%'.$request->string('search').'%'))
             ->when($request->date_from, fn ($q) => $q->whereDate('created_at', '>=', $request->date_from))
             ->when($request->date_to,   fn ($q) => $q->whereDate('created_at', '<=', $request->date_to))
             ->latest();
@@ -42,7 +48,12 @@ class OrderController extends Controller
 
         Gate::authorize('view', $subOrder);
 
-        $subOrder->load(['items', 'order:id,shipping_address_snapshot', 'carrier:id,name']);
+        $subOrder->load([
+            'items',
+            'order:id,order_number,shipping_address_snapshot,currency,payment_method,placed_at',
+            'carrier:id,name',
+            'shipments.trackingEvents',
+        ]);
 
         return ApiResponse::success(new SubOrderDetailResource($subOrder));
     }
@@ -56,7 +67,7 @@ class OrderController extends Controller
         $updated = $this->fulfillmentService->ship($subOrder, $request->validated());
 
         return ApiResponse::success(
-            new SubOrderDetailResource($updated->load(['items', 'order:id,shipping_address_snapshot'])),
+            new SubOrderDetailResource($updated->load(['items', 'order:id,order_number,shipping_address_snapshot,currency,payment_method,placed_at', 'shipments.trackingEvents'])),
             'Order marked as shipped.'
         );
     }
@@ -70,7 +81,7 @@ class OrderController extends Controller
         $updated = $this->fulfillmentService->cancel($subOrder, $request->reason);
 
         return ApiResponse::success(
-            new SubOrderDetailResource($updated->load(['items', 'order:id,shipping_address_snapshot'])),
+            new SubOrderDetailResource($updated->load(['items', 'order:id,order_number,shipping_address_snapshot,currency,payment_method,placed_at', 'shipments.trackingEvents'])),
             'Order cancelled.'
         );
     }

@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('v1')->group(function (): void {
+Route::prefix('v1')->group(function (): void { 
 
     // ── Auth (public) ─────────────────────────────────────────────────────────
     Route::prefix('auth')->name('vendor.auth.')->group(function (): void {
@@ -44,6 +44,8 @@ Route::prefix('v1')->group(function (): void {
             Route::post('logout',        [AuthController::class, 'logout'])->name('logout');
             Route::post('refresh-token', [AuthController::class, 'refresh'])->name('refresh');
             Route::get('me',             [AuthController::class, 'me'])->name('me');
+            Route::post('device-token',  [AuthController::class, 'registerDeviceToken'])->name('device-token.store');
+            Route::delete('device-token', [AuthController::class, 'removeDeviceToken'])->name('device-token.destroy');
         });
 
         // ── Onboarding wizard (accessible before onboarding is complete) ──────
@@ -82,9 +84,11 @@ Route::prefix('v1')->group(function (): void {
 
             // Notifications
             Route::prefix('notifications')->name('vendor.notifications.')->group(function (): void {
-                Route::get('/',          [NotificationController::class, 'index'])->name('index');
-                Route::put('read-all',   [NotificationController::class, 'markAllRead'])->name('read-all');
-                Route::put('{id}/read',  [NotificationController::class, 'markRead'])->name('read');
+                Route::get('/',              [NotificationController::class, 'index'])->name('index');
+                Route::put('read-all',       [NotificationController::class, 'markAllRead'])->name('read-all');
+                // Must be registered before {id}/read to avoid 'unread-count' matching as {id}.
+                Route::get('unread-count',   [NotificationController::class, 'unreadCount'])->name('unread-count');
+                Route::put('{id}/read',      [NotificationController::class, 'markRead'])->name('read');
             });
 
             // Orders & fulfillment

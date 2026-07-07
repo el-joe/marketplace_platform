@@ -28,7 +28,7 @@ class ListingController extends Controller
         $vendorId = auth('vendor')->user()->vendor_id;
 
         $query = VendorListing::where('vendor_id', $vendorId)
-            ->with(['productVariant.product', 'country', 'primaryShippingMethod'])
+            ->with(['productVariant.product.images', 'country', 'primaryShippingMethod'])
             ->when($request->status, fn($q) => $q->where('status', $request->status))
             ->when($request->search, fn($q) => $q->whereHas('productVariant.product', function ($pq) use ($request) {
                 $pq->where('name_en', 'like', "%{$request->search}%")
@@ -45,7 +45,12 @@ class ListingController extends Controller
 
     public function show(string $id): \Illuminate\Http\JsonResponse
     {
-        $listing = VendorListing::with(['productVariant.product', 'country', 'primaryShippingMethod'])->findOrFail($id);
+        $listing = VendorListing::with([
+            'productVariant.product.images',
+            'productVariant.variantAttributes',
+            'country',
+            'primaryShippingMethod',
+        ])->findOrFail($id);
 
         Gate::authorize('view', $listing);
 

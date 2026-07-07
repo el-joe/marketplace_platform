@@ -18,6 +18,8 @@ use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\UnifiedCategoryService;
 use App\Services\Shipping\ShippingCarrierFactory;
+use App\Services\Vendor\VendorFCMService;
+use App\Notifications\Channels\VendorPushChannel;
 use App\Models\Address;
 use App\Models\FlashSaleSubmission;
 use App\Models\MarketerCampaign;
@@ -74,6 +76,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ListingIdentifierService::class);
         $this->app->singleton(UnifiedCategoryService::class);
         $this->app->singleton(CheckoutCalculationService::class);
+        $this->app->singleton(VendorFCMService::class);
 
         // Replace Laravel's built-in DatabaseChannel with our custom one that
         // writes to the platform's non-standard notifications table schema
@@ -112,6 +115,10 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);
+
+        \Illuminate\Support\Facades\Notification::extend('push', function ($app) {
+            return $app->make(VendorPushChannel::class);
+        });
 
         // Hyphenated aliases used by admin Blade views (x-form-input etc.).
         Blade::component(Input::class, 'form-input');

@@ -8,6 +8,7 @@ use App\Http\Requests\Vendor\Auth\LoginRequest;
 use App\Http\Requests\Vendor\Auth\ResetPasswordRequest;
 use App\Http\Resources\Vendor\VendorProfileResource;
 use App\Http\Responses\ApiResponse;
+use App\Models\DeviceToken;
 use App\Models\VendorAdmin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,6 +44,21 @@ class AuthController extends Controller
 
         $admin->update(['last_login_at' => now(), 'last_login_ip' => $request->ip()]);
 
+        if ($request->filled('fcm_token') && $request->filled('platform')) {
+            DeviceToken::updateOrCreate(
+                [
+                    'tokenable_type' => VendorAdmin::class,
+                    'tokenable_id'   => $admin->id,
+                ],
+                [
+                    'token'        => $request->fcm_token,
+                    'platform'     => $request->platform,
+                    'is_active'    => 1,
+                    'last_used_at' => now(),
+                ]
+            );
+        }
+
         return ApiResponse::success(array_merge(
             ['admin' => new \App\Http\Resources\Vendor\TeamMemberResource($admin),
              'vendor' => $vendor ? new VendorProfileResource($vendor) : null],
@@ -73,6 +89,46 @@ class AuthController extends Controller
             'token_type'   => 'bearer',
             'expires_in'   => self::ACCESS_TTL_MINUTES * 60,
         ]);
+    }
+
+    // ── Device tokens (FCM) ──────────────────────────────────────────────────────
+
+    public function registerDeviceToken(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token'    => 'required|string|max:255',
+            'platform' => 'required|string|in:ios,android',
+        ]);
+
+        /** @var VendorAdmin $admin */
+        $admin = auth('vendor')->user();
+
+        DeviceToken::updateOrCreate(
+            [
+                'tokenable_type' => VendorAdmin::class,
+                'tokenable_id'   => $admin->id,
+            ],
+            [
+                'token'        => $request->token,
+                'platform'     => $request->platform,
+                'is_active'    => 1,
+                'last_used_at' => now(),
+            ]
+        );
+
+        return ApiResponse::success(null, 'Device registered for push notifications.');
+    }
+
+    public function removeDeviceToken(): JsonResponse
+    {
+        /** @var VendorAdmin $admin */
+        $admin = auth('vendor')->user();
+
+        DeviceToken::where('tokenable_type', VendorAdmin::class)
+            ->where('tokenable_id', $admin->id)
+            ->update(['is_active' => 0]);
+
+        return ApiResponse::success(null, 'Device token deregistered.');
     }
 
     // ── Me ────────────────────────────────────────────────────────────────────

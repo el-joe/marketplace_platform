@@ -25,9 +25,36 @@ class NotificationController extends Controller
             $query->whereNull('read_at');
         }
 
-        $paginator = $query->paginate(20);
+        $paginator = $query->paginate((int) ($request->per_page ?? 20));
 
-        return ApiResponse::paginated($paginator, NotificationResource::class);
+        $unreadCount = Notification::where('notifiable_type', VendorAdmin::class)
+            ->where('notifiable_id', $admin->id)
+            ->whereNull('read_at')
+            ->count();
+
+        return ApiResponse::success([
+            'items' => NotificationResource::collection($paginator)->resolve(),
+            'meta'  => [
+                'current_page' => $paginator->currentPage(),
+                'last_page'    => $paginator->lastPage(),
+                'per_page'     => $paginator->perPage(),
+                'total'        => $paginator->total(),
+                'unread_count' => $unreadCount,
+            ],
+        ]);
+    }
+
+    public function unreadCount(): JsonResponse
+    {
+        /** @var VendorAdmin $admin */
+        $admin = auth('vendor')->user();
+
+        $count = Notification::where('notifiable_type', VendorAdmin::class)
+            ->where('notifiable_id', $admin->id)
+            ->whereNull('read_at')
+            ->count();
+
+        return ApiResponse::success(['unread_count' => $count]);
     }
 
     public function markRead(string $id): JsonResponse

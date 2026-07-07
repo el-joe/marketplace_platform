@@ -9,18 +9,22 @@ use App\Http\Resources\Vendor\DisputeResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Dispute;
 use App\Services\Vendor\DisputeService;
+use Illuminate\Http\Request;
 
 class DisputeController extends Controller
 {
     public function __construct(private readonly DisputeService $disputeService) {}
 
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
         $vendorId = auth('vendor')->user()->vendor_id;
 
+        // 'status' may be a single value or a comma-separated list (e.g. an
+        // "open" tab grouping open,seller_responded,under_review,escalated).
         $disputes = Dispute::where('vendor_id', $vendorId)
+            ->when($request->query('status'), fn ($q, $v) => $q->whereIn('status', explode(',', $v)))
             ->latest()
-            ->paginate(20);
+            ->paginate((int) $request->query('per_page', 20));
 
         return ApiResponse::paginated($disputes, DisputeResource::class);
     }
