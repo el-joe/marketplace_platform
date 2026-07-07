@@ -40,6 +40,10 @@
                     class="hover:text-yellow-400 transition-colors {{ request()->routeIs('portal.faq') ? 'text-yellow-400' : '' }}">
                     {{ $isAr ? 'الأسئلة الشائعة' : 'FAQ' }}
                 </a>
+                <a href="{{ route('portal.blog.index') }}"
+                    class="hover:text-yellow-400 transition-colors {{ request()->routeIs('portal.blog.*') ? 'text-yellow-400' : '' }}">
+                    {{ $isAr ? 'المدونة' : 'Blog' }}
+                </a>
             </div>
 
             {{-- Right actions --}}
@@ -118,6 +122,9 @@
         </a>
         <a href="{{ route('portal.faq') }}" class="block py-2 text-gray-300 hover:text-yellow-400">
             {{ $isAr ? 'الأسئلة الشائعة' : 'FAQ' }}
+        </a>
+        <a href="{{ route('portal.blog.index') }}" class="block py-2 text-gray-300 hover:text-yellow-400">
+            {{ $isAr ? 'المدونة' : 'Blog' }}
         </a>
         <div class="pt-3 flex flex-col gap-2 border-t border-gray-800">
             <a href="{{ $langToggleUrl }}"
