@@ -15,7 +15,7 @@ class EarningsController extends Controller
 
     public function index(EarningsListRequest $request): JsonResponse
     {
-        $marketer  = auth('marketer')->user();
+        $marketer  = auth('marketer_api')->user();
         $paginator = $this->earningsService->list($marketer, $request->validated());
 
         return ApiResponse::paginated($paginator, ConversionResource::class);
@@ -23,14 +23,14 @@ class EarningsController extends Controller
 
     public function summary(): JsonResponse
     {
-        $marketer = auth('marketer')->user();
+        $marketer = auth('marketer_api')->user();
 
         return ApiResponse::success($this->earningsService->summary($marketer));
     }
 
     public function show(string $conversionId): JsonResponse
     {
-        $marketer   = auth('marketer')->user();
+        $marketer   = auth('marketer_api')->user();
         $conversion = $this->earningsService->findConversion($marketer, $conversionId);
 
         if (!$conversion) {

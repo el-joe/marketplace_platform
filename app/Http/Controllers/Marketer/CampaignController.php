@@ -7,16 +7,23 @@ use App\Http\Requests\Marketer\Campaign\StoreCampaignRequest;
 use App\Http\Resources\Marketer\CampaignResource;
 use App\Http\Resources\Marketer\ConversionResource;
 use App\Http\Responses\ApiResponse;
+use App\Models\ClassifiedListing;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
+use App\Models\MarketerQrCode;
+use App\Models\TravelPackage;
 use App\Policies\CampaignPolicy;
 use App\Services\Marketer\CampaignService;
+use App\Services\Marketer\TrackingLinkService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CampaignController extends Controller
 {
-    public function __construct(private readonly CampaignService $service) {}
+    public function __construct(
+        private readonly CampaignService $service,
+        private readonly TrackingLinkService $trackingLinks,
+    ) {}
 
     private function marketer(): Marketer
     {
@@ -35,6 +42,7 @@ class CampaignController extends Controller
     {
         $query = $this->marketer()
             ->campaigns()
+            ->with('campaignable')
             ->orderByDesc('created_at');
 
         if ($request->filled('status')) {
@@ -51,9 +59,35 @@ class CampaignController extends Controller
     {
         abort_if(! $this->policy()->view($this->marketer(), $campaign), 403);
 
-        $campaign->load(['products', 'secretPromotion']);
+        $campaign->load(['products', 'secretPromotion', 'campaignable']);
 
-        return ApiResponse::success(new CampaignResource($campaign));
+        $qrCode = MarketerQrCode::where('marketer_id', $this->marketer()->id)
+            ->where('campaign_id', $campaign->id)
+            ->first();
+
+        $data = array_merge((new CampaignResource($campaign))->resolve(), [
+            'recent_conversions' => ConversionResource::collection(
+                $campaign->conversions()->orderByDesc('created_at')->limit(5)->get()
+            )->resolve(),
+            'classified_listing' => $campaign->campaignable instanceof ClassifiedListing
+                ? [
+                    'id'    => $campaign->campaignable->id,
+                    'title' => $campaign->campaignable->title_en,
+                    'slug'  => $campaign->campaignable->slug,
+                ]
+                : null,
+            'travel_package' => $campaign->campaignable instanceof TravelPackage
+                ? [
+                    'id'    => $campaign->campaignable->id,
+                    'title' => $campaign->campaignable->title_en,
+                    'slug'  => $campaign->campaignable->slug,
+                ]
+                : null,
+            'tracking_link' => $this->trackingLinks->campaignLink($this->marketer(), $campaign),
+            'qr_code_url'   => $qrCode?->qr_url,
+        ]);
+
+        return ApiResponse::success($data);
     }
 
     // POST /api/marketer/v1/campaigns
@@ -64,7 +98,7 @@ class CampaignController extends Controller
             $request->validated(),
         );
 
-        $campaign->load(['products', 'secretPromotion']);
+        $campaign->load(['products', 'secretPromotion', 'campaignable']);
 
         return ApiResponse::success(new CampaignResource($campaign), 'Campaign request submitted.', 201);
     }

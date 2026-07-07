@@ -22,6 +22,7 @@ class PayoutResource extends JsonResource
             'status'                  => $this->status,
             'payment_reference'       => $this->payment_reference,
             'processed_at'            => $this->processed_at?->toIso8601String(),
+            'paid_at'                 => $this->status === 'paid' ? $this->processed_at?->toIso8601String() : null,
             'created_at'              => $this->created_at?->toIso8601String(),
         ];
     }

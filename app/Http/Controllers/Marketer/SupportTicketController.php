@@ -18,7 +18,7 @@ class SupportTicketController extends Controller
 
     public function index(): JsonResponse
     {
-        $marketer  = auth('marketer')->user();
+        $marketer  = auth('marketer_api')->user();
         $paginator = $this->ticketService->list($marketer);
 
         return ApiResponse::paginated($paginator, SupportTicketResource::class);
@@ -26,7 +26,7 @@ class SupportTicketController extends Controller
 
     public function store(SupportTicketStoreRequest $request): JsonResponse
     {
-        $marketer = auth('marketer')->user();
+        $marketer = auth('marketer_api')->user();
         $ticket   = $this->ticketService->store($marketer, $request->validated());
 
         return ApiResponse::success(new SupportTicketResource($ticket), 'Ticket created.', 201);
@@ -34,7 +34,7 @@ class SupportTicketController extends Controller
 
     public function show(string $ticketNumber): JsonResponse
     {
-        $marketer = auth('marketer')->user();
+        $marketer = auth('marketer_api')->user();
         $ticket   = $this->ticketService->findForMarketer($marketer, $ticketNumber);
 
         if (!$ticket) {
@@ -46,7 +46,7 @@ class SupportTicketController extends Controller
 
     public function addMessage(SupportTicketMessageRequest $request, string $ticketNumber): JsonResponse
     {
-        $marketer = auth('marketer')->user();
+        $marketer = auth('marketer_api')->user();
         $ticket   = $this->resolveTicket($marketer, $ticketNumber);
 
         if (!$ticket) {
@@ -64,7 +64,7 @@ class SupportTicketController extends Controller
 
     public function rate(SupportTicketRateRequest $request, string $ticketNumber): JsonResponse
     {
-        $marketer = auth('marketer')->user();
+        $marketer = auth('marketer_api')->user();
         $ticket   = $this->resolveTicket($marketer, $ticketNumber);
 
         if (!$ticket) {

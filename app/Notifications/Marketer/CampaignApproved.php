@@ -29,6 +29,26 @@ class CampaignApproved extends BaseDatabaseBroadcastNotification
         ];
     }
 
+    public function via(object $notifiable): array
+    {
+        return ['database', 'broadcast', 'push'];
+    }
+
+    public function toPush(object $notifiable): array
+    {
+        $data = $this->notificationData($notifiable);
+
+        return [
+            'title' => $data['title'],
+            'body'  => $data['message'],
+            'data'  => [
+                'screen' => 'campaign_detail',
+                'id'     => $this->campaign->id,
+                'type'   => class_basename(static::class),
+            ],
+        ];
+    }
+
     public function broadcastOn(): array
     {
         return [new PrivateChannel('marketer.' . $this->campaign->marketer_id)];

@@ -19,6 +19,7 @@ use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\UnifiedCategoryService;
 use App\Services\Shipping\ShippingCarrierFactory;
 use App\Services\Vendor\VendorFCMService;
+use App\Services\Marketer\MarketerFCMService;
 use App\Notifications\Channels\VendorPushChannel;
 use App\Models\Address;
 use App\Models\FlashSaleSubmission;
@@ -77,6 +78,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(UnifiedCategoryService::class);
         $this->app->singleton(CheckoutCalculationService::class);
         $this->app->singleton(VendorFCMService::class);
+        $this->app->singleton(MarketerFCMService::class);
 
         // Replace Laravel's built-in DatabaseChannel with our custom one that
         // writes to the platform's non-standard notifications table schema

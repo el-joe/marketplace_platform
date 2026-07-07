@@ -16,36 +16,33 @@ class DashboardService
     public function getSnapshot(Marketer $marketer): array
     {
         return Cache::remember("marketer_dashboard_{$marketer->id}", 60, function () use ($marketer) {
-            $today = Carbon::today();
-            $thirtyDaysAgo = Carbon::today()->subDays(29);
+            $today          = Carbon::today();
+            $startOfMonth   = Carbon::today()->startOfMonth();
+            $sevenDaysAgo   = Carbon::today()->subDays(6);
 
-            $todayClicks = MarketerClick::where('marketer_id', $marketer->id)
+            $clicksToday = MarketerClick::where('marketer_id', $marketer->id)
                 ->whereDate('clicked_at', $today)
                 ->count();
 
-            $todayConversions = MarketerConversion::where('marketer_id', $marketer->id)
-                ->whereDate('created_at', $today)
+            $clicksThisMonth = MarketerClick::where('marketer_id', $marketer->id)
+                ->where('clicked_at', '>=', $startOfMonth)
                 ->count();
 
-            $conversionRate = $todayClicks > 0
-                ? round(($todayConversions / $todayClicks) * 100, 2)
+            $conversionsThisMonth = MarketerConversion::where('marketer_id', $marketer->id)
+                ->where('created_at', '>=', $startOfMonth)
+                ->count();
+
+            $conversionRatePct = $clicksThisMonth > 0
+                ? round(($conversionsThisMonth / $clicksThisMonth) * 100, 2)
                 : 0.0;
 
-            $pendingEarningsByCurrency = MarketerConversion::where('marketer_id', $marketer->id)
-                ->whereIn('status', ['pending', 'approved'])
-                ->selectRaw('currency, SUM(commission_amount_cents) as total')
-                ->groupBy('currency')
-                ->pluck('total', 'currency')
-                ->map(fn($v) => (int) $v)
-                ->all();
+            $pendingEarningsCents = (int) MarketerConversion::where('marketer_id', $marketer->id)
+                ->where('status', 'pending')
+                ->sum('commission_amount_cents');
 
-            $paidEarningsByCurrency = MarketerPayout::where('marketer_id', $marketer->id)
-                ->where('status', 'paid')
-                ->selectRaw('currency, SUM(net_amount_cents) as total')
-                ->groupBy('currency')
-                ->pluck('total', 'currency')
-                ->map(fn($v) => (int) $v)
-                ->all();
+            $approvedEarningsCents = (int) MarketerConversion::where('marketer_id', $marketer->id)
+                ->where('status', 'approved')
+                ->sum('commission_amount_cents');
 
             // Tier progress
             $salesCount = MarketerConversion::where('marketer_id', $marketer->id)
@@ -58,80 +55,83 @@ class DashboardService
                 ->forSalesCount($salesCount)
                 ->first();
 
-            $nextTier = null;
-            if ($currentTier) {
-                $nextTier = MarketerCommissionTier::where('marketer_id', $marketer->id)
+            $nextTier = $currentTier
+                ? MarketerCommissionTier::where('marketer_id', $marketer->id)
                     ->whereNull('campaign_id')
                     ->active()
                     ->where('tier_order', '>', $currentTier->tier_order)
                     ->orderBy('tier_order')
-                    ->first();
-            } else {
-                // Not yet on any tier — get first tier
-                $nextTier = MarketerCommissionTier::where('marketer_id', $marketer->id)
+                    ->first()
+                : MarketerCommissionTier::where('marketer_id', $marketer->id)
                     ->whereNull('campaign_id')
                     ->active()
                     ->orderBy('tier_order')
                     ->first();
-            }
+
+            $currentBase = $currentTier?->min_sales_count ?? 0;
+            $progressPct = $nextTier
+                ? (int) round(min(100, max(0, ($salesCount - $currentBase) / max(1, $nextTier->min_sales_count - $currentBase) * 100)))
+                : 100;
 
             $tierData = [
-                'name'                      => $currentTier ? 'Tier ' . $currentTier->tier_order : null,
-                'commission_rate'           => $currentTier ? (float) $currentTier->commission_rate : (float) $marketer->commission_rate,
-                'sales_count'               => $salesCount,
-                'next_tier_threshold'       => $nextTier?->min_sales_count,
-                'sales_remaining_to_next_tier' => $nextTier
-                    ? max(0, $nextTier->min_sales_count - $salesCount)
-                    : null,
+                'current_tier_name'    => $currentTier ? 'Tier ' . $currentTier->tier_order : null,
+                'next_tier_name'       => $nextTier ? 'Tier ' . $nextTier->tier_order : null,
+                'current_sales_count'  => $salesCount,
+                'next_tier_threshold'  => $nextTier?->min_sales_count,
+                'progress_pct'         => $progressPct,
             ];
 
-            // Revenue chart: last 30 days
-            $clicksByDate = MarketerClick::where('marketer_id', $marketer->id)
-                ->where('clicked_at', '>=', $thirtyDaysAgo)
-                ->select(DB::raw('DATE(clicked_at) as date'), DB::raw('COUNT(*) as clicks'))
-                ->groupBy(DB::raw('DATE(clicked_at)'))
-                ->pluck('clicks', 'date');
-
+            // Revenue chart: last 7 days
             $conversionsByDate = MarketerConversion::where('marketer_id', $marketer->id)
-                ->where('created_at', '>=', $thirtyDaysAgo)
-                ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as conversions'))
+                ->where('created_at', '>=', $sevenDaysAgo)
+                ->select(
+                    DB::raw('DATE(created_at) as date'),
+                    DB::raw('COUNT(*) as conversions'),
+                    DB::raw('SUM(commission_amount_cents) as commission_cents'),
+                )
                 ->groupBy(DB::raw('DATE(created_at)'))
-                ->pluck('conversions', 'date');
+                ->get()
+                ->keyBy('date');
 
-            $revenueChart = [];
-            for ($i = 29; $i >= 0; $i--) {
+            $revenueLast7Days = [];
+            for ($i = 6; $i >= 0; $i--) {
                 $date = Carbon::today()->subDays($i)->toDateString();
-                $revenueChart[] = [
-                    'date'        => $date,
-                    'clicks'      => (int) ($clicksByDate[$date] ?? 0),
-                    'conversions' => (int) ($conversionsByDate[$date] ?? 0),
+                $row  = $conversionsByDate->get($date);
+                $revenueLast7Days[] = [
+                    'date'             => $date,
+                    'commission_cents' => (int) ($row->commission_cents ?? 0),
+                    'conversions'      => (int) ($row->conversions ?? 0),
                 ];
             }
 
-            // Recent conversions (last 10, order_number masked to last 4)
-            $recentConversions = MarketerConversion::where('marketer_id', $marketer->id)
-                ->with('order:id,order_number')
-                ->orderByDesc('created_at')
-                ->limit(10)
-                ->get()
+            // Top campaigns by revenue
+            $topCampaigns = $marketer->campaigns()
+                ->orderByDesc('total_revenue_cents')
+                ->limit(5)
+                ->get(['id', 'name', 'total_clicks', 'total_conversions', 'total_revenue_cents', 'status'])
                 ->map(fn ($c) => [
-                    'order_number_last4'    => $c->order?->order_number
-                        ? '****' . substr($c->order->order_number, -4)
-                        : null,
-                    'date'                  => $c->created_at->toDateString(),
-                    'commission_amount_cents'=> (int) $c->commission_amount_cents,
-                    'status'                => $c->status,
+                    'id'            => $c->id,
+                    'name'          => $c->name,
+                    'clicks'        => (int) $c->total_clicks,
+                    'conversions'   => (int) $c->total_conversions,
+                    'revenue_cents' => (int) $c->total_revenue_cents,
+                    'status'        => $c->status,
                 ]);
 
             return [
-                'today_clicks'        => $todayClicks,
-                'today_conversions'   => $todayConversions,
-                'conversion_rate'     => $conversionRate,
-                'pending_earnings_by_currency' => $pendingEarningsByCurrency,
-                'paid_earnings_by_currency'    => $paidEarningsByCurrency,
-                'current_tier'        => $tierData,
-                'revenue_chart'       => $revenueChart,
-                'recent_conversions'  => $recentConversions,
+                'clicks_today'            => $clicksToday,
+                'clicks_this_month'       => $clicksThisMonth,
+                'conversions_this_month'  => $conversionsThisMonth,
+                'conversion_rate_pct'     => $conversionRatePct,
+                'pending_earnings_cents'  => $pendingEarningsCents,
+                'approved_earnings_cents' => $approvedEarningsCents,
+                'total_earnings_cents'    => (int) $marketer->total_earnings_cents,
+                'currency'                => $marketer->country?->currency_code ?? 'SAR',
+                'commission_rate'         => (float) $marketer->commission_rate,
+                'referral_code'           => $marketer->referral_code,
+                'tier'                    => $tierData,
+                'revenue_last_7_days'     => $revenueLast7Days,
+                'top_campaigns'           => $topCampaigns,
             ];
         });
     }

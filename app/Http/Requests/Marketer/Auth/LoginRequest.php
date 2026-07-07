@@ -11,8 +11,10 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email'    => ['required', 'email'],
-            'password' => ['required', 'string'],
+            'email'     => ['required', 'email'],
+            'password'  => ['required', 'string'],
+            'fcm_token' => ['nullable', 'string', 'max:255'],
+            'platform'  => ['nullable', 'string', 'in:ios,android'],
         ];
     }
 }

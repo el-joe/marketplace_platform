@@ -15,7 +15,7 @@ class PayoutController extends Controller
 
     public function index(): JsonResponse
     {
-        $marketer  = auth('marketer')->user();
+        $marketer  = auth('marketer_api')->user();
         $paginator = $this->earningsService->listPayouts($marketer);
 
         return ApiResponse::paginated($paginator, PayoutResource::class);
@@ -23,7 +23,7 @@ class PayoutController extends Controller
 
     public function show(string $payoutId): JsonResponse
     {
-        $marketer = auth('marketer')->user();
+        $marketer = auth('marketer_api')->user();
         $payout   = $this->earningsService->findPayout($marketer, $payoutId);
 
         if (!$payout) {
@@ -38,7 +38,7 @@ class PayoutController extends Controller
 
     public function invoice(string $payoutId): JsonResponse
     {
-        $marketer = auth('marketer')->user();
+        $marketer = auth('marketer_api')->user();
         $payout   = $this->earningsService->findPayout($marketer, $payoutId);
 
         if (!$payout) {

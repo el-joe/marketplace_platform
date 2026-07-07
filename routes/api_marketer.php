@@ -4,6 +4,7 @@ use App\Http\Controllers\Marketer\AuthController;
 use App\Http\Controllers\Marketer\CampaignController;
 use App\Http\Controllers\Marketer\DashboardController;
 use App\Http\Controllers\Marketer\EarningsController;
+use App\Http\Controllers\Marketer\NotificationController;
 use App\Http\Controllers\Marketer\PayoutController;
 use App\Http\Controllers\Marketer\ProfileController;
 use App\Http\Controllers\Marketer\QrCodeController;
@@ -46,6 +47,16 @@ Route::prefix('v1')->group(function (): void {
             Route::post('logout',        [AuthController::class, 'logout'])->name('logout');
             Route::post('refresh-token', [AuthController::class, 'refresh'])->name('refresh');
             Route::get('me',             [AuthController::class, 'me'])->name('me');
+            Route::post('device-token',   [AuthController::class, 'registerDeviceToken'])->name('device-token.store');
+            Route::delete('device-token', [AuthController::class, 'removeDeviceToken'])->name('device-token.destroy');
+        });
+
+        // ── Notifications ─────────────────────────────────────────────────────
+        Route::prefix('notifications')->name('marketer.notifications.')->group(function (): void {
+            Route::get('/',              [NotificationController::class, 'index'])->name('index');
+            Route::get('/unread-count',  [NotificationController::class, 'unreadCount'])->name('unread-count');
+            Route::put('/read-all',      [NotificationController::class, 'markAllRead'])->name('read-all');
+            Route::put('/{id}/read',     [NotificationController::class, 'markRead'])->name('read');
         });
 
         Route::prefix('profile')->name('marketer.profile.')->group(function (): void {

@@ -27,6 +27,8 @@ class ConversionResource extends JsonResource
 
         // Only surface campaign name — never secret_promotion_id or its admin_share_pct
         if ($this->relationLoaded('campaign') && $this->campaign) {
+            $data['campaign_id']   = $this->campaign->id;
+            $data['campaign_name'] = $this->campaign->name;
             $data['campaign'] = [
                 'id'   => $this->campaign->id,
                 'name' => $this->campaign->name,

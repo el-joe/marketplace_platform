@@ -10,8 +10,10 @@ use App\Http\Requests\Marketer\Auth\ResetPasswordRequest;
 use App\Http\Resources\Marketer\MarketerProfileResource;
 use App\Http\Responses\ApiResponse;
 use App\Jobs\NotifyAdminNewMarketerJob;
+use App\Models\DeviceToken;
 use App\Models\Marketer;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -75,6 +77,18 @@ class AuthController extends Controller
         }
 
         $marketer->update(['last_login_at' => now()]);
+
+        if ($request->filled('fcm_token') && $request->filled('platform')) {
+            DeviceToken::updateOrCreate(
+                ['tokenable_type' => Marketer::class, 'tokenable_id' => $marketer->id],
+                [
+                    'token'        => $request->fcm_token,
+                    'platform'     => $request->platform,
+                    'is_active'    => 1,
+                    'last_used_at' => now(),
+                ]
+            );
+        }
 
         $marketer->load(['country', 'commissionTiers']);
 
@@ -151,6 +165,46 @@ class AuthController extends Controller
         }
 
         return ApiResponse::success(null, 'Password reset successfully.');
+    }
+
+    // ── Device Token (FCM) ────────────────────────────────────────────────────
+
+    public function registerDeviceToken(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token'    => 'required|string|max:255',
+            'platform' => 'required|string|in:ios,android',
+        ]);
+
+        /** @var Marketer $marketer */
+        $marketer = auth('marketer_api')->user();
+
+        DeviceToken::updateOrCreate(
+            [
+                'tokenable_type' => Marketer::class,
+                'tokenable_id'   => $marketer->id,
+            ],
+            [
+                'token'        => $request->token,
+                'platform'     => $request->platform,
+                'is_active'    => 1,
+                'last_used_at' => now(),
+            ]
+        );
+
+        return ApiResponse::success(null, 'Device registered for push notifications.');
+    }
+
+    public function removeDeviceToken(Request $request): JsonResponse
+    {
+        /** @var Marketer $marketer */
+        $marketer = auth('marketer_api')->user();
+
+        DeviceToken::where('tokenable_type', Marketer::class)
+            ->where('tokenable_id', $marketer->id)
+            ->update(['is_active' => 0]);
+
+        return ApiResponse::success(null, 'Device token deregistered.');
     }
 
     // ── Token helpers ─────────────────────────────────────────────────────────
