@@ -23,8 +23,8 @@ class BlogController extends Controller
         $country = $this->resolveCountry();
         $locale  = app()->getLocale();
 
-        $featuredPost = BlogPost::scopePublished()
-            ->scopeForCountry($country)
+        $featuredPost = BlogPost::published()
+            ->forCountry($country)
             ->where('is_featured', true)
             ->with(['category', 'author'])
             ->first();
@@ -36,8 +36,8 @@ class BlogController extends Controller
             ->with('children')
             ->get();
 
-        $posts = BlogPost::scopePublished()
-            ->scopeForCountry($country)
+        $posts = BlogPost::published()
+            ->forCountry($country)
             ->when($request->category, fn($q, $cat) =>
                 $q->whereHas('category', fn($q) => $q->where('slug', $cat)))
             ->when($request->tag, fn($q, $tag) =>
@@ -61,13 +61,13 @@ class BlogController extends Controller
         $locale  = app()->getLocale();
 
         $post = BlogPost::where('slug', $slug)
-            ->scopePublished()
-            ->scopeForCountry($country)
+            ->published()
+            ->forCountry($country)
             ->with(['category.parent', 'author'])
             ->firstOrFail();
 
-        $relatedPosts = BlogPost::scopePublished()
-            ->scopeForCountry($country)
+        $relatedPosts = BlogPost::published()
+            ->forCountry($country)
             ->where('blog_category_id', $post->blog_category_id)
             ->where('id', '!=', $post->id)
             ->with(['category'])
