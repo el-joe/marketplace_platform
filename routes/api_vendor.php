@@ -9,6 +9,7 @@ use App\Http\Controllers\Vendor\FinanceController;
 use App\Http\Controllers\Vendor\FlashSaleController;
 use App\Http\Controllers\Vendor\InventoryController;
 use App\Http\Controllers\Vendor\ListingController;
+use App\Http\Controllers\Vendor\NotificationController;
 use App\Http\Controllers\Vendor\OnboardingController;
 use App\Http\Controllers\Vendor\OrderController;
 use App\Http\Controllers\Vendor\PerformanceController;
@@ -78,6 +79,13 @@ Route::prefix('v1')->group(function (): void {
 
             // Dashboard
             Route::get('dashboard', DashboardController::class)->name('vendor.dashboard');
+
+            // Notifications
+            Route::prefix('notifications')->name('vendor.notifications.')->group(function (): void {
+                Route::get('/',          [NotificationController::class, 'index'])->name('index');
+                Route::put('read-all',   [NotificationController::class, 'markAllRead'])->name('read-all');
+                Route::put('{id}/read',  [NotificationController::class, 'markRead'])->name('read');
+            });
 
             // Orders & fulfillment
             Route::prefix('orders')->name('vendor.orders.')->group(function (): void {
