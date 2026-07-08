@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class TravelAgency extends Authenticatable
+class TravelAgency extends Authenticatable implements JWTSubject
 {
     use HasUuids, SoftDeletes, Notifiable;
 
@@ -34,6 +35,18 @@ class TravelAgency extends Authenticatable
             'approved_at' => 'datetime',
             'password'    => 'hashed',
         ];
+    }
+
+    // ── JWTSubject ────────────────────────────────────────────────────────────
+
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return ['guard' => 'travel_agencies'];
     }
 
     // ── Relationships ─────────────────────────────────────────────────────────

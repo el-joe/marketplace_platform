@@ -18,6 +18,7 @@ class TravelPackageInquiry extends Model
         'travelers_count',
         'message',
         'status',
+        'close_reason',
         'converted_to_booking_id',
         'contacted_at',
     ];

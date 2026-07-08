@@ -25,13 +25,33 @@
     @endphp
     <div class="flex gap-2 flex-wrap">
         @foreach($statuses as $val => $label)
-        <a href="{{ route('travel-agency.bookings.index', $val ? ['status' => $val] : []) }}"
+        <a href="{{ route('travel-agency.bookings.index', array_filter(['status' => $val ?: null, 'date_from' => request('date_from'), 'date_to' => request('date_to')])) }}"
            class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors
                   {{ $current === $val ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400' }}">
             {{ $label }}
         </a>
         @endforeach
     </div>
+
+    {{-- Date range filter --}}
+    <form method="GET" action="{{ route('travel-agency.bookings.index') }}" class="flex items-end gap-3 flex-wrap">
+        @if($current)
+        <input type="hidden" name="status" value="{{ $current }}">
+        @endif
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('travel.bookings.date_from') }}</label>
+            <input type="date" name="date_from" value="{{ request('date_from') }}"
+                   class="rounded-lg border-gray-300 text-sm">
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('travel.bookings.date_to') }}</label>
+            <input type="date" name="date_to" value="{{ request('date_to') }}"
+                   class="rounded-lg border-gray-300 text-sm">
+        </div>
+        <button type="submit" class="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-700">
+            {{ __('travel.bookings.filter') }}
+        </button>
+    </form>
 
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200 text-sm">

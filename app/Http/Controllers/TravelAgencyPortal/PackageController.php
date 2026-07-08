@@ -178,6 +178,11 @@ class PackageController extends Controller
             return back()->withErrors(['status' => 'Only draft packages can be submitted for review.']);
         }
 
+        $errors = $package->reviewReadinessErrors();
+        if (! empty($errors)) {
+            return back()->withErrors(['submission' => $errors]);
+        }
+
         $package->update(['status' => 'pending_review']);
 
         return back()->with('success', 'Package submitted for admin review.');
@@ -188,6 +193,7 @@ class PackageController extends Controller
     public function destroyMedia(TravelPackage $package, TravelPackageMedia $media): RedirectResponse
     {
         $this->authorise($package);
+        abort_if($media->travel_package_id !== $package->id, 404);
 
         Storage::disk('public')->delete($media->file_path);
         $media->delete();

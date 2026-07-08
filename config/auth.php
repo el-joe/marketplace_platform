@@ -79,6 +79,11 @@ return [
             'driver' => 'session',
             'provider' => 'travel_agencies',
         ],
+        // Travel agency mobile/API (JWT)
+        'travel_agencies' => [
+            'driver' => 'jwt',
+            'provider' => 'travel_agencies',
+        ],
         // Shipping company supervisor portal
         'shipping_supervisor' => [
             'driver' => 'session',

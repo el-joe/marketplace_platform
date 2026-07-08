@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\TravelAgencyPortal;
+namespace App\Http\Controllers\Api\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\TravelAgencyPortal\TravelPackageInquiryResource;
+use App\Http\Responses\ApiResponse;
 use App\Models\Customer;
-use App\Models\TravelPackage;
 use App\Models\TravelPackageInquiry;
 use App\Services\TravelAgency\BookingCreationService;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
 
 class PackageInquiryController extends Controller
 {
@@ -20,19 +20,17 @@ class PackageInquiryController extends Controller
 
     private function agencyId(): string
     {
-        return Auth::guard('travel_agency')->id();
+        return Auth::guard('travel_agencies')->id();
     }
 
     private function authorise(TravelPackageInquiry $inquiry): void
     {
-        if ($inquiry->package->travel_agency_id !== $this->agencyId()) {
-            abort(403);
-        }
+        abort_if($inquiry->package->travel_agency_id !== $this->agencyId(), 403);
     }
 
     // ── Index — all inquiries across the agency's packages ───────────────────
 
-    public function index(Request $request): View
+    public function index(Request $request): JsonResponse
     {
         $query = TravelPackageInquiry::query()
             ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $this->agencyId()))
@@ -47,41 +45,37 @@ class PackageInquiryController extends Controller
             $query->where('travel_package_id', $packageId);
         }
 
-        $inquiries = $query->paginate(30)->withQueryString();
+        $paginator = $query->paginate($request->integer('per_page', 30));
 
-        $packages = TravelPackage::where('travel_agency_id', $this->agencyId())
-            ->orderBy('title_ar')
-            ->get(['id', 'title_ar', 'title_en']);
-
-        return view('travel-agency.inquiries.index', compact('inquiries', 'packages'));
+        return ApiResponse::paginated($paginator, TravelPackageInquiryResource::class);
     }
 
     // ── Mark Contacted ───────────────────────────────────────────────────────
 
-    public function markContacted(TravelPackageInquiry $inquiry): RedirectResponse
+    public function markContacted(TravelPackageInquiry $inquiry): JsonResponse
     {
         $this->authorise($inquiry);
 
-        if (!in_array($inquiry->status, ['new'])) {
-            return back()->withErrors(['status' => 'لا يمكن تغيير حالة هذا الطلب.']);
+        if ($inquiry->status !== 'new') {
+            return ApiResponse::error('This inquiry status cannot be changed.', [], 422);
         }
 
         $inquiry->update([
-            'status'       => 'contacted',
+            'status' => 'contacted',
             'contacted_at' => now(),
         ]);
 
-        return back()->with('success', 'تم تحديث الحالة: تم التواصل.');
+        return ApiResponse::success(new TravelPackageInquiryResource($inquiry), 'Marked as contacted.');
     }
 
     // ── Convert to Booking ───────────────────────────────────────────────────
 
-    public function convertToBooking(TravelPackageInquiry $inquiry): RedirectResponse
+    public function convertToBooking(TravelPackageInquiry $inquiry): JsonResponse
     {
         $this->authorise($inquiry);
 
-        if (!in_array($inquiry->status, ['new', 'contacted'])) {
-            return back()->withErrors(['status' => 'هذا الطلب لا يمكن تحويله لحجز.']);
+        if (! in_array($inquiry->status, ['new', 'contacted'])) {
+            return ApiResponse::error('This inquiry cannot be converted to a booking.', [], 422);
         }
 
         $customer = $inquiry->email ? Customer::where('email', $inquiry->email)->first() : null;
@@ -104,9 +98,7 @@ class PackageInquiryController extends Controller
                 'new_email'         => $inquiry->email,
             ];
         } else {
-            return back()->withErrors([
-                'email' => 'لا يمكن تحويل هذا الطلب لحجز: لا يوجد بريد إلكتروني لإنشاء عميل جديد.',
-            ]);
+            return ApiResponse::error('This inquiry has no email on file, so a new customer cannot be created.', [], 422);
         }
 
         $booking = $this->bookingCreationService->create($this->agencyId(), $data);
@@ -116,19 +108,17 @@ class PackageInquiryController extends Controller
             'converted_to_booking_id' => $booking->id,
         ]);
 
-        return redirect()
-            ->route('travel-agency.bookings.show', $booking)
-            ->with('success', 'تم تحويل الطلب إلى حجز بنجاح.');
+        return ApiResponse::success(new TravelPackageInquiryResource($inquiry), 'Inquiry converted to booking.');
     }
 
     // ── Close ─────────────────────────────────────────────────────────────────
 
-    public function close(Request $request, TravelPackageInquiry $inquiry): RedirectResponse
+    public function close(Request $request, TravelPackageInquiry $inquiry): JsonResponse
     {
         $this->authorise($inquiry);
 
-        if (!in_array($inquiry->status, ['new', 'contacted'])) {
-            return back()->withErrors(['status' => 'لا يمكن إغلاق هذا الطلب.']);
+        if (! in_array($inquiry->status, ['new', 'contacted'])) {
+            return ApiResponse::error('This inquiry cannot be closed.', [], 422);
         }
 
         $validated = $request->validate([
@@ -140,6 +130,6 @@ class PackageInquiryController extends Controller
             'close_reason' => $validated['reason'] ?? null,
         ]);
 
-        return back()->with('success', 'تم إغلاق الطلب.');
+        return ApiResponse::success(new TravelPackageInquiryResource($inquiry), 'Inquiry closed.');
     }
 }

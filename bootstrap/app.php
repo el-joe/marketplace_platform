@@ -41,6 +41,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')
                 ->prefix('api/carrier')
                 ->group(base_path('routes/api_carrier.php'));
+
+            // Travel Agency API — authenticated travel agency actions
+            Route::middleware('api')
+                ->prefix('api/travel-agency')
+                ->group(base_path('routes/api_travel_agency.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

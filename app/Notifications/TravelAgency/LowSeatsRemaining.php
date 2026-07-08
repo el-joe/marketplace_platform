@@ -22,7 +22,7 @@ class LowSeatsRemaining extends BaseDatabaseBroadcastNotification
     {
         return [
             'title'           => 'Low Seats Remaining',
-            'message'         => "Only {$this->seatsRemaining} seat(s) left on "{$this->package->title_en}".",
+            'message'         => "Only {$this->seatsRemaining} seat(s) left on \"{$this->package->title_en}\".",
             'url'             => route('travel-agency.packages.show', $this->package->id),
             'package_id'      => $this->package->id,
             'package_title'   => $this->package->title_en,

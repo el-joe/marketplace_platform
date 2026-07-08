@@ -21,7 +21,7 @@ class NewBookingReceived extends BaseDatabaseBroadcastNotification
 
         return [
             'title'          => 'New Booking Received',
-            'message'        => "Booking #{$this->booking->booking_number} for "{$package->title_en}" has been placed.",
+            'message'        => "Booking #{$this->booking->booking_number} for \"{$package->title_en}\" has been placed.",
             'url'            => route('travel-agency.bookings.show', $this->booking->id),
             'booking_id'     => $this->booking->id,
             'booking_number' => $this->booking->booking_number,

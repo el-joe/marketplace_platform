@@ -22,7 +22,7 @@ class PackageRejected extends BaseDatabaseBroadcastNotification
     {
         return [
             'title'         => 'Package Returned for Revision',
-            'message'       => "Your package "{$this->package->title_en}" was returned to draft. Reason: {$this->reason}",
+            'message'       => "Your package \"{$this->package->title_en}\" was returned to draft. Reason: {$this->reason}",
             'url'           => route('travel-agency.packages.edit', $this->package->id),
             'package_id'    => $this->package->id,
             'package_title' => $this->package->title_en,

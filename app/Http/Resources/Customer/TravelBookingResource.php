@@ -16,6 +16,8 @@ class TravelBookingResource extends JsonResource
             'status'          => $this->status,
             'travelers_count' => $this->travelers_count,
             'total_price_cents' => $this->total_price_cents,
+            'currency' => $this->whenLoaded('package', fn () => $this->package->currency),
+            'total_price_formatted' => $this->whenLoaded('package', fn () => $this->totalFormatted()),
             'passport_uploaded' => (bool) $this->passport_file_path,
             'contract_signed_at' => $this->contract_signed_at?->toIso8601String(),
             'created_at'      => $this->created_at?->toIso8601String(),

@@ -113,6 +113,44 @@ class TravelPackage extends Model
         return \App\Helpers\CurrencyFormatter::formatPrice($this->price_cents, $this->currency);
     }
 
+    /**
+     * Business rules for the draft → pending_review transition: description
+     * copy, destination, contract, and at least one media item must be in
+     * place, and the departure date must not have already passed while the
+     * package sat in draft. Returns a list of human-readable errors; empty
+     * means the package is ready to submit.
+     */
+    public function reviewReadinessErrors(): array
+    {
+        $errors = [];
+
+        if (blank($this->description_en)) {
+            $errors[] = 'An English description is required before submitting for review.';
+        }
+
+        if (blank($this->description_ar)) {
+            $errors[] = 'An Arabic description is required before submitting for review.';
+        }
+
+        if (! $this->destination_travel_country_id) {
+            $errors[] = 'A destination country is required before submitting for review.';
+        }
+
+        if (! $this->departure_date || $this->departure_date->isPast()) {
+            $errors[] = 'The departure date must be in the future before submitting for review.';
+        }
+
+        if (! $this->contract_file_path) {
+            $errors[] = 'A signed contract file must be uploaded before submitting for review.';
+        }
+
+        if ($this->media()->count() === 0) {
+            $errors[] = 'At least one photo or video must be uploaded before submitting for review.';
+        }
+
+        return $errors;
+    }
+
     public function seatsRemaining(): ?int
     {
         if ($this->available_seats === null) {

@@ -25,7 +25,7 @@ class BookingCancelled extends BaseDatabaseBroadcastNotification
 
         return [
             'title'          => 'Booking Cancelled',
-            'message'        => "Booking #{$this->booking->booking_number} for "{$package->title_en}" was cancelled by {$actor}.",
+            'message'        => "Booking #{$this->booking->booking_number} for \"{$package->title_en}\" was cancelled by {$actor}.",
             'url'            => route('travel-agency.bookings.show', $this->booking->id),
             'booking_id'     => $this->booking->id,
             'booking_number' => $this->booking->booking_number,
