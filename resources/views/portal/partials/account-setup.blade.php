@@ -63,7 +63,7 @@
 
         <div>
             <h2 class="text-2xl sm:text-3xl font-black text-white mb-6">
-                {{ $isAr ? 'جهّز حسابك' : 'Set up your account' }}
+                {{ $isAr ? 'إعداد حسابك' : 'Set up your account' }}
             </h2>
 
             <div x-data="{ openStep: 0 }" class="flex flex-col gap-3">

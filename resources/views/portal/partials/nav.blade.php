@@ -1,7 +1,5 @@
 @php
     $isAr = session('locale', 'ar') === 'ar';
-    $registerUrl = route('portal.register');
-    $loginUrl = route('partner.login');
     $langToggleUrl = route('portal.language', $isAr ? 'en' : 'ar');
 
     $navLinks = [
@@ -17,8 +15,8 @@
         <div class="flex items-center justify-between h-[72px] gap-6">
 
             {{-- Logo --}}
-            <a href="{{ route('portal.home') }}" class="flex items-center gap-2 shrink-0">
-                <svg width="30" height="24" viewBox="0 0 94 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <a href="{{ route('portal.home') }}" class="flex items-center shrink-0" aria-label="{{ $isAr ? 'الصفحة الرئيسية' : 'Home' }}">
+                <svg width="94" height="29" viewBox="0 0 94 29" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[76px] h-auto">
                     <g>
                         <path d="M88.7607 2.98682L86.4781 6.93198C88.3646 8.53879 89.6615 11.0172 89.6615 13.807C89.6615 18.878 85.4648 23.048 80.2807 23.048C75.0965 23.048 70.9293 18.878 70.9293 13.6651C70.9293 13.046 70.9864 12.425 71.0988 11.8335L66.8174 14.3137C66.8174 21.6402 73.0424 27.3304 80.2825 27.3304C87.5227 27.3304 94.0019 21.2164 94.0019 13.7499C94.0019 9.38274 91.8888 5.55182 88.7625 2.98682H88.7607Z" fill="#F3E008" />
                         <path d="M82.1966 4.67671L84.5068 0.676261C83.2117 0.197166 82.0566 0 80.9015 0C80.0282 0 79.2674 0.112403 78.7036 0.224806L75.7744 5.29584C76.8448 4.67671 78.2246 4.33765 79.7187 4.33765C80.592 4.33765 81.3804 4.45006 82.1984 4.67671H82.1966Z" fill="#F3E008" />
@@ -28,7 +26,6 @@
                         <path d="M53.1237 6.52656C54.1775 6.52656 55.036 5.66788 55.036 4.61387C55.036 3.55986 54.1775 2.70117 53.1237 2.70117C52.0699 2.70117 51.2114 3.55986 51.2114 4.61387C51.2114 5.66788 52.0699 6.52656 53.1237 6.52656Z" fill="#F3E008" />
                     </g>
                 </svg>
-                <span class="text-yellow-400 font-black text-lg leading-none">{{ $isAr ? 'نون' : 'noon' }}</span>
             </a>
 
             {{-- Desktop nav links --}}
@@ -43,11 +40,8 @@
                         @endif
                     </a>
                 @endforeach
-            </nav>
 
-            {{-- Right actions --}}
-            <div class="hidden lg:flex items-center gap-4">
-                <div class="w-px h-[24px] bg-white/20"></div>
+                <div class="w-px h-[24px] bg-white/20 self-center"></div>
 
                 {{-- Country --}}
                 <div class="flex items-center gap-[8px] text-sm font-bold text-white">
@@ -62,11 +56,7 @@
                     </svg>
                     <span>{{ $isAr ? 'العربية' : 'English' }}</span>
                 </a>
-
-                <a href="{{ $loginUrl }}" class="text-sm font-semibold text-gray-400 hover:text-white transition-colors">
-                    {{ $isAr ? 'تسجيل الدخول' : 'Login' }}
-                </a>
-            </div>
+            </nav>
 
             {{-- Mobile controls --}}
             <div class="flex lg:hidden items-center gap-4">
@@ -96,13 +86,5 @@
                 {{ $isAr ? $link['label_ar'] : $link['label_en'] }}
             </a>
         @endforeach
-        <div class="pt-3 flex flex-col gap-2 border-t border-white/10">
-            <a href="{{ $loginUrl }}" class="text-center py-2.5 border border-gray-700 rounded-full text-sm font-semibold text-gray-300">
-                {{ $isAr ? 'تسجيل الدخول' : 'Login' }}
-            </a>
-            <a href="{{ $registerUrl }}" class="text-center py-2.5 bg-yellow-400 rounded-full text-sm font-black text-black">
-                {{ $isAr ? 'سجّل الآن' : 'Register Now' }}
-            </a>
-        </div>
     </div>
 </header>
