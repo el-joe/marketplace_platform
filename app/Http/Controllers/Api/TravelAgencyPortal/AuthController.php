@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\TravelAgencyPortal\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Api\TravelAgencyPortal\Auth\LoginRequest;
+use App\Http\Requests\Api\TravelAgencyPortal\Auth\ResetPasswordRequest;
 use App\Http\Resources\Api\TravelAgencyPortal\TravelAgencyProfileResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\DeviceToken;
 use App\Models\TravelAgency;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
@@ -94,6 +97,39 @@ class AuthController extends Controller
         $agency->load('country');
 
         return ApiResponse::success(new TravelAgencyProfileResource($agency));
+    }
+
+    // ── Forgot Password ───────────────────────────────────────────────────────
+
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    {
+        $status = Password::broker('travel_agencies')->sendResetLink(
+            $request->only('email')
+        );
+
+        if ($status !== Password::RESET_LINK_SENT) {
+            return ApiResponse::error(__($status), [], 422);
+        }
+
+        return ApiResponse::success(null, 'Password reset link sent.');
+    }
+
+    // ── Reset Password ────────────────────────────────────────────────────────
+
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    {
+        $status = Password::broker('travel_agencies')->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (TravelAgency $agency, string $password) {
+                $agency->update(['password' => Hash::make($password)]);
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return ApiResponse::error(__($status), [], 422);
+        }
+
+        return ApiResponse::success(null, 'Password reset successfully.');
     }
 
     // ── Token helpers ─────────────────────────────────────────────────────────

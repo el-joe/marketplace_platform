@@ -16,7 +16,7 @@
     @vite(['resources/css/app.css', 'resources/js/portal/app.js'])
 </head>
 
-<body class="bg-gray-950 text-white antialiased" style="font-family: 'Cairo', 'Figtree', sans-serif;">
+<body class="bg-black text-white antialiased" style="font-family: 'Cairo', 'Figtree', sans-serif;">
 
     @include('portal.partials.nav')
 

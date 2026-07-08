@@ -1,150 +1,88 @@
 @php $isAr = session('locale', 'ar') === 'ar'; @endphp
 
-<section class="bg-gray-950 py-24" id="testimonials">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section>
+    <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl sm:text-3xl font-black text-white mb-8">{{ $isAr ? 'شهادات' : 'Testimonials' }}</h2>
 
-        {{-- Section header --}}
-        <div class="text-center mb-16">
-            <span class="inline-block bg-yellow-400/10 border border-yellow-400/30 text-yellow-400
-                         text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-                {{ $isAr ? 'شهادات البائعين' : 'Seller Testimonials' }}
-            </span>
-            <h2 class="text-3xl sm:text-4xl font-black text-white">
-                {{ $isAr ? 'ماذا يقول بائعونا؟' : 'What Our Sellers Say' }}
-            </h2>
-        </div>
-
-        {{-- Video embed placeholder --}}
-        <div class="relative max-w-3xl mx-auto mb-16 rounded-3xl overflow-hidden bg-gray-900
-                    border border-gray-800 aspect-video flex items-center justify-center group cursor-pointer">
-            {{-- Thumbnail overlay --}}
-            <div class="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800"></div>
-
-            {{-- Play button --}}
-            <div class="relative z-10 flex flex-col items-center gap-4">
-                <div class="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center
-                            shadow-xl shadow-yellow-400/30 group-hover:scale-110 transition-transform">
-                    <svg class="w-8 h-8 text-gray-950 {{ $isAr ? 'mr-1' : 'ml-1' }}" viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <polygon points="5,3 19,12 5,21" />
-                    </svg>
-                </div>
-                <div class="text-white font-bold text-lg">
-                    {{ $isAr ? 'شاهد قصص نجاح بائعينا' : 'Watch Our Seller Success Stories' }}
-                </div>
-                <div class="text-gray-400 text-sm">
-                    {{ $isAr ? 'ألف + بائع ناجح' : '1,000+ successful sellers' }}
-                </div>
+        {{-- Featured video story --}}
+        <div class="grid md:grid-cols-2 gap-8 lg:gap-16 items-center mb-10">
+            <div class="relative rounded-2xl overflow-hidden aspect-video shadow-xl">
+                <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/SKrJq4XZYn8"
+                        title="How PAN Emirates scaled their noon store" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
-
-            {{-- Decorative text --}}
-            <div class="absolute bottom-6 {{ $isAr ? 'right-6' : 'left-6' }} text-gray-600 text-xs">
-                YouTube Placeholder
+            <div>
+                <p class="text-yellow-400 font-black uppercase tracking-wide text-xs mb-2">{{ $isAr ? 'قصة نجاح بائع' : 'Seller success story' }}</p>
+                <h3 class="text-white font-black text-lg lg:text-2xl leading-snug mb-4 text-pretty">
+                    {{ $isAr
+                        ? 'اختارت حول الإمارات نموذج التوصيل عن طريق البائع (FBP) من نون — وأصبحت البائع رقم 1 للأثاث في المنطقة.'
+                        : 'Hawel Emirates chose noon\'s Fulfilled by Partner (FBP) model — and became the #1 furniture seller in the region.' }}
+                </h3>
+                <p class="text-gray-400 text-[15px] mb-4">
+                    {{ $isAr
+                        ? 'اكتشف كيف ساعد الدعم المخصص، والإدارة المصممة خصيصا، والأدوات القوية في تحقيق نجاحهم.'
+                        : 'Discover how dedicated support, tailored account management, and powerful tools helped drive their success.' }}
+                </p>
+                <p class="text-xs font-bold text-yellow-400 tracking-wide">- {{ $isAr ? 'حول الإمارات' : 'Hawel Emirates' }}</p>
             </div>
         </div>
 
-        {{-- Testimonial cards --}}
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            @php
-                $testimonials = [
-                    [
-                        'avatar' => '👨‍💼',
-                        'name_ar' => 'محمد العلي',
-                        'name_en' => 'Mohammed Al Ali',
-                        'store_ar' => 'متجر الإلكترونيات الذكية',
-                        'store_en' => 'Smart Electronics Store',
-                        'quote_ar' => 'منذ انضممت إلى نون، تضاعفت مبيعاتي ثلاث مرات في أقل من ستة أشهر. الدعم الفني رائع والمنصة سهلة الاستخدام جداً.',
-                        'quote_en' => 'Since joining Noon, my sales tripled in less than six months. The technical support is amazing and the platform is very easy to use.',
-                        'rating' => 5,
-                        'growth' => '+٣٠٠٪',
-                        'growth_en' => '+300%',
-                    ],
-                    [
-                        'avatar' => '👩‍💼',
-                        'name_ar' => 'فاطمة الزهراء',
-                        'name_en' => 'Fatima Al Zahra',
-                        'store_ar' => 'بوتيك الأزياء الحديثة',
-                        'store_en' => 'Modern Fashion Boutique',
-                        'quote_ar' => 'خدمة التنفيذ من نون غيّرت أعمالي كلياً. لم أعد أقلق بشأن الشحن وأركز فقط على توفير أفضل المنتجات.',
-                        'quote_en' => 'Noon\'s fulfillment service completely transformed my business. I no longer worry about shipping and focus only on providing the best products.',
-                        'rating' => 5,
-                        'growth' => '+١٨٠٪',
-                        'growth_en' => '+180%',
-                    ],
-                    [
-                        'avatar' => '👨‍🍳',
-                        'name_ar' => 'أحمد الشمري',
-                        'name_en' => 'Ahmed Al Shammari',
-                        'store_ar' => 'مطبخ الحلويات الشرقية',
-                        'store_en' => 'Oriental Sweets Kitchen',
-                        'quote_ar' => 'الأدوات التحليلية ساعدتني على فهم ما يريده العملاء بالضبط. الآن معدل تحويلي أعلى بكثير مما كان عليه.',
-                        'quote_en' => 'The analytics tools helped me understand exactly what customers want. Now my conversion rate is much higher than it was.',
-                        'rating' => 4,
-                        'growth' => '+٢٢٠٪',
-                        'growth_en' => '+220%',
-                    ],
-                    [
-                        'avatar' => '👩‍🔬',
-                        'name_ar' => 'نورا الحسيني',
-                        'name_en' => 'Noura Al Husseini',
-                        'store_ar' => 'متجر العناية الطبيعية',
-                        'store_en' => 'Natural Care Store',
-                        'quote_ar' => 'بدأت بمنتجات قليلة والآن لدي أكثر من ٢٠٠ منتج. نون أعطتني الأدوات والثقة للتوسع في ثلاث دول.',
-                        'quote_en' => 'I started with a few products and now have over 200. Noon gave me the tools and confidence to expand into three countries.',
-                        'rating' => 5,
-                        'growth' => '+٤٥٠٪',
-                        'growth_en' => '+450%',
-                    ],
-                ];
-            @endphp
+        {{-- Testimonial carousel --}}
+        @php
+            $testimonials = [
+                [
+                    'image' => 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-testimonial-05.jpg',
+                    'quote_ar' => 'تواصل معنا فريق نون محلي بسرعة وسهّلوا علينا كل الإجراءات. من يوم انضمامنا مع إطلاق البرنامج، والدعم اللي قدموه لنا كان رائع. ساعدونا نفعّل منتجاتنا على المنصة، رفعوا مبيعاتنا، وكان تركيزهم كبير على دعم العلامات المحلية. وبصراحة، لما الناس تفكر تشتري، أول مكان يروحون له هو نون.',
+                    'quote_en' => 'noon\'s local team reached out to us quickly and made every process easy. From the day we joined, the support they gave us was excellent. They helped us activate our products on the platform, boosted our sales, and put real focus on supporting local brands. Honestly, when people think of buying, the first place they go is noon.',
+                    'name_ar' => 'حمد البلوشي، المؤسس', 'name_en' => 'Hamad Al Blooshi, Founder',
+                    'company' => 'H2 Games',
+                ],
+                [
+                    'image' => 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-testimonial-04.jpg',
+                    'quote_ar' => 'لطالما كنت شغوفة بالتجارة الإلكترونية، ولهذا قررت البيع على نون والانضمام إلى برنامج مهلي. حصولي على أول دفعة بعد أول عملية بيع كان لحظة مليئة بالتمكين، وجعلتني أشعر بالدعم الحقيقي.',
+                    'quote_en' => 'I\'ve always been passionate about e-commerce, which is why I decided to sell on noon and join the Mahali program. Getting my first payout after my first sale was an empowering moment, and it made me feel truly supported.',
+                    'name_ar' => 'ليلى السعدي، المؤسسة', 'name_en' => 'Layla Al Saadi, Founder',
+                    'company' => 'Heyraat General Trading',
+                ],
+                [
+                    'image' => 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-testimonial-02.jpg',
+                    'quote_ar' => 'الشراكة مع نون ساعدت Baybee على النمو بسرعة والوصول إلى عدد أكبر من العملاء في الإمارات والسعودية. دعمهم، وأدواتهم، وانتشارهم الواسع جعلوا الإطلاق سلس والتوسع سهل. نحن متحمسون لمواصلة هذا النجاح معا.',
+                    'quote_en' => 'Partnering with noon helped Baybee grow quickly and reach more customers across the UAE and Saudi Arabia. Their support, tools, and wide reach made launching smooth and scaling easy. We\'re excited to keep this success going together.',
+                    'name_ar' => 'زوبان شالين، مدير العلامة التجارية', 'name_en' => 'Zuban Shalin, Brand Manager',
+                    'company' => 'Baybee Brand',
+                ],
+                [
+                    'image' => 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-testimonial-01.jpg',
+                    'quote_ar' => 'نتوجه بجزيل الشكر لفريق نون على دعمهم الفوري عندما تم حظر حسابنا بشكل مفاجئ. تدخلوا بسرعة، أعادونا للعمل خلال وقت قياسي، وكانوا إلى جانبنا في كل خطوة. خلال ثلاثة أشهر فقط، ارتفعت مبيعاتنا بأكثر من 500٪ — هذا النوع من النمو لا يتحقق إلا بوجود فريق حقيقي يلتزم ويقف مع شركائه بكل احترافية.',
+                    'quote_en' => 'Our sincere thanks to the noon team for their immediate support when our account was suddenly blocked. They stepped in quickly, got us back up and running in record time, and stood by us every step of the way. In just three months, our sales grew by over 500% — that kind of growth only happens with a team that truly commits to its partners.',
+                    'name_ar' => 'سريجا في. إس، رئيسة قسم التجارة الإلكترونية', 'name_en' => 'Sreeja V.S., Head of E-commerce',
+                    'company' => 'SAMS Global LLC',
+                ],
+                [
+                    'image' => 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-testimonial-03.jpg',
+                    'quote_ar' => 'الشراكة مع نون كانت نقطة تحول، حيث ساهمت في تحقيق نمو مذهل بنسبة 45% مقارنة بالعام الماضي. هذا النجاح لم يكن ليتحقق لولا الدعم المستمر والتفاني من فريق نون، الذين ساندوني في كل خطوة على الطريق.',
+                    'quote_en' => 'Partnering with noon was a turning point, contributing to a remarkable 45% year-over-year growth. This success wouldn\'t have been possible without the continuous support and dedication of the noon team, who stood by me every step of the way.',
+                    'name_ar' => 'حسين الحسن، المؤسس', 'name_en' => 'Hussein Al Hassan, Founder',
+                    'company' => 'Golden Technology Trading',
+                ],
+            ];
+        @endphp
 
+        <div class="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 snap-x snap-mandatory scrollbar-none">
             @foreach($testimonials as $t)
-                <div class="bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-3xl p-6
-                            transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col">
-
-                    {{-- Header --}}
-                    <div class="flex items-center gap-3 mb-4 {{ $isAr ? 'flex-row-reverse' : '' }}">
-                        <div class="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-2xl shrink-0">
-                            {{ $t['avatar'] }}
-                        </div>
-                        <div class="{{ $isAr ? 'text-right' : 'text-left' }}">
-                            <div class="font-bold text-white text-sm">{{ $isAr ? $t['name_ar'] : $t['name_en'] }}</div>
-                            <div class="text-xs text-gray-400">{{ $isAr ? $t['store_ar'] : $t['store_en'] }}</div>
-                        </div>
-                    </div>
-
-                    {{-- Stars --}}
-                    <div class="flex gap-0.5 mb-3 {{ $isAr ? 'flex-row-reverse justify-end' : '' }}">
-                        @for($s = 1; $s <= 5; $s++)
-                            <svg class="w-4 h-4 {{ $s <= $t['rating'] ? 'text-yellow-400' : 'text-gray-700' }}"
-                                viewBox="0 0 24 24" fill="currentColor">
-                                <polygon
-                                    points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
-                            </svg>
-                        @endfor
-                    </div>
-
-                    {{-- Quote --}}
-                    <p class="text-gray-400 text-sm leading-relaxed flex-1 {{ $isAr ? 'text-right' : 'text-left' }}">
-                        "{{ $isAr ? $t['quote_ar'] : $t['quote_en'] }}"
-                    </p>
-
-                    {{-- Growth badge --}}
-                    <div class="mt-4 pt-4 border-t border-gray-800">
-                        <span class="inline-flex items-center gap-1 bg-green-500/20 text-green-400
-                                     text-xs font-bold px-3 py-1.5 rounded-full">
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5">
-                                <path d="m23 6-9.5 9.5-5-5L1 18" />
-                                <path d="M17 6h6v6" />
-                            </svg>
-                            {{ $isAr ? $t['growth'] : $t['growth_en'] }}
-                            {{ $isAr ? 'نمو في المبيعات' : 'Sales Growth' }}
-                        </span>
+                <div class="relative shrink-0 w-[280px] h-[460px] rounded-2xl overflow-hidden snap-start">
+                    <img src="{{ $t['image'] }}" alt="{{ $isAr ? $t['name_ar'] : $t['name_en'] }}"
+                         class="absolute inset-0 w-full h-full object-cover object-top">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/10"></div>
+                    <div class="relative h-full flex flex-col justify-end p-4">
+                        <p class="text-white text-[13px] leading-[18px] font-medium line-clamp-6">
+                            {{ $isAr ? $t['quote_ar'] : $t['quote_en'] }}
+                        </p>
+                        <p class="text-white text-xs font-extrabold mt-2">{{ $isAr ? $t['name_ar'] : $t['name_en'] }}</p>
+                        <p class="text-yellow-400 text-xs font-extrabold">{{ $t['company'] }}</p>
                     </div>
                 </div>
             @endforeach
         </div>
-
     </div>
 </section>

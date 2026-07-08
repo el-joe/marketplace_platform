@@ -23,6 +23,8 @@ Route::prefix('v1')->name('api.travel-agency.')->group(function (): void {
     Route::prefix('auth')->name('auth.')->group(function (): void {
         Route::post('login', [AuthController::class, 'login'])->name('login')
             ->middleware('throttle:10,1');
+        Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
+        Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
     });
 
     // ── Authenticated ─────────────────────────────────────────────────────────
@@ -40,6 +42,8 @@ Route::prefix('v1')->name('api.travel-agency.')->group(function (): void {
         // cities-for-country/submit/media/contract must be declared before the
         // apiResource's {package} routes to avoid route-model-binding ambiguity.
         Route::prefix('packages')->name('packages.')->group(function (): void {
+            Route::get('countries', [PackageController::class, 'countries'])->name('countries');
+            Route::get('currencies', [PackageController::class, 'currencies'])->name('currencies');
             Route::get('cities-for-country/{travelCountryId}', [PackageController::class, 'citiesForCountry'])->name('cities-for-country');
             Route::post('{package}/submit', [PackageController::class, 'submitForReview'])->name('submit');
             Route::delete('{package}/media/{media}', [PackageController::class, 'destroyMedia'])->name('media.destroy');

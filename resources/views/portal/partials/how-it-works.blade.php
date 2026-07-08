@@ -1,141 +1,102 @@
 @php $isAr = session('locale', 'ar') === 'ar'; @endphp
 
-<section class="bg-gray-900 py-24" id="how-it-works">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="bg-[#151515] py-10 lg:py-12">
+    <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+        <p class="text-yellow-400 font-black text-lg lg:text-xl mb-1">{{ $isAr ? 'البدء' : 'Getting started' }}</p>
+        <h2 class="text-white font-black text-xl lg:text-2xl leading-snug mb-8 lg:mb-10">
+            {{ $isAr ? 'جاهز انك تبدأ البيع؟' : 'Ready to start selling?' }}<br>
+            {{ $isAr ? 'انه سريع و سهل - اليك ما تحتاجه' : "It's quick and easy - here's what you'll need" }}
+        </h2>
 
-        {{-- Section header --}}
-        <div class="text-center mb-16">
-            <span class="inline-block bg-yellow-400/10 border border-yellow-400/30 text-yellow-400
-                         text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-                {{ $isAr ? 'البدء' : 'Getting Started' }}
-            </span>
-            <h2 class="text-3xl sm:text-4xl font-black text-white">
-                {{ $isAr ? 'جاهز لتبدأ البيع؟' : 'Ready to Start Selling?' }}
-            </h2>
-            <p class="mt-4 text-gray-400 text-lg">
-                {{ $isAr ? 'أربع خطوات بسيطة وتبدأ رحلتك مع نون.' : 'Four simple steps and your journey with Noon begins.' }}
-            </p>
-        </div>
+        <div class="grid md:grid-cols-2 gap-10 lg:gap-16 items-start">
 
-        <div class="grid lg:grid-cols-2 gap-12 items-start">
-
-            {{-- Left: Requirements + Steps --}}
-            <div class="space-y-10">
-
-                {{-- Required documents --}}
-                <div class="bg-gray-800/50 border border-gray-700 rounded-3xl p-8">
-                    <h3 class="text-lg font-black text-white mb-6 flex items-center gap-2">
-                        <span
-                            class="w-8 h-8 bg-yellow-400/20 text-yellow-400 rounded-full flex items-center justify-center text-sm">📋</span>
-                        {{ $isAr ? 'المستندات المطلوبة' : 'Required Documents' }}
-                    </h3>
-                    <ul class="space-y-4">
-                        @php
-                            $docs = [
-                                ['📧', 'عنوان البريد الإلكتروني للاستخدام التجاري', 'Business email address'],
-                                ['📄', 'السجل التجاري / رخصة التجارة', 'Trade license / Commercial registration'],
-                                ['🪪', 'الهوية الشخصية / بطاقة الهوية الإماراتية', 'National ID / Emirates ID'],
-                                ['🏦', 'حساب بنكي ساري', 'Active bank account'],
-                            ];
-                        @endphp
-                        @foreach($docs as $doc)
-                            <li class="flex items-start gap-3">
-                                <span class="text-xl mt-0.5">{{ $doc[0] }}</span>
-                                <div>
-                                    <span class="text-gray-300 font-medium text-sm">
-                                        {{ $isAr ? $doc[1] : $doc[2] }}
-                                    </span>
-                                </div>
-                                <svg class="{{ $isAr ? 'mr-auto' : 'ml-auto' }} w-5 h-5 text-green-400 shrink-0 mt-0.5"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <polyline points="20,6 9,17 4,12" />
-                                </svg>
-                            </li>
-                        @endforeach
-                    </ul>
+            {{-- Floating device grid --}}
+            <div class="relative mx-auto max-w-[420px] w-full">
+                <div class="grid grid-cols-3 gap-4 items-center">
+                    <div class="self-center -mt-6">
+                        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-sell-grid-01.png" alt=""
+                             class="animate-[float_6s_ease-in-out_infinite] rounded-xl w-full">
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-sell-grid-02.png" alt=""
+                             class="animate-[float_7s_ease-in-out_infinite] rounded-xl w-full" style="animation-delay:1s">
+                        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-sell-grid-03.png" alt=""
+                             class="animate-[float_5s_ease-in-out_infinite] rounded-xl w-full" style="animation-delay:.5s">
+                    </div>
+                    <div class="flex flex-col gap-4 mt-10">
+                        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-sell-grid-04.png" alt=""
+                             class="animate-[float_6s_ease-in-out_infinite] rounded-xl w-full" style="animation-delay:1.5s">
+                        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-sell-grid-05.png" alt=""
+                             class="animate-[float_8s_ease-in-out_infinite] rounded-xl w-full" style="animation-delay:.8s">
+                    </div>
                 </div>
+            </div>
 
-                {{-- CTA --}}
-                <a href="{{ route('portal.register') }}" class="flex items-center justify-center gap-3 bg-yellow-400 hover:bg-yellow-300
-                          text-gray-950 font-black text-lg py-4 px-8 rounded-2xl transition-all
-                          hover:scale-[1.02] shadow-lg shadow-yellow-400/20">
-                    {{ $isAr ? 'ابدأ التسجيل مجاناً' : 'Start Free Registration' }}
-                    <svg class="w-5 h-5 {{ $isAr ? 'rotate-180' : '' }}" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5">
-                        <path d="M5 12h14m-7-7 7 7-7 7" />
-                    </svg>
+            {{-- Checklist + steps --}}
+            <div>
+                <h3 class="text-white font-bold text-lg mb-4">{{ $isAr ? 'قائمة تجهيز البائع:' : 'Seller readiness checklist:' }}</h3>
+                <ul class="space-y-3 mb-8">
+                    @foreach([
+                        [$isAr ? 'عنوان البريد الالكتروني (للاستخدام التجاري او الشخصي) و رقم الهاتف' : 'A business or personal email address and a phone number'],
+                        [$isAr ? 'السجل التجاري / رخصة التجارة' : 'Trade licence / commercial registration'],
+                        [$isAr ? 'الهوية الشخصية - جواز السفر / بطاقة الهوية الاماراتية' : 'A valid ID - passport or Emirates ID'],
+                    ] as $item)
+                        <li class="flex items-start gap-3 text-gray-200 text-[15px]">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3E008" width="18" class="shrink-0 mt-1 {{ $isAr ? '-scale-x-100' : '' }}">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                            </svg>
+                            <span>{{ $item[0] }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+
+                <a href="{{ route('portal.faq') }}"
+                   class="inline-block border border-gray-600 hover:border-yellow-400 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors mb-10">
+                    {{ $isAr ? 'الأسئلة الشائعة حول المستندات' : 'Document FAQs' }}
                 </a>
 
-            </div>
-
-            {{-- Right: Steps timeline --}}
-            <div class="relative">
-                {{-- Vertical line --}}
-                <div class="absolute {{ $isAr ? 'right-6' : 'left-6' }} top-8 bottom-8 w-px bg-gray-700"></div>
-
-                <div class="space-y-6">
-                    @php
-                        $steps = [
-                            [
-                                '1',
-                                'قم بالتسجيل مجاناً',
-                                'Register for Free',
-                                'أنشئ حسابك في دقائق باستخدام بريدك الإلكتروني وكلمة مرور.',
-                                'Create your account in minutes using your email and password.',
-                                '#facc15'
-                            ],
-                            [
-                                '2',
-                                'أضف تفاصيل متجرك',
-                                'Add Your Store Details',
-                                'أدخل معلومات عملك ورفع المستندات المطلوبة للتحقق.',
-                                'Enter your business information and upload verification documents.',
-                                '#60a5fa'
-                            ],
-                            [
-                                '3',
-                                'أضف منتجاتك',
-                                'Add Your Products',
-                                'أنشئ قوائم منتجاتك بالصور والأسعار والتفاصيل الكاملة.',
-                                'Create your product listings with images, prices, and full details.',
-                                '#34d399'
-                            ],
-                            [
-                                '4',
-                                'ابدأ البيع!',
-                                'Start Selling!',
-                                'بعد الموافقة، يبدأ متجرك بالنشاط وتستقبل طلباتك الأولى.',
-                                'After approval, your store goes live and you start receiving orders.',
-                                '#f97316'
-                            ],
-                        ];
-                    @endphp
-
-                    @foreach($steps as $idx => $step)
-                        <div class="relative flex gap-6 {{ $isAr ? 'flex-row-reverse' : '' }}">
-                            {{-- Step number bubble --}}
-                            <div class="relative z-10 w-12 h-12 rounded-full flex items-center justify-center
-                                        font-black text-gray-950 text-sm shrink-0 shadow-lg"
-                                style="background-color: {{ $step[5] }}">
-                                {{ $step[0] }}
-                            </div>
-
-                            {{-- Content --}}
-                            <div class="flex-1 bg-gray-800/50 border border-gray-700 rounded-2xl p-5
-                                        hover:border-gray-600 transition-colors {{ $isAr ? 'text-right' : 'text-left' }}">
-                                <h4 class="font-black text-white mb-1">
-                                    {{ $isAr ? $step[1] : $step[2] }}
-                                </h4>
-                                <p class="text-sm text-gray-400">
-                                    {{ $isAr ? $step[3] : $step[4] }}
-                                </p>
-                            </div>
-                        </div>
+                <div class="space-y-3 mb-6">
+                    @foreach([
+                        [$isAr ? 'الخطوة 1:' : 'Step 1:', $isAr ? 'قم بالتسجيل كبائع' : 'Sign up as a seller'],
+                        [$isAr ? 'الخطوة 2:' : 'Step 2:', $isAr ? 'اختر نظام التسجيل' : 'Choose your fulfilment model'],
+                        [$isAr ? 'الخطوة 3:' : 'Step 3:', $isAr ? 'قم بادراج منتجاتك' : 'List your products'],
+                    ] as $step)
+                        <p class="text-[15px]">
+                            <span class="text-gray-500">{{ $step[0] }} </span>
+                            <span class="text-white font-semibold">{{ $step[1] }}</span>
+                        </p>
                     @endforeach
                 </div>
+
+                <p class="text-[15px] text-gray-300 mb-4">
+                    <span class="text-white font-bold">{{ $isAr ? 'و هذا هو كل شئ!' : "And that's it!" }}</span>
+                    {{ $isAr ? ' عميلك الاول قد يكون علي بعد نقرة واحدة فقط' : ' Your first customer could just be one click away' }}
+                </p>
+
+                <a href="{{ route('portal.how-it-works') }}" class="inline-flex items-center gap-2 text-yellow-400 font-bold text-sm">
+                    {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" class="{{ $isAr ? '-scale-x-100' : '' }}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+                    </svg>
+                </a>
             </div>
-
         </div>
+    </section>
+</div>
 
-    </div>
+{{-- Dubai Traders Program banner --}}
+<section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+    <a href="{{ route('portal.register') }}" class="block">
+        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-trader-banner-ar.png"
+             alt="Dubai Traders Program" class="w-full rounded-2xl lg:hidden">
+        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-trader-banner-strip-ar.jpg"
+             alt="Dubai Traders Program" class="w-full rounded-2xl hidden lg:block">
+    </a>
 </section>
+
+<style>
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+</style>

@@ -7,7 +7,9 @@ use App\Http\Requests\Api\TravelAgencyPortal\Package\StorePackageRequest;
 use App\Http\Requests\Api\TravelAgencyPortal\Package\UpdatePackageRequest;
 use App\Http\Resources\Api\TravelAgencyPortal\TravelPackageResource;
 use App\Http\Responses\ApiResponse;
+use App\Models\Currency;
 use App\Models\TravelCity;
+use App\Models\TravelCountry;
 use App\Models\TravelPackage;
 use App\Models\TravelPackageMedia;
 use Illuminate\Http\JsonResponse;
@@ -119,6 +121,26 @@ class PackageController extends Controller
         $package->delete();
 
         return ApiResponse::success(null, 'Package deleted.');
+    }
+
+    // ── Countries / currencies (reference data for the form) ────────────────
+
+    public function countries(): JsonResponse
+    {
+        $countries = TravelCountry::where('is_active', true)
+            ->orderBy('name_en')
+            ->get(['id', 'name_en', 'name_ar']);
+
+        return ApiResponse::success($countries);
+    }
+
+    public function currencies(): JsonResponse
+    {
+        $currencies = Currency::where('is_active', true)
+            ->orderBy('code')
+            ->get(['code', 'name', 'symbol']);
+
+        return ApiResponse::success($currencies);
     }
 
     // ── Cities for country ───────────────────────────────────────────────────

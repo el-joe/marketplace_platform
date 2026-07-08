@@ -1,67 +1,29 @@
 @php $isAr = session('locale', 'ar') === 'ar'; @endphp
 
-<section class="bg-yellow-400 py-20">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-
-        {{-- Badge --}}
-        <div class="inline-flex items-center gap-2 bg-yellow-500/30 border border-yellow-500/50
-                    text-yellow-950 text-sm font-bold px-4 py-1.5 rounded-full mb-6">
-            <span class="w-2 h-2 bg-yellow-800 rounded-full animate-pulse"></span>
-            {{ $isAr ? 'انضم الآن — مجاناً' : 'Join Now — It\'s Free' }}
-        </div>
-
-        <h2 class="text-4xl sm:text-5xl font-black text-gray-950 leading-tight mb-4">
-            {{ $isAr ? 'جاهز للبيع؟' : 'Ready to Sell?' }}
+<section class="bg-yellow-400 py-12 lg:py-16">
+    <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-black/70 font-bold text-sm mb-2">{{ $isAr ? 'يبدأ هنا' : 'It starts here' }}</p>
+        <h2 class="text-3xl sm:text-4xl font-black text-black leading-tight mb-3">
+            {{ $isAr ? 'جاهز للبيع؟' : 'Ready to sell?' }}
         </h2>
-        <p class="text-gray-800 text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p class="text-black/80 text-base sm:text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
             {{ $isAr
-                ? 'انضم إلى آلاف البائعين الناجحين على نون وابدأ رحلتك نحو النمو والنجاح في أكبر منصة تجارة إلكترونية بالمنطقة.'
-                : 'Join thousands of successful sellers on Noon and start your journey towards growth and success on the region\'s largest e-commerce platform.' }}
+                ? 'انضم إلى الاف البائعين في جميع أنحاء المنطقة الذين ينمون ويزدهرون مع نون'
+                : 'Join thousands of sellers across the region who are growing and thriving with noon' }}
         </p>
-
-        {{-- CTAs --}}
-        <div class="flex flex-wrap gap-4 justify-center mb-16">
-            <a href="{{ route('portal.register') }}"
-               class="inline-flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white
-                      font-black text-lg px-10 py-4 rounded-full shadow-xl transition-all
-                      hover:scale-105 hover:shadow-2xl">
-                {{ $isAr ? 'سجّل الآن' : 'Register Now' }}
-                <svg class="w-5 h-5 {{ $isAr ? 'rotate-180' : '' }}" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M5 12h14m-7-7 7 7-7 7"/>
-                </svg>
-            </a>
-
-            <a href="{{ route('portal.how-it-works') }}"
-               class="inline-flex items-center gap-2 bg-yellow-300 hover:bg-yellow-200 text-gray-950
-                      font-bold text-lg px-10 py-4 rounded-full border-2 border-yellow-600/30
-                      transition-all hover:scale-105">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm0 8v4m0 4h.01"/>
-                </svg>
-                {{ $isAr ? 'حمّل دليل البائع' : 'Download Seller Guide' }}
-            </a>
-        </div>
-
-        {{-- Stats row --}}
-        <div class="grid grid-cols-3 gap-6 max-w-2xl mx-auto mb-16">
-            @foreach([
-                ['٥٠ ألف+', '50K+', 'بائع نشط', 'Active Sellers'],
-                ['٩٨٪', '98%', 'رضا البائعين', 'Seller Satisfaction'],
-                ['٢٤ ساعة', '24h', 'متوسط التوصيل', 'Avg Delivery'],
-            ] as $s)
-            <div>
-                <div class="text-3xl font-black text-gray-950">{{ $isAr ? $s[0] : $s[1] }}</div>
-                <div class="text-sm text-gray-700 font-medium">{{ $isAr ? $s[2] : $s[3] }}</div>
-            </div>
-            @endforeach
-        </div>
-
+        <a href="{{ route('portal.register') }}"
+           class="inline-flex items-center gap-2 bg-black hover:bg-gray-900 text-white
+                  font-black text-base px-8 py-3.5 rounded-full transition-colors">
+            {{ $isAr ? 'سجل الآن' : 'Register now' }}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" class="{{ $isAr ? '-scale-x-100' : '' }}">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+            </svg>
+        </a>
     </div>
 </section>
 
 {{-- ── Footer ──────────────────────────────────────────────────────────── --}}
-<footer class="bg-[#111111] border-t border-gray-800">
+<footer class="bg-black border-t border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         <div class="grid md:grid-cols-4 gap-8 mb-10">

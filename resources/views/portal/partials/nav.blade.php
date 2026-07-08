@@ -3,142 +3,106 @@
     $registerUrl = route('portal.register');
     $loginUrl = route('partner.login');
     $langToggleUrl = route('portal.language', $isAr ? 'en' : 'ar');
+
+    $navLinks = [
+        ['label_ar' => 'الصفحة الرئيسية', 'label_en' => 'Home', 'route' => 'portal.home'],
+        ['label_ar' => 'البدء', 'label_en' => 'Getting Started', 'route' => 'portal.how-it-works'],
+        ['label_ar' => 'الشحن والتوصيل', 'label_en' => 'Shipping & Fulfilment', 'route' => 'portal.fulfillment'],
+        ['label_ar' => 'نمّي بذكاء', 'label_en' => 'Grow Smarter', 'route' => 'portal.smart-tools'],
+    ];
 @endphp
 
-<nav class="sticky top-0 z-50 bg-[#111111] border-b border-gray-800 shadow-xl" x-data="{ mobileOpen: false }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
+<header class="sticky top-0 z-50 bg-black" x-data="{ mobileOpen: false }">
+    <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-[72px] gap-6">
 
             {{-- Logo --}}
             <a href="{{ route('portal.home') }}" class="flex items-center gap-2 shrink-0">
-                <span
-                    class="bg-yellow-400 text-gray-950 font-black text-xl px-2 py-0.5 rounded tracking-tight">noon</span>
-                <span class="text-white text-sm font-semibold hidden sm:inline">
-                    {{ $isAr ? 'للبائعين' : 'Sellers' }}
-                </span>
+                <svg width="30" height="24" viewBox="0 0 94 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g>
+                        <path d="M88.7607 2.98682L86.4781 6.93198C88.3646 8.53879 89.6615 11.0172 89.6615 13.807C89.6615 18.878 85.4648 23.048 80.2807 23.048C75.0965 23.048 70.9293 18.878 70.9293 13.6651C70.9293 13.046 70.9864 12.425 71.0988 11.8335L66.8174 14.3137C66.8174 21.6402 73.0424 27.3304 80.2825 27.3304C87.5227 27.3304 94.0019 21.2164 94.0019 13.7499C94.0019 9.38274 91.8888 5.55182 88.7625 2.98682H88.7607Z" fill="#F3E008" />
+                        <path d="M82.1966 4.67671L84.5068 0.676261C83.2117 0.197166 82.0566 0 80.9015 0C80.0282 0 79.2674 0.112403 78.7036 0.224806L75.7744 5.29584C76.8448 4.67671 78.2246 4.33765 79.7187 4.33765C80.592 4.33765 81.3804 4.45006 82.1984 4.67671H82.1966Z" fill="#F3E008" />
+                        <path d="M56.6571 13.4977C56.6571 15.5836 54.9604 17.2807 52.8749 17.2807H34.6586V13.6856C34.6586 11.5813 33.7337 9.59857 32.1199 8.24421C30.5098 6.89168 28.3819 6.32782 26.2818 6.6982C23.3783 7.21047 21.0829 9.50459 20.5707 12.4105C20.2004 14.5093 20.7642 16.6376 22.1182 18.2499C23.4723 19.8641 25.4546 20.7891 27.5585 20.7891H31.0993C30.9316 22.0348 30.3384 23.1809 29.4081 24.0451C28.4004 24.9812 27.0905 25.4972 25.718 25.4972H25.4509V29.0038H25.718C28.019 29.0038 30.204 28.1267 31.8712 26.5364C33.4703 25.0107 34.4393 22.9782 34.6162 20.791H52.8731C56.8911 20.791 60.1593 17.5221 60.1593 13.5032V9.28716H56.6534V13.5032L56.6571 13.4977ZM31.1546 13.6856V17.2807H27.5603C26.4955 17.2807 25.4896 16.8126 24.8043 15.9945C24.1097 15.1671 23.8315 14.1094 24.025 13.0167C24.2774 11.5813 25.4564 10.402 26.8916 10.1495C27.9822 9.95605 29.0396 10.2325 29.8687 10.929C30.6866 11.6145 31.1546 12.6206 31.1546 13.6856Z" fill="#F3E008" />
+                        <path d="M14.3734 15.9408C14.3734 18.937 11.9361 21.3767 8.9387 21.3767C5.94132 21.3767 3.504 18.9388 3.504 15.9408V9.2998H0V15.9408C0 20.87 4.01062 24.8815 8.9387 24.8815C13.8668 24.8815 17.8774 20.87 17.8774 15.9408V9.2998H14.3734V15.9408Z" fill="#F3E008" />
+                        <path d="M8.93864 6.52656C9.99242 6.52656 10.8509 5.66788 10.8509 4.61387C10.8509 3.55986 9.99242 2.70117 8.93864 2.70117C7.88487 2.70117 7.02637 3.55986 7.02637 4.61387C7.02637 5.66788 7.88487 6.52656 8.93864 6.52656Z" fill="#F3E008" />
+                        <path d="M53.1237 6.52656C54.1775 6.52656 55.036 5.66788 55.036 4.61387C55.036 3.55986 54.1775 2.70117 53.1237 2.70117C52.0699 2.70117 51.2114 3.55986 51.2114 4.61387C51.2114 5.66788 52.0699 6.52656 53.1237 6.52656Z" fill="#F3E008" />
+                    </g>
+                </svg>
+                <span class="text-yellow-400 font-black text-lg leading-none">{{ $isAr ? 'نون' : 'noon' }}</span>
             </a>
 
             {{-- Desktop nav links --}}
-            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
-                <a href="{{ route('portal.home') }}"
-                    class="hover:text-yellow-400 transition-colors {{ request()->routeIs('portal.home') ? 'text-yellow-400' : '' }}">
-                    {{ $isAr ? 'الصفحة الرئيسية' : 'Home' }}
-                </a>
-                <a href="{{ route('portal.how-it-works') }}"
-                    class="hover:text-yellow-400 transition-colors {{ request()->routeIs('portal.how-it-works') ? 'text-yellow-400' : '' }}">
-                    {{ $isAr ? 'البدء' : 'Get Started' }}
-                </a>
-                <a href="{{ route('portal.fulfillment') }}"
-                    class="hover:text-yellow-400 transition-colors {{ request()->routeIs('portal.fulfillment') ? 'text-yellow-400' : '' }}">
-                    {{ $isAr ? 'الشحن والتوصيل' : 'Fulfillment' }}
-                </a>
-                <a href="{{ route('portal.smart-tools') }}"
-                    class="hover:text-yellow-400 transition-colors {{ request()->routeIs('portal.smart-tools') ? 'text-yellow-400' : '' }}">
-                    {{ $isAr ? 'نمّي بذكاء' : 'Smart Tools' }}
-                </a>
-                <a href="{{ route('portal.faq') }}"
-                    class="hover:text-yellow-400 transition-colors {{ request()->routeIs('portal.faq') ? 'text-yellow-400' : '' }}">
-                    {{ $isAr ? 'الأسئلة الشائعة' : 'FAQ' }}
-                </a>
-                <a href="{{ route('portal.blog.index') }}"
-                    class="hover:text-yellow-400 transition-colors {{ request()->routeIs('portal.blog.*') ? 'text-yellow-400' : '' }}">
-                    {{ $isAr ? 'المدونة' : 'Blog' }}
-                </a>
-            </div>
+            <nav class="hidden lg:flex items-center gap-[32px]">
+                @foreach($navLinks as $link)
+                    <a href="{{ route($link['route']) }}"
+                       class="relative text-[15px] font-semibold py-2 transition-colors
+                              {{ request()->routeIs($link['route']) ? 'text-white' : 'text-gray-400 hover:text-white' }}">
+                        {{ $isAr ? $link['label_ar'] : $link['label_en'] }}
+                        @if(request()->routeIs($link['route']))
+                            <span class="absolute -bottom-[1px] inset-x-0 h-[2px] bg-yellow-400 rounded-full"></span>
+                        @endif
+                    </a>
+                @endforeach
+            </nav>
 
             {{-- Right actions --}}
-            <div class="hidden md:flex items-center gap-3">
-                {{-- Language toggle --}}
-                <a href="{{ $langToggleUrl }}" class="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500
-                          px-3 py-1.5 rounded-full transition-colors">
-                    {{ $isAr ? 'English' : 'العربية' }}
+            <div class="hidden lg:flex items-center gap-4">
+                <div class="w-px h-[24px] bg-white/20"></div>
+
+                {{-- Country --}}
+                <div class="flex items-center gap-[8px] text-sm font-bold text-white">
+                    <img src="https://f.nooncdn.com/s/app/com/common/images/flags/ae.svg" alt="{{ $isAr ? 'الإمارات' : 'UAE' }}" width="20" height="20">
+                    <span>{{ $isAr ? 'الإمارات' : 'UAE' }}</span>
+                </div>
+
+                {{-- Language --}}
+                <a href="{{ $langToggleUrl }}" class="flex items-center gap-[8px] text-sm font-bold text-white hover:text-yellow-400 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
+                    </svg>
+                    <span>{{ $isAr ? 'العربية' : 'English' }}</span>
                 </a>
 
-                {{-- Country flag --}}
-                {{--<div class="flex items-center gap-1 text-sm text-gray-400 border border-gray-700 px-3 py-1.5 rounded-full"
-                    x-data="{ open: false }" @click.outside="open = false">
-                    <button @click="open = !open" class="flex items-center gap-1 hover:text-white transition-colors">
-                        <span>🇦🇪</span>
-                        <span>{{ $isAr ? 'الإمارات' : 'UAE' }}</span>
-                        <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="m6 9 6 6 6-6" />
-                        </svg>
-                    </button>
-                    <div x-show="open" x-transition class="absolute {{ $isAr ? 'left-4' : 'right-4' }} top-14 mt-1 w-36 bg-gray-900 border border-gray-700
-                                rounded-xl shadow-2xl overflow-hidden">
-                        <a href="#" class="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-800 text-sm text-white">
-                            <span>🇦🇪</span> {{ $isAr ? 'الإمارات' : 'UAE' }}
-                        </a>
-                        <a href="#" class="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-800 text-sm text-gray-300">
-                            <span>🇸🇦</span> {{ $isAr ? 'السعودية' : 'KSA' }}
-                        </a>
-                        <a href="#" class="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-800 text-sm text-gray-300">
-                            <span>🇪🇬</span> {{ $isAr ? 'مصر' : 'Egypt' }}
-                        </a>
-                    </div>
-                </div>--}}
-
-                {{-- Login --}}
-                <a href="{{ $loginUrl }}" class="text-sm text-gray-300 hover:text-white border border-gray-600 hover:border-gray-400
-                          px-4 py-1.5 rounded-full transition-colors">
+                <a href="{{ $loginUrl }}" class="text-sm font-semibold text-gray-400 hover:text-white transition-colors">
                     {{ $isAr ? 'تسجيل الدخول' : 'Login' }}
-                </a>
-
-                {{-- Register CTA --}}
-                <a href="{{ $registerUrl }}" class="text-sm font-bold bg-yellow-400 hover:bg-yellow-300 text-gray-950
-                          px-5 py-2 rounded-full transition-colors shadow-lg shadow-yellow-400/20">
-                    {{ $isAr ? 'سجّل الآن' : 'Register Now' }}
                 </a>
             </div>
 
-            {{-- Mobile hamburger --}}
-            <button @click="mobileOpen = !mobileOpen"
-                class="md:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path x-show="!mobileOpen" d="M4 6h16M4 12h16M4 18h16" />
-                    <path x-show="mobileOpen" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-
+            {{-- Mobile controls --}}
+            <div class="flex lg:hidden items-center gap-4">
+                <img src="https://f.nooncdn.com/s/app/com/common/images/flags/ae.svg" alt="{{ $isAr ? 'الإمارات' : 'UAE' }}" width="20" height="20">
+                <a href="{{ $langToggleUrl }}" class="text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
+                    </svg>
+                </a>
+                <button @click="mobileOpen = !mobileOpen" class="text-white p-1" aria-label="Menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="24" height="24">
+                        <path x-show="!mobileOpen" stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
+                        <path x-show="mobileOpen" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
     {{-- Mobile menu --}}
-    <div x-show="mobileOpen" x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-        class="md:hidden bg-[#111111] border-t border-gray-800 px-4 py-4 space-y-3">
-        <a href="{{ route('portal.home') }}" class="block py-2 text-gray-300 hover:text-yellow-400">
-            {{ $isAr ? 'الصفحة الرئيسية' : 'Home' }}
-        </a>
-        <a href="{{ route('portal.how-it-works') }}" class="block py-2 text-gray-300 hover:text-yellow-400">
-            {{ $isAr ? 'البدء' : 'Get Started' }}
-        </a>
-        <a href="{{ route('portal.fulfillment') }}" class="block py-2 text-gray-300 hover:text-yellow-400">
-            {{ $isAr ? 'الشحن والتوصيل' : 'Fulfillment' }}
-        </a>
-        <a href="{{ route('portal.smart-tools') }}" class="block py-2 text-gray-300 hover:text-yellow-400">
-            {{ $isAr ? 'نمّي بذكاء' : 'Smart Tools' }}
-        </a>
-        <a href="{{ route('portal.faq') }}" class="block py-2 text-gray-300 hover:text-yellow-400">
-            {{ $isAr ? 'الأسئلة الشائعة' : 'FAQ' }}
-        </a>
-        <a href="{{ route('portal.blog.index') }}" class="block py-2 text-gray-300 hover:text-yellow-400">
-            {{ $isAr ? 'المدونة' : 'Blog' }}
-        </a>
-        <div class="pt-3 flex flex-col gap-2 border-t border-gray-800">
-            <a href="{{ $langToggleUrl }}"
-                class="text-center py-2 border border-gray-700 rounded-full text-sm text-gray-400">
-                {{ $isAr ? 'English' : 'العربية' }}
+    <div x-show="mobileOpen" x-cloak x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+         class="lg:hidden bg-black border-t border-white/10 px-4 py-4 space-y-1">
+        @foreach($navLinks as $link)
+            <a href="{{ route($link['route']) }}"
+               class="block py-2.5 font-semibold {{ request()->routeIs($link['route']) ? 'text-yellow-400' : 'text-gray-300' }}">
+                {{ $isAr ? $link['label_ar'] : $link['label_en'] }}
             </a>
-            <a href="{{ $loginUrl }}"
-                class="text-center py-2 border border-gray-600 rounded-full text-sm text-gray-300">
+        @endforeach
+        <div class="pt-3 flex flex-col gap-2 border-t border-white/10">
+            <a href="{{ $loginUrl }}" class="text-center py-2.5 border border-gray-700 rounded-full text-sm font-semibold text-gray-300">
                 {{ $isAr ? 'تسجيل الدخول' : 'Login' }}
             </a>
-            <a href="{{ $registerUrl }}"
-                class="text-center py-2 bg-yellow-400 rounded-full text-sm font-bold text-gray-950">
+            <a href="{{ $registerUrl }}" class="text-center py-2.5 bg-yellow-400 rounded-full text-sm font-black text-black">
                 {{ $isAr ? 'سجّل الآن' : 'Register Now' }}
             </a>
         </div>
     </div>
-</nav>
+</header>
