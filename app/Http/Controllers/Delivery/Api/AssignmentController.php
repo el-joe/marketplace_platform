@@ -32,26 +32,32 @@ class AssignmentController extends Controller
         /** @var DeliveryAgent $agent */
         $agent = auth('delivery_api')->user();
 
-        $query = DeliveryAssignment::where('agent_id', $agent->id)
-            ->with(['subOrder', 'shipment'])
-            ->whereDate('assigned_at', today());
+        $eagerLoad = ['subOrder.order', 'shipment.carrier'];
 
-        if ($status = $request->query('status')) {
-            $query->where('status', $status);
-        }
+        // Active assignments are not date-scoped — an assignment accepted
+        // yesterday but not yet delivered must still surface today.
+        $activeAssignments = DeliveryAssignment::where('agent_id', $agent->id)
+            ->whereIn('status', [
+                DeliveryAssignment::STATUS_ASSIGNED,
+                DeliveryAssignment::STATUS_ACCEPTED,
+                DeliveryAssignment::STATUS_PICKED_UP,
+            ])
+            ->with($eagerLoad)
+            ->orderByRaw("FIELD(status, 'assigned','accepted','picked_up')")
+            ->get();
 
-        // Active assignments float to the top.
-        $assignments = $query
-            ->orderByRaw("FIELD(status, 'assigned','accepted','picked_up','failed','delivered')")
-            ->paginate(20);
+        $completedToday = DeliveryAssignment::where('agent_id', $agent->id)
+            ->whereIn('status', [DeliveryAssignment::STATUS_DELIVERED, DeliveryAssignment::STATUS_FAILED])
+            ->where(function ($q) {
+                $q->whereDate('delivered_at', today())->orWhereDate('failed_at', today());
+            })
+            ->with($eagerLoad)
+            ->orderByDesc('assigned_at')
+            ->get();
 
         return ApiResponse::success([
-            'assignments' => AssignmentListResource::collection($assignments->items()),
-            'meta'        => [
-                'current_page' => $assignments->currentPage(),
-                'last_page'    => $assignments->lastPage(),
-                'total'        => $assignments->total(),
-            ],
+            'active_assignments' => AssignmentListResource::collection($activeAssignments),
+            'completed_today'    => AssignmentListResource::collection($completedToday),
         ]);
     }
 
@@ -61,7 +67,7 @@ class AssignmentController extends Controller
     {
         $this->authorizeAgent($assignment);
 
-        $assignment->load(['subOrder.items', 'subOrder.order', 'shipment']);
+        $assignment->load(['subOrder.items', 'subOrder.order', 'shipment.carrier']);
 
         return ApiResponse::success(['assignment' => new AssignmentDetailResource($assignment)]);
     }
@@ -90,7 +96,7 @@ class AssignmentController extends Controller
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        return ApiResponse::success(null, 'Assignment accepted.');
+        return $this->respondWithAssignment($assignment, 'Assignment accepted.');
     }
 
     // ── POST /assignments/{id}/picked-up ──────────────────────────────────────
@@ -109,7 +115,7 @@ class AssignmentController extends Controller
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        return ApiResponse::success(null, 'Package marked as picked up.');
+        return $this->respondWithAssignment($assignment, 'Package marked as picked up.');
     }
 
     // ── POST /assignments/{id}/verify-otp ─────────────────────────────────────
@@ -143,7 +149,12 @@ class AssignmentController extends Controller
             );
         }
 
-        return ApiResponse::success(['verified' => true], 'OTP verified.');
+        $assignment->load(['subOrder.items', 'subOrder.order', 'shipment.carrier']);
+
+        return ApiResponse::success([
+            'verified'   => true,
+            'assignment' => new AssignmentDetailResource($assignment),
+        ], 'OTP verified.');
     }
 
     // ── POST /assignments/{id}/deliver ────────────────────────────────────────
@@ -188,7 +199,7 @@ class AssignmentController extends Controller
             return ApiResponse::error($message, [], 422);
         }
 
-        return ApiResponse::success(null, 'Delivery confirmed successfully.');
+        return $this->respondWithAssignment($assignment, 'Delivery confirmed successfully.');
     }
 
     // ── POST /assignments/{id}/fail ───────────────────────────────────────────
@@ -209,7 +220,7 @@ class AssignmentController extends Controller
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        return ApiResponse::success(null, 'Delivery marked as failed.');
+        return $this->respondWithAssignment($assignment, 'Delivery marked as failed.');
     }
 
     // ── Private ───────────────────────────────────────────────────────────────
@@ -220,5 +231,12 @@ class AssignmentController extends Controller
         $agent = auth('delivery_api')->user();
 
         abort_if($assignment->agent_id !== $agent->id, 403, 'Forbidden.');
+    }
+
+    private function respondWithAssignment(DeliveryAssignment $assignment, string $message): JsonResponse
+    {
+        $assignment->load(['subOrder.items', 'subOrder.order', 'shipment.carrier']);
+
+        return ApiResponse::success(['assignment' => new AssignmentDetailResource($assignment)], $message);
     }
 }

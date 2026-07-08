@@ -4,6 +4,7 @@ namespace App\Notifications\DeliveryAgent;
 
 use App\Models\DeliveryAssignment;
 use App\Notifications\BaseDatabaseBroadcastNotification;
+use App\Notifications\Channels\VendorPushChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 
 /**
@@ -16,6 +17,11 @@ class DeliveryReassigned extends BaseDatabaseBroadcastNotification
         private readonly DeliveryAssignment $assignment,
         private readonly string $oldAgentId,
     ) {}
+
+    public function via(object $notifiable): array
+    {
+        return array_merge(parent::via($notifiable), [VendorPushChannel::class]);
+    }
 
     public function notificationType(): string
     {
@@ -36,5 +42,16 @@ class DeliveryReassigned extends BaseDatabaseBroadcastNotification
     public function broadcastOn(): array
     {
         return [new PrivateChannel('delivery-agent.' . $this->oldAgentId)];
+    }
+
+    public function toPush(object $notifiable): array
+    {
+        $data = $this->notificationData($notifiable);
+
+        return [
+            'title' => $data['title'],
+            'body'  => $data['message'],
+            'data'  => ['screen' => 'assignments'],
+        ];
     }
 }

@@ -14,10 +14,17 @@ class AssignmentDetailResource extends JsonResource
         $snapshot = $order?->shipping_address_snapshot ?? [];
 
         return [
-            'id'             => $this->id,
-            'status'         => $this->status,
+            'id'                => $this->id,
+            'sub_order_number'  => $this->subOrder?->sub_order_number,
+            'status'            => $this->status,
+            'is_cod'            => $isCod,
+            'currency'          => $order?->currency,
             'failure_reason' => $this->failure_reason,
             'failure_notes'  => $this->failure_notes,
+            'customer_rating' => $this->customer_rating,
+            'agent_notes'    => $this->agent_notes,
+            'proof_file_id'  => $this->proof_file_id,
+            'cod_amount_collected_cents' => $this->cod_amount_collected_cents,
             'assigned_at'    => $this->assigned_at?->toIso8601String(),
             'accepted_at'    => $this->accepted_at?->toIso8601String(),
             'picked_up_at'   => $this->picked_up_at?->toIso8601String(),
@@ -69,6 +76,7 @@ class AssignmentDetailResource extends JsonResource
                 'id'              => $this->shipment->id,
                 'tracking_number' => $this->shipment->tracking_number,
                 'status'          => $this->shipment->status,
+                'carrier'         => $this->shipment->carrier?->name,
             ]),
         ];
     }

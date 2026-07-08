@@ -4,11 +4,22 @@ namespace App\Notifications\DeliveryAgent;
 
 use App\Models\DeliveryAssignment;
 use App\Notifications\BaseDatabaseBroadcastNotification;
+use App\Notifications\Channels\VendorPushChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 
+/**
+ * The most time-sensitive notification in the platform — the agent must see
+ * it immediately, so it also pushes via FCM (VendorPushChannel::sendToToken()
+ * always sends with high Android/APNs priority).
+ */
 class NewDeliveryAssigned extends BaseDatabaseBroadcastNotification
 {
     public function __construct(private readonly DeliveryAssignment $assignment) {}
+
+    public function via(object $notifiable): array
+    {
+        return array_merge(parent::via($notifiable), [VendorPushChannel::class]);
+    }
 
     public function notificationType(): string
     {
@@ -30,5 +41,20 @@ class NewDeliveryAssigned extends BaseDatabaseBroadcastNotification
     public function broadcastOn(): array
     {
         return [new PrivateChannel('delivery-agent.' . $this->assignment->agent_id)];
+    }
+
+    public function toPush(object $notifiable): array
+    {
+        $data = $this->notificationData($notifiable);
+
+        return [
+            'title' => $data['title'],
+            'body'  => $data['message'],
+            'data'  => [
+                'screen'        => 'assignment_detail',
+                'id'            => $this->assignment->id,
+                'assignment_id' => $this->assignment->id,
+            ],
+        ];
     }
 }

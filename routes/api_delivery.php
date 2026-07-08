@@ -25,6 +25,8 @@ Route::prefix('v1')->group(function (): void {
         Route::prefix('auth')->group(function (): void {
             Route::post('logout', [AuthController::class, 'logout']);
             Route::get('me', [AuthController::class, 'me']);
+            Route::post('device-token', [AuthController::class, 'registerDeviceToken']);
+            Route::delete('device-token', [AuthController::class, 'removeDeviceToken']);
         });
 
         // Profile
@@ -72,6 +74,7 @@ Route::prefix('v1')->group(function (): void {
         // Notifications
         Route::prefix('notifications')->group(function (): void {
             Route::get('/', [NotificationController::class, 'index']);
+            Route::get('unread-count', [NotificationController::class, 'unreadCount']);
             Route::put('read-all', [NotificationController::class, 'markAllRead']);
             Route::put('{id}/read', [NotificationController::class, 'markRead']);
         });

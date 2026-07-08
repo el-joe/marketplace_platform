@@ -61,4 +61,16 @@ class NotificationController extends Controller
 
         return ApiResponse::success([], 'All notifications marked as read.');
     }
+
+    public function unreadCount(): JsonResponse
+    {
+        $agent = auth('delivery_api')->user();
+
+        $count = Notification::where('notifiable_type', DeliveryAgent::class)
+            ->where('notifiable_id', $agent->id)
+            ->whereNull('read_at')
+            ->count();
+
+        return ApiResponse::success(['unread_count' => $count]);
+    }
 }

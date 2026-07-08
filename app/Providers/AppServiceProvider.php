@@ -21,6 +21,7 @@ use App\Services\Shipping\ShippingCarrierFactory;
 use App\Services\Vendor\VendorFCMService;
 use App\Services\Marketer\MarketerFCMService;
 use App\Services\Carrier\CarrierFCMService;
+use App\Services\Delivery\DeliveryFCMService;
 use App\Notifications\Channels\VendorPushChannel;
 use App\Models\Address;
 use App\Models\FlashSaleSubmission;
@@ -81,6 +82,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(VendorFCMService::class);
         $this->app->singleton(MarketerFCMService::class);
         $this->app->singleton(CarrierFCMService::class);
+        $this->app->singleton(DeliveryFCMService::class);
 
         // Replace Laravel's built-in DatabaseChannel with our custom one that
         // writes to the platform's non-standard notifications table schema

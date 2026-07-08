@@ -8,7 +8,9 @@ use App\Http\Resources\Delivery\DeliveryAgentProfileResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentShift;
+use App\Models\DeviceToken;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -43,7 +45,22 @@ class AuthController extends Controller
             'last_login_ip' => $request->ip(),
         ]);
 
-        $agent->load(['zone', 'country']);
+        $agent->load(['zone', 'country', 'shippingCompany']);
+
+        if ($request->filled('fcm_token') && $request->filled('platform')) {
+            DeviceToken::updateOrCreate(
+                [
+                    'tokenable_type' => DeliveryAgent::class,
+                    'tokenable_id'   => $agent->id,
+                ],
+                [
+                    'token'        => $request->fcm_token,
+                    'platform'     => $request->platform,
+                    'is_active'    => 1,
+                    'last_used_at' => now(),
+                ]
+            );
+        }
 
         $todayStats = $this->todayStats($agent);
 
@@ -54,6 +71,44 @@ class AuthController extends Controller
             ['agent' => $resource],
             $this->issueTokenPair($agent)
         ));
+    }
+
+    public function registerDeviceToken(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token'    => 'required|string|max:255',
+            'platform' => 'required|string|in:ios,android',
+        ]);
+
+        /** @var DeliveryAgent $agent */
+        $agent = auth('delivery_api')->user();
+
+        DeviceToken::updateOrCreate(
+            [
+                'tokenable_type' => DeliveryAgent::class,
+                'tokenable_id'   => $agent->id,
+            ],
+            [
+                'token'        => $request->token,
+                'platform'     => $request->platform,
+                'is_active'    => 1,
+                'last_used_at' => now(),
+            ]
+        );
+
+        return ApiResponse::success(null, 'Device registered for push notifications.');
+    }
+
+    public function removeDeviceToken(): JsonResponse
+    {
+        /** @var DeliveryAgent $agent */
+        $agent = auth('delivery_api')->user();
+
+        DeviceToken::where('tokenable_type', DeliveryAgent::class)
+            ->where('tokenable_id', $agent->id)
+            ->update(['is_active' => 0]);
+
+        return ApiResponse::success(null, 'Device token removed.');
     }
 
     public function logout(): JsonResponse
@@ -97,7 +152,7 @@ class AuthController extends Controller
     {
         /** @var DeliveryAgent $agent */
         $agent = auth('delivery_api')->user();
-        $agent->load(['zone', 'country']);
+        $agent->load(['zone', 'country', 'shippingCompany']);
 
         $resource = new DeliveryAgentProfileResource($agent);
         $resource->todayStats = $this->todayStats($agent);
