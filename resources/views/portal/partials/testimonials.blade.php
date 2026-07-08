@@ -68,9 +68,9 @@
             ];
         @endphp
 
-        <div class="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 snap-x snap-mandatory scrollbar-none">
+        <div class="grid grid-cols-5 gap-3 lg:gap-4">
             @foreach($testimonials as $t)
-                <div class="relative shrink-0 w-[280px] h-[460px] rounded-2xl overflow-hidden snap-start">
+                <div class="relative rounded-2xl overflow-hidden h-[515px]">
                     <img src="{{ $t['image'] }}" alt="{{ $isAr ? $t['name_ar'] : $t['name_en'] }}"
                          class="absolute inset-0 w-full h-full object-cover object-top">
                     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/10"></div>

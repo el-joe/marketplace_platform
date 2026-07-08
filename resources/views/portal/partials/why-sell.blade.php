@@ -33,7 +33,7 @@
         @endphp
 
         @foreach($cards as $card)
-            <div class="relative rounded-2xl overflow-hidden aspect-[4/3] md:aspect-square lg:aspect-[4/5]">
+            <div class="relative rounded-2xl overflow-hidden h-full min-h-[320px] md:min-h-[380px]">
                 <img src="{{ $card['image'] }}" alt="{{ $isAr ? $card['title_ar'] : $card['title_en'] }}"
                      class="absolute inset-0 w-full h-full object-cover object-bottom">
                 <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10"></div>
