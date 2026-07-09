@@ -106,6 +106,8 @@ return [
     'first'           => 'الأول',
     'last'            => 'الأخير',
     'page'            => 'صفحة',
+    'password'        => 'كلمة المرور',
+    'password_confirmation' => 'تأكيد كلمة المرور',
     'go'              => 'انتقال',
     'language'        => 'اللغة',
     'arabic'          => 'العربية',

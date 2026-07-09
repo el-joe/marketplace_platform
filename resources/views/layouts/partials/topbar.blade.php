@@ -106,10 +106,13 @@
         <div class="relative" x-data="{ open: false }">
             <button type="button" @click="open = !open"
                 class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100">
-                <div
-                    class="w-8 h-8 rounded-full bg-primary-600 text-white inline-flex items-center justify-center text-sm font-semibold">
-                    {{ strtoupper(mb_substr($user?->name ?? 'A', 0, 1)) }}
-                </div>
+                @if($user && $user->avatar_url)
+                    <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover bg-white border border-gray-200">
+                @else
+                    <div class="w-8 h-8 rounded-full bg-primary-600 text-white inline-flex items-center justify-center text-sm font-semibold">
+                        {{ strtoupper(mb_substr($user?->name ?? 'A', 0, 1)) }}
+                    </div>
+                @endif
                 <span
                     class="hidden lg:inline text-sm text-gray-700 truncate max-w-[140px]">{{ $user?->name ?? 'Admin' }}</span>
                 <x-heroicon name="chevron-down" class="w-4 h-4 text-gray-400" />

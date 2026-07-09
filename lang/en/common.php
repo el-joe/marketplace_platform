@@ -11,6 +11,8 @@ return [
     'save'            => 'Save',
     'cancel'          => 'Cancel',
     'delete'          => 'Delete',
+    'password'        => 'Password',
+    'password_confirmation' => 'Password Confirmation',
     'edit'            => 'Edit',
     'view'            => 'View',
     'create'          => 'Create',
