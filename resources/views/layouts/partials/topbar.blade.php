@@ -1,6 +1,6 @@
 @php
     /** @var array $breadcrumbs */
-    $user = auth()->user();
+    $user = auth('admin')->user() ?? auth()->user();
 @endphp
 
 <header id="topbar" class="bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center gap-4">

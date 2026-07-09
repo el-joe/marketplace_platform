@@ -108,6 +108,8 @@ return [
     'page'            => 'صفحة',
     'password'        => 'كلمة المرور',
     'password_confirmation' => 'تأكيد كلمة المرور',
+    'profile_image'   => 'صورة الملف الشخصي',
+    'saved_successfully' => 'تم الحفظ بنجاح',
     'go'              => 'انتقال',
     'language'        => 'اللغة',
     'arabic'          => 'العربية',

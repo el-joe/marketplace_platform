@@ -13,6 +13,8 @@ return [
     'delete'          => 'Delete',
     'password'        => 'Password',
     'password_confirmation' => 'Password Confirmation',
+    'profile_image'   => 'Profile Image',
+    'saved_successfully' => 'Saved Successfully',
     'edit'            => 'Edit',
     'view'            => 'View',
     'create'          => 'Create',
