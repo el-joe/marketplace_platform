@@ -31,4 +31,34 @@ class LandingController extends Controller
     {
         return view('portal.smart-tools');
     }
+
+    public function sellers(string $country): View
+    {
+        return view('portal.sellers', compact('country'));
+    }
+
+    public function advertiseBrands(string $country): View
+    {
+        return view('portal.advertise-brands', compact('country'));
+    }
+
+    public function advertiseRequest(string $country): View
+    {
+        return view('portal.advertise-request', compact('country'));
+    }
+
+    public function advertiseAdvertisers(string $country): View
+    {
+        return view('portal.advertise-advertisers', compact('country'));
+    }
+
+    public function advertiseProduct(string $country): View
+    {
+        return view('portal.advertise-product', compact('country'));
+    }
+
+    public function advertiseDisplay(string $country): View
+    {
+        return view('portal.advertise-display', compact('country'));
+    }
 }

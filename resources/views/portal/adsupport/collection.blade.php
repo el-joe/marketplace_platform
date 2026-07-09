@@ -1,0 +1,78 @@
+@extends('layouts.adsupport')
+
+@section('title', $collection['name'] . ' | Advertise smarter, grow faster')
+@section('description', $collection['description'])
+
+@section('header')
+    @include('portal.partials.adsupport-header', ['variant' => 'lite', 'country' => $country])
+@endsection
+
+@section('content')
+    <nav class="pb-4 text-base" aria-label="Breadcrumb">
+        <ol class="m-0 flex list-none flex-wrap items-baseline gap-2 p-0">
+            <li class="flex items-center gap-2">
+                <a href="{{ route('portal.adsupport.index', $country) }}" class="text-black no-underline hover:text-[#737373]">All Collections</a>
+                <svg width="6" height="10" viewBox="0 0 6 10" class="block h-2 w-2 fill-[#737373]" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0.648862 0.898862C0.316916 1.23081 0.316916 1.769 0.648862 2.10094L3.54782 4.9999L0.648862 7.89886C0.316916 8.23081 0.316917 8.769 0.648862 9.10094C0.980808 9.43289 1.519 9.43289 1.85094 9.10094L5.35094 5.60094C5.68289 5.269 5.68289 4.73081 5.35094 4.39886L1.85094 0.898862C1.519 0.566916 0.980807 0.566916 0.648862 0.898862Z"></path>
+                </svg>
+            </li>
+            <li aria-current="page" class="text-[#737373]">{{ $collection['name'] }}</li>
+        </ol>
+    </nav>
+
+    <div class="flex flex-col gap-10 pt-4">
+        <div>
+            <div class="mb-5">
+                <div class="flex h-14 w-14 items-center justify-center rounded-[10px] bg-[#E0F2FF]">
+                    <div class="h-9 w-9 sm:h-10 sm:w-10">
+                        <img src="{{ $collection['icon'] }}" alt="" width="100%" height="100%" loading="lazy">
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col">
+                <h1 class="mb-1 text-2xl font-bold leading-10 text-black">{{ $collection['name'] }}</h1>
+                @if($collection['description'])
+                    <div class="text-md font-normal leading-normal text-black">
+                        <p>{{ $collection['description'] }}</p>
+                    </div>
+                @endif
+            </div>
+            <div class="mt-5">
+                <span class="flex text-base text-[#737373]">
+                    {{ $collection['article_count'] }} {{ Str::plural('article', $collection['article_count']) }}
+                </span>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-5">
+            @forelse($collection['subcollections'] as $subId => $sub)
+                <section class="flex flex-col rounded-[10px] border border-solid border-[#e6e6e6] bg-white p-2 sm:p-3">
+                    <div class="p-3 pb-6 text-black">
+                        <h2 class="m-0 text-xl font-bold no-underline">{{ $sub['name'] }}</h2>
+                    </div>
+                    <hr class="mx-3 mb-2 mt-0 border-0 border-t border-solid border-[#e6e6e6]">
+
+                    @foreach($sub['articles'] as $articleId)
+                        @php($articleData = $articles[$articleId] ?? null)
+                        @continue(!$articleData)
+                        <a class="group/article flex flex-row justify-between gap-2 rounded-[10px] px-3 py-2 no-underline transition ease-linear hover:bg-black/5 sm:py-3"
+                           href="{{ route('portal.adsupport.articles.show', ['country' => $country, 'article' => \App\Support\AdSupport\AdSupportCatalog::segmentFor($articleId, \Illuminate\Support\Str::slug($articleData['title']))]) }}">
+                            <div class="flex flex-col p-0">
+                                <span class="m-0 text-md text-black group-hover/article:text-black/70">{{ $articleData['title'] }}</span>
+                            </div>
+                            <div class="flex shrink-0 flex-col justify-center p-0">
+                                <svg class="block h-4 w-4 text-black ltr:-rotate-90" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </a>
+                    @endforeach
+                </section>
+            @empty
+                <section class="flex flex-col items-center rounded-[10px] border border-solid border-[#e6e6e6] bg-white p-10 text-center text-[#737373]">
+                    Articles in this collection are coming soon.
+                </section>
+            @endforelse
+        </div>
+    </div>
+@endsection
