@@ -57,6 +57,9 @@ class DatabaseSeeder extends Seeder
                 // ── Blog module starter content ────────────────────────────────
             BlogSeeder::class,
 
+                // ── Knowledge Hub (Ad Support) starter content ─────────────────
+            AdSupportSeeder::class,
+
                 // ── Light cross-reference demo data (run last) ─────────────────
             DemoDataSeeder::class,
         ]);

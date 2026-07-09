@@ -138,6 +138,8 @@ class AuthController extends Controller
     {
         $accessToken = auth('travel_agencies')->setTTL(self::ACCESS_TTL_MINUTES)->login($agency);
 
+        JWTAuth::factory()->setTTL(self::REFRESH_TTL_MINUTES);
+
         $refreshToken = JWTAuth::customClaims([
             'type' => 'refresh',
             'guard' => 'travel_agencies',

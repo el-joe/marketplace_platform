@@ -373,6 +373,20 @@ class NavigationService
                         'permission' => 'pages.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => __('admin.nav.adsupport_collections'),
+                        'route' => 'admin.adsupport.collections.index',
+                        'icon' => 'rectangle-stack',
+                        'permission' => 'pages.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.adsupport_articles'),
+                        'route' => 'admin.adsupport.articles.index',
+                        'icon' => 'information-circle',
+                        'permission' => 'pages.view',
+                        'badge' => null,
+                    ],
                 ],
             ],
             [

@@ -213,8 +213,10 @@ class AuthController extends Controller
 
     private function issueTokenPair(Marketer $marketer): array
     {
+
         $accessToken = auth('marketer_api')->setTTL(self::ACCESS_TTL_MINUTES)->login($marketer);
 
+        JWTAuth::factory()->setTTL(self::REFRESH_TTL_MINUTES);
         $refreshToken = JWTAuth::customClaims([
             'type'  => 'refresh',
             'guard' => 'marketer_api',

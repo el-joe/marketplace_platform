@@ -169,9 +169,9 @@ class AuthController extends Controller
 
     private function issueTokenPair(ShippingCompanySupervisor $supervisor): array
     {
-        $accessToken = auth('shipping_supervisor_api')
-            ->setTTL(self::ACCESS_TTL_MINUTES)
-            ->login($supervisor);
+        $accessToken = auth('shipping_supervisor_api')->setTTL(self::ACCESS_TTL_MINUTES)->login($supervisor);
+
+        JWTAuth::factory()->setTTL(self::REFRESH_TTL_MINUTES);
 
         $refreshToken = JWTAuth::customClaims([
             'type'  => 'refresh',

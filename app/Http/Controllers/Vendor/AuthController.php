@@ -18,7 +18,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-    private const ACCESS_TTL_MINUTES  = 60;
+    private const ACCESS_TTL_MINUTES = 60;
     private const REFRESH_TTL_MINUTES = 43200; // 30 days
 
     // ── Login ─────────────────────────────────────────────────────────────────
@@ -48,20 +48,22 @@ class AuthController extends Controller
             DeviceToken::updateOrCreate(
                 [
                     'tokenable_type' => VendorAdmin::class,
-                    'tokenable_id'   => $admin->id,
+                    'tokenable_id' => $admin->id,
                 ],
                 [
-                    'token'        => $request->fcm_token,
-                    'platform'     => $request->platform,
-                    'is_active'    => 1,
+                    'token' => $request->fcm_token,
+                    'platform' => $request->platform,
+                    'is_active' => 1,
                     'last_used_at' => now(),
                 ]
             );
         }
 
         return ApiResponse::success(array_merge(
-            ['admin' => new \App\Http\Resources\Vendor\TeamMemberResource($admin),
-             'vendor' => $vendor ? new VendorProfileResource($vendor) : null],
+            [
+                'admin' => new \App\Http\Resources\Vendor\TeamMemberResource($admin),
+                'vendor' => $vendor ? new VendorProfileResource($vendor) : null
+            ],
             $this->issueTokenPair($admin)
         ));
     }
@@ -86,8 +88,8 @@ class AuthController extends Controller
 
         return ApiResponse::success([
             'access_token' => $newToken,
-            'token_type'   => 'bearer',
-            'expires_in'   => self::ACCESS_TTL_MINUTES * 60,
+            'token_type' => 'bearer',
+            'expires_in' => self::ACCESS_TTL_MINUTES * 60,
         ]);
     }
 
@@ -96,7 +98,7 @@ class AuthController extends Controller
     public function registerDeviceToken(Request $request): JsonResponse
     {
         $request->validate([
-            'token'    => 'required|string|max:255',
+            'token' => 'required|string|max:255',
             'platform' => 'required|string|in:ios,android',
         ]);
 
@@ -106,12 +108,12 @@ class AuthController extends Controller
         DeviceToken::updateOrCreate(
             [
                 'tokenable_type' => VendorAdmin::class,
-                'tokenable_id'   => $admin->id,
+                'tokenable_id' => $admin->id,
             ],
             [
-                'token'        => $request->token,
-                'platform'     => $request->platform,
-                'is_active'    => 1,
+                'token' => $request->token,
+                'platform' => $request->platform,
+                'is_active' => 1,
                 'last_used_at' => now(),
             ]
         );
@@ -136,11 +138,11 @@ class AuthController extends Controller
     public function me(): JsonResponse
     {
         /** @var VendorAdmin $admin */
-        $admin  = auth('vendor')->user();
+        $admin = auth('vendor')->user();
         $vendor = $admin->vendor()->with('documents', 'bankAccounts')->first();
 
         return ApiResponse::success([
-            'admin'  => new \App\Http\Resources\Vendor\TeamMemberResource($admin),
+            'admin' => new \App\Http\Resources\Vendor\TeamMemberResource($admin),
             'vendor' => $vendor ? new VendorProfileResource($vendor) : null,
             'documents' => $vendor
                 ? \App\Http\Resources\Vendor\SellerDocumentResource::collection($vendor->documents)
@@ -187,16 +189,17 @@ class AuthController extends Controller
     {
         $accessToken = auth('vendor')->setTTL(self::ACCESS_TTL_MINUTES)->login($admin);
 
+        JWTAuth::factory()->setTTL(self::REFRESH_TTL_MINUTES);
         $refreshToken = JWTAuth::customClaims([
-            'type'  => 'refresh',
+            'type' => 'refresh',
             'guard' => 'vendor',
         ])->setTTL(self::REFRESH_TTL_MINUTES)->fromUser($admin);
 
         return [
-            'access_token'  => $accessToken,
+            'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
-            'token_type'    => 'bearer',
-            'expires_in'    => self::ACCESS_TTL_MINUTES * 60,
+            'token_type' => 'bearer',
+            'expires_in' => self::ACCESS_TTL_MINUTES * 60,
         ];
     }
 }

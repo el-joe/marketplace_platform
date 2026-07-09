@@ -1185,5 +1185,27 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{post}/feature', [\App\Http\Controllers\Admin\BlogPostController::class, 'feature'])->name('feature');
     });
 
+    // ─── Ad Support Collections (Knowledge Hub) ──────────────────────────────
+    Route::prefix('adsupport/collections')->name('adsupport.collections.')->middleware('admin.permission:pages.view')->group(function () {
+        Route::post('/reorder', [\App\Http\Controllers\Admin\AdSupportCollectionController::class, 'reorder'])->name('reorder');
+        Route::get('/', [\App\Http\Controllers\Admin\AdSupportCollectionController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\AdSupportCollectionController::class, 'store'])->name('store');
+        Route::put('/{collection:id}', [\App\Http\Controllers\Admin\AdSupportCollectionController::class, 'update'])->name('update');
+        Route::delete('/{collection:id}', [\App\Http\Controllers\Admin\AdSupportCollectionController::class, 'destroy'])->name('destroy');
+        Route::post('/{collection:id}/toggle', [\App\Http\Controllers\Admin\AdSupportCollectionController::class, 'toggleActive'])->name('toggle');
+    });
+
+    // ─── Ad Support Articles (Knowledge Hub) ─────────────────────────────────
+    Route::prefix('adsupport/articles')->name('adsupport.articles.')->middleware('admin.permission:pages.view')->group(function () {
+        Route::post('/datatable', [\App\Http\Controllers\Admin\AdSupportArticleController::class, 'datatable'])->name('datatable');
+        Route::get('/create', [\App\Http\Controllers\Admin\AdSupportArticleController::class, 'create'])->name('create');
+        Route::get('/', [\App\Http\Controllers\Admin\AdSupportArticleController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\AdSupportArticleController::class, 'store'])->name('store');
+        Route::get('/{article:id}/edit', [\App\Http\Controllers\Admin\AdSupportArticleController::class, 'edit'])->name('edit');
+        Route::put('/{article:id}', [\App\Http\Controllers\Admin\AdSupportArticleController::class, 'update'])->name('update');
+        Route::delete('/{article:id}', [\App\Http\Controllers\Admin\AdSupportArticleController::class, 'destroy'])->name('destroy');
+        Route::post('/{article:id}/feature', [\App\Http\Controllers\Admin\AdSupportArticleController::class, 'feature'])->name('feature');
+    });
+
 }); // end auth.admin middleware group
 
