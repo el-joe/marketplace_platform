@@ -3,47 +3,55 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
-use App\Support\AdSupport\AdSupportCatalog;
+use App\Models\AdSupportArticle;
+use App\Models\AdSupportCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AdSupportController extends Controller
 {
     public function index(string $country): View
     {
-        $collections = AdSupportCatalog::collections();
+        $collections = AdSupportCollection::active()
+            ->topLevel()
+            ->with('children')
+            ->get();
 
-        return view('portal.adsupport.index', compact('country', 'collections'));
+        $featuredArticle = AdSupportArticle::published()
+            ->where('is_featured', true)
+            ->first();
+
+        return view('portal.adsupport.index', compact('country', 'collections', 'featuredArticle'));
     }
 
-    public function collection(string $country, string $collection): View
+    public function collection(string $country, AdSupportCollection $collection): View
     {
-        $data = AdSupportCatalog::findCollection($collection);
+        abort_unless($collection->is_active, 404);
 
-        abort_if($data === null, 404);
-
-        $articles = AdSupportCatalog::articles();
+        $collection->load([
+            'children' => fn ($q) => $q->active(),
+            'children.articles' => fn ($q) => $q->published()->orderBy('created_at'),
+            'articles' => fn ($q) => $q->published()->orderBy('created_at'),
+        ]);
 
         return view('portal.adsupport.collection', [
             'country' => $country,
-            'collection' => $data,
-            'articles' => $articles,
+            'collection' => $collection,
         ]);
     }
 
-    public function article(string $country, string $article): View
+    public function article(string $country, AdSupportArticle $article): View
     {
-        $data = AdSupportCatalog::findArticle($article);
+        abort_unless($article->status === 'published', 404);
 
-        abort_if($data === null, 404);
+        $article->load('collection.parent');
 
-        $collections = AdSupportCatalog::collections();
-        $allArticles = AdSupportCatalog::articles();
+        DB::table('ad_support_articles')->where('id', $article->id)->increment('views_count');
 
         return view('portal.adsupport.article', [
             'country' => $country,
-            'article' => $data,
-            'collections' => $collections,
-            'allArticles' => $allArticles,
+            'article' => $article,
+            'relatedArticles' => $article->resolvedRelatedArticles(),
         ]);
     }
 }

@@ -54,13 +54,13 @@ class AdSupportArticle extends Model
     }
 
     /**
-     * Table of contents parsed from <h2 id="..."> headings in the rendered body.
+     * Table of contents parsed from <h1 id="..."> / <h2 id="..."> headings in the rendered body.
      *
      * @return array<int, array{id: string, label: string}>
      */
     public function getTableOfContentsAttribute(): array
     {
-        if (!preg_match_all('/<h2[^>]*\bid="([^"]+)"[^>]*>(.*?)<\/h2>/is', (string) $this->body, $matches, PREG_SET_ORDER)) {
+        if (!preg_match_all('/<h[12][^>]*\bid="([^"]+)"[^>]*>(.*?)<\/h[12]>/is', (string) $this->body, $matches, PREG_SET_ORDER)) {
             return [];
         }
 
