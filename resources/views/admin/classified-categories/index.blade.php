@@ -85,7 +85,7 @@
                             {{ $root->active_listing_count ?? 0 }}
                         </td>
                         <td class="px-4 py-3 text-center">
-                            <button type="button"
+                            <button type="button" dir="ltr"
                                     class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $root->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
                                     data-id="{{ $root->id }}" data-active="{{ $root->is_active ? '1' : '0' }}"
                                     data-has-children="{{ $root->children->isNotEmpty() ? '1' : '0' }}"
@@ -150,7 +150,7 @@
                             {{ $child->active_listing_count ?? 0 }}
                         </td>
                         <td class="px-4 py-3 text-center">
-                            <button type="button"
+                            <button type="button" dir="ltr"
                                     class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $child->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
                                     data-id="{{ $child->id }}" data-active="{{ $child->is_active ? '1' : '0' }}"
                                     data-has-children="0"
