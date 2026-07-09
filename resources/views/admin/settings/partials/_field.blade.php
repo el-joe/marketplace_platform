@@ -72,7 +72,7 @@ Renders the appropriate input type based on the setting's decoded PHP value.
             {{-- ── Boolean toggle (Alpine) ── --}}
             @php $checked = (bool) $raw; @endphp
             <div x-data="{ enabled: {{ $checked ? 'true' : 'false' }} }" class="flex items-center gap-3">
-                <button type="button" @click="enabled = !enabled" :class="enabled ? 'bg-blue-600' : 'bg-gray-200'"
+                <button type="button" dir="ltr" @click="enabled = !enabled" :class="enabled ? 'bg-blue-600' : 'bg-gray-200'"
                     class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     :aria-checked="enabled.toString()" role="switch">
                     <span :class="enabled ? 'translate-x-5' : 'translate-x-0'"

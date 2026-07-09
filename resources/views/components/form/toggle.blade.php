@@ -52,7 +52,7 @@
             {{-- Thumb --}}
             <div
                 :class="on ? '{{ $thumbOn }}' : 'translate-x-1'"
-                class="{{ $thumbSize }} bg-white rounded-full shadow absolute top-1 transition-transform duration-200">
+                class="{{ $thumbSize }} bg-white rounded-full shadow absolute top-1 left-0 transition-transform duration-200">
             </div>
         </div>
 

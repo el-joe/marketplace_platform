@@ -72,7 +72,7 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ $root->posts_count }}</span>
                         </td>
                         <td class="px-4 py-3 text-center">
-                            <button type="button"
+                            <button type="button" dir="ltr"
                                     class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $root->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
                                     data-id="{{ $root->id }}" data-active="{{ $root->is_active ? '1' : '0' }}"
                                     aria-label="Toggle active">
@@ -111,7 +111,7 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ $child->posts->count() }}</span>
                         </td>
                         <td class="px-4 py-3 text-center">
-                            <button type="button"
+                            <button type="button" dir="ltr"
                                     class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $child->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
                                     data-id="{{ $child->id }}" data-active="{{ $child->is_active ? '1' : '0' }}"
                                     aria-label="Toggle active">

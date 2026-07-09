@@ -1084,6 +1084,7 @@ return [
         'title'                 => 'Categories',
         'commission_fbp'        => 'FBP Commission',
         'commission_fbn'        => 'FBN Commission',
+        'save_changes'          => 'Save Changes',
         'marketer_sample_quota' => 'Marketer Sample Quota',
         'admin_sample_quota'    => 'Admin Sample Quota',
         'delivery_options'      => 'Delivery Options',

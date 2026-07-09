@@ -73,4 +73,10 @@ class Admin extends Authenticatable
     {
         return true;
     }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        $file = $this->files()->where('key', 'avatar')->first();
+        return $file ? $file->full_path : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=FFFFFF&background=0284c7';
+    }
 }

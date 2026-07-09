@@ -46,6 +46,7 @@ use App\Http\Controllers\Admin\MarketerController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\FbnController;
 use App\Http\Controllers\Admin\SecretPromotionController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
@@ -81,6 +82,10 @@ Broadcast::routes(['middleware' => ['web', 'auth.admin']]);
 Route::middleware('auth.admin')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    // ─── Profile ──────────────────────────────────────────────────────────────────
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // ─── Dashboard ────────────────────────────────────────────────────────────────
     Route::get('/', [DashboardController::class, 'index'])->middleware('admin.permission:dashboard.view')->name('dashboard');

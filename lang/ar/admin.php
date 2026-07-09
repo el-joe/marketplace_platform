@@ -1091,6 +1091,7 @@ return [
         'commission_fbn'        => 'عمولة FBN',
         'marketer_sample_quota' => 'حصة عينات المسوّق',
         'admin_sample_quota'    => 'حصة العينات الإدارية',
+        'save_changes'          => 'حفظ التغييرات',
         'delivery_options'      => 'خيارات التوصيل',
         'default_delivery'      => 'التوصيل الافتراضي',
         'parent_category'       => 'الفئة الرئيسية',

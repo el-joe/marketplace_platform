@@ -49,10 +49,10 @@ export const dtLanguage = _isAr
         search:      'بحث:',
         lengthMenu:  'عرض _MENU_ سجل',
         paginate: {
-            first:    'الأول',
-            last:     'الأخير',
-            next:     '‹',
-            previous: '›',
+            first:    '«',
+            last:     '»',
+            next:     '›',
+            previous: '‹',
         },
     }
     : {

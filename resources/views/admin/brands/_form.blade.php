@@ -192,7 +192,7 @@
                             <p class="text-sm font-medium text-gray-900">{{ __('common.active') }}</p>
                             <p class="text-xs text-gray-500">{{ __('admin.brands_section.active_hint') }}</p>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
+                        <label class="relative inline-flex items-center cursor-pointer" dir="ltr">
                             <input type="hidden" name="is_active" value="0">
                             <input
                                 type="checkbox"
@@ -201,10 +201,8 @@
                                 class="sr-only peer"
                                 {{ $bool('is_active', true) ? 'checked' : '' }}
                             >
-                            <div class="w-10 h-5 bg-gray-200 peer-checked:bg-primary-600 rounded-full
-                                        after:absolute after:top-0.5 after:left-[2px]
-                                        after:bg-white after:rounded-full after:h-4 after:w-4
-                                        after:transition-all peer-checked:after:translate-x-5"></div>
+                            <div class="relative w-10 h-5 bg-gray-200 peer-checked:bg-primary-600 rounded-full transition-colors duration-200"></div>
+                            <span class="absolute top-0.5 left-[2px] bg-white rounded-full h-4 w-4 transition-transform peer-checked:translate-x-5 pointer-events-none"></span>
                         </label>
                     </div>
 
@@ -214,7 +212,7 @@
                             <p class="text-sm font-medium text-gray-900">{{ __('admin.brands_section.verified') }}</p>
                             <p class="text-xs text-gray-500">{{ __('admin.brands_section.verified_hint') }}</p>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
+                        <label class="relative inline-flex items-center cursor-pointer" dir="ltr">
                             <input type="hidden" name="is_verified" value="0">
                             <input
                                 type="checkbox"
@@ -223,10 +221,8 @@
                                 class="sr-only peer"
                                 {{ $bool('is_verified') ? 'checked' : '' }}
                             >
-                            <div class="w-10 h-5 bg-gray-200 peer-checked:bg-success-600 rounded-full
-                                        after:absolute after:top-0.5 after:left-[2px]
-                                        after:bg-white after:rounded-full after:h-4 after:w-4
-                                        after:transition-all peer-checked:after:translate-x-5"></div>
+                            <div class="relative w-10 h-5 bg-gray-200 peer-checked:bg-success-600 rounded-full transition-colors duration-200"></div>
+                            <span class="absolute top-0.5 left-[2px] bg-white rounded-full h-4 w-4 transition-transform peer-checked:translate-x-5 pointer-events-none"></span>
                         </label>
                     </div>
 
@@ -236,7 +232,7 @@
                             <p class="text-sm font-medium text-gray-900">{{ __('admin.brands_section.restricted') }}</p>
                             <p class="text-xs text-gray-500">{{ __('admin.brands_section.restricted_hint') }}</p>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
+                        <label class="relative inline-flex items-center cursor-pointer" dir="ltr">
                             <input type="hidden" name="is_restricted" value="0">
                             <input
                                 type="checkbox"
@@ -245,10 +241,8 @@
                                 class="sr-only peer"
                                 {{ $bool('is_restricted') ? 'checked' : '' }}
                             >
-                            <div class="w-10 h-5 bg-gray-200 peer-checked:bg-warning-500 rounded-full
-                                        after:absolute after:top-0.5 after:left-[2px]
-                                        after:bg-white after:rounded-full after:h-4 after:w-4
-                                        after:transition-all peer-checked:after:translate-x-5"></div>
+                            <div class="relative w-10 h-5 bg-gray-200 peer-checked:bg-warning-500 rounded-full transition-colors duration-200"></div>
+                            <span class="absolute top-0.5 left-[2px] bg-white rounded-full h-4 w-4 transition-transform peer-checked:translate-x-5 pointer-events-none"></span>
                         </label>
                     </div>
 

@@ -192,7 +192,8 @@ class NavigationService
                         'route' => 'admin.marketers.all.index',
                         'icon' => 'user-group',
                         'permission' => 'marketers.view',
-                        'badge' => $this->cachedBadge('pending_marketers', fn() => $this->countPendingMarketers()),
+                        // 'badge' => $this->cachedBadge('pending_marketers', fn() => $this->countPendingMarketers()),
+                        'badge' => null,
                     ],
                     [
                         'label' => __('admin.nav.campaigns'),
