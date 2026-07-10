@@ -162,16 +162,22 @@ class Category extends Model
      */
     public function brandsInSubtree()
     {
-        return Brand::query()
+        $query = Brand::query()
             ->select('brands.*')
             ->join('products', 'products.brand_id', '=', 'brands.id')
             ->join('categories', 'categories.id', '=', 'products.category_id')
             ->where('products.status', 'active')
             ->where('brands.is_active', true)
-            ->where('categories.lft', '>=', $this->lft)
-            ->where('categories.rgt', '<=', $this->rgt)
             ->whereNull('categories.deleted_at')
             ->distinct();
+
+        if ($this->lft === null || $this->rgt === null) {
+            return $query->where('categories.id', $this->id);
+        }
+
+        return $query
+            ->where('categories.lft', '>=', $this->lft)
+            ->where('categories.rgt', '<=', $this->rgt);
     }
 
     public function shippingMethods(): BelongsToMany
