@@ -44,9 +44,35 @@
                 <div class="w-px h-[24px] bg-white/20 self-center"></div>
 
                 {{-- Country --}}
-                <div class="flex items-center gap-[8px] text-sm font-bold text-white">
-                    <img src="https://f.nooncdn.com/s/app/com/common/images/flags/ae.svg" alt="{{ $isAr ? 'الإمارات' : 'UAE' }}" width="20" height="20">
-                    <span>{{ $isAr ? 'الإمارات' : 'UAE' }}</span>
+                <div class="relative" x-data="{ countryOpen: false }" @click.outside="countryOpen = false">
+                    <button type="button" @click="countryOpen = !countryOpen"
+                            class="flex items-center gap-[8px] text-sm font-bold text-white hover:text-yellow-400 transition-colors">
+                        @if($currentCountry)
+                            <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($currentCountry->iso_code_2) }}.svg"
+                                 alt="{{ $isAr ? $currentCountry->name_ar : $currentCountry->name_en }}" width="20" height="20">
+                            <span>{{ $isAr ? $currentCountry->name_ar : $currentCountry->name_en }}</span>
+                        @else
+                            <span>{{ $isAr ? 'الدولة' : 'Country' }}</span>
+                        @endif
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"
+                             class="transition-transform" :class="countryOpen ? 'rotate-180' : ''">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+
+                    <div x-show="countryOpen" x-cloak x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute {{ $isAr ? 'start-0' : 'end-0' }} top-full mt-3 w-48 rounded-xl bg-gray-900 border border-white/10 shadow-xl py-2 z-50">
+                        @foreach($countries as $country)
+                            <a href="{{ route('portal.country', $country->site_code) }}"
+                               class="flex items-center gap-[10px] px-4 py-2 text-sm font-semibold transition-colors
+                                      {{ $currentCountry && $currentCountry->id === $country->id ? 'text-yellow-400' : 'text-gray-200 hover:text-white hover:bg-white/5' }}">
+                                <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($country->iso_code_2) }}.svg"
+                                     alt="{{ $isAr ? $country->name_ar : $country->name_en }}" width="18" height="18">
+                                <span>{{ $isAr ? $country->name_ar : $country->name_en }}</span>
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
 
                 {{-- Language --}}
@@ -60,7 +86,28 @@
 
             {{-- Mobile controls --}}
             <div class="flex lg:hidden items-center gap-4">
-                <img src="https://f.nooncdn.com/s/app/com/common/images/flags/ae.svg" alt="{{ $isAr ? 'الإمارات' : 'UAE' }}" width="20" height="20">
+                <div class="relative" x-data="{ mobileCountryOpen: false }" @click.outside="mobileCountryOpen = false">
+                    <button type="button" @click="mobileCountryOpen = !mobileCountryOpen" aria-label="{{ $isAr ? 'اختر الدولة' : 'Select country' }}">
+                        @if($currentCountry)
+                            <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($currentCountry->iso_code_2) }}.svg"
+                                 alt="{{ $isAr ? $currentCountry->name_ar : $currentCountry->name_en }}" width="20" height="20">
+                        @endif
+                    </button>
+
+                    <div x-show="mobileCountryOpen" x-cloak x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute {{ $isAr ? 'start-0' : 'end-0' }} top-full mt-3 w-48 rounded-xl bg-gray-900 border border-white/10 shadow-xl py-2 z-50">
+                        @foreach($countries as $country)
+                            <a href="{{ route('portal.country', $country->site_code) }}"
+                               class="flex items-center gap-[10px] px-4 py-2 text-sm font-semibold transition-colors
+                                      {{ $currentCountry && $currentCountry->id === $country->id ? 'text-yellow-400' : 'text-gray-200 hover:text-white hover:bg-white/5' }}">
+                                <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($country->iso_code_2) }}.svg"
+                                     alt="{{ $isAr ? $country->name_ar : $country->name_en }}" width="18" height="18">
+                                <span>{{ $isAr ? $country->name_ar : $country->name_en }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
                 <a href="{{ $langToggleUrl }}" class="text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />

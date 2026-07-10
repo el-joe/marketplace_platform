@@ -1207,5 +1207,27 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{article:id}/feature', [\App\Http\Controllers\Admin\AdSupportArticleController::class, 'feature'])->name('feature');
     });
 
+    // ─── Help Center Categories (Portal) ─────────────────────────────────────
+    Route::prefix('helpcenter/categories')->name('helpcenter.categories.')->middleware('admin.permission:pages.view')->group(function () {
+        Route::post('/reorder', [\App\Http\Controllers\Admin\HelpCenterCategoryController::class, 'reorder'])->name('reorder');
+        Route::get('/', [\App\Http\Controllers\Admin\HelpCenterCategoryController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\HelpCenterCategoryController::class, 'store'])->name('store');
+        Route::put('/{category:id}', [\App\Http\Controllers\Admin\HelpCenterCategoryController::class, 'update'])->name('update');
+        Route::delete('/{category:id}', [\App\Http\Controllers\Admin\HelpCenterCategoryController::class, 'destroy'])->name('destroy');
+        Route::post('/{category:id}/toggle', [\App\Http\Controllers\Admin\HelpCenterCategoryController::class, 'toggleActive'])->name('toggle');
+    });
+
+    // ─── Help Center Articles (Portal) ───────────────────────────────────────
+    Route::prefix('helpcenter/articles')->name('helpcenter.articles.')->middleware('admin.permission:pages.view')->group(function () {
+        Route::post('/datatable', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'datatable'])->name('datatable');
+        Route::get('/create', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'create'])->name('create');
+        Route::get('/', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'store'])->name('store');
+        Route::get('/{article:id}/edit', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'edit'])->name('edit');
+        Route::put('/{article:id}', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'update'])->name('update');
+        Route::delete('/{article:id}', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'destroy'])->name('destroy');
+        Route::post('/{article:id}/feature', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'feature'])->name('feature');
+    });
+
 }); // end auth.admin middleware group
 

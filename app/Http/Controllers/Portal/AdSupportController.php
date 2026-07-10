@@ -5,13 +5,16 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\AdSupportArticle;
 use App\Models\AdSupportCollection;
+use App\Models\Country;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AdSupportController extends Controller
 {
-    public function index(string $country): View
+    public function index(?string $country = null): View
     {
+        $country = Country::resolveSiteCode($country);
+
         $collections = AdSupportCollection::active()
             ->topLevel()
             ->with('children')
@@ -24,8 +27,10 @@ class AdSupportController extends Controller
         return view('portal.adsupport.index', compact('country', 'collections', 'featuredArticle'));
     }
 
-    public function collection(string $country, AdSupportCollection $collection): View
+    public function collection(?string $country, AdSupportCollection $collection): View
     {
+        $country = Country::resolveSiteCode($country);
+
         abort_unless($collection->is_active, 404);
 
         $collection->load([
@@ -40,8 +45,10 @@ class AdSupportController extends Controller
         ]);
     }
 
-    public function article(string $country, AdSupportArticle $article): View
+    public function article(?string $country, AdSupportArticle $article): View
     {
+        $country = Country::resolveSiteCode($country);
+
         abort_unless($article->status === 'published', 404);
 
         $article->load('collection.parent');

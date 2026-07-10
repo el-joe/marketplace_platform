@@ -24,6 +24,7 @@ use App\Services\Carrier\CarrierFCMService;
 use App\Services\Delivery\DeliveryFCMService;
 use App\Notifications\Channels\VendorPushChannel;
 use App\Models\Address;
+use App\Models\Country;
 use App\Models\FlashSaleSubmission;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerQrCode;
@@ -63,6 +64,7 @@ use App\Observers\VendorListingObserver;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -144,5 +146,19 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('components.form.textarea', 'form-textarea');
         Blade::component('components.form.date-picker', 'form-date-picker');
         Blade::component('components.form.radio-group', 'form-radio-group');
+
+        // Portal header country dropdown: shares the active/launched country list plus
+        // the currently selected one (URL {country} segment, then session, then default).
+        View::composer('portal.partials.nav', function ($view): void {
+            $countries = Country::where('is_active', true)
+                ->where('is_launched', true)
+                ->orderBy('name_en')
+                ->get();
+
+            $currentCode = Country::resolveSiteCode(request()->route('country'));
+            $currentCountry = $countries->firstWhere('site_code', $currentCode) ?? $countries->first();
+
+            $view->with(compact('countries', 'currentCountry'));
+        });
     }
 }

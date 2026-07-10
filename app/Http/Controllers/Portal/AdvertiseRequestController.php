@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdvertiseInquiry;
+use App\Models\Country;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class AdvertiseRequestController extends Controller
 {
-    public function store(Request $request, string $country): RedirectResponse
+    public function store(Request $request, ?string $country = null): RedirectResponse
     {
+        $country = Country::resolveSiteCode($country);
+
         $isAr = session('locale', 'ar') === 'ar';
 
         $noSpecialChars = 'regex:/^[^+\-*\/]*$/';

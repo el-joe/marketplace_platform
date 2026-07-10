@@ -42,6 +42,19 @@ class Country extends Model
         'launched_at' => 'datetime',
     ];
 
+    /**
+     * Resolve the effective site_code for {country?} portal routes: the URL segment
+     * takes priority, then the header dropdown's session pick, then the first
+     * active/launched country as a last-resort default.
+     */
+    public static function resolveSiteCode(?string $country): string
+    {
+        return $country
+            ?? session('portal_country')
+            ?? static::where('is_active', true)->where('is_launched', true)->value('site_code')
+            ?? 'ae';
+    }
+
     // ── Relations ──────────────────────────────────────────────────────────
 
     public function currency(): BelongsTo

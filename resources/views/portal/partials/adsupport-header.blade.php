@@ -32,7 +32,7 @@
 
                             {{-- Desktop nav --}}
                             <nav class="hidden items-center md:flex">
-                                <a target="_blank" rel="noopener noreferrer" href="https://admanager.noon.partners/en-ae?utm_source=help_center&utm_medium=header"
+                                <a target="_blank" rel="noopener noreferrer" href="{{ route('portal.register') }}"
                                    class="mx-5 text-md no-underline hover:opacity-80 md:mx-3 md:text-base">Start now</a>
                                 <a href="{{ route('portal.advertise.request', $country) }}"
                                    class="mx-3 text-md no-underline hover:opacity-80 md:text-base">Contact us</a>

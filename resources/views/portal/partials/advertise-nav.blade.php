@@ -27,7 +27,7 @@
             </nav>
 
             <div class="hidden lg:flex items-center gap-5">
-                <a href="https://admanager.noon.partners/en-ae?utm_source=ad_site&utm_medium=header" target="_blank" rel="noopener"
+                <a href="{{ route('portal.register') }}" target="_blank" rel="noopener"
                    class="bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm px-5 py-2.5 rounded-full transition-colors">
                     {{ $isAr ? 'ابدأ الآن' : 'Start now' }}
                 </a>

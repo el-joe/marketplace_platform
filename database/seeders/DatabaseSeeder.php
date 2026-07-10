@@ -60,6 +60,9 @@ class DatabaseSeeder extends Seeder
                 // ── Knowledge Hub (Ad Support) starter content ─────────────────
             AdSupportSeeder::class,
 
+                // ── Seller Help Center starter content ──────────────────────────
+            HelpCenterSeeder::class,
+
                 // ── Light cross-reference demo data (run last) ─────────────────
             DemoDataSeeder::class,
         ]);

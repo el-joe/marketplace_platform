@@ -390,6 +390,26 @@ class NavigationService
                 ],
             ],
             [
+                'group' => __('admin.nav.helpcenter_group'),
+                'icon' => 'information-circle',
+                'items' => [
+                    [
+                        'label' => __('admin.nav.helpcenter_categories'),
+                        'route' => 'admin.helpcenter.categories.index',
+                        'icon' => 'rectangle-stack',
+                        'permission' => 'pages.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.helpcenter_articles'),
+                        'route' => 'admin.helpcenter.articles.index',
+                        'icon' => 'information-circle',
+                        'permission' => 'pages.view',
+                        'badge' => null,
+                    ],
+                ],
+            ],
+            [
                 'group' => __('admin.nav.system'),
                 'icon' => 'cog-6-tooth',
                 'items' => [
