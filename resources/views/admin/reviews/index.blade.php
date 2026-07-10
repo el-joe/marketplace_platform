@@ -34,7 +34,7 @@
     @endif
 
     {{-- ─── Quick Action Tabs ────────────────────────────────────────────────────── --}}
-    <div class="flex items-center gap-1 mb-4 border-b border-gray-200">
+    <div class="flex items-center gap-1 mb-4 border-b border-gray-200 overflow-x-auto whitespace-nowrap -mx-4 px-4 sm:mx-0 sm:px-0">
         @foreach([
             ['id' => 'all',         'label' => __('admin.reviews_section.tab_all'),        'status' => ''],
             ['id' => 'pending',     'label' => __('admin.reviews_section.pending'),    'status' => 'pending'],
@@ -43,7 +43,7 @@
         ] as $tab)
             <button
                 type="button"
-                class="tab-btn px-4 py-2 text-sm font-medium border-b-2 transition-colors
+                class="tab-btn flex-shrink-0 px-4 py-2 text-sm font-medium border-b-2 transition-colors
                     {{ $loop->first ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                 data-tab="{{ $tab['id'] }}"
                 data-status="{{ $tab['status'] }}">
@@ -129,17 +129,17 @@
         <div class="flex flex-wrap items-center gap-3">
 
             {{-- Date range --}}
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 <span class="text-xs font-medium text-gray-500 whitespace-nowrap">{{ __('admin.reviews_section.date_range') }}</span>
-                <input type="date" id="filter-date-from" class="form-input text-sm w-36">
-                <span class="text-gray-300 font-bold">→</span>
-                <input type="date" id="filter-date-to" class="form-input text-sm w-36">
+                <input type="date" id="filter-date-from" class="form-input text-sm w-full xs:w-auto sm:w-36">
+                <span class="text-gray-300 font-bold hidden sm:inline">→</span>
+                <input type="date" id="filter-date-to" class="form-input text-sm w-full xs:w-auto sm:w-36">
             </div>
 
-            <div class="h-5 w-px bg-gray-200 hidden sm:block"></div>
+            <div class="h-5 w-px bg-gray-200 hidden lg:block"></div>
 
             {{-- Toggle pills --}}
-            <div class="flex items-center gap-2 sm:ml-auto">
+            <div class="flex flex-wrap items-center gap-2 lg:ml-auto">
 
                 {{-- Verified purchase toggle --}}
                 <label class="cursor-pointer select-none">

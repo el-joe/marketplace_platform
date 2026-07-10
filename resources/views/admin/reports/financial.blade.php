@@ -25,21 +25,21 @@
 </div>
 
 {{-- ─── Filters bar ──────────────────────────────────────────────────────────── --}}
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 mb-5 flex flex-wrap items-center gap-3">
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 mb-5 flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-3">
 
     {{-- Date range --}}
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2">
         <label class="text-sm font-medium text-gray-600 whitespace-nowrap">{{ __('common.from') }}</label>
-        <input type="date" id="filter-from" class="form-input py-1.5 text-sm w-36" dir="ltr" />
+        <input type="date" id="filter-from" class="form-input py-1.5 text-sm w-full xs:w-36 sm:w-36" dir="ltr" />
         <label class="text-sm font-medium text-gray-600">{{ __('common.to') }}</label>
-        <input type="date" id="filter-to" class="form-input py-1.5 text-sm w-36" dir="ltr" />
-        <button id="btn-apply" type="button" class="btn btn-primary btn-sm">{{ __('admin.finance.apply') }}</button>
+        <input type="date" id="filter-to" class="form-input py-1.5 text-sm w-full xs:w-36 sm:w-36" dir="ltr" />
+        <button id="btn-apply" type="button" class="btn btn-primary btn-sm w-full xs:w-auto sm:w-auto">{{ __('admin.finance.apply') }}</button>
     </div>
 
-    <div class="h-5 border-l border-gray-200"></div>
+    <div class="hidden lg:block h-5 border-l border-gray-200"></div>
 
     {{-- Quick periods --}}
-    <div class="inline-flex rounded-lg shadow-sm border border-gray-300 overflow-hidden" role="group">
+    <div class="inline-flex flex-wrap rounded-lg shadow-sm border border-gray-300 overflow-hidden w-full sm:w-auto" role="group">
         @foreach ([
             'this_month'  => __('admin.finance.this_month'),
             'last_month'  => __('admin.finance.last_month'),
@@ -47,14 +47,14 @@
             'this_year'   => __('admin.finance.this_year'),
         ] as $key => $label)
             <button type="button" data-period="{{ $key }}"
-                class="period-btn px-3 py-1.5 text-sm font-medium border-r border-gray-300 last:border-r-0 transition-colors
+                class="period-btn flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium border-r border-gray-300 last:border-r-0 transition-colors
                        {{ $key === 'this_month' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }}">
                 {{ $label }}
             </button>
         @endforeach
     </div>
 
-    <div class="h-5 border-l border-gray-200"></div>
+    <div class="hidden lg:block h-5 border-l border-gray-200"></div>
 
     {{-- Include unlaunched toggle --}}
     <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">

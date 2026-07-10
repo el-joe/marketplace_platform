@@ -10,27 +10,28 @@
 <div class="p-6 space-y-5">
 
     {{-- Header --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.blog.categories') }}</h1>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">{{ __('admin.blog.categories') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.blog.category_tree_desc') }}</p>
         </div>
         <button type="button" id="btn-new-category"
-                class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
+                class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 w-full sm:w-auto">
             <x-heroicon name="plus" class="w-4 h-4" />
             {{ __('admin.blog.new_category') }}
         </button>
     </div>
 
     {{-- Stats --}}
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <x-stat-card title="{{ __('admin.blog.total_categories') }}" :value="$stats['total']" icon="rectangle-stack" iconBg="bg-primary-100 text-primary-600" />
         <x-stat-card title="{{ __('common.active') }}" :value="$stats['active']" icon="check-circle" iconBg="bg-emerald-100 text-emerald-600" />
         <x-stat-card
             title="{{ __('admin.blog.most_posts') }}"
             :value="$stats['top_category'] ? $stats['top_category']->name_en . ' (' . $stats['top_category']->posts_count . ')' : '—'"
             icon="pencil-square"
-            iconBg="bg-amber-100 text-amber-600" />
+            iconBg="bg-amber-100 text-amber-600"
+            class="sm:col-span-2 lg:col-span-1" />
     </div>
 
     {{-- Tree table --}}
@@ -148,7 +149,7 @@
         @csrf
         <input type="hidden" id="form-category-id" value="">
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.name_en') }} <span class="text-red-500">*</span></label>
                 <input type="text" name="name_en" id="f-name-en" required maxlength="150"
@@ -161,7 +162,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.slug') }}</label>
                 <input type="text" name="slug" id="f-slug" maxlength="150"
@@ -178,7 +179,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.color') }}</label>
                 <div class="flex items-center gap-2">
@@ -194,7 +195,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.modal.description_en') }}</label>
                 <textarea name="description_en" id="f-desc-en" rows="3"
@@ -207,7 +208,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.seo_title') }} (EN)</label>
                 <input type="text" name="seo_title_en" id="f-seo-title-en" maxlength="200" class="form-input w-full text-sm">
@@ -218,7 +219,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.blog.seo_description') }} (EN)</label>
                 <textarea name="seo_description_en" id="f-seo-desc-en" rows="2" class="form-input w-full text-sm"></textarea>

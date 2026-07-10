@@ -10,20 +10,20 @@
 <div class="p-6 space-y-5">
 
     {{-- Header --}}
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.blog.posts') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.blog.post.manage_all_content') }}</p>
         </div>
         <a href="{{ route('admin.blog.posts.create') }}"
-           class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
+           class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 sm:self-auto">
             <x-heroicon name="plus" class="w-4 h-4" />
             {{ __('admin.blog.new_post') }}
         </a>
     </div>
 
     {{-- Stats --}}
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <x-stat-card title="{{ __('admin.blog.published_posts') }}"    :value="number_format($stats['published'])" icon="check-circle"   iconBg="bg-emerald-100 text-emerald-600" />
         <x-stat-card title="{{ __('admin.blog.draft_posts') }}"        :value="number_format($stats['draft'])"     icon="pencil"         iconBg="bg-gray-100 text-gray-600" />
         <x-stat-card title="{{ __('admin.blog.scheduled_posts') }}"    :value="number_format($stats['scheduled'])" icon="clock"          iconBg="bg-blue-100 text-blue-600" />
@@ -33,12 +33,12 @@
 
     {{-- Filter bar --}}
     <x-card>
-        <form id="posts-filter-form" class="flex flex-wrap gap-3 items-end">
-            <div class="flex-1 min-w-[160px]">
+        <form id="posts-filter-form" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 xl:items-end">
+            <div class="sm:col-span-2 lg:col-span-4 xl:col-span-2">
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.search') }}</label>
                 <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="{{ __('admin.blog.search_placeholder') }}">
             </div>
-            <div class="w-40">
+            <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.status') }}</label>
                 <select id="filter-status" class="form-input w-full text-sm">
                     <option value="">{{ __('admin.blog.all_statuses') }}</option>
@@ -48,7 +48,7 @@
                     <option value="archived">{{ __('common.archived') }}</option>
                 </select>
             </div>
-            <div class="w-44">
+            <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.category') }}</label>
                 <select id="filter-category" class="form-input w-full text-sm">
                     <option value="">{{ __('admin.blog.all_categories') }}</option>
@@ -62,7 +62,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="w-40">
+            <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.country') }}</label>
                 <select id="filter-country" class="form-input w-full text-sm">
                     <option value="">{{ __('admin.blog.all_countries') }}</option>
@@ -71,7 +71,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="w-40">
+            <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.blog.author') }}</label>
                 <select id="filter-author" class="form-input w-full text-sm">
                     <option value="">{{ __('admin.blog.all_authors') }}</option>
@@ -80,15 +80,17 @@
                     @endforeach
                 </select>
             </div>
-            <div class="w-36">
+            <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.blog.published_from') }}</label>
                 <input type="date" id="filter-date-from" class="form-input w-full text-sm">
             </div>
-            <div class="w-36">
+            <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.blog.published_to') }}</label>
                 <input type="date" id="filter-date-to" class="form-input w-full text-sm">
             </div>
-            <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('common.reset') }}</button>
+            <div class="flex items-end">
+                <button type="button" id="clear-filters" class="btn btn-ghost btn-sm w-full sm:w-auto">{{ __('common.reset') }}</button>
+            </div>
         </form>
     </x-card>
 
@@ -184,31 +186,32 @@ window.TRANSLATIONS = {
                     },
                 },
                 columns: [
-                    { data: 'image',   orderable: false },
-                    { data: 'title',   orderable: true },
-                    { data: 'author',  orderable: false },
-                    { data: 'country', orderable: false },
-                    { data: 'status',  orderable: true },
-                    { data: 'date',    orderable: true },
-                    { data: 'views',   orderable: true },
-                    { data: 'actions', orderable: false, className: 'text-end' },
+                    { data: 'image',   orderable: false, responsivePriority: 4 },
+                    { data: 'title',   orderable: true,  responsivePriority: 1 },
+                    { data: 'author',  orderable: false, responsivePriority: 6 },
+                    { data: 'country', orderable: false, responsivePriority: 7 },
+                    { data: 'status',  orderable: true,  responsivePriority: 3 },
+                    { data: 'date',    orderable: true,  responsivePriority: 5 },
+                    { data: 'views',   orderable: true,  responsivePriority: 8 },
+                    { data: 'actions', orderable: false, className: 'text-end', responsivePriority: 2 },
                 ],
                 order: [[5, 'desc']],
                 pageLength: 25,
+                responsive: true,
                 language: { processing: window.TRANSLATIONS.loading, emptyTable: window.TRANSLATIONS.no_posts },
             });
         } else {
             dtInstance = window.initDataTable('posts-table', {
                 url: '{{ route("admin.blog.posts.datatable") }}',
                 columns: [
-                    { data: 'image',   orderable: false },
-                    { data: 'title',   orderable: true },
-                    { data: 'author',  orderable: false },
-                    { data: 'country', orderable: false },
-                    { data: 'status',  orderable: true },
-                    { data: 'date',    orderable: true },
-                    { data: 'views',   orderable: true },
-                    { data: 'actions', orderable: false },
+                    { data: 'image',   orderable: false, responsivePriority: 4 },
+                    { data: 'title',   orderable: true,  responsivePriority: 1 },
+                    { data: 'author',  orderable: false, responsivePriority: 6 },
+                    { data: 'country', orderable: false, responsivePriority: 7 },
+                    { data: 'status',  orderable: true,  responsivePriority: 3 },
+                    { data: 'date',    orderable: true,  responsivePriority: 5 },
+                    { data: 'views',   orderable: true,  responsivePriority: 8 },
+                    { data: 'actions', orderable: false, responsivePriority: 2 },
                 ],
                 order: [[5, 'desc']],
                 pageLength: 25,

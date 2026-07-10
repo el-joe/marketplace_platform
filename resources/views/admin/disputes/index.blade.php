@@ -30,7 +30,7 @@
     </div>
 
     {{-- ─── Status Tabs ─────────────────────────────────────────────────────── --}}
-    <div class="flex gap-1 mb-5 border-b border-gray-200">
+    <div class="w-full gap-1 mb-5 border-b border-gray-200">
         @php
             $tabs = [
                 '' => __('admin.disputes_section.all'),
