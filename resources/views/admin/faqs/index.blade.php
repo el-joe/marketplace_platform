@@ -53,7 +53,7 @@
                         <td class="px-4 py-3 max-w-sm truncate font-medium text-gray-900">{{ $faq->question_en }}</td>
                         <td class="px-4 py-3 max-w-sm truncate text-gray-600" dir="rtl">{{ $faq->question_ar }}</td>
                         <td class="px-4 py-3 text-center">
-                            <button type="button"
+                            <button type="button" dir="ltr"
                                     class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $faq->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
                                     data-id="{{ $faq->id }}" aria-label="Toggle active">
                                 <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $faq->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
