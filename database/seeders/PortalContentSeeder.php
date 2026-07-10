@@ -100,9 +100,9 @@ class PortalContentSeeder extends Seeder
             );
         }
 
-        PortalContent::flush('nav');
-        PortalContent::flush('cta_footer');
-        PortalContent::flush('home');
+        // PortalContent::flush('nav');
+        // PortalContent::flush('cta_footer');
+        // PortalContent::flush('home');
         PortalContent::flush('faq');
     }
 }
