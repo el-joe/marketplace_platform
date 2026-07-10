@@ -7,6 +7,60 @@
 @endpush
 
 @push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            saving: @json(__('admin.shipping_section.saving')),
+            save: @json(__('common.save')),
+            saveAssignment: @json(__('admin.shipping_section.save_assignment')),
+            calculating: @json(__('admin.shipping_section.calculating')),
+            calculate: @json(__('admin.shipping_section.calculate')),
+            active: @json(__('common.active')),
+            inactive: @json(__('common.inactive')),
+            any: @json(__('admin.shipping_section.any_label')),
+            edit: @json(__('common.edit')),
+            failedToLoadRates: @json(__('admin.shipping_section.failed_to_load_rates')),
+            bulkActionFailed: @json(__('admin.shipping_section.bulk_action_failed')),
+            deleteRatesConfirmTitle: @json(__('admin.shipping_section.delete_rates_confirm_title')),
+            actionCannotBeUndone: @json(__('admin.shipping_section.action_cannot_be_undone')),
+            deleteAll: @json(__('admin.shipping_section.delete_all')),
+            selectZoneFirst: @json(__('admin.shipping_section.select_zone_first')),
+            addShippingRateTitle: @json(__('admin.shipping_section.add_shipping_rate_title')),
+            editShippingRateTitle: @json(__('admin.shipping_section.edit_shipping_rate_title')),
+            toggleFailed: @json(__('admin.shipping_section.toggle_failed')),
+            deleteThisRateConfirm: @json(__('admin.shipping_section.delete_this_rate_confirm')),
+            delete: @json(__('common.delete')),
+            rateDeleted: @json(__('admin.shipping_section.rate_deleted')),
+            deleteFailed: @json(__('admin.shipping_section.delete_failed')),
+            addShippingZoneTitle: @json(__('admin.shipping_section.add_shipping_zone_title')),
+            editZoneTitlePrefix: @json(__('admin.shipping_section.edit_zone_title_prefix')),
+            zoneSaved: @json(__('admin.shipping_section.zone_saved')),
+            deleteZoneConfirmTitle: @json(__('admin.shipping_section.delete_zone_confirm_title')),
+            deleteZoneConfirmText: @json(__('admin.shipping_section.delete_zone_confirm_text')),
+            deleteZoneLabel: @json(__('admin.shipping_section.delete_zone_label')),
+            zoneDeleted: @json(__('admin.shipping_section.zone_deleted')),
+            cannotDeleteZoneHasRates: @json(__('admin.shipping_section.cannot_delete_zone_has_rates')),
+            failedToLoadCities: @json(__('admin.shipping_section.failed_to_load_cities')),
+            failedToSaveAssignment: @json(__('admin.shipping_section.failed_to_save_assignment')),
+            copyOfPrefix: @json(__('admin.shipping_section.copy_of_prefix')),
+            enterAName: @json(__('admin.shipping_section.enter_a_name')),
+            failedToDuplicate: @json(__('admin.shipping_section.failed_to_duplicate')),
+            selectSourceZone: @json(__('admin.shipping_section.select_source_zone_warning')),
+            sourceTargetSameWarning: @json(__('admin.shipping_section.source_target_same_warning')),
+            failedToCopyRates: @json(__('admin.shipping_section.failed_to_copy_rates')),
+            selectZoneAndMethod: @json(__('admin.shipping_section.select_zone_and_method')),
+            noRateFound: @json(__('admin.shipping_section.no_rate_found')),
+            noActiveRateConfigured: @json(__('admin.shipping_section.no_active_rate_configured')),
+            freeLabel: @json(__('admin.shipping_section.free_label')),
+            viaLabel: @json(__('admin.shipping_section.via_label')),
+            dayLabel: @json(__('admin.shipping_section.day_label')),
+            freeShippingAvailableFrom: @json(__('admin.shipping_section.free_shipping_available_from')),
+            calculationFailed: @json(__('admin.shipping_section.calculation_failed')),
+            noCitiesAssignedYet: @json(__('admin.shipping_section.no_cities_assigned_yet')),
+            noAvailableCities: @json(__('admin.shipping_section.no_available_cities')),
+            failedToSave: @json(__('admin.shipping_section.failed_to_save')),
+        });
+    </script>
     @vite('resources/js/admin/shipping-zones.js')
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 @endpush

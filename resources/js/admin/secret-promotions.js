@@ -45,7 +45,7 @@ function fmtMoney(val) {
 
 function withLoading($btn, text, fn) {
     const orig = $btn.text();
-    $btn.prop('disabled', true).text(text ?? 'Loading…');
+    $btn.prop('disabled', true).text(text ?? window.TRANSLATIONS?.savingEllipsis ?? 'Loading…');
     return Promise.resolve(fn()).finally(() => $btn.prop('disabled', false).text(orig));
 }
 
@@ -181,13 +181,14 @@ function validateSplit(totalPct, marketerPct, adminPct) {
 
     const errors = [];
 
-    if (totalPct <= 0)       errors.push('Total commission must be greater than 0%.');
-    if (marketerPct <= 0)    errors.push('Marketer share must be greater than 0%.');
-    if (adminPct < 0)        errors.push('Admin share cannot be negative (marketer share exceeds total).');
+    const T = window.TRANSLATIONS || {};
+    if (totalPct <= 0)       errors.push(T.totalCommissionError || 'Total commission must be greater than 0%.');
+    if (marketerPct <= 0)    errors.push(T.marketerShareError || 'Marketer share must be greater than 0%.');
+    if (adminPct < 0)        errors.push(T.adminShareNegativeError || 'Admin share cannot be negative (marketer share exceeds total).');
     if (marketerPct < MIN_FLOOR)
-        errors.push(`Marketer share must be at least ${MIN_FLOOR}% (platform minimum).`);
+        errors.push((T.marketerShareMinError || `Marketer share must be at least {min}% (platform minimum).`).replace('{min}', MIN_FLOOR));
     if (totalPct > 0 && marketerPct >= totalPct)
-        errors.push('Marketer share must be less than the total commission.');
+        errors.push(T.marketerShareLessThanTotalError || 'Marketer share must be less than the total commission.');
 
     if (errors.length) {
         errContainer.innerHTML = errors.map(e => `<p class="text-xs text-red-600">⚠ ${e}</p>`).join('');
@@ -206,23 +207,24 @@ function bindCalculatorInputs() {
 
 /* ─── Vendor → Listings loader ───────────────────────────────────────────── */
 function loadListingsForVendor(vendorId, preselect = null) {
+    const T = window.TRANSLATIONS || {};
     const $select = $('#listing-select');
     if (!vendorId) {
-        $select.html('<option value="">Select vendor first…</option>').prop('disabled', true);
+        $select.html(`<option value="">${T.selectVendorFirst || 'Select vendor first…'}</option>`).prop('disabled', true);
         resetListingPreview();
         return;
     }
 
-    $select.html('<option value="">Loading listings…</option>').prop('disabled', true);
+    $select.html(`<option value="">${T.loadingListings || 'Loading listings…'}</option>`).prop('disabled', true);
 
     $.get('/marketers-secret-promotions/listings/by-vendor', { vendor_id: vendorId })
         .done(function (data) {
             const listings = data.listings ?? [];
             if (!listings.length) {
-                $select.html('<option value="">No listings found for this vendor</option>');
+                $select.html(`<option value="">${T.noListingsFound || 'No listings found for this vendor'}</option>`);
                 return;
             }
-            let opts = '<option value="">Select listing…</option>';
+            let opts = `<option value="">${T.selectListing || 'Select listing…'}</option>`;
             listings.forEach(l => {
                 opts += `<option value="${l.id}" data-price="${l.price_cents}" data-name="${l.name}" data-img="${l.image ?? ''}" data-currency="${l.currency ?? ''}">${l.name} — ${fmtMoney(l.price_cents / 100)}</option>`;
             });
@@ -233,8 +235,8 @@ function loadListingsForVendor(vendorId, preselect = null) {
             }
         })
         .fail(function () {
-            $select.html('<option value="">Failed to load listings</option>');
-            Toast.error('Could not load vendor listings.');
+            $select.html(`<option value="">${T.failedToLoadListings || 'Failed to load listings'}</option>`);
+            Toast.error(T.couldNotLoadListings || 'Could not load vendor listings.');
         });
 }
 
@@ -277,15 +279,16 @@ function resetCreateForm() {
     document.getElementById('marketer-pct-input').value = '';
     document.getElementById('admin-pct-display').value = '0.00 %';
     document.getElementById('admin-pct-hidden').value = '0';
-    $('#listing-select').html('<option value="">Select vendor first…</option>').prop('disabled', true);
+    const T = window.TRANSLATIONS || {};
+    $('#listing-select').html(`<option value="">${T.selectVendorFirst || 'Select vendor first…'}</option>`).prop('disabled', true);
     resetListingPreview();
     document.getElementById('split-errors')?.classList.add('hidden');
     document.getElementById('margin-analysis')?.classList.add('hidden');
 
     const saveBtn = document.getElementById('promo-save-btn');
-    if (saveBtn) saveBtn.textContent = 'Save secret promotion';
+    if (saveBtn) saveBtn.textContent = T.saveSecretPromotion || 'Save secret promotion';
 
-    document.getElementById('promo-modal-title').textContent = 'New Secret Promotion';
+    document.getElementById('promo-modal-title').textContent = T.newSecretPromotionTitle || 'New Secret Promotion';
 }
 
 function openCreateModal() {
@@ -320,7 +323,7 @@ function initCreateModal() {
 
         // Client-side guard
         if (marketerPct < MIN_FLOOR || marketerPct >= totalPct || adminPct < 0) {
-            Toast.error('Please fix commission split errors before saving.');
+            Toast.error(window.TRANSLATIONS?.fixSplitErrors || 'Please fix commission split errors before saving.');
             return;
         }
 
@@ -340,10 +343,10 @@ function initCreateModal() {
             : '/marketers-secret-promotions';
         const method = isEdit ? 'PUT' : 'POST';
 
-        withLoading($btn, 'Saving…', () =>
+        withLoading($btn, window.TRANSLATIONS?.savingEllipsis || 'Saving…', () =>
             ajax(method, url, payload)
                 .done(function (res) {
-                    Toast.success(res.message ?? 'Promotion saved successfully.');
+                    Toast.success(res.message ?? (window.TRANSLATIONS?.promotionSaved || 'Promotion saved successfully.'));
                     $('#promo-modal').modal('close');
                     table?.ajax.reload();
                 })
@@ -352,7 +355,7 @@ function initCreateModal() {
                         const errors = xhr.responseJSON?.errors ?? {};
                         Object.values(errors).flat().forEach(m => Toast.error(m));
                     } else {
-                        Toast.error(xhr.responseJSON?.message ?? 'Failed to save promotion.');
+                        Toast.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToSavePromotion || 'Failed to save promotion.'));
                     }
                 })
         );
@@ -366,8 +369,8 @@ function initRowActions() {
         const data = $(this).data();
 
         document.getElementById('promo-id').value             = data.id;
-        document.getElementById('promo-modal-title').textContent = 'Edit Secret Promotion';
-        document.getElementById('promo-save-btn').textContent = 'Update promotion';
+        document.getElementById('promo-modal-title').textContent = window.TRANSLATIONS?.editSecretPromotion || 'Edit Secret Promotion';
+        document.getElementById('promo-save-btn').textContent = window.TRANSLATIONS?.updatePromotion || 'Update promotion';
 
         // Pre-fill vendor + trigger listing load
         const $vendorSel = $('#vendor-select');
@@ -395,11 +398,11 @@ function initRowActions() {
         withLoading($btn, '…', () =>
             ajax('POST', `/marketers-secret-promotions/${id}/toggle-status`, { action })
                 .done(function (res) {
-                    Toast.success(res.message ?? 'Status updated.');
+                    Toast.success(res.message ?? (window.TRANSLATIONS?.statusUpdated || 'Status updated.'));
                     table?.ajax.reload();
                 })
                 .fail(function (xhr) {
-                    Toast.error(xhr.responseJSON?.message ?? 'Failed to update status.');
+                    Toast.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToUpdateStatus || 'Failed to update status.'));
                 })
         );
     });
@@ -407,23 +410,23 @@ function initRowActions() {
     // Expire
     $(document).on('click', '.js-expire-promo', function () {
         const id   = $(this).data('id');
-        const name = $(this).data('name') ?? 'this promotion';
+        const name = $(this).data('name') ?? (window.TRANSLATIONS?.thisPromotionFallback || 'this promotion');
         const $btn = $(this);
 
         window.confirmDialog({
-            title: 'Force expire?',
-            text: `"${name}" will be permanently expired and can no longer be used.`,
-            confirmButtonText: 'Yes, expire it',
+            title: window.TRANSLATIONS?.forceExpireTitle || 'Force expire?',
+            text: (window.TRANSLATIONS?.forceExpireText || `"{name}" will be permanently expired and can no longer be used.`).replace('{name}', name),
+            confirmButtonText: window.TRANSLATIONS?.yesExpireIt || 'Yes, expire it',
             confirmButtonColor: '#dc2626',
         }).then(() => {
             withLoading($btn, '…', () =>
                 ajax('POST', `/marketers-secret-promotions/${id}/expire`, {})
                     .done(function (res) {
-                        Toast.success(res.message ?? 'Promotion expired.');
+                        Toast.success(res.message ?? (window.TRANSLATIONS?.promotionExpired || 'Promotion expired.'));
                         table?.ajax.reload();
                     })
                     .fail(function (xhr) {
-                        Toast.error(xhr.responseJSON?.message ?? 'Failed to expire.');
+                        Toast.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToExpire || 'Failed to expire.'));
                     })
             );
         }).catch(() => {});
@@ -437,11 +440,11 @@ function initRowActions() {
         withLoading($btn, '…', () =>
             ajax('POST', `/marketers-secret-promotions/${id}/duplicate`, {})
                 .done(function (res) {
-                    Toast.success(res.message ?? 'Promotion duplicated.');
+                    Toast.success(res.message ?? (window.TRANSLATIONS?.promotionDuplicated || 'Promotion duplicated.'));
                     table?.ajax.reload();
                 })
                 .fail(function (xhr) {
-                    Toast.error(xhr.responseJSON?.message ?? 'Failed to duplicate.');
+                    Toast.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToDuplicate || 'Failed to duplicate.'));
                 })
         );
     });

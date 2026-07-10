@@ -43,62 +43,64 @@
 
             {{-- Overview --}}
             <x-card>
-                <h2 class="text-base font-semibold text-gray-900 mb-4">Offer Details</h2>
+                <h2 class="text-base font-semibold text-gray-900 mb-4">{{ __('admin.vendor_campaign_offers.offer_details') }}</h2>
                 <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                     <div>
-                        <dt class="text-gray-500">Status</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.status_label') }}</dt>
                         <dd class="font-medium mt-0.5">
                             @php
                                 $statusColors = ['pending_admin'=>'warning','active'=>'success','draft'=>'gray','paused'=>'gray','ended'=>'gray','cancelled'=>'danger'];
                                 $c = $statusColors[$offer->status] ?? 'gray';
-                                $label = ucwords(str_replace(['_','admin'],[ ' ','Review'], $offer->status));
+                                $label = $offer->status === 'pending_admin'
+                                    ? __('admin.vendor_campaign_offers.pending_review_option')
+                                    : __('admin.vendor_campaign_offers.' . $offer->status . '_option');
                             @endphp
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $label }}</span>
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">Commission Type</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.commission_type_label') }}</dt>
                         <dd class="font-medium mt-0.5">{{ ucwords(str_replace('_', ' ', $offer->commission_type)) }}</dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">Date Range</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.date_range_label') }}</dt>
                         <dd class="font-medium mt-0.5">
                             {{ $offer->starts_at?->format('d M Y') }} – {{ $offer->ends_at?->format('d M Y') ?? '∞' }}
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">Invitation Deadline</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.invitation_deadline_label') }}</dt>
                         <dd class="font-medium mt-0.5">{{ $offer->invitation_deadline?->format('d M Y') ?? '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">Budget / Marketer</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.budget_per_marketer') }}</dt>
                         <dd class="font-medium mt-0.5">
                             {{ $offer->budget_per_marketer_cents ? '$' . number_format($offer->budget_per_marketer_cents / 100, 2) : '—' }}
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">Total Budget</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.total_budget') }}</dt>
                         <dd class="font-medium mt-0.5">
                             {{ $offer->total_budget_cents ? '$' . number_format($offer->total_budget_cents / 100, 2) : '—' }}
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">Attribution Model</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.attribution_model_label') }}</dt>
                         <dd class="font-medium mt-0.5">{{ ucwords(str_replace('_', ' ', $offer->attribution_model)) }}</dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">WhatsApp Sharing</dt>
-                        <dd class="font-medium mt-0.5">{{ $offer->whatsapp_sharing_enabled ? 'Yes' : 'No' }}</dd>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.whatsapp_sharing_label') }}</dt>
+                        <dd class="font-medium mt-0.5">{{ $offer->whatsapp_sharing_enabled ? __('admin.vendor_campaign_offers.yes') : __('admin.vendor_campaign_offers.no') }}</dd>
                     </div>
                     @if($offer->approved_at)
                         <div>
-                            <dt class="text-gray-500">Approved by</dt>
-                            <dd class="font-medium mt-0.5">{{ $offer->approvedByAdmin?->name ?? '—' }} on {{ $offer->approved_at->format('d M Y') }}</dd>
+                            <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.approved_by_label') }}</dt>
+                            <dd class="font-medium mt-0.5">{{ __('admin.vendor_campaign_offers.approved_by_on', ['name' => $offer->approvedByAdmin?->name ?? '—', 'date' => $offer->approved_at->format('d M Y')]) }}</dd>
                         </div>
                     @endif
                     @if($offer->rejection_reason)
                         <div class="col-span-2">
-                            <dt class="text-gray-500">Rejection Reason</dt>
+                            <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.rejection_reason_label') }}</dt>
                             <dd class="font-medium mt-0.5 text-danger-700">{{ $offer->rejection_reason }}</dd>
                         </div>
                     @endif
@@ -106,14 +108,14 @@
 
                 @if($offer->description)
                     <div class="mt-4 pt-4 border-t border-gray-100">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</p>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{{ __('admin.vendor_campaign_offers.description_label') }}</p>
                         <p class="text-sm text-gray-700">{{ $offer->description }}</p>
                     </div>
                 @endif
 
                 @if($offer->requirements)
                     <div class="mt-4 pt-4 border-t border-gray-100">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Marketer Requirements</p>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{{ __('admin.vendor_campaign_offers.marketer_requirements') }}</p>
                         <p class="text-sm text-gray-700">{{ $offer->requirements }}</p>
                     </div>
                 @endif
@@ -121,17 +123,17 @@
 
             {{-- Products --}}
             <x-card>
-                <h2 class="text-base font-semibold text-gray-900 mb-4">Products ({{ $offer->products->count() }})</h2>
+                <h2 class="text-base font-semibold text-gray-900 mb-4">{{ __('admin.vendor_campaign_offers.products_heading', ['count' => $offer->products->count()]) }}</h2>
                 @if($offer->products->isEmpty())
-                    <p class="text-sm text-gray-400">No products attached.</p>
+                    <p class="text-sm text-gray-400">{{ __('admin.vendor_campaign_offers.no_products_attached') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="text-start text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
-                                    <th class="pb-2 pr-4">#</th>
-                                    <th class="pb-2 pr-4">Product</th>
-                                    <th class="pb-2 pr-4">Commission Override</th>
+                                    <th class="pb-2 pr-4">{{ __('admin.vendor_campaign_offers.position_column') }}</th>
+                                    <th class="pb-2 pr-4">{{ __('admin.vendor_campaign_offers.product_column') }}</th>
+                                    <th class="pb-2 pr-4">{{ __('admin.vendor_campaign_offers.commission_override_column') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -154,18 +156,18 @@
 
             {{-- Invitations --}}
             <x-card>
-                <h2 class="text-base font-semibold text-gray-900 mb-4">Invitations ({{ $offer->invitations->count() }})</h2>
+                <h2 class="text-base font-semibold text-gray-900 mb-4">{{ __('admin.vendor_campaign_offers.invitations_heading', ['count' => $offer->invitations->count()]) }}</h2>
                 @if($offer->invitations->isEmpty())
-                    <p class="text-sm text-gray-400">No marketers have been invited yet.</p>
+                    <p class="text-sm text-gray-400">{{ __('admin.vendor_campaign_offers.no_marketers_invited') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="text-start text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
-                                    <th class="pb-2 pr-4">Marketer</th>
-                                    <th class="pb-2 pr-4">Status</th>
-                                    <th class="pb-2 pr-4">Responded</th>
-                                    <th class="pb-2">Campaign</th>
+                                    <th class="pb-2 pr-4">{{ __('admin.vendor_campaign_offers.marketer_column') }}</th>
+                                    <th class="pb-2 pr-4">{{ __('admin.vendor_campaign_offers.status_column') }}</th>
+                                    <th class="pb-2 pr-4">{{ __('admin.vendor_campaign_offers.responded_column') }}</th>
+                                    <th class="pb-2">{{ __('admin.vendor_campaign_offers.campaign_column') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -178,7 +180,7 @@
                                         <td class="py-2 pr-4 font-medium">{{ $inv->marketer?->name ?? '—' }}</td>
                                         <td class="py-2 pr-4">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $ic }}-100 text-{{ $ic }}-700">
-                                                {{ ucfirst($inv->status) }}
+                                                {{ __('admin.vendor_campaign_offers.invitation_status_' . $inv->status) }}
                                             </span>
                                         </td>
                                         <td class="py-2 pr-4 text-gray-500">
@@ -200,22 +202,22 @@
         {{-- ─── Right: Stats sidebar ─────────────────────────────────────────────────── --}}
         <div class="space-y-4">
             <x-card>
-                <h2 class="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wider">Conversion Stats</h2>
+                <h2 class="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wider">{{ __('admin.vendor_campaign_offers.conversion_stats') }}</h2>
                 <dl class="space-y-3 text-sm">
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Accepted</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.accepted_stat') }}</dt>
                         <dd class="font-semibold text-success-700">{{ $conversionStats['accepted'] }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Pending</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.pending_stat') }}</dt>
                         <dd class="font-semibold text-warning-700">{{ $conversionStats['pending'] }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Declined / Expired</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.declined_expired_stat') }}</dt>
                         <dd class="font-semibold text-gray-600">{{ $conversionStats['declined'] }}</dd>
                     </div>
                     <div class="flex justify-between border-t border-gray-100 pt-3">
-                        <dt class="text-gray-500">Total Conversions</dt>
+                        <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.total_conversions_stat') }}</dt>
                         <dd class="font-bold text-primary-700">{{ $conversionStats['conversions'] }}</dd>
                     </div>
                 </dl>
@@ -227,12 +229,12 @@
     {{-- ─── Reject modal ───────────────────────────────────────────────────────────── --}}
     <div id="reject-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-1">Reject Campaign Offer</h3>
-            <p class="text-sm text-gray-500 mb-4">Provide a reason. The vendor will see this and can fix and resubmit.</p>
-            <textarea id="reject-reason" rows="4" class="form-input w-full text-sm mb-4" placeholder="Rejection reason…"></textarea>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ __('admin.vendor_campaign_offers.reject_offer_title') }}</h3>
+            <p class="text-sm text-gray-500 mb-4">{{ __('admin.vendor_campaign_offers.reject_offer_subtitle') }}</p>
+            <textarea id="reject-reason" rows="4" class="form-input w-full text-sm mb-4" placeholder="{{ __('admin.vendor_campaign_offers.rejection_reason_placeholder') }}"></textarea>
             <div class="flex justify-end gap-2">
-                <button type="button" id="reject-cancel" class="btn btn-secondary">Cancel</button>
-                <button type="button" id="reject-confirm" class="btn btn-danger">Reject Offer</button>
+                <button type="button" id="reject-cancel" class="btn btn-secondary">{{ __('admin.vendor_campaign_offers.cancel') }}</button>
+                <button type="button" id="reject-confirm" class="btn btn-danger">{{ __('admin.vendor_campaign_offers.reject_offer_btn') }}</button>
             </div>
         </div>
     </div>
@@ -243,12 +245,16 @@
 <script>
 (function () {
     const headers = { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    const T = {
+        approveConfirm: @json(__('admin.vendor_campaign_offers.approve_confirm')),
+        rejectionReasonRequired: @json(__('admin.vendor_campaign_offers.rejection_reason_required')),
+    };
 
     // Approve
     document.addEventListener('click', e => {
         const btn = e.target.closest('.js-approve-btn');
         if (!btn) return;
-        if (!confirm(`Approve "${btn.dataset.name}"? Marketers will be notified.`)) return;
+        if (!confirm(T.approveConfirm.replace(':name', btn.dataset.name))) return;
         fetch(btn.dataset.url, { method: 'POST', headers })
             .then(r => r.json())
             .then(d => { alert(d.message); location.reload(); });
@@ -268,7 +274,7 @@
 
     document.getElementById('reject-confirm').addEventListener('click', () => {
         const reason = reasonEl.value.trim();
-        if (!reason) { alert('Please enter a rejection reason.'); return; }
+        if (!reason) { alert(T.rejectionReasonRequired); return; }
         fetch(rejectUrl, { method: 'POST', headers, body: JSON.stringify({ rejection_reason: reason }) })
             .then(r => r.json())
             .then(d => { alert(d.message); modal.classList.add('hidden'); location.reload(); });

@@ -4,6 +4,17 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/warehouses.js'])
 @endpush
 
+@push('scripts')
+<script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    deactivateWarehouseConfirm: @json(__('admin.warehouses_section.deactivate_warehouse_confirm')),
+    activateWarehouseConfirm: @json(__('admin.warehouses_section.activate_warehouse_confirm')),
+    requestFailed: @json(__('admin.warehouses_section.request_failed')),
+});
+</script>
+@endpush
+
 @section('title', __('admin.warehouses_section.title'))
 
 @section('content')

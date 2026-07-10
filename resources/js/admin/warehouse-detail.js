@@ -47,7 +47,7 @@ function initToggleActive() {
         const btn = this;
         const isActive = parseInt(btn.dataset.active, 10);
 
-        if (!confirm(isActive ? 'Deactivate this warehouse?' : 'Activate this warehouse?')) return;
+        if (!confirm(isActive ? (window.TRANSLATIONS?.deactivateWarehouseConfirm || 'Deactivate this warehouse?') : (window.TRANSLATIONS?.activateWarehouseConfirm || 'Activate this warehouse?'))) return;
 
         try {
             const res = await fetch(btn.dataset.url, {
@@ -64,7 +64,7 @@ function initToggleActive() {
             window.Toast?.success(json.message);
             setTimeout(() => location.reload(), 800);
         } catch (err) {
-            window.Toast?.error(err.message ?? 'Request failed.');
+            window.Toast?.error(err.message ?? (window.TRANSLATIONS?.requestFailed || 'Request failed.'));
         }
     });
 }

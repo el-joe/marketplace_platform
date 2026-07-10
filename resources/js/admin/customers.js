@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setLoading(btn, loading, label = null) {
         if (!btn) return;
         btn.disabled = loading;
-        if (label) btn.textContent = loading ? 'Please wait…' : label;
+        if (label) btn.textContent = loading ? (window.TRANSLATIONS?.pleaseWait || 'Please wait…') : label;
     }
 
     /* ─────────────────────────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             order: [[9, 'desc']],
             pageLength: 25,
-            language: { search: '', searchPlaceholder: 'Search…' },
+            language: { search: '', searchPlaceholder: window.TRANSLATIONS?.searchPlaceholder || 'Search…' },
         });
 
         // Global search input
@@ -148,18 +148,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const ids = [...document.querySelectorAll('.row-select:checked')].map(cb => cb.value);
             if (!ids.length) return;
 
-            const reason = prompt(`Suspend ${ids.length} customer(s) — enter reason:`);
+            const reason = prompt((window.TRANSLATIONS?.suspendCountPrompt || 'Suspend :count customer(s) — enter reason:').replace(':count', ids.length));
             if (!reason) return;
 
             Promise.all(ids.map(id => {
                 const url = window.customersTableUrl.replace('/datatable', `/${id}/suspend`);
                 return postJson(url, { reason }).catch(() => null);
             })).then(() => {
-                window.Toast?.success(`${ids.length} customer(s) suspended.`);
+                window.Toast?.success((window.TRANSLATIONS?.customersSuspended || ':count customer(s) suspended.').replace(':count', ids.length));
                 dt.draw(false);
                 document.querySelectorAll('.row-select, #select-all').forEach(cb => { cb.checked = false; });
                 updateBulkBar();
-            }).catch(() => window.Toast?.error('Some actions failed.'));
+            }).catch(() => window.Toast?.error(window.TRANSLATIONS?.someActionsFailed || 'Some actions failed.'));
         });
 
         // ── Export selected / all ──────────────────────────────────────────
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('export-all-btn')?.addEventListener('click', () => {
-            window.Toast?.success('Use the table filters and "Export Selected" for bulk export.');
+            window.Toast?.success(window.TRANSLATIONS?.useFiltersExportHint || 'Use the table filters and "Export Selected" for bulk export.');
         });
 
         // ── Row actions (suspend/ban/reactivate) delegated ─────────────────
@@ -224,23 +224,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const reason = document.getElementById('suspend-reason')?.value?.trim();
         if (!reason) {
-            window.Toast?.error('Please enter a reason.');
+            window.Toast?.error(window.TRANSLATIONS?.enterReason || 'Please enter a reason.');
             return;
         }
 
         const btn = document.getElementById('suspend-confirm-btn');
-        setLoading(btn, true, 'Suspend');
+        setLoading(btn, true, window.TRANSLATIONS?.suspend || 'Suspend');
 
         try {
             await postJson(url, { reason });
             $('#suspend-modal').modal('close');
-            window.Toast?.success('Customer suspended.');
+            window.Toast?.success(window.TRANSLATIONS?.customerSuspended || 'Customer suspended.');
             setTimeout(() => location.reload(), 800);
         } catch (err) {
-            const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || 'Action failed.';
+            const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || window.TRANSLATIONS?.actionFailed || 'Action failed.';
             window.Toast?.error(msg);
         } finally {
-            setLoading(btn, false, 'Suspend');
+            setLoading(btn, false, window.TRANSLATIONS?.suspend || 'Suspend');
         }
     });
 
@@ -279,27 +279,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmText = document.getElementById('ban-confirm-input')?.value?.trim();
 
         if (!reason) {
-            window.Toast?.error('Please enter a reason.');
+            window.Toast?.error(window.TRANSLATIONS?.enterReason || 'Please enter a reason.');
             return;
         }
         if (confirmText !== 'CONFIRM') {
-            window.Toast?.error('Please type CONFIRM to proceed.');
+            window.Toast?.error(window.TRANSLATIONS?.typeConfirmToProceed || 'Please type CONFIRM to proceed.');
             return;
         }
 
         const btn = document.getElementById('ban-confirm-btn');
-        setLoading(btn, true, 'Ban Customer');
+        setLoading(btn, true, window.TRANSLATIONS?.banCustomer || 'Ban Customer');
 
         try {
             await postJson(url, { reason });
             $('#ban-modal').modal('close');
-            window.Toast?.success('Customer banned.');
+            window.Toast?.success(window.TRANSLATIONS?.customerBanned || 'Customer banned.');
             setTimeout(() => location.reload(), 800);
         } catch (err) {
-            const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || 'Action failed.';
+            const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || window.TRANSLATIONS?.actionFailed || 'Action failed.';
             window.Toast?.error(msg);
         } finally {
-            setLoading(btn, false, 'Ban Customer');
+            setLoading(btn, false, window.TRANSLATIONS?.banCustomer || 'Ban Customer');
         }
     });
 
@@ -308,13 +308,13 @@ document.addEventListener('DOMContentLoaded', () => {
      * ─────────────────────────────────────────────────────────────────────── */
 
     async function handleReactivate(url, name) {
-        if (!confirm(`Reactivate ${name || 'this customer'}?`)) return;
+        if (!confirm((window.TRANSLATIONS?.reactivateConfirm || 'Reactivate :name?').replace(':name', name || (window.TRANSLATIONS?.thisCustomer || 'this customer')))) return;
         try {
             await postJson(url, {});
-            window.Toast?.success('Customer reactivated.');
+            window.Toast?.success(window.TRANSLATIONS?.customerReactivated || 'Customer reactivated.');
             setTimeout(() => location.reload(), 800);
         } catch (err) {
-            window.Toast?.error(err?.message || 'Action failed.');
+            window.Toast?.error(err?.message || window.TRANSLATIONS?.actionFailed || 'Action failed.');
         }
     }
 
@@ -352,21 +352,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const reason = document.getElementById('loyalty-reason')?.value?.trim();
 
         if (!adjustment || adjustment === 0) {
-            window.Toast?.error('Please enter a non-zero adjustment.');
+            window.Toast?.error(window.TRANSLATIONS?.enterNonZeroAdjustment || 'Please enter a non-zero adjustment.');
             return;
         }
         if (!reason) {
-            window.Toast?.error('Please enter a reason.');
+            window.Toast?.error(window.TRANSLATIONS?.enterReason || 'Please enter a reason.');
             return;
         }
 
         const btn = document.getElementById('loyalty-confirm-btn');
-        setLoading(btn, true, 'Apply');
+        setLoading(btn, true, window.TRANSLATIONS?.apply || 'Apply');
 
         try {
             const data = await postJson(url, { adjustment, reason });
             $('#adjust-loyalty-modal').modal('close');
-            window.Toast?.success('Loyalty points adjusted.');
+            window.Toast?.success(window.TRANSLATIONS?.loyaltyPointsAdjusted || 'Loyalty points adjusted.');
 
             // Update displayed balance
             const display = document.getElementById('loyalty-balance-display');
@@ -376,10 +376,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentEl = document.getElementById('current-loyalty');
             if (currentEl && data.new_balance) currentEl.textContent = data.new_balance;
         } catch (err) {
-            const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || 'Action failed.';
+            const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || window.TRANSLATIONS?.actionFailed || 'Action failed.';
             window.Toast?.error(msg);
         } finally {
-            setLoading(btn, false, 'Apply');
+            setLoading(btn, false, window.TRANSLATIONS?.apply || 'Apply');
         }
     });
 
@@ -403,22 +403,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const message = document.getElementById('notif-message')?.value?.trim();
 
         if (!title || !message) {
-            window.Toast?.error('Please fill in all fields.');
+            window.Toast?.error(window.TRANSLATIONS?.fillAllFields || 'Please fill in all fields.');
             return;
         }
 
         const btn = document.getElementById('notif-send-btn');
-        setLoading(btn, true, 'Send');
+        setLoading(btn, true, window.TRANSLATIONS?.send || 'Send');
 
         try {
             await postJson(url, { channel, title, message });
             $('#send-notification-modal').modal('close');
-            window.Toast?.success('Notification sent.');
+            window.Toast?.success(window.TRANSLATIONS?.notificationSent || 'Notification sent.');
         } catch (err) {
-            const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || 'Failed to send.';
+            const msg = err?.message || Object.values(err?.errors || {}).flat().join(' ') || window.TRANSLATIONS?.failedToSend || 'Failed to send.';
             window.Toast?.error(msg);
         } finally {
-            setLoading(btn, false, 'Send');
+            setLoading(btn, false, window.TRANSLATIONS?.send || 'Send');
         }
     });
 
@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const section = document.getElementById('orders-datatable-section');
             if (!section) return;
             const isHidden = section.classList.toggle('hidden');
-            showOrdersDtBtn.textContent = isHidden ? 'Full list (DataTable)' : 'Hide DataTable';
+            showOrdersDtBtn.textContent = isHidden ? (window.TRANSLATIONS?.fullListDatatable || 'Full list (DataTable)') : (window.TRANSLATIONS?.hideDatatable || 'Hide DataTable');
             if (!ordersDtInitialized && !isHidden) {
                 ordersDtInitialized = true;
                 $('#orders-datatable').DataTable({
@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ],
                     order: [[4, 'desc']],
                     pageLength: 25,
-                    language: { search: '', searchPlaceholder: 'Search…' },
+                    language: { search: '', searchPlaceholder: window.TRANSLATIONS?.searchPlaceholder || 'Search…' },
                 });
             }
         });
@@ -469,9 +469,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!value) return;
             navigator.clipboard.writeText(value).then(() => {
                 const original = btn.textContent;
-                btn.textContent = 'Copied!';
+                btn.textContent = window.TRANSLATIONS?.copied || 'Copied!';
                 setTimeout(() => { btn.textContent = original; }, 1500);
-            }).catch(() => window.Toast?.error('Copy failed.'));
+            }).catch(() => window.Toast?.error(window.TRANSLATIONS?.copyFailed || 'Copy failed.'));
         });
     });
 

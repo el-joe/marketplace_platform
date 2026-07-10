@@ -43,7 +43,7 @@
                     <dd class="mt-0.5">
                         @php $sc = ['active'=>'emerald','pending'=>'amber','suspended'=>'red'][$shippingCompany->status] ?? 'gray'; @endphp
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-{{ $sc }}-100 text-{{ $sc }}-700 capitalize">
-                            {{ $shippingCompany->status }}
+                            {{ __('admin.shipping_section.company_status_' . $shippingCompany->status) }}
                         </span>
                     </dd>
                 </div>
@@ -112,18 +112,20 @@
                             </td>
                             <td class="px-6 py-3">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $sup->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600' }}">
-                                    {{ $sup->is_active ? 'Yes' : 'No' }}
+                                    {{ $sup->is_active ? __('common.yes') : __('common.no') }}
                                 </span>
                             </td>
                             <td class="px-6 py-3">
                                 <button type="button"
                                         onclick="toggleNotifications('{{ $sup->id }}', this)"
                                         data-url="{{ route('admin.shipping-companies.supervisors.toggle-notifications', $sup->id) }}"
+                                        data-on-label="{{ __('admin.shipping_section.notif_on') }}"
+                                        data-off-label="{{ __('admin.shipping_section.notif_off') }}"
                                         class="text-xs font-semibold px-3 py-1 rounded-full transition
                                             {{ $sup->receives_all_notifications
                                                 ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                                                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">
-                                    {{ $sup->receives_all_notifications ? 'On' : 'Off' }}
+                                    {{ $sup->receives_all_notifications ? __('admin.shipping_section.notif_on') : __('admin.shipping_section.notif_off') }}
                                 </button>
                             </td>
                         </tr>
@@ -137,19 +139,19 @@
         {{-- ─── Recent Agents ───────────────────────────────────────────────── --}}
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100">
-                <h2 class="font-bold text-gray-900">Agents (latest 20)</h2>
+                <h2 class="font-bold text-gray-900">{{ __('admin.shipping_section.agents_latest') }}</h2>
             </div>
             @if($shippingCompany->agents->isEmpty())
-            <div class="px-6 py-8 text-center text-gray-400 text-sm">No agents added yet.</div>
+            <div class="px-6 py-8 text-center text-gray-400 text-sm">{{ __('admin.shipping_section.no_agents') }}</div>
             @else
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                         <tr>
-                            <th class="px-6 py-3 text-start font-semibold">Name</th>
-                            <th class="px-6 py-3 text-start font-semibold">Phone</th>
-                            <th class="px-6 py-3 text-start font-semibold">Status</th>
-                            <th class="px-6 py-3 text-start font-semibold">Rating</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.name_col') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.phone') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('common.status') }}</th>
+                            <th class="px-6 py-3 text-start font-semibold">{{ __('admin.shipping_section.rating_col') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -160,7 +162,7 @@
                             <td class="px-6 py-3 text-gray-500">{{ $agent->phone }}</td>
                             <td class="px-6 py-3">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $ac }}-100 text-{{ $ac }}-700 capitalize">
-                                    {{ $agent->status }}
+                                    {{ __('admin.shipping_section.agent_status_' . $agent->status) }}
                                 </span>
                             </td>
                             <td class="px-6 py-3 text-gray-600">{{ number_format($agent->rating_avg, 1) }}</td>
@@ -188,7 +190,7 @@ function toggleNotifications(supervisorId, btn) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            btn.textContent = data.enabled ? 'On' : 'Off';
+            btn.textContent = data.enabled ? btn.dataset.onLabel : btn.dataset.offLabel;
             btn.className = btn.className.replace(/bg-\w+-100 text-\w+-\w+/g, '');
             if (data.enabled) {
                 btn.classList.add('bg-emerald-100', 'text-emerald-700', 'hover:bg-emerald-200');

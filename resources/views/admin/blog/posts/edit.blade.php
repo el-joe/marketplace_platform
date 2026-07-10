@@ -4,7 +4,7 @@
     @vite(['resources/js/components/rich-editor.js', 'resources/js/components/file-upload.js'])
 @endpush
 
-@section('title', 'Edit: ' . $post->title_en)
+@section('title', __('common.edit') . ': ' . $post->title_en)
 
 @section('content')
 <div class="p-6">
@@ -21,9 +21,15 @@
                         'published' => 'bg-emerald-100 text-emerald-700',
                         'archived'  => 'bg-amber-100 text-amber-700',
                     ];
+                    $statusPostLabels = [
+                        'draft'     => __('common.draft'),
+                        'scheduled' => __('common.scheduled'),
+                        'published' => __('common.published'),
+                        'archived'  => __('common.archived'),
+                    ];
                 @endphp
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$post->status] ?? 'bg-gray-100 text-gray-600' }}">
-                    {{ ucfirst($post->status) }}
+                    {{ $statusPostLabels[$post->status] ?? ucfirst($post->status) }}
                 </span>
                 @if($post->published_at)
                     <span class="text-xs text-gray-400">{{ __('admin.blog.published_at') }} {{ $post->published_at->format('d M Y') }}</span>
@@ -180,7 +186,7 @@
                     <div class="p-4 space-y-4">
                         <div class="text-xs text-gray-500">
                             {{ __('admin.blog.current_status') }}
-                            <span class="font-semibold text-gray-800">{{ ucfirst($post->status) }}</span>
+                            <span class="font-semibold text-gray-800">{{ $statusPostLabels[$post->status] ?? ucfirst($post->status) }}</span>
                         </div>
 
                         <div class="flex flex-col gap-2">
@@ -333,7 +339,7 @@
                 </x-card>
 
                 {{-- SEO --}}
-                <x-card title="SEO">
+                <x-card title="{{ __('admin.blog.seo_section_title') }}">
                     <div class="p-4 space-y-4">
                         <div>
                             <div class="flex justify-between mb-1">
@@ -401,7 +407,7 @@
         document.getElementById('seo-preview-title').textContent = seoTitle.value || '{{ addslashes($post->title_en) }}';
     });
     seoDesc?.addEventListener('input', () => {
-        document.getElementById('seo-preview-desc').textContent = seoDesc.value || '{{ addslashes($post->excerpt_en ?? "Your SEO description.") }}';
+        document.getElementById('seo-preview-desc').textContent = seoDesc.value || '{{ addslashes($post->excerpt_en ?? __("admin.blog.seo_desc_placeholder")) }}';
     });
     slugInput?.addEventListener('input', () => {
         document.getElementById('seo-preview-slug').textContent = slugInput.value || '{{ $post->slug }}';

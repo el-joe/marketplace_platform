@@ -56,7 +56,7 @@ function initGatewayTest() {
         const provider = $btn.data('provider');
         const $status = $(`#gateway-status-${provider}, #test-result-${provider}`);
 
-        $btn.prop('disabled', true).text('Testing…');
+        $btn.prop('disabled', true).text(window.TRANSLATIONS?.testing || 'Testing…');
 
         try {
             const res = await sendJson('/payment-methods/test-gateway', 'POST', { provider });
@@ -69,21 +69,21 @@ function initGatewayTest() {
                     : 'border-danger-200 bg-danger-50 text-danger-700')
                 .removeClass('hidden')
                 .html(data.success
-                    ? `✓ Connected (${data.latency_ms ?? 0}ms)`
-                    : `✗ ${data.message ?? 'Failed'}`);
+                    ? `✓ ${window.TRANSLATIONS?.connected || 'Connected'} (${data.latency_ms ?? 0}ms)`
+                    : `✗ ${data.message ?? (window.TRANSLATIONS?.failed || 'Failed')}`);
 
             // Simple gateway status badge (index page)
             $(`#gateway-status-${provider}`).text(
-                data.success ? `✓ ${data.latency_ms ?? 0}ms` : `✗ Failed`
+                data.success ? `✓ ${data.latency_ms ?? 0}ms` : `✗ ${window.TRANSLATIONS?.failed || 'Failed'}`
             );
         } catch (err) {
             $status
                 .removeClass('hidden border-success-200 bg-success-50 text-success-700')
                 .addClass('border-danger-200 bg-danger-50 text-danger-700')
                 .removeClass('hidden')
-                .text('✗ Request failed');
+                .text(window.TRANSLATIONS?.requestFailed || '✗ Request failed');
         } finally {
-            $btn.prop('disabled', false).text('Test');
+            $btn.prop('disabled', false).text(window.TRANSLATIONS?.test || 'Test');
         }
     });
 }
@@ -101,11 +101,11 @@ function initToggleMethod() {
 
             $btn
                 .data('active', active ? '1' : '0')
-                .text(active ? 'Active' : 'Inactive')
+                .text(active ? (window.TRANSLATIONS?.active || 'Active') : (window.TRANSLATIONS?.inactive || 'Inactive'))
                 .toggleClass('bg-success-50 text-success-700 hover:bg-success-100', active)
                 .toggleClass('bg-gray-100 text-gray-500 hover:bg-gray-200', !active);
         } catch {
-            toast('Failed to update status.', 'error');
+            toast(window.TRANSLATIONS?.failedToUpdateStatus || 'Failed to update status.', 'error');
         }
     });
 }
@@ -125,7 +125,7 @@ function initMethodModal() {
         $('#method-id').val('');
         $('#method-http').val('POST');
         $('#method-country-id').val(countryId);
-        $modal.find('[id$="-title"]').text(`Add Payment Method — ${countryName}`);
+        $modal.find('[id$="-title"]').text(`${window.TRANSLATIONS?.addPaymentMethod || 'Add Payment Method'} \u2014 ${countryName}`);
         $modal.modal('open');
     });
 
@@ -135,7 +135,7 @@ function initMethodModal() {
         $('#method-id').val('');
         $('#method-http').val('POST');
         $('#method-country-id').val('');
-        $modal.find('[id$="-title"]').text('Add Payment Method');
+        $modal.find('[id$="-title"]').text(window.TRANSLATIONS?.addPaymentMethod || 'Add Payment Method');
         $modal.modal('open');
     });
 
@@ -170,7 +170,7 @@ function initMethodModal() {
         const $toggle = $form.find('[name="is_active"]');
         $toggle.prop('checked', !!row.is_active).trigger('change');
 
-        $modal.find('[id$="-title"]').text('Edit Payment Method');
+        $modal.find('[id$="-title"]').text(window.TRANSLATIONS?.editPaymentMethod || 'Edit Payment Method');
         $modal.modal('open');
     });
 
@@ -198,14 +198,14 @@ function initMethodModal() {
 
         try {
             await sendJson(url, method, payload);
-            toast(id ? 'Payment method updated.' : 'Payment method created.');
+            toast(id ? (window.TRANSLATIONS?.paymentMethodUpdated || 'Payment method updated.') : (window.TRANSLATIONS?.paymentMethodCreated || 'Payment method created.'));
             $modal.modal('close');
             setTimeout(() => window.location.reload(), 500);
         } catch (err) {
             if (err.errors) {
                 window.injectValidationErrors?.($form, err.errors);
             } else {
-                toast(err.message ?? 'Save failed.', 'error');
+                toast(err.message ?? (window.TRANSLATIONS?.saveFailed || 'Save failed.'), 'error');
             }
         }
     });
@@ -220,7 +220,7 @@ function initDeleteMethod() {
         const id = $(this).data('id');
         const name = $(this).data('name');
 
-        $('#delete-method-message').text(`Remove "${name}"? This action cannot be undone.`);
+        $('#delete-method-message').text((window.TRANSLATIONS?.removeConfirm || 'Remove ":name"? This action cannot be undone.').replace(':name', name));
         $('#delete-method-id').val(id);
         $deleteModal.modal('open');
     });
@@ -230,11 +230,11 @@ function initDeleteMethod() {
 
         try {
             await sendJson(`/payment-methods/${id}`, 'DELETE');
-            toast('Payment method removed.');
+            toast(window.TRANSLATIONS?.paymentMethodRemoved || 'Payment method removed.');
             $deleteModal.modal('close');
             setTimeout(() => window.location.reload(), 500);
         } catch {
-            toast('Delete failed.', 'error');
+            toast(window.TRANSLATIONS?.deleteFailed || 'Delete failed.', 'error');
         }
     });
 }

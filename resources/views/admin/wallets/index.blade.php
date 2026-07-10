@@ -53,7 +53,7 @@
                     @php $owner = $wallet->owner; @endphp
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium text-gray-900">{{ $owner?->name ?? $wallet->owner_id }}</td>
-                        <td class="px-4 py-3 text-gray-600">{{ ucfirst(str_replace('_',' ',$wallet->owner_type)) }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ __('admin.wallets.' . $wallet->owner_type) }}</td>
                         <td class="px-4 py-3 text-end font-semibold text-gray-900">{{ number_format($wallet->balance_cents / 100, 2) }}</td>
                         <td class="px-4 py-3 text-end text-amber-600">{{ number_format($wallet->pending_balance_cents / 100, 2) }}</td>
                         <td class="px-4 py-3 text-center text-gray-500">{{ $wallet->currency }}</td>

@@ -60,7 +60,7 @@
                                 };
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium {{ $typeBadge }}">
-                                {{ $transaction->type }}
+                                {{ __('admin.transactions.' . $transaction->type) }}
                             </span>
                         </dd>
                     </div>
@@ -85,9 +85,16 @@
                                     'cancelled' => 'bg-gray-100 text-gray-500',
                                     default     => 'bg-gray-100 text-gray-700',
                                 };
+                                $statusLabel = match($transaction->status) {
+                                    'pending'   => __('common.pending'),
+                                    'succeeded' => __('admin.transactions.succeeded'),
+                                    'failed'    => __('admin.finance.failed'),
+                                    'cancelled' => __('common.cancelled'),
+                                    default     => $transaction->status,
+                                };
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium {{ $statusBadge }}">
-                                {{ $transaction->status }}
+                                {{ $statusLabel }}
                             </span>
                         </dd>
                     </div>
@@ -201,7 +208,7 @@
                                 <tr>
                                     <td class="py-2 pr-4 font-semibold tabular-nums" dir="ltr">{{ number_format($refund->amount / 100, 2) }} {{ $refund->currency }}</td>
                                     <td class="py-2 pr-4">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">{{ str_replace('_', ' ', $refund->refund_type) }}</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">{{ __('admin.transactions.refund_type_' . $refund->refund_type) }}</span>
                                     </td>
                                     <td class="py-2 pr-4 text-gray-600">{{ $refund->reason }}</td>
                                     <td class="py-2 pr-4">
@@ -213,8 +220,15 @@
                                                 'rejected'   => 'bg-red-100 text-red-700',
                                                 default      => 'bg-gray-100 text-gray-700',
                                             };
+                                            $rsLabel = match($refund->status) {
+                                                'pending'    => __('common.pending'),
+                                                'approved'   => __('admin.transactions.refund_status_approved'),
+                                                'completed'  => __('admin.transactions.refund_status_completed'),
+                                                'rejected'   => __('admin.transactions.refund_status_rejected'),
+                                                default      => $refund->status,
+                                            };
                                         @endphp
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $rsBadge }}">{{ $refund->status }}</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $rsBadge }}">{{ $rsLabel }}</span>
                                     </td>
                                     <td class="py-2 text-gray-500">{{ $refund->created_at->format('M d, Y') }}</td>
                                 </tr>

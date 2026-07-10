@@ -147,7 +147,7 @@
                             <span class="text-xs text-gray-400 uppercase font-medium mr-1">{{ __('admin.reviews_section.status') }}</span>
                             <span
                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">
-                                {{ ucwords(str_replace('_', ' ', $review->status)) }}
+                                {{ __('admin.reviews_section.' . $review->status) }}
                             </span>
                         </div>
 
@@ -202,7 +202,7 @@
                             @php $rc = $reply->status === 'published' ? 'success' : 'gray'; @endphp
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $rc }}-100 text-{{ $rc }}-700">
-                                {{ ucfirst($reply->status) }}
+                                {{ __('admin.reviews_section.reply_status_' . $reply->status) }}
                             </span>
                         </div>
                     </div>
@@ -332,7 +332,25 @@
 
     <script>
         window.TRANSLATIONS = window.TRANSLATIONS || {};
-        Object.assign(window.TRANSLATIONS, {});
+        Object.assign(window.TRANSLATIONS, {
+            confirmApprovePublish: @json(__('admin.reviews_section.confirm_approve_publish')),
+            approving: @json(__('admin.reviews_section.approving')),
+            reviewApproved: @json(__('admin.reviews_section.review_approved')),
+            approvalFailed: @json(__('admin.reviews_section.approval_failed')),
+            approveAndPublishShort: @json(__('admin.reviews_section.approve_and_publish_short')),
+            rejecting: @json(__('admin.reviews_section.rejecting')),
+            reviewRejected: @json(__('admin.reviews_section.review_rejected')),
+            rejectionFailed: @json(__('admin.reviews_section.rejection_failed')),
+            confirmRejectShort: @json(__('admin.reviews_section.confirm_reject')),
+            confirmDeleteReview: @json(__('admin.reviews_section.confirm_delete_review')),
+            deleting: @json(__('admin.reviews_section.deleting')),
+            reviewDeleted: @json(__('admin.reviews_section.review_deleted')),
+            deleteFailed: @json(__('admin.reviews_section.delete_failed')),
+            deletePermanentlyShort: @json(__('admin.reviews_section.delete_permanently')),
+            replyHidden: @json(__('admin.reviews_section.reply_hidden')),
+            replyShown: @json(__('admin.reviews_section.reply_shown')),
+            actionFailed: @json(__('admin.reviews_section.action_failed')),
+        });
 
         window.reviewShow = {
             approveUrl: @json(route('admin.reviews.approve', $review->id)),

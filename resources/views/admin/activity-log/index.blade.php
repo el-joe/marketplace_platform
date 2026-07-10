@@ -1,12 +1,21 @@
 @extends('layouts.admin')
 
-@section('title', 'Activity Log')
+@section('title', __('admin.activity_log_section.title'))
 
 @push('styles')
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
 @endpush
 
 @push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            systemShort: @json(__('admin.activity_log_section.system_short')),
+            unknown: @json(__('admin.activity_log_section.unknown')),
+            view: @json(__('admin.activity_log_section.view')),
+            failedToLoadDetail: @json(__('admin.activity_log_section.failed_to_load_detail')),
+        });
+    </script>
     @vite('resources/js/admin/activity-log.js')
 @endpush
 
@@ -79,12 +88,12 @@
                 @endphp
                 <select name="causer_id" id="filter-causer-id"
                     class="block w-full rounded-lg border border-gray-300 text-sm" data-async-select
-                    data-config='{!! $causerSelectConfig !!}' placeholder="Search admin / vendor / customer…"></select>
+                    data-config='{!! $causerSelectConfig !!}' placeholder="{{ __('admin.activity_log_section.causer_search_placeholder') }}"></select>
             </div>
 
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.activity_log_section.ip_address') }}</label>
-                <input type="text" name="ip_address" class="form-input w-full text-sm" placeholder="e.g. 192.168.1.">
+                <input type="text" name="ip_address" class="form-input w-full text-sm" placeholder="{{ __('admin.activity_log_section.ip_placeholder') }}">
             </div>
 
             <div>
@@ -125,7 +134,7 @@
     </x-card>
 
     {{-- ─── Detail modal ──────────────────────────────────────────────────── --}}
-    <x-modal id="activity-detail-modal" size="xl" title="Activity Detail">
+    <x-modal id="activity-detail-modal" size="xl" title="{{ __('admin.activity_log_section.activity_detail') }}">
         <div class="space-y-5">
 
             {{-- Header: event + description --}}
@@ -138,74 +147,73 @@
             {{-- Two-column meta --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div class="space-y-2.5">
-                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Who &amp; When</h4>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ __('admin.activity_log_section.who_and_when') }}</h4>
                     <dl class="text-sm space-y-1.5">
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">Causer</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.causer') }}</dt>
                             <dd id="detail-causer-name" class="text-gray-900 font-medium text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">Type</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.type') }}</dt>
                             <dd id="detail-causer-type" class="text-gray-700 text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">Email</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.email') }}</dt>
                             <dd id="detail-causer-email" class="text-gray-700 text-end break-all"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">When</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.when') }}</dt>
                             <dd id="detail-created-at" class="text-gray-700 text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">IP</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.ip_label') }}</dt>
                             <dd id="detail-ip" class="text-gray-700 font-mono text-xs text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">Log name</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.log_name') }}</dt>
                             <dd id="detail-log-name" class="text-gray-700 text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">Batch</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.batch') }}</dt>
                             <dd id="detail-batch" class="text-gray-700 font-mono text-xs text-end break-all"></dd>
                         </div>
                     </dl>
                     <details class="mt-2">
-                        <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-700">User agent</summary>
+                        <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-700">{{ __('admin.activity_log_section.user_agent') }}</summary>
                         <p id="detail-user-agent" class="text-xs text-gray-600 mt-1 break-all"></p>
                     </details>
                 </div>
 
                 <div class="space-y-2.5">
-                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Subject</h4>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ __('admin.activity_log_section.subject') }}</h4>
                     <dl class="text-sm space-y-1.5">
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">Type</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.type') }}</dt>
                             <dd id="detail-subject-type" class="text-gray-700 text-end"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">Name</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.name') }}</dt>
                             <dd id="detail-subject-name" class="text-gray-900 font-medium text-end break-all"></dd>
                         </div>
                         <div class="flex justify-between gap-3">
-                            <dt class="text-gray-500">ID</dt>
+                            <dt class="text-gray-500">{{ __('admin.activity_log_section.id_label') }}</dt>
                             <dd id="detail-subject-id" class="text-gray-500 font-mono text-xs text-end break-all"></dd>
                         </div>
                     </dl>
-                    <a id="detail-subject-link" href="#" target="_blank" class="hidden btn btn-secondary btn-xs">Open
-                        subject →</a>
+                    <a id="detail-subject-link" href="#" target="_blank" class="hidden btn btn-secondary btn-xs">{{ __('admin.activity_log_section.open_subject') }}</a>
                 </div>
             </div>
 
             {{-- Changes diff --}}
             <div id="detail-changes-section" class="hidden">
-                <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Changes</h4>
+                <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ __('admin.activity_log_section.changes') }}</h4>
                 <div class="overflow-x-auto border border-gray-200 rounded-lg">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50">
                             <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
-                                <th class="px-3 py-2">Field</th>
-                                <th class="px-3 py-2">Old</th>
-                                <th class="px-3 py-2">New</th>
+                                <th class="px-3 py-2">{{ __('admin.activity_log_section.field') }}</th>
+                                <th class="px-3 py-2">{{ __('admin.activity_log_section.old') }}</th>
+                                <th class="px-3 py-2">{{ __('admin.activity_log_section.new') }}</th>
                             </tr>
                         </thead>
                         <tbody id="detail-changes-tbody" class="divide-y divide-gray-100"></tbody>
@@ -215,7 +223,7 @@
 
             {{-- Raw JSON --}}
             <details>
-                <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-700">Raw JSON</summary>
+                <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-700">{{ __('admin.activity_log_section.raw_json') }}</summary>
                 <pre id="detail-raw-json" class="text-xs bg-gray-50 p-3 rounded overflow-x-auto mt-2"></pre>
             </details>
         </div>

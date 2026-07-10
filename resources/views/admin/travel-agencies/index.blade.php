@@ -89,6 +89,11 @@
                 active: 'bg-emerald-100 text-emerald-700',
                 suspended: 'bg-red-100 text-red-700',
             };
+            const statusLabels = {
+                pending: "{{ __('admin.travel.status.pending') }}",
+                active: "{{ __('admin.travel.status.active') }}",
+                suspended: "{{ __('admin.travel.status.suspended') }}",
+            };
 
             let currentPage = 1;
 
@@ -119,7 +124,7 @@
                         <td class="px-4 py-3 text-gray-500">${a.packages}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[a.status] ?? ''}">
-                                ${a.status}
+                                ${statusLabels[a.status] ?? a.status}
                             </span>
                         </td>
                         <td class="px-4 py-3 text-gray-500">${a.created_at}</td>

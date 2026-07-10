@@ -4,6 +4,24 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/transactions.js'])
 @endpush
 
+@push('scripts')
+<script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    copiedToClipboard: @json(__('admin.transactions.copied_to_clipboard')),
+    copyFailed: @json(__('admin.transactions.copy_failed')),
+    approveRefundConfirm: @json(__('admin.transactions.approve_refund_confirm')),
+    refundApproved: @json(__('admin.transactions.refund_approved')),
+    approvalFailed: @json(__('admin.transactions.approval_failed')),
+    refundAmountLabel: @json(__('admin.transactions.refund_amount_label')),
+    rejecting: @json(__('admin.transactions.rejecting')),
+    refundRejected: @json(__('admin.transactions.refund_rejected')),
+    rejectionFailed: @json(__('admin.transactions.rejection_failed')),
+    confirmReject: @json(__('admin.transactions.confirm_reject')),
+});
+</script>
+@endpush
+
 @section('title', __('admin.transactions.title'))
 
 @section('content')

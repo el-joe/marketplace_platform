@@ -4,6 +4,30 @@
     @vite(['resources/js/admin/settings.js'])
 @endpush
 
+@push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            saving: @json(__('admin.settings_section.saving')),
+            settingsSaved: @json(__('admin.settings_section.settings_saved')),
+            validationFailed: @json(__('admin.settings_section.validation_failed')),
+            failedToSaveSettings: @json(__('admin.settings_section.failed_to_save_settings')),
+            clearCacheTitle: @json(__('admin.settings_section.clear_cache_title')),
+            clearCacheMessage: @json(__('admin.settings_section.clear_cache_message')),
+            clearCacheConfirm: @json(__('admin.settings_section.clear_cache_confirm')),
+            cacheCleared: @json(__('admin.settings_section.cache_cleared')),
+            failedToClearCache: @json(__('admin.settings_section.failed_to_clear_cache')),
+            gatewayReachable: @json(__('admin.settings_section.gateway_reachable')),
+            gatewayTestFailed: @json(__('admin.settings_section.gateway_test_failed')),
+            enterValidRate: @json(__('admin.settings_section.enter_valid_rate')),
+            rateUpdated: @json(__('admin.settings_section.rate_updated')),
+            failedToUpdateRate: @json(__('admin.settings_section.failed_to_update_rate')),
+            ratesRefreshQueued: @json(__('admin.settings_section.rates_refresh_queued')),
+            failedToQueueRefresh: @json(__('admin.settings_section.failed_to_queue_refresh')),
+        });
+    </script>
+@endpush
+
 @section('title', __('admin.settings_section.title'))
 
 @section('content')

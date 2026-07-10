@@ -198,6 +198,9 @@
             failedSaveRequirement: @json(__('admin.vendor_document_types.failed_save_requirement')),
             confirmBtn: @json(__('admin.vendor_document_types.confirm_btn')),
             cancelBtn: @json(__('admin.vendor_document_types.cancel')),
+            deactivateConfirm: @json(__('admin.vendor_document_types.deactivate_confirm')),
+            activateConfirm: @json(__('admin.vendor_document_types.activate_confirm')),
+            deleteConfirmTemplate: @json(__('admin.vendor_document_types.delete_confirm', ['name' => '__NAME__'])),
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -361,7 +364,8 @@
 
         function toggleType(id, currentlyActive) {
             const label = currentlyActive ? window.TRANSLATIONS.deactivate : window.TRANSLATIONS.activate;
-            toastConfirm(`${label} this document type?`, async () => {
+            const confirmMsg = currentlyActive ? window.TRANSLATIONS.deactivateConfirm : window.TRANSLATIONS.activateConfirm;
+            toastConfirm(confirmMsg, async () => {
                 const res = await fetch(ROUTES.toggle(id), {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
@@ -379,7 +383,8 @@
         // ── Delete ─────────────────────────────────────────────────────────────────
 
         function deleteType(id, name) {
-            toastConfirm(`Delete <strong>${name}</strong>? This cannot be undone.`, () => executeDelete(id), {
+            const msg = window.TRANSLATIONS.deleteConfirmTemplate.replace('__NAME__', `<strong>${name}</strong>`);
+            toastConfirm(msg, () => executeDelete(id), {
                 danger: true,
                 confirmLabel: window.TRANSLATIONS.deleteBtn,
             });

@@ -222,7 +222,24 @@
 
     <script>
         window.TRANSLATIONS = window.TRANSLATIONS || {};
-        Object.assign(window.TRANSLATIONS, {});
+        Object.assign(window.TRANSLATIONS, {
+            bulkActionConfirm: @json(__('admin.reviews_section.bulk_action_confirm')),
+            actionApprove: @json(__('admin.reviews_section.action_approve')),
+            actionReject: @json(__('admin.reviews_section.action_reject')),
+            actionDelete: @json(__('admin.reviews_section.action_delete')),
+            bulkActionDone: @json(__('admin.reviews_section.bulk_action_done')),
+            bulkActionFailed: @json(__('admin.reviews_section.bulk_action_failed')),
+            confirmApprovePublish: @json(__('admin.reviews_section.confirm_approve_publish')),
+            reviewApproved: @json(__('admin.reviews_section.review_approved')),
+            approvalFailed: @json(__('admin.reviews_section.approval_failed')),
+            confirmDeleteReview: @json(__('admin.reviews_section.confirm_delete_review')),
+            reviewDeleted: @json(__('admin.reviews_section.review_deleted')),
+            deleteFailed: @json(__('admin.reviews_section.delete_failed')),
+            reviewRejected: @json(__('admin.reviews_section.review_rejected')),
+            rejectionFailed: @json(__('admin.reviews_section.rejection_failed')),
+            rejecting: @json(__('admin.reviews_section.rejecting')),
+            confirmRejectBtnLabel: @json(__('admin.reviews_section.reject_review')),
+        });
     </script>
 
 @endsection

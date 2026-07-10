@@ -462,6 +462,24 @@
         Object.assign(window.TRANSLATIONS, {
             active: @json(__('common.active')),
             inactive: @json(__('common.inactive')),
+            shippingRateUpdated: @json(__('admin.shipping_section.shipping_rate_updated')),
+            shippingRateCreated: @json(__('admin.shipping_section.shipping_rate_created')),
+            saveFailed: @json(__('admin.shipping_section.save_failed')),
+            shippingRateDeleted: @json(__('admin.shipping_section.shipping_rate_deleted')),
+            deleteFailed: @json(__('admin.shipping_section.delete_failed')),
+            failedToUpdateRateStatus: @json(__('admin.shipping_section.failed_to_update_rate_status')),
+            shippingMethodUpdated: @json(__('admin.shipping_section.shipping_method_updated')),
+            shippingMethodCreated: @json(__('admin.shipping_section.shipping_method_created')),
+            failedToUpdateStatus: @json(__('admin.shipping_section.failed_to_update_status')),
+            carrierUpdated: @json(__('admin.shipping_section.carrier_updated')),
+            carrierCreated: @json(__('admin.shipping_section.carrier_created')),
+            failedToUpdateCarrierStatus: @json(__('admin.shipping_section.failed_to_update_carrier_status')),
+            testingEllipsis: @json(__('admin.shipping_section.testing')),
+            test: @json(__('admin.shipping_section.test')),
+            testFailedLabel: @json(__('admin.shipping_section.test_failed_label')),
+            errorLabel: @json(__('admin.shipping_section.error_label')),
+            failedToUpdateShippingSetting: @json(__('admin.shipping_section.failed_to_update_shipping_setting')),
+            failedToSaveThreshold: @json(__('admin.shipping_section.failed_to_save_threshold')),
         });
     </script>
 @endpush

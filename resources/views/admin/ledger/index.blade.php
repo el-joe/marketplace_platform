@@ -1,10 +1,16 @@
 @extends('layouts.admin')
 
 @push('styles')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            failedToLoadGroup: @json(__('admin.ledger_section.failed_to_load_group')),
+        });
+    </script>
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/ledger.js'])
 @endpush
 
-@section('title', __('admin.ledger.title') . ' — ' . __('admin.ledger.read_only'))
+@section('title', __('admin.ledger_section.title') . ' — ' . __('admin.ledger_section.read_only'))
 
 @section('content')
 
@@ -18,7 +24,7 @@
                 <span
                     class="ms-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">{{ __('admin.ledger_section.append_only') }}</span>
             </h1>
-            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.ledger.subtitle') }}</p>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.ledger_section.subtitle') }}</p>
         </div>
     </div>
 
@@ -29,7 +35,7 @@
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                 clip-rule="evenodd" />
         </svg>
-        <span>{!! __('admin.ledger.readonly_warning') !!}</span>
+        <span>{!! __('admin.ledger_section.readonly_warning') !!}</span>
     </div>
 
     {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}
@@ -119,7 +125,7 @@
     </x-card>
 
     {{-- ─── Transaction Group Modal ─────────────────────────────────────────────── --}}
-    <x-modal id="ledger-group-modal" title="{{ __('admin.ledger.transaction_group') }}" size="lg">
+    <x-modal id="ledger-group-modal" title="{{ __('admin.ledger_section.transaction_group') }}" size="lg">
         <div id="ledger-group-content">
             <p class="text-sm text-gray-500">{{ __('common.loading') }}</p>
         </div>

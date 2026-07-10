@@ -83,13 +83,13 @@ function ajax(options) {
 function renderBlockCard(block) {
     const icon = block.icon || 'cube';
     const badges = [];
-    if (!block.is_visible) badges.push('<span class="text-xs font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">Hidden</span>');
-    if (block.visible_from || block.visible_until) badges.push('<span class="text-xs font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">Scheduled</span>');
+    if (!block.is_visible) badges.push(`<span class="text-xs font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">${window.TRANSLATIONS?.hidden || 'Hidden'}</span>`);
+    if (block.visible_from || block.visible_until) badges.push(`<span class="text-xs font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">${window.TRANSLATIONS?.scheduled || 'Scheduled'}</span>`);
     if (block.device_target && block.device_target !== 'all') badges.push(`<span class="text-xs font-medium px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">${escapeHtml(block.device_target)}</span>`);
 
     return `
         <div class="block-card group" data-block-id="${block.id}" data-block-type="${escapeHtml(block.block_type || '')}">
-            <div class="drag-handle" title="Drag to reorder">
+            <div class="drag-handle" title="${window.TRANSLATIONS?.dragToReorder || 'Drag to reorder'}">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
@@ -103,10 +103,10 @@ function renderBlockCard(block) {
             </div>
             <div class="flex items-center gap-1.5">${badges.join('')}</div>
             <div class="block-actions flex items-center gap-1">
-                <button type="button" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded" data-action="edit-block" title="Edit">
+                <button type="button" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded" data-action="edit-block" title="${window.TRANSLATIONS?.edit || 'Edit'}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h-6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6m-6-9 6 6m-6-6L21 3l-4 4"/></svg>
                 </button>
-                <button type="button" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded" data-action="delete-block" title="Delete">
+                <button type="button" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded" data-action="delete-block" title="${window.TRANSLATIONS?.delete || 'Delete'}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166M5.84 19.673a2.25 2.25 0 0 0 2.244 2.077h7.832a2.25 2.25 0 0 0 2.244-2.077L19.228 5.79m-14.456 0a48.108 48.108 0 0 1 3.478-.397m11.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
                 </button>
             </div>
@@ -139,7 +139,7 @@ function loadPage(pageId) {
         return;
     }
 
-    setSaveStatus('Loading…', 'saving');
+    setSaveStatus(window.TRANSLATIONS?.loading || 'Loading…', 'saving');
     return ajax({
         url: ROUTES.load,
         method: 'GET',
@@ -151,8 +151,8 @@ function loadPage(pageId) {
         $('#preview-btn').attr('href', `/preview/page/${res.page.id}`).removeClass('hidden');
         setSaveStatus('');
     }).fail(() => {
-        setSaveStatus('Load failed', 'error');
-        Toast.error('Could not load page.');
+        setSaveStatus(window.TRANSLATIONS?.loadFailed || 'Load failed', 'error');
+        Toast.error(window.TRANSLATIONS?.couldNotLoadPage || 'Could not load page.');
     });
 }
 
@@ -160,7 +160,7 @@ function renderCanvas(blocks) {
     const $canvas = $('#block-canvas');
     if (!blocks.length) {
         $canvas.empty().addClass('hidden');
-        $('#canvas-empty').removeClass('hidden').find('p').text('This page has no blocks yet. Pick one from the left.');
+        $('#canvas-empty').removeClass('hidden').find('p').text(window.TRANSLATIONS?.noBlocksYet || 'This page has no blocks yet. Pick one from the left.');
         return;
     }
 
@@ -186,20 +186,20 @@ function persistOrder() {
         return { id: $(this).data('block-id'), position: i };
     }).get();
 
-    setSaveStatus('Saving order…', 'saving');
+    setSaveStatus(window.TRANSLATIONS?.savingOrder || 'Saving order…', 'saving');
     ajax({
         url: ROUTES.reorder,
         method: 'POST',
         data: JSON.stringify({ blocks }),
         contentType: 'application/json',
-    }).done(() => setSaveStatus('Order saved', 'saved'))
-        .fail(() => { setSaveStatus('Order save failed', 'error'); Toast.error('Could not save order.'); });
+    }).done(() => setSaveStatus(window.TRANSLATIONS?.orderSaved || 'Order saved', 'saved'))
+        .fail(() => { setSaveStatus(window.TRANSLATIONS?.orderSaveFailed || 'Order save failed', 'error'); Toast.error(window.TRANSLATIONS?.couldNotSaveOrder || 'Could not save order.'); });
 }
 
 /* ─── Add block ─────────────────────────────────────────────────────────── */
 $(document).on('click', '.palette-btn', function () {
     if (!state.currentPageId) {
-        Toast.warning('Select or create a page first.');
+        Toast.warning(window.TRANSLATIONS?.selectOrCreatePageFirst || 'Select or create a page first.');
         return;
     }
 
@@ -222,7 +222,7 @@ $(document).on('click', '.palette-btn', function () {
         selectBlock(res.block_id);
         Toast.success(`${res.label_en || res.block_type} added.`);
     }).fail((xhr) => {
-        const msg = xhr.responseJSON?.message || xhr.responseJSON?.errors?.block_type_code?.[0] || 'Could not add block.';
+        const msg = xhr.responseJSON?.message || xhr.responseJSON?.errors?.block_type_code?.[0] || window.TRANSLATIONS?.couldNotAddBlock || 'Could not add block.';
         Toast.error(msg);
     }));
 });
@@ -242,9 +242,9 @@ $(document).on('click', '[data-action="delete-block"]', async function () {
     const blockId = $card.data('block-id');
 
     const ok = await window.confirmDialog({
-        title: 'Remove block?',
-        message: 'This block (and its config) will be removed from the page. You can restore it from version history if the page has been published.',
-        confirmLabel: 'Remove',
+        title: window.TRANSLATIONS?.removeBlockTitle || 'Remove block?',
+        message: window.TRANSLATIONS?.removeBlockMessage || 'This block (and its config) will be removed from the page. You can restore it from version history if the page has been published.',
+        confirmLabel: window.TRANSLATIONS?.remove || 'Remove',
         danger: true,
     });
     if (!ok) return;
@@ -257,9 +257,9 @@ $(document).on('click', '[data-action="delete-block"]', async function () {
                 $('#block-canvas').addClass('hidden');
                 $('#canvas-empty').removeClass('hidden');
             }
-            Toast.success('Block removed.');
+            Toast.success(window.TRANSLATIONS?.blockRemoved || 'Block removed.');
         })
-        .fail(() => Toast.error('Could not remove block.'));
+        .fail(() => Toast.error(window.TRANSLATIONS?.couldNotRemoveBlock || 'Could not remove block.'));
 });
 
 function selectBlock(blockId) {
@@ -296,7 +296,7 @@ function openConfigPanel(blockId) {
     ).done((formRes, configRes) => {
         const html = formRes[0];
         const cfg = configRes[0] || {};
-        $('#config-title').text(($card.find('.text-sm.font-medium').text() || 'Block settings').trim());
+        $('#config-title').text(($card.find('.text-sm.font-medium').text() || window.TRANSLATIONS?.blockSettings || 'Block settings').trim());
         $('#config-form-body').html(html);
         if (window.initDatePickers) window.initDatePickers($('#config-form-body'));
         // Apply config after flatpickr async init settles (initDatePicker uses await internally)
@@ -346,7 +346,7 @@ function applyConfigToForm(cfg) {
 $(document).on('input change', '#config-form-body form[data-config-form] :input', function () {
     if (!state.selectedBlockId) return;
     clearTimeout(state.autoSaveTimer);
-    $('#config-save-status').text('Saving…').removeClass('text-emerald-600 text-rose-600').addClass('text-blue-600');
+    $('#config-save-status').text(window.TRANSLATIONS?.saving || 'Saving…').removeClass('text-emerald-600 text-rose-600').addClass('text-blue-600');
     state.autoSaveTimer = setTimeout(saveConfig, 700);
 });
 
@@ -370,7 +370,7 @@ function saveConfig() {
         const $card = $(`.block-card[data-block-id="${blockId}"]`);
         if (res.preview_text != null) $card.find('[data-preview]').text(res.preview_text);
     }).fail(() => {
-        $('#config-save-status').text('Save failed').removeClass('text-blue-600 text-emerald-600').addClass('text-rose-600');
+        $('#config-save-status').text(window.TRANSLATIONS?.saveFailed || 'Save failed').removeClass('text-blue-600 text-emerald-600').addClass('text-rose-600');
     });
 
     // Save visibility separately (different endpoint)
@@ -449,12 +449,12 @@ $(document).on('click', '[data-action="edit-slide"]', function () {
 $(document).on('click', '[data-action="delete-slide"]', async function () {
     const slideId = $(this).data('slide-id');
     const ok = await window.confirmDialog({
-        title: 'Delete slide?', message: 'This slide will be removed.', confirmLabel: 'Delete', danger: true,
+        title: window.TRANSLATIONS?.deleteSlideTitle || 'Delete slide?', message: window.TRANSLATIONS?.deleteSlideMessage || 'This slide will be removed.', confirmLabel: window.TRANSLATIONS?.delete || 'Delete', danger: true,
     });
     if (!ok) return;
     ajax({ url: ROUTES.slideDelete(slideId), method: 'DELETE' })
-        .done(() => { Toast.success('Slide deleted.'); loadSlidesList(state.selectedBlockId); })
-        .fail(() => Toast.error('Could not delete slide.'));
+        .done(() => { Toast.success(window.TRANSLATIONS?.slideDeleted || 'Slide deleted.'); loadSlidesList(state.selectedBlockId); })
+        .fail(() => Toast.error(window.TRANSLATIONS?.couldNotDeleteSlide || 'Could not delete slide.'));
 });
 
 function setSlideImagePreview(slot, fileId, url) {
@@ -518,9 +518,9 @@ $(document).on('change', '[data-slide-upload]', function () {
         headers: { 'X-CSRF-TOKEN': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
     }).done((res) => {
         setSlideImagePreview(slot, res.file_id, res.url);
-        Toast.success('Image uploaded.');
+        Toast.success(window.TRANSLATIONS?.imageUploaded || 'Image uploaded.');
     }).fail((xhr) => {
-        Toast.error(xhr.responseJSON?.message || 'Upload failed.');
+        Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.uploadFailed || 'Upload failed.');
     }).always(() => {
         $label.removeClass('opacity-50 pointer-events-none');
         this.value = '';
@@ -549,13 +549,13 @@ $('#slide-form').on('submit', function (e) {
 
     ajax({ url: ROUTES.slideSave(blockId), method: 'POST', data })
         .done(() => {
-            Toast.success('Slide saved.');
+            Toast.success(window.TRANSLATIONS?.slideSaved || 'Slide saved.');
             $('#slide-modal').modal('close');
             loadSlidesList(blockId);
             // Trigger preview refresh on block card
             $(`.block-card[data-block-id="${blockId}"] [data-preview]`).text('Slider — updated');
         })
-        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not save slide.'));
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.couldNotSaveSlide || 'Could not save slide.'));
 });
 
 /* ─── Page creation ─────────────────────────────────────────────────────── */
@@ -582,7 +582,7 @@ $('#create-page-form').on('submit', function (e) {
 
     ajax({ url: ROUTES.pages, method: 'POST', data })
         .done((res) => {
-            Toast.success('Page created.');
+            Toast.success(window.TRANSLATIONS?.pageCreated || 'Page created.');
             $('#create-page-modal').modal('close');
 
             const p = res.page;
@@ -591,7 +591,7 @@ $('#create-page-form').on('submit', function (e) {
         })
         .fail((xhr) => {
             const errs = xhr.responseJSON?.errors || {};
-            const first = Object.values(errs)[0]?.[0] || xhr.responseJSON?.message || 'Could not create page.';
+            const first = Object.values(errs)[0]?.[0] || xhr.responseJSON?.message || window.TRANSLATIONS?.couldNotCreatePage || 'Could not create page.';
             Toast.error(first);
         });
 });
@@ -604,9 +604,9 @@ $('#page-select').on('change', function () {
 $('#publish-btn').on('click', async function () {
     if (!state.currentPageId) return;
     const ok = await window.confirmDialog({
-        title: 'Publish page?',
-        message: 'This will make the current draft live. A new version snapshot will be created.',
-        confirmLabel: 'Publish',
+        title: window.TRANSLATIONS?.publishPageTitle || 'Publish page?',
+        message: window.TRANSLATIONS?.publishPageMessage || 'This will make the current draft live. A new version snapshot will be created.',
+        confirmLabel: window.TRANSLATIONS?.publish || 'Publish',
     });
     if (!ok) return;
 
@@ -614,8 +614,8 @@ $('#publish-btn').on('click', async function () {
     withLoading($btn, ajax({
         url: ROUTES.publish(state.currentPageId), method: 'POST',
         data: { reason: 'Published from page builder' },
-    }).done(() => Toast.success('Page published.'))
-        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not publish.')));
+    }).done(() => Toast.success(window.TRANSLATIONS?.pagePublished || 'Page published.'))
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.couldNotPublish || 'Could not publish.')));
 });
 
 $('#version-history-btn').on('click', function () {
@@ -640,16 +640,16 @@ $('#version-history-btn').on('click', function () {
 $(document).on('click', '[data-action="restore-page-revision"]', async function () {
     const revId = $(this).data('revision-id');
     const ok = await window.confirmDialog({
-        title: 'Restore this version?',
-        message: 'The current page blocks will be replaced with the selected version. A new revision snapshot will be created.',
-        confirmLabel: 'Restore',
+        title: window.TRANSLATIONS?.restoreVersionTitle || 'Restore this version?',
+        message: window.TRANSLATIONS?.restoreVersionMessage || 'The current page blocks will be replaced with the selected version. A new revision snapshot will be created.',
+        confirmLabel: window.TRANSLATIONS?.restore || 'Restore',
         danger: true,
     });
     if (!ok) return;
 
     ajax({ url: ROUTES.pageRevRestore(revId), method: 'POST' })
-        .done(() => { Toast.success('Version restored.'); loadPage(state.currentPageId); })
-        .fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not restore.'));
+        .done(() => { Toast.success(window.TRANSLATIONS?.versionRestored || 'Version restored.'); loadPage(state.currentPageId); })
+        .fail((xhr) => Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.couldNotRestore || 'Could not restore.'));
 });
 
 /* ─── Boot ──────────────────────────────────────────────────────────────── */

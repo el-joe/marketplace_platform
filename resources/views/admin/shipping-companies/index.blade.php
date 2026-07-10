@@ -71,7 +71,7 @@
                             $sc = ['active'=>'emerald','pending'=>'amber','suspended'=>'red'][$company->status] ?? 'gray';
                         @endphp
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-{{ $sc }}-100 text-{{ $sc }}-700 capitalize">
-                            {{ $company->status }}
+                            {{ __('admin.shipping_section.company_status_' . $company->status) }}
                         </span>
                     </td>
                     <td class="px-6 py-4">

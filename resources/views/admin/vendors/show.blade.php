@@ -47,7 +47,7 @@
             <h1 class="text-2xl font-bold text-gray-900 truncate">{{ $vendor->store_name }}</h1>
             <div class="flex items-center gap-2 mt-1 flex-wrap">
                 <x-badge :color="$statusColors[$vendor->global_status] ?? 'gray'">
-                    {{ ucwords(str_replace('_', ' ', $vendor->global_status)) }}
+                    {{ __('admin.vendors.' . $vendor->global_status) }}
                 </x-badge>
                 @if($vendor->payout_hold_active)
                     <x-badge color="warning">{{ __('admin.vendors.payout_hold') }}</x-badge>
@@ -104,14 +104,14 @@
                             __('admin.vendors.store_name')      => $vendor->store_name,
                             __('admin.vendors.store_slug')      => $vendor->store_slug,
                             __('admin.vendors.business_name')   => $vendor->business_name ?: '—',
-                            __('admin.vendors.business_type')   => ucfirst(str_replace('_', ' ', $vendor->business_type ?? '—')),
+                            __('admin.vendors.business_type')   => $vendor->business_type ? __('admin.vendor_applications.business_type_' . $vendor->business_type) : '—',
                             __('admin.vendors.reg_number')      => $vendor->business_registration_number ?: '—',
                             __('admin.vendors.tax_id')          => $vendor->tax_id ?: '—',
                             __('admin.vendors.contact_email')   => $vendor->contact_email ?: '—',
                             __('admin.vendors.contact_phone')   => $vendor->contact_phone ?: '—',
                             __('admin.vendors.whatsapp')        => $vendor->whatsapp_number ?: '—',
                             __('admin.vendors.commission_rate') => $vendor->commission_rate ? $vendor->commission_rate . '%' : __('admin.vendors.platform_default'),
-                            __('admin.vendors.payout_schedule') => ucfirst($vendor->payout_schedule ?? '—'),
+                            __('admin.vendors.payout_schedule') => $vendor->payout_schedule ? __('admin.vendors.payout_schedule_' . $vendor->payout_schedule) : '—',
                             __('admin.vendors.country')         => $vendor->country?->name_en ?? '—',
                             __('admin.vendors.approved_at')     => $vendor->approved_at?->format('d M Y') ?? '—',
                             __('admin.vendors.approved_by')     => $vendor->approvedByAdmin?->name ?? '—',
@@ -180,7 +180,7 @@
                                             {{ ucwords(str_replace('_', ' ', $doc->document_type)) }}
                                         </td>
                                         <td class="py-3 pr-4">
-                                            <x-badge :color="$docStatusColors[$doc->status] ?? 'gray'">{{ ucfirst($doc->status) }}</x-badge>
+                                            <x-badge :color="$docStatusColors[$doc->status] ?? 'gray'">{{ __('admin.vendor_applications.doc_status_' . $doc->status) }}</x-badge>
                                         </td>
                                         <td class="py-3 pr-4 text-gray-600">{{ $doc->expires_at?->format('d M Y') ?? '—' }}</td>
                                         <td class="py-3 pr-4 text-gray-600">{{ $doc->verifiedByAdmin?->name ?? '—' }}</td>
@@ -240,7 +240,7 @@
                                             </td>
                                             <td class="py-3 pr-4">
                                                 <x-badge :color="$account->verification_status === 'verified' ? 'success' : ($account->verification_status === 'rejected' ? 'danger' : 'gray')">
-                                                    {{ ucfirst($account->verification_status) }}
+                                                    {{ __('admin.vendor_applications.bank_status_' . $account->verification_status) }}
                                                 </x-badge>
                                             </td>
                                             <td class="py-3 text-end">
@@ -312,7 +312,7 @@
                                             @endif
                                         </td>
                                         <td class="py-3 pr-4">
-                                            <x-badge :color="$strikeColors[$strike->severity] ?? 'gray'">{{ ucfirst($strike->severity) }}</x-badge>
+                                            <x-badge :color="$strikeColors[$strike->severity] ?? 'gray'">{{ __('admin.vendors.severity_' . $strike->severity) }}</x-badge>
                                         </td>
                                         <td class="py-3 pr-4 text-gray-600">{{ $strike->issuedByAdmin?->name ?? '—' }}</td>
                                         <td class="py-3 pr-4 text-gray-600">{{ $strike->expires_at?->format('d M Y') ?? __('admin.vendors.never') }}</td>
@@ -435,7 +435,7 @@
                                         </td>
                                         <td class="py-3 pr-4 tabular-nums">${{ number_format($payout->gross_sales / 100, 2) }}</td>
                                         <td class="py-3 pr-4 tabular-nums font-medium">${{ number_format($payout->net_amount / 100, 2) }}</td>
-                                        <td class="py-3 pr-4"><x-badge :color="$pc">{{ ucfirst($payout->status) }}</x-badge></td>
+                                        <td class="py-3 pr-4"><x-badge :color="$pc">{{ __('admin.payouts.' . $payout->status) }}</x-badge></td>
                                         <td class="py-3 text-xs text-gray-500">{{ $payout->processed_at ? \Carbon\Carbon::parse($payout->processed_at)->format('d M Y') : '—' }}</td>
                                     </tr>
                                 @empty

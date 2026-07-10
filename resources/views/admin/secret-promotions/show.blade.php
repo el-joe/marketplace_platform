@@ -47,7 +47,7 @@
         </div>
         <div class="flex items-center gap-2">
             <span id="status-badge"
-                class="badge badge-{{ $promotion->status_color }} text-sm px-3 py-1">{{ ucfirst($promotion->status) }}</span>
+                class="badge badge-{{ $promotion->status_color }} text-sm px-3 py-1">{{ __('admin.secret_promotions.' . $promotion->status) }}</span>
             <button type="button" id="edit-promo-btn" class="btn btn-outline btn-sm">{{ __('admin.secret_promotions.edit') }}</button>
             @if($promotion->status === 'active')
                 <button type="button" id="toggle-status-btn" class="btn btn-warning btn-sm" data-action="pause">{{ __('admin.secret_promotions.pause') }}</button>
@@ -266,7 +266,7 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">{{ __('admin.status') }}</span>
-                        <span class="badge badge-{{ $promotion->status_color }}">{{ ucfirst($promotion->status) }}</span>
+                        <span class="badge badge-{{ $promotion->status_color }}">{{ __('admin.secret_promotions.' . $promotion->status) }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">{{ __('admin.secret_promotions.created') }}</span>
@@ -476,6 +476,28 @@
         window.EXPIRE_URL = '{{ route('admin.secret-promotions.expire', $promotion) }}';
         window.DUPLICATE_URL = '{{ route('admin.secret-promotions.duplicate', $promotion) }}';
         window.INDEX_URL = '{{ route('admin.secret-promotions.index') }}';
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            conversionsLabel: @json(__('admin.secret_promotions.conversions')),
+            adminRevenueLabel: @json(__('admin.secret_promotions.admin_revenue_chart_label')),
+            couldNotRefreshChart: @json(__('admin.secret_promotions.could_not_refresh_chart')),
+            statusUpdated: @json(__('admin.secret_promotions.status_updated')),
+            failedToUpdateStatus: @json(__('admin.secret_promotions.failed_to_update_status')),
+            forceExpirePromotionTitle: @json(__('admin.secret_promotions.force_expire_promotion_title')),
+            forceExpirePromotionText: @json(__('admin.secret_promotions.force_expire_promotion_text')),
+            yesExpireIt: @json(__('admin.secret_promotions.yes_expire_it')),
+            promotionExpired: @json(__('admin.secret_promotions.promotion_expired')),
+            failedToExpire: @json(__('admin.secret_promotions.failed_to_expire')),
+            duplicating: @json(__('admin.secret_promotions.duplicating')),
+            promotionDuplicated: @json(__('admin.secret_promotions.promotion_duplicated')),
+            failedToDuplicate: @json(__('admin.secret_promotions.failed_to_duplicate')),
+            savingEllipsis: @json(__('admin.secret_promotions.saving')),
+            promotionUpdated: @json(__('admin.secret_promotions.promotion_updated')),
+            failedToSave: @json(__('admin.secret_promotions.failed_to_save')),
+            statusActive: @json(__('admin.secret_promotions.active')),
+            statusPaused: @json(__('admin.secret_promotions.paused')),
+            statusExpired: @json(__('admin.secret_promotions.expired')),
+        });
     </script>
     @vite('resources/js/admin/secret-promotion-detail.js')
 @endpush

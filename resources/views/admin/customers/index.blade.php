@@ -154,6 +154,38 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            pleaseWait: @json(__('admin.customers_section.please_wait')),
+            searchPlaceholder: @json(__('admin.customers_section.search_ellipsis')),
+            suspendCountPrompt: @json(__('admin.customers_section.suspend_count_prompt')),
+            customersSuspended: @json(__('admin.customers_section.customers_suspended')),
+            someActionsFailed: @json(__('admin.customers_section.some_actions_failed')),
+            useFiltersExportHint: @json(__('admin.customers_section.use_filters_export_hint')),
+            enterReason: @json(__('admin.customers_section.enter_reason')),
+            suspend: @json(__('admin.customers_section.suspend')),
+            customerSuspended: @json(__('admin.customers_section.customer_suspended')),
+            actionFailed: @json(__('admin.customers_section.action_failed')),
+            typeConfirmToProceed: @json(__('admin.customers_section.type_confirm_to_proceed')),
+            banCustomer: @json(__('admin.customers_section.ban_customer')),
+            customerBanned: @json(__('admin.customers_section.customer_banned')),
+            reactivateConfirm: @json(__('admin.customers_section.reactivate_confirm')),
+            thisCustomer: @json(__('admin.customers_section.this_customer')),
+            customerReactivated: @json(__('admin.customers_section.customer_reactivated')),
+            enterNonZeroAdjustment: @json(__('admin.customers_section.enter_non_zero_adjustment')),
+            apply: @json(__('admin.customers_section.apply')),
+            loyaltyPointsAdjusted: @json(__('admin.customers_section.loyalty_points_adjusted')),
+            fillAllFields: @json(__('admin.customers_section.fill_all_fields')),
+            send: @json(__('admin.customers_section.send')),
+            notificationSent: @json(__('admin.customers_section.notification_sent')),
+            failedToSend: @json(__('admin.customers_section.failed_to_send')),
+            fullListDatatable: @json(__('admin.customers_section.full_list_datatable')),
+            hideDatatable: @json(__('admin.customers_section.hide_datatable')),
+            copied: @json(__('admin.customers_section.copied')),
+            copyFailed: @json(__('admin.customers_section.copy_failed')),
+        });
+    </script>
     @vite(['resources/js/admin/customers.js'])
     <script>
         window.customersTableUrl = '{{ route('admin.customers.datatable') }}';

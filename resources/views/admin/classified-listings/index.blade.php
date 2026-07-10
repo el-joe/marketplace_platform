@@ -22,7 +22,7 @@
         <select name="status" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="">{{ __('admin.classifieds.all_statuses') }}</option>
             @foreach(['draft','pending_contract','pending_review','active','paused','sold','expired','rejected'] as $s)
-            <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ',$s)) }}</option>
+            <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ __('admin.classifieds.status_' . $s) }}</option>
             @endforeach
         </select>
         <select name="category" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -83,7 +83,7 @@
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $listing->price_formatted }}</td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$listing->status] ?? '' }}">
-                            {{ ucfirst(str_replace('_', ' ', $listing->status)) }}
+                            {{ __('admin.classifieds.status_' . $listing->status) }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $listing->created_at->format('Y-m-d') }}</td>

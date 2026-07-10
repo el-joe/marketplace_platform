@@ -195,7 +195,7 @@ window.TRANSLATIONS = {
                 ],
                 order: [[5, 'desc']],
                 pageLength: 25,
-                language: { processing: 'Loading…', emptyTable: 'No posts found.' },
+                language: { processing: window.TRANSLATIONS.loading, emptyTable: window.TRANSLATIONS.no_posts },
             });
         } else {
             dtInstance = window.initDataTable('posts-table', {

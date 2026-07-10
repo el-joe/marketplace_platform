@@ -18,7 +18,7 @@
                         : ($listing->status === 'pending_review' ? 'bg-amber-100 text-amber-700'
                         : ($listing->status === 'rejected' ? 'bg-red-100 text-red-700'
                         : 'bg-gray-100 text-gray-700')) }}">
-                    {{ ucfirst(str_replace('_', ' ', $listing->status)) }}
+                    {{ __('admin.classifieds.status_' . $listing->status) }}
                 </span>
             </div>
             <p class="text-sm text-gray-500 mt-1">
@@ -61,7 +61,7 @@
                     <div><dt class="text-gray-500">{{ __('admin.classifieds.title_en_short') }}</dt><dd class="font-medium" dir="ltr">{{ $listing->title_en }}</dd></div>
                     <div><dt class="text-gray-500">{{ __('admin.classifieds.title_ar_short') }}</dt><dd class="font-medium" dir="rtl">{{ $listing->title_ar }}</dd></div>
                     <div><dt class="text-gray-500">{{ __('common.category') }}</dt><dd>{{ $listing->classifiedCategory?->name_en }}</dd></div>
-                    <div><dt class="text-gray-500">{{ __('admin.classifieds.purpose') }}</dt><dd>{{ ucfirst($listing->listing_purpose) }}</dd></div>
+                    <div><dt class="text-gray-500">{{ __('admin.classifieds.purpose') }}</dt><dd>{{ __('admin.classifieds.purpose_' . $listing->listing_purpose) }}</dd></div>
                     <div><dt class="text-gray-500">{{ __('common.price') }}</dt><dd class="font-bold text-gray-900">{{ $listing->price_formatted }}</dd></div>
                     <div><dt class="text-gray-500">{{ __('admin.classifieds.negotiable') }}</dt><dd>{{ $listing->price_negotiable ? __('common.yes') : __('common.no') }}</dd></div>
                     <div><dt class="text-gray-500">{{ __('common.country') }}</dt><dd>{{ $listing->country?->name_en }}</dd></div>
@@ -119,7 +119,11 @@
                 @forelse($listing->attachments as $att)
                 <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                     <div>
-                        <p class="text-sm font-medium text-gray-900">{{ str_replace('_',' ', $att->attachment_type) }}</p>
+                        <p class="text-sm font-medium text-gray-900">
+                            {{ \Illuminate\Support\Facades\Lang::has('admin.classifieds.attach_' . $att->attachment_type)
+                                ? __('admin.classifieds.attach_' . $att->attachment_type)
+                                : str_replace('_',' ', $att->attachment_type) }}
+                        </p>
                         <a href="{{ \Illuminate\Support\Facades\Storage::url($att->file_path) }}"
                            target="_blank" class="text-xs text-primary-600 hover:underline">{{ __('admin.classifieds.view_file') }}</a>
                     </div>
@@ -128,7 +132,7 @@
                             {{ $att->status === 'verified' ? 'bg-emerald-100 text-emerald-700'
                                 : ($att->status === 'rejected' ? 'bg-red-100 text-red-700'
                                 : 'bg-amber-100 text-amber-700') }}">
-                            {{ ucfirst($att->status) }}
+                            {{ __('admin.classifieds.attachment_status_' . $att->status) }}
                         </span>
                         @if($att->status !== 'verified')
                         <button onclick="verifyAttachment('{{ $att->id }}', 'verify')"

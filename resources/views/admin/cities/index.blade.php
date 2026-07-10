@@ -111,5 +111,17 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            selectCsvFile: @json(__('admin.geography.select_csv_file')),
+            importingEllipsis: @json(__('admin.geography.importing_ellipsis')),
+            importBtn: @json(__('admin.geography.import_btn')),
+            rowErrorsCount: @json(__('admin.geography.row_errors_count')),
+            moreErrors: @json(__('admin.geography.more_errors')),
+            importFailed: @json(__('admin.geography.import_failed')),
+            citiesInserted: @json(__('admin.geography.cities_inserted')),
+        });
+    </script>
     @vite('resources/js/admin/cities.js')
 @endpush

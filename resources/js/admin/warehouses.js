@@ -65,7 +65,7 @@ function initWarehousesTable() {
         if (!btn) return;
 
         const isActive = parseInt(btn.dataset.active, 10);
-        if (!confirm(isActive ? 'Deactivate this warehouse?' : 'Activate this warehouse?')) return;
+        if (!confirm(isActive ? (window.TRANSLATIONS?.deactivateWarehouseConfirm || 'Deactivate this warehouse?') : (window.TRANSLATIONS?.activateWarehouseConfirm || 'Activate this warehouse?'))) return;
 
         try {
             const res = await fetch(btn.dataset.url, {
@@ -82,7 +82,7 @@ function initWarehousesTable() {
             window.Toast?.success(json.message);
             dt?.draw(false);
         } catch (err) {
-            window.Toast?.error(err.message ?? 'Request failed.');
+            window.Toast?.error(err.message ?? (window.TRANSLATIONS?.requestFailed || 'Request failed.'));
         }
     });
 

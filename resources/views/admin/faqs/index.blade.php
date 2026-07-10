@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'FAQs')
+@section('title', __('admin.faqs.title'))
 
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
@@ -11,13 +11,13 @@
 
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">FAQs</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Manage the FAQ accordions shown across the public portal, in English and Arabic.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.faqs.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.faqs.subtitle') }}</p>
         </div>
         <button type="button" id="btn-new-faq"
                 class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
             <x-heroicon name="plus" class="w-4 h-4" />
-            New FAQ
+            {{ __('admin.faqs.new_faq') }}
         </button>
     </div>
 
@@ -38,10 +38,10 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="w-8 px-3 py-3"></th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Question (EN)</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">Question (AR)</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">Active</th>
-                    <th class="px-4 py-3 text-end font-semibold text-gray-700">Actions</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.faqs.question_en') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.faqs.question_ar') }}</th>
+                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
+                    <th class="px-4 py-3 text-end font-semibold text-gray-700">{{ __('common.actions') }}</th>
                 </tr>
             </thead>
             <tbody id="faq-list" class="divide-y divide-gray-100">
@@ -55,24 +55,24 @@
                         <td class="px-4 py-3 text-center">
                             <button type="button" dir="ltr"
                                     class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $faq->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
-                                    data-id="{{ $faq->id }}" aria-label="Toggle active">
+                                    data-id="{{ $faq->id }}" aria-label="{{ __('admin.faqs.toggle_active') }}">
                                 <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $faq->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
                             </button>
                         </td>
                         <td class="px-4 py-3 text-end whitespace-nowrap">
                             <button type="button" class="btn-edit-faq text-xs text-primary-600 font-medium hover:underline"
                                     data-faq="{{ json_encode($faq->only(['id','context','question_en','question_ar','answer_en','answer_ar','sort_order','is_active'])) }}">
-                                Edit
+                                {{ __('common.edit') }}
                             </button>
                             <button type="button" class="btn-delete-faq ms-2 text-xs text-red-500 hover:underline"
                                     data-id="{{ $faq->id }}" data-name="{{ $faq->question_en }}">
-                                Delete
+                                {{ __('common.delete') }}
                             </button>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-10 text-center text-gray-400">No FAQs found for this context yet.</td>
+                        <td colspan="5" class="px-4 py-10 text-center text-gray-400">{{ __('admin.faqs.empty_state') }}</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -81,13 +81,13 @@
 </div>
 
 {{-- Create / Edit modal --}}
-<x-modal id="faq-modal" title="FAQ" size="lg">
+<x-modal id="faq-modal" title="{{ __('admin.faqs.faq') }}" size="lg">
     <form id="faq-form" class="space-y-4">
         @csrf
         <input type="hidden" id="form-faq-id" value="">
 
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Context</label>
+            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.faqs.context') }}</label>
             <select name="context" id="f-context" class="form-input w-full text-sm">
                 @foreach($contexts as $c)
                     <option value="{{ $c }}" {{ $c === $context ? 'selected' : '' }}>{{ ucwords(str_replace('_', ' ', $c)) }}</option>
@@ -97,34 +97,34 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Question (English) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.faqs.question_english') }} <span class="text-red-500">*</span></label>
                 <input type="text" id="f-question-en" required maxlength="500" class="form-input w-full text-sm">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Question (Arabic) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.faqs.question_arabic') }} <span class="text-red-500">*</span></label>
                 <input type="text" id="f-question-ar" required maxlength="500" dir="rtl" class="form-input w-full text-sm">
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Answer (English) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.faqs.answer_english') }} <span class="text-red-500">*</span></label>
                 <textarea id="f-answer-en" required rows="5" class="form-input w-full text-sm"></textarea>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Answer (Arabic) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.faqs.answer_arabic') }} <span class="text-red-500">*</span></label>
                 <textarea id="f-answer-ar" required rows="5" dir="rtl" class="form-input w-full text-sm"></textarea>
             </div>
         </div>
 
         <div class="flex items-center gap-6">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Sort order</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.faqs.sort_order') }}</label>
                 <input type="number" id="f-sort-order" value="0" min="0" class="form-input w-28 text-sm">
             </div>
             <label class="flex items-center gap-2 cursor-pointer select-none mt-4">
                 <input type="checkbox" id="f-is-active" class="rounded text-primary-600" checked>
-                <span class="text-sm text-gray-700">Active</span>
+                <span class="text-sm text-gray-700">{{ __('common.active') }}</span>
             </label>
         </div>
 
@@ -132,19 +132,19 @@
     </form>
 
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-save-faq" class="btn btn-primary">Save</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" id="btn-save-faq" class="btn btn-primary">{{ __('common.save') }}</button>
     </x-slot:footer>
 </x-modal>
 
 {{-- Delete confirmation modal --}}
-<x-modal id="delete-modal" title="Delete FAQ" size="sm">
-    <p class="text-sm text-gray-700">Are you sure you want to delete "<strong id="delete-faq-name"></strong>"?</p>
+<x-modal id="delete-modal" title="{{ __('admin.faqs.delete_faq') }}" size="sm">
+    <p class="text-sm text-gray-700">{{ __('admin.faqs.delete_confirm') }} "<strong id="delete-faq-name"></strong>"?</p>
     <input type="hidden" id="delete-faq-id">
     <div id="delete-error" class="hidden mt-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"></div>
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-confirm-delete" class="btn btn-danger">Delete</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" id="btn-confirm-delete" class="btn btn-danger">{{ __('common.delete') }}</button>
     </x-slot:footer>
 </x-modal>
 
@@ -182,9 +182,15 @@
         document.getElementById('form-error').classList.add('hidden');
     }
 
+    const i18n = {
+        newFaq: @json(__('admin.faqs.new_faq')),
+        editFaq: @json(__('admin.faqs.edit_faq')),
+        couldNotDelete: @json(__('admin.faqs.could_not_delete')),
+    };
+
     document.getElementById('btn-new-faq').addEventListener('click', () => {
         resetForm();
-        document.querySelector('#faq-modal [id$="-title"]').textContent = 'New FAQ';
+        document.querySelector('#faq-modal [id$="-title"]').textContent = i18n.newFaq;
         openModal('faq-modal');
     });
 
@@ -199,7 +205,7 @@
             document.getElementById('f-answer-ar').value = faq.answer_ar;
             document.getElementById('f-sort-order').value = faq.sort_order ?? 0;
             document.getElementById('f-is-active').checked = !!faq.is_active;
-            document.querySelector('#faq-modal [id$="-title"]').textContent = 'Edit FAQ';
+            document.querySelector('#faq-modal [id$="-title"]').textContent = i18n.editFaq;
             document.getElementById('form-error').classList.add('hidden');
             openModal('faq-modal');
         });
@@ -248,7 +254,7 @@
             window.location.reload();
         } else {
             const errEl = document.getElementById('delete-error');
-            errEl.textContent = data.message ?? 'Could not delete FAQ.';
+            errEl.textContent = data.message ?? i18n.couldNotDelete;
             errEl.classList.remove('hidden');
         }
     });

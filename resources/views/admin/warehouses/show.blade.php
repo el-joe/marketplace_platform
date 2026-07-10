@@ -295,14 +295,23 @@
                                     </td>
                                     <td class="py-2.5 pr-4 text-xs">
                                         @if($isOutbound)
-                                            <span class="text-orange-600">▶ OUT → {{ $tf->destinationWarehouse?->name ?? '—' }}</span>
+                                            <span class="text-orange-600">▶ {{ __('admin.warehouses_section.direction_out') }} → {{ $tf->destinationWarehouse?->name ?? '—' }}</span>
                                         @else
-                                            <span class="text-green-600">◀ IN ← {{ $tf->sourceWarehouse?->name ?? '—' }}</span>
+                                            <span class="text-green-600">◀ {{ __('admin.warehouses_section.direction_in') }} ← {{ $tf->sourceWarehouse?->name ?? '—' }}</span>
                                         @endif
                                     </td>
                                     <td class="py-2.5 pr-4">
+                                        @php
+                                            $tfStatusLabel = match ($tf->status) {
+                                                'pending' => __('common.pending'),
+                                                'in_transit' => __('admin.warehouses_section.in_transit'),
+                                                'received' => __('admin.warehouses_section.received'),
+                                                'cancelled' => __('common.cancelled'),
+                                                default => $tf->status,
+                                            };
+                                        @endphp
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $statusBadge }}">
-                                            {{ str_replace('_', ' ', $tf->status) }}
+                                            {{ $tfStatusLabel }}
                                         </span>
                                     </td>
                                     <td class="py-2.5 pr-4 text-xs text-gray-400">
@@ -375,6 +384,9 @@ const TOGGLE_URL = '{{ route('admin.warehouses.toggle-active', $warehouse->id) }
 window.TRANSLATIONS = window.TRANSLATIONS || {};
 Object.assign(window.TRANSLATIONS, {
     noMovements: @json(__('admin.warehouses_section.no_movements')),
+    deactivateWarehouseConfirm: @json(__('admin.warehouses_section.deactivate_warehouse_confirm')),
+    activateWarehouseConfirm: @json(__('admin.warehouses_section.activate_warehouse_confirm')),
+    requestFailed: @json(__('admin.warehouses_section.request_failed')),
 });
 </script>
 @endpush

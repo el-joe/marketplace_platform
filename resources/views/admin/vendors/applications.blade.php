@@ -64,7 +64,7 @@
                         </div>
                         <div>
                             <span class="text-gray-400">{{ __('admin.vendors.business_type_label') }}</span>
-                            <div class="text-gray-800">{{ ucfirst(str_replace('_', ' ', $vendor->business_type ?? '—')) }}</div>
+                            <div class="text-gray-800">{{ $vendor->business_type ? __('admin.vendor_applications.business_type_' . $vendor->business_type) : '—' }}</div>
                         </div>
                     </div>
 

@@ -53,7 +53,7 @@
                     <td class="px-4 py-3">
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium
                             {{ $channel->type === 'video' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
-                            {{ ucfirst($channel->type) }}
+                            {{ __('admin.radio.' . $channel->type) }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-gray-600">

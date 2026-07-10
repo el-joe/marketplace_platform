@@ -1,6 +1,24 @@
 @extends('layouts.admin')
 
 @push('styles')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            minSales: @json(__('admin.marketers.tiers.min_sales')),
+            maxSalesBlank: @json(__('admin.marketers.tiers.max_sales_blank')),
+            leaveBlankForInfinity: @json(__('admin.marketers.tiers.leave_blank_for_infinity')),
+            commissionPercent: @json(__('admin.marketers.tiers.commission_percent')),
+            removeTier: @json(__('admin.marketers.tiers.remove_tier')),
+            addTier: @json(__('admin.marketers.tiers.add_tier')),
+            tierMinSalesCommissionRequired: @json(__('admin.marketers.tiers.min_sales_commission_required')),
+            tierMaxSalesRequired: @json(__('admin.marketers.tiers.max_sales_required')),
+            saving: @json(__('admin.marketers.tiers.saving')),
+            tiersSaved: @json(__('admin.marketers.tiers.tiers_saved')),
+            failedToSaveTiers: @json(__('admin.marketers.tiers.failed_to_save_tiers')),
+            networkErrorRetry: @json(__('admin.marketers.tiers.network_error_retry')),
+            saveTiers: @json(__('admin.marketers.tiers.save_tiers')),
+        });
+    </script>
     @vite(['resources/js/admin/marketer-tiers.js'])
 @endpush
 

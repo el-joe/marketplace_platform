@@ -196,14 +196,14 @@ function initRateModal() {
 
         try {
             await sendJson(url, method, payload);
-            toast(id ? 'Shipping rate updated.' : 'Shipping rate created.');
+            toast(id ? (window.TRANSLATIONS?.shippingRateUpdated || 'Shipping rate updated.') : (window.TRANSLATIONS?.shippingRateCreated || 'Shipping rate created.'));
             $modal.modal('close');
             ratesTable?.draw();
         } catch (err) {
             if (err.errors) {
                 window.injectValidationErrors?.($form, err.errors);
             } else {
-                toast(err.message ?? 'Save failed.', 'error');
+                toast(err.message ?? (window.TRANSLATIONS?.saveFailed || 'Save failed.'), 'error');
             }
         }
     });
@@ -224,11 +224,11 @@ function initDeleteRate() {
 
         try {
             await sendJson(`/shipping-methods/rates/${id}`, 'DELETE');
-            toast('Shipping rate deleted.');
+            toast(window.TRANSLATIONS?.shippingRateDeleted || 'Shipping rate deleted.');
             $deleteModal.modal('close');
             ratesTable?.draw();
         } catch {
-            toast('Delete failed.', 'error');
+            toast(window.TRANSLATIONS?.deleteFailed || 'Delete failed.', 'error');
         }
     });
 }
@@ -243,7 +243,7 @@ function initToggleRate() {
             await sendJson(`/shipping-methods/rates/${id}/toggle`, 'POST');
             ratesTable?.draw();
         } catch {
-            toast('Failed to update rate status.', 'error');
+            toast(window.TRANSLATIONS?.failedToUpdateRateStatus || 'Failed to update rate status.', 'error');
         }
     });
 }
@@ -298,14 +298,14 @@ function initMethodModal() {
 
         try {
             await sendJson(url, method, payload);
-            toast(id ? 'Shipping method updated.' : 'Shipping method created.');
+            toast(id ? (window.TRANSLATIONS?.shippingMethodUpdated || 'Shipping method updated.') : (window.TRANSLATIONS?.shippingMethodCreated || 'Shipping method created.'));
             $modal.modal('close');
             setTimeout(() => window.location.reload(), 500);
         } catch (err) {
             if (err.errors) {
                 window.injectValidationErrors?.($form, err.errors);
             } else {
-                toast(err.message ?? 'Save failed.', 'error');
+                toast(err.message ?? (window.TRANSLATIONS?.saveFailed || 'Save failed.'), 'error');
             }
         }
     });
@@ -324,11 +324,11 @@ function initToggleMethod() {
 
             $btn
                 .data('active', active ? '1' : '0')
-                .text(active ? 'Active' : 'Inactive')
+                .text(active ? (window.TRANSLATIONS?.active || 'Active') : (window.TRANSLATIONS?.inactive || 'Inactive'))
                 .toggleClass('bg-success-50 text-success-700 hover:bg-success-100', active)
                 .toggleClass('bg-gray-100 text-gray-500 hover:bg-gray-200', !active);
         } catch {
-            toast('Failed to update status.', 'error');
+            toast(window.TRANSLATIONS?.failedToUpdateStatus || 'Failed to update status.', 'error');
         }
     });
 }
@@ -397,14 +397,14 @@ function initCarrierModal() {
 
         try {
             await sendJson(url, method, payload);
-            toast(id ? 'Carrier updated.' : 'Carrier created.');
+            toast(id ? (window.TRANSLATIONS?.carrierUpdated || 'Carrier updated.') : (window.TRANSLATIONS?.carrierCreated || 'Carrier created.'));
             $modal.modal('close');
             setTimeout(() => window.location.reload(), 500);
         } catch (err) {
             if (err.errors) {
                 window.injectValidationErrors?.($form, err.errors);
             } else {
-                toast(err.message ?? 'Save failed.', 'error');
+                toast(err.message ?? (window.TRANSLATIONS?.saveFailed || 'Save failed.'), 'error');
             }
         }
     });
@@ -423,11 +423,11 @@ function initToggleCarrier() {
 
             $btn
                 .data('active', active ? '1' : '0')
-                .text(active ? 'Active' : 'Inactive')
+                .text(active ? (window.TRANSLATIONS?.active || 'Active') : (window.TRANSLATIONS?.inactive || 'Inactive'))
                 .toggleClass('bg-success-50 text-success-700 hover:bg-success-100', active)
                 .toggleClass('bg-gray-100 text-gray-500 hover:bg-gray-200', !active);
         } catch {
-            toast('Failed to update carrier status.', 'error');
+            toast(window.TRANSLATIONS?.failedToUpdateCarrierStatus || 'Failed to update carrier status.', 'error');
         }
     });
 }
@@ -441,7 +441,7 @@ function initTestCarrier() {
         const id = $btn.data('id');
         const $status = $(`#carrier-status-${id}`);
 
-        $btn.prop('disabled', true).text('Testing…');
+        $btn.prop('disabled', true).text(window.TRANSLATIONS?.testingEllipsis || 'Testing…');
 
         try {
             const res = await sendJson('/shipping-methods/carriers/test', 'POST', { code });
@@ -449,12 +449,12 @@ function initTestCarrier() {
 
             $status.text(data.success
                 ? `✓ ${data.latency_ms ?? 0}ms`
-                : `✗ ${data.message ?? 'Failed'}`
+                : `✗ ${data.message ?? (window.TRANSLATIONS?.testFailedLabel || 'Failed')}`
             ).addClass(data.success ? 'text-success-600' : 'text-danger-600');
         } catch {
-            $status.text('✗ Error').addClass('text-danger-600');
+            $status.text('✗ ' + (window.TRANSLATIONS?.errorLabel || 'Error')).addClass('text-danger-600');
         } finally {
-            $btn.prop('disabled', false).text('Test');
+            $btn.prop('disabled', false).text(window.TRANSLATIONS?.test || 'Test');
         }
     });
 }
@@ -483,7 +483,7 @@ function initCountrySettings() {
                 .toggleClass('bg-success-50 text-success-700 hover:bg-success-100', newActive)
                 .toggleClass('bg-gray-100 text-gray-500 hover:bg-gray-200', !newActive);
         } catch {
-            toast('Failed to update shipping setting.', 'error');
+            toast(window.TRANSLATIONS?.failedToUpdateShippingSetting || 'Failed to update shipping setting.', 'error');
         }
     });
 
@@ -506,7 +506,7 @@ function initCountrySettings() {
                 $input.addClass('border-success-400');
                 setTimeout(() => $input.removeClass('border-success-400'), 1500);
             } catch {
-                toast('Failed to save threshold.', 'error');
+                toast(window.TRANSLATIONS?.failedToSaveThreshold || 'Failed to save threshold.', 'error');
             }
         }, 600);
     });

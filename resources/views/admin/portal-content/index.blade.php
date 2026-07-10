@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
-@section('title', 'Portal Content')
+@section('title', __('admin.portal_content.title'))
 
 @section('content')
 <div class="p-6 space-y-5">
 
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Portal Content</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Edit the marketing text and links shown on the public portal pages (home, FAQ, nav, footer, etc.), in English and Arabic.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.portal_content.title') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.portal_content.subtitle') }}</p>
     </div>
 
     @if(session('success'))
@@ -20,10 +20,10 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">Page</th>
-                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">Fields</th>
-                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Updated</th>
-                    <th class="px-4 py-3 text-end text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.portal_content.page') }}</th>
+                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.portal_content.fields') }}</th>
+                    <th class="px-4 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('admin.portal_content.last_updated') }}</th>
+                    <th class="px-4 py-3 text-end text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('common.actions') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -36,13 +36,13 @@
                             <a href="{{ route('admin.portal-content.page', $page->page_key) }}"
                                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
                                 <x-heroicon name="pencil-square" class="w-4 h-4" />
-                                Edit
+                                {{ __('common.edit') }}
                             </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-4 py-8 text-center text-sm text-gray-400">No portal content pages found. Run the PortalContentSeeder to seed initial pages.</td>
+                        <td colspan="4" class="px-4 py-8 text-center text-sm text-gray-400">{{ __('admin.portal_content.empty_state') }}</td>
                     </tr>
                 @endforelse
             </tbody>

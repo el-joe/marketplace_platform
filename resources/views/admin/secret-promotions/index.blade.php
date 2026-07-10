@@ -329,6 +329,38 @@
 @push('scripts')
     <script type="module">
         window.MIN_COMMISSION_FLOOR = {{ (float) setting('min_marketer_commission', 5.0) }};
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            selectVendorFirst: @json(__('admin.secret_promotions.select_vendor_first')),
+            loadingListings: @json(__('admin.secret_promotions.loading_listings')),
+            noListingsFound: @json(__('admin.secret_promotions.no_listings_found')),
+            selectListing: @json(__('admin.secret_promotions.select_listing')),
+            failedToLoadListings: @json(__('admin.secret_promotions.failed_to_load_listings')),
+            couldNotLoadListings: @json(__('admin.secret_promotions.could_not_load_listings')),
+            saveSecretPromotion: @json(__('admin.secret_promotions.save_secret_promotion')),
+            newSecretPromotionTitle: @json(__('admin.secret_promotions.new_secret_promotion_title')),
+            editSecretPromotion: @json(__('admin.secret_promotions.edit_secret_promotion')),
+            updatePromotion: @json(__('admin.secret_promotions.update_promotion')),
+            fixSplitErrors: @json(__('admin.secret_promotions.fix_split_errors')),
+            promotionSaved: @json(__('admin.secret_promotions.promotion_saved')),
+            failedToSavePromotion: @json(__('admin.secret_promotions.failed_to_save_promotion')),
+            savingEllipsis: @json(__('admin.secret_promotions.saving')),
+            statusUpdated: @json(__('admin.secret_promotions.status_updated')),
+            failedToUpdateStatus: @json(__('admin.secret_promotions.failed_to_update_status')),
+            forceExpireTitle: @json(__('admin.secret_promotions.force_expire_title')),
+            forceExpireText: @json(__('admin.secret_promotions.force_expire_text')),
+            yesExpireIt: @json(__('admin.secret_promotions.yes_expire_it')),
+            promotionExpired: @json(__('admin.secret_promotions.promotion_expired')),
+            failedToExpire: @json(__('admin.secret_promotions.failed_to_expire')),
+            promotionDuplicated: @json(__('admin.secret_promotions.promotion_duplicated')),
+            failedToDuplicate: @json(__('admin.secret_promotions.failed_to_duplicate')),
+            thisPromotionFallback: @json(__('admin.secret_promotions.this_promotion_fallback')),
+            totalCommissionError: @json(__('admin.secret_promotions.total_commission_error')),
+            marketerShareError: @json(__('admin.secret_promotions.marketer_share_error')),
+            adminShareNegativeError: @json(__('admin.secret_promotions.admin_share_negative_error')),
+            marketerShareMinError: @json(__('admin.secret_promotions.marketer_share_min_error')),
+            marketerShareLessThanTotalError: @json(__('admin.secret_promotions.marketer_share_less_than_total_error')),
+        });
     </script>
     @vite('resources/js/admin/secret-promotions.js')
 @endpush

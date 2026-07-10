@@ -27,8 +27,17 @@
     <div class="mb-6 flex items-center justify-between gap-4">
         <div class="flex items-center gap-3">
             <h1 class="text-2xl font-bold text-gray-900 font-mono">{{ $transfer->transfer_number }}</h1>
+            @php
+                $transferStatusLabel = match ($transfer->status) {
+                    'pending' => __('common.pending'),
+                    'in_transit' => __('admin.warehouses_section.in_transit'),
+                    'received' => __('admin.warehouses_section.received'),
+                    'cancelled' => __('common.cancelled'),
+                    default => $transfer->status,
+                };
+            @endphp
             <span class="inline-flex items-center px-2.5 py-0.5 rounded text-sm font-medium {{ $statusBadge }}">
-                {{ str_replace('_', ' ', $transfer->status) }}
+                {{ $transferStatusLabel }}
             </span>
         </div>
         <div class="flex items-center gap-2">

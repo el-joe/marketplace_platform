@@ -130,7 +130,7 @@
                             <input type="text" name="tags" id="tags-input"
                                    value="{{ old('tags') }}"
                                    class="form-input w-full text-sm"
-                                   placeholder="travel, tips, budget (comma-separated)">
+                                   placeholder="{{ __('admin.blog.tags_placeholder') }}">
                             <p class="text-xs text-gray-400 mt-0.5">{{ __('admin.blog.tags_hint') }}</p>
                         </div>
                     </div>
@@ -246,7 +246,7 @@
                             <div>
                                 <label class="form-label text-xs">{{ __('admin.blog.alt_text_en') }}</label>
                                 <input type="text" name="featured_image_alt_en" value="{{ old('featured_image_alt_en') }}"
-                                       class="form-input w-full text-sm" placeholder="Image description…">
+                                       class="form-input w-full text-sm" placeholder="{{ __('admin.blog.alt_text_en_placeholder') }}">
                             </div>
                             <div>
                                 <label class="form-label text-xs">{{ __('admin.blog.alt_text_ar') }}</label>
@@ -267,7 +267,7 @@
                 </x-card>
 
                 {{-- SEO --}}
-                <x-card title="SEO">
+                <x-card title="{{ __('admin.blog.seo_section_title') }}">
                     <div class="p-4 space-y-4">
                         <div>
                             <div class="flex justify-between mb-1">

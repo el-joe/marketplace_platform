@@ -4,6 +4,23 @@
 
 @section('content')
 
+    @php
+        $statusLabels = [
+            'submitted'    => __('admin.carriers_section.submitted'),
+            'under_review' => __('admin.carriers_section.under_review'),
+            'approved'     => __('admin.carriers_section.approved'),
+            'compensated'  => __('admin.carriers_section.compensated'),
+            'rejected'     => __('admin.carriers_section.rejected'),
+        ];
+        $claimTypeLabels = [
+            'lost'       => __('admin.carriers_section.claim_type_lost'),
+            'damaged'    => __('admin.carriers_section.claim_type_damaged'),
+            'delayed'    => __('admin.carriers_section.claim_type_delayed'),
+            'wrong_item' => __('admin.carriers_section.claim_type_wrong_item'),
+            'other'      => __('admin.carriers_section.claim_type_other'),
+        ];
+    @endphp
+
     <div class="mb-6 flex items-center gap-3">
         <a href="{{ route('admin.carrier-claims.index') }}" class="text-gray-400 hover:text-gray-600">
             {{ __('admin.carriers_section.back_to_claims') }}
@@ -11,7 +28,7 @@
         <span class="text-gray-300">/</span>
         <h1 class="text-xl font-bold text-gray-900">{{ $claim->claim_number }}</h1>
         <span class="badge {{ $claim->statusBadgeClass() }}">
-            {{ Str::title(str_replace('_',' ',$claim->status)) }}
+            {{ $statusLabels[$claim->status] ?? Str::title(str_replace('_',' ',$claim->status)) }}
         </span>
     </div>
 
@@ -25,7 +42,7 @@
                 <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                     <div>
                         <dt class="text-gray-500">{{ __('admin.carriers_section.type_label') }}</dt>
-                        <dd class="font-medium">{{ Str::title(str_replace('_',' ',$claim->claim_type)) }}</dd>
+                        <dd class="font-medium">{{ $claimTypeLabels[$claim->claim_type] ?? Str::title(str_replace('_',' ',$claim->claim_type)) }}</dd>
                     </div>
                     <div>
                         <dt class="text-gray-500">{{ __('admin.carriers_section.claimed_amount_label') }}</dt>
@@ -82,7 +99,7 @@
                     <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                         <div>
                             <dt class="text-gray-500">{{ __('admin.carriers_section.decision_label') }}</dt>
-                            <dd class="font-medium capitalize">{{ $claim->status }}</dd>
+                            <dd class="font-medium capitalize">{{ $statusLabels[$claim->status] ?? Str::title(str_replace('_',' ',$claim->status)) }}</dd>
                         </div>
                         <div>
                             <dt class="text-gray-500">{{ __('admin.carriers_section.compensated_amount_label') }}</dt>

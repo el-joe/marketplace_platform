@@ -186,15 +186,22 @@ function initIndexPage() {
         const ids = getSelectedIds();
         if (!ids.length) return;
 
-        const label = action.charAt(0).toUpperCase() + action.slice(1);
-        if (!confirm(`${label} ${ids.length} review(s)?`)) return;
+        const labels = {
+            approve: window.TRANSLATIONS?.actionApprove || 'Approve',
+            reject: window.TRANSLATIONS?.actionReject || 'Reject',
+            delete: window.TRANSLATIONS?.actionDelete || 'Delete',
+        };
+        const label = labels[action] || (action.charAt(0).toUpperCase() + action.slice(1));
+        const confirmMsg = (window.TRANSLATIONS?.bulkActionConfirm || '{label} {count} review(s)?')
+            .replace('{label}', label).replace('{count}', ids.length);
+        if (!confirm(confirmMsg)) return;
 
         try {
             const res = await postJson('/admin/reviews/bulk-action', { action, ids });
-            window.Toast?.success(res.message ?? `Bulk ${action} done.`);
+            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.bulkActionDone || `Bulk ${action} done.`).replace('{action}', label));
             dt.ajax.reload();
         } catch (e) {
-            window.Toast?.error(e.message ?? `Bulk ${action} failed.`);
+            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.bulkActionFailed || `Bulk ${action} failed.`).replace('{action}', label));
         }
     }
 
@@ -211,13 +218,13 @@ function initIndexPage() {
 
         if (btn.classList.contains('js-approve-btn')) {
             const url = btn.dataset.url;
-            if (!confirm('Approve and publish this review?')) return;
+            if (!confirm(window.TRANSLATIONS?.confirmApprovePublish || 'Approve and publish this review?')) return;
             try {
                 const res = await postJson(url, {});
-                window.Toast?.success(res.message ?? 'Review approved.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewApproved || 'Review approved.'));
                 dt.ajax.reload();
             } catch (er) {
-                window.Toast?.error(er.message ?? 'Approval failed.');
+                window.Toast?.error(er.message ?? (window.TRANSLATIONS?.approvalFailed || 'Approval failed.'));
             }
         }
 
@@ -229,13 +236,13 @@ function initIndexPage() {
 
         if (btn.classList.contains('js-delete-btn')) {
             const url = btn.dataset.url;
-            if (!confirm('Permanently delete this review? This cannot be undone.')) return;
+            if (!confirm(window.TRANSLATIONS?.confirmDeleteReview || 'Permanently delete this review? This cannot be undone.')) return;
             try {
                 const res = await deleteJson(url);
-                window.Toast?.success(res.message ?? 'Review deleted.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewDeleted || 'Review deleted.'));
                 dt.ajax.reload();
             } catch (er) {
-                window.Toast?.error(er.message ?? 'Delete failed.');
+                window.Toast?.error(er.message ?? (window.TRANSLATIONS?.deleteFailed || 'Delete failed.'));
             }
         }
     });
@@ -248,18 +255,18 @@ function initIndexPage() {
         const reason = document.getElementById('reject-reason-input')?.value.trim() ?? '';
         const btn = document.getElementById('confirm-reject-btn');
         btn.disabled = true;
-        btn.textContent = 'Rejecting…';
+        btn.textContent = window.TRANSLATIONS?.rejecting || 'Rejecting…';
 
         try {
             const res = await postJson(url, { reason: reason || null });
-            window.Toast?.success(res.message ?? 'Review rejected.');
+            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewRejected || 'Review rejected.'));
             $('#reject-modal').modal('close');
             dt.ajax.reload();
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Rejection failed.');
+            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.rejectionFailed || 'Rejection failed.'));
         } finally {
             btn.disabled = false;
-            btn.textContent = 'Reject Review';
+            btn.textContent = window.TRANSLATIONS?.confirmRejectBtnLabel || 'Reject Review';
         }
     });
 }
@@ -275,17 +282,17 @@ function initShowPage() {
 
     // Approve button
     document.getElementById('approve-btn')?.addEventListener('click', async function () {
-        if (!confirm('Approve and publish this review?')) return;
+        if (!confirm(window.TRANSLATIONS?.confirmApprovePublish || 'Approve and publish this review?')) return;
         this.disabled = true;
-        this.textContent = 'Approving…';
+        this.textContent = window.TRANSLATIONS?.approving || 'Approving…';
         try {
             const res = await postJson(window.reviewShow.approveUrl, {});
-            window.Toast?.success(res.message ?? 'Review approved.');
+            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewApproved || 'Review approved.'));
             setTimeout(() => window.location.reload(), 1000);
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Approval failed.');
+            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.approvalFailed || 'Approval failed.'));
             this.disabled = false;
-            this.textContent = 'Approve & Publish';
+            this.textContent = window.TRANSLATIONS?.approveAndPublishShort || 'Approve & Publish';
         }
     });
 
@@ -299,32 +306,32 @@ function initShowPage() {
     document.getElementById('confirm-reject-btn')?.addEventListener('click', async function () {
         const reason = document.getElementById('reject-reason-input')?.value.trim() ?? '';
         this.disabled = true;
-        this.textContent = 'Rejecting…';
+        this.textContent = window.TRANSLATIONS?.rejecting || 'Rejecting…';
         try {
             const res = await postJson(window.reviewShow.rejectUrl, { reason: reason || null });
-            window.Toast?.success(res.message ?? 'Review rejected.');
+            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewRejected || 'Review rejected.'));
             $('#reject-modal').modal('close');
             setTimeout(() => window.location.href = window.reviewShow.indexUrl, 800);
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Rejection failed.');
+            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.rejectionFailed || 'Rejection failed.'));
             this.disabled = false;
-            this.textContent = 'Confirm Reject';
+            this.textContent = window.TRANSLATIONS?.confirmRejectShort || 'Confirm Reject';
         }
     });
 
     // Delete button
     document.getElementById('delete-btn')?.addEventListener('click', async function () {
-        if (!confirm('Permanently delete this review? This cannot be undone.')) return;
+        if (!confirm(window.TRANSLATIONS?.confirmDeleteReview || 'Permanently delete this review? This cannot be undone.')) return;
         this.disabled = true;
-        this.textContent = 'Deleting…';
+        this.textContent = window.TRANSLATIONS?.deleting || 'Deleting…';
         try {
             const res = await deleteJson(window.reviewShow.deleteUrl);
-            window.Toast?.success(res.message ?? 'Review deleted.');
+            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.reviewDeleted || 'Review deleted.'));
             setTimeout(() => window.location.href = window.reviewShow.indexUrl, 800);
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Delete failed.');
+            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.deleteFailed || 'Delete failed.'));
             this.disabled = false;
-            this.textContent = 'Delete permanently';
+            this.textContent = window.TRANSLATIONS?.deletePermanentlyShort || 'Delete permanently';
         }
     });
 
@@ -335,10 +342,11 @@ function initShowPage() {
             const action = this.dataset.action;
             try {
                 const res = await postJson(url, {});
-                window.Toast?.success(res.message ?? `Reply ${action === 'hide' ? 'hidden' : 'shown'}.`);
+                const fallback = action === 'hide' ? 'Reply hidden.' : 'Reply shown.';
+                window.Toast?.success(res.message ?? (action === 'hide' ? (window.TRANSLATIONS?.replyHidden || fallback) : (window.TRANSLATIONS?.replyShown || fallback)));
                 setTimeout(() => window.location.reload(), 800);
             } catch (e) {
-                window.Toast?.error(e.message ?? 'Action failed.');
+                window.Toast?.error(e.message ?? (window.TRANSLATIONS?.actionFailed || 'Action failed.'));
             }
         });
     });

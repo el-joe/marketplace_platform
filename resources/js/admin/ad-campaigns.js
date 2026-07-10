@@ -48,15 +48,15 @@ function initCampaignsTable() {
             },
         },
         columns: [
-            { data: 'vendor', title: 'Vendor' },
-            { data: 'name', title: 'Campaign' },
-            { data: 'type', title: 'Type', orderable: false },
-            { data: 'status', title: 'Status', orderable: false },
-            { data: 'budget', title: 'Budget', orderable: false },
-            { data: 'spend', title: 'Spend', orderable: false },
-            { data: 'utilization', title: 'Utilization', orderable: false },
-            { data: 'quality', title: 'Quality', orderable: false },
-            { data: 'date_range', title: 'Dates', orderable: false },
+            { data: 'vendor', title: window.TRANSLATIONS?.vendor || 'Vendor' },
+            { data: 'name', title: window.TRANSLATIONS?.campaign || 'Campaign' },
+            { data: 'type', title: window.TRANSLATIONS?.type || 'Type', orderable: false },
+            { data: 'status', title: window.TRANSLATIONS?.status || 'Status', orderable: false },
+            { data: 'budget', title: window.TRANSLATIONS?.budget || 'Budget', orderable: false },
+            { data: 'spend', title: window.TRANSLATIONS?.spend || 'Spend', orderable: false },
+            { data: 'utilization', title: window.TRANSLATIONS?.utilization || 'Utilization', orderable: false },
+            { data: 'quality', title: window.TRANSLATIONS?.quality || 'Quality', orderable: false },
+            { data: 'date_range', title: window.TRANSLATIONS?.dates || 'Dates', orderable: false },
             { data: 'actions', title: '', orderable: false },
         ],
         order: [[0, 'asc']],
@@ -138,19 +138,19 @@ function initCampaignActionModals() {
 
     $('#confirm-approve-btn').on('click', function () {
         if (!pendingApproveUrl) return;
-        const $btn = $(this).prop('disabled', true).text('Approving…');
+        const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.approving || 'Approving…');
         postJson(pendingApproveUrl)
             .done(res => {
-                window.Toast?.success(res.message ?? 'Campaign approved.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.campaignApproved || 'Campaign approved.'));
                 $('#approve-modal').modal('close');
                 campaignsTable?.ajax.reload();
                 // reload page if on show page
                 if (!campaignsTable) location.reload();
             })
             .fail(xhr => {
-                window.Toast?.error(xhr.responseJSON?.message ?? 'Failed to approve campaign.');
+                window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToApproveCampaign || 'Failed to approve campaign.'));
             })
-            .always(() => $btn.prop('disabled', false).text('Approve'));
+            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.approve || 'Approve'));
     });
 
     /* ── Reject ── */
@@ -168,18 +168,18 @@ function initCampaignActionModals() {
             $('#reject-reason-error').removeClass('hidden');
             return;
         }
-        const $btn = $(this).prop('disabled', true).text('Rejecting…');
+        const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.rejecting || 'Rejecting…');
         postJson(pendingRejectUrl, { rejection_reason: reason })
             .done(res => {
-                window.Toast?.success(res.message ?? 'Campaign rejected.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.campaignRejected || 'Campaign rejected.'));
                 $('#reject-modal').modal('close');
                 campaignsTable?.ajax.reload();
                 if (!campaignsTable) location.reload();
             })
             .fail(xhr => {
-                window.Toast?.error(xhr.responseJSON?.message ?? 'Failed to reject campaign.');
+                window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToRejectCampaign || 'Failed to reject campaign.'));
             })
-            .always(() => $btn.prop('disabled', false).text('Reject'));
+            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.reject || 'Reject'));
     });
 
     /* ── Pause ── */
@@ -191,16 +191,16 @@ function initCampaignActionModals() {
 
     $('#confirm-pause-btn').on('click', function () {
         if (!pendingPauseUrl) return;
-        const $btn = $(this).prop('disabled', true).text('Pausing…');
+        const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.pausing || 'Pausing…');
         postJson(pendingPauseUrl)
             .done(res => {
-                window.Toast?.success(res.message ?? 'Campaign paused.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.campaignPaused || 'Campaign paused.'));
                 $('#pause-modal').modal('close');
                 campaignsTable?.ajax.reload();
                 if (!campaignsTable) location.reload();
             })
-            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.'))
-            .always(() => $btn.prop('disabled', false).text('Pause'));
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.genericFailed || 'Failed.')))
+            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.pause || 'Pause'));
     });
 
     /* ── Resume ── */
@@ -212,16 +212,16 @@ function initCampaignActionModals() {
 
     $('#confirm-resume-btn').on('click', function () {
         if (!pendingResumeUrl) return;
-        const $btn = $(this).prop('disabled', true).text('Resuming…');
+        const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.resuming || 'Resuming…');
         postJson(pendingResumeUrl)
             .done(res => {
-                window.Toast?.success(res.message ?? 'Campaign resumed.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.campaignResumed || 'Campaign resumed.'));
                 $('#resume-modal').modal('close');
                 campaignsTable?.ajax.reload();
                 if (!campaignsTable) location.reload();
             })
-            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.'))
-            .always(() => $btn.prop('disabled', false).text('Resume'));
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.genericFailed || 'Failed.')))
+            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.resume || 'Resume'));
     });
 }
 
@@ -245,13 +245,13 @@ function initFraudTable() {
             },
         },
         columns: [
-            { data: 'ip_address', title: 'IP Address' },
-            { data: 'campaign', title: 'Campaign' },
-            { data: 'clicks_last_hour', title: 'Clicks/Hr' },
-            { data: 'clicks_last_24h', title: 'Clicks/24h' },
-            { data: 'is_blocked', title: 'Status', orderable: false },
-            { data: 'blocked_at', title: 'Blocked At' },
-            { data: 'block_reason', title: 'Reason', orderable: false },
+            { data: 'ip_address', title: window.TRANSLATIONS?.ipAddress || 'IP Address' },
+            { data: 'campaign', title: window.TRANSLATIONS?.campaign || 'Campaign' },
+            { data: 'clicks_last_hour', title: window.TRANSLATIONS?.clicksHr || 'Clicks/Hr' },
+            { data: 'clicks_last_24h', title: window.TRANSLATIONS?.clicksPer24h || 'Clicks/24h' },
+            { data: 'is_blocked', title: window.TRANSLATIONS?.status || 'Status', orderable: false },
+            { data: 'blocked_at', title: window.TRANSLATIONS?.blockedAt || 'Blocked At' },
+            { data: 'block_reason', title: window.TRANSLATIONS?.reasonCol || 'Reason', orderable: false },
             { data: 'actions', title: '', orderable: false },
         ],
         order: [[5, 'desc']],
@@ -274,10 +274,10 @@ function initBlockIpModal() {
 
     $('#confirm-block-btn').on('click', function () {
         if (!pendingBlockUrl) return;
-        const $btn = $(this).prop('disabled', true).text('Blocking…');
+        const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.blocking || 'Blocking…');
         postJson(pendingBlockUrl, { block_reason: $('#block-reason-input').val().trim() })
             .done(res => {
-                window.Toast?.success(res.message ?? 'IP blocked.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.ipBlocked || 'IP blocked.'));
                 $('#block-ip-modal').modal('close');
                 fraudTable?.ajax.reload();
                 // reload if we're on the show page (inline fraud tab)
@@ -286,8 +286,8 @@ function initBlockIpModal() {
                     if (row) row.remove();
                 }
             })
-            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed to block IP.'))
-            .always(() => $btn.prop('disabled', false).text('Block IP'));
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToBlockIp || 'Failed to block IP.')))
+            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.blockIpBtn || 'Block IP'));
     });
 }
 
@@ -314,13 +314,13 @@ function initBookingsTable() {
             },
         },
         columns: [
-            { data: 'reference', title: 'Reference' },
-            { data: 'vendor', title: 'Vendor' },
-            { data: 'slot', title: 'Slot' },
-            { data: 'dates', title: 'Dates', orderable: false },
-            { data: 'rate', title: 'Rate', orderable: false },
-            { data: 'status', title: 'Status', orderable: false },
-            { data: 'payment_status', title: 'Payment', orderable: false },
+            { data: 'reference', title: window.TRANSLATIONS?.referenceCol || 'Reference' },
+            { data: 'vendor', title: window.TRANSLATIONS?.vendor || 'Vendor' },
+            { data: 'slot', title: window.TRANSLATIONS?.slotCol || 'Slot' },
+            { data: 'dates', title: window.TRANSLATIONS?.dates || 'Dates', orderable: false },
+            { data: 'rate', title: window.TRANSLATIONS?.rateCol || 'Rate', orderable: false },
+            { data: 'status', title: window.TRANSLATIONS?.status || 'Status', orderable: false },
+            { data: 'payment_status', title: window.TRANSLATIONS?.paymentCol || 'Payment', orderable: false },
             { data: 'actions', title: '', orderable: false },
         ],
         order: [[0, 'desc']],
@@ -356,16 +356,16 @@ function initBookingActionModals() {
 
     $('#confirm-approve-booking-btn').on('click', function () {
         if (!pendingApproveUrl) return;
-        const $btn = $(this).prop('disabled', true).text('Approving…');
+        const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.approving || 'Approving…');
         postJson(pendingApproveUrl)
             .done(res => {
-                window.Toast?.success(res.message ?? 'Booking approved.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.bookingApproved || 'Booking approved.'));
                 $('#approve-booking-modal').modal('close');
                 bookingsTable?.ajax.reload();
                 if (!bookingsTable) location.reload();
             })
-            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.'))
-            .always(() => $btn.prop('disabled', false).text('Approve'));
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.genericFailed || 'Failed.')))
+            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.approve || 'Approve'));
     });
 
     /* ── Reject booking ── */
@@ -383,16 +383,16 @@ function initBookingActionModals() {
             $('#reject-booking-reason-error').removeClass('hidden');
             return;
         }
-        const $btn = $(this).prop('disabled', true).text('Rejecting…');
+        const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.rejecting || 'Rejecting…');
         postJson(pendingRejectUrl, { rejection_reason: reason })
             .done(res => {
-                window.Toast?.success(res.message ?? 'Booking rejected.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.bookingRejected || 'Booking rejected.'));
                 $('#reject-booking-modal').modal('close');
                 bookingsTable?.ajax.reload();
                 if (!bookingsTable) location.reload();
             })
-            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.'))
-            .always(() => $btn.prop('disabled', false).text('Reject'));
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.genericFailed || 'Failed.')))
+            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.reject || 'Reject'));
     });
 }
 
@@ -404,15 +404,15 @@ function initCreativeReviewModals() {
     /* ── Approve creative ── */
     $(document).on('click', '.js-approve-creative-btn', function () {
         pendingApproveCreativeUrl = $(this).data('url');
-        const $btn = $(this).prop('disabled', true).text('Approving…');
+        const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.approving || 'Approving…');
         postJson(pendingApproveCreativeUrl, { action: 'approve' })
             .done(res => {
-                window.Toast?.success(res.message ?? 'Creative approved.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.creativeApproved || 'Creative approved.'));
                 location.reload();
             })
             .fail(xhr => {
-                window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.');
-                $btn.prop('disabled', false).text('Approve');
+                window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.genericFailed || 'Failed.'));
+                $btn.prop('disabled', false).text(window.TRANSLATIONS?.approve || 'Approve');
             });
     });
 
@@ -431,19 +431,19 @@ function initCreativeReviewModals() {
             $('#creative-rejection-reason-error').removeClass('hidden');
             return;
         }
-        const $btn = $(this).prop('disabled', true).text('Rejecting…');
+        const $btn = $(this).prop('disabled', true).text(window.TRANSLATIONS?.rejecting || 'Rejecting…');
         postJson(pendingRejectCreativeUrl, {
             action: 'reject',
             rejection_reason: reason,
             rejection_code: $('#creative-rejection-code').val() || null,
         })
             .done(res => {
-                window.Toast?.success(res.message ?? 'Creative rejected.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.creativeRejected || 'Creative rejected.'));
                 $('#reject-creative-modal').modal('close');
                 location.reload();
             })
-            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? 'Failed.'))
-            .always(() => $btn.prop('disabled', false).text('Reject Creative'));
+            .fail(xhr => window.Toast?.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.genericFailed || 'Failed.')))
+            .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS?.rejectCreativeBtnDt || 'Reject Creative'));
     });
 }
 
@@ -465,13 +465,13 @@ function initSlotsTable() {
             },
         },
         columns: [
-            { data: 'name', title: 'Name' },
-            { data: 'placement', title: 'Placement', orderable: false },
-            { data: 'country', title: 'Country', orderable: false },
-            { data: 'pricing_model', title: 'Pricing', orderable: false },
-            { data: 'base_rate', title: 'Base Rate', orderable: false },
-            { data: 'booking_days', title: 'Booking Days', orderable: false },
-            { data: 'is_available', title: 'Available', orderable: false },
+            { data: 'name', title: window.TRANSLATIONS?.slotsName || 'Name' },
+            { data: 'placement', title: window.TRANSLATIONS?.slotsPlacement || 'Placement', orderable: false },
+            { data: 'country', title: window.TRANSLATIONS?.slotsCountry || 'Country', orderable: false },
+            { data: 'pricing_model', title: window.TRANSLATIONS?.slotsPricing || 'Pricing', orderable: false },
+            { data: 'base_rate', title: window.TRANSLATIONS?.slotsBaseRate || 'Base Rate', orderable: false },
+            { data: 'booking_days', title: window.TRANSLATIONS?.slotsBookingDays || 'Booking Days', orderable: false },
+            { data: 'is_available', title: window.TRANSLATIONS?.slotsAvailable || 'Available', orderable: false },
             { data: 'actions', title: '', orderable: false },
         ],
         order: [[0, 'asc']],
@@ -497,7 +497,7 @@ function initPerformanceChart() {
             labels,
             datasets: [
                 {
-                    label: 'Impressions',
+                    label: window.TRANSLATIONS?.impressions || 'Impressions',
                     data: impressions,
                     borderColor: '#6366f1',
                     backgroundColor: 'rgba(99,102,241,0.08)',
@@ -507,7 +507,7 @@ function initPerformanceChart() {
                     yAxisID: 'y1',
                 },
                 {
-                    label: 'Clicks',
+                    label: window.TRANSLATIONS?.clicks || 'Clicks',
                     data: clicks,
                     borderColor: '#10b981',
                     backgroundColor: 'rgba(16,185,129,0.08)',
@@ -526,13 +526,13 @@ function initPerformanceChart() {
                 y1: {
                     type: 'linear',
                     position: 'left',
-                    title: { display: true, text: 'Impressions' },
+                    title: { display: true, text: window.TRANSLATIONS?.impressions || 'Impressions' },
                     grid: { color: 'rgba(0,0,0,0.04)' },
                 },
                 y2: {
                     type: 'linear',
                     position: 'right',
-                    title: { display: true, text: 'Clicks' },
+                    title: { display: true, text: window.TRANSLATIONS?.clicks || 'Clicks' },
                     grid: { drawOnChartArea: false },
                 },
             },

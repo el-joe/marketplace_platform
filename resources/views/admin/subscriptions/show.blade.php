@@ -14,7 +14,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="font-bold text-gray-900 text-lg">{{ __('admin.subscriptions.subscription_details') }}</h2>
                     <span class="badge badge-{{ $subscription->statusColor() }}">
-                        {{ ucfirst($subscription->status) }}
+                        {{ __('admin.subscriptions.' . $subscription->status) }}
                     </span>
                 </div>
 
@@ -162,7 +162,7 @@
                                     <td class="px-4 py-3 font-semibold text-gray-900">{{ $invoice->amountFormatted() }}</td>
                                     <td class="px-4 py-3">
                                         <span
-                                            class="badge badge-{{ $invoice->statusColor() }} text-xs">{{ ucfirst($invoice->status) }}</span>
+                                            class="badge badge-{{ $invoice->statusColor() }} text-xs">{{ __('admin.subscriptions.' . $invoice->status) }}</span>
                                     </td>
                                     <td class="px-4 py-3 text-xs text-gray-500">
                                         {{ $invoice->period_start?->format('d M') }} → {{ $invoice->period_end?->format('d M Y') }}

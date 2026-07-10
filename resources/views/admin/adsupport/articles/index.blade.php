@@ -96,11 +96,12 @@
 
 @push('scripts')
 <script>
-window.TRANSLATIONS = {
-    loading: "{{ __('common.loading') }}",
-    no_articles: "{{ __('admin.adsupport.no_articles') }}",
-    could_not_delete: "{{ __('admin.adsupport.could_not_delete') }}",
-};
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    loading: @json(__('common.loading')),
+    no_articles: @json(__('admin.adsupport.no_articles')),
+    could_not_delete: @json(__('admin.adsupport.could_not_delete')),
+});
 (function () {
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
@@ -148,7 +149,7 @@ window.TRANSLATIONS = {
                 ],
                 order: [[3, 'desc']],
                 pageLength: 25,
-                language: { processing: 'Loading…', emptyTable: 'No articles found.' },
+                language: { processing: window.TRANSLATIONS.loading, emptyTable: window.TRANSLATIONS.no_articles },
             });
         } else {
             dtInstance = window.initDataTable('articles-table', {

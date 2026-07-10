@@ -17,6 +17,29 @@
     };
 @endphp
 
+<script>
+    window.TRANSLATIONS = window.TRANSLATIONS || {};
+    Object.assign(window.TRANSLATIONS, {
+        launchCountryConfirm: @json(__('admin.geography.launch_country_confirm')),
+        launchingEllipsis: @json(__('admin.geography.launching_ellipsis')),
+        launchFailed: @json(__('admin.geography.launch_failed')),
+        launch: @json(__('admin.geography.launch')),
+        deactivateCountryConfirm: @json(__('admin.geography.deactivate_country_confirm')),
+        deactivateFailed: @json(__('admin.geography.deactivate_failed')),
+        reactivateFailed: @json(__('admin.geography.reactivate_failed')),
+        deleteCountryTitle: @json(__('admin.geography.delete_country_title')),
+        deleteCountryConfirm: @json(__('admin.geography.delete_country_confirm')),
+        countryDeleteFailed: @json(__('admin.geography.country_delete_failed')),
+        savingEllipsis: @json(__('admin.geography.saving_ellipsis')),
+        saveBtn: @json(__('admin.geography.save_btn')),
+        saveFailed: @json(__('admin.geography.save_failed')),
+        deletePaymentMethodTitle: @json(__('admin.geography.delete_payment_method_title')),
+        deletePaymentMethodConfirm: @json(__('admin.geography.delete_payment_method_confirm')),
+        paymentMethodDeleteFailed: @json(__('admin.geography.payment_method_delete_failed')),
+        saveShippingSettingsBtn: @json(__('admin.geography.save_shipping_settings_btn')),
+    });
+</script>
+
 <div
     x-data="{ activeTab: 'general' }"
     class="space-y-6"
@@ -128,7 +151,7 @@
     {{-- Tab nav                                                                --}}
     {{-- ══════════════════════════════════════════════════════════════════════ --}}
     <div class="bg-white rounded-t-xl border border-gray-200 overflow-hidden">
-        <nav class="flex overflow-x-auto border-b border-gray-100" aria-label="Country form tabs">
+        <nav class="flex overflow-x-auto border-b border-gray-100" aria-label="{{ __('admin.geography.country_form_tabs_aria') }}">
             @php
                 $tabs = [
                     ['id' => 'general',   'label' => __('admin.geography.general_tab'),           'icon' => 'globe-alt',        'editOnly' => false],
@@ -441,7 +464,7 @@
                         name="method_type"
                         label="{{ __('admin.geography.type_label') }}"
                         id="pm-method-type"
-                        :options="['card' => 'Card', 'wallet' => 'Wallet', 'cod' => 'COD', 'bnpl' => 'BNPL', 'bank_transfer' => 'Bank Transfer']"
+                        :options="['card' => __('admin.geography.method_type_card'), 'wallet' => __('admin.geography.method_type_wallet'), 'cod' => __('admin.geography.method_type_cod'), 'bnpl' => __('admin.geography.method_type_bnpl'), 'bank_transfer' => __('admin.geography.method_type_bank_transfer')]"
                     />
                     <x-form.input name="provider" label="{{ __('admin.geography.provider_label') }}" id="pm-provider" placeholder="{{ __('admin.geography.provider_placeholder') }}" />
                 </div>

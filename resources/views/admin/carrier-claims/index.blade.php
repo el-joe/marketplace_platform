@@ -22,11 +22,27 @@
     </div>
 
     {{-- ─── Filters ─────────────────────────────────────────────────────────── --}}
+    @php
+        $statusLabels = [
+            'submitted'    => __('admin.carriers_section.submitted'),
+            'under_review' => __('admin.carriers_section.under_review'),
+            'approved'     => __('admin.carriers_section.approved'),
+            'compensated'  => __('admin.carriers_section.compensated'),
+            'rejected'     => __('admin.carriers_section.rejected'),
+        ];
+        $claimTypeLabels = [
+            'lost'       => __('admin.carriers_section.claim_type_lost'),
+            'damaged'    => __('admin.carriers_section.claim_type_damaged'),
+            'delayed'    => __('admin.carriers_section.claim_type_delayed'),
+            'wrong_item' => __('admin.carriers_section.claim_type_wrong_item'),
+            'other'      => __('admin.carriers_section.claim_type_other'),
+        ];
+    @endphp
     <form method="GET" class="flex flex-wrap gap-3 mb-5">
         <select name="status" class="input-sm">
             <option value="">{{ __('admin.carriers_section.all_statuses') }}</option>
-            @foreach(['submitted','under_review','approved','compensated','rejected'] as $s)
-                <option value="{{ $s }}" @selected(request('status') === $s)>{{ Str::title(str_replace('_',' ',$s)) }}</option>
+            @foreach($statusLabels as $s => $label)
+                <option value="{{ $s }}" @selected(request('status') === $s)>{{ $label }}</option>
             @endforeach
         </select>
 
@@ -39,8 +55,8 @@
 
         <select name="claim_type" class="input-sm">
             <option value="">{{ __('admin.carriers_section.all_types') }}</option>
-            @foreach(['lost','damaged','delayed','wrong_item','other'] as $t)
-                <option value="{{ $t }}" @selected(request('claim_type') === $t)>{{ Str::title(str_replace('_',' ',$t)) }}</option>
+            @foreach($claimTypeLabels as $t => $label)
+                <option value="{{ $t }}" @selected(request('claim_type') === $t)>{{ $label }}</option>
             @endforeach
         </select>
 
@@ -66,12 +82,12 @@
                 @forelse($claims as $claim)
                     <tr class="hover:bg-gray-50">
                         <td class="td font-mono text-xs">{{ $claim->claim_number }}</td>
-                        <td class="td">{{ Str::title(str_replace('_',' ',$claim->claim_type)) }}</td>
+                        <td class="td">{{ $claimTypeLabels[$claim->claim_type] ?? Str::title(str_replace('_',' ',$claim->claim_type)) }}</td>
                         <td class="td text-gray-700">{{ $claim->shippingCompany?->name ?? '—' }}</td>
                         <td class="td font-medium">{{ number_format($claim->claimed_amount_cents / 100, 2) }}</td>
                         <td class="td">
                             <span class="badge {{ $claim->statusBadgeClass() }}">
-                                {{ Str::title(str_replace('_',' ',$claim->status)) }}
+                                {{ $statusLabels[$claim->status] ?? Str::title(str_replace('_',' ',$claim->status)) }}
                             </span>
                         </td>
                         <td class="td text-gray-500 text-xs">{{ $claim->created_at->format('d M Y') }}</td>

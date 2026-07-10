@@ -66,7 +66,7 @@
                             <button type="button" dir="ltr"
                                     class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $root->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
                                     data-id="{{ $root->id }}" data-active="{{ $root->is_active ? '1' : '0' }}"
-                                    aria-label="Toggle active">
+                                    aria-label="{{ __('admin.adsupport.toggle_active') }}">
                                 <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $root->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
                             </button>
                         </td>
@@ -97,7 +97,7 @@
                             <button type="button" dir="ltr"
                                     class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $child->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
                                     data-id="{{ $child->id }}" data-active="{{ $child->is_active ? '1' : '0' }}"
-                                    aria-label="Toggle active">
+                                    aria-label="{{ __('admin.adsupport.toggle_active') }}">
                                 <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $child->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
                             </button>
                         </td>
@@ -169,7 +169,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.description') }} (English)</label>
                 <textarea name="description_en" id="f-description-en" rows="3"
-                          class="form-input w-full text-sm" placeholder="Collection description…"></textarea>
+                          class="form-input w-full text-sm" placeholder="{{ __('admin.adsupport.modal.description_placeholder') }}"></textarea>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.description') }} (Arabic)</label>

@@ -4,6 +4,21 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/ad-campaigns.js'])
 @endpush
 
+@push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            slotsName: @json(__('admin.ad_campaigns.slots_name')),
+            slotsPlacement: @json(__('admin.ad_campaigns.slots_placement')),
+            slotsCountry: @json(__('admin.ad_campaigns.slots_country')),
+            slotsPricing: @json(__('admin.ad_campaigns.slots_pricing')),
+            slotsBaseRate: @json(__('admin.ad_campaigns.slots_base_rate')),
+            slotsBookingDays: @json(__('admin.ad_campaigns.slots_booking_days')),
+            slotsAvailable: @json(__('admin.ad_campaigns.slots_available')),
+        });
+    </script>
+@endpush
+
 @section('title', __('admin.ad_slots.title'))
 
 @section('content')

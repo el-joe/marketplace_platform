@@ -93,5 +93,26 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            active: @json(__('common.active')),
+            inactive: @json(__('common.inactive')),
+            testing: @json(__('admin.payment_section.testing')),
+            connected: @json(__('admin.payment_section.connected')),
+            failed: @json(__('admin.payment_section.failed')),
+            requestFailed: @json(__('admin.payment_section.request_failed')),
+            test: @json(__('admin.payment_section.test')),
+            failedToUpdateStatus: @json(__('admin.payment_section.failed_to_update_status')),
+            addPaymentMethod: @json(__('admin.payment_section.add_payment_method')),
+            editPaymentMethod: @json(__('admin.payment_section.edit_payment_method')),
+            paymentMethodUpdated: @json(__('admin.payment_section.payment_method_updated')),
+            paymentMethodCreated: @json(__('admin.payment_section.payment_method_created')),
+            saveFailed: @json(__('admin.payment_section.save_failed')),
+            removeConfirm: @json(__('admin.payment_section.remove_confirm')),
+            paymentMethodRemoved: @json(__('admin.payment_section.payment_method_removed')),
+            deleteFailed: @json(__('admin.payment_section.delete_failed')),
+        });
+    </script>
     @vite(['resources/js/admin/payment-methods.js'])
 @endpush

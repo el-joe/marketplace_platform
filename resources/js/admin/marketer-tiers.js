@@ -9,6 +9,21 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    const T = Object.assign({
+        minSales: 'Min Sales',
+        maxSalesBlank: 'Max Sales (blank = \u221e)',
+        leaveBlankForInfinity: 'Leave blank for \u221e',
+        commissionPercent: 'Commission %',
+        removeTier: 'Remove tier',
+        addTier: 'Add Tier',
+        tierMinSalesCommissionRequired: 'Tier :n: min sales \u2265 0 and commission rate > 0 required.',
+        tierMaxSalesRequired: 'Tier :n: max sales must be \u2265 min sales.',
+        saving: 'Saving\u2026',
+        tiersSaved: 'Tiers saved!',
+        failedToSaveTiers: 'Failed to save tiers.',
+        networkErrorRetry: 'Network error \u2014 please try again.',
+        saveTiers: 'Save Tiers',
+    }, window.TRANSLATIONS || {});
     const container = document.getElementById('tiers-container');
     const saveBtn   = document.getElementById('save-tiers-btn');
     if (!container || !saveBtn) return;
@@ -27,22 +42,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="w-7 h-7 rounded-full bg-primary-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">${i + 1}</div>
                 <div class="flex-1 grid grid-cols-3 gap-3">
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Min Sales</label>
+                        <label class="text-xs text-gray-400 block mb-1">${T.minSales}</label>
                         <input type="number" min="0" class="form-input text-sm py-1.5 tier-min"
                             value="${tier.min_sales_count}" placeholder="0">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Max Sales (blank = ∞)</label>
+                        <label class="text-xs text-gray-400 block mb-1">${T.maxSalesBlank}</label>
                         <input type="number" min="0" class="form-input text-sm py-1.5 tier-max"
-                            value="${tier.max_sales_count ?? ''}" placeholder="Leave blank for ∞">
+                            value="${tier.max_sales_count ?? ''}" placeholder="${T.leaveBlankForInfinity}">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 block mb-1">Commission %</label>
+                        <label class="text-xs text-gray-400 block mb-1">${T.commissionPercent}</label>
                         <input type="number" min="0" max="100" step="0.01" class="form-input text-sm py-1.5 tier-rate"
                             value="${tier.commission_rate}" placeholder="e.g. 8">
                     </div>
                 </div>
-                <button type="button" class="text-red-400 hover:text-red-600 flex-shrink-0 text-lg leading-none btn-remove-tier" data-index="${i}" title="Remove tier">×</button>
+                <button type="button" class="text-red-400 hover:text-red-600 flex-shrink-0 text-lg leading-none btn-remove-tier" data-index="${i}" title="${T.removeTier}">×</button>
             `;
             container.appendChild(row);
         });
@@ -51,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const addBtn = document.createElement('button');
         addBtn.type = 'button';
         addBtn.className = 'mt-1 text-sm text-blue-600 hover:underline flex items-center gap-1';
-        addBtn.innerHTML = '+ Add Tier';
+        addBtn.innerHTML = '+ ' + T.addTier;
         addBtn.addEventListener('click', () => {
             const last = tiers[tiers.length - 1];
             const newMin = last?.max_sales_count ? last.max_sales_count + 1 : (last?.min_sales_count ?? 0) + 50;
@@ -91,17 +106,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Basic validation
         for (let i = 0; i < tiers.length; i++) {
             if (tiers[i].min_sales_count < 0 || tiers[i].commission_rate <= 0) {
-                alert(`Tier ${i + 1}: min sales ≥ 0 and commission rate > 0 required.`);
+                alert(T.tierMinSalesCommissionRequired.replace(':n', i + 1));
                 return;
             }
             if (tiers[i].max_sales_count !== null && tiers[i].max_sales_count < tiers[i].min_sales_count) {
-                alert(`Tier ${i + 1}: max sales must be ≥ min sales.`);
+                alert(T.tierMaxSalesRequired.replace(':n', i + 1));
                 return;
             }
         }
 
         saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving…';
+        saveBtn.textContent = T.saving;
 
         try {
             const res = await fetch(url, {
@@ -116,20 +131,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (data.success ?? res.ok) {
-                if (window.Toast) window.Toast.success(data.message ?? 'Tiers saved!');
-                else alert(data.message ?? 'Tiers saved!');
+                if (window.Toast) window.Toast.success(data.message ?? T.tiersSaved);
+                else alert(data.message ?? T.tiersSaved);
             } else {
-                const msg = data.message ?? 'Failed to save tiers.';
+                const msg = data.message ?? T.failedToSaveTiers;
                 if (window.Toast) window.Toast.error(msg);
                 else alert(msg);
             }
         } catch {
-            const msg = 'Network error — please try again.';
+            const msg = T.networkErrorRetry;
             if (window.Toast) window.Toast.error(msg);
             else alert(msg);
         } finally {
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Save Tiers';
+            saveBtn.textContent = T.saveTiers;
         }
     });
 });

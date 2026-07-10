@@ -79,7 +79,7 @@
             <div class="flex-1">
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.template_name') }} <span class="text-red-500">*</span></label>
                 <input type="text" name="name" id="ft-name" required maxlength="200"
-                       class="form-input w-full text-sm" placeholder="Real Estate Sale Contract">
+                       class="form-input w-full text-sm" placeholder="{{ __('admin.classifieds.template_name_placeholder') }}">
             </div>
             <label class="flex items-center gap-2 cursor-pointer mt-5 select-none">
                 <input type="checkbox" name="is_active" id="ft-is-active" value="1" class="rounded text-primary-600" checked>
@@ -90,13 +90,13 @@
         <div>
             <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.contract_body_en') }} <span class="text-red-500">*</span></label>
             <textarea name="content_en" id="ft-content-en" rows="10" required dir="ltr"
-                      class="form-input w-full text-sm font-mono" placeholder="Enter the full English contract text…"></textarea>
+                      class="form-input w-full text-sm font-mono" placeholder="{{ __('admin.classifieds.contract_body_en_placeholder') }}"></textarea>
         </div>
 
         <div>
             <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.classifieds.contract_body_ar') }} <span class="text-red-500">*</span></label>
             <textarea name="content_ar" id="ft-content-ar" rows="10" required dir="rtl"
-                      class="form-input w-full text-sm font-mono" placeholder="أدخل نص العقد باللغة العربية…"></textarea>
+                      class="form-input w-full text-sm font-mono" placeholder="{{ __('admin.classifieds.contract_body_ar_placeholder') }}"></textarea>
         </div>
 
         <p id="ft-version-note" class="hidden text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">

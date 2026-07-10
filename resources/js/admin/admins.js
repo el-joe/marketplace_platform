@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btn = document.getElementById('save-btn');
             const origText = btn ? btn.textContent : '';
-            if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+            if (btn) { btn.disabled = true; btn.textContent = window.TRANSLATIONS?.saving || 'Saving…'; }
 
             try {
                 const fd = new FormData(adminForm);
@@ -38,22 +38,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             alpine.generatedPassword = data.generated_password;
                             alpine.showGeneratedPassword = true;
                         }
-                        window.Toast?.success('Administrator created.');
-                        // Small delay to let user read the password before redirect
+                        window.Toast?.success(window.TRANSLATIONS?.administratorCreated || 'Administrator created.');
+                        // Small delay to let user read the password before redirecting
                         setTimeout(() => {
                             if (data.redirect) window.location.href = data.redirect;
                         }, 3000);
                     } else {
-                        window.Toast?.success('Administrator saved.');
+                        window.Toast?.success(window.TRANSLATIONS?.administratorSaved || 'Administrator saved.');
                     }
                 } else {
                     const errors = data.errors
                         ? Object.values(data.errors).flat().join('\n')
                         : null;
-                    window.Toast?.error(errors || data.message || 'Save failed.');
+                    window.Toast?.error(errors || data.message || window.TRANSLATIONS?.saveFailed || 'Save failed.');
                 }
             } catch (err) {
-                window.Toast?.error('Network error. Please try again.');
+                window.Toast?.error(window.TRANSLATIONS?.networkError || 'Network error. Please try again.');
             } finally {
                 if (btn) { btn.disabled = false; btn.textContent = origText; }
             }
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btn = document.getElementById('save-btn');
             const origText = btn ? btn.textContent : '';
-            if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+            if (btn) { btn.disabled = true; btn.textContent = window.TRANSLATIONS?.saving || 'Saving…'; }
 
             try {
                 const fd = new FormData(roleForm);
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json().catch(() => ({}));
 
                 if (res.ok && data.success) {
-                    window.Toast?.success(isEdit ? 'Role saved.' : 'Role created.');
+                    window.Toast?.success(isEdit ? (window.TRANSLATIONS?.roleSaved || 'Role saved.') : (window.TRANSLATIONS?.roleCreated || 'Role created.'));
                     if (!isEdit && data.redirect) {
                         window.location.href = data.redirect;
                     }
@@ -91,10 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const errors = data.errors
                         ? Object.values(data.errors).flat().join('\n')
                         : null;
-                    window.Toast?.error(errors || data.message || 'Save failed.');
+                    window.Toast?.error(errors || data.message || window.TRANSLATIONS?.saveFailed || 'Save failed.');
                 }
             } catch (err) {
-                window.Toast?.error('Network error. Please try again.');
+                window.Toast?.error(window.TRANSLATIONS?.networkError || 'Network error. Please try again.');
             } finally {
                 if (btn) { btn.disabled = false; btn.textContent = origText; }
             }
@@ -110,15 +110,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const confirmed = window.confirmBulkAction
                 ? await window.confirmBulkAction(
-                    'Reset this administrator\'s password? They will receive a new password by email.',
-                    { title: 'Reset Password?' }
+                    window.TRANSLATIONS?.resetPasswordConfirmGeneric || 'Reset this administrator\'s password? They will receive a new password by email.',
+                    { title: window.TRANSLATIONS?.resetPasswordTitleGeneric || 'Reset Password?' }
                 )
-                : confirm('Reset this administrator\'s password?');
+                : confirm(window.TRANSLATIONS?.resetPasswordConfirmGeneric || 'Reset this administrator\'s password?');
 
             if (!confirmed) return;
 
             resetBtn.disabled = true;
-            resetBtn.textContent = 'Resetting…';
+            resetBtn.textContent = window.TRANSLATIONS?.resetting || 'Resetting…';
 
             try {
                 const res = await fetch(url, {
@@ -132,15 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json().catch(() => ({}));
 
                 if (res.ok && data.success) {
-                    window.Toast?.success(data.message || 'Password reset successfully.');
+                    window.Toast?.success(data.message || window.TRANSLATIONS?.passwordResetSuccess || 'Password reset successfully.');
                 } else {
-                    window.Toast?.error(data.message || 'Reset failed.');
+                    window.Toast?.error(data.message || window.TRANSLATIONS?.saveFailed || 'Reset failed.');
                 }
             } catch (err) {
-                window.Toast?.error('Network error. Please try again.');
+                window.Toast?.error(window.TRANSLATIONS?.networkError || 'Network error. Please try again.');
             } finally {
                 resetBtn.disabled = false;
-                resetBtn.textContent = 'Reset Password';
+                resetBtn.textContent = window.TRANSLATIONS?.resetPasswordBtnLabel || 'Reset Password';
             }
         });
     }

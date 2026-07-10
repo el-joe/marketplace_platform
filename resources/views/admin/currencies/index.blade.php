@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 
 @push('head')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            queueSyncConfirm: @json(__('admin.currencies_section.queue_sync_confirm')),
+            queuing: @json(__('admin.currencies_section.queuing')),
+            dispatchFailed: @json(__('admin.currencies_section.dispatch_failed')),
+            syncExchangeRates: @json(__('admin.currencies_section.sync_rates')),
+        });
+    </script>
     @vite('resources/js/admin/currencies.js')
 @endpush
 

@@ -17,6 +17,15 @@ Shared City form partial.
     };
 @endphp
 
+<script>
+    window.TRANSLATIONS = window.TRANSLATIONS || {};
+    Object.assign(window.TRANSLATIONS, {
+        deleteCityTitle: @json(__('admin.geography.delete_city_title')),
+        deleteCityConfirm: @json(__('admin.geography.delete_city_confirm')),
+        cityDeleteFailed: @json(__('admin.geography.city_delete_failed')),
+    });
+</script>
+
 <div class="space-y-6">
     {{-- Header --}}
     <div class="flex items-center justify-between">

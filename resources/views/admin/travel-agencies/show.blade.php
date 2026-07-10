@@ -39,7 +39,7 @@
     $statusColors = ['pending' => 'bg-amber-100 text-amber-700', 'active' => 'bg-emerald-100 text-emerald-700', 'suspended' => 'bg-red-100 text-red-700'];
     @endphp
     <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$travelAgency->status] ?? '' }}">
-        {{ ucfirst($travelAgency->status) }}
+        {{ __('admin.travel.agency_status_' . $travelAgency->status) }}
     </span>
 
     {{-- Details Grid --}}
@@ -91,7 +91,7 @@
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $pkg->priceFormatted() }}</td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $pkgColors[$pkg->status] ?? '' }}">
-                            {{ ucfirst(str_replace('_',' ',$pkg->status)) }}
+                            {{ __('admin.travel.package_status_' . $pkg->status) }}
                         </span>
                     </td>
                     <td class="px-4 py-3">

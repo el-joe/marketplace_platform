@@ -27,7 +27,7 @@ function ajax(method, url, data = {}) {
 
 function withLoading($btn, text, fn) {
     const orig = $btn.text();
-    $btn.prop('disabled', true).text(text ?? 'Loading…');
+    $btn.prop('disabled', true).text(text ?? window.TRANSLATIONS?.savingEllipsis ?? 'Loading…');
     return Promise.resolve(fn()).finally(() => $btn.prop('disabled', false).text(orig));
 }
 
@@ -48,7 +48,7 @@ function initChart() {
             labels: chartData.labels ?? [],
             datasets: [
                 {
-                    label: 'Conversions',
+                    label: window.TRANSLATIONS?.conversionsLabel || 'Conversions',
                     data: chartData.counts ?? [],
                     borderColor: '#6366f1',
                     backgroundColor: 'rgba(99,102,241,0.1)',
@@ -57,7 +57,7 @@ function initChart() {
                     yAxisID: 'y',
                 },
                 {
-                    label: '🔒 Admin Revenue',
+                    label: '🔒 ' + (window.TRANSLATIONS?.adminRevenueLabel || 'Admin Revenue'),
                     data: chartData.admin_revenue ?? [],
                     borderColor: '#f59e0b',
                     backgroundColor: 'rgba(245,158,11,0.08)',
@@ -74,13 +74,13 @@ function initChart() {
                 y: {
                     type: 'linear',
                     position: 'left',
-                    title: { display: true, text: 'Conversions' },
+                    title: { display: true, text: window.TRANSLATIONS?.conversionsLabel || 'Conversions' },
                     ticks: { stepSize: 1 },
                 },
                 y1: {
                     type: 'linear',
                     position: 'right',
-                    title: { display: true, text: 'Admin Revenue' },
+                    title: { display: true, text: window.TRANSLATIONS?.adminRevenueLabel || 'Admin Revenue' },
                     grid: { drawOnChartArea: false },
                 },
             },
@@ -117,7 +117,7 @@ function initChartRangeFilter() {
                 chart.update();
             })
             .fail(function () {
-                Toast.error('Could not refresh chart data.');
+                Toast.error(window.TRANSLATIONS?.couldNotRefreshChart || 'Could not refresh chart data.');
             });
     });
 }
@@ -135,11 +135,11 @@ function initToggleStatus() {
         withLoading($btn, '…', () =>
             ajax('POST', url, { action })
                 .done(function (res) {
-                    Toast.success(res.message ?? 'Status updated.');
+                    Toast.success(res.message ?? (window.TRANSLATIONS?.statusUpdated || 'Status updated.'));
                     setTimeout(() => location.reload(), 800);
                 })
                 .fail(function (xhr) {
-                    Toast.error(xhr.responseJSON?.message ?? 'Failed to update status.');
+                    Toast.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToUpdateStatus || 'Failed to update status.'));
                 })
         );
     });
@@ -149,19 +149,19 @@ function initToggleStatus() {
 function initExpire() {
     function doExpire($btn) {
         window.confirmDialog({
-            title: 'Force expire this promotion?',
-            text: 'This promotion will be permanently expired and can no longer be used by marketers.',
-            confirmButtonText: 'Yes, expire it',
+            title: window.TRANSLATIONS?.forceExpirePromotionTitle || 'Force expire this promotion?',
+            text: window.TRANSLATIONS?.forceExpirePromotionText || 'This promotion will be permanently expired and can no longer be used by marketers.',
+            confirmButtonText: window.TRANSLATIONS?.yesExpireIt || 'Yes, expire it',
             confirmButtonColor: '#dc2626',
         }).then(() => {
             withLoading($btn, '…', () =>
                 ajax('POST', window.EXPIRE_URL, {})
                     .done(function (res) {
-                        Toast.success(res.message ?? 'Promotion expired.');
+                        Toast.success(res.message ?? (window.TRANSLATIONS?.promotionExpired || 'Promotion expired.'));
                         setTimeout(() => location.reload(), 800);
                     })
                     .fail(function (xhr) {
-                        Toast.error(xhr.responseJSON?.message ?? 'Failed to expire.');
+                        Toast.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToExpire || 'Failed to expire.'));
                     })
             );
         }).catch(() => {});
@@ -175,10 +175,10 @@ function initExpire() {
 /* ─── Duplicate ──────────────────────────────────────────────────────────── */
 function initDuplicate() {
     function doDuplicate($btn) {
-        withLoading($btn, 'Duplicating…', () =>
+        withLoading($btn, window.TRANSLATIONS?.duplicating || 'Duplicating…', () =>
             ajax('POST', window.DUPLICATE_URL, {})
                 .done(function (res) {
-                    Toast.success(res.message ?? 'Promotion duplicated.');
+                    Toast.success(res.message ?? (window.TRANSLATIONS?.promotionDuplicated || 'Promotion duplicated.'));
                     if (res.redirect_url) {
                         setTimeout(() => window.location.href = res.redirect_url, 800);
                     } else if (window.INDEX_URL) {
@@ -186,7 +186,7 @@ function initDuplicate() {
                     }
                 })
                 .fail(function (xhr) {
-                    Toast.error(xhr.responseJSON?.message ?? 'Failed to duplicate.');
+                    Toast.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToDuplicate || 'Failed to duplicate.'));
                 })
         );
     }
@@ -209,10 +209,10 @@ function initEditModal() {
         const $btn   = $(this).find('[type=submit]');
         const data   = $(this).serialize();
 
-        withLoading($btn, 'Saving…', () =>
+        withLoading($btn, window.TRANSLATIONS?.savingEllipsis || 'Saving…', () =>
             ajax('PUT', url, data)
                 .done(function (res) {
-                    Toast.success(res.message ?? 'Promotion updated.');
+                    Toast.success(res.message ?? (window.TRANSLATIONS?.promotionUpdated || 'Promotion updated.'));
                     $('#edit-promo-modal').modal('close');
                     setTimeout(() => location.reload(), 800);
                 })
@@ -221,7 +221,7 @@ function initEditModal() {
                         const errors = xhr.responseJSON?.errors ?? {};
                         Object.values(errors).flat().forEach(m => Toast.error(m));
                     } else {
-                        Toast.error(xhr.responseJSON?.message ?? 'Failed to save.');
+                        Toast.error(xhr.responseJSON?.message ?? (window.TRANSLATIONS?.failedToSave || 'Failed to save.'));
                     }
                 })
         );
@@ -238,9 +238,14 @@ function updateStatusBadge(newStatus) {
         paused:  ['badge-warning'],
         expired: ['badge-secondary'],
     };
+    const labelMap = {
+        active:  window.TRANSLATIONS?.statusActive || 'Active',
+        paused:  window.TRANSLATIONS?.statusPaused || 'Paused',
+        expired: window.TRANSLATIONS?.statusExpired || 'Expired',
+    };
 
     badge.className = 'badge text-sm px-3 py-1 ' + (colorMap[newStatus]?.[0] ?? 'badge-secondary');
-    badge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+    badge.textContent = labelMap[newStatus] ?? (newStatus.charAt(0).toUpperCase() + newStatus.slice(1));
 }
 
 /* ─── Bootstrap ──────────────────────────────────────────────────────────── */

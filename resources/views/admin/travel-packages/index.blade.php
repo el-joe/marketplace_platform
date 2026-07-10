@@ -135,5 +135,15 @@
 window.routes = {
     packagesDatatable: '{{ route('admin.travel.packages.datatable') }}',
 };
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    approved: @json(__('admin.travel.approved')),
+    failedToApprove: @json(__('admin.travel.failed_to_approve')),
+    rejected: @json(__('admin.travel.rejected')),
+    failedToReject: @json(__('admin.travel.failed_to_reject')),
+    markExpiredConfirm: @json(__('admin.travel.mark_expired_confirm')),
+    expired: @json(__('admin.travel.expired')),
+    failedGeneric: @json(__('admin.travel.failed_generic')),
+});
 </script>
 @endpush

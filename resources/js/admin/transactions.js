@@ -29,9 +29,9 @@ function initCopyButtons(root = document) {
         if (!btn) return;
         const val = btn.dataset.value ?? btn.textContent.trim();
         navigator.clipboard?.writeText(val).then(() => {
-            window.Toast?.success('Copied to clipboard.');
+            window.Toast?.success(window.TRANSLATIONS?.copiedToClipboard || 'Copied to clipboard.');
         }).catch(() => {
-            window.Toast?.error('Copy failed.');
+            window.Toast?.error(window.TRANSLATIONS?.copyFailed || 'Copy failed.');
         });
     });
 }
@@ -181,14 +181,14 @@ function initRefundsPage() {
 
         if (btn.classList.contains('js-approve-refund')) {
             const url = btn.dataset.url;
-            if (!confirm('Approve this refund and queue for processing?')) return;
+            if (!confirm(window.TRANSLATIONS?.approveRefundConfirm || 'Approve this refund and queue for processing?')) return;
             btn.disabled = true;
             try {
                 const res = await postJson(url, {});
-                window.Toast?.success(res.message ?? 'Refund approved.');
+                window.Toast?.success(res.message ?? (window.TRANSLATIONS?.refundApproved || 'Refund approved.'));
                 dt.ajax.reload();
             } catch (er) {
-                window.Toast?.error(er.message ?? 'Approval failed.');
+                window.Toast?.error(er.message ?? (window.TRANSLATIONS?.approvalFailed || 'Approval failed.'));
                 btn.disabled = false;
             }
         }
@@ -197,7 +197,7 @@ function initRefundsPage() {
             pendingRejectUrl = btn.dataset.url;
             pendingRejectAmount = btn.dataset.amount ?? '';
             const amountEl = document.getElementById('refund-reject-amount');
-            if (amountEl) amountEl.textContent = pendingRejectAmount ? 'Refund amount: ' + pendingRejectAmount : '';
+            if (amountEl) amountEl.textContent = pendingRejectAmount ? (window.TRANSLATIONS?.refundAmountLabel || 'Refund amount:') + ' ' + pendingRejectAmount : '';
             document.getElementById('refund-reject-reason').value = '';
             $('#refund-reject-modal').modal('open');
         }
@@ -207,17 +207,17 @@ function initRefundsPage() {
         if (!pendingRejectUrl) return;
         const reason = document.getElementById('refund-reject-reason')?.value.trim() ?? '';
         this.disabled = true;
-        this.textContent = 'Rejecting…';
+        this.textContent = window.TRANSLATIONS?.rejecting || 'Rejecting…';
         try {
             const res = await postJson(pendingRejectUrl, { reason: reason || null });
-            window.Toast?.success(res.message ?? 'Refund rejected.');
+            window.Toast?.success(res.message ?? (window.TRANSLATIONS?.refundRejected || 'Refund rejected.'));
             $('#refund-reject-modal').modal('close');
             dt.ajax.reload();
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Rejection failed.');
+            window.Toast?.error(e.message ?? (window.TRANSLATIONS?.rejectionFailed || 'Rejection failed.'));
         } finally {
             this.disabled = false;
-            this.textContent = 'Confirm Reject';
+            this.textContent = window.TRANSLATIONS?.confirmReject || 'Confirm Reject';
         }
     });
 }

@@ -43,7 +43,7 @@ $(function () {
                 orderable: false,
                 render(_, type, row) {
                     if (!row.causer_name && !row.causer_type_label) {
-                        return '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">System</span>';
+                        return '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">' + escapeHtml(window.TRANSLATIONS?.systemShort || 'System') + '</span>';
                     }
                     const colorMap = {
                         Admin: 'bg-blue-100 text-blue-700',
@@ -77,7 +77,7 @@ $(function () {
                 orderable: false,
                 render(_, type, row) {
                     if (!row.subject_type_label && !row.subject_id) return '<span class="text-gray-300">—</span>';
-                    const label = row.subject_type_label || 'Unknown';
+                    const label = row.subject_type_label || (window.TRANSLATIONS?.unknown || 'Unknown');
                     const name = row.subject_display_name || row.subject_id || '';
                     return '<div>'
                         + '<span class="text-xs text-gray-500">' + escapeHtml(label) + '</span>'
@@ -114,7 +114,7 @@ $(function () {
                 orderable: false,
                 searchable: false,
                 render(id) {
-                    return '<button type="button" class="btn btn-xs btn-secondary" data-view-activity="' + id + '">View</button>';
+                    return '<button type="button" class="btn btn-xs btn-secondary" data-view-activity="' + id + '">' + escapeHtml(window.TRANSLATIONS?.view || 'View') + '</button>';
                 },
             },
         ],
@@ -154,7 +154,7 @@ $(function () {
             renderActivityDetail(res.data);
             $('#activity-detail-modal').modal('open');
         }).fail(function () {
-            window.Toast?.error('Failed to load activity detail.');
+            window.Toast?.error(window.TRANSLATIONS?.failedToLoadDetail || 'Failed to load activity detail.');
         });
     }
 
@@ -164,7 +164,7 @@ $(function () {
             .text(a.event || 'custom');
         $('#detail-description').text(a.description || '');
 
-        $('#detail-causer-name').text(a.causer_name || 'System');
+        $('#detail-causer-name').text(a.causer_name || (window.TRANSLATIONS?.systemShort || 'System'));
         $('#detail-causer-type').text(a.causer_type_label || '—');
         $('#detail-causer-email').text(a.causer_email || '—');
         $('#detail-created-at').text((a.created_at_formatted || '—') + (a.time_ago ? ' (' + a.time_ago + ')' : ''));

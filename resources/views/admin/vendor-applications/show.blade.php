@@ -23,7 +23,7 @@
                     $sc = $statusColors[$vendor->global_status] ?? 'gray';
                 @endphp
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">
-                    {{ ucwords(str_replace('_', ' ', $vendor->global_status)) }}
+                    {{ __('admin.vendor_applications.global_status_' . $vendor->global_status) }}
                 </span>
                 @php
                     $urgencyClass = $daysWaiting > 5 ? 'text-red-600 font-semibold' : ($daysWaiting >= 2 ? 'text-yellow-600' : 'text-green-600');
@@ -62,7 +62,7 @@
                     </div>
                     <div>
                         <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.business_type_label') }}</dt>
-                        <dd>{{ ucfirst($vendor->business_type ?? '—') }}</dd>
+                        <dd>{{ $vendor->business_type ? __('admin.vendor_applications.business_type_' . $vendor->business_type) : '—' }}</dd>
                     </div>
                     <div>
                         <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.registration_no_label') }}</dt>
@@ -157,7 +157,7 @@
                                         </td>
                                         <td class="py-2 pr-3">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $dc }}-100 text-{{ $dc }}-700">
-                                                {{ ucfirst($doc->status) }}
+                                                {{ __('admin.vendor_applications.doc_status_' . $doc->status) }}
                                             </span>
                                             @if($doc->rejection_reason)
                                                 <div class="text-xs text-red-600 mt-0.5">{{ $doc->rejection_reason }}</div>
@@ -257,7 +257,7 @@
                             <dd>
                                 @php $bsc = $bankStatusColors[$primaryBank->verification_status] ?? 'gray'; @endphp
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $bsc }}-100 text-{{ $bsc }}-700">
-                                    {{ ucfirst($primaryBank->verification_status ?? 'unverified') }}
+                                    {{ __('admin.vendor_applications.bank_status_' . ($primaryBank->verification_status ?? 'unverified')) }}
                                 </span>
                             </dd>
                         </div>

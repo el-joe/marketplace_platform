@@ -4,6 +4,65 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js', 'resources/js/admin/ad-campaigns.js'])
 @endpush
 
+@push('scripts')
+    <script>
+        window.TRANSLATIONS = window.TRANSLATIONS || {};
+        Object.assign(window.TRANSLATIONS, {
+            vendor: @json(__('admin.ad_campaigns.vendor')),
+            campaign: @json(__('admin.ad_campaigns.campaign')),
+            type: @json(__('admin.ad_campaigns.type')),
+            status: @json(__('admin.ad_campaigns.status')),
+            budget: @json(__('admin.ad_campaigns.budget')),
+            spend: @json(__('admin.ad_campaigns.spend')),
+            utilization: @json(__('admin.ad_campaigns.utilization')),
+            quality: @json(__('admin.ad_campaigns.quality')),
+            dates: @json(__('admin.ad_campaigns.dates')),
+            ipAddress: @json(__('admin.ad_campaigns.ip_address')),
+            clicksHr: @json(__('admin.ad_campaigns.clicks_hr')),
+            clicksPer24h: @json(__('admin.ad_campaigns.clicks_per_24h')),
+            blockedAt: @json(__('admin.ad_campaigns.blocked_at')),
+            reasonCol: @json(__('admin.ad_campaigns.reason_col')),
+            referenceCol: @json(__('admin.ad_campaigns.reference_col')),
+            slotCol: @json(__('admin.ad_campaigns.slot_col')),
+            rateCol: @json(__('admin.ad_campaigns.rate_col')),
+            paymentCol: @json(__('admin.ad_campaigns.payment_col')),
+            approve: @json(__('admin.marketers.approve')),
+            reject: @json(__('admin.marketers.reject')),
+            pause: @json(__('admin.ad_campaigns.pause')),
+            resume: @json(__('admin.ad_campaigns.resume')),
+            approving: @json(__('admin.ad_campaigns.approving')),
+            rejecting: @json(__('admin.ad_campaigns.rejecting')),
+            pausing: @json(__('admin.ad_campaigns.pausing')),
+            resuming: @json(__('admin.ad_campaigns.resuming')),
+            blocking: @json(__('admin.ad_campaigns.blocking')),
+            campaignApproved: @json(__('admin.ad_campaigns.campaign_approved')),
+            campaignRejected: @json(__('admin.ad_campaigns.campaign_rejected')),
+            campaignPaused: @json(__('admin.ad_campaigns.campaign_paused')),
+            campaignResumed: @json(__('admin.ad_campaigns.campaign_resumed')),
+            failedToApproveCampaign: @json(__('admin.ad_campaigns.failed_to_approve_campaign')),
+            failedToRejectCampaign: @json(__('admin.ad_campaigns.failed_to_reject_campaign')),
+            genericFailed: @json(__('admin.ad_campaigns.generic_failed')),
+            ipBlocked: @json(__('admin.ad_campaigns.ip_blocked')),
+            failedToBlockIp: @json(__('admin.ad_campaigns.failed_to_block_ip')),
+            blockIpBtn: @json(__('admin.ad_campaigns.block_ip_btn')),
+            bookingApproved: @json(__('admin.ad_campaigns.booking_approved')),
+            bookingRejected: @json(__('admin.ad_campaigns.booking_rejected')),
+            creativeApproved: @json(__('admin.ad_campaigns.creative_approved')),
+            creativeRejected: @json(__('admin.ad_campaigns.creative_rejected')),
+            rejectCreativeBtnDt: @json(__('admin.ad_campaigns.reject_creative_btn_dt')),
+            impressions: @json(__('admin.ad_campaigns.impressions')),
+            clicks: @json(__('admin.ad_campaigns.clicks')),
+            slotsName: @json(__('admin.ad_campaigns.slots_name')),
+            slotsPlacement: @json(__('admin.ad_campaigns.slots_placement')),
+            slotsCountry: @json(__('admin.ad_campaigns.slots_country')),
+            slotsPricing: @json(__('admin.ad_campaigns.slots_pricing')),
+            slotsBaseRate: @json(__('admin.ad_campaigns.slots_base_rate')),
+            slotsBookingDays: @json(__('admin.ad_campaigns.slots_booking_days')),
+            slotsAvailable: @json(__('admin.ad_campaigns.slots_available')),
+        });
+    </script>
+@endpush
+
 @section('title', __('admin.ad_campaigns.title'))
 
 @section('content')

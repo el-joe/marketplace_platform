@@ -73,12 +73,13 @@
 
     <script>
         const trendData = @json($trend);
+        const avgRatingLabel = @json(__('admin.carriers_section.avg_rating_dataset_label'));
         new Chart(document.getElementById('ratingChart'), {
             type: 'line',
             data: {
                 labels: trendData.map(r => r.month),
                 datasets: [{
-                    label: 'Avg Rating',
+                    label: avgRatingLabel,
                     data: trendData.map(r => r.avg_rating),
                     tension: 0.35,
                     fill: true,

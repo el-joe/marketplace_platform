@@ -179,7 +179,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.description') }} (English)</label>
                 <textarea name="description_en" id="f-description-en" rows="3"
-                          class="form-input w-full text-sm" placeholder="Category description…"></textarea>
+                          class="form-input w-full text-sm" placeholder="{{ __('admin.helpcenter.modal.category_description_placeholder') }}"></textarea>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.helpcenter.modal.description') }} (Arabic)</label>

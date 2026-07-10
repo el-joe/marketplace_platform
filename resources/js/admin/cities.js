@@ -15,9 +15,10 @@ $(function () {
     $(document).on('click', '#btn-delete-city', async function () {
         const name = $(this).data('city-name');
         const url = $(this).data('url');
+        const message = (window.TRANSLATIONS?.deleteCityConfirm || 'Delete ":name"? This cannot be undone.').replace(':name', name);
         const confirmed = window.confirmDelete
-            ? await window.confirmDelete(`Delete "${name}"? This cannot be undone.`, { title: 'Delete city?' })
-            : confirm(`Delete "${name}"?\n\nThis cannot be undone.`);
+            ? await window.confirmDelete(message, { title: window.TRANSLATIONS?.deleteCityTitle || 'Delete city?' })
+            : confirm(message);
         if (!confirmed) return;
 
         $.ajax({ url, method: 'DELETE', headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
@@ -26,7 +27,7 @@ $(function () {
                 setTimeout(() => window.location.href = '/cities/', 900);
             })
             .fail(function (xhr) {
-                window.Toast && window.Toast.error(xhr.responseJSON?.message || 'Delete failed.');
+                window.Toast && window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.cityDeleteFailed || 'Delete failed.');
             });
     });
 
@@ -50,13 +51,13 @@ $(function () {
 
         const fileInput = $('input[name="file"]')[0];
         if (!fileInput || !fileInput.files[0]) {
-            window.Toast && window.Toast.error('Please select a CSV file.');
+            window.Toast && window.Toast.error(window.TRANSLATIONS?.selectCsvFile || 'Please select a CSV file.');
             return;
         }
 
         const formData = new FormData(this);
 
-        $('#btn-start-import').prop('disabled', true).text('Importing…');
+        $('#btn-start-import').prop('disabled', true).text(window.TRANSLATIONS?.importingEllipsis || 'Importing…');
         $('#import-progress').removeClass('hidden');
         $('#import-result').addClass('hidden');
 
@@ -71,16 +72,19 @@ $(function () {
             .done(function (res) {
                 let html = `<div class="text-success-700 font-medium">${res.message}</div>`;
                 if (res.inserted > 0) {
-                    html += `<p class="mt-1">✓ ${res.inserted} cities inserted.</p>`;
+                    const insertedMsg = (window.TRANSLATIONS?.citiesInserted || ':count cities inserted.').replace(':count', res.inserted);
+                    html += `<p class="mt-1">✓ ${insertedMsg}</p>`;
                 }
                 if (res.errors && res.errors.length > 0) {
-                    html += `<div class="mt-2 text-warning-700 font-medium">Row errors (${res.errors.length}):</div>`;
+                    const rowErrorsLabel = (window.TRANSLATIONS?.rowErrorsCount || 'Row errors (:count):').replace(':count', res.errors.length);
+                    html += `<div class="mt-2 text-warning-700 font-medium">${rowErrorsLabel}</div>`;
                     html += `<ul class="mt-1 space-y-0.5 text-xs text-warning-600">`;
                     res.errors.slice(0, 20).forEach(err => {
                         html += `<li>• ${err}</li>`;
                     });
                     if (res.errors.length > 20) {
-                        html += `<li class="text-gray-400">…and ${res.errors.length - 20} more</li>`;
+                        const moreMsg = (window.TRANSLATIONS?.moreErrors || '…and :count more').replace(':count', res.errors.length - 20);
+                        html += `<li class="text-gray-400">${moreMsg}</li>`;
                     }
                     html += '</ul>';
                 }
@@ -88,14 +92,14 @@ $(function () {
                 window.reloadDataTable && window.reloadDataTable('cities-table');
             })
             .fail(function (xhr) {
-                const msg = xhr.responseJSON?.message || 'Import failed.';
+                const msg = xhr.responseJSON?.message || window.TRANSLATIONS?.importFailed || 'Import failed.';
                 $('#import-result')
                     .html(`<div class="text-danger-700">${msg}</div>`)
                     .removeClass('hidden');
             })
             .always(function () {
                 $('#import-progress').addClass('hidden');
-                $('#btn-start-import').prop('disabled', false).text('Import');
+                $('#btn-start-import').prop('disabled', false).text(window.TRANSLATIONS?.importBtn || 'Import');
             });
     });
 });
