@@ -32,54 +32,56 @@
     </form>
 
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700 w-10"></th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.country') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.iso') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.continent') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.travel.cities') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.travel.packages') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.status') }}</th>
-                    <th class="px-4 py-3"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($countries as $country)
-                <tr class="hover:bg-gray-50" id="country-row-{{ $country->id }}">
-                    <td class="px-4 py-3 text-2xl">{{ $country->flag_emoji }}</td>
-                    <td class="px-4 py-3">
-                        <div class="font-medium text-gray-900">{{ $country->name_en }}</div>
-                        <div class="text-gray-400 text-xs" dir="rtl">{{ $country->name_ar }}</div>
-                    </td>
-                    <td class="px-4 py-3 font-mono text-xs text-gray-600">
-                        {{ $country->iso_code_2 }} / {{ $country->iso_code_3 }}
-                    </td>
-                    <td class="px-4 py-3 text-gray-600">{{ $country->continent ?? '—' }}</td>
-                    <td class="px-4 py-3 text-center text-gray-600">{{ number_format($country->cities_count) }}</td>
-                    <td class="px-4 py-3 text-center text-gray-600">{{ number_format($country->packages_count) }}</td>
-                    <td class="px-4 py-3 text-center">
-                        @if($country->is_active)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{{ __('common.active') }}</span>
-                        @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">{{ __('admin.hidden') }}</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3 text-end whitespace-nowrap">
-                        <button onclick="openEditModal({{ json_encode($country) }})"
-                                class="text-primary-600 hover:underline text-xs mr-3">{{ __('common.edit') }}</button>
-                        <button onclick="deleteCountry('{{ $country->id }}', '{{ addslashes($country->name_en) }}')"
-                                class="text-red-600 hover:underline text-xs">{{ __('common.delete') }}</button>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="8" class="px-4 py-10 text-center text-gray-400">{{ __('admin.travel.no_countries_found') }}</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700 w-10"></th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.country') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.iso') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.continent') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.travel.cities') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.travel.packages') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.status') }}</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($countries as $country)
+                    <tr class="hover:bg-gray-50" id="country-row-{{ $country->id }}">
+                        <td class="px-4 py-3 text-2xl">{{ $country->flag_emoji }}</td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">{{ $country->name_en }}</div>
+                            <div class="text-gray-400 text-xs" dir="rtl">{{ $country->name_ar }}</div>
+                        </td>
+                        <td class="px-4 py-3 font-mono text-xs text-gray-600">
+                            {{ $country->iso_code_2 }} / {{ $country->iso_code_3 }}
+                        </td>
+                        <td class="px-4 py-3 text-gray-600">{{ $country->continent ?? '—' }}</td>
+                        <td class="px-4 py-3 text-center text-gray-600">{{ number_format($country->cities_count) }}</td>
+                        <td class="px-4 py-3 text-center text-gray-600">{{ number_format($country->packages_count) }}</td>
+                        <td class="px-4 py-3 text-center">
+                            @if($country->is_active)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{{ __('common.active') }}</span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">{{ __('admin.hidden') }}</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-end whitespace-nowrap">
+                            <button onclick="openEditModal({{ json_encode($country) }})"
+                                    class="text-primary-600 hover:underline text-xs mr-3">{{ __('common.edit') }}</button>
+                            <button onclick="deleteCountry('{{ $country->id }}', '{{ addslashes($country->name_en) }}')"
+                                    class="text-red-600 hover:underline text-xs">{{ __('common.delete') }}</button>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">{{ __('admin.travel.no_countries_found') }}</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
         <div class="px-4 py-3 border-t border-gray-100">
             {{ $countries->withQueryString()->links() }}
         </div>

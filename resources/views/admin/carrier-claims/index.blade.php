@@ -66,43 +66,45 @@
 
     {{-- ─── Table ───────────────────────────────────────────────────────────── --}}
     <div class="card overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="th">{{ __('admin.carriers_section.claim_number_col') }}</th>
-                    <th class="th">{{ __('admin.carriers_section.type_col') }}</th>
-                    <th class="th">{{ __('admin.carriers_section.carrier_col') }}</th>
-                    <th class="th">{{ __('admin.carriers_section.claimed_col') }}</th>
-                    <th class="th">{{ __('admin.carriers_section.status_col') }}</th>
-                    <th class="th">{{ __('admin.carriers_section.submitted_col') }}</th>
-                    <th class="th"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                @forelse($claims as $claim)
-                    <tr class="hover:bg-gray-50">
-                        <td class="td font-mono text-xs">{{ $claim->claim_number }}</td>
-                        <td class="td">{{ $claimTypeLabels[$claim->claim_type] ?? Str::title(str_replace('_',' ',$claim->claim_type)) }}</td>
-                        <td class="td text-gray-700">{{ $claim->shippingCompany?->name ?? '—' }}</td>
-                        <td class="td font-medium">{{ number_format($claim->claimed_amount_cents / 100, 2) }}</td>
-                        <td class="td">
-                            <span class="badge {{ $claim->statusBadgeClass() }}">
-                                {{ $statusLabels[$claim->status] ?? Str::title(str_replace('_',' ',$claim->status)) }}
-                            </span>
-                        </td>
-                        <td class="td text-gray-500 text-xs">{{ $claim->created_at->format('d M Y') }}</td>
-                        <td class="td text-end">
-                            <a href="{{ route('admin.carrier-claims.show', $claim) }}"
-                               class="text-primary-600 hover:underline text-xs font-medium">{{ __('admin.carriers_section.view') }}</a>
-                        </td>
-                    </tr>
-                @empty
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
                     <tr>
-                        <td colspan="7" class="td text-center text-gray-400 py-10">{{ __('admin.carriers_section.no_claims') }}</td>
+                        <th class="th">{{ __('admin.carriers_section.claim_number_col') }}</th>
+                        <th class="th">{{ __('admin.carriers_section.type_col') }}</th>
+                        <th class="th">{{ __('admin.carriers_section.carrier_col') }}</th>
+                        <th class="th">{{ __('admin.carriers_section.claimed_col') }}</th>
+                        <th class="th">{{ __('admin.carriers_section.status_col') }}</th>
+                        <th class="th">{{ __('admin.carriers_section.submitted_col') }}</th>
+                        <th class="th"></th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    @forelse($claims as $claim)
+                        <tr class="hover:bg-gray-50">
+                            <td class="td font-mono text-xs">{{ $claim->claim_number }}</td>
+                            <td class="td">{{ $claimTypeLabels[$claim->claim_type] ?? Str::title(str_replace('_',' ',$claim->claim_type)) }}</td>
+                            <td class="td text-gray-700">{{ $claim->shippingCompany?->name ?? '—' }}</td>
+                            <td class="td font-medium">{{ number_format($claim->claimed_amount_cents / 100, 2) }}</td>
+                            <td class="td">
+                                <span class="badge {{ $claim->statusBadgeClass() }}">
+                                    {{ $statusLabels[$claim->status] ?? Str::title(str_replace('_',' ',$claim->status)) }}
+                                </span>
+                            </td>
+                            <td class="td text-gray-500 text-xs">{{ $claim->created_at->format('d M Y') }}</td>
+                            <td class="td text-end">
+                                <a href="{{ route('admin.carrier-claims.show', $claim) }}"
+                                   class="text-primary-600 hover:underline text-xs font-medium">{{ __('admin.carriers_section.view') }}</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="td text-center text-gray-400 py-10">{{ __('admin.carriers_section.no_claims') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="mt-4">

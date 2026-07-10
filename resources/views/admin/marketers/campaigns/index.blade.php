@@ -72,6 +72,7 @@
 
 {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
 <x-card>
+    <div class="overflow-x-auto">
     <table id="campaigns-table" class="w-full text-sm" style="width:100%">
         <thead>
             <tr>
@@ -88,6 +89,7 @@
         </thead>
         <tbody></tbody>
     </table>
+    </div>
 </x-card>
 
 {{-- ─── Reject Modal ────────────────────────────────────────────────────────── --}}

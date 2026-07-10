@@ -250,7 +250,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-4 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.payment_section.fee_pct') }}</label>
                         <input type="number" step="0.01" min="0" max="100" name="fee_pct" id="field-fee_pct"

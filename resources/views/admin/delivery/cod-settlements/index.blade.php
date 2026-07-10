@@ -32,82 +32,84 @@
 
 {{-- ─── Agent Table ─────────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="px-4 py-3 text-start font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_agent') }}</th>
-                <th class="px-4 py-3 text-end font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_pending_cash') }}</th>
-                <th class="px-4 py-3 text-start font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_last_settlement') }}</th>
-                <th class="px-4 py-3 text-start font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_status') }}</th>
-                <th class="px-4 py-3 text-end font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_actions') }}</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-            @forelse($agents as $agent)
-                @php
-                    $lastSettlement = $agent->codSettlements->first();
-                    $pendingCod = $agentPendingCod[$agent->id] ?? 0;
-                @endphp
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3">
-                        <div class="font-medium text-gray-900">{{ $agent->name }}</div>
-                        <div class="text-xs text-gray-500">{{ $agent->phone ?? $agent->email }}</div>
-                    </td>
-                    <td class="px-4 py-3 text-end">
-                        @if($pendingCod > 0)
-                            <span class="font-semibold text-red-600">{{ number_format($pendingCod / 100, 2) }}</span>
-                        @else
-                            <span class="text-gray-400">—</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3">
-                        @if($lastSettlement)
-                            <div class="text-xs">
-                                {{ $lastSettlement->period_start->format('M d') }} – {{ $lastSettlement->period_end->format('M d, Y') }}
-                            </div>
-                            <div class="text-xs text-gray-400">
-                                {{ __('admin.cod.net_label') }} {{ number_format($lastSettlement->net_to_remit_cents / 100, 2) }}
-                            </div>
-                        @else
-                            <span class="text-gray-400 text-xs">{{ __('admin.cod.no_settlements_yet') }}</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3">
-                        @if($lastSettlement)
-                            @php
-                                $badgeClass = match($lastSettlement->status) {
-                                    'settled'  => 'badge-success',
-                                    'disputed' => 'badge-warning',
-                                    default    => 'badge-gray',
-                                };
-                            @endphp
-                            <span class="badge {{ $badgeClass }} text-xs capitalize">{{ $lastSettlement->status }}</span>
-                        @else
-                            <span class="text-gray-400 text-xs">—</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3 text-end space-x-2">
-                        @if($pendingCod > 0)
-                            <button type="button"
-                                class="btn btn-xs btn-outline gen-settlement-btn"
-                                data-agent-id="{{ $agent->id }}"
-                                data-agent-name="{{ $agent->name }}">
-                                {{ __('admin.cod.generate_settlement') }}
-                            </button>
-                        @endif
-                        @if($lastSettlement)
-                            <a href="{{ route('admin.delivery.cod-settlements.show', $lastSettlement) }}"
-                               class="btn btn-xs btn-secondary">{{ __('admin.cod.view_history') }}</a>
-                        @endif
-                    </td>
-                </tr>
-            @empty
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50">
                 <tr>
-                    <td colspan="5" class="px-4 py-8 text-center text-gray-400">{{ __('admin.cod.no_agents_with_cod') }}</td>
+                    <th class="px-4 py-3 text-start font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_agent') }}</th>
+                    <th class="px-4 py-3 text-end font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_pending_cash') }}</th>
+                    <th class="px-4 py-3 text-start font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_last_settlement') }}</th>
+                    <th class="px-4 py-3 text-start font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_status') }}</th>
+                    <th class="px-4 py-3 text-end font-medium text-gray-500 uppercase tracking-wider text-xs">{{ __('admin.cod.col_actions') }}</th>
                 </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @forelse($agents as $agent)
+                    @php
+                        $lastSettlement = $agent->codSettlements->first();
+                        $pendingCod = $agentPendingCod[$agent->id] ?? 0;
+                    @endphp
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">{{ $agent->name }}</div>
+                            <div class="text-xs text-gray-500">{{ $agent->phone ?? $agent->email }}</div>
+                        </td>
+                        <td class="px-4 py-3 text-end">
+                            @if($pendingCod > 0)
+                                <span class="font-semibold text-red-600">{{ number_format($pendingCod / 100, 2) }}</span>
+                            @else
+                                <span class="text-gray-400">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3">
+                            @if($lastSettlement)
+                                <div class="text-xs">
+                                    {{ $lastSettlement->period_start->format('M d') }} – {{ $lastSettlement->period_end->format('M d, Y') }}
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    {{ __('admin.cod.net_label') }} {{ number_format($lastSettlement->net_to_remit_cents / 100, 2) }}
+                                </div>
+                            @else
+                                <span class="text-gray-400 text-xs">{{ __('admin.cod.no_settlements_yet') }}</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3">
+                            @if($lastSettlement)
+                                @php
+                                    $badgeClass = match($lastSettlement->status) {
+                                        'settled'  => 'badge-success',
+                                        'disputed' => 'badge-warning',
+                                        default    => 'badge-gray',
+                                    };
+                                @endphp
+                                <span class="badge {{ $badgeClass }} text-xs capitalize">{{ $lastSettlement->status }}</span>
+                            @else
+                                <span class="text-gray-400 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-end space-x-2">
+                            @if($pendingCod > 0)
+                                <button type="button"
+                                    class="btn btn-xs btn-outline gen-settlement-btn"
+                                    data-agent-id="{{ $agent->id }}"
+                                    data-agent-name="{{ $agent->name }}">
+                                    {{ __('admin.cod.generate_settlement') }}
+                                </button>
+                            @endif
+                            @if($lastSettlement)
+                                <a href="{{ route('admin.delivery.cod-settlements.show', $lastSettlement) }}"
+                                   class="btn btn-xs btn-secondary">{{ __('admin.cod.view_history') }}</a>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-400">{{ __('admin.cod.no_agents_with_cod') }}</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 
 {{-- ─── Generate Modal ──────────────────────────────────────────────────────── --}}

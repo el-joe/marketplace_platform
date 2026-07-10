@@ -47,26 +47,28 @@
         </form>
 
         <div id="agencies-table-wrap" class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.agency') }}</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.email') }}</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.country') }}</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.packages') }}</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.status') }}</th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.registered') }}
-                        </th>
-                        <th class="px-4 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody id="agencies-tbody" class="divide-y divide-gray-100">
-                    <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">{{ __('common.loading') }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.agency') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.email') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.country') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.packages') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('common.status') }}</th>
+                            <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.travel.registered') }}
+                            </th>
+                            <th class="px-4 py-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="agencies-tbody" class="divide-y divide-gray-100">
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">{{ __('common.loading') }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <div id="agencies-pagination"
                 class="px-4 py-3 border-t border-gray-100 flex items-center gap-2 text-sm text-gray-500"></div>
         </div>

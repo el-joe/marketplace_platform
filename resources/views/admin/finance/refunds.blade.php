@@ -69,21 +69,23 @@
 
     {{-- ─── DataTable ──────────────────────────────────────────────────────────── --}}
     <x-card>
-        <table id="refunds-table" class="w-full" style="width:100%">
-            <thead>
-                <tr>
-                    <th>{{ __('admin.finance.order_id') }}</th>
-                    <th>{{ __('admin.finance.customer') }}</th>
-                    <th>{{ __('common.amount') }}</th>
-                    <th>{{ __('admin.finance.refund_reason') }}</th>
-                    <th>{{ __('common.type') }}</th>
-                    <th>{{ __('admin.finance.vendor_charged') }}</th>
-                    <th>{{ __('common.status') }}</th>
-                    <th class="no-sort">{{ __('common.actions') }}</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table id="refunds-table" class="w-full" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>{{ __('admin.finance.order_id') }}</th>
+                        <th>{{ __('admin.finance.customer') }}</th>
+                        <th>{{ __('common.amount') }}</th>
+                        <th>{{ __('admin.finance.refund_reason') }}</th>
+                        <th>{{ __('common.type') }}</th>
+                        <th>{{ __('admin.finance.vendor_charged') }}</th>
+                        <th>{{ __('common.status') }}</th>
+                        <th class="no-sort">{{ __('common.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </x-card>
 
     {{-- ─── Reject Modal ───────────────────────────────────────────────────────── --}}

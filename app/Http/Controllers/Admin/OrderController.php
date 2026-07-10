@@ -90,7 +90,8 @@ class OrderController extends Controller
                 ? json_decode($row->shipping_address_snapshot, true)
                 : (array) ($row->shipping_address_snapshot ?? []);
 
-            $city = $addr['city'] ?? $addr['city_en'] ?? '';
+            $cityVal = $addr['city'] ?? $addr['city_en'] ?? '';
+            $city = is_array($cityVal) ? ($cityVal['en'] ?? $cityVal['ar'] ?? '') : $cityVal;
             $parts = explode(' ', trim($row->customer_name ?? ''), 2);
             $masked = $parts[0] . (isset($parts[1]) ? ' ' . strtoupper($parts[1][0]) . '.' : '');
             $customer = trim($masked . ($city ? ', ' . $city : ''));

@@ -14,49 +14,51 @@
 
     {{-- Table --}}
     <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="px-4 py-3 text-start font-medium text-gray-500">{{ __('admin.marketers.listing') }}</th>
-                    <th class="px-4 py-3 text-start font-medium text-gray-500">{{ __('admin.marketers.vendor') }}</th>
-                    <th class="px-4 py-3 text-start font-medium text-gray-500">{{ __('admin.marketers.marketer') }}</th>
-                    <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.marketers.total_pct') }}</th>
-                    <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.marketers.marketer_pct') }}</th>
-                    <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.marketers.platform_pct') }}</th>
-                    <th class="px-4 py-3 font-medium text-gray-500">{{ __('admin.status') }}</th>
-                    <th class="px-4 py-3 font-medium text-gray-500">{{ __('admin.marketers.valid_until') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($promotions as $promo)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 font-medium">{{ $promo->vendorListing?->product?->name_en ?? '—' }}</td>
-                        <td class="px-4 py-3 text-gray-600">{{ $promo->vendor?->store_name ?? '—' }}</td>
-                        <td class="px-4 py-3 text-gray-600">
-                            @if ($promo->marketer)
-                                {{ $promo->marketer->name }}
-                            @else
-                                <span class="text-xs text-gray-400 italic">{{ __('admin.marketers.any') }}</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-end font-mono font-bold">{{ $promo->total_commission_pct }}%</td>
-                        <td class="px-4 py-3 text-end font-mono text-green-600">{{ $promo->marketer_share_pct }}%</td>
-                        <td class="px-4 py-3 text-end font-mono text-blue-600">{{ $promo->admin_share_pct }}%</td>
-                        <td class="px-4 py-3">
-                            <span
-                                class="badge badge-{{ $promo->status === 'active' ? 'success' : ($promo->status === 'paused' ? 'warning' : 'secondary') }}">
-                                {{ ucfirst($promo->status) }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 text-gray-500 text-xs">{{ $promo->valid_until?->format('d M Y') ?? '—' }}</td>
-                    </tr>
-                @empty
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <td colspan="8" class="px-4 py-8 text-center text-gray-400 italic">{{ __('admin.marketers.no_secret_promotions') }}</td>
+                        <th class="px-4 py-3 text-start font-medium text-gray-500">{{ __('admin.marketers.listing') }}</th>
+                        <th class="px-4 py-3 text-start font-medium text-gray-500">{{ __('admin.marketers.vendor') }}</th>
+                        <th class="px-4 py-3 text-start font-medium text-gray-500">{{ __('admin.marketers.marketer') }}</th>
+                        <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.marketers.total_pct') }}</th>
+                        <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.marketers.marketer_pct') }}</th>
+                        <th class="px-4 py-3 text-end font-medium text-gray-500">{{ __('admin.marketers.platform_pct') }}</th>
+                        <th class="px-4 py-3 font-medium text-gray-500">{{ __('admin.status') }}</th>
+                        <th class="px-4 py-3 font-medium text-gray-500">{{ __('admin.marketers.valid_until') }}</th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($promotions as $promo)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-medium">{{ $promo->vendorListing?->product?->name_en ?? '—' }}</td>
+                            <td class="px-4 py-3 text-gray-600">{{ $promo->vendor?->store_name ?? '—' }}</td>
+                            <td class="px-4 py-3 text-gray-600">
+                                @if ($promo->marketer)
+                                    {{ $promo->marketer->name }}
+                                @else
+                                    <span class="text-xs text-gray-400 italic">{{ __('admin.marketers.any') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-end font-mono font-bold">{{ $promo->total_commission_pct }}%</td>
+                            <td class="px-4 py-3 text-end font-mono text-green-600">{{ $promo->marketer_share_pct }}%</td>
+                            <td class="px-4 py-3 text-end font-mono text-blue-600">{{ $promo->admin_share_pct }}%</td>
+                            <td class="px-4 py-3">
+                                <span
+                                    class="badge badge-{{ $promo->status === 'active' ? 'success' : ($promo->status === 'paused' ? 'warning' : 'secondary') }}">
+                                    {{ ucfirst($promo->status) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-500 text-xs">{{ $promo->valid_until?->format('d M Y') ?? '—' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-400 italic">{{ __('admin.marketers.no_secret_promotions') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
         @if($promotions->hasPages())
             <div class="px-4 py-3 border-t border-gray-100">

@@ -79,6 +79,7 @@
         <div class="px-5 py-4 border-b border-gray-100">
             <h2 class="font-semibold text-gray-800">{{ __('admin.wallets.transaction_history') }}</h2>
         </div>
+        <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b border-gray-100">
                 <tr>
@@ -113,6 +114,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
         <div class="px-4 py-3 border-t border-gray-100">{{ $transactions->links() }}</div>
     </div>
 

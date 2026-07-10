@@ -139,6 +139,7 @@
     {{-- Campaigns DataTable --}}
     <div x-show="tab === 'campaigns'">
         <x-card>
+            <div class="overflow-x-auto">
             <table id="marketer-campaigns-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
@@ -154,12 +155,14 @@
                 </thead>
                 <tbody></tbody>
             </table>
+            </div>
         </x-card>
     </div>
 
     {{-- Conversions DataTable --}}
     <div x-show="tab === 'conversions'">
         <x-card>
+            <div class="overflow-x-auto">
             <table id="marketer-conversions-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
@@ -174,6 +177,7 @@
                 </thead>
                 <tbody></tbody>
             </table>
+            </div>
         </x-card>
     </div>
 
@@ -215,6 +219,7 @@
     {{-- Sample Requests DataTable --}}
     <div x-show="tab === 'samples'">
         <x-card>
+            <div class="overflow-x-auto">
             <table id="marketer-samples-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
@@ -226,12 +231,14 @@
                 </thead>
                 <tbody></tbody>
             </table>
+            </div>
         </x-card>
     </div>
 
     {{-- Secret Promotions DataTable --}}
     <div x-show="tab === 'secret_promos'">
         <x-card>
+            <div class="overflow-x-auto">
             <table id="marketer-secret-promos-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
@@ -243,6 +250,7 @@
                 </thead>
                 <tbody></tbody>
             </table>
+            </div>
         </x-card>
     </div>
 

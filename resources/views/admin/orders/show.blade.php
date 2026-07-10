@@ -173,12 +173,12 @@
 
     <script>window.ORDER_ID = '{{ $order->id }}';</script>
 
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
         {{-- ═══════════════════════════════════════════════════════════════════════ --}}
         {{-- MAIN COLUMN (2/3) --}}
         {{-- ═══════════════════════════════════════════════════════════════════════ --}}
-        <div class="flex-1 min-w-0 space-y-6">
+        <div class="flex-1 min-w-0 w-full space-y-6">
 
             {{-- ──────────────────────────────────── --}}
             {{-- Order Items (Sub-orders accordion) --}}

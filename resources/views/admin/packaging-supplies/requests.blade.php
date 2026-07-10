@@ -39,41 +39,43 @@
 
     {{-- ─── Table ───────────────────────────────────────────────────────────── --}}
     <div class="card overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="th">{{ __('admin.packaging_supplies.request_number') }}</th>
-                    <th class="th">{{ __('admin.packaging_supplies.vendor') }}</th>
-                    <th class="th">{{ __('admin.packaging_supplies.warehouse') }}</th>
-                    <th class="th">{{ __('admin.packaging_supplies.total') }}</th>
-                    <th class="th">{{ __('admin.packaging_supplies.status') }}</th>
-                    <th class="th">{{ __('admin.packaging_supplies.date') }}</th>
-                    <th class="th"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                @forelse($supplyRequests as $req)
-                    <tr class="hover:bg-gray-50">
-                        <td class="td font-mono text-xs">{{ $req->request_number }}</td>
-                        <td class="td font-medium text-gray-900">{{ $req->vendor->store_name }}</td>
-                        <td class="td text-gray-500">{{ $req->warehouse?->name ?? '—' }}</td>
-                        <td class="td">{{ $req->total_cost_formatted }}</td>
-                        <td class="td">
-                            <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status) }}</span>
-                        </td>
-                        <td class="td text-gray-500 text-xs">{{ $req->created_at->format('d M Y') }}</td>
-                        <td class="td text-end">
-                            <a href="{{ route('admin.packaging-supplies.show-request', $req) }}"
-                               class="text-primary-600 hover:underline text-xs font-medium">{{ __('admin.packaging_supplies.view') }}</a>
-                        </td>
-                    </tr>
-                @empty
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
                     <tr>
-                        <td colspan="7" class="td text-center text-gray-400 py-10">{{ __('admin.packaging_supplies.no_requests_found') }}</td>
+                        <th class="th">{{ __('admin.packaging_supplies.request_number') }}</th>
+                        <th class="th">{{ __('admin.packaging_supplies.vendor') }}</th>
+                        <th class="th">{{ __('admin.packaging_supplies.warehouse') }}</th>
+                        <th class="th">{{ __('admin.packaging_supplies.total') }}</th>
+                        <th class="th">{{ __('admin.packaging_supplies.status') }}</th>
+                        <th class="th">{{ __('admin.packaging_supplies.date') }}</th>
+                        <th class="th"></th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    @forelse($supplyRequests as $req)
+                        <tr class="hover:bg-gray-50">
+                            <td class="td font-mono text-xs">{{ $req->request_number }}</td>
+                            <td class="td font-medium text-gray-900">{{ $req->vendor->store_name }}</td>
+                            <td class="td text-gray-500">{{ $req->warehouse?->name ?? '—' }}</td>
+                            <td class="td">{{ $req->total_cost_formatted }}</td>
+                            <td class="td">
+                                <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status) }}</span>
+                            </td>
+                            <td class="td text-gray-500 text-xs">{{ $req->created_at->format('d M Y') }}</td>
+                            <td class="td text-end">
+                                <a href="{{ route('admin.packaging-supplies.show-request', $req) }}"
+                                   class="text-primary-600 hover:underline text-xs font-medium">{{ __('admin.packaging_supplies.view') }}</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="td text-center text-gray-400 py-10">{{ __('admin.packaging_supplies.no_requests_found') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="mt-4">{{ $supplyRequests->links() }}</div>

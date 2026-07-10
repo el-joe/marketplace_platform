@@ -24,161 +24,163 @@
 
     {{-- Tree table --}}
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="w-8 px-3 py-3"></th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.name') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.icon') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.contract_template') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.map') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.sketch') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.attachments') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.listings') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
-                    <th class="px-4 py-3"></th>
-                </tr>
-            </thead>
-            <tbody id="category-tree" class="divide-y divide-gray-100">
-                @forelse($roots as $root)
-                    {{-- Parent row --}}
-                    <tr class="hover:bg-gray-50 bg-white category-row" data-id="{{ $root->id }}">
-                        <td class="px-3 py-3 text-gray-300 cursor-grab drag-handle">
-                            <x-heroicon name="bars-3" class="w-4 h-4" />
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="font-semibold text-gray-900">{{ $root->name_en }}</span>
-                            <span class="block text-xs text-gray-400" dir="rtl">{{ $root->name_ar }}</span>
-                            <span class="block text-xs text-gray-300 font-mono">{{ $root->slug }}</span>
-                        </td>
-                        <td class="px-4 py-3 text-lg">{{ $root->icon ?? '—' }}</td>
-                        <td class="px-4 py-3 text-gray-500 text-xs">
-                            {{ $root->contractTemplate?->name ?? '—' }}
-                            @if($root->contractTemplate)
-                                <span class="text-gray-300">v{{ $root->contractTemplate->version }}</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            @if($root->requires_location_map)
-                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ __('common.yes') }}</span>
-                            @else
-                                <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            @if($root->requires_sketch_upload)
-                                <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{{ __('common.yes') }}</span>
-                            @else
-                                <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            @if(!empty($root->required_attachment_types))
-                                <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
-                                    {{ count($root->required_attachment_types) }}
-                                </span>
-                            @else
-                                <span class="text-gray-300 text-xs">—</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-center text-gray-500 text-xs">
-                            {{ $root->active_listing_count ?? 0 }}
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <button type="button" dir="ltr"
-                                    class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $root->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
-                                    data-id="{{ $root->id }}" data-active="{{ $root->is_active ? '1' : '0' }}"
-                                    data-has-children="{{ $root->children->isNotEmpty() ? '1' : '0' }}"
-                                    aria-label="{{ __('admin.classifieds.toggle_active') }}">
-                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $root->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
-                            </button>
-                        </td>
-                        <td class="px-4 py-3 text-end whitespace-nowrap">
-                            <button type="button"
-                                    class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
-                                    data-category="{{ json_encode(['id' => $root->id, 'name_en' => $root->name_en, 'name_ar' => $root->name_ar, 'slug' => $root->slug, 'icon' => $root->icon, 'parent_id' => $root->parent_id, 'requires_location_map' => $root->requires_location_map, 'requires_sketch_upload' => $root->requires_sketch_upload, 'contract_template_id' => $root->contract_template_id, 'required_attachment_types' => $root->required_attachment_types ?? [], 'is_active' => $root->is_active, 'sort_order' => $root->sort_order]) }}">
-                                {{ __('common.edit') }}
-                            </button>
-                            <button type="button"
-                                    class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"
-                                    data-id="{{ $root->id }}" data-name="{{ $root->name_en }}">
-                                {{ __('common.delete') }}
-                            </button>
-                        </td>
-                    </tr>
-                    {{-- Children rows --}}
-                    @foreach($root->children->sortBy('sort_order') as $child)
-                    <tr class="hover:bg-gray-50 bg-gray-50/40 category-row" data-id="{{ $child->id }}">
-                        <td class="px-3 py-3 text-gray-200"></td>
-                        <td class="px-4 py-3 ps-10">
-                            <span class="text-gray-400 me-1">↳</span>
-                            <span class="font-medium text-gray-800">{{ $child->name_en }}</span>
-                            <span class="block text-xs text-gray-400 ps-4" dir="rtl">{{ $child->name_ar }}</span>
-                            <span class="block text-xs text-gray-300 font-mono ps-4">{{ $child->slug }}</span>
-                        </td>
-                        <td class="px-4 py-3 text-lg">{{ $child->icon ?? '—' }}</td>
-                        <td class="px-4 py-3 text-gray-500 text-xs">
-                            {{ $child->contractTemplate?->name ?? '—' }}
-                            @if($child->contractTemplate)
-                                <span class="text-gray-300">v{{ $child->contractTemplate->version }}</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            @if($child->requires_location_map)
-                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ __('common.yes') }}</span>
-                            @else
-                                <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            @if($child->requires_sketch_upload)
-                                <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{{ __('common.yes') }}</span>
-                            @else
-                                <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            @if(!empty($child->required_attachment_types))
-                                <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
-                                    {{ count($child->required_attachment_types) }}
-                                </span>
-                            @else
-                                <span class="text-gray-300 text-xs">—</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-center text-gray-500 text-xs">
-                            {{ $child->active_listing_count ?? 0 }}
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <button type="button" dir="ltr"
-                                    class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $child->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
-                                    data-id="{{ $child->id }}" data-active="{{ $child->is_active ? '1' : '0' }}"
-                                    data-has-children="0"
-                                    aria-label="{{ __('admin.classifieds.toggle_active') }}">
-                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $child->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
-                            </button>
-                        </td>
-                        <td class="px-4 py-3 text-end whitespace-nowrap">
-                            <button type="button"
-                                    class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
-                                    data-category="{{ json_encode(['id' => $child->id, 'name_en' => $child->name_en, 'name_ar' => $child->name_ar, 'slug' => $child->slug, 'icon' => $child->icon, 'parent_id' => $child->parent_id, 'requires_location_map' => $child->requires_location_map, 'requires_sketch_upload' => $child->requires_sketch_upload, 'contract_template_id' => $child->contract_template_id, 'required_attachment_types' => $child->required_attachment_types ?? [], 'is_active' => $child->is_active, 'sort_order' => $child->sort_order]) }}">
-                                {{ __('common.edit') }}
-                            </button>
-                            <button type="button"
-                                    class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"
-                                    data-id="{{ $child->id }}" data-name="{{ $child->name_en }}">
-                                {{ __('common.delete') }}
-                            </button>
-                        </td>
-                    </tr>
-                    @endforeach
-                @empty
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
                     <tr>
-                        <td colspan="10" class="px-4 py-10 text-center text-gray-400">{{ __('admin.classifieds.no_categories_yet') }}</td>
+                        <th class="w-8 px-3 py-3"></th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.name') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.icon') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.contract_template') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.map') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.sketch') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.attachments') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.listings') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
+                        <th class="px-4 py-3"></th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="category-tree" class="divide-y divide-gray-100">
+                    @forelse($roots as $root)
+                        {{-- Parent row --}}
+                        <tr class="hover:bg-gray-50 bg-white category-row" data-id="{{ $root->id }}">
+                            <td class="px-3 py-3 text-gray-300 cursor-grab drag-handle">
+                                <x-heroicon name="bars-3" class="w-4 h-4" />
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="font-semibold text-gray-900">{{ $root->name_en }}</span>
+                                <span class="block text-xs text-gray-400" dir="rtl">{{ $root->name_ar }}</span>
+                                <span class="block text-xs text-gray-300 font-mono">{{ $root->slug }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-lg">{{ $root->icon ?? '—' }}</td>
+                            <td class="px-4 py-3 text-gray-500 text-xs">
+                                {{ $root->contractTemplate?->name ?? '—' }}
+                                @if($root->contractTemplate)
+                                    <span class="text-gray-300">v{{ $root->contractTemplate->version }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if($root->requires_location_map)
+                                    <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ __('common.yes') }}</span>
+                                @else
+                                    <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if($root->requires_sketch_upload)
+                                    <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{{ __('common.yes') }}</span>
+                                @else
+                                    <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if(!empty($root->required_attachment_types))
+                                    <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                                        {{ count($root->required_attachment_types) }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-300 text-xs">—</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center text-gray-500 text-xs">
+                                {{ $root->active_listing_count ?? 0 }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" dir="ltr"
+                                        class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $root->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
+                                        data-id="{{ $root->id }}" data-active="{{ $root->is_active ? '1' : '0' }}"
+                                        data-has-children="{{ $root->children->isNotEmpty() ? '1' : '0' }}"
+                                        aria-label="{{ __('admin.classifieds.toggle_active') }}">
+                                    <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $root->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
+                                </button>
+                            </td>
+                            <td class="px-4 py-3 text-end whitespace-nowrap">
+                                <button type="button"
+                                        class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
+                                        data-category="{{ json_encode(['id' => $root->id, 'name_en' => $root->name_en, 'name_ar' => $root->name_ar, 'slug' => $root->slug, 'icon' => $root->icon, 'parent_id' => $root->parent_id, 'requires_location_map' => $root->requires_location_map, 'requires_sketch_upload' => $root->requires_sketch_upload, 'contract_template_id' => $root->contract_template_id, 'required_attachment_types' => $root->required_attachment_types ?? [], 'is_active' => $root->is_active, 'sort_order' => $root->sort_order]) }}">
+                                    {{ __('common.edit') }}
+                                </button>
+                                <button type="button"
+                                        class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"
+                                        data-id="{{ $root->id }}" data-name="{{ $root->name_en }}">
+                                    {{ __('common.delete') }}
+                                </button>
+                            </td>
+                        </tr>
+                        {{-- Children rows --}}
+                        @foreach($root->children->sortBy('sort_order') as $child)
+                        <tr class="hover:bg-gray-50 bg-gray-50/40 category-row" data-id="{{ $child->id }}">
+                            <td class="px-3 py-3 text-gray-200"></td>
+                            <td class="px-4 py-3 ps-10">
+                                <span class="text-gray-400 me-1">↳</span>
+                                <span class="font-medium text-gray-800">{{ $child->name_en }}</span>
+                                <span class="block text-xs text-gray-400 ps-4" dir="rtl">{{ $child->name_ar }}</span>
+                                <span class="block text-xs text-gray-300 font-mono ps-4">{{ $child->slug }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-lg">{{ $child->icon ?? '—' }}</td>
+                            <td class="px-4 py-3 text-gray-500 text-xs">
+                                {{ $child->contractTemplate?->name ?? '—' }}
+                                @if($child->contractTemplate)
+                                    <span class="text-gray-300">v{{ $child->contractTemplate->version }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if($child->requires_location_map)
+                                    <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ __('common.yes') }}</span>
+                                @else
+                                    <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if($child->requires_sketch_upload)
+                                    <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{{ __('common.yes') }}</span>
+                                @else
+                                    <span class="text-gray-300 text-xs">{{ __('common.no') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if(!empty($child->required_attachment_types))
+                                    <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                                        {{ count($child->required_attachment_types) }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-300 text-xs">—</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center text-gray-500 text-xs">
+                                {{ $child->active_listing_count ?? 0 }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" dir="ltr"
+                                        class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $child->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
+                                        data-id="{{ $child->id }}" data-active="{{ $child->is_active ? '1' : '0' }}"
+                                        data-has-children="0"
+                                        aria-label="{{ __('admin.classifieds.toggle_active') }}">
+                                    <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $child->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
+                                </button>
+                            </td>
+                            <td class="px-4 py-3 text-end whitespace-nowrap">
+                                <button type="button"
+                                        class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
+                                        data-category="{{ json_encode(['id' => $child->id, 'name_en' => $child->name_en, 'name_ar' => $child->name_ar, 'slug' => $child->slug, 'icon' => $child->icon, 'parent_id' => $child->parent_id, 'requires_location_map' => $child->requires_location_map, 'requires_sketch_upload' => $child->requires_sketch_upload, 'contract_template_id' => $child->contract_template_id, 'required_attachment_types' => $child->required_attachment_types ?? [], 'is_active' => $child->is_active, 'sort_order' => $child->sort_order]) }}">
+                                    {{ __('common.edit') }}
+                                </button>
+                                <button type="button"
+                                        class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"
+                                        data-id="{{ $child->id }}" data-name="{{ $child->name_en }}">
+                                    {{ __('common.delete') }}
+                                </button>
+                            </td>
+                        </tr>
+                        @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="10" class="px-4 py-10 text-center text-gray-400">{{ __('admin.classifieds.no_categories_yet') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

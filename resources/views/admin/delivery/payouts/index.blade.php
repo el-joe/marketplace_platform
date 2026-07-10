@@ -68,6 +68,7 @@
 
 {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
 <x-card>
+    <div class="overflow-x-auto">
     <table id="payouts-table" class="w-full text-sm" style="width:100%">
         <thead>
             <tr>
@@ -85,6 +86,7 @@
             </tr>
         </thead>
     </table>
+    </div>
 </x-card>
 
 {{-- ─── Generate Payouts Modal ──────────────────────────────────────────────── --}}

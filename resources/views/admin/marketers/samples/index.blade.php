@@ -41,18 +41,20 @@
 
 {{-- DataTable --}}
 <x-card>
-    <table id="samples-table" class="w-full text-sm" style="width:100%">
-        <thead>
-            <tr>
-                <th>{{ __('admin.marketers.marketer') }}</th>
-                <th>{{ __('admin.marketers.sample_vendor') }}</th>
-                <th>{{ __('admin.status') }}</th>
-                <th>{{ __('admin.marketers.sample_date') }}</th>
-                <th>{{ __('admin.marketers.sample_actions') }}</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="overflow-x-auto">
+        <table id="samples-table" class="w-full text-sm" style="width:100%">
+            <thead>
+                <tr>
+                    <th>{{ __('admin.marketers.marketer') }}</th>
+                    <th>{{ __('admin.marketers.sample_vendor') }}</th>
+                    <th>{{ __('admin.status') }}</th>
+                    <th>{{ __('admin.marketers.sample_date') }}</th>
+                    <th>{{ __('admin.marketers.sample_actions') }}</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </x-card>
 
 {{-- Details modal --}}
@@ -179,7 +181,7 @@ $(function () {
                 const vendorTotal = marketerTotal + mandatoryTotal;
 
                 const itemTable = (items, emptyMsg) => items.length
-                    ? `<table class="w-full text-sm">
+                    ? `<div class="overflow-x-auto"><table class="w-full text-sm">
                         <thead><tr class="text-start text-gray-500 text-xs">
                             <th class="pb-1 pr-3">${T.product}</th>
                             <th class="pb-1 pr-3 text-center">${T.qty}</th>
@@ -195,7 +197,7 @@ $(function () {
                                 <td class="py-2 text-end">${i.cost ? i.cost : '—'}</td>
                             </tr>`).join('')}
                         </tbody>
-                       </table>`
+                       </table></div>`
                     : `<p class="text-xs text-gray-400 italic py-2">${emptyMsg}</p>`;
 
                 const mandatoryNote = mandatoryItems.length
@@ -265,7 +267,7 @@ $(function () {
                 Object.entries(byCategory).forEach(([cat, items]) => {
                     html += `<div class="mb-5">
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2 border-b border-gray-100 pb-1">${cat}</p>
-                        <table class="w-full text-sm">
+                        <div class="overflow-x-auto"><table class="w-full text-sm">
                             <thead><tr class="text-start text-gray-400 text-xs">
                                 <th class="pb-2 pr-3 w-1/2">${T.product}</th>
                                 <th class="pb-2 pr-3 text-center">${T.marketerQty}</th>
@@ -291,7 +293,7 @@ $(function () {
                             </td>
                         </tr>`;
                     });
-                    html += `</tbody></table></div>`;
+                    html += `</tbody></table></div></div>`;
                 });
 
                 $('#approve-items-body').html(html || `<p class="text-gray-400 text-center py-4">${T.noItemsInRequest}</p>`);

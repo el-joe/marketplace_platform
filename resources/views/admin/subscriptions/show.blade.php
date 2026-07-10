@@ -144,46 +144,48 @@
                 @if($invoices->isEmpty())
                     <div class="p-10 text-center text-gray-400 text-sm">{{ __('admin.subscriptions.no_invoices_yet') }}</div>
                 @else
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
-                            <tr>
-                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.invoice_number') }}</th>
-                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.amount') }}</th>
-                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.status') }}</th>
-                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.period') }}</th>
-                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.paid_at') }}</th>
-                                <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.actions') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            @foreach($invoices as $invoice)
-                                <tr class="hover:bg-gray-50/50">
-                                    <td class="px-4 py-3 font-mono text-xs text-gray-700">{{ $invoice->invoice_number }}</td>
-                                    <td class="px-4 py-3 font-semibold text-gray-900">{{ $invoice->amountFormatted() }}</td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="badge badge-{{ $invoice->statusColor() }} text-xs">{{ __('admin.subscriptions.' . $invoice->status) }}</span>
-                                    </td>
-                                    <td class="px-4 py-3 text-xs text-gray-500">
-                                        {{ $invoice->period_start?->format('d M') }} → {{ $invoice->period_end?->format('d M Y') }}
-                                    </td>
-                                    <td class="px-4 py-3 text-xs text-gray-500">
-                                        {{ $invoice->paid_at?->format('d M Y H:i') ?? '—' }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        @if($invoice->status !== 'paid')
-                                            <button type="button" class="btn btn-xs btn-success btn-mark-paid"
-                                                data-id="{{ $invoice->id }}">
-                                                {{ __('admin.subscriptions.mark_paid') }}
-                                            </button>
-                                        @else
-                                            <span class="text-xs text-gray-400">—</span>
-                                        @endif
-                                    </td>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.invoice_number') }}</th>
+                                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.amount') }}</th>
+                                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.status') }}</th>
+                                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.period') }}</th>
+                                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.paid_at') }}</th>
+                                    <th class="px-4 py-3 text-start">{{ __('admin.subscriptions.actions') }}</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @foreach($invoices as $invoice)
+                                    <tr class="hover:bg-gray-50/50">
+                                        <td class="px-4 py-3 font-mono text-xs text-gray-700">{{ $invoice->invoice_number }}</td>
+                                        <td class="px-4 py-3 font-semibold text-gray-900">{{ $invoice->amountFormatted() }}</td>
+                                        <td class="px-4 py-3">
+                                            <span
+                                                class="badge badge-{{ $invoice->statusColor() }} text-xs">{{ __('admin.subscriptions.' . $invoice->status) }}</span>
+                                        </td>
+                                        <td class="px-4 py-3 text-xs text-gray-500">
+                                            {{ $invoice->period_start?->format('d M') }} → {{ $invoice->period_end?->format('d M Y') }}
+                                        </td>
+                                        <td class="px-4 py-3 text-xs text-gray-500">
+                                            {{ $invoice->paid_at?->format('d M Y H:i') ?? '—' }}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            @if($invoice->status !== 'paid')
+                                                <button type="button" class="btn btn-xs btn-success btn-mark-paid"
+                                                    data-id="{{ $invoice->id }}">
+                                                    {{ __('admin.subscriptions.mark_paid') }}
+                                                </button>
+                                            @else
+                                                <span class="text-xs text-gray-400">—</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
             </div>
         </div>

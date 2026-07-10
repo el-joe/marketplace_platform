@@ -101,6 +101,7 @@
             </x-card>
 
             <x-card>
+                <div class="overflow-x-auto">
                 <table id="assignments-table" class="w-full text-sm" style="width:100%">
                     <thead>
                         <tr>
@@ -115,6 +116,7 @@
                         </tr>
                     </thead>
                 </table>
+                </div>
             </x-card>
         </div>
 

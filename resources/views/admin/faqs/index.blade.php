@@ -34,49 +34,51 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="w-8 px-3 py-3"></th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.faqs.question_en') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.faqs.question_ar') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
-                    <th class="px-4 py-3 text-end font-semibold text-gray-700">{{ __('common.actions') }}</th>
-                </tr>
-            </thead>
-            <tbody id="faq-list" class="divide-y divide-gray-100">
-                @forelse($faqs as $faq)
-                    <tr class="hover:bg-gray-50 faq-row" data-id="{{ $faq->id }}">
-                        <td class="px-3 py-3 text-gray-300 cursor-grab drag-handle">
-                            <x-heroicon name="bars-3" class="w-4 h-4" />
-                        </td>
-                        <td class="px-4 py-3 max-w-sm truncate font-medium text-gray-900">{{ $faq->question_en }}</td>
-                        <td class="px-4 py-3 max-w-sm truncate text-gray-600" dir="rtl">{{ $faq->question_ar }}</td>
-                        <td class="px-4 py-3 text-center">
-                            <button type="button" dir="ltr"
-                                    class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $faq->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
-                                    data-id="{{ $faq->id }}" aria-label="{{ __('admin.faqs.toggle_active') }}">
-                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $faq->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
-                            </button>
-                        </td>
-                        <td class="px-4 py-3 text-end whitespace-nowrap">
-                            <button type="button" class="btn-edit-faq text-xs text-primary-600 font-medium hover:underline"
-                                    data-faq="{{ json_encode($faq->only(['id','context','question_en','question_ar','answer_en','answer_ar','sort_order','is_active'])) }}">
-                                {{ __('common.edit') }}
-                            </button>
-                            <button type="button" class="btn-delete-faq ms-2 text-xs text-red-500 hover:underline"
-                                    data-id="{{ $faq->id }}" data-name="{{ $faq->question_en }}">
-                                {{ __('common.delete') }}
-                            </button>
-                        </td>
-                    </tr>
-                @empty
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
                     <tr>
-                        <td colspan="5" class="px-4 py-10 text-center text-gray-400">{{ __('admin.faqs.empty_state') }}</td>
+                        <th class="w-8 px-3 py-3"></th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.faqs.question_en') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.faqs.question_ar') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
+                        <th class="px-4 py-3 text-end font-semibold text-gray-700">{{ __('common.actions') }}</th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="faq-list" class="divide-y divide-gray-100">
+                    @forelse($faqs as $faq)
+                        <tr class="hover:bg-gray-50 faq-row" data-id="{{ $faq->id }}">
+                            <td class="px-3 py-3 text-gray-300 cursor-grab drag-handle">
+                                <x-heroicon name="bars-3" class="w-4 h-4" />
+                            </td>
+                            <td class="px-4 py-3 max-w-sm truncate font-medium text-gray-900">{{ $faq->question_en }}</td>
+                            <td class="px-4 py-3 max-w-sm truncate text-gray-600" dir="rtl">{{ $faq->question_ar }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" dir="ltr"
+                                        class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $faq->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
+                                        data-id="{{ $faq->id }}" aria-label="{{ __('admin.faqs.toggle_active') }}">
+                                    <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $faq->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
+                                </button>
+                            </td>
+                            <td class="px-4 py-3 text-end whitespace-nowrap">
+                                <button type="button" class="btn-edit-faq text-xs text-primary-600 font-medium hover:underline"
+                                        data-faq="{{ json_encode($faq->only(['id','context','question_en','question_ar','answer_en','answer_ar','sort_order','is_active'])) }}">
+                                    {{ __('common.edit') }}
+                                </button>
+                                <button type="button" class="btn-delete-faq ms-2 text-xs text-red-500 hover:underline"
+                                        data-id="{{ $faq->id }}" data-name="{{ $faq->question_en }}">
+                                    {{ __('common.delete') }}
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-4 py-10 text-center text-gray-400">{{ __('admin.faqs.empty_state') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

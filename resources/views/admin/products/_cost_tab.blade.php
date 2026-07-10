@@ -194,7 +194,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                 {{-- Result --}}
                 <div x-show="calcResult" x-cloak>
                     <div :class="calcResult?.below_cost ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'"
-                        class="border rounded-xl p-4 grid grid-cols-4 gap-4 text-center text-sm">
+                        class="border rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-sm">
                         <div>
                             <p class="text-xs text-gray-500 mb-0.5">{{ __('admin.products.selling_price_cents_label') }}</p>
                             <p class="font-bold text-gray-900" x-text="calcResult?.selling_formatted"></p>

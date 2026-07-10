@@ -54,23 +54,25 @@
 
 {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-    <table id="tbl-inbound" class="w-full text-sm">
-        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
-            <tr>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.request_number') }}</th>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.vendor') }}</th>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.product') }}</th>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.warehouse') }}</th>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.qty_req_rcvd') }}</th>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.status') }}</th>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.expected') }}</th>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.tracking') }}</th>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.created') }}</th>
-                <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.actions') }}</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="overflow-x-auto">
+        <table id="tbl-inbound" class="w-full text-sm">
+            <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+                <tr>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.request_number') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.vendor') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.product') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.warehouse') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.qty_req_rcvd') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.status') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.expected') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.tracking') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.created') }}</th>
+                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.actions') }}</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
 {{-- ─── Approve Modal ───────────────────────────────────────────────────────── --}}

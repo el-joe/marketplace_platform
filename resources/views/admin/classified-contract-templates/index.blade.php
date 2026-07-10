@@ -19,53 +19,55 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.name') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.version') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.created') }}</th>
-                    <th class="px-4 py-3"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($templates as $tpl)
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 font-medium text-gray-900">{{ $tpl->name }}</td>
-                    <td class="px-4 py-3 text-center">
-                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                            v{{ $tpl->version }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-center">
-                        @if($tpl->is_active)
-                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ __('common.active') }}</span>
-                        @else
-                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{{ __('common.inactive') }}</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3 text-gray-500">{{ $tpl->created_at->format('Y-m-d') }}</td>
-                    <td class="px-4 py-3 text-end whitespace-nowrap">
-                        <button type="button"
-                                class="btn-edit-template text-xs text-primary-600 font-medium hover:underline"
-                                data-template="{{ json_encode(['id' => $tpl->id, 'name' => $tpl->name, 'content_en' => $tpl->content_en, 'content_ar' => $tpl->content_ar, 'is_active' => $tpl->is_active]) }}">
-                            {{ __('common.edit') }}
-                        </button>
-                        <button type="button"
-                                class="btn-delete-template ms-2 text-xs text-red-500 hover:underline"
-                                data-id="{{ $tpl->id }}" data-name="{{ $tpl->name }}">
-                            {{ __('common.delete') }}
-                        </button>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="px-4 py-10 text-center text-gray-400">{{ __('admin.classifieds.no_templates') }}</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.name') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.classifieds.version') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('common.active') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.classifieds.created') }}</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($templates as $tpl)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ $tpl->name }}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                                v{{ $tpl->version }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            @if($tpl->is_active)
+                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ __('common.active') }}</span>
+                            @else
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{{ __('common.inactive') }}</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-gray-500">{{ $tpl->created_at->format('Y-m-d') }}</td>
+                        <td class="px-4 py-3 text-end whitespace-nowrap">
+                            <button type="button"
+                                    class="btn-edit-template text-xs text-primary-600 font-medium hover:underline"
+                                    data-template="{{ json_encode(['id' => $tpl->id, 'name' => $tpl->name, 'content_en' => $tpl->content_en, 'content_ar' => $tpl->content_ar, 'is_active' => $tpl->is_active]) }}">
+                                {{ __('common.edit') }}
+                            </button>
+                            <button type="button"
+                                    class="btn-delete-template ms-2 text-xs text-red-500 hover:underline"
+                                    data-id="{{ $tpl->id }}" data-name="{{ $tpl->name }}">
+                                {{ __('common.delete') }}
+                            </button>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-4 py-10 text-center text-gray-400">{{ __('admin.classifieds.no_templates') }}</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

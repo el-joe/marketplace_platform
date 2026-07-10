@@ -35,91 +35,93 @@
 
     {{-- Tree table --}}
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="w-8 px-3 py-3"></th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.adsupport.data_table.name') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.adsupport.data_table.slug') }}</th>
-                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.adsupport.data_table.parent') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.adsupport.data_table.articles') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.adsupport.data_table.active') }}</th>
-                    <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.adsupport.data_table.actions') }}</th>
-                    <th class="px-4 py-3"></th>
-                </tr>
-            </thead>
-            <tbody id="collection-tree" class="divide-y divide-gray-100">
-                @forelse($roots as $root)
-                    <tr class="hover:bg-gray-50 bg-white collection-row" data-id="{{ $root->id }}">
-                        <td class="px-3 py-3 text-gray-300 cursor-grab drag-handle">
-                            <x-heroicon name="bars-3" class="w-4 h-4" />
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="font-semibold text-gray-900">{{ $root->name }}</span>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-gray-400 font-mono">{{ $root->slug }}</td>
-                        <td class="px-4 py-3 text-xs text-gray-400">{{ __('admin.adsupport.data_table.top_level') }}</td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ $root->articles_count }}</span>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <button type="button" dir="ltr"
-                                    class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $root->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
-                                    data-id="{{ $root->id }}" data-active="{{ $root->is_active ? '1' : '0' }}"
-                                    aria-label="{{ __('admin.adsupport.toggle_active') }}">
-                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $root->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
-                            </button>
-                        </td>
-                        <td class="px-4 py-3 text-end whitespace-nowrap">
-                            <button type="button" class="btn-edit-collection text-xs text-primary-600 font-medium hover:underline"
-                                    data-collection="{{ json_encode($root->only(['id','name','name_en','name_ar','slug','parent_id','icon','description','description_en','description_ar','sort_order','is_active'])) }}">
-                                {{ __('common.edit') }}
-                            </button>
-                            <button type="button" class="btn-delete-collection ms-2 text-xs text-red-500 hover:underline"
-                                    data-id="{{ $root->id }}" data-name="{{ $root->name }}">
-                                {{ __('common.delete') }}
-                            </button>
-                        </td>
-                    </tr>
-                    @foreach($root->children->sortBy('sort_order') as $child)
-                    <tr class="hover:bg-gray-50 bg-gray-50/40 collection-row" data-id="{{ $child->id }}">
-                        <td class="px-3 py-3 text-gray-200"></td>
-                        <td class="px-4 py-3 ps-10">
-                            <span class="text-gray-400 me-1">↳</span>
-                            <span class="font-medium text-gray-800">{{ $child->name }}</span>
-                        </td>
-                        <td class="px-4 py-3 text-xs text-gray-400 font-mono">{{ $child->slug }}</td>
-                        <td class="px-4 py-3 text-xs text-gray-400">{{ $root->name }}</td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ $child->articles->count() }}</span>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <button type="button" dir="ltr"
-                                    class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $child->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
-                                    data-id="{{ $child->id }}" data-active="{{ $child->is_active ? '1' : '0' }}"
-                                    aria-label="{{ __('admin.adsupport.toggle_active') }}">
-                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $child->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
-                            </button>
-                        </td>
-                        <td class="px-4 py-3 text-end whitespace-nowrap">
-                            <button type="button" class="btn-edit-collection text-xs text-primary-600 font-medium hover:underline"
-                                    data-collection="{{ json_encode($child->only(['id','name','name_en','name_ar','slug','parent_id','icon','description','description_en','description_ar','sort_order','is_active'])) }}">
-                                {{ __('common.edit') }}
-                            </button>
-                            <button type="button" class="btn-delete-collection ms-2 text-xs text-red-500 hover:underline"
-                                    data-id="{{ $child->id }}" data-name="{{ $child->name }}">
-                                {{ __('common.delete') }}
-                            </button>
-                        </td>
-                    </tr>
-                    @endforeach
-                @empty
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
                     <tr>
-                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">{{ __('admin.adsupport.no_collections_yet') }}</td>
+                        <th class="w-8 px-3 py-3"></th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.adsupport.data_table.name') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.adsupport.data_table.slug') }}</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.adsupport.data_table.parent') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.adsupport.data_table.articles') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.adsupport.data_table.active') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.adsupport.data_table.actions') }}</th>
+                        <th class="px-4 py-3"></th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="collection-tree" class="divide-y divide-gray-100">
+                    @forelse($roots as $root)
+                        <tr class="hover:bg-gray-50 bg-white collection-row" data-id="{{ $root->id }}">
+                            <td class="px-3 py-3 text-gray-300 cursor-grab drag-handle">
+                                <x-heroicon name="bars-3" class="w-4 h-4" />
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="font-semibold text-gray-900">{{ $root->name }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-gray-400 font-mono">{{ $root->slug }}</td>
+                            <td class="px-4 py-3 text-xs text-gray-400">{{ __('admin.adsupport.data_table.top_level') }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ $root->articles_count }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" dir="ltr"
+                                        class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $root->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
+                                        data-id="{{ $root->id }}" data-active="{{ $root->is_active ? '1' : '0' }}"
+                                        aria-label="{{ __('admin.adsupport.toggle_active') }}">
+                                    <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $root->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
+                                </button>
+                            </td>
+                            <td class="px-4 py-3 text-end whitespace-nowrap">
+                                <button type="button" class="btn-edit-collection text-xs text-primary-600 font-medium hover:underline"
+                                        data-collection="{{ json_encode($root->only(['id','name','name_en','name_ar','slug','parent_id','icon','description','description_en','description_ar','sort_order','is_active'])) }}">
+                                    {{ __('common.edit') }}
+                                </button>
+                                <button type="button" class="btn-delete-collection ms-2 text-xs text-red-500 hover:underline"
+                                        data-id="{{ $root->id }}" data-name="{{ $root->name }}">
+                                    {{ __('common.delete') }}
+                                </button>
+                            </td>
+                        </tr>
+                        @foreach($root->children->sortBy('sort_order') as $child)
+                        <tr class="hover:bg-gray-50 bg-gray-50/40 collection-row" data-id="{{ $child->id }}">
+                            <td class="px-3 py-3 text-gray-200"></td>
+                            <td class="px-4 py-3 ps-10">
+                                <span class="text-gray-400 me-1">↳</span>
+                                <span class="font-medium text-gray-800">{{ $child->name }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-gray-400 font-mono">{{ $child->slug }}</td>
+                            <td class="px-4 py-3 text-xs text-gray-400">{{ $root->name }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">{{ $child->articles->count() }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" dir="ltr"
+                                        class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $child->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
+                                        data-id="{{ $child->id }}" data-active="{{ $child->is_active ? '1' : '0' }}"
+                                        aria-label="{{ __('admin.adsupport.toggle_active') }}">
+                                    <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $child->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
+                                </button>
+                            </td>
+                            <td class="px-4 py-3 text-end whitespace-nowrap">
+                                <button type="button" class="btn-edit-collection text-xs text-primary-600 font-medium hover:underline"
+                                        data-collection="{{ json_encode($child->only(['id','name','name_en','name_ar','slug','parent_id','icon','description','description_en','description_ar','sort_order','is_active'])) }}">
+                                    {{ __('common.edit') }}
+                                </button>
+                                <button type="button" class="btn-delete-collection ms-2 text-xs text-red-500 hover:underline"
+                                        data-id="{{ $child->id }}" data-name="{{ $child->name }}">
+                                    {{ __('common.delete') }}
+                                </button>
+                            </td>
+                        </tr>
+                        @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="8" class="px-4 py-10 text-center text-gray-400">{{ __('admin.adsupport.no_collections_yet') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

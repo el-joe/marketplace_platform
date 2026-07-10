@@ -27,18 +27,20 @@
 
                 <div class="bg-gray-50 rounded-lg p-3 text-sm">
                     <p class="font-semibold text-xs text-gray-500 uppercase mb-2">{{ __('admin.flash_sales.stock_levels') }}</p>
-                    <table class="w-full text-xs">
-                        <thead>
-                            <tr class="text-gray-400 border-b">
-                                <th class="pb-1 text-start">{{ __('admin.flash_sales.warehouse_short') }}</th>
-                                <th class="pb-1 text-end">{{ __('admin.flash_sales.on_hand') }}</th>
-                                <th class="pb-1 text-end">{{ __('admin.flash_sales.avail') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody id="review-stock-tbody">
-                            <tr><td colspan="3" class="text-center text-gray-400 py-2">{{ __('admin.flash_sales.loading') }}</td></tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr class="text-gray-400 border-b">
+                                    <th class="pb-1 text-start">{{ __('admin.flash_sales.warehouse_short') }}</th>
+                                    <th class="pb-1 text-end">{{ __('admin.flash_sales.on_hand') }}</th>
+                                    <th class="pb-1 text-end">{{ __('admin.flash_sales.avail') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="review-stock-tbody">
+                                <tr><td colspan="3" class="text-center text-gray-400 py-2">{{ __('admin.flash_sales.loading') }}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>

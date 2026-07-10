@@ -66,20 +66,22 @@
 
 {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
 <x-card>
-    <table id="conversions-table" class="w-full text-sm" style="width:100%">
-        <thead>
-            <tr>
-                <th><input type="checkbox" id="select-all"></th>
-                <th>{{ __('admin.marketers.marketer') }}</th>
-                <th>{{ __('admin.marketers.campaign') }}</th>
-                <th>{{ __('admin.marketers.order_value') }}</th>
-                <th>{{ __('admin.marketers.commission') }}</th>
-                <th>{{ __('admin.status') }}</th>
-                <th>{{ __('admin.marketers.date') }}</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="overflow-x-auto">
+        <table id="conversions-table" class="w-full text-sm" style="width:100%">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>{{ __('admin.marketers.marketer') }}</th>
+                    <th>{{ __('admin.marketers.campaign') }}</th>
+                    <th>{{ __('admin.marketers.order_value') }}</th>
+                    <th>{{ __('admin.marketers.commission') }}</th>
+                    <th>{{ __('admin.status') }}</th>
+                    <th>{{ __('admin.marketers.date') }}</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </x-card>
 
 @endsection

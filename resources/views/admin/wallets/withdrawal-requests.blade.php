@@ -27,6 +27,7 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -77,6 +78,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
         <div class="px-4 py-3 border-t border-gray-100">{{ $requests->withQueryString()->links() }}</div>
     </div>
 

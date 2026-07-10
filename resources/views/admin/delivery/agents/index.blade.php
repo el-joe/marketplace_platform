@@ -83,23 +83,25 @@
 
 {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
 <x-card>
-    <table id="agents-table" class="w-full text-sm" style="width:100%">
-        <thead>
-            <tr>
-                <th>{{ __('common.name') }}</th>
-                <th>{{ __('admin.delivery_section.phone_col') }}</th>
-                <th>{{ __('common.country') }}</th>
-                <th>{{ __('admin.delivery_section.zone_col') }}</th>
-                <th>{{ __('common.type') }}</th>
-                <th>{{ __('common.status') }}</th>
-                <th>{{ __('admin.delivery_section.rating_col') }}</th>
-                <th>{{ __('admin.delivery_section.deliveries_col') }}</th>
-                <th>{{ __('admin.delivery_section.available_col') }}</th>
-                <th>{{ __('admin.delivery_section.last_login_col') }}</th>
-                <th>{{ __('admin.delivery_section.actions_col') }}</th>
-            </tr>
-        </thead>
-    </table>
+    <div class="overflow-x-auto">
+        <table id="agents-table" class="w-full text-sm" style="width:100%">
+            <thead>
+                <tr>
+                    <th>{{ __('common.name') }}</th>
+                    <th>{{ __('admin.delivery_section.phone_col') }}</th>
+                    <th>{{ __('common.country') }}</th>
+                    <th>{{ __('admin.delivery_section.zone_col') }}</th>
+                    <th>{{ __('common.type') }}</th>
+                    <th>{{ __('common.status') }}</th>
+                    <th>{{ __('admin.delivery_section.rating_col') }}</th>
+                    <th>{{ __('admin.delivery_section.deliveries_col') }}</th>
+                    <th>{{ __('admin.delivery_section.available_col') }}</th>
+                    <th>{{ __('admin.delivery_section.last_login_col') }}</th>
+                    <th>{{ __('admin.delivery_section.actions_col') }}</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
 </x-card>
 
 {{-- ─── Add Agent Modal ─────────────────────────────────────────────────────── --}}

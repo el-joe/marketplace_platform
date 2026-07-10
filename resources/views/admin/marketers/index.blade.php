@@ -76,23 +76,25 @@
 
 {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
 <x-card>
-    <table id="marketers-table" class="w-full text-sm" style="width:100%">
-        <thead>
-            <tr>
-                <th>{{ __('admin.marketers.photo') }}</th>
-                <th>{{ __('admin.marketers.name_email') }}</th>
-                <th>{{ __('admin.marketers.type') }}</th>
-                <th>{{ __('admin.marketers.country') }}</th>
-                <th>{{ __('admin.marketers.followers') }}</th>
-                <th>{{ __('admin.marketers.clicks') }}</th>
-                <th>{{ __('admin.marketers.conv') }}</th>
-                <th>{{ __('admin.marketers.earnings') }}</th>
-                <th>{{ __('admin.status') }}</th>
-                <th>{{ __('admin.marketers.actions') }}</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="overflow-x-auto">
+        <table id="marketers-table" class="w-full text-sm" style="width:100%">
+            <thead>
+                <tr>
+                    <th>{{ __('admin.marketers.photo') }}</th>
+                    <th>{{ __('admin.marketers.name_email') }}</th>
+                    <th>{{ __('admin.marketers.type') }}</th>
+                    <th>{{ __('admin.marketers.country') }}</th>
+                    <th>{{ __('admin.marketers.followers') }}</th>
+                    <th>{{ __('admin.marketers.clicks') }}</th>
+                    <th>{{ __('admin.marketers.conv') }}</th>
+                    <th>{{ __('admin.marketers.earnings') }}</th>
+                    <th>{{ __('admin.status') }}</th>
+                    <th>{{ __('admin.marketers.actions') }}</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </x-card>
 
 {{-- ─── Create Marketer Modal ───────────────────────────────────────────────── --}}

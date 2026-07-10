@@ -62,6 +62,7 @@
 
     {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
     <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
         <table id="tbl-subscriptions" class="w-full text-sm">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
                 <tr>
@@ -76,6 +77,7 @@
             </thead>
             <tbody></tbody>
         </table>
+        </div>
     </div>
 
     {{-- ─── Subscribe Vendor Modal ──────────────────────────────────────────────── --}}

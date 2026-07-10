@@ -81,6 +81,7 @@
 
     {{-- ─── DataTable ──────────────────────────────────────────────────────────────── --}}
     <x-card>
+        <div class="overflow-x-auto">
         <table id="offers-table" class="w-full text-sm" style="width:100%">
             <thead>
                 <tr class="text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -97,6 +98,7 @@
             </thead>
             <tbody></tbody>
         </table>
+        </div>
     </x-card>
 
     {{-- ─── Reject modal ───────────────────────────────────────────────────────────── --}}

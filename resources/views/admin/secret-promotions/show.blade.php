@@ -199,57 +199,59 @@
             {{-- ── Conversions table ───────────────────────────────────────────── --}}
             <x-card>
                 <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">{{ __('admin.secret_promotions.conversions_log') }}</h2>
-                <table id="conversions-table" class="w-full text-sm" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>{{ __('admin.secret_promotions.date') }}</th>
-                            <th>{{ __('admin.secret_promotions.order') }}</th>
-                            <th>{{ __('admin.secret_promotions.customer') }}</th>
-                            <th>{{ __('admin.secret_promotions.marketer') }}</th>
-                            <th>{{ __('admin.secret_promotions.sale_price') }}</th>
-                            <th class="bg-green-50 text-green-700">{{ __('admin.secret_promotions.marketer_earned') }}</th>
-                            <th class="bg-amber-50 text-amber-700">🔒 {{ __('admin.secret_promotions.admin_earned') }}</th>
-                            <th>{{ __('admin.status') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($conversions as $c)
+                <div class="overflow-x-auto">
+                    <table id="conversions-table" class="w-full text-sm" style="width:100%">
+                        <thead>
                             <tr>
-                                <td class="text-xs text-gray-500">{{ $c->created_at->format('d M Y H:i') }}</td>
-                                <td>
-                                    @if($c->order)
-                                        <a href="{{ route('admin.orders.show', $c->order_id) }}"
-                                            class="text-primary-600 hover:underline font-mono text-xs">#{{ $c->order->order_number ?? substr($c->order_id, 0, 8) }}</a>
-                                    @else
-                                        <span class="text-gray-400">—</span>
-                                    @endif
-                                </td>
-                                <td class="text-gray-700">{{ $c->order?->customer?->name ?? '—' }}</td>
-                                <td class="text-gray-700">{{ $c->marketer?->name ?? '—' }}</td>
-                                <td class="font-mono font-medium">{{ number_format($c->order_value_cents / 100, 2) }}</td>
-                                <td class="font-mono text-green-700 font-medium bg-green-50">
-                                    {{ number_format($c->commission_amount_cents / 100, 2) }}
-                                </td>
-                                <td class="font-mono text-amber-700 font-medium bg-amber-50">
-                                    @php
-                                        $totalRate = $c->total_commission_pct ?? ($promotion->total_commission_pct ?? 0);
-                                        $marketerRate = $c->commission_rate ?? ($promotion->marketer_share_pct ?? 0);
-                                        $adminRate = max(0, $totalRate - $marketerRate);
-                                        $adminEarned = $c->order_value_cents * $adminRate / 100;
-                                    @endphp
-                                    {{ number_format($adminEarned / 100, 2) }}
-                                </td>
-                                <td>
-                                    @if($c->completed_at)
-                                        <span class="badge badge-success text-xs">{{ __('admin.secret_promotions.paid') }}</span>
-                                    @else
-                                        <span class="badge badge-warning text-xs">{{ __('admin.secret_promotions.pending') }}</span>
-                                    @endif
-                                </td>
+                                <th>{{ __('admin.secret_promotions.date') }}</th>
+                                <th>{{ __('admin.secret_promotions.order') }}</th>
+                                <th>{{ __('admin.secret_promotions.customer') }}</th>
+                                <th>{{ __('admin.secret_promotions.marketer') }}</th>
+                                <th>{{ __('admin.secret_promotions.sale_price') }}</th>
+                                <th class="bg-green-50 text-green-700">{{ __('admin.secret_promotions.marketer_earned') }}</th>
+                                <th class="bg-amber-50 text-amber-700">🔒 {{ __('admin.secret_promotions.admin_earned') }}</th>
+                                <th>{{ __('admin.status') }}</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($conversions as $c)
+                                <tr>
+                                    <td class="text-xs text-gray-500">{{ $c->created_at->format('d M Y H:i') }}</td>
+                                    <td>
+                                        @if($c->order)
+                                            <a href="{{ route('admin.orders.show', $c->order_id) }}"
+                                                class="text-primary-600 hover:underline font-mono text-xs">#{{ $c->order->order_number ?? substr($c->order_id, 0, 8) }}</a>
+                                        @else
+                                            <span class="text-gray-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-gray-700">{{ $c->order?->customer?->name ?? '—' }}</td>
+                                    <td class="text-gray-700">{{ $c->marketer?->name ?? '—' }}</td>
+                                    <td class="font-mono font-medium">{{ number_format($c->order_value_cents / 100, 2) }}</td>
+                                    <td class="font-mono text-green-700 font-medium bg-green-50">
+                                        {{ number_format($c->commission_amount_cents / 100, 2) }}
+                                    </td>
+                                    <td class="font-mono text-amber-700 font-medium bg-amber-50">
+                                        @php
+                                            $totalRate = $c->total_commission_pct ?? ($promotion->total_commission_pct ?? 0);
+                                            $marketerRate = $c->commission_rate ?? ($promotion->marketer_share_pct ?? 0);
+                                            $adminRate = max(0, $totalRate - $marketerRate);
+                                            $adminEarned = $c->order_value_cents * $adminRate / 100;
+                                        @endphp
+                                        {{ number_format($adminEarned / 100, 2) }}
+                                    </td>
+                                    <td>
+                                        @if($c->completed_at)
+                                            <span class="badge badge-success text-xs">{{ __('admin.secret_promotions.paid') }}</span>
+                                        @else
+                                            <span class="badge badge-warning text-xs">{{ __('admin.secret_promotions.pending') }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
                 @if($conversions->isEmpty())
                     <p class="text-center text-gray-400 italic py-8">{{ __('admin.secret_promotions.no_conversions_yet') }}</p>
                 @endif

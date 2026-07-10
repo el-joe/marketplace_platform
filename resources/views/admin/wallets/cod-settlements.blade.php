@@ -54,48 +54,50 @@
 
     {{-- Settlements Table --}}
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="px-4 py-3 text-start font-medium text-gray-600">{{ __('admin.wallets.agent_col') }}</th>
-                    <th class="px-4 py-3 text-start font-medium text-gray-600">{{ __('admin.wallets.period') }}</th>
-                    <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.cod_collected') }}</th>
-                    <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.earnings_owed') }}</th>
-                    <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.net_to_remit') }}</th>
-                    <th class="px-4 py-3 text-center font-medium text-gray-600">{{ __('admin.wallets.status') }}</th>
-                    <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($settlements as $s)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 font-medium text-gray-900">{{ $s->agent?->name }}</td>
-                        <td class="px-4 py-3 text-gray-600 text-xs">{{ $s->period_start->format('d M') }} – {{ $s->period_end->format('d M Y') }}</td>
-                        <td class="px-4 py-3 text-end text-gray-700">{{ number_format($s->total_cod_collected_cents / 100, 2) }}</td>
-                        <td class="px-4 py-3 text-end text-gray-700">{{ number_format($s->total_earnings_owed_cents / 100, 2) }}</td>
-                        <td class="px-4 py-3 text-end font-semibold {{ $s->net_to_remit_cents >= 0 ? 'text-red-600' : 'text-green-700' }}">
-                            {{ $s->net_to_remit_cents >= 0 ? '+' : '' }}{{ number_format($s->net_to_remit_cents / 100, 2) }}
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','settled'=>'bg-green-100 text-green-700','disputed'=>'bg-red-100 text-red-700']; @endphp
-                            <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$s->status] ?? '' }}">{{ __('admin.wallets.' . $s->status) }}</span>
-                        </td>
-                        <td class="px-4 py-3 text-end">
-                            @if($s->status === 'pending')
-                                <form method="POST" action="{{ route('admin.wallets.cod-settlements.settle', $s) }}">
-                                    @csrf @method('PATCH')
-                                    <button class="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700">{{ __('admin.wallets.mark_settled') }}</button>
-                                </form>
-                            @else
-                                <span class="text-xs text-gray-400">{{ $s->settled_at?->format('d M Y') ?? '—' }}</span>
-                            @endif
-                        </td>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-4 py-3 text-start font-medium text-gray-600">{{ __('admin.wallets.agent_col') }}</th>
+                        <th class="px-4 py-3 text-start font-medium text-gray-600">{{ __('admin.wallets.period') }}</th>
+                        <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.cod_collected') }}</th>
+                        <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.earnings_owed') }}</th>
+                        <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.net_to_remit') }}</th>
+                        <th class="px-4 py-3 text-center font-medium text-gray-600">{{ __('admin.wallets.status') }}</th>
+                        <th class="px-4 py-3 text-end font-medium text-gray-600">{{ __('admin.wallets.actions') }}</th>
                     </tr>
-                @empty
-                    <tr><td colspan="7" class="px-4 py-10 text-center text-gray-400">{{ __('admin.wallets.no_settlements_found') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($settlements as $s)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-medium text-gray-900">{{ $s->agent?->name }}</td>
+                            <td class="px-4 py-3 text-gray-600 text-xs">{{ $s->period_start->format('d M') }} – {{ $s->period_end->format('d M Y') }}</td>
+                            <td class="px-4 py-3 text-end text-gray-700">{{ number_format($s->total_cod_collected_cents / 100, 2) }}</td>
+                            <td class="px-4 py-3 text-end text-gray-700">{{ number_format($s->total_earnings_owed_cents / 100, 2) }}</td>
+                            <td class="px-4 py-3 text-end font-semibold {{ $s->net_to_remit_cents >= 0 ? 'text-red-600' : 'text-green-700' }}">
+                                {{ $s->net_to_remit_cents >= 0 ? '+' : '' }}{{ number_format($s->net_to_remit_cents / 100, 2) }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','settled'=>'bg-green-100 text-green-700','disputed'=>'bg-red-100 text-red-700']; @endphp
+                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$s->status] ?? '' }}">{{ __('admin.wallets.' . $s->status) }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-end">
+                                @if($s->status === 'pending')
+                                    <form method="POST" action="{{ route('admin.wallets.cod-settlements.settle', $s) }}">
+                                        @csrf @method('PATCH')
+                                        <button class="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700">{{ __('admin.wallets.mark_settled') }}</button>
+                                    </form>
+                                @else
+                                    <span class="text-xs text-gray-400">{{ $s->settled_at?->format('d M Y') ?? '—' }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7" class="px-4 py-10 text-center text-gray-400">{{ __('admin.wallets.no_settlements_found') }}</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
         <div class="px-4 py-3 border-t border-gray-100">{{ $settlements->withQueryString()->links() }}</div>
     </div>
 

@@ -71,20 +71,22 @@
 
     {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
     <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <table id="tbl-fees" class="w-full text-sm">
-            <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
-                <tr>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.vendor') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.month') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.units_stored') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.rate_per_unit') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.total_fee') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.status') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.actions') }}</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table id="tbl-fees" class="w-full text-sm">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+                    <tr>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.vendor') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.month') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.units_stored') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.rate_per_unit') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.total_fee') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.status') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
     {{-- ─── Generate Modal ──────────────────────────────────────────────────────── --}}

@@ -22,6 +22,7 @@
         <div class="col-span-2 space-y-4">
             <div class="card overflow-hidden">
                 <div class="px-5 py-3 border-b bg-gray-50 font-medium text-sm text-gray-700">{{ __('admin.packaging_supplies.requested_items') }}</div>
+                <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-100 text-sm">
                     <thead class="bg-gray-50">
                         <tr>
@@ -50,6 +51,7 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
 
             @if($req->notes)

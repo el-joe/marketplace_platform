@@ -57,22 +57,24 @@
 
 {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
 <x-card>
-    <table id="payouts-table" class="w-full text-sm" style="width:100%">
-        <thead>
-            <tr>
-                <th>{{ __('admin.marketers.payout_number') }}</th>
-                <th>{{ __('admin.marketers.marketer') }}</th>
-                <th>{{ __('admin.marketers.period') }}</th>
-                <th>{{ __('admin.marketers.conv') }}</th>
-                <th>{{ __('admin.marketers.gross') }}</th>
-                <th>{{ __('admin.marketers.net') }}</th>
-                <th>{{ __('admin.status') }}</th>
-                <th>{{ __('admin.marketers.processed') }}</th>
-                <th>{{ __('admin.marketers.actions') }}</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="overflow-x-auto">
+        <table id="payouts-table" class="w-full text-sm" style="width:100%">
+            <thead>
+                <tr>
+                    <th>{{ __('admin.marketers.payout_number') }}</th>
+                    <th>{{ __('admin.marketers.marketer') }}</th>
+                    <th>{{ __('admin.marketers.period') }}</th>
+                    <th>{{ __('admin.marketers.conv') }}</th>
+                    <th>{{ __('admin.marketers.gross') }}</th>
+                    <th>{{ __('admin.marketers.net') }}</th>
+                    <th>{{ __('admin.status') }}</th>
+                    <th>{{ __('admin.marketers.processed') }}</th>
+                    <th>{{ __('admin.marketers.actions') }}</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </x-card>
 
 {{-- ─── Generate Payout Modal ───────────────────────────────────────────────── --}}

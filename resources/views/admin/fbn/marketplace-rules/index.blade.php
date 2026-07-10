@@ -54,21 +54,23 @@
 
     {{-- ─── DataTable ───────────────────────────────────────────────────────────── --}}
     <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <table id="tbl-rules" class="w-full text-sm">
-            <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
-                <tr>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.listing_id') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.vendor') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.product') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.requirements') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.max_weight') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.commission') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.extra_fee') }}</th>
-                    <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.actions') }}</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table id="tbl-rules" class="w-full text-sm">
+                <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+                    <tr>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.listing_id') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.vendor') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.product') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.requirements') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.max_weight') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.commission') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.extra_fee') }}</th>
+                        <th class="px-4 py-3 text-start">{{ __('admin.fbn_section.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
     {{-- ─── Create / Edit Modal ─────────────────────────────────────────────────── --}}

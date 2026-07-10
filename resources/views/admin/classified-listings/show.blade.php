@@ -99,7 +99,7 @@
             @if($listing->images->isNotEmpty())
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h2 class="font-semibold text-gray-900 mb-3">{{ __('common.images') }} ({{ $listing->images->count() }})</h2>
-                <div class="grid grid-cols-4 gap-2">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     @foreach($listing->images as $img)
                     <div class="relative aspect-square rounded-lg overflow-hidden border border-gray-100">
                         <img src="{{ \Illuminate\Support\Facades\Storage::url($img->file_path) }}"

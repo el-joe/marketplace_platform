@@ -216,7 +216,9 @@
                         </div>
                     </div>
 
+                    <div class="overflow-x-auto">
                     <table id="submissions-table" class="w-full text-sm"></table>
+                    </div>
                 </div>
 
                 {{-- ─── Invitations tab ──────────────────────────────────────── --}}
@@ -267,7 +269,9 @@
                                 </div>
                             @endif
                         </div>
+                        <div class="overflow-x-auto">
                         <table id="invitations-table" class="w-full text-sm"></table>
+                        </div>
                     </x-card>
                 </div>
 
@@ -282,6 +286,7 @@
                         </div>
 
                         <x-card title="{{ __('admin.flash_sales.top_products') }}">
+                            <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead class="text-xs text-gray-500 uppercase bg-gray-50">
                                     <tr>
@@ -295,6 +300,7 @@
                                     <tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm italic">{{ __('admin.flash_sales.loading') }}</td></tr>
                                 </tbody>
                             </table>
+                            </div>
                         </x-card>
                     @else
                         <x-card>
@@ -320,6 +326,7 @@
                         </div>
 
                         <x-card title="{{ __('admin.flash_sales.daily_breakdown') }}">
+                            <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead class="text-xs text-gray-500 uppercase bg-gray-50">
                                     <tr>
@@ -333,6 +340,7 @@
                                     <tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm italic">{{ __('admin.flash_sales.loading') }}</td></tr>
                                 </tbody>
                             </table>
+                            </div>
                         </x-card>
                     @else
                         <x-card>

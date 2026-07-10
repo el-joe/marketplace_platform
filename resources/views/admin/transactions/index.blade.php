@@ -134,24 +134,26 @@ Object.assign(window.TRANSLATIONS, {
 
     {{-- ─── DataTable ──────────────────────────────────────────────────────────── --}}
     <x-card>
-        <table id="transactions-table" class="w-full" style="width:100%">
-            <thead>
-                <tr>
-                    <th>{{ __('admin.transactions.gateway_tx_id') }}</th>
-                    <th>{{ __('admin.transactions.order') }}</th>
-                    <th>{{ __('admin.transactions.customer') }}</th>
-                    <th>{{ __('common.type') }}</th>
-                    <th>{{ __('admin.transactions.gateway') }}</th>
-                    <th>{{ __('common.amount') }}</th>
-                    <th>{{ __('common.status') }}</th>
-                    <th>{{ __('admin.transactions.failure_code') }}</th>
-                    <th>{{ __('admin.transactions.processed_at') }}</th>
-                    <th>{{ __('common.created_at') }}</th>
-                    <th class="no-sort"></th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table id="transactions-table" class="w-full" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>{{ __('admin.transactions.gateway_tx_id') }}</th>
+                        <th>{{ __('admin.transactions.order') }}</th>
+                        <th>{{ __('admin.transactions.customer') }}</th>
+                        <th>{{ __('common.type') }}</th>
+                        <th>{{ __('admin.transactions.gateway') }}</th>
+                        <th>{{ __('common.amount') }}</th>
+                        <th>{{ __('common.status') }}</th>
+                        <th>{{ __('admin.transactions.failure_code') }}</th>
+                        <th>{{ __('admin.transactions.processed_at') }}</th>
+                        <th>{{ __('common.created_at') }}</th>
+                        <th class="no-sort"></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </x-card>
 
 @endsection

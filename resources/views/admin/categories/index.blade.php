@@ -25,33 +25,35 @@
 
         {{-- Tree Table --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <table class="w-full text-sm" id="categories-table">
-                <thead>
-                    <tr
-                        class="bg-gray-50 border-b border-gray-200 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        <th class="px-2 py-3 w-8"></th>
-                        <th class="px-4 py-3">{{ __('admin.category') }}</th>
-                        <th class="px-4 py-3 text-end">{{ __('admin.categories.products_count') }}</th>
-                        <th class="px-4 py-3 text-end">{{ __('admin.commission') }}</th>
-                        <th class="px-4 py-3">{{ __('admin.categories.default_delivery') }}</th>
-                        <th class="px-4 py-3">{{ __('admin.status') }}</th>
-                        <th class="px-4 py-3">{{ __('admin.categories.featured') }}</th>
-                        <th class="px-4 py-3 text-end"></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($roots as $root)
-                        @include('admin.categories._tree_row', ['category' => $root, 'depth' => 0, 'defaultShippingByCategory' => $defaultShippingByCategory])
-                    @empty
-                        <tr>
-                            <td colspan="8" class="px-4 py-12 text-center text-gray-400">
-                                {{ __('admin.categories.no_categories_yet') }}
-                                <a href="{{ route('admin.categories.create') }}" class="text-primary-600 underline ml-1">{{ __('admin.categories.add_the_first_one') }}</a>
-                            </td>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm" id="categories-table">
+                    <thead>
+                        <tr
+                            class="bg-gray-50 border-b border-gray-200 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="px-2 py-3 w-8"></th>
+                            <th class="px-4 py-3">{{ __('admin.category') }}</th>
+                            <th class="px-4 py-3 text-end">{{ __('admin.categories.products_count') }}</th>
+                            <th class="px-4 py-3 text-end">{{ __('admin.commission') }}</th>
+                            <th class="px-4 py-3">{{ __('admin.categories.default_delivery') }}</th>
+                            <th class="px-4 py-3">{{ __('admin.status') }}</th>
+                            <th class="px-4 py-3">{{ __('admin.categories.featured') }}</th>
+                            <th class="px-4 py-3 text-end"></th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($roots as $root)
+                            @include('admin.categories._tree_row', ['category' => $root, 'depth' => 0, 'defaultShippingByCategory' => $defaultShippingByCategory])
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-4 py-12 text-center text-gray-400">
+                                    {{ __('admin.categories.no_categories_yet') }}
+                                    <a href="{{ route('admin.categories.create') }}" class="text-primary-600 underline ml-1">{{ __('admin.categories.add_the_first_one') }}</a>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         {{-- Bulk Commission Modal --}}

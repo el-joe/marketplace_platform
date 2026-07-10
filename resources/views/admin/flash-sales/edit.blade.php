@@ -215,7 +215,9 @@
                         </div>
                     @endif
                 </div>
+                <div class="overflow-x-auto">
                 <table id="invitations-table" class="w-full text-sm"></table>
+                </div>
             </x-card>
         </div>
         @endif
@@ -276,7 +278,9 @@
             </div>
 
             <x-card>
+                <div class="overflow-x-auto">
                 <table id="submissions-table" class="w-full text-sm"></table>
+                </div>
             </x-card>
         </div>
         @endif

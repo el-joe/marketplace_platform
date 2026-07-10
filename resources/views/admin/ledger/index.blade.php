@@ -106,22 +106,24 @@
 
     {{-- ─── DataTable (NO actions column) ──────────────────────────────────────── --}}
     <x-card>
-        <table id="ledger-table" class="w-full" style="width:100%">
-            <thead>
-                <tr>
-                    <th>{{ __('admin.ledger_section.data_table.created_at') }}</th>
-                    <th>{{ __('admin.ledger_section.data_table.group_id') }}</th>
-                    <th>{{ __('admin.ledger_section.data_table.account_type') }}</th>
-                    <th>{{ __('admin.ledger_section.data_table.holder') }}</th>
-                    <th>{{ __('admin.ledger_section.data_table.debit') }}</th>
-                    <th>{{ __('admin.ledger_section.data_table.credit') }}</th>
-                    <th>{{ __('admin.ledger_section.data_table.currency') }}</th>
-                    <th>{{ __('admin.ledger_section.data_table.reference') }}</th>
-                    <th>{{ __('admin.ledger_section.data_table.description') }}</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table id="ledger-table" class="w-full" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>{{ __('admin.ledger_section.data_table.created_at') }}</th>
+                        <th>{{ __('admin.ledger_section.data_table.group_id') }}</th>
+                        <th>{{ __('admin.ledger_section.data_table.account_type') }}</th>
+                        <th>{{ __('admin.ledger_section.data_table.holder') }}</th>
+                        <th>{{ __('admin.ledger_section.data_table.debit') }}</th>
+                        <th>{{ __('admin.ledger_section.data_table.credit') }}</th>
+                        <th>{{ __('admin.ledger_section.data_table.currency') }}</th>
+                        <th>{{ __('admin.ledger_section.data_table.reference') }}</th>
+                        <th>{{ __('admin.ledger_section.data_table.description') }}</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </x-card>
 
     {{-- ─── Transaction Group Modal ─────────────────────────────────────────────── --}}
