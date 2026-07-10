@@ -26,7 +26,7 @@
                     <li>{{ $isAr ? 'إعلانات العرض - للترويج للحملات مثل الإطلاق الجديد، التصفية أو العروض الموسمية' : 'Display ads - to promote campaigns like new launches, clearance, or seasonal offers' }}</li>
                 </ul>
                 <div class="mt-6">
-                    <a href="https://advertise.noon.com/{{ $isAr ? 'ar' : 'en' }}/sellers" target="_blank" rel="noopener"
+                    <a href="{{ route('portal.sellers', $country ?? 'ae') }}"
                        class="inline-flex items-center gap-2 text-yellow-400 font-bold text-sm">
                         {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" class="{{ $isAr ? '-scale-x-100' : '' }}">

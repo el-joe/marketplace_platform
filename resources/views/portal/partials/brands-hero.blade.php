@@ -17,7 +17,7 @@
                         ? 'الإعلانات الفيديوية متاحة الآن على إعلانات العلامة التجارية! ارتق بإعلاناتك إلى المستوى التالي من خلال تحسين تصفح المستخدمين بفيديو يتراوح مدته بين 6 إلى 45 ثانية.'
                         : 'Video Ads are now available on noon ads! Take your advertising to the next level by enhancing user browsing experience with a 6 to 45 second video.' }}
                 </p>
-                <a href="https://advertise.noon.com/{{ $isAr ? 'ar' : 'en' }}/request" target="_blank" rel="noopener"
+                <a href="{{ route('portal.advertise.request', $country ?? 'ae') }}"
                    class="mt-6 inline-flex items-center justify-center bg-yellow-400 hover:bg-yellow-300 text-black
                           font-black text-sm sm:text-base px-6 sm:px-8 py-3 rounded-full transition-colors">
                     {{ $isAr ? 'اتصل بنا' : 'Contact us' }}

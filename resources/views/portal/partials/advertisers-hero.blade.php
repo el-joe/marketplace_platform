@@ -12,7 +12,7 @@
                         ? "'لا تبيع على نون، ولكنك تتطلع إلى تعزيز ظهورك لجماهير فئة كبيرة عبر المناطق الجغرافية؟ هل ترغب في زيادة الوعي بأحداث/إطلاقات محددة؟ هل تخطط لمشاركة عروض محددة للعملاء المستهدفين؟'"
                         : 'Not selling on noon, but looking to boost your visibility to large audiences across geographies? Want to increase awareness of specific events/ launches? Planning on sharing specific offers to targeted customers?' }}
                 </p>
-                <a href="https://advertise.noon.com/{{ $isAr ? 'ar' : 'en' }}/request" target="_blank" rel="noopener"
+                <a href="{{ route('portal.advertise.request', $country ?? 'ae') }}"
                    class="mt-6 inline-flex items-center justify-center bg-yellow-400 hover:bg-yellow-300 text-black
                           font-black text-sm sm:text-base px-6 sm:px-8 py-3 rounded-full transition-colors">
                     {{ $isAr ? 'اتصل بنا' : 'Contact us' }}

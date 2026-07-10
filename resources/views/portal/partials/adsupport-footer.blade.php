@@ -42,7 +42,7 @@
                                 <p class="mb-6 text-start font-semibold text-black">Related Links</p>
                                 <ul class="p-0">
                                     <li class="mb-4 list-none">
-                                        <a target="_blank" href="https://advertise.noon.com/?utm_source=help_center&utm_medium=footer" rel="nofollow noreferrer noopener" class="no-underline hover:text-black">Our website</a>
+                                        <a href="{{ route('portal.home') }}" class="no-underline hover:text-black">Our website</a>
                                     </li>
                                     <li class="mb-4 list-none">
                                         <a target="_blank" href="https://admanager.noon.partners/en-ae?utm_source=help_center&utm_medium=footer" rel="nofollow noreferrer noopener" class="no-underline hover:text-black">Ad Manager</a>

@@ -1,6 +1,7 @@
 @php
     $isAr = session('locale', 'ar') === 'ar';
     $locale = $isAr ? 'ar' : 'en';
+    $country = $country ?? 'ae';
 
     $solutions = [
         [
@@ -10,7 +11,8 @@
             'desc_en' => 'Obtain additional support from noon ads specialists to access premium onsite placements and reach wider audiences with the support of our specialist.',
             'link_label_ar' => 'اتصل بنا لمعرفة المزيد',
             'link_label_en' => 'Contact us to learn more',
-            'link' => 'https://advertise.noon.com/{locale}/request',
+            'link' => route('portal.advertise.request', $country),
+            'internal' => true,
             'image' => 'https://advertise.noon.com/images/managedDisplayAds_ar.png',
         ],
         [
@@ -20,7 +22,8 @@
             'desc_en' => 'Attract millions of eyes with high impact OOH solutions strategically placed in high-traffic locations tailored to your ideal audience or go straight to their doorsteps with personalized and targeted BTL marketing.',
             'link_label_ar' => 'اتصل بنا لمعرفة المزيد',
             'link_label_en' => 'Contact us to learn more',
-            'link' => 'https://advertise.noon.com/{locale}/request',
+            'link' => route('portal.advertise.request', $country),
+            'internal' => true,
             'image' => 'https://advertise.noon.com/images/holdingImage2.png',
         ],
         [
@@ -30,7 +33,8 @@
             'desc_en' => 'Take part in anticipated events and offerings to benefit from exponential traffic giving your brand extra visibility both online and offline. Partner with us and position your brand at the forefront of platform-wide/ category events and impactful collaborations.',
             'link_label_ar' => 'اتصل بنا لمعرفة المزيد',
             'link_label_en' => 'Contact us to learn more',
-            'link' => 'https://advertise.noon.com/{locale}/request',
+            'link' => route('portal.advertise.request', $country),
+            'internal' => true,
             'image' => 'https://advertise.noon.com/images/sponsored.png',
         ],
         [
@@ -40,7 +44,8 @@
             'desc_en' => 'Engage your audience with targeted push notifications and social media campaigns leveraging our wide network of marketers and influencers.',
             'link_label_ar' => 'اتصل بنا لمعرفة المزيد',
             'link_label_en' => 'Contact us to learn more',
-            'link' => 'https://advertise.noon.com/{locale}/request',
+            'link' => route('portal.advertise.request', $country),
+            'internal' => true,
             'image' => 'https://advertise.noon.com/images/crm.png',
         ],
     ];
@@ -59,7 +64,8 @@
                         <p class="text-sm text-gray-600 leading-relaxed">
                             {{ $isAr ? $item['desc_ar'] : $item['desc_en'] }}
                         </p>
-                        <a href="{{ str_replace('{locale}', $locale, $item['link']) }}" target="_blank" rel="noopener"
+                        <a href="{{ $item['link'] }}"
+                           @if(empty($item['internal'])) target="_blank" rel="noopener" @endif
                            class="mt-4 inline-flex items-center gap-2 text-[#1677ff] font-bold text-sm hover:underline">
                             {{ $isAr ? $item['link_label_ar'] : $item['link_label_en'] }}
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" class="shrink-0 {{ $isAr ? '-scale-x-100' : '' }}">
