@@ -129,10 +129,17 @@
         @csrf
         <input type="hidden" id="form-collection-id" value="">
 
-        <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.name') }} <span class="text-red-500">*</span></label>
-            <input type="text" name="name" id="f-name" required maxlength="150"
-                   class="form-input w-full text-sm" placeholder="Getting Started">
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.name') }} (English) <span class="text-red-500">*</span></label>
+                <input type="text" name="name_en" id="f-name-en" required maxlength="150"
+                       class="form-input w-full text-sm" placeholder="Getting Started">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.name') }} (Arabic) <span class="text-red-500">*</span></label>
+                <input type="text" name="name_ar" id="f-name-ar" required maxlength="150" dir="rtl"
+                       class="form-input w-full text-sm" placeholder="البدء">
+            </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -158,10 +165,17 @@
                    class="form-input w-full text-sm" placeholder="https://.../icon.svg">
         </div>
 
-        <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.description') }}</label>
-            <textarea name="description" id="f-description" rows="3"
-                      class="form-input w-full text-sm" placeholder="Collection description…"></textarea>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.description') }} (English)</label>
+                <textarea name="description_en" id="f-description-en" rows="3"
+                          class="form-input w-full text-sm" placeholder="Collection description…"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.adsupport.modal.description') }} (Arabic)</label>
+                <textarea name="description_ar" id="f-description-ar" rows="3" dir="rtl"
+                          class="form-input w-full text-sm" placeholder="وصف المجموعة…"></textarea>
+            </div>
         </div>
 
         <div class="flex items-center gap-6">
@@ -226,7 +240,7 @@ Object.assign(window.TRANSLATIONS, {
     }
 
     // ── Slug auto-generate ────────────────────────────────────────────────────
-    const nameInput = document.getElementById('f-name');
+    const nameInput = document.getElementById('f-name-en');
     const slugInput = document.getElementById('f-slug');
     let slugManual = false;
     slugInput.addEventListener('input', () => { slugManual = slugInput.value !== ''; });
@@ -249,7 +263,7 @@ Object.assign(window.TRANSLATIONS, {
 
     function resetForm() {
         document.getElementById('form-collection-id').value = '';
-        ['f-name', 'f-slug', 'f-icon', 'f-description'].forEach(id => {
+        ['f-name-en', 'f-name-ar', 'f-slug', 'f-icon', 'f-description-en', 'f-description-ar'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
@@ -265,10 +279,12 @@ Object.assign(window.TRANSLATIONS, {
         btn.addEventListener('click', () => {
             const col = JSON.parse(btn.dataset.collection);
             document.getElementById('form-collection-id').value = col.id;
-            document.getElementById('f-name').value = col.name ?? '';
+            document.getElementById('f-name-en').value = col.name_en ?? col.name ?? '';
+            document.getElementById('f-name-ar').value = col.name_ar ?? col.name ?? '';
             document.getElementById('f-slug').value = col.slug ?? '';
             document.getElementById('f-icon').value = col.icon ?? '';
-            document.getElementById('f-description').value = col.description ?? '';
+            document.getElementById('f-description-en').value = col.description_en ?? col.description ?? '';
+            document.getElementById('f-description-ar').value = col.description_ar ?? col.description ?? '';
             document.getElementById('f-parent-id').value = col.parent_id ?? '';
             document.getElementById('f-sort-order').value = col.sort_order ?? 0;
             document.getElementById('f-is-active').checked = !!col.is_active;
@@ -282,11 +298,13 @@ Object.assign(window.TRANSLATIONS, {
     document.getElementById('btn-save-collection').addEventListener('click', async () => {
         const id = document.getElementById('form-collection-id').value;
         const payload = {
-            name: document.getElementById('f-name').value,
+            name_en: document.getElementById('f-name-en').value,
+            name_ar: document.getElementById('f-name-ar').value,
             slug: document.getElementById('f-slug').value,
             parent_id: document.getElementById('f-parent-id').value || null,
             icon: document.getElementById('f-icon').value || null,
-            description: document.getElementById('f-description').value || null,
+            description_en: document.getElementById('f-description-en').value || null,
+            description_ar: document.getElementById('f-description-ar').value || null,
             sort_order: parseInt(document.getElementById('f-sort-order').value) || 0,
             is_active: document.getElementById('f-is-active').checked ? 1 : 0,
         };

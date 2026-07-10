@@ -15,8 +15,12 @@ class AdSupportCollection extends Model
     protected $fillable = [
         'parent_id',
         'name',
+        'name_en',
+        'name_ar',
         'slug',
         'description',
+        'description_en',
+        'description_ar',
         'icon',
         'is_active',
         'sort_order',
@@ -30,6 +34,20 @@ class AdSupportCollection extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function localizedName(): string
+    {
+        return session('locale', 'ar') === 'ar'
+            ? ($this->name_ar ?: $this->getRawOriginal('name'))
+            : ($this->name_en ?: $this->getRawOriginal('name'));
+    }
+
+    public function localizedDescription(): ?string
+    {
+        return session('locale', 'ar') === 'ar'
+            ? ($this->description_ar ?: $this->getRawOriginal('description'))
+            : ($this->description_en ?: $this->getRawOriginal('description'));
     }
 
     public function parent(): BelongsTo

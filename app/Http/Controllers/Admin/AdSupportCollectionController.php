@@ -49,11 +49,15 @@ class AdSupportCollectionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'name' => 'required|string|max:150',
+            'name' => 'nullable|string|max:150',
+            'name_en' => 'required|string|max:150',
+            'name_ar' => 'required|string|max:150',
             'slug' => 'nullable|string|max:150|unique:ad_support_collections,slug',
             'parent_id' => 'nullable|string|exists:ad_support_collections,id',
             'icon' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'description_en' => 'nullable|string',
+            'description_ar' => 'nullable|string',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ]);
@@ -65,14 +69,18 @@ class AdSupportCollectionController extends Controller
             }
         }
 
-        $slug = $this->uniqueSlug($request->slug ?: Str::slug($request->name));
+        $slug = $this->uniqueSlug($request->slug ?: Str::slug($request->name_en ?: $request->name));
 
         $collection = AdSupportCollection::create([
             'parent_id' => $request->parent_id ?: null,
-            'name' => $request->name,
+            'name' => $request->name_en ?: $request->name,
+            'name_en' => $request->name_en,
+            'name_ar' => $request->name_ar,
             'slug' => $slug,
             'icon' => $request->icon ?: null,
-            'description' => $request->description ?: null,
+            'description' => $request->description_en ?: $request->description,
+            'description_en' => $request->description_en ?: null,
+            'description_ar' => $request->description_ar ?: null,
             'sort_order' => (int) ($request->sort_order ?? 0),
             'is_active' => $request->boolean('is_active', true),
         ]);
@@ -91,11 +99,15 @@ class AdSupportCollectionController extends Controller
     public function update(Request $request, AdSupportCollection $collection): JsonResponse
     {
         $request->validate([
-            'name' => 'required|string|max:150',
+            'name' => 'nullable|string|max:150',
+            'name_en' => 'required|string|max:150',
+            'name_ar' => 'required|string|max:150',
             'slug' => 'nullable|string|max:150|unique:ad_support_collections,slug,' . $collection->id,
             'parent_id' => 'nullable|string|exists:ad_support_collections,id',
             'icon' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'description_en' => 'nullable|string',
+            'description_ar' => 'nullable|string',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ]);
@@ -114,10 +126,14 @@ class AdSupportCollectionController extends Controller
 
         $collection->update([
             'parent_id' => $request->parent_id ?: null,
-            'name' => $request->name,
+            'name' => $request->name_en ?: $request->name,
+            'name_en' => $request->name_en,
+            'name_ar' => $request->name_ar,
             'slug' => $slug,
             'icon' => $request->icon ?: null,
-            'description' => $request->description ?: null,
+            'description' => $request->description_en ?: $request->description,
+            'description_en' => $request->description_en ?: null,
+            'description_ar' => $request->description_ar ?: null,
             'sort_order' => (int) ($request->sort_order ?? $collection->sort_order),
             'is_active' => $request->boolean('is_active'),
         ]);

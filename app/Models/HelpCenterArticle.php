@@ -17,9 +17,15 @@ class HelpCenterArticle extends Model
         'author_admin_id',
         'country_id',
         'title',
+        'title_en',
+        'title_ar',
         'slug',
         'excerpt',
+        'excerpt_en',
+        'excerpt_ar',
         'body',
+        'body_en',
+        'body_ar',
         'status',
         'published_at',
         'is_featured',
@@ -37,6 +43,27 @@ class HelpCenterArticle extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function localizedTitle(): string
+    {
+        return session('locale', 'ar') === 'ar'
+            ? ($this->title_ar ?: $this->getRawOriginal('title'))
+            : ($this->title_en ?: $this->getRawOriginal('title'));
+    }
+
+    public function localizedExcerpt(): ?string
+    {
+        return session('locale', 'ar') === 'ar'
+            ? ($this->excerpt_ar ?: $this->getRawOriginal('excerpt'))
+            : ($this->excerpt_en ?: $this->getRawOriginal('excerpt'));
+    }
+
+    public function localizedBody(): ?string
+    {
+        return session('locale', 'ar') === 'ar'
+            ? ($this->body_ar ?: $this->getRawOriginal('body'))
+            : ($this->body_en ?: $this->getRawOriginal('body'));
     }
 
     public function category(): BelongsTo
@@ -76,7 +103,7 @@ class HelpCenterArticle extends Model
      */
     public function getTableOfContentsAttribute(): array
     {
-        if (!preg_match_all('/<h([123])[^>]*\bid="([^"]+)"[^>]*>(.*?)<\/h[123]>/is', (string) $this->body, $matches, PREG_SET_ORDER)) {
+        if (!preg_match_all('/<h([123])[^>]*\bid="([^"]+)"[^>]*>(.*?)<\/h[123]>/is', (string) $this->localizedBody(), $matches, PREG_SET_ORDER)) {
             return [];
         }
 

@@ -141,7 +141,7 @@ class HelpCenterArticleController extends Controller
     {
         $validated = $this->validateArticle($request);
 
-        $slug = $this->uniqueSlug($request->slug ?: Str::slug($request->title));
+        $slug = $this->uniqueSlug($request->slug ?: Str::slug($request->title_en ?: $request->title));
 
         $data = $this->buildArticleData($request, $validated, $slug);
         $data = $this->applyStatusLogic($request, $data);
@@ -246,10 +246,16 @@ class HelpCenterArticleController extends Controller
         return $request->validate([
             'help_center_category_id' => 'required|string|exists:help_center_categories,id',
             'country_id' => 'nullable|string|exists:countries,site_code',
-            'title' => 'required|string|max:255',
+            'title' => 'nullable|string|max:255',
+            'title_en' => 'required|string|max:255',
+            'title_ar' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:help_center_articles,slug,' . ($excludeArticleId ?? 'NULL'),
             'excerpt' => 'nullable|string|max:500',
+            'excerpt_en' => 'nullable|string|max:500',
+            'excerpt_ar' => 'nullable|string|max:500',
             'body' => 'required|string',
+            'body_en' => 'required|string',
+            'body_ar' => 'required|string',
             'related_article_ids' => 'nullable|array',
             'related_article_ids.*' => 'string|exists:help_center_articles,id',
             'is_featured' => 'nullable|boolean',
@@ -262,10 +268,16 @@ class HelpCenterArticleController extends Controller
             'help_center_category_id' => $validated['help_center_category_id'],
             'author_admin_id' => auth('admin')->id(),
             'country_id' => $validated['country_id'] ?? null,
-            'title' => $validated['title'],
+            'title' => $validated['title_en'] ?? $validated['title'],
+            'title_en' => $validated['title_en'] ?? null,
+            'title_ar' => $validated['title_ar'] ?? null,
             'slug' => $slug,
-            'excerpt' => $validated['excerpt'] ?? null,
-            'body' => $validated['body'],
+            'excerpt' => $validated['excerpt_en'] ?? $validated['excerpt'] ?? null,
+            'excerpt_en' => $validated['excerpt_en'] ?? null,
+            'excerpt_ar' => $validated['excerpt_ar'] ?? null,
+            'body' => $validated['body_en'] ?? $validated['body'],
+            'body_en' => $validated['body_en'] ?? null,
+            'body_ar' => $validated['body_ar'] ?? null,
             'related_article_ids' => $validated['related_article_ids'] ?? [],
             'is_featured' => $request->boolean('is_featured'),
         ];
