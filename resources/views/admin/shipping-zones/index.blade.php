@@ -199,7 +199,7 @@
                                 {{ __('admin.shipping_section.assigned_cities_tab') }}
                             </button>
                         </div>
-                        <div class="ml-auto flex items-center gap-2 py-2">
+                        <div class="{{ app()->getLocale() == 'ar' ? 'mr' : 'ml' }}-auto flex items-center gap-2 py-2">
                             <button id="add-rate-btn" class="btn btn-primary btn-sm" x-show="activeTab === 'rates'">
                                 {{ __('admin.shipping_section.add_rate') }}
                             </button>

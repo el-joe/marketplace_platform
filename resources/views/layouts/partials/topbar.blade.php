@@ -36,7 +36,7 @@
         </ol>
     </nav>
 
-    <div class="ml-auto flex items-center gap-2">
+    <div class="{{ app()->getLocale() == 'ar' ? 'mr' : 'ml' }}-auto flex items-center gap-2">
         {{-- Global search trigger --}}
         {{--<button type="button" id="global-search-btn" class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
                        border border-gray-200 text-sm text-gray-500 hover:bg-gray-50">
@@ -107,9 +107,11 @@
             <button type="button" @click="open = !open"
                 class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100">
                 @if($user && $user->avatar_url)
-                    <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover bg-white border border-gray-200">
+                    <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}"
+                        class="w-8 h-8 rounded-full object-cover bg-white border border-gray-200">
                 @else
-                    <div class="w-8 h-8 rounded-full bg-primary-600 text-white inline-flex items-center justify-center text-sm font-semibold">
+                    <div
+                        class="w-8 h-8 rounded-full bg-primary-600 text-white inline-flex items-center justify-center text-sm font-semibold">
                         {{ strtoupper(mb_substr($user?->name ?? 'A', 0, 1)) }}
                     </div>
                 @endif
@@ -131,7 +133,8 @@
                 <form method="POST"
                     action="{{ \Illuminate\Support\Facades\Route::has('admin.logout') ? route('admin.logout') : '#' }}">
                     @csrf
-                    <button type="submit" class="w-full text-start px-3 py-2 text-sm text-danger-600 hover:bg-danger-50">
+                    <button type="submit"
+                        class="w-full text-start px-3 py-2 text-sm text-danger-600 hover:bg-danger-50">
                         {{ __('common.logout') }}
                     </button>
                 </form>

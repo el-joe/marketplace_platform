@@ -254,7 +254,7 @@
                     </span>
                 @endforeach
 
-                <div class="ml-auto flex items-center gap-2">
+                <div class="{{ app()->getLocale() == 'ar' ? 'mr' : 'ml' }}-auto flex items-center gap-2">
                     <select id="sub-filter-status" class="form-select form-select-sm">
                         <option value="">{{ __('admin.flash_sales.all_statuses') }}</option>
                         @foreach([
