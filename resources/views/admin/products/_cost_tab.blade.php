@@ -224,13 +224,13 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
 
             {{-- ─── Section 4: Competitor Tracking ─────────────────────────── --}}
             <div class="px-5 py-4 space-y-3">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                         <x-heroicon name="magnifying-glass-circle" class="w-4 h-4 text-gray-400" />
                         {{ __('admin.products.competitor_price_tracking') }}
                     </h4>
                     @if($canEdit)
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 flex-wrap">
                             <button type="button" @click="addCompetitor()" class="btn btn-ghost btn-xs">{{ __('admin.products.add_short') }}</button>
                             <button type="button" @click="checkCompetitors()" :disabled="checkingPrices"
                                 class="btn btn-secondary btn-xs flex items-center gap-1">
@@ -304,7 +304,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
             </div>
 
             {{-- ─── Footer: Save + Audit Trail ─────────────────────────────── --}}
-            <div class="px-5 py-3 bg-gray-50 rounded-b-xl flex items-center justify-between gap-3">
+            <div class="px-5 py-3 bg-gray-50 rounded-b-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <p class="text-xs text-gray-400 leading-snug">
                     <span x-show="ref?.created_by">{{ __('admin.products.created_by_label') }} <span class="font-medium"
                             x-text="ref?.created_by"></span></span>

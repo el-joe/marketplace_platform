@@ -41,7 +41,7 @@
         {{-- ═══════════════════════════════════════════════════════════════════ --}}
         {{-- LEFT COLUMN: tabbed panels                                         --}}
         {{-- ═══════════════════════════════════════════════════════════════════ --}}
-        <div class="flex-1 min-w-0">
+        <div class="w-full">
 
             {{-- Tab navigation bar --}}
             <div class="bg-white rounded-t-xl border border-gray-200 overflow-hidden">
@@ -60,7 +60,7 @@
                         :class="activeTab === '{{ $tab['id'] }}'
                             ? 'border-b-2 border-primary-600 text-primary-700 bg-primary-50/50'
                             : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
-                        class="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium -mb-px whitespace-nowrap transition-colors"
+                        class="flex items-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 text-sm font-medium -mb-px whitespace-nowrap transition-colors"
                     >
                         <x-heroicon name="{{ $tab['icon'] }}" class="w-4 h-4" />
                         {{ $tab['label'] }}
@@ -73,7 +73,7 @@
                         :class="activeTab === 'cost'
                             ? 'border-b-2 border-red-500 text-red-700 bg-red-50/50'
                             : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
-                        class="flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium -mb-px whitespace-nowrap transition-colors"
+                        class="flex items-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3.5 text-sm font-medium -mb-px whitespace-nowrap transition-colors"
                     >
                         <x-heroicon name="lock-closed" class="w-4 h-4" />
                         {{ __('admin.products.cost_tab') }}
@@ -87,7 +87,7 @@
             {{-- ─────────────────────────────────────────────── --}}
             <div
                 x-show="activeTab === 'basic'"
-                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-5"
+                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-4 sm:p-6 shadow-sm space-y-5"
             >
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <x-form.input
@@ -163,7 +163,7 @@
             {{-- ─────────────────────────────────────────────── --}}
             <div
                 x-show="activeTab === 'content'"
-                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-5"
+                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-4 sm:p-6 shadow-sm space-y-5"
             >
                 <x-form.rich-editor
                     name="description_en"
@@ -206,7 +206,7 @@
             {{-- ─────────────────────────────────────────────── --}}
             <div
                 x-show="activeTab === 'variants'"
-                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-5"
+                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-4 sm:p-6 shadow-sm space-y-5"
             >
                 <div x-show="!hasVariants" class="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-700 flex items-start gap-2">
                     <x-heroicon name="information-circle" class="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -316,7 +316,7 @@
             {{-- ─────────────────────────────────────────────── --}}
             <div
                 x-show="activeTab === 'images'"
-                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-4"
+                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-4 sm:p-6 shadow-sm space-y-4"
             >
                 <p class="text-sm text-gray-500">
                     {{ __('admin.products.upload_images_hint', ['primary' => __('admin.products.primary_image')]) }}
@@ -359,9 +359,9 @@
                 x-show="activeTab === 'countries'"
                 class="bg-white rounded-b-xl border border-t-0 border-gray-200 shadow-sm"
             >
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100">
                     <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.products.country_availability') }}</h4>
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 flex-wrap">
                         <button type="button" id="enable-all-countries"
                             class="text-xs px-3 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 font-medium">
                             {{ __('admin.products.enable_all') }}
@@ -445,7 +445,7 @@
             {{-- ─────────────────────────────────────────────── --}}
             <div
                 x-show="activeTab === 'seo'"
-                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-5"
+                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-4 sm:p-6 shadow-sm space-y-5"
             >
                 <div>
                     <div class="flex items-center justify-between mb-1">
