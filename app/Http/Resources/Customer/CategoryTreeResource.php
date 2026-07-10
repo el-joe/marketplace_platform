@@ -23,6 +23,12 @@ class CategoryTreeResource extends JsonResource
             'parent_id'     => $this->parent_id,
             'image_url'     => $this->image_url,
             'product_count' => (int) $this->product_count,
+            'brands'        => $this->brandsInSubtree()->get()->map(fn ($brand) => [
+                'id'       => $brand->id,
+                'name'     => $brand->{'name_' . $lang},
+                'slug'     => $brand->slug,
+                'logo_url' => $brand->logo_url,
+            ])->values()->all(),
             'children'      => CategoryTreeResource::collection($this->children)->resolve(),
         ];
     }

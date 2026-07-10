@@ -9,8 +9,8 @@
     $crumbArrow = $isAr ? 'rotate-180' : '';
 @endphp
 
-@section('title', $article->title . ' | ' . ($isAr ? 'مركز مساعدة البائع' : 'noon Seller Help Center'))
-@section('description', $article->excerpt ?? '')
+@section('title', $article->localizedTitle() . ' | ' . ($isAr ? 'مركز مساعدة البائع' : 'noon Seller Help Center'))
+@section('description', $article->localizedExcerpt() ?? '')
 
 @section('header')
     @include('portal.partials.helpcenter-header', ['variant' => 'lite', 'country' => $country])
@@ -27,23 +27,23 @@
                     </li>
                     @if($parentCategory)
                         <li class="flex items-center gap-2">
-                            <a href="{{ route('portal.helpcenter.category.show', ['country' => $country, 'category' => $parentCategory->slug]) }}" class="text-black no-underline hover:text-orange-600">{{ $parentCategory->name }}</a>
+                            <a href="{{ route('portal.helpcenter.category.show', ['country' => $country, 'category' => $parentCategory->slug]) }}" class="text-black no-underline hover:text-orange-600">{{ $parentCategory->localizedName() }}</a>
                             <svg width="6" height="10" viewBox="0 0 6 10" class="block h-2 w-2 fill-[#737373] {{ $crumbArrow }}" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0.648862 0.898862C0.316916 1.23081 0.316916 1.769 0.648862 2.10094L3.54782 4.9999L0.648862 7.89886C0.316916 8.23081 0.316917 8.769 0.648862 9.10094C0.980808 9.43289 1.519 9.43289 1.85094 9.10094L5.35094 5.60094C5.68289 5.269 5.68289 4.73081 5.35094 4.39886L1.85094 0.898862C1.519 0.566916 0.980807 0.566916 0.648862 0.898862Z"></path></svg>
                         </li>
                     @endif
                     @if($category)
                         <li class="flex items-center gap-2">
-                            <a href="{{ route('portal.helpcenter.category.show', ['country' => $country, 'category' => $category->slug]) }}" class="text-black no-underline hover:text-orange-600">{{ $category->name }}</a>
+                            <a href="{{ route('portal.helpcenter.category.show', ['country' => $country, 'category' => $category->slug]) }}" class="text-black no-underline hover:text-orange-600">{{ $category->localizedName() }}</a>
                             <svg width="6" height="10" viewBox="0 0 6 10" class="block h-2 w-2 fill-[#737373] {{ $crumbArrow }}" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0.648862 0.898862C0.316916 1.23081 0.316916 1.769 0.648862 2.10094L3.54782 4.9999L0.648862 7.89886C0.316916 8.23081 0.316917 8.769 0.648862 9.10094C0.980808 9.43289 1.519 9.43289 1.85094 9.10094L5.35094 5.60094C5.68289 5.269 5.68289 4.73081 5.35094 4.39886L1.85094 0.898862C1.519 0.566916 0.980807 0.566916 0.648862 0.898862Z"></path></svg>
                         </li>
                     @endif
-                    <li aria-current="page" class="text-[#737373]">{{ $article->title }}</li>
+                    <li aria-current="page" class="text-[#737373]">{{ $article->localizedTitle() }}</li>
                 </ol>
             </nav>
 
             <div class="mb-8 max-lg:mb-6">
                 <div class="flex flex-col gap-3">
-                    <h1 class="mb-1 text-2xl font-bold leading-10 text-black">{{ $article->title }}</h1>
+                    <h1 class="mb-1 text-2xl font-bold leading-10 text-black">{{ $article->localizedTitle() }}</h1>
                     <div class="-mt-0.5 text-sm text-[#737373]">
                         <time datetime="{{ ($article->published_at ?? $article->updated_at)->toIso8601String() }}" title="Updated">{{ $article->updatedLabel() }}</time>
                         &middot; {{ number_format($article->views_count) }} {{ $isAr ? 'مشاهدة' : 'views' }}
@@ -70,7 +70,7 @@
             @endif
 
             <div class="hc-article-body">
-                {!! $article->body !!}
+                {!! $article->localizedBody() !!}
 
                 @if($relatedArticles->isNotEmpty())
                     <section class="my-6">
@@ -80,7 +80,7 @@
                             @foreach($relatedArticles as $related)
                                 <a class="group/article flex flex-row justify-between gap-2 rounded-[10px] px-3 py-2 no-underline transition ease-linear hover:bg-orange-50 sm:py-3"
                                    href="{{ route('portal.helpcenter.article.show', ['country' => $country, 'article' => $related->slug]) }}">
-                                    <span class="m-0 text-base text-black group-hover/article:text-orange-600">{{ $related->title }}</span>
+                                    <span class="m-0 text-base text-black group-hover/article:text-orange-600">{{ $related->localizedTitle() }}</span>
                                     <svg class="block h-4 w-4 shrink-0 text-black {{ $arrow }}" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </a>
                             @endforeach

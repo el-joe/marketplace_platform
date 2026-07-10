@@ -63,6 +63,9 @@ class DatabaseSeeder extends Seeder
                 // ── Seller Help Center starter content ──────────────────────────
             HelpCenterSeeder::class,
 
+                // ── FAQ CRUD module starter content ─────────────────────────────
+            FaqSeeder::class,
+
                 // ── Light cross-reference demo data (run last) ─────────────────
             DemoDataSeeder::class,
         ]);

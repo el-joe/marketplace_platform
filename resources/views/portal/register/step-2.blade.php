@@ -1,13 +1,14 @@
 {{-- Step 2: Store Information --}}
+@php $isAr = $isAr ?? (session('locale', 'ar') === 'ar'); @endphp
 <div class="space-y-4">
-    <h2 class="text-lg font-bold text-white mb-4">معلومات المتجر</h2>
+    <h2 class="text-lg font-bold text-white mb-4">{{ $isAr ? 'معلومات المتجر' : 'Store Information' }}</h2>
 
     {{-- Store Name --}}
     <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1.5">اسم المتجر <span
+        <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ $isAr ? 'اسم المتجر' : 'Store Name' }} <span
                 class="text-red-400">*</span></label>
         <input type="text" x-model="form.store_name" @input="generateSlug($event.target.value)"
-            placeholder="متجر الأناقة"
+            placeholder="{{ $isAr ? 'متجر الأناقة' : 'Elegance Store' }}"
             class="w-full bg-gray-800 border text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors"
             :class="errors.store_name ? 'border-red-500' : 'border-gray-700 focus:border-yellow-400'">
         <p x-show="errors.store_name" x-text="errors.store_name?.[0]" class="mt-1 text-xs text-red-400" x-cloak></p>
@@ -16,8 +17,8 @@
     {{-- Store Slug --}}
     <div>
         <label class="block text-sm font-medium text-gray-300 mb-1.5">
-            الرابط المختصر للمتجر <span class="text-red-400">*</span>
-            <span class="text-gray-500 font-normal text-xs mr-1">(يُستخدم في الرابط)</span>
+            {{ $isAr ? 'الرابط المختصر للمتجر' : 'Store URL Slug' }} <span class="text-red-400">*</span>
+            <span class="text-gray-500 font-normal text-xs mr-1">{{ $isAr ? '(يُستخدم في الرابط)' : '(used in your store URL)' }}</span>
         </label>
         <div class="flex items-center gap-2">
             <div class="relative flex-1">
@@ -37,30 +38,30 @@
                 </span>
             </div>
         </div>
-        <p x-show="slugStatus === 'available'" class="mt-1 text-xs text-green-400" x-cloak>✓ الرابط متاح</p>
-        <p x-show="slugStatus === 'taken'" class="mt-1 text-xs text-red-400" x-cloak>✗ هذا الرابط مستخدم، جرب آخر</p>
+        <p x-show="slugStatus === 'available'" class="mt-1 text-xs text-green-400" x-cloak>{{ $isAr ? '✓ الرابط متاح' : '✓ This URL is available' }}</p>
+        <p x-show="slugStatus === 'taken'" class="mt-1 text-xs text-red-400" x-cloak>{{ $isAr ? '✗ هذا الرابط مستخدم، جرب آخر' : '✗ This URL is already taken, try another' }}</p>
         <p x-show="errors.store_slug" x-text="errors.store_slug?.[0]" class="mt-1 text-xs text-red-400" x-cloak></p>
     </div>
 
     {{-- Store Description --}}
     <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1.5">وصف المتجر <span
-                class="text-gray-500 font-normal">(اختياري)</span></label>
-        <textarea x-model="form.store_description" rows="3" placeholder="صف متجرك ومنتجاتك باختصار…"
+        <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ $isAr ? 'وصف المتجر' : 'Store Description' }} <span
+                class="text-gray-500 font-normal">{{ $isAr ? '(اختياري)' : '(optional)' }}</span></label>
+        <textarea x-model="form.store_description" rows="3" placeholder="{{ $isAr ? 'صف متجرك ومنتجاتك باختصار…' : 'Briefly describe your store and products…' }}"
             class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-400 transition-colors resize-none"></textarea>
     </div>
 
     {{-- Business Type --}}
     <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1.5">نوع النشاط التجاري <span
+        <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ $isAr ? 'نوع النشاط التجاري' : 'Business Type' }} <span
                 class="text-red-400">*</span></label>
         <select x-model="form.business_type"
             class="w-full bg-gray-800 border text-white rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors"
             :class="errors.business_type ? 'border-red-500' : 'border-gray-700 focus:border-yellow-400'">
-            <option value="individual">فرد / شخصي</option>
-            <option value="sole_prop">مؤسسة فردية</option>
-            <option value="llc">شركة ذات مسؤولية محدودة</option>
-            <option value="corp">شركة مساهمة</option>
+            <option value="individual">{{ $isAr ? 'فرد / شخصي' : 'Individual' }}</option>
+            <option value="sole_prop">{{ $isAr ? 'مؤسسة فردية' : 'Sole Proprietorship' }}</option>
+            <option value="llc">{{ $isAr ? 'شركة ذات مسؤولية محدودة' : 'Limited Liability Company (LLC)' }}</option>
+            <option value="corp">{{ $isAr ? 'شركة مساهمة' : 'Corporation' }}</option>
         </select>
         <p x-show="errors.business_type" x-text="errors.business_type?.[0]" class="mt-1 text-xs text-red-400" x-cloak>
         </p>
@@ -68,9 +69,9 @@
 
     {{-- Business Name --}}
     <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1.5">الاسم التجاري الرسمي <span
+        <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ $isAr ? 'الاسم التجاري الرسمي' : 'Official Business Name' }} <span
                 class="text-red-400">*</span></label>
-        <input type="text" x-model="form.business_name" placeholder="اسم الشركة كما هو مسجل رسمياً"
+        <input type="text" x-model="form.business_name" placeholder="{{ $isAr ? 'اسم الشركة كما هو مسجل رسمياً' : 'Company name as officially registered' }}"
             class="w-full bg-gray-800 border text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors"
             :class="errors.business_name ? 'border-red-500' : 'border-gray-700 focus:border-yellow-400'">
         <p x-show="errors.business_name" x-text="errors.business_name?.[0]" class="mt-1 text-xs text-red-400" x-cloak>
@@ -80,12 +81,12 @@
     {{-- Row: Registration No + Tax ID --}}
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label class="block text-sm font-medium text-gray-300 mb-1.5">رقم السجل التجاري</label>
+            <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ $isAr ? 'رقم السجل التجاري' : 'Trade Registration Number' }}</label>
             <input type="text" x-model="form.business_registration_number" placeholder="CR-XXXXXXXX" dir="ltr"
                 class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-400 transition-colors">
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-300 mb-1.5">الرقم الضريبي</label>
+            <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ $isAr ? 'الرقم الضريبي' : 'Tax ID' }}</label>
             <input type="text" x-model="form.tax_id" placeholder="XXXXXXXXXXXXXXXXX" dir="ltr"
                 class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-400 transition-colors">
         </div>

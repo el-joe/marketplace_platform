@@ -25,6 +25,15 @@ class BrowseCategoryResource extends JsonResource
             'id'            => $this->id,
             'name'          => $this->{'name_' . $lang},
             'slug'          => $this->slug,
+            'image_url'     => $this->type === 'product' ? $this->image_url : null,
+            'brands'        => $this->type === 'product'
+                ? $this->brands->map(fn ($brand) => [
+                    'id'       => $brand->id,
+                    'name'     => $brand->{'name_' . $lang},
+                    'slug'     => $brand->slug,
+                    'logo_url' => $brand->logo_url,
+                ])->values()
+                : [],
             'breadcrumbs'   => $this->buildBreadcrumbs($lang),
             'subcategories' => $this->buildSubcategories($lang),
         ];
@@ -59,10 +68,17 @@ class BrowseCategoryResource extends JsonResource
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($c) => [
-                    'id'   => $c->id,
-                    'name' => $c->{'name_' . $lang},
-                    'slug' => $c->slug,
-                    'type' => 'product',
+                    'id'        => $c->id,
+                    'name'      => $c->{'name_' . $lang},
+                    'slug'      => $c->slug,
+                    'type'      => 'product',
+                    'image_url' => $c->image_url,
+                    'brands'    => $c->brands->map(fn ($brand) => [
+                        'id'       => $brand->id,
+                        'name'     => $brand->{'name_' . $lang},
+                        'slug'     => $brand->slug,
+                        'logo_url' => $brand->logo_url,
+                    ])->values(),
                 ])
                 ->toArray();
         }

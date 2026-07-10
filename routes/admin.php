@@ -30,6 +30,8 @@ use App\Http\Controllers\Admin\VendorApplicationController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\LedgerController;
+use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\Admin\PortalContentController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ShippingZoneController;
@@ -637,6 +639,23 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/reset', [SettingsController::class, 'reset'])->name('reset')->middleware('admin.permission:settings.edit');
         Route::post('/test-gateway', [SettingsController::class, 'testGateway'])->name('test-gateway');
         Route::post('/clear-cache', [SettingsController::class, 'clearCache'])->name('clear-cache')->middleware('admin.permission:settings.edit');
+    });
+
+    // ─── Portal Content ───────────────────────────────────────────────────────
+    Route::prefix('portal-content')->name('portal-content.')->middleware('admin.permission:portal_content.view')->group(function () {
+        Route::get('/', [PortalContentController::class, 'index'])->name('index');
+        Route::get('/{pageKey}', [PortalContentController::class, 'page'])->name('page');
+        Route::post('/{pageKey}', [PortalContentController::class, 'save'])->name('save')->middleware('admin.permission:portal_content.edit');
+    });
+
+    // ─── FAQs ─────────────────────────────────────────────────────────────────
+    Route::prefix('faqs')->name('faqs.')->middleware('admin.permission:faqs.view')->group(function () {
+        Route::post('/reorder', [FaqController::class, 'reorder'])->name('reorder');
+        Route::get('/', [FaqController::class, 'index'])->name('index');
+        Route::post('/', [FaqController::class, 'store'])->name('store')->middleware('admin.permission:faqs.create');
+        Route::put('/{faq}', [FaqController::class, 'update'])->name('update')->middleware('admin.permission:faqs.edit');
+        Route::delete('/{faq}', [FaqController::class, 'destroy'])->name('destroy')->middleware('admin.permission:faqs.delete');
+        Route::post('/{faq}/toggle', [FaqController::class, 'toggleActive'])->name('toggle')->middleware('admin.permission:faqs.edit');
     });
 
     // ─── Activity Log ─────────────────────────────────────────────────────────

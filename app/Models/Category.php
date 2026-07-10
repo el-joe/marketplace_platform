@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use App\Models\ShippingMethod;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Kalnoy\Nestedset\NodeTrait;
@@ -81,6 +82,23 @@ class Category extends Model
         return $this->{'name_' . $locale} ?? $this->name_en ?? '';
     }
 
+    /**
+     * Categories have no image column; the image is the primary (or first) File
+     * attached via the polymorphic files() relation.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        $file = $this->relationLoaded('primaryImage')
+            ? $this->primaryImage
+            : $this->primaryImage()->first();
+
+        $file ??= $this->relationLoaded('files')
+            ? $this->files->sortBy('position')->first()
+            : $this->files()->orderBy('position')->first();
+
+        return $file?->full_path;
+    }
+
     // ── Relations ────────────────────────────────────────────────────────────
 
     public function parent(): BelongsTo
@@ -118,6 +136,42 @@ class Category extends Model
     public function files(): MorphMany
     {
         return $this->morphMany(File::class, 'model');
+    }
+
+    public function primaryImage(): MorphOne
+    {
+        return $this->morphOne(File::class, 'model')
+            ->where('is_primary', true)
+            ->orderBy('position');
+    }
+
+    /**
+     * Brands with active products in this category (indirect, via products.brand_id).
+     */
+    public function brands(): BelongsToMany
+    {
+        return $this->belongsToMany(Brand::class, 'products', 'category_id', 'brand_id')
+            ->where('products.status', 'active')
+            ->where('brands.is_active', true)
+            ->distinct();
+    }
+
+    /**
+     * Brands with active products in this category or any of its descendants,
+     * via the nested-set lft/rgt range.
+     */
+    public function brandsInSubtree()
+    {
+        return Brand::query()
+            ->select('brands.*')
+            ->join('products', 'products.brand_id', '=', 'brands.id')
+            ->join('categories', 'categories.id', '=', 'products.category_id')
+            ->where('products.status', 'active')
+            ->where('brands.is_active', true)
+            ->where('categories.lft', '>=', $this->lft)
+            ->where('categories.rgt', '<=', $this->rgt)
+            ->whereNull('categories.deleted_at')
+            ->distinct();
     }
 
     public function shippingMethods(): BelongsToMany

@@ -8,7 +8,7 @@
         <div class="grid md:grid-cols-2 gap-8 lg:gap-16 items-center mb-10">
             <div class="relative rounded-2xl overflow-hidden aspect-video shadow-xl">
                 <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/SKrJq4XZYn8"
-                        title="How PAN Emirates scaled their noon store" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        title="{{ $isAr ? 'كيف نمت حول الإمارات متجرها على نون' : 'How PAN Emirates scaled their noon store' }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
             <div>

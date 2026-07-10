@@ -21,9 +21,9 @@
                     <a class="group/article flex flex-row justify-between gap-2 rounded-[10px] px-3 py-3 no-underline transition ease-linear hover:bg-orange-50"
                        href="{{ route('portal.helpcenter.article.show', ['country' => $country, 'article' => $article->slug]) }}">
                         <div>
-                            <span class="m-0 text-base text-black group-hover/article:text-orange-600 font-medium">{{ $article->title }}</span>
-                            @if($article->excerpt)
-                                <p class="m-0 mt-1 text-sm text-gray-500 line-clamp-1">{{ $article->excerpt }}</p>
+                            <span class="m-0 text-base text-black group-hover/article:text-orange-600 font-medium">{{ $article->localizedTitle() }}</span>
+                            @if($article->localizedExcerpt())
+                                <p class="m-0 mt-1 text-sm text-gray-500 line-clamp-1">{{ $article->localizedExcerpt() }}</p>
                             @endif
                         </div>
                         <svg class="block h-4 w-4 shrink-0 text-black {{ $isAr ? 'rotate-90' : '-rotate-90' }}" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>

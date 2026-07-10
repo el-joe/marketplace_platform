@@ -26,7 +26,7 @@
                     </div>
                     <div class="flex w-full flex-1 flex-col gap-1 text-black">
                         <div class="-mt-1 mb-0.5 line-clamp-2 text-base font-semibold leading-normal transition ease-linear group-hover:text-orange-600 sm:line-clamp-1">
-                            {{ $category->name }}
+                            {{ $category->localizedName() }}
                         </div>
                         <div class="flex">
                             <span class="line-clamp-1 flex text-sm text-[#737373]">
@@ -45,8 +45,8 @@
         @if($featuredArticle)
             <section class="mb-14 flex w-full flex-col items-center bg-white py-14 text-black rounded-[10px] border border-solid border-[#e6e6e6]">
                 <div class="flex flex-col items-center px-6 sm:w-[482px] sm:px-0">
-                    <header class="text-center text-2xl sm:text-[28px] font-semibold">{{ $featuredArticle->title }}</header>
-                    <div class="mt-2 whitespace-pre-wrap text-center text-gray-500">{{ $featuredArticle->excerpt }}</div>
+                    <header class="text-center text-2xl sm:text-[28px] font-semibold">{{ $featuredArticle->localizedTitle() }}</header>
+                    <div class="mt-2 whitespace-pre-wrap text-center text-gray-500">{{ $featuredArticle->localizedExcerpt() }}</div>
                     <a href="{{ route('portal.helpcenter.article.show', ['country' => $country, 'article' => $featuredArticle->slug]) }}"
                        class="mt-6 rounded-lg bg-orange-500 px-4 py-2 font-semibold text-white no-underline hover:bg-orange-600">
                         {{ $isAr ? 'اطّلع أكثر' : 'Learn more' }}

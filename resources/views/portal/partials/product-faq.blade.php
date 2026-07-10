@@ -1,56 +1,11 @@
 @php
     $isAr = session('locale', 'ar') === 'ar';
 
-    $faqs = [
-        [
-            'q_ar' => 'ما هي إعلانات المنتجات؟',
-            'q_en' => 'What are Product Ads?',
-            'a_ar' => 'تعد إعلانات المنتجات جزءًا من مجموعتنا الإعلانية ذاتية الخدمة. وهي تعتمد على نية العميل في العثور على المنتجات ذات الصلة التي تظهر عادةً عندما يبحث المستخدمون عن منتجات أو فئات منتجات معينة على نون. تعمل على ميزة عروض أسعار الكلمات الرئيسية/الفئة حيث يقوم المعلنون بتقديم عروض أسعار على الكلمات الرئيسية والفئات ويتم عرض إعلاناتهم في حالة فوزهم بالعرض.',
-            'a_en' => 'Product Ads are self-serve ads that are based on customer intent and appear when users search for specific products or product categories on noon.com. They work on a keyword/category bidding feature where advertisers bid on keywords and categories and their ads are displayed if they win the bid.',
-        ],
-        [
-            'q_ar' => 'من يمكنه تشغيل حملات إعلانات المنتجات؟',
-            'q_en' => 'Who can run Product Ads campaigns?',
-            'a_ar' => 'يمكن لأي شريك، بما في ذلك العلامة التجارية أو الموزع أو البائع المسجل على منصة شركاء نون الخاصة بنا، من الوصول لعرض هذه الإعلانات.',
-            'a_en' => 'Any partner, including a brand, distributor or seller who is registered on our noon Partners platform will have access to run these ads.',
-        ],
-        [
-            'q_ar' => 'كيف يمكنني البدء في استخدام إعلانات المنتجات؟',
-            'q_en' => 'How can I get started with Product Ads?',
-            'a_ar' => "إذا كان لديك بالفعل حق الوصول إلى لوحة تحكم شركاء نون، فما عليك سوى الضغط على 'إنشاء حملة' واختيار إعلانات المنتج كنوع إعلانك وملء الحقول المطلوبة.",
-            'a_en' => 'Click on the "Start Now" button at the top right of the page and register as a noon Partner to have access to our ads manager. If you are already a noon Partner, login and you will be automatically directed to the ads manager where you can select your campaign type as "Product Ads".',
-        ],
-        [
-            'q_ar' => 'ما هو نموذج التسعير لإعلانات المنتجات وما هي تكلفتها؟',
-            'q_en' => 'What is the pricing model for Product Ads and how much do they cost?',
-            'a_ar' => 'يمكنك تقديم عرض سعر لكل كلمة رئيسية و/أو فئة/فئة فرعية تختار استهدافها عبر حملة إعلانات المنتجات الخاصة بك. إذا كنت تقوم بإعداد حملتك الأولى لإعلانات المنتجات، فاستفد من عرض السعر المقترح الموضح ضمن الكلمات الرئيسية/الفئات المحددة.',
-            'a_en' => 'Product Ads use a CPC (cost per click) model where when a customer clicks on your ad, you will be charged the bid amount that is set for the targets in your campaign.',
-        ],
-        [
-            'q_ar' => 'هل يمكنني تعديل حملة مباشرة؟',
-            'q_en' => 'Can I edit a live campaign?',
-            'a_ar' => "نعم، يمكنك تعديل حملة مباشرة. في لوحة تحكم شركاء نون، قم بالتمرير للأسفل إلى قائمة حملاتك. حدد الحملة التي تريد تعديلها واضغط على 'تعديل'. بمجرد الرضا، اضغط فوق 'حفظ وإطلاق' لتنشيط الحملة مرة أخرى.",
-            'a_en' => 'Yes, live campaigns can be edited directly through the ads manager. Scroll to the campaigns list and select the one you want to edit, the edit option should appear. Do not forget to click on "Save and Launch" to get the campaign running again.',
-        ],
-        [
-            'q_ar' => 'أين ستكون إعلانات المنتجات مرئية؟',
-            'q_en' => 'Where will Product Ads be visible?',
-            'a_ar' => 'تظهر إعلانات المنتجات بين نتائج البحث في صفحات قائمة المنتجات وفي صفحات وصف المنتج.',
-            'a_en' => 'Product Ads will be visible in the noon app and on web in between search results for the product listing pages and product description pages.',
-        ],
-        [
-            'q_ar' => 'ما هو نوع تقارير الأداء المتاحة؟',
-            'q_en' => 'What type of performance reporting is available?',
-            'a_ar' => 'تضع لوحة التحكم ذاتية الخدمة جميع المقاييس الرئيسية في متناول يدك، مما يسمح لك بمراقبة الأداء في الوقت الفعلي. تعمق أكثر مع مقتطفات البيانات الدقيقة. قم بتنزيل البيانات وتحليلها في أداتك المفضلة للحصول على رؤى متقدمة وتحسين الحملة.',
-            'a_en' => 'Our self-service dashboard puts all major metrics at your fingertips, allowing you to monitor performance in real-time. Dive deeper with granular data extracts. Download and analyze data in your preferred tool for advanced insights and campaign optimization.',
-        ],
-        [
-            'q_ar' => 'كيف يمكنني الوصول إلى لوحة التحكّم؟',
-            'q_en' => 'How can I get access to the dashboard?',
-            'a_ar' => 'يمكن لأي شخص الوصول إلى منصة شريك نون والتسجيل في لوحة تحكم ذاتية الخدمة.',
-            'a_en' => 'Anyone can access the noon Partner platform and register for a self-serve dashboard.',
-        ],
-    ];
+    $faqs = \App\Models\Faq::forContext('product_ads')->active()->orderBy('sort_order')->get()
+        ->map(fn ($faq) => [
+            'q_en' => $faq->question_en, 'q_ar' => $faq->question_ar,
+            'a_en' => $faq->answer_en, 'a_ar' => $faq->answer_ar,
+        ]);
 @endphp
 
 <section class="bg-white pb-16 lg:pb-24">

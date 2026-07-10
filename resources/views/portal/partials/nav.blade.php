@@ -3,11 +3,14 @@
     $langToggleUrl = route('portal.language', $isAr ? 'en' : 'ar');
 
     $navLinks = [
-        ['label_ar' => 'الصفحة الرئيسية', 'label_en' => 'Home', 'route' => 'portal.home'],
-        ['label_ar' => 'البدء', 'label_en' => 'Getting Started', 'route' => 'portal.how-it-works'],
-        ['label_ar' => 'الشحن والتوصيل', 'label_en' => 'Shipping & Fulfilment', 'route' => 'portal.fulfillment'],
-        ['label_ar' => 'نمّي بذكاء', 'label_en' => 'Grow Smarter', 'route' => 'portal.smart-tools'],
+        ['block' => 'link_home', 'label_ar' => 'الصفحة الرئيسية', 'label_en' => 'Home', 'route' => 'portal.home'],
+        ['block' => 'link_how_it_works', 'label_ar' => 'البدء', 'label_en' => 'Getting Started', 'route' => 'portal.how-it-works'],
+        ['block' => 'link_fulfillment', 'label_ar' => 'الشحن والتوصيل', 'label_en' => 'Shipping & Fulfilment', 'route' => 'portal.fulfillment'],
+        ['block' => 'link_smart_tools', 'label_ar' => 'نمّي بذكاء', 'label_en' => 'Grow Smarter', 'route' => 'portal.smart-tools'],
     ];
+    foreach ($navLinks as $i => $l) {
+        $navLinks[$i]['label'] = portal_content('nav', $l['block'], 'label', $l['label_en'], $l['label_ar']);
+    }
 @endphp
 
 <header class="sticky top-0 z-50 bg-black" x-data="{ mobileOpen: false }">
@@ -34,7 +37,7 @@
                     <a href="{{ route($link['route']) }}"
                        class="relative text-[15px] font-semibold py-2 transition-colors
                               {{ request()->routeIs($link['route']) ? 'text-white' : 'text-gray-400 hover:text-white' }}">
-                        {{ $isAr ? $link['label_ar'] : $link['label_en'] }}
+                        {{ $link['label'] }}
                         @if(request()->routeIs($link['route']))
                             <span class="absolute -bottom-[1px] inset-x-0 h-[2px] bg-yellow-400 rounded-full"></span>
                         @endif
@@ -80,7 +83,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
                     </svg>
-                    <span>{{ $isAr ? 'العربية' : 'English' }}</span>
+                    <span>{{ portal_content('nav', 'language_toggle', 'label', 'English', 'العربية') }}</span>
                 </a>
             </nav>
 
@@ -130,7 +133,7 @@
         @foreach($navLinks as $link)
             <a href="{{ route($link['route']) }}"
                class="block py-2.5 font-semibold {{ request()->routeIs($link['route']) ? 'text-yellow-400' : 'text-gray-300' }}">
-                {{ $isAr ? $link['label_ar'] : $link['label_en'] }}
+                {{ $link['label'] }}
             </a>
         @endforeach
     </div>

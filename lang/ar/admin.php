@@ -345,6 +345,7 @@ return [
         'document_types'        => 'أنواع المستندات',
         'adsupport_collections' => 'مجموعات مركز المعلومات',
         'adsupport_articles'    => 'مقالات مركز المعلومات',
+        'faqs'                  => 'الأسئلة الشائعة',
         'helpcenter_group'      => 'مركز مساعدة البائع',
         'helpcenter_categories' => 'فئات مركز المساعدة',
         'helpcenter_articles'   => 'مقالات مركز المساعدة',

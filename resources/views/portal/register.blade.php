@@ -1,6 +1,8 @@
 @extends('layouts.portal')
 
-@section('title', 'سجّل كبائع — نون')
+@php $isAr = session('locale', 'ar') === 'ar'; @endphp
+
+@section('title', $isAr ? 'سجّل كبائع — نون' : 'Register as a Seller — noon')
 
 @push('head')
     @vite(['resources/js/portal/registration.js'])
@@ -9,17 +11,17 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-gray-950 py-10 px-4" dir="rtl">
+<div class="min-h-screen bg-gray-950 py-10 px-4" dir="{{ $isAr ? 'rtl' : 'ltr' }}">
     <div class="max-w-2xl mx-auto">
 
         {{-- Logo --}}
         <div class="text-center mb-8">
             <a href="{{ route('portal.home') }}" class="inline-flex items-center gap-2">
                 <span class="bg-yellow-400 text-gray-950 font-black text-2xl px-3 py-1 rounded">noon</span>
-                <span class="text-white text-lg font-semibold">للبائعين</span>
+                <span class="text-white text-lg font-semibold">{{ $isAr ? 'للبائعين' : 'for Sellers' }}</span>
             </a>
-            <h1 class="mt-5 text-2xl font-black text-white">انضم إلى منصة نون كبائع</h1>
-            <p class="mt-2 text-gray-400 text-sm">أكمل الخطوات التالية لإنشاء حسابك التجاري</p>
+            <h1 class="mt-5 text-2xl font-black text-white">{{ $isAr ? 'انضم إلى منصة نون كبائع' : 'Join noon as a Seller' }}</h1>
+            <p class="mt-2 text-gray-400 text-sm">{{ $isAr ? 'أكمل الخطوات التالية لإنشاء حسابك التجاري' : 'Complete the following steps to create your business account' }}</p>
         </div>
 
         {{-- Wizard card --}}
@@ -60,8 +62,8 @@
                 </div>
                 <div class="text-center">
                     <p class="text-xs text-gray-400">
-                        الخطوة <span x-text="step" class="text-yellow-400 font-semibold"></span>
-                        من <span x-text="totalSteps" class="font-semibold text-white"></span>
+                        {{ $isAr ? 'الخطوة' : 'Step' }} <span x-text="step" class="text-yellow-400 font-semibold"></span>
+                        {{ $isAr ? 'من' : 'of' }} <span x-text="totalSteps" class="font-semibold text-white"></span>
                     </p>
                     <p class="text-white font-semibold mt-1 text-sm" x-text="stepTitle()"></p>
                 </div>
@@ -109,7 +111,7 @@
                     type="button"
                     class="flex-none px-5 py-2.5 rounded-xl text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
                 >
-                    ← السابق
+                    {{ $isAr ? '← السابق' : 'Back →' }}
                 </button>
 
                 <button
@@ -119,13 +121,13 @@
                     :disabled="loading"
                     class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-yellow-400 hover:bg-yellow-300 text-gray-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                    <span x-show="!loading">التالي ←</span>
+                    <span x-show="!loading">{{ $isAr ? 'التالي ←' : '→ Next' }}</span>
                     <span x-show="loading" class="flex items-center justify-center gap-2">
                         <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                         </svg>
-                        جارٍ الحفظ…
+                        {{ $isAr ? 'جارٍ الحفظ…' : 'Saving…' }}
                     </span>
                 </button>
 
@@ -136,13 +138,13 @@
                     :disabled="loading || !form.terms_agreed || !form.privacy_agreed"
                     class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-yellow-400 hover:bg-yellow-300 text-gray-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                    <span x-show="!loading">إرسال الطلب ✓</span>
+                    <span x-show="!loading">{{ $isAr ? 'إرسال الطلب ✓' : 'Submit Application ✓' }}</span>
                     <span x-show="loading" class="flex items-center justify-center gap-2">
                         <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                         </svg>
-                        جارٍ الإرسال…
+                        {{ $isAr ? 'جارٍ الإرسال…' : 'Submitting…' }}
                     </span>
                 </button>
             </div>
@@ -150,8 +152,8 @@
         </div>{{-- /wizard card --}}
 
         <p class="text-center text-sm text-gray-500 mt-6">
-            لديك حساب بائع بالفعل؟
-            <a href="{{ route('partner.login') }}" class="text-yellow-400 hover:underline">تسجيل الدخول</a>
+            {{ $isAr ? 'لديك حساب بائع بالفعل؟' : 'Already have a seller account?' }}
+            <a href="{{ route('partner.login') }}" class="text-yellow-400 hover:underline">{{ $isAr ? 'تسجيل الدخول' : 'Log in' }}</a>
         </p>
 
     </div>

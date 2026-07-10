@@ -1,7 +1,9 @@
 @extends('layouts.adsupport')
 
-@section('title', 'Home | Advertise smarter, grow faster')
-@section('description', 'Advertise smarter, grow faster')
+@php $isAr = app()->getLocale() === 'ar'; @endphp
+
+@section('title', ($isAr ? 'الرئيسية | أعلن بذكاء، وانمُ أسرع' : 'Home | Advertise smarter, grow faster'))
+@section('description', ($isAr ? 'أعلن بذكاء، وانمُ أسرع' : 'Advertise smarter, grow faster'))
 
 @section('header')
     @include('portal.partials.adsupport-header', ['variant' => 'home', 'country' => $country])
@@ -22,11 +24,11 @@
                     </div>
                     <div class="flex w-full flex-1 flex-col gap-1 text-black">
                         <div class="-mt-1 mb-0.5 line-clamp-2 text-md font-semibold leading-normal transition ease-linear group-hover:text-black/70 sm:line-clamp-1">
-                            {{ $collection->name }}
+                            {{ $collection->localizedName() }}
                         </div>
                         <div class="flex">
                             <span class="line-clamp-1 flex text-base text-[#737373]">
-                                {{ $articleCount }} {{ Str::plural('article', $articleCount) }}
+                                {{ $articleCount }} {{ $isAr ? 'مقالة' : Str::plural('article', $articleCount) }}
                             </span>
                         </div>
                     </div>
@@ -37,11 +39,11 @@
         @if($featuredArticle)
             <section class="mb-14 flex w-full flex-col items-center bg-white py-14 text-black rounded-[10px] border border-solid border-[#e6e6e6]">
                 <div class="flex flex-col items-center px-6 sm:w-[482px] sm:px-0">
-                    <header class="text-center text-[28px] font-medium">New to ads?</header>
-                    <div class="mt-2 whitespace-pre-wrap text-center">{{ $featuredArticle->excerpt }}</div>
+                    <header class="text-center text-[28px] font-medium">{{ $isAr ? 'جديد على الإعلانات؟' : 'New to ads?' }}</header>
+                    <div class="mt-2 whitespace-pre-wrap text-center">{{ $featuredArticle->localizedExcerpt() }}</div>
                     <a href="{{ route('portal.adsupport.articles.show', ['country' => $country, 'article' => $featuredArticle->slug]) }}"
                        class="mt-6 rounded-lg bg-[#333333] px-[14px] py-2 font-semibold text-white no-underline hover:opacity-90">
-                        Learn more
+                        {{ $isAr ? 'اطّلع أكثر' : 'Learn more' }}
                     </a>
                 </div>
             </section>

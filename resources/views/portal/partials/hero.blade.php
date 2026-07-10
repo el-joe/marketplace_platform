@@ -19,12 +19,13 @@
             <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
                 <div class="max-w-[560px] {{ $isAr ? 'text-right' : 'text-left' }}">
                     <h1 class="text-white font-black leading-[1.1] text-[42px] sm:text-[52px] lg:text-[56px]">
-                        {{ $isAr ? 'ابدأ البيع على نون اليوم!' : 'Start selling on noon today!' }}
+                        {{ portal_content('home', 'hero', 'title', 'Start selling on noon today!', 'ابدأ البيع على نون اليوم!') }}
                     </h1>
-                    <a href="{{ route('portal.register') }}"
+                    @php($heroCta = portal_link('home', 'hero', 'cta_button', 'Register now', 'سجل الآن', route('portal.register')))
+                    <a href="{{ $heroCta['url'] }}"
                        class="group inline-flex items-center gap-2 mt-8 bg-yellow-400 hover:bg-yellow-300 text-black
                               font-black text-base px-7 py-3.5 rounded-full transition-colors">
-                        {{ $isAr ? 'سجل الآن' : 'Register now' }}
+                        {{ $heroCta['label'] }}
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20"
                              class="{{ $isAr ? '-scale-x-100' : '' }} transition-transform group-hover:translate-x-1 {{ $isAr ? 'group-hover:-translate-x-1' : '' }}">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />

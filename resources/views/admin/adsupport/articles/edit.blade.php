@@ -32,12 +32,21 @@
             <div class="flex-1 min-w-0 space-y-5">
                 <x-card title="{{ __('admin.adsupport.title') }}">
                     <div class="p-6 space-y-5">
-                        <div>
-                            <label class="form-label">{{ __('admin.adsupport.article_title') }} <span class="text-red-500">*</span></label>
-                            <input type="text" name="title" id="title-input" required maxlength="255"
-                                   value="{{ old('title', $article->title) }}"
-                                   class="form-input w-full @error('title') is-invalid @enderror">
-                            @error('title') <p class="form-error">{{ $message }}</p> @enderror
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">{{ __('admin.adsupport.article_title') }} (English) <span class="text-red-500">*</span></label>
+                                <input type="text" name="title_en" id="title-input" required maxlength="255"
+                                       value="{{ old('title_en', $article->title_en) }}"
+                                       class="form-input w-full @error('title_en') is-invalid @enderror">
+                                @error('title_en') <p class="form-error">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="form-label">{{ __('admin.adsupport.article_title') }} (Arabic) <span class="text-red-500">*</span></label>
+                                <input type="text" name="title_ar" required maxlength="255" dir="rtl"
+                                       value="{{ old('title_ar', $article->title_ar) }}"
+                                       class="form-input w-full @error('title_ar') is-invalid @enderror">
+                                @error('title_ar') <p class="form-error">{{ $message }}</p> @enderror
+                            </div>
                         </div>
 
                         <div>
@@ -48,26 +57,49 @@
                             @error('slug') <p class="form-error">{{ $message }}</p> @enderror
                         </div>
 
-                        <div>
-                            <div class="flex justify-between mb-1">
-                                <label class="form-label">{{ __('admin.adsupport.excerpt') }}</label>
-                                <span class="text-xs text-gray-400" data-char-counter="excerpt" data-max="500">0 / 500</span>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <label class="form-label">{{ __('admin.adsupport.excerpt') }} (English)</label>
+                                    <span class="text-xs text-gray-400" data-char-counter="excerpt_en" data-max="500">0 / 500</span>
+                                </div>
+                                <textarea name="excerpt_en" id="excerpt" rows="2" maxlength="500"
+                                          class="form-textarea w-full @error('excerpt_en') is-invalid @enderror">{{ old('excerpt_en', $article->excerpt_en) }}</textarea>
+                                @error('excerpt_en') <p class="form-error">{{ $message }}</p> @enderror
                             </div>
-                            <textarea name="excerpt" id="excerpt" rows="2" maxlength="500"
-                                      class="form-textarea w-full @error('excerpt') is-invalid @enderror">{{ old('excerpt', $article->excerpt) }}</textarea>
-                            @error('excerpt') <p class="form-error">{{ $message }}</p> @enderror
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <label class="form-label">{{ __('admin.adsupport.excerpt') }} (Arabic)</label>
+                                    <span class="text-xs text-gray-400" data-char-counter="excerpt_ar" data-max="500">0 / 500</span>
+                                </div>
+                                <textarea name="excerpt_ar" rows="2" maxlength="500" dir="rtl"
+                                          class="form-textarea w-full @error('excerpt_ar') is-invalid @enderror">{{ old('excerpt_ar', $article->excerpt_ar) }}</textarea>
+                                @error('excerpt_ar') <p class="form-error">{{ $message }}</p> @enderror
+                            </div>
                         </div>
 
                         <div>
                             <x-form.rich-editor
-                                name="body"
-                                label="{{ __('admin.adsupport.body') }}"
+                                name="body_en"
+                                label="{{ __('admin.adsupport.body') }} (English)"
                                 :required="true"
                                 profile="full"
                                 :minHeight="400"
-                                :value="old('body', $article->body)"
+                                :value="old('body_en', $article->body_en)"
                             />
-                            @error('body') <p class="form-error">{{ $message }}</p> @enderror
+                            @error('body_en') <p class="form-error">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <x-form.rich-editor
+                                name="body_ar"
+                                label="{{ __('admin.adsupport.body') }} (Arabic)"
+                                :required="true"
+                                profile="full"
+                                :minHeight="400"
+                                :value="old('body_ar', $article->body_ar)"
+                            />
+                            @error('body_ar') <p class="form-error">{{ $message }}</p> @enderror
                         </div>
                     </div>
                 </x-card>

@@ -345,6 +345,7 @@ return [
         'document_types'        => 'Document Types',
         'adsupport_collections' => 'Knowledge Hub Collections',
         'adsupport_articles'    => 'Knowledge Hub Articles',
+        'faqs'                  => 'FAQs',
         'helpcenter_group'      => 'Help Center',
         'helpcenter_categories' => 'Help Center Categories',
         'helpcenter_articles'   => 'Help Center Articles',

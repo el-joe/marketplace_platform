@@ -387,6 +387,13 @@ class NavigationService
                         'permission' => 'pages.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => __('admin.nav.faqs'),
+                        'route' => 'admin.faqs.index',
+                        'icon' => 'information-circle',
+                        'permission' => 'faqs.view',
+                        'badge' => null,
+                    ],
                 ],
             ],
             [

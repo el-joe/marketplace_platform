@@ -88,9 +88,9 @@
 <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
     <a href="{{ route('portal.register') }}" class="block">
         <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-trader-banner-ar.png"
-             alt="Dubai Traders Program" class="w-full rounded-2xl lg:hidden">
+             alt="{{ $isAr ? 'برنامج تجار دبي' : 'Dubai Traders Program' }}" class="w-full rounded-2xl lg:hidden">
         <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-trader-banner-strip-ar.jpg"
-             alt="Dubai Traders Program" class="w-full rounded-2xl hidden lg:block">
+             alt="{{ $isAr ? 'برنامج تجار دبي' : 'Dubai Traders Program' }}" class="w-full rounded-2xl hidden lg:block">
     </a>
 </section>
 

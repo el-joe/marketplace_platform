@@ -30,7 +30,8 @@
     },
     "autoload": {
         "files": [
-            "app/Helpers/settings.php"
+            "app/Helpers/settings.php",
+            "app/Helpers/portal_content.php"
         ],
         "psr-4": {
             "App\\": "app/",

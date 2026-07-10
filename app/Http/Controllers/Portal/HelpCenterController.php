@@ -40,8 +40,14 @@ class HelpCenterController extends Controller
             ->forCountry($country)
             ->when($q !== '', fn ($query) => $query->where(function ($w) use ($q) {
                 $w->where('title', 'like', "%{$q}%")
+                    ->orWhere('title_en', 'like', "%{$q}%")
+                    ->orWhere('title_ar', 'like', "%{$q}%")
                     ->orWhere('excerpt', 'like', "%{$q}%")
-                    ->orWhere('body', 'like', "%{$q}%");
+                    ->orWhere('excerpt_en', 'like', "%{$q}%")
+                    ->orWhere('excerpt_ar', 'like', "%{$q}%")
+                    ->orWhere('body', 'like', "%{$q}%")
+                    ->orWhere('body_en', 'like', "%{$q}%")
+                    ->orWhere('body_ar', 'like', "%{$q}%");
             }))
             ->orderByDesc('views_count')
             ->limit(30)

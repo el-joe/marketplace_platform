@@ -72,7 +72,7 @@
                         </td>
                         <td class="px-4 py-3 text-end whitespace-nowrap">
                             <button type="button" class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
-                                    data-category="{{ json_encode($root->only(['id','name','slug','parent_id','country_id','icon','description','sort_order','is_active'])) }}">
+                                    data-category="{{ json_encode($root->only(['id','name','name_en','name_ar','slug','parent_id','country_id','icon','description','description_en','description_ar','sort_order','is_active'])) }}">
                                 {{ __('common.edit') }}
                             </button>
                             <button type="button" class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"
@@ -103,7 +103,7 @@
                         </td>
                         <td class="px-4 py-3 text-end whitespace-nowrap">
                             <button type="button" class="btn-edit-category text-xs text-primary-600 font-medium hover:underline"
-                                    data-category="{{ json_encode($child->only(['id','name','slug','parent_id','country_id','icon','description','sort_order','is_active'])) }}">
+                                    data-category="{{ json_encode($child->only(['id','name','name_en','name_ar','slug','parent_id','country_id','icon','description','description_en','description_ar','sort_order','is_active'])) }}">
                                 {{ __('common.edit') }}
                             </button>
                             <button type="button" class="btn-delete-category ms-2 text-xs text-red-500 hover:underline"

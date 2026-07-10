@@ -1,8 +1,9 @@
 {{-- Step 4: Document Uploads (dynamic per country) --}}
+@php $isAr = $isAr ?? (session('locale', 'ar') === 'ar'); @endphp
 <div class="space-y-5">
     <div>
-        <h2 class="text-lg font-bold text-white">رفع الوثائق الرسمية</h2>
-        <p class="text-sm text-gray-400 mt-1">الصيغ المقبولة والحجم الأقصى يختلفان حسب نوع الوثيقة.</p>
+        <h2 class="text-lg font-bold text-white">{{ $isAr ? 'رفع الوثائق الرسمية' : 'Upload Official Documents' }}</h2>
+        <p class="text-sm text-gray-400 mt-1">{{ $isAr ? 'الصيغ المقبولة والحجم الأقصى يختلفان حسب نوع الوثيقة.' : 'Accepted formats and maximum size vary by document type.' }}</p>
     </div>
 
     {{-- Loading state --}}
@@ -11,12 +12,12 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
         </svg>
-        جارٍ تحميل متطلبات الوثائق…
+        {{ $isAr ? 'جارٍ تحميل متطلبات الوثائق…' : 'Loading document requirements…' }}
     </div>
 
     {{-- No doc types available (e.g. country config missing) --}}
     <div x-show="!docTypesLoading && docTypes.length === 0" class="text-sm text-gray-400 text-center py-4" x-cloak>
-        لا توجد وثائق مطلوبة لهذه الدولة، يمكنك المتابعة.
+        {{ $isAr ? 'لا توجد وثائق مطلوبة لهذه الدولة، يمكنك المتابعة.' : 'No documents are required for this country — you may continue.' }}
     </div>
 
     {{-- Dynamic document list --}}
@@ -27,19 +28,19 @@
                     <p class="text-sm font-semibold text-white">
                         <span x-text="doc.name_ar"></span>
                         <span x-show="doc.requirement_level === 'mandatory'" class="text-red-400"> *</span>
-                        <span x-show="doc.requirement_level === 'optional'" class="text-gray-500 text-xs font-normal"> (اختياري)</span>
+                        <span x-show="doc.requirement_level === 'optional'" class="text-gray-500 text-xs font-normal"> {{ $isAr ? '(اختياري)' : '(optional)' }}</span>
                     </p>
                     <p class="text-xs text-gray-400 mt-0.5" x-text="doc.description_ar || ''"></p>
                     <p class="text-xs text-gray-500 mt-0.5">
-                        الأنواع المقبولة: <span x-text="doc.accepted_file_types.join('، ')"></span>
-                        — الحجم الأقصى: <span x-text="Math.round(doc.max_file_size_kb / 1024) + 'MB'"></span>
+                        {{ $isAr ? 'الأنواع المقبولة:' : 'Accepted types:' }} <span x-text="doc.accepted_file_types.join('، ')"></span>
+                        — {{ $isAr ? 'الحجم الأقصى:' : 'Max size:' }} <span x-text="Math.round(doc.max_file_size_kb / 1024) + 'MB'"></span>
                     </p>
                 </div>
                 <span x-show="documents[doc.code]" class="text-green-400 text-xs flex items-center gap-1 shrink-0 mr-2" x-cloak>
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
-                    تم الرفع
+                    {{ $isAr ? 'تم الرفع' : 'Uploaded' }}
                 </span>
             </div>
 
@@ -68,7 +69,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                             </svg>
                         </template>
-                        <span class="text-sm text-gray-400" x-text="doc.requirement_level === 'optional' ? 'انقر لاختيار الملف (اختياري)' : 'انقر لاختيار الملف'"></span>
+                        <span class="text-sm text-gray-400" x-text="doc.requirement_level === 'optional' ? {{ $isAr ? "'انقر لاختيار الملف (اختياري)'" : "'Click to choose a file (optional)'" }} : {{ $isAr ? "'انقر لاختيار الملف'" : "'Click to choose a file'" }}"></span>
                     </div>
                 </template>
                 <template x-if="documents[doc.code]">
@@ -76,9 +77,9 @@
                         <svg class="w-8 h-8 mx-auto text-green-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <span class="text-sm text-green-400 font-medium" x-text="docFilenames[doc.code] || 'تم الرفع'"></span>
+                        <span class="text-sm text-green-400 font-medium" x-text="docFilenames[doc.code] || {{ $isAr ? "'تم الرفع'" : "'Uploaded'" }}"></span>
                         <button type="button" @click.prevent.stop="removeDocument(doc.code)"
-                            class="block mx-auto mt-1 text-xs text-red-400 hover:underline">حذف</button>
+                            class="block mx-auto mt-1 text-xs text-red-400 hover:underline">{{ $isAr ? 'حذف' : 'Remove' }}</button>
                     </div>
                 </template>
             </label>
@@ -86,7 +87,7 @@
             {{-- Expiry date (shown only when type requires it) --}}
             <div x-show="doc.requires_expiry_date && documents[doc.code]" class="mt-3" x-cloak>
                 <label class="block text-xs text-gray-400 mb-1">
-                    تاريخ انتهاء الصلاحية <span class="text-red-400">*</span>
+                    {{ $isAr ? 'تاريخ انتهاء الصلاحية' : 'Expiry Date' }} <span class="text-red-400">*</span>
                 </label>
                 <input
                     type="date"
@@ -99,7 +100,7 @@
             {{-- Optional skip note --}}
             <p x-show="doc.requirement_level === 'optional' && !documents[doc.code]"
                class="mt-1.5 text-xs text-gray-500">
-                (اختياري — يمكن إضافتها لاحقاً من لوحة التحكم)
+                {{ $isAr ? '(اختياري — يمكن إضافتها لاحقاً من لوحة التحكم)' : '(Optional — can be added later from the dashboard)' }}
             </p>
 
             {{-- Error --}}
@@ -111,7 +112,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                 </svg>
-                جارٍ الرفع…
+                {{ $isAr ? 'جارٍ الرفع…' : 'Uploading…' }}
             </div>
         </div>
     </template>
