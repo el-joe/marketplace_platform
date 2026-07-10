@@ -59,7 +59,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                 </div>
 
                 @if($canEdit)
-                    <div class="grid grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                             <label class="label-sm">{{ __('admin.products.manufacturer_name') }}</label>
                             <input type="text" x-model="form.manufacturer_name" class="form-input w-full text-sm"
@@ -77,7 +77,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                         </div>
                     </div>
                 @else
-                    <dl class="grid grid-cols-3 gap-3 text-sm">
+                    <dl class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                         <div>
                             <dt class="text-gray-400 text-xs">{{ __('admin.products.manufacturer_label') }}</dt>
                             <dd class="font-medium text-gray-800 mt-0.5" x-text="ref?.manufacturer_name || '—'"></dd>
@@ -107,7 +107,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                 </h4>
 
                 @if($canEdit)
-                    <div class="grid grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                             <label class="label-sm">{{ __('admin.products.factory_cost_label') }}</label>
                             <input type="number" x-model.number="form.manufacturer_cost_cents" min="0"
@@ -134,7 +134,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                     </div>
 
                     {{-- Cost summary row --}}
-                    <div class="grid grid-cols-3 gap-3 bg-gray-50 rounded-xl p-3 text-center text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50 rounded-xl p-3 text-center text-sm">
                         <div>
                             <p class="text-xs text-gray-400 mb-0.5">{{ __('admin.products.factory_short') }}</p>
                             <p class="font-semibold text-gray-800" x-text="centsToCurrency(form.manufacturer_cost_cents, currencyCode) || '—'"></p>
@@ -149,7 +149,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                         </div>
                     </div>
                 @else
-                    <div class="grid grid-cols-3 gap-3 bg-gray-50 rounded-xl p-3 text-center text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50 rounded-xl p-3 text-center text-sm">
                         <div>
                             <p class="text-xs text-gray-400 mb-0.5">{{ __('admin.products.factory_cost_short') }}</p>
                             <p class="font-semibold text-gray-800" x-text="ref?.manufacturer_cost_formatted || '—'"></p>
@@ -249,14 +249,14 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
 
                 <div class="space-y-2">
                     <template x-for="(comp, idx) in form.competitor_links" :key="idx">
-                        <div class="flex items-center gap-2 bg-gray-50 rounded-lg p-2.5">
+                        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-gray-50 rounded-lg p-2.5">
                             @if($canEdit)
-                                <input type="text" x-model="comp.name" class="form-input text-xs w-28 flex-shrink-0"
+                                <input type="text" x-model="comp.name" class="form-input text-xs w-full sm:w-28 sm:flex-shrink-0"
                                     placeholder="{{ __('admin.products.competitor_name_placeholder') }}">
-                                <input type="url" x-model="comp.url" class="form-input text-xs flex-1 font-mono min-w-0" dir="ltr"
+                                <input type="url" x-model="comp.url" class="form-input text-xs w-full sm:flex-1 font-mono sm:min-w-0" dir="ltr"
                                     placeholder="{{ __('admin.products.competitor_url_placeholder') }}">
                                 <input type="number" x-model.number="comp.price_cents"
-                                    class="form-input text-xs w-28 font-mono flex-shrink-0" placeholder="{{ __('admin.products.competitor_price_placeholder') }}">
+                                    class="form-input text-xs w-full sm:w-28 font-mono sm:flex-shrink-0" placeholder="{{ __('admin.products.competitor_price_placeholder') }}">
                             @else
                                 <span class="text-xs font-medium text-gray-700 w-28 flex-shrink-0 truncate"
                                     x-text="comp.name || '—'"></span>

@@ -26,7 +26,7 @@
         @csrf
         <input type="hidden" name="action" id="form-action" value="draft">
 
-        <div class="flex gap-6 items-start">
+        <div class="flex flex-col lg:flex-row gap-6 items-start">
 
             {{-- ────────────── LEFT COLUMN (70%) ────────────── --}}
             <div class="flex-1 min-w-0 space-y-5">
@@ -145,7 +145,7 @@
             </div>
 
             {{-- ────────────── RIGHT COLUMN (30%) ────────────── --}}
-            <div class="w-80 flex-shrink-0 space-y-4">
+            <div class="w-full lg:w-80 flex-shrink-0 space-y-4">
 
                 {{-- Publish Settings --}}
                 <x-card title="{{ __('admin.blog.publish_settings') }}">

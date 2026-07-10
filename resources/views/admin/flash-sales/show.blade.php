@@ -121,7 +121,7 @@
         });
     </script>
 
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
         {{-- ═══════════════════════════════════════════════════════════════════ --}}
         {{-- MAIN COLUMN --}}
@@ -453,7 +453,7 @@
         {{-- ═══════════════════════════════════════════════════════════════════ --}}
         {{-- SIDEBAR --}}
         {{-- ═══════════════════════════════════════════════════════════════════ --}}
-        <div class="w-80 flex-shrink-0 space-y-4 sticky top-20">
+        <div class="w-full lg:w-80 flex-shrink-0 space-y-4 lg:sticky lg:top-20">
 
             {{-- Summary card --}}
             <x-card title="{{ $flashSale->name_en }}">

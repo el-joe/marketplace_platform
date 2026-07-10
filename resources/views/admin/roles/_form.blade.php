@@ -77,7 +77,7 @@
         </div>
     @endif
 
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
         {{-- ═══════ LEFT: Role Details + Permission Matrix ═══════ --}}
         <div class="flex-1 min-w-0 space-y-4">
@@ -159,7 +159,7 @@
         </div>
 
         {{-- ═══════ RIGHT: Summary ═══════ --}}
-        <div class="w-64 shrink-0">
+        <div class="w-full lg:w-64 shrink-0">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm sticky top-4">
                 <div class="px-5 py-4 border-b border-gray-100">
                     <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.roles_section.summary') }}</h2>

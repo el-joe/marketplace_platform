@@ -36,7 +36,7 @@
 >
     <input type="hidden" id="form-mode" name="_form_mode" value="{{ $isEdit ? 'edit' : 'create' }}">
 
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
         {{-- ═══════════════════════════════════════════════════════════════════ --}}
         {{-- LEFT COLUMN: tabbed panels                                         --}}
@@ -89,7 +89,7 @@
                 x-show="activeTab === 'basic'"
                 class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-6 shadow-sm space-y-5"
             >
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <x-form.input
                         name="name_en"
                         label="{{ __('admin.name_en') }}"
@@ -110,7 +110,7 @@
                     />
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <x-form.async-select
                         name="category_id"
                         label="{{ __('admin.category') }}"
@@ -132,7 +132,7 @@
                     />
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <x-form.input
                             name="gtin"
@@ -175,7 +175,7 @@
                     label="{{ __('admin.products.description_ar') }}"
                     :value="$val('description_ar')"
                 />
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="form-label">{{ __('admin.products.short_description_en') }}</label>
@@ -217,7 +217,7 @@
                     {{-- Attribute checkboxes --}}
                     <div>
                         <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.products.variant_attributes') }}</h4>
-                        <div id="variant-attributes-container" class="grid grid-cols-3 gap-3">
+                        <div id="variant-attributes-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             @foreach($categoryAttributes ?? [] as $attr)
                             <label class="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 text-sm">
                                 <input
@@ -502,7 +502,7 @@
         {{-- ═══════════════════════════════════════════════════════════════════ --}}
         {{-- RIGHT SIDEBAR: sticky                                              --}}
         {{-- ═══════════════════════════════════════════════════════════════════ --}}
-        <div class="w-72 flex-shrink-0 sticky top-20 space-y-4">
+        <div class="w-full lg:w-72 flex-shrink-0 lg:sticky lg:top-20 space-y-4">
 
             {{-- Status card --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">

@@ -86,7 +86,7 @@
     @endif
 
     {{-- ── Two-column layout ───────────────────────────────────────────── --}}
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
         {{-- ═══════ LEFT: Admin Details ═══════ --}}
         <div class="flex-1 min-w-0 space-y-4">
@@ -163,7 +163,7 @@
         </div>
 
         {{-- ═══════ RIGHT: Roles & Permissions ═══════ --}}
-        <div class="w-80 shrink-0 space-y-4">
+        <div class="w-full lg:w-80 shrink-0 space-y-4">
 
             {{-- Roles card --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">

@@ -12,7 +12,7 @@
 
 @section('content')
 
-    <form id="flash-sale-form" class="flex gap-6 items-start" novalidate>
+    <form id="flash-sale-form" class="flex flex-col lg:flex-row gap-6 items-start" novalidate>
         @csrf
 
         {{-- ─── Left column ───────────────────────────────────────────────────── --}}
@@ -117,7 +117,7 @@
         </div>
 
         {{-- ─── Right sidebar ──────────────────────────────────────────────────── --}}
-        <div class="w-72 flex-shrink-0 space-y-4 sticky top-20">
+        <div class="w-full lg:w-72 flex-shrink-0 space-y-4 lg:sticky lg:top-20">
             <x-card>
                 <div class="space-y-2">
                     <button type="submit" id="flash-sale-submit-btn" class="btn btn-primary w-full justify-center">

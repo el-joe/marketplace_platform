@@ -34,7 +34,7 @@
         <span class="text-gray-800 font-medium font-mono">{{ $dispute->dispute_number }}</span>
     </nav>
 
-    <div class="flex gap-5 items-start">
+    <div class="flex flex-col lg:flex-row gap-5 items-start">
 
         {{-- ═════════════════════════════════════════════════════════════════ --}}
         {{-- LEFT: Conversation thread --}}
@@ -189,7 +189,7 @@
         {{-- ═════════════════════════════════════════════════════════════════ --}}
         {{-- RIGHT: Sidebar --}}
         {{-- ═════════════════════════════════════════════════════════════════ --}}
-        <div class="w-80 shrink-0 flex flex-col gap-4">
+        <div class="w-full lg:w-80 shrink-0 flex flex-col gap-4">
 
             {{-- Dispute Info --}}
             <x-card>

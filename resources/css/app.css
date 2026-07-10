@@ -149,6 +149,12 @@ body:not(.sidebar-collapsed) #sidebar-logo-icon {
     padding: 1.5rem;
 }
 
+@media (max-width: 640px) {
+    #content {
+        padding: 1rem;
+    }
+}
+
 @media (max-width: 768px) {
     #sidebar {
         position: fixed;

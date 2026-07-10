@@ -25,7 +25,7 @@
 >
     <input type="hidden" id="form-mode" name="_form_mode" value="{{ $isEdit ? 'edit' : 'create' }}">
 
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
         {{-- ═══════════════════════════════════════════ --}}
         {{-- LEFT COLUMN: tabbed panels                  --}}
@@ -436,7 +436,7 @@
         {{-- ═══════════════════════════════════════════ --}}
         {{-- RIGHT SIDEBAR                               --}}
         {{-- ═══════════════════════════════════════════ --}}
-        <div class="w-72 flex-shrink-0 space-y-4">
+        <div class="w-full lg:w-72 flex-shrink-0 space-y-4">
 
             {{-- Visibility --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">

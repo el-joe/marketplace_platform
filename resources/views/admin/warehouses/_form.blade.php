@@ -73,7 +73,7 @@ $warehouse — Warehouse model (edit mode only)
     @endif
 
     {{-- ── Two-column layout ───────────────────────────────────────────── --}}
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
         {{-- ═══════ LEFT: Main Details ═══════ --}}
         <div class="flex-1 min-w-0 space-y-4">
@@ -162,7 +162,7 @@ $warehouse — Warehouse model (edit mode only)
         </div>
 
         {{-- ═══════ RIGHT: Sidebar ═══════ --}}
-        <div class="w-72 shrink-0 space-y-4">
+        <div class="w-full lg:w-72 shrink-0 space-y-4">
 
             {{-- Status --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">

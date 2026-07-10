@@ -4,10 +4,10 @@
         <input type="hidden" name="submission_id">
         @csrf
 
-        <div class="flex gap-6">
+        <div class="flex flex-col sm:flex-row gap-6">
 
             {{-- ── Left: product + vendor info ───────────────────────────── --}}
-            <div class="w-64 flex-shrink-0 space-y-4">
+            <div class="w-full sm:w-64 flex-shrink-0 space-y-4">
 
                 <div class="text-center">
                     <img id="review-product-img" src="" alt="" class="w-48 h-48 object-cover rounded-lg mx-auto mb-2 bg-gray-100">

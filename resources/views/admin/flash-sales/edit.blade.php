@@ -17,7 +17,7 @@
     $hasSubmissions = $sale->submissions()->exists();
 @endphp
 
-<div class="flex gap-6 items-start">
+<div class="flex flex-col lg:flex-row gap-6 items-start">
 
     {{-- ─── Left column ───────────────────────────────────────────────────── --}}
     <div class="flex-1 min-w-0"
@@ -343,7 +343,7 @@
     </div>{{-- /left column --}}
 
     {{-- ─── Right sidebar ──────────────────────────────────────────────────── --}}
-    <div class="w-72 flex-shrink-0 space-y-4 sticky top-20">
+    <div class="w-full lg:w-72 flex-shrink-0 space-y-4 lg:sticky lg:top-20">
 
         {{-- Status card --}}
         <x-card title="{{ __('admin.status') }}">

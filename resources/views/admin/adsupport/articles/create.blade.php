@@ -25,7 +25,7 @@
         @csrf
         <input type="hidden" name="action" id="form-action" value="draft">
 
-        <div class="flex gap-6 items-start">
+        <div class="flex flex-col lg:flex-row gap-6 items-start">
 
             {{-- LEFT COLUMN --}}
             <div class="flex-1 min-w-0 space-y-5">
@@ -113,7 +113,7 @@
             </div>
 
             {{-- RIGHT COLUMN --}}
-            <div class="w-80 flex-shrink-0 space-y-4">
+            <div class="w-full lg:w-80 flex-shrink-0 space-y-4">
                 <x-card title="{{ __('admin.adsupport.publish_settings') }}">
                     <div class="p-4 space-y-2">
                         <button type="button" class="btn btn-secondary w-full text-sm" onclick="submitForm('draft')">{{ __('admin.adsupport.save_draft') }}</button>

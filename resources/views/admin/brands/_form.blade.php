@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
 
         {{-- ═══════════════════════════════════════════════════════════════ --}}
         {{-- LEFT: main fields                                               --}}
@@ -154,7 +154,7 @@
         {{-- ═══════════════════════════════════════════════════════════════ --}}
         {{-- RIGHT: sidebar                                                  --}}
         {{-- ═══════════════════════════════════════════════════════════════ --}}
-        <div class="w-72 flex-shrink-0 space-y-4">
+        <div class="w-full lg:w-72 flex-shrink-0 space-y-4">
 
             {{-- Save card ---------------------------------------------------- --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
