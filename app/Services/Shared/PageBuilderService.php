@@ -287,8 +287,6 @@ class PageBuilderService
             return $q->where('country_id', $country->id)->orWhereNull('country_id');
         };
 
-        dd(FlashSale::where('id', $flashSaleId)->where($countryCheck)->first(), $country);
-
         $sale = $flashSaleId
             ? FlashSale::where('id', $flashSaleId)->where($countryCheck)->first()
             : FlashSale::where($countryCheck)
@@ -303,7 +301,7 @@ class PageBuilderService
         }
 
         $submissions = $sale->submissions()
-            ->where('status', 'live')
+            ->whereIn('status', ['live', 'approved'])
             ->with([
                 'vendorListing.vendor',
                 'vendorListing.primaryShippingMethod',
