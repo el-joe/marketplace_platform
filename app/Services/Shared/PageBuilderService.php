@@ -283,9 +283,13 @@ class PageBuilderService
 
     private function productsFromFlashSale(?string $flashSaleId, Country $country, int $maxProducts): array
     {
+        $countryCheck = function ($q) use ($country) {
+            return $q->where('country_id', $country->id)->orWhereNull('country_id');
+        };
+
         $sale = $flashSaleId
-            ? FlashSale::where('id', $flashSaleId)->where('country_id', $country->id)->first()
-            : FlashSale::where('country_id', $country->id)
+            ? FlashSale::where('id', $flashSaleId)->where($countryCheck)->first()
+            : FlashSale::where($countryCheck)
                 ->where('status', 'live')
                 ->where('sale_starts_at', '<=', now())
                 ->where('sale_ends_at', '>', now())
