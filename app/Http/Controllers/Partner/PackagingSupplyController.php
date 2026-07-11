@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\PackagingSupplyRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\PackagingSupply;
 use App\Models\PackagingSupplyRequest;
@@ -82,7 +83,7 @@ class PackagingSupplyController extends Controller
             'request_number'   => PackagingSupplyRequest::generateRequestNumber(),
             'vendor_id'        => $vendor->id,
             'warehouse_id'     => $data['warehouse_id'] ?? null,
-            'status'           => 'pending',
+            'status'           => PackagingSupplyRequestStatus::Pending,
             'total_cost_cents' => $totalCents,
             'notes'            => $data['notes'] ?? null,
         ]);

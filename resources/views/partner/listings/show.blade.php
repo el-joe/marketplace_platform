@@ -354,10 +354,10 @@
                     </button>
 
                     {{-- Toggle Status --}}
-                    @if(in_array($listing->status, ['active', 'paused']))
+                    @if(in_array($listing->status, [\App\Enums\VendorListingStatus::Active, \App\Enums\VendorListingStatus::Paused]))
                         <button id="btn-toggle-status"
-                            class="w-full {{ $listing->status === 'active' ? 'border border-gray-200 hover:bg-gray-50 text-gray-700' : 'bg-green-600 hover:bg-green-700 text-white' }} text-sm font-semibold py-2.5 rounded-xl transition-colors">
-                            {{ $listing->status === 'active' ? __('partner.listings.show.deactivate') : __('partner.listings.show.activate_listing') }}
+                            class="w-full {{ $listing->status === \App\Enums\VendorListingStatus::Active ? 'border border-gray-200 hover:bg-gray-50 text-gray-700' : 'bg-green-600 hover:bg-green-700 text-white' }} text-sm font-semibold py-2.5 rounded-xl transition-colors">
+                            {{ $listing->status === \App\Enums\VendorListingStatus::Active ? __('partner.listings.show.deactivate') : __('partner.listings.show.activate_listing') }}
                         </button>
                     @endif
 

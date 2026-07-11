@@ -28,8 +28,8 @@
                             <div class="flex items-center gap-2 mb-1">
                                 <h3 class="font-semibold text-gray-800 truncate">{{ $campaign->name }}</h3>
                                 <span class="text-xs px-2 py-0.5 rounded-full font-medium
-                                    {{ $campaign->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
-                                    {{ ucfirst($campaign->status) }}
+                                    {{ $campaign->status === \App\Enums\VendorCampaignOfferStatus::Active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+                                    {{ ucfirst($campaign->status->value) }}
                                 </span>
                             </div>
                             <p class="text-sm text-gray-500">{{ __('partner.marketer_campaigns.marketer_label') }} <span class="font-medium text-gray-700">{{ $campaign->marketer?->name ?? '—' }}</span></p>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AttributionModel;
 use App\Enums\CampaignType;
 use App\Enums\CommissionType;
 use App\Enums\VendorCampaignOfferStatus;
@@ -53,6 +54,7 @@ class VendorCampaignOffer extends Model
         'campaign_type' => CampaignType::class,
         'commission_type' => CommissionType::class,
         'status' => VendorCampaignOfferStatus::class,
+        'attribution_model' => AttributionModel::class,
     ];
 
     public function vendor(): BelongsTo

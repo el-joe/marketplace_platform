@@ -45,8 +45,8 @@
                             <td class="px-4 py-3 text-end font-mono text-blue-600">{{ $promo->admin_share_pct }}%</td>
                             <td class="px-4 py-3">
                                 <span
-                                    class="badge badge-{{ $promo->status === 'active' ? 'success' : ($promo->status === 'paused' ? 'warning' : 'secondary') }}">
-                                    {{ ucfirst($promo->status) }}
+                                    class="badge badge-{{ $promo->status === \App\Enums\SecretPromotionStatus::Active ? 'success' : ($promo->status === \App\Enums\SecretPromotionStatus::Paused ? 'warning' : 'secondary') }}">
+                                    {{ ucfirst($promo->status->value) }}
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-gray-500 text-xs">{{ $promo->valid_until?->format('d M Y') ?? '—' }}</td>

@@ -38,7 +38,7 @@
                             {{ $qr->custom_label ?: $qr->getTypeLabel() }}
                         </p>
                         <p class="text-xs text-gray-400 mt-0.5">
-                            {{ ucfirst(str_replace('_', ' ', $qr->code_type)) }}
+                            {{ $qr->getTypeLabel() }}
                         </p>
                         <p class="text-xs font-semibold text-blue-600 mt-1">
                             {{ __('marketer.qr.scans', ['count' => number_format($qr->scan_count)]) }}

@@ -24,13 +24,13 @@
     <div class="flex items-center justify-center gap-2 mt-2">
         @php
             $statusColor = match($agent->status) {
-                'active'    => 'chip-accepted',
-                'on_shift'  => 'chip-picked_up',
-                'suspended' => 'chip-failed',
+                \App\Enums\DeliveryAgentStatus::Active    => 'chip-accepted',
+                \App\Enums\DeliveryAgentStatus::OnShift   => 'chip-picked_up',
+                \App\Enums\DeliveryAgentStatus::Suspended => 'chip-failed',
                 default     => 'chip-assigned',
             };
         @endphp
-        <span class="chip {{ $statusColor }}">{{ ucfirst(str_replace('_', ' ', $agent->status)) }}</span>
+        <span class="chip {{ $statusColor }}">{{ ucfirst(str_replace('_', ' ', $agent->status->value)) }}</span>
         <span class="chip chip-assigned">{{ $agent->vehicle_type->label() }}</span>
     </div>
     <div class="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-slate-700">

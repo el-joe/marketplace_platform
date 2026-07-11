@@ -120,7 +120,7 @@
 @php
     $filtered = $invitations->getCollection()->filter(function ($inv) use ($activeTab) {
         if ($activeTab === 'all') return true;
-        return $inv->status === $activeTab;
+        return $inv->status->value === $activeTab;
     });
 @endphp
 
@@ -139,19 +139,19 @@
             $vendor = $offer?->vendor;
             $productsCount = $offer?->products?->count() ?? 0;
             $statusClass = match($inv->status) {
-                'pending'  => 'status-pending',
-                'accepted' => 'status-accepted',
-                'declined' => 'status-declined',
-                'expired'  => 'status-expired',
-                'revoked'  => 'status-revoked',
+                \App\Enums\VendorCampaignInvitationStatus::Pending  => 'status-pending',
+                \App\Enums\VendorCampaignInvitationStatus::Accepted => 'status-accepted',
+                \App\Enums\VendorCampaignInvitationStatus::Declined => 'status-declined',
+                \App\Enums\VendorCampaignInvitationStatus::Expired  => 'status-expired',
+                \App\Enums\VendorCampaignInvitationStatus::Revoked  => 'status-revoked',
                 default    => 'status-expired',
             };
             $statusIcon = match($inv->status) {
-                'pending'  => '🕐',
-                'accepted' => '✓',
-                'declined' => '✕',
-                'expired'  => '⏱',
-                'revoked'  => '↩',
+                \App\Enums\VendorCampaignInvitationStatus::Pending  => '🕐',
+                \App\Enums\VendorCampaignInvitationStatus::Accepted => '✓',
+                \App\Enums\VendorCampaignInvitationStatus::Declined => '✕',
+                \App\Enums\VendorCampaignInvitationStatus::Expired  => '⏱',
+                \App\Enums\VendorCampaignInvitationStatus::Revoked  => '↩',
                 default    => '',
             };
             $typeLabel = ucwords(str_replace('_', ' ', $offer?->campaign_type ?? ''));
@@ -184,7 +184,7 @@
                     @if($productsCount > 0)
                         <span class="products-count">{{ __('marketer.invitations.products_count', ['count' => $productsCount, 'product' => __('marketer.campaigns.product')]) }}</span>
                     @endif
-                    <span class="status-pill {{ $statusClass }}">{{ $statusIcon }} {{ ucfirst($inv->status) }}</span>
+                    <span class="status-pill {{ $statusClass }}">{{ $statusIcon }} {{ ucfirst($inv->status->value) }}</span>
                 </div>
             </div>
             <div class="inv-action">

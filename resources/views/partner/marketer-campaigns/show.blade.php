@@ -37,7 +37,7 @@
                 __('partner.marketer_campaigns.commission_rate') => $campaign->commission_rate . '%',
                 __('partner.marketer_campaigns.start_date') => $campaign->starts_at?->format('d M Y') ?? '—',
                 __('partner.marketer_campaigns.end_date') => $campaign->ends_at?->format('d M Y') ?? __('partner.marketer_campaigns.open_ended'),
-                __('common.status') => ucfirst($campaign->status),
+                __('common.status') => ucfirst($campaign->status->value),
             ] as $label => $value)
                 <div class="flex justify-between">
                     <span class="text-gray-400">{{ $label }}</span>

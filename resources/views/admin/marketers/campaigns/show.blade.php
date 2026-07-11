@@ -108,8 +108,8 @@
                             <span><span class="text-gray-400">{{ __('admin.duration') }}:</span> {{ __('admin.marketers.duration_days', ['n' => $campaignable->duration_days]) }}</span>
                         @endif
                         <span><span class="text-gray-400">{{ __('admin.status') }}:</span>
-                            <span class="font-medium {{ $campaignable->status === 'active' ? 'text-green-600' : 'text-gray-500' }}">
-                                {{ ucfirst($campaignable->status) }}
+                            <span class="font-medium {{ $campaignable->status === \App\Enums\TravelPackageStatus::Active ? 'text-green-600' : 'text-gray-500' }}">
+                                {{ ucfirst($campaignable->status->value) }}
                             </span>
                         </span>
                         @if ($campaignable->agency)
@@ -168,7 +168,7 @@
                 </div>
                 <div>
                     <dt class="text-gray-400">{{ __('admin.marketers.attribution') }}</dt>
-                    <dd class="font-medium text-gray-800">{{ ucfirst($campaign->attribution_model ?? 'last_click') }}</dd>
+                    <dd class="font-medium text-gray-800">{{ ucfirst($campaign->attribution_model?->value ?? 'last_click') }}</dd>
                 </div>
                 <div>
                     <dt class="text-gray-400">{{ __('admin.marketers.whatsapp_sharing') }}</dt>

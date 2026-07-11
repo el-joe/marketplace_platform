@@ -97,7 +97,7 @@ class MarketerTrackingService
                 'campaign_id' => $campaign->id,
                 'marketer_id' => $marketer->id,
                 'click_id' => $click->id,
-                'model' => $campaign->attribution_model ?? 'last_click',
+                'model' => $campaign->attribution_model?->value ?? \App\Enums\AttributionModel::LastClick->value,
                 'via_whatsapp' => $viaWhatsapp,
                 'expires_at' => now()->addDays(30)->toIso8601String(),
             ]);

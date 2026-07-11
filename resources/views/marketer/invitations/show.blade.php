@@ -154,12 +154,12 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 @php
     $offer      = $invitation->offer;
     $vendor     = $offer?->vendor;
-    $isPending  = $invitation->status === 'pending' && !$invitation->isExpired();
+    $isPending  = $invitation->status === \App\Enums\VendorCampaignInvitationStatus::Pending && !$invitation->isExpired();
     $typeLabel  = ucwords(str_replace('_', ' ', $offer?->campaign_type ?? ''));
 @endphp
 
 {{-- Status banner for non-pending invitations --}}
-@if($invitation->status === 'accepted')
+@if($invitation->status === \App\Enums\VendorCampaignInvitationStatus::Accepted)
     <div class="status-banner accepted">
         {{ __('marketer.invitations.accepted_banner') }}
         @if($invitation->resultingCampaign)
@@ -167,11 +167,11 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
                class="underline ml-2">{{ __('marketer.invitations.view_your_campaign') }}</a>
         @endif
     </div>
-@elseif($invitation->status === 'declined')
+@elseif($invitation->status === \App\Enums\VendorCampaignInvitationStatus::Declined)
     <div class="status-banner declined">{{ __('marketer.invitations.declined_banner') }}</div>
-@elseif($invitation->status === 'expired' || $invitation->isExpired())
+@elseif($invitation->status === \App\Enums\VendorCampaignInvitationStatus::Expired || $invitation->isExpired())
     <div class="status-banner expired">{{ __('marketer.invitations.expired_banner') }}</div>
-@elseif($invitation->status === 'revoked')
+@elseif($invitation->status === \App\Enums\VendorCampaignInvitationStatus::Revoked)
     <div class="status-banner revoked">{{ __('marketer.invitations.revoked_banner') }}</div>
 @endif
 

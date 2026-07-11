@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MarketerQrCodeType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,6 +32,7 @@ class MarketerQrCode extends Model
             'scan_count' => 'integer',
             'is_active' => 'boolean',
             'last_scanned_at' => 'datetime',
+            'code_type' => MarketerQrCodeType::class,
         ];
     }
 
@@ -65,13 +67,6 @@ class MarketerQrCode extends Model
 
     public function getTypeLabel(): string
     {
-        return match ($this->code_type) {
-            'marketer_profile' => 'Profile',
-            'product' => 'Product',
-            'vendor_store' => 'Store',
-            'campaign' => 'Campaign',
-            'whatsapp_link' => 'WhatsApp',
-            default => ucfirst($this->code_type),
-        };
+        return $this->code_type->label();
     }
 }

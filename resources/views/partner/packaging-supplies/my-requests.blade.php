@@ -35,7 +35,7 @@
                         <td class="td text-gray-600">{{ __('partner.packaging_supplies.items_count', ['count' => $req->items->count()]) }}</td>
                         <td class="td font-medium">{{ $req->total_cost_formatted }}</td>
                         <td class="td">
-                            <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status) }}</span>
+                            <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status->value) }}</span>
                         </td>
                         <td class="td text-gray-500 text-xs">{{ $req->created_at->format('d M Y') }}</td>
                         <td class="td text-right">

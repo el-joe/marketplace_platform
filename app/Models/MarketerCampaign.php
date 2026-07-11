@@ -60,6 +60,7 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
             'status' => \App\Enums\MarketerCampaignStatus::class,
             'campaign_type' => \App\Enums\CampaignType::class,
             'commission_type' => \App\Enums\CommissionType::class,
+            'attribution_model' => \App\Enums\AttributionModel::class,
         ];
     }
 

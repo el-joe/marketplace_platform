@@ -37,7 +37,7 @@
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2">
                                         <span class="font-medium text-gray-900 text-sm">{{ $supply->name_en }}</span>
-                                        <span class="badge {{ $supply->typeBadgeClass() }}">{{ ucfirst($supply->type) }}</span>
+                                        <span class="badge {{ $supply->typeBadgeClass() }}">{{ ucfirst($supply->type->value) }}</span>
                                     </div>
                                     <div class="text-xs text-gray-400 mt-0.5">
                                         {{ $supply->name_ar }}

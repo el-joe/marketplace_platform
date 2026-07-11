@@ -47,14 +47,14 @@
         </div>
         <div class="flex items-center gap-2">
             <span id="status-badge"
-                class="badge badge-{{ $promotion->status_color }} text-sm px-3 py-1">{{ __('admin.secret_promotions.' . $promotion->status) }}</span>
+                class="badge badge-{{ $promotion->status_color }} text-sm px-3 py-1">{{ __('admin.secret_promotions.' . $promotion->status->value) }}</span>
             <button type="button" id="edit-promo-btn" class="btn btn-outline btn-sm">{{ __('admin.secret_promotions.edit') }}</button>
-            @if($promotion->status === 'active')
+            @if($promotion->status === \App\Enums\SecretPromotionStatus::Active)
                 <button type="button" id="toggle-status-btn" class="btn btn-warning btn-sm" data-action="pause">{{ __('admin.secret_promotions.pause') }}</button>
-            @elseif($promotion->status === 'paused')
+            @elseif($promotion->status === \App\Enums\SecretPromotionStatus::Paused)
                 <button type="button" id="toggle-status-btn" class="btn btn-success btn-sm" data-action="resume">{{ __('admin.secret_promotions.resume') }}</button>
             @endif
-            @if($promotion->status !== 'expired')
+            @if($promotion->status !== \App\Enums\SecretPromotionStatus::Expired)
                 <button type="button" id="expire-btn" class="btn btn-danger btn-sm">{{ __('admin.secret_promotions.force_expire') }}</button>
             @endif
             <button type="button" id="duplicate-btn" class="btn btn-ghost btn-sm">{{ __('admin.secret_promotions.duplicate') }}</button>
@@ -268,7 +268,7 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">{{ __('admin.status') }}</span>
-                        <span class="badge badge-{{ $promotion->status_color }}">{{ __('admin.secret_promotions.' . $promotion->status) }}</span>
+                        <span class="badge badge-{{ $promotion->status_color }}">{{ __('admin.secret_promotions.' . $promotion->status->value) }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">{{ __('admin.secret_promotions.created') }}</span>
@@ -404,7 +404,7 @@
                 <div class="space-y-2">
                     <a href="{{ route('admin.secret-promotions.index') }}" class="btn btn-ghost btn-sm w-full">{{ __('admin.secret_promotions.back_to_list') }}</a>
                     <button type="button" id="sidebar-duplicate-btn" class="btn btn-ghost btn-sm w-full">{{ __('admin.secret_promotions.duplicate_promotion') }}</button>
-                    @if($promotion->status !== 'expired')
+                    @if($promotion->status !== \App\Enums\SecretPromotionStatus::Expired)
                         <button type="button" id="sidebar-expire-btn" class="btn btn-danger btn-sm w-full">{{ __('admin.secret_promotions.force_expire') }}</button>
                     @endif
                 </div>
@@ -472,7 +472,7 @@
 @push('scripts')
     <script type="module">
         window.PROMO_ID = '{{ $promotion->id }}';
-        window.PROMO_STATUS = '{{ $promotion->status }}';
+        window.PROMO_STATUS = '{{ $promotion->status->value }}';
         window.conversionChartData = @json($chartData);
         window.TOGGLE_STATUS_URL = '{{ route('admin.secret-promotions.toggle-status', $promotion) }}';
         window.EXPIRE_URL = '{{ route('admin.secret-promotions.expire', $promotion) }}';

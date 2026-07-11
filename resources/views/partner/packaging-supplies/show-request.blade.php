@@ -9,7 +9,7 @@
             <a href="{{ route('partner.packaging-supplies.my-requests') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('partner.packaging_supplies.my_requests_link') }}</a>
             <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ __('partner.packaging_supplies.request_number') }}{{ $req->request_number }}</h1>
         </div>
-        <span class="badge text-sm px-3 py-1 {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status) }}</span>
+        <span class="badge text-sm px-3 py-1 {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status->value) }}</span>
     </div>
 
     <div class="grid grid-cols-3 gap-6">
@@ -33,7 +33,7 @@
                             <tr>
                                 <td class="td font-medium">{{ $item->supply->name_en }}</td>
                                 <td class="td">
-                                    <span class="badge {{ $item->supply->typeBadgeClass() }}">{{ ucfirst($item->supply->type) }}</span>
+                                    <span class="badge {{ $item->supply->typeBadgeClass() }}">{{ ucfirst($item->supply->type->value) }}</span>
                                 </td>
                                 <td class="td">{{ $item->supply->unit_cost_formatted }}</td>
                                 <td class="td">{{ number_format($item->quantity) }}</td>
@@ -54,7 +54,7 @@
             <div class="card p-5 text-sm space-y-3">
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{{ __('common.status') }}</p>
-                    <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status) }}</span>
+                    <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status->value) }}</span>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{{ __('partner.packaging_supplies.submitted') }}</p>
@@ -74,11 +74,11 @@
                 @endif
             </div>
 
-            @if($req->status === 'delivered')
+            @if($req->status === \App\Enums\PackagingSupplyRequestStatus::Delivered)
                 <div class="card p-5 bg-green-50 border-green-200 text-sm text-green-800">
                     {{ __('partner.packaging_supplies.delivered_message') }}
                 </div>
-            @elseif($req->status === 'rejected')
+            @elseif($req->status === \App\Enums\PackagingSupplyRequestStatus::Rejected)
                 <div class="card p-5 bg-red-50 border-red-200 text-sm text-red-800">
                     {{ __('partner.packaging_supplies.rejected_message') }}
                 </div>

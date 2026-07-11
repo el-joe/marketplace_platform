@@ -60,16 +60,16 @@ $statusColors = [
                     </td>
                     <td class="px-5 py-3">
                         <span class="text-xs font-semibold rounded-full px-2.5 py-1 {{ $statusColors[$sr->status] ?? 'bg-gray-100 text-gray-600' }}">
-                            {{ ucfirst($sr->status) }}
+                            {{ ucfirst($sr->status->value) }}
                         </span>
-                        @if($sr->status === 'rejected' && $sr->rejection_reason)
+                        @if($sr->status === \App\Enums\MarketerSampleRequestStatus::Rejected && $sr->rejection_reason)
                             <p class="text-xs text-red-500 mt-1">{{ $sr->rejection_reason }}</p>
                         @endif
                     </td>
                     <td class="px-5 py-3 text-gray-400 text-xs">{{ $sr->created_at->format('d M Y') }}</td>
                     <td class="px-5 py-3 text-gray-400 text-xs">{{ $sr->updated_at->format('d M Y') }}</td>
                     <td class="px-5 py-3 text-right">
-                        @if($sr->status === 'dispatched')
+                        @if($sr->status === \App\Enums\MarketerSampleRequestStatus::Dispatched)
                             <form method="POST"
                                   action="{{ route('marketer.samples.mark-received', $sr) }}"
                                   onsubmit="return confirm(@json(__('marketer.samples.confirm_received')))">

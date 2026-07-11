@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MarketerWhatsappLinkType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,6 +38,7 @@ class MarketerWhatsappLink extends Model
             'click_count' => 'integer',
             'conversion_count' => 'integer',
             'expires_at' => 'datetime',
+            'link_type' => MarketerWhatsappLinkType::class,
         ];
     }
 

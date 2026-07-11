@@ -140,7 +140,7 @@
 @push('scripts')
 <script>
 // Start background location tracking
-@if(auth('delivery')->user()->status === 'on_shift' || auth('delivery')->user()->is_available)
+@if(auth('delivery')->user()->status === \App\Enums\DeliveryAgentStatus::OnShift || auth('delivery')->user()->is_available)
     window.DeliveryLocation.start(@json(route('delivery.location.update')));
 @endif
 </script>

@@ -2,6 +2,7 @@
 
 namespace App\Services\TravelAgency;
 
+use App\Enums\CustomerStatus;
 use App\Enums\TravelBookingStatus;
 use App\Enums\TravelPackageStatus;
 use App\Models\Customer;
@@ -51,7 +52,7 @@ class BookingCreationService
                     'email'    => $data['new_email'],
                     'phone'    => $data['new_phone'],
                     'password' => Str::random(32), // agency-created; customer sets own password via forgot-password
-                    'status'   => 'active',
+                    'status'   => CustomerStatus::Active,
                 ]);
             }
 

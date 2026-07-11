@@ -37,13 +37,13 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="text-xs px-2 py-0.5 rounded-full font-medium
-                                    @if($req->status === 'requested')  bg-yellow-100 text-yellow-700
-                                    @elseif($req->status === 'approved') bg-green-100 text-green-700
-                                    @elseif($req->status === 'dispatched') bg-blue-100 text-blue-700
-                                    @elseif($req->status === 'received') bg-purple-100 text-purple-700
+                                    @if($req->status === \App\Enums\MarketerSampleRequestStatus::Requested)  bg-yellow-100 text-yellow-700
+                                    @elseif($req->status === \App\Enums\MarketerSampleRequestStatus::Approved) bg-green-100 text-green-700
+                                    @elseif($req->status === \App\Enums\MarketerSampleRequestStatus::Dispatched) bg-blue-100 text-blue-700
+                                    @elseif($req->status === \App\Enums\MarketerSampleRequestStatus::Received) bg-purple-100 text-purple-700
                                     @else bg-red-100 text-red-600
                                     @endif">
-                                    {{ ucfirst($req->status) }}
+                                    {{ ucfirst($req->status->value) }}
                                 </span>
                                 <span class="text-xs text-gray-400">{{ $req->created_at->format('d M Y H:i') }}</span>
                             </div>
@@ -84,7 +84,7 @@
 
                         {{-- Actions --}}
                         <div class="shrink-0 flex flex-col gap-2">
-                            @if($req->status === 'requested')
+                            @if($req->status === \App\Enums\MarketerSampleRequestStatus::Requested)
                                 <button
                                     class="btn-approve text-xs bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg transition"
                                     data-id="{{ $req->id }}"
@@ -97,7 +97,7 @@
                                     data-url="{{ route('partner.marketer-samples.reject', $req) }}">
                                     {{ __('partner.marketer_samples.reject') }}
                                 </button>
-                            @elseif($req->status === 'approved')
+                            @elseif($req->status === \App\Enums\MarketerSampleRequestStatus::Approved)
                                 <button
                                     class="btn-reject text-xs border border-red-300 text-red-600 hover:bg-red-50 px-4 py-1.5 rounded-lg transition"
                                     data-id="{{ $req->id }}"

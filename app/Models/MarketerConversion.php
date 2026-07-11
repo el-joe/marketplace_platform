@@ -44,6 +44,7 @@ class MarketerConversion extends \Illuminate\Database\Eloquent\Model
             'click_chain' => 'array',
             'is_whatsapp_conversion' => 'boolean',
             'status' => \App\Enums\MarketerTrackingStatus::class,
+            'attribution_model' => \App\Enums\AttributionModel::class,
         ];
     }
 

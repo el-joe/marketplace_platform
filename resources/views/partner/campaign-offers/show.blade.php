@@ -83,19 +83,19 @@
             </span>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            @if ($offer->status === 'draft')
+            @if ($offer->status === \App\Enums\VendorCampaignOfferStatus::Draft)
                 <button id="btn-submit-review"
                         class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 transition-colors">
                     {{ __('partner.campaign_offers.submit_review') }}
                 </button>
             @endif
-            @if ($offer->status === 'active')
+            @if ($offer->status === \App\Enums\VendorCampaignOfferStatus::Active)
                 <button id="btn-pause"
                         class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
                     {{ __('partner.campaign_offers.pause') }}
                 </button>
             @endif
-            @if ($offer->status === 'paused')
+            @if ($offer->status === \App\Enums\VendorCampaignOfferStatus::Paused)
                 <button id="btn-resume"
                         class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors">
                     {{ __('partner.campaign_offers.resume') }}
@@ -217,7 +217,7 @@
                         </div>
                     @endforeach
                 </div>
-                @if ($offer->status === 'rejected' && $offer->rejection_reason)
+                @if ($offer->status === \App\Enums\VendorCampaignOfferStatus::Cancelled && $offer->rejection_reason)
                     <div class="mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
                         <strong>{{ __('partner.campaign_offers.rejection_reason') }}</strong> {{ $offer->rejection_reason }}
                     </div>
@@ -359,11 +359,11 @@
                                     <p class="text-xs text-gray-500 mt-0.5 italic">{{ $inv->marketer_note }}</p>
                                 @endif
                                 <div class="mt-1 flex items-center gap-3 flex-wrap">
-                                    @if ($inv->status === 'accepted' && $inv->resulting_campaign_id)
+                                    @if ($inv->status === \App\Enums\VendorCampaignInvitationStatus::Accepted && $inv->resulting_campaign_id)
                                         <a href="{{ route('partner.marketer-campaigns.show', $inv->resulting_campaign_id) }}"
                                            class="text-xs text-primary-600 hover:underline">{{ __('partner.campaign_offers.view_campaign') }} ←</a>
                                     @endif
-                                    @if ($inv->status === 'pending')
+                                    @if ($inv->status === \App\Enums\VendorCampaignInvitationStatus::Pending)
                                         <button type="button"
                                                 class="btn-revoke text-xs text-red-500 hover:underline"
                                                 data-invitation-id="{{ $inv->id }}">

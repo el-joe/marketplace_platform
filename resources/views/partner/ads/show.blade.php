@@ -66,7 +66,7 @@
 
         {{-- Action buttons --}}
         <div class="flex gap-2">
-            @if ($campaign->status === 'active')
+            @if ($campaign->status === \App\Enums\AdCampaignStatus::Active)
                 <button
                     onclick="pauseCampaign('{{ route('partner.ads.pause', $campaign->id) }}')"
                     class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -76,7 +76,7 @@
                     </svg>
                     {{ __('partner.ads.pause') }}
                 </button>
-            @elseif ($campaign->status === 'paused' && ($campaign->ends_at === null || $campaign->ends_at->isFuture()))
+            @elseif ($campaign->status === \App\Enums\AdCampaignStatus::Paused && ($campaign->ends_at === null || $campaign->ends_at->isFuture()))
                 <button
                     onclick="resumeCampaign('{{ route('partner.ads.resume', $campaign->id) }}')"
                     class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
@@ -94,7 +94,7 @@
     </div>
 
     {{-- Rejection notice --}}
-    @if ($campaign->status === 'rejected' && $campaign->rejection_reason)
+    @if ($campaign->status === \App\Enums\AdCampaignStatus::Rejected && $campaign->rejection_reason)
         <div class="rounded-xl bg-red-50 border border-red-200 px-5 py-4">
             <p class="text-sm font-semibold text-red-800 mb-1">{{ __('partner.ads.campaign_rejected') }}</p>
             <p class="text-sm text-red-700">{{ $campaign->rejection_reason }}</p>

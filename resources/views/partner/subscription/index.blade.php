@@ -30,7 +30,7 @@
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-            <span class="badge badge-{{ $activeSub->statusColor() }} text-sm px-3 py-1">{{ ucfirst($activeSub->status) }}</span>
+            <span class="badge badge-{{ $activeSub->statusColor() }} text-sm px-3 py-1">{{ ucfirst($activeSub->status->value) }}</span>
             <div class="text-xs text-gray-500 bg-white rounded-lg border px-3 py-2 text-center">
                 <p class="font-bold text-gray-800 text-base">
                     {{ $activeSub->listings_used }} / {{ $activePlan->hasUnlimitedListings() ? '∞' : $activePlan->max_listings }}
@@ -149,7 +149,7 @@
                         <td class="px-4 py-3 font-mono text-xs text-gray-700 text-right">{{ $invoice->invoice_number }}</td>
                         <td class="px-4 py-3 font-semibold text-gray-900 text-right">{{ $invoice->amountFormatted() }}</td>
                         <td class="px-4 py-3 text-right">
-                            <span class="badge badge-{{ $invoice->statusColor() }} text-xs">{{ ucfirst($invoice->status) }}</span>
+                            <span class="badge badge-{{ $invoice->statusColor() }} text-xs">{{ ucfirst($invoice->status->value) }}</span>
                         </td>
                         <td class="px-4 py-3 text-xs text-gray-500 text-right">
                             {{ $invoice->period_start?->format('d M') }} → {{ $invoice->period_end?->format('d M Y') }}

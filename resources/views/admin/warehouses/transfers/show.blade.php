@@ -41,7 +41,7 @@
             </span>
         </div>
         <div class="flex items-center gap-2">
-            @if($transfer->status === 'pending')
+            @if($transfer->status === \App\Enums\InventoryTransferStatus::Draft)
                 <form action="{{ route('admin.warehouses.transfers.cancel', $transfer->id) }}" method="POST"
                     onsubmit="return confirm('{{ __('admin.warehouses_section.cancel_transfer_confirm') }}')">
                     @csrf @method('POST')
@@ -117,7 +117,7 @@
             </x-card>
 
             {{-- Ship action --}}
-            @if($transfer->status === 'pending')
+            @if($transfer->status === \App\Enums\InventoryTransferStatus::Draft)
                 <x-card>
                     <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('admin.warehouses_section.mark_as_shipped') }}</h3>
                     <form action="{{ route('admin.warehouses.transfers.ship', $transfer->id) }}" method="POST"
@@ -146,7 +146,7 @@
             @endif
 
             {{-- Receive action --}}
-            @if($transfer->status === 'in_transit')
+            @if($transfer->status === \App\Enums\InventoryTransferStatus::InTransit)
                 <x-card>
                     <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('admin.warehouses_section.receive_transfer') }}</h3>
                     <form action="{{ route('admin.warehouses.transfers.receive', $transfer->id) }}" method="POST"

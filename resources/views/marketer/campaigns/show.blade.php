@@ -461,7 +461,7 @@ function copyTrackingUrl() {
                         'received'   => 'bg-green-100 text-green-700 border-green-200',
                         'rejected'   => 'bg-red-100 text-red-600 border-red-200',
                     ];
-                    $rsc = $reqStatusColors[$req->status] ?? 'bg-gray-100 text-gray-600 border-gray-200';
+                    $rsc = $reqStatusColors[$req->status->value] ?? 'bg-gray-100 text-gray-600 border-gray-200';
                 @endphp
                 <div class="border border-gray-100 rounded-xl overflow-hidden">
                     {{-- Request header row --}}
@@ -475,9 +475,9 @@ function copyTrackingUrl() {
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-semibold rounded-full px-2.5 py-0.5 border {{ $rsc }}">
-                                {{ ucfirst($req->status) }}
+                                {{ ucfirst($req->status->value) }}
                             </span>
-                            @if($req->status === 'dispatched')
+                            @if($req->status === \App\Enums\MarketerSampleRequestStatus::Dispatched)
                                 <button type="button"
                                     onclick="confirmSampleReceived('{{ $req->id }}')"
                                     class="text-xs font-semibold text-white bg-green-500 hover:bg-green-400 rounded-lg px-2.5 py-0.5 transition-colors">
@@ -536,9 +536,9 @@ function copyTrackingUrl() {
                         @foreach(['requested' => __('marketer.campaigns.step_requested'), 'approved' => __('marketer.campaigns.step_approved'), 'dispatched' => __('marketer.campaigns.step_dispatched'), 'received' => __('marketer.campaigns.step_received')] as $step => $label)
                             @php
                                 $steps = ['requested', 'approved', 'dispatched', 'received'];
-                                $reqStepIndex = array_search($req->status, $steps);
+                                $reqStepIndex = array_search($req->status->value, $steps);
                                 $thisStepIndex = array_search($step, $steps);
-                                $done = $req->status !== 'rejected' && $reqStepIndex !== false && $thisStepIndex <= $reqStepIndex;
+                                $done = $req->status !== \App\Enums\MarketerSampleRequestStatus::Rejected && $reqStepIndex !== false && $thisStepIndex <= $reqStepIndex;
                             @endphp
                             <div class="flex items-center gap-1.5 @if(!$loop->last) flex-1 @endif">
                                 <div class="w-2 h-2 rounded-full shrink-0 {{ $done ? 'bg-green-400' : 'bg-gray-200' }}"></div>
@@ -548,12 +548,12 @@ function copyTrackingUrl() {
                                 @endif
                             </div>
                         @endforeach
-                        @if($req->status === 'rejected')
+                        @if($req->status === \App\Enums\MarketerSampleRequestStatus::Rejected)
                             <span class="text-xs text-red-500 ms-2">{{ __('marketer.campaigns.rejected') }}</span>
                         @endif
                     </div>
 
-                    @if($req->status === 'rejected' && $req->rejection_reason)
+                    @if($req->status === \App\Enums\MarketerSampleRequestStatus::Rejected && $req->rejection_reason)
                         <div class="px-4 py-2 bg-red-50 border-t border-red-100">
                             <p class="text-xs text-red-600"><span class="font-semibold">{{ __('marketer.campaigns.rejection_reason') }}:</span> {{ $req->rejection_reason }}</p>
                         </div>
@@ -649,7 +649,7 @@ function copyTrackingUrl() {
             __('marketer.campaigns.status')            => $campaign->status->label(),
             __('marketer.campaigns.type')               => $campaign->campaign_type->label(),
             __('marketer.campaigns.commission_rate_label') => "{$campaign->commission_rate}% (" . $campaign->commission_type->label() . ')',
-            __('marketer.campaigns.attribution_model')  => ucfirst(str_replace('_', ' ', $campaign->attribution_model ?? 'last_click')),
+            __('marketer.campaigns.attribution_model')  => ucfirst(str_replace('_', ' ', $campaign->attribution_model?->value ?? 'last_click')),
             __('marketer.campaigns.budget')             => $budgetDisplay,
             __('marketer.campaigns.start_date')         => $campaign->starts_at?->format('d M Y') ?? '—',
             __('marketer.campaigns.end_date')           => $campaign->ends_at?->format('d M Y') ?? __('marketer.campaigns.no_end_date'),

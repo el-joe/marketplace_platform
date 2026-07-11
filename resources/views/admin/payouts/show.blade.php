@@ -333,8 +333,8 @@
                         @endif
                         <div class="flex justify-between items-center">
                             <span class="text-gray-500">{{ __('admin.payouts.verification') }}</span>
-                            <x-badge :color="$payout->bankAccount->verification_status === 'verified' ? 'success' : 'warning'">
-                                {{ ucfirst($payout->bankAccount->verification_status) }}
+                            <x-badge :color="$payout->bankAccount->verification_status === \App\Enums\VendorBankAccountVerificationStatus::Verified ? 'success' : 'warning'">
+                                {{ ucfirst($payout->bankAccount->verification_status->value) }}
                             </x-badge>
                         </div>
                     </div>

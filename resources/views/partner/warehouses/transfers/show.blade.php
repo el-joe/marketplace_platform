@@ -88,7 +88,7 @@
             </div>
 
             <div class="flex gap-2 flex-shrink-0 ml-4">
-                @if($transfer->status === 'draft')
+                @if($transfer->status === \App\Enums\InventoryTransferStatus::Draft)
                     <button id="ship-transfer-btn"
                         class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors">
                         {{ __('partner.warehouses.mark_as_shipped') }}
@@ -97,7 +97,7 @@
                         class="inline-flex items-center px-3 py-2 border border-red-200 text-red-600 text-sm font-medium rounded-xl hover:bg-red-50 transition-colors">
                         {{ __('common.cancel') }}
                     </button>
-                @elseif($transfer->status === 'in_transit')
+                @elseif($transfer->status === \App\Enums\InventoryTransferStatus::InTransit)
                     <button id="cancel-transfer-btn"
                         class="inline-flex items-center px-3 py-2 border border-red-200 text-red-600 text-sm font-medium rounded-xl hover:bg-red-50 transition-colors">
                         {{ __('partner.warehouses.cancel_transfer') }}
@@ -120,7 +120,7 @@
                     <th class="px-4 py-2.5 text-right">{{ __('partner.warehouses.requested') }}</th>
                     <th class="px-4 py-2.5 text-right">{{ __('partner.warehouses.received') }}</th>
                     <th class="px-4 py-2.5 text-right">{{ __('partner.warehouses.damaged') }}</th>
-                    @if($transfer->items->first()?->condition_notes !== null || $transfer->status === 'received')
+                    @if($transfer->items->first()?->condition_notes !== null || $transfer->status === \App\Enums\InventoryTransferStatus::Received)
                         <th class="px-4 py-2.5 text-left">{{ __('partner.warehouses.notes_header') }}</th>
                     @endif
                 </tr>
@@ -146,7 +146,7 @@
                         <td class="px-4 py-3 text-right {{ $item->damaged_quantity > 0 ? 'text-red-600 font-semibold' : 'text-gray-400' }}">
                             {{ number_format($item->damaged_quantity) }}
                         </td>
-                        @if($transfer->items->first()?->condition_notes !== null || $transfer->status === 'received')
+                        @if($transfer->items->first()?->condition_notes !== null || $transfer->status === \App\Enums\InventoryTransferStatus::Received)
                             <td class="px-4 py-3 text-xs text-gray-500">{{ $item->condition_notes ?? '—' }}</td>
                         @endif
                     </tr>
@@ -156,7 +156,7 @@
     </div>
 
     {{-- Ship modal --}}
-    @if($transfer->status === 'draft')
+    @if($transfer->status === \App\Enums\InventoryTransferStatus::Draft)
         <div id="ship-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4">
                 <div class="px-6 py-4 border-b flex items-center justify-between">

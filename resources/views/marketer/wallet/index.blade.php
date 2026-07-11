@@ -66,7 +66,7 @@
                         <p class="text-xs text-gray-500">{{ $wr->bank_name }} · {{ $wr->created_at->format('d M Y') }}</p>
                     </div>
                     @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','approved'=>'bg-blue-100 text-blue-700','processed'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700']; @endphp
-                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {{ $colors[$wr->status] ?? '' }}">{{ ucfirst($wr->status) }}</span>
+                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {{ $colors[$wr->status->value] ?? '' }}">{{ ucfirst($wr->status->value) }}</span>
                 </div>
             @endforeach
         </div>

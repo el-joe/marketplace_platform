@@ -80,7 +80,7 @@
                             'rejected' => __('partner.wallet.status_rejected'),
                         ];
                     @endphp
-                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {{ $colors[$wr->status] ?? '' }}">{{ $statusLabels[$wr->status] ?? ucfirst($wr->status) }}</span>
+                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {{ $colors[$wr->status->value] ?? '' }}">{{ $statusLabels[$wr->status->value] ?? ucfirst($wr->status->value) }}</span>
                 </div>
             @endforeach
         </div>

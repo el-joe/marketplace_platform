@@ -19,7 +19,7 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            @if($offer->status === 'pending_admin')
+            @if($offer->status === \App\Enums\VendorCampaignOfferStatus::PendingAdmin)
                 <button type="button"
                     class="btn btn-success js-approve-btn"
                     data-url="{{ route('admin.vendor-campaign-offers.approve', $offer->id) }}"
@@ -51,7 +51,7 @@
                             @php
                                 $statusColors = ['pending_admin'=>'warning','active'=>'success','draft'=>'gray','paused'=>'gray','ended'=>'gray','cancelled'=>'danger'];
                                 $c = $statusColors[$offer->status] ?? 'gray';
-                                $label = $offer->status === 'pending_admin'
+                                $label = $offer->status === \App\Enums\VendorCampaignOfferStatus::PendingAdmin
                                     ? __('admin.vendor_campaign_offers.pending_review_option')
                                     : __('admin.vendor_campaign_offers.' . $offer->status . '_option');
                             @endphp

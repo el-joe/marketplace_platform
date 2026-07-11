@@ -12,7 +12,7 @@ class WhatsappLinkResource extends JsonResource
         return [
             'id'               => $this->id,
             'campaign_id'      => $this->campaign_id,
-            'link_type'        => $this->link_type,
+            'link_type'        => $this->link_type?->value,
             'discount_pct'     => $this->discount_pct,
             'free_shipping'    => (bool) $this->free_shipping,
             'tracking_url'     => $this->tracking_url,

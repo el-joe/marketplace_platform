@@ -572,13 +572,13 @@
         <x-card title="{{ __('admin.customers_section.status_actions') }}">
             <div class="space-y-4">
                 <div class="flex items-center gap-3">
-                    <x-badge :color="$statusColor" size="md">{{ ucfirst($customer->status) }}</x-badge>
+                    <x-badge :color="$statusColor" size="md">{{ ucfirst($customer->status->value) }}</x-badge>
                 </div>
 
                 {{-- Action buttons --}}
                 @if(auth('admin')->user()->can('customers.suspend'))
                 <div class="flex flex-col gap-2">
-                    @if($customer->status === 'active')
+                    @if($customer->status === \App\Enums\CustomerStatus::Active)
                         <button type="button"
                             class="btn btn-warning btn-sm w-full js-suspend-btn"
                             data-url="{{ route('admin.customers.suspend', $customer->id) }}"
@@ -593,7 +593,7 @@
                             data-modal="ban-modal">
                             {{ __('admin.customers_section.ban_customer_btn') }}
                         </button>
-                    @elseif($customer->status === 'suspended')
+                    @elseif($customer->status === \App\Enums\CustomerStatus::Suspended)
                         <button type="button"
                             class="btn btn-success btn-sm w-full js-reactivate-btn"
                             data-url="{{ route('admin.customers.reactivate', $customer->id) }}"
@@ -607,7 +607,7 @@
                             data-modal="ban-modal">
                             {{ __('admin.customers_section.escalate_to_ban') }}
                         </button>
-                    @elseif($customer->status === 'banned')
+                    @elseif($customer->status === \App\Enums\CustomerStatus::Banned)
                         <button type="button"
                             class="btn btn-success btn-sm w-full js-reactivate-btn"
                             data-url="{{ route('admin.customers.reactivate', $customer->id) }}"

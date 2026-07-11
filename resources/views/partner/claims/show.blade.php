@@ -48,9 +48,9 @@
             @php
                 $steps = ['submitted','under_review','approved','compensated'];
                 $current = array_search($claim->status, $steps);
-                if ($claim->status === 'rejected') $current = -1;
+                if ($claim->status === \App\Enums\CarrierClaimStatus::Rejected) $current = -1;
             @endphp
-            @if($claim->status === 'rejected')
+            @if($claim->status === \App\Enums\CarrierClaimStatus::Rejected)
                 <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
                     <span class="text-red-500 text-xl">✗</span>
                     <div>

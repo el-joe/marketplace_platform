@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\MarketerPortal;
 
+use App\Enums\AttributionModel;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\ClassifiedListing;
@@ -98,7 +99,7 @@ class CampaignController extends Controller
                 'ends_at' => $validated['ends_at'],
                 'auto_approve_at' => now()->addHours(36),
                 'budget_cents' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
-                'attribution_model' => $validated['attribution_model'] ?? 'last_click',
+                'attribution_model' => $validated['attribution_model'] ?? AttributionModel::LastClick->value,
                 'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
             ]);
         } elseif ($campaignType === 'travel_promotion') {
@@ -121,7 +122,7 @@ class CampaignController extends Controller
                 'ends_at' => $validated['ends_at'],
                 'auto_approve_at' => now()->addHours(36),
                 'budget_cents' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
-                'attribution_model' => $validated['attribution_model'] ?? 'last_click',
+                'attribution_model' => $validated['attribution_model'] ?? AttributionModel::LastClick->value,
                 'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
             ]);
         } else {
@@ -139,7 +140,7 @@ class CampaignController extends Controller
                 'ends_at' => $validated['ends_at'],
                 'auto_approve_at' => now()->addHours(36),
                 'budget_cents' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
-                'attribution_model' => $validated['attribution_model'] ?? 'last_click',
+                'attribution_model' => $validated['attribution_model'] ?? AttributionModel::LastClick->value,
                 'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
             ]);
 
