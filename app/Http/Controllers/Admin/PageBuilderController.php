@@ -242,7 +242,7 @@ class PageBuilderController extends Controller
                 ? round($totals['clicks'] / $totals['impressions'], 4)
                 : 0.0;
 
-            $byDate = $rows->keyBy(fn ($row) => $row->date->toDateString());
+            $byDate = $rows->keyBy(fn($row) => $row->date->toDateString());
             $chart = [];
             for ($day = $dateFrom->copy(); $day->lte($dateTo); $day->addDay()) {
                 $key = $day->toDateString();
@@ -265,7 +265,7 @@ class PageBuilderController extends Controller
                 ->orderByDesc('count')
                 ->limit(5)
                 ->get()
-                ->map(fn ($row) => [
+                ->map(fn($row) => [
                     'click_target' => $row->click_target,
                     'click_target_type' => $row->click_target_type,
                     'count' => (int) $row->count,
@@ -402,6 +402,8 @@ class PageBuilderController extends Controller
                 ->orderBy('name_en')->get(['id', 'name_en']);
         }
 
+        dd($extra);
+
         return response()->view($view, array_merge([
             'blockType' => $blockType,
             'block' => $block,
@@ -422,9 +424,9 @@ class PageBuilderController extends Controller
             ->map(function ($slide) {
                 $arr = $slide->toArray();
                 $arr['desktop_file_url'] = $slide->desktop_url;
-                $arr['mobile_file_url']  = $slide->mobile_url;
-                $arr['visible_from']     = $slide->visible_from?->format('Y-m-d H:i');
-                $arr['visible_until']    = $slide->visible_until?->format('Y-m-d H:i');
+                $arr['mobile_file_url'] = $slide->mobile_url;
+                $arr['visible_from'] = $slide->visible_from?->format('Y-m-d H:i');
+                $arr['visible_until'] = $slide->visible_until?->format('Y-m-d H:i');
                 return $arr;
             });
 
@@ -859,31 +861,31 @@ class PageBuilderController extends Controller
 
         $request->validate([
             'image' => ['required', 'image', 'max:8192'],
-            'slot'  => ['required', 'in:desktop,mobile'],
+            'slot' => ['required', 'in:desktop,mobile'],
         ]);
 
         $uploaded = $request->file('image');
-        $slot     = $request->input('slot');
-        $ext      = $uploaded->getClientOriginalExtension() ?: $uploaded->guessExtension();
-        $path     = $uploaded->storeAs(
+        $slot = $request->input('slot');
+        $ext = $uploaded->getClientOriginalExtension() ?: $uploaded->guessExtension();
+        $path = $uploaded->storeAs(
             'page-builder/slides',
             Str::random(16) . '_' . $slot . '.' . $ext,
             'public'
         );
 
         $file = File::create([
-            'key'          => 'page-builder/slides/' . basename($path),
-            'path'         => $path,
+            'key' => 'page-builder/slides/' . basename($path),
+            'path' => $path,
             'storage_type' => 'public',
-            'file_type'    => 'slide_' . $slot,
-            'mime_type'    => $uploaded->getMimeType(),
-            'extension'    => $ext,
-            'size'         => $uploaded->getSize(),
+            'file_type' => 'slide_' . $slot,
+            'mime_type' => $uploaded->getMimeType(),
+            'extension' => $ext,
+            'size' => $uploaded->getSize(),
         ]);
 
         return response()->json([
             'file_id' => $file->id,
-            'url'     => Storage::disk('public')->url($path),
+            'url' => Storage::disk('public')->url($path),
         ]);
     }
 
