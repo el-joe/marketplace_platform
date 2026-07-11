@@ -13,7 +13,10 @@
     }
 @endphp
 
-<header class="sticky top-0 z-50 bg-black" x-data="{ mobileOpen: false }">
+<header class="fixed inset-x-0 top-0 z-50 transition-all duration-300" 
+        x-data="{ mobileOpen: false, scrolled: false }"
+        @scroll.window="scrolled = (window.pageYOffset > 20)"
+        :class="scrolled ? 'bg-black/60 backdrop-blur-md shadow-lg' : 'bg-transparent'">
     <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-[72px] gap-6">
 
