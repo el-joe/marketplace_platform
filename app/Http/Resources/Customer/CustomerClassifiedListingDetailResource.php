@@ -23,7 +23,7 @@ class CustomerClassifiedListingDetailResource extends JsonResource
             'attributes'              => $this->attributes,
             'latitude'                => $this->latitude,
             'longitude'               => $this->longitude,
-            'status'                  => $this->status,
+            'status'                  => $this->status?->value,
             'rejection_reason'        => $this->rejection_reason,
             'views_count'             => $this->views_count,
             'expires_at'              => $this->expires_at?->toDateString(),
@@ -48,10 +48,14 @@ class CustomerClassifiedListingDetailResource extends JsonResource
                 'id'              => $att->id,
                 'attachment_type' => $att->attachment_type,
                 'url'             => Storage::url($att->file_path),
-                'status'          => $att->status,
+                'status'          => $att->status?->value,
             ])),
             'contract'                => $this->when(
-                in_array($this->status, ['pending_contract', 'pending_review', 'active'], true),
+                in_array($this->status, [
+                    \App\Enums\ClassifiedListingStatus::PendingContract,
+                    \App\Enums\ClassifiedListingStatus::PendingReview,
+                    \App\Enums\ClassifiedListingStatus::Active,
+                ], true),
                 fn () => [
                     'accepted_at'    => $this->contract_accepted_at?->toIso8601String(),
                     'has_signature'  => (bool) $this->contract_signature_data,

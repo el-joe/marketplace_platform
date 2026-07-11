@@ -14,7 +14,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="font-bold text-gray-900 text-lg">{{ __('admin.subscriptions.subscription_details') }}</h2>
                     <span class="badge badge-{{ $subscription->statusColor() }}">
-                        {{ __('admin.subscriptions.' . $subscription->status) }}
+                        {{ __('admin.subscriptions.' . $subscription->status->value) }}
                     </span>
                 </div>
 
@@ -163,7 +163,7 @@
                                         <td class="px-4 py-3 font-semibold text-gray-900">{{ $invoice->amountFormatted() }}</td>
                                         <td class="px-4 py-3">
                                             <span
-                                                class="badge badge-{{ $invoice->statusColor() }} text-xs">{{ __('admin.subscriptions.' . $invoice->status) }}</span>
+                                                class="badge badge-{{ $invoice->statusColor() }} text-xs">{{ __('admin.subscriptions.' . $invoice->status->value) }}</span>
                                         </td>
                                         <td class="px-4 py-3 text-xs text-gray-500">
                                             {{ $invoice->period_start?->format('d M') }} → {{ $invoice->period_end?->format('d M Y') }}
@@ -172,7 +172,7 @@
                                             {{ $invoice->paid_at?->format('d M Y H:i') ?? '—' }}
                                         </td>
                                         <td class="px-4 py-3">
-                                            @if($invoice->status !== 'paid')
+                                            @if($invoice->status !== \App\Enums\VendorSubscriptionInvoiceStatus::Paid)
                                                 <button type="button" class="btn btn-xs btn-success btn-mark-paid"
                                                     data-id="{{ $invoice->id }}">
                                                     {{ __('admin.subscriptions.mark_paid') }}

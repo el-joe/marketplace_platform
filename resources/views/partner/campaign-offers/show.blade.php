@@ -15,7 +15,7 @@
             inviteUrl:          "{{ route('partner.campaign-offers.invite', $offer->id) }}",
             revokeBaseUrl:      "{{ url('partner/campaign-offers/invitations') }}",
             marketerSearchUrl:  "{{ route('partner.campaign-offers.marketers.search') }}",
-            offerStatus:        "{{ $offer->status }}",
+            offerStatus:        "{{ $offer->status->value }}",
         };
         window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
         Object.assign(window.PARTNER_TRANSLATIONS, {
@@ -40,7 +40,7 @@
         'rejected'      => ['label' => __('partner.campaign_offers.status.rejected'),            'cls' => 'bg-red-100 text-red-700'],
         'ended'         => ['label' => __('partner.campaign_offers.status.ended'),            'cls' => 'bg-gray-100 text-gray-400'],
     ];
-    $st = $statusMap[$offer->status] ?? ['label' => $offer->status, 'cls' => 'bg-gray-100 text-gray-600'];
+    $st = $statusMap[$offer->status->value] ?? ['label' => $offer->status->value, 'cls' => 'bg-gray-100 text-gray-600'];
 
     $typeMap = [
         'product_promotion' => __('partner.campaign_offers.types.product_promotion'),
@@ -126,13 +126,13 @@
                 <div class="px-6 py-5 grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
                     <div>
                         <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">{{ __('partner.campaign_offers.campaign_type') }}</p>
-                        <p class="font-medium text-gray-900">{{ $typeMap[$offer->campaign_type] ?? $offer->campaign_type }}</p>
+                        <p class="font-medium text-gray-900">{{ $typeMap[$offer->campaign_type->value] ?? $offer->campaign_type->value }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">{{ __('partner.campaign_offers.offered_commission') }}</p>
                         <p class="font-medium text-gray-900">
                             {{ $offer->offered_commission_rate }}%
-                            <span class="text-xs text-gray-500 font-normal">{{ $commissionTypeMap[$offer->commission_type] ?? '' }}</span>
+                            <span class="text-xs text-gray-500 font-normal">{{ $commissionTypeMap[$offer->commission_type->value] ?? '' }}</span>
                         </p>
                     </div>
                     <div>
@@ -341,9 +341,9 @@
                 <div class="divide-y divide-gray-50" id="invitations-list">
                     @forelse ($offer->invitations as $inv)
                         @php
-                            $is = $invStatusMap[$inv->status] ?? ['label' => $inv->status, 'cls' => 'bg-gray-100 text-gray-500'];
+                            $is = $invStatusMap[$inv->status->value] ?? ['label' => $inv->status->value, 'cls' => 'bg-gray-100 text-gray-500'];
                         @endphp
-                        <div class="px-5 py-3 flex items-start gap-3" data-invitation-id="{{ $inv->id }}" data-status="{{ $inv->status }}">
+                        <div class="px-5 py-3 flex items-start gap-3" data-invitation-id="{{ $inv->id }}" data-status="{{ $inv->status->value }}">
                             {{-- Avatar --}}
                             <div class="h-9 w-9 flex-shrink-0 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-600">
                                 {{ mb_substr($inv->marketer->name ?? '?', 0, 1) }}

@@ -19,7 +19,7 @@ class CustomerClassifiedListingListResource extends JsonResource
             'title'          => Bilingual::pair($this->resource, 'title'),
             'price_cents'    => $this->price_cents,
             'currency'       => $this->currency,
-            'status'         => $this->status,
+            'status'         => $this->status?->value,
             'views_count'    => $this->views_count,
             'primary_image'  => $primaryImage ? Storage::url($primaryImage->file_path) : null,
             'created_at'     => $this->created_at?->toIso8601String(),

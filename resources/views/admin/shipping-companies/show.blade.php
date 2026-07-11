@@ -156,13 +156,13 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach($shippingCompany->agents as $agent)
-                        @php $ac = ['active'=>'emerald','suspended'=>'red','inactive'=>'gray','on_shift'=>'blue'][$agent->status] ?? 'gray'; @endphp
+                        @php $ac = ['active'=>'emerald','suspended'=>'red','inactive'=>'gray','on_shift'=>'blue'][$agent->status->value] ?? 'gray'; @endphp
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-3 font-medium text-gray-900">{{ $agent->name }}</td>
                             <td class="px-6 py-3 text-gray-500">{{ $agent->phone }}</td>
                             <td class="px-6 py-3">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $ac }}-100 text-{{ $ac }}-700 capitalize">
-                                    {{ __('admin.shipping_section.agent_status_' . $agent->status) }}
+                                    {{ __('admin.shipping_section.agent_status_' . $agent->status->value) }}
                                 </span>
                             </td>
                             <td class="px-6 py-3 text-gray-600">{{ number_format($agent->rating_avg, 1) }}</td>

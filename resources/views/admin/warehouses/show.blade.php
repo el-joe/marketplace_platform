@@ -279,10 +279,10 @@
                                 @php
                                     $isOutbound = $tf->source_warehouse_id === $warehouse->id;
                                     $statusBadge = match($tf->status) {
-                                        'pending'    => 'bg-yellow-100 text-yellow-700',
-                                        'in_transit' => 'bg-blue-100 text-blue-700',
-                                        'received'   => 'bg-green-100 text-green-700',
-                                        'cancelled'  => 'bg-gray-100 text-gray-500',
+                                        \App\Enums\InventoryTransferStatus::Draft     => 'bg-yellow-100 text-yellow-700',
+                                        \App\Enums\InventoryTransferStatus::InTransit => 'bg-blue-100 text-blue-700',
+                                        \App\Enums\InventoryTransferStatus::Received  => 'bg-green-100 text-green-700',
+                                        \App\Enums\InventoryTransferStatus::Cancelled => 'bg-gray-100 text-gray-500',
                                         default      => 'bg-gray-100 text-gray-700',
                                     };
                                 @endphp
@@ -303,11 +303,11 @@
                                     <td class="py-2.5 pr-4">
                                         @php
                                             $tfStatusLabel = match ($tf->status) {
-                                                'pending' => __('common.pending'),
-                                                'in_transit' => __('admin.warehouses_section.in_transit'),
-                                                'received' => __('admin.warehouses_section.received'),
-                                                'cancelled' => __('common.cancelled'),
-                                                default => $tf->status,
+                                                \App\Enums\InventoryTransferStatus::Draft => __('common.pending'),
+                                                \App\Enums\InventoryTransferStatus::InTransit => __('admin.warehouses_section.in_transit'),
+                                                \App\Enums\InventoryTransferStatus::Received => __('admin.warehouses_section.received'),
+                                                \App\Enums\InventoryTransferStatus::Cancelled => __('common.cancelled'),
+                                                default => $tf->status->value,
                                             };
                                         @endphp
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $statusBadge }}">

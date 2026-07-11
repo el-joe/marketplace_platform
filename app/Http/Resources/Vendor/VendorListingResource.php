@@ -18,7 +18,7 @@ class VendorListingResource extends JsonResource
         return [
             'id'                   => $this->id,
             'vendor_sku'           => $this->vendor_sku,
-            'status'               => $this->status,
+            'status'               => $this->status?->value,
             'condition'            => $this->condition,
             'fulfillment_model'    => $this->fulfillment_model,
             'global_system_type'   => $this->global_system_type?->value,

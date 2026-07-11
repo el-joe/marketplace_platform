@@ -19,7 +19,7 @@ class ClassifiedListingListResource extends JsonResource
             'title_ar'       => $this->title_ar,
             'price_cents'    => $this->price_cents,
             'currency'       => $this->currency,
-            'status'         => $this->status,
+            'status'         => $this->status?->value,
             'views_count'    => $this->views_count,
             'primary_image'  => $primaryImage ? Storage::url($primaryImage->file_path) : null,
             'created_at'     => $this->created_at?->toIso8601String(),

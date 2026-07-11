@@ -20,7 +20,7 @@ class PayoutResource extends JsonResource
             'tax_deduction_cents'     => (int) $this->tax_deduction_cents,
             'net_amount_cents'        => (int) $this->net_amount_cents,
             'currency'                => $this->currency,
-            'status'                  => $this->status,
+            'status'                  => $this->status?->value,
             'payment_reference'       => $this->payment_reference,
             'processed_at'            => $this->processed_at?->toIso8601String(),
             'paid_at'                 => $this->status === MarketerPayoutStatus::Paid ? $this->processed_at?->toIso8601String() : null,

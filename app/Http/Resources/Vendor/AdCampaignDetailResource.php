@@ -13,7 +13,7 @@ class AdCampaignDetailResource extends JsonResource
             'id'                  => $this->id,
             'name'                => $this->name,
             'type'                => $this->type,
-            'status'              => $this->status,
+            'status'              => $this->status?->value,
             'targeting_type'      => $this->targeting_type,
             'budget_total'        => (float) $this->budget_total,
             'budget_daily'        => $this->budget_daily !== null ? (float) $this->budget_daily : null,

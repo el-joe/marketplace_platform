@@ -9,7 +9,7 @@
         <span class="text-gray-300">/</span>
         <h1 class="text-xl font-bold text-gray-900">{{ $claim->claim_number }}</h1>
         <span class="badge {{ $claim->statusBadgeClass() }}">
-            {{ Str::title(str_replace('_',' ',$claim->status)) }}
+            {{ Str::title(str_replace('_',' ',$claim->status->value)) }}
         </span>
     </div>
 
@@ -20,7 +20,7 @@
             <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 <div>
                     <dt class="text-gray-500">{{ __('partner.claims.claim_type_label') }}</dt>
-                    <dd class="font-medium">{{ Str::title(str_replace('_',' ',$claim->claim_type)) }}</dd>
+                    <dd class="font-medium">{{ Str::title(str_replace('_',' ',$claim->claim_type->value)) }}</dd>
                 </div>
                 <div>
                     <dt class="text-gray-500">{{ __('partner.claims.claimed_amount_label') }}</dt>
@@ -47,7 +47,7 @@
             <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{{ __('common.status') }}</h2>
             @php
                 $steps = ['submitted','under_review','approved','compensated'];
-                $current = array_search($claim->status, $steps);
+                $current = array_search($claim->status->value, $steps);
                 if ($claim->status === \App\Enums\CarrierClaimStatus::Rejected) $current = -1;
             @endphp
             @if($claim->status === \App\Enums\CarrierClaimStatus::Rejected)

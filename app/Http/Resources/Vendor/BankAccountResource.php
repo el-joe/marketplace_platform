@@ -22,7 +22,7 @@ class BankAccountResource extends JsonResource
             'swift_code'            => $this->swift_code,
             'currency'              => $this->currency,
             'is_primary'            => (bool) $this->is_primary,
-            'verification_status'   => $this->verification_status,
+            'verification_status'   => $this->verification_status?->value,
             'verified_at'           => $this->verified_at?->toISOString(),
             'created_at'            => $this->created_at?->toISOString(),
         ];

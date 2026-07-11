@@ -66,8 +66,8 @@
                             'verified' => ['bg-green-100 text-green-700',   __('partner.bank_accounts.verification.verified')],
                             'rejected' => ['bg-red-100 text-red-700',       __('partner.bank_accounts.verification.rejected')],
                         ];
-                        [$verifyCls, $verifyLabel] = $verificationMap[$account->verification_status]
-                            ?? ['bg-gray-100 text-gray-500', $account->verification_status];
+                        [$verifyCls, $verifyLabel] = $verificationMap[$account->verification_status->value]
+                            ?? ['bg-gray-100 text-gray-500', $account->verification_status->value];
 
                         $clean  = preg_replace('/\s+/', '', $account->iban);
                         $len    = strlen($clean);
@@ -75,7 +75,7 @@
                     @endphp
                     <div class="bank-account-card bg-white rounded-2xl border {{ $account->is_primary ? 'border-yellow-400' : 'border-gray-200' }} p-5"
                          data-id="{{ $account->id }}"
-                         data-status="{{ $account->verification_status }}"
+                         data-status="{{ $account->verification_status->value }}"
                          data-primary="{{ $account->is_primary ? '1' : '0' }}">
 
                         <div class="flex items-start justify-between gap-3 mb-4">
@@ -127,7 +127,7 @@
                         </div>
 
                         <div class="flex items-center gap-2 pt-3 border-t border-gray-50">
-                            @if(!$account->is_primary && $account->verification_status === 'verified')
+                            @if(!$account->is_primary && $account->verification_status === \App\Enums\VendorBankAccountVerificationStatus::Verified)
                                 <button type="button"
                                         class="btn-set-primary flex-1 text-xs bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium py-2 rounded-lg transition-colors"
                                         data-id="{{ $account->id }}">

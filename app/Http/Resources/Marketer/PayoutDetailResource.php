@@ -20,7 +20,7 @@ class PayoutDetailResource extends JsonResource
             'tax_deduction_cents'     => (int) $this->tax_deduction_cents,
             'net_amount_cents'        => (int) $this->net_amount_cents,
             'currency'                => $this->currency,
-            'status'                  => $this->status,
+            'status'                  => $this->status?->value,
             'bank_name'               => $this->bank_name,
             'bank_iban'               => $this->bank_iban,
             'payment_reference'       => $this->payment_reference,

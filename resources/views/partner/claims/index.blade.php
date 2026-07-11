@@ -30,13 +30,13 @@
                 @forelse($claims as $claim)
                     <tr class="hover:bg-gray-50">
                         <td class="td font-mono text-xs">{{ $claim->claim_number }}</td>
-                        <td class="td">{{ Str::title(str_replace('_',' ',$claim->claim_type)) }}</td>
+                        <td class="td">{{ Str::title(str_replace('_',' ',$claim->claim_type->value)) }}</td>
                         <td class="td text-gray-700">{{ $claim->shippingCompany?->name ?? '—' }}</td>
                         <td class="td">{{ $claim->claimed_amount_formatted }}</td>
                         <td class="td">{{ $claim->compensated_amount_formatted }}</td>
                         <td class="td">
                             <span class="badge {{ $claim->statusBadgeClass() }}">
-                                {{ Str::title(str_replace('_',' ',$claim->status)) }}
+                                {{ Str::title(str_replace('_',' ',$claim->status->value)) }}
                             </span>
                         </td>
                         <td class="td text-gray-500 text-xs">{{ $claim->created_at->format('d M Y') }}</td>

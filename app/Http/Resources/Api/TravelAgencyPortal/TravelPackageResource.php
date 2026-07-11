@@ -29,7 +29,7 @@ class TravelPackageResource extends JsonResource
             'seats_booked' => $this->seats_booked,
             'seats_remaining' => $this->seatsRemaining(),
             'inclusions' => $this->inclusions,
-            'status' => $this->status,
+            'status' => $this->status?->value,
             'rejection_reason' => $this->rejection_reason,
             'contract_uploaded' => (bool) $this->contract_file_path,
             'contract_uploaded_at' => $this->contract_uploaded_at?->toIso8601String(),

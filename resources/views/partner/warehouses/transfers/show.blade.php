@@ -9,7 +9,7 @@
             transferId: '{{ $transfer->id }}',
             shipUrl:    '{{ route('partner.warehouses.transfers.ship', $transfer->id) }}',
             cancelUrl:  '{{ route('partner.warehouses.transfers.cancel', $transfer->id) }}',
-            status:     '{{ $transfer->status }}',
+            status:     '{{ $transfer->status->value }}',
         };
     </script>
 @endpush
@@ -31,10 +31,10 @@
                     <span class="font-mono font-bold text-lg text-gray-900">{{ $transfer->transfer_number }}</span>
                     @php
                         $statusClasses = match($transfer->status) {
-                            'draft'      => 'bg-gray-100 text-gray-600',
-                            'in_transit' => 'bg-blue-100 text-blue-700',
-                            'received'   => 'bg-green-100 text-green-700',
-                            'cancelled'  => 'bg-red-100 text-red-600',
+                            \App\Enums\InventoryTransferStatus::Draft      => 'bg-gray-100 text-gray-600',
+                            \App\Enums\InventoryTransferStatus::InTransit  => 'bg-blue-100 text-blue-700',
+                            \App\Enums\InventoryTransferStatus::Received   => 'bg-green-100 text-green-700',
+                            \App\Enums\InventoryTransferStatus::Cancelled  => 'bg-red-100 text-red-600',
                             default      => 'bg-gray-100 text-gray-600',
                         };
                         $statusLabels = [
@@ -45,7 +45,7 @@
                         ];
                     @endphp
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-semibold {{ $statusClasses }}">
-                        {{ $statusLabels[$transfer->status] ?? ucfirst(str_replace('_', ' ', $transfer->status)) }}
+                        {{ $statusLabels[$transfer->status->value] ?? ucfirst(str_replace('_', ' ', $transfer->status->value)) }}
                     </span>
                 </div>
                 <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm">

@@ -12,7 +12,7 @@ class InventoryTransferResource extends JsonResource
         return [
             'id'                       => $this->id,
             'transfer_number'          => $this->transfer_number,
-            'status'                   => $this->status,
+            'status'                   => $this->status?->value,
             'source_warehouse_id'      => $this->source_warehouse_id,
             'destination_warehouse_id' => $this->destination_warehouse_id,
             'carrier'                  => $this->carrier,

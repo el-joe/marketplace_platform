@@ -26,7 +26,7 @@
         'ended'            => ['label' => __('partner.ads.statuses.ended'),           'cls' => 'bg-gray-100 text-gray-500'],
         'rejected'         => ['label' => __('partner.ads.statuses.rejected'),           'cls' => 'bg-red-100 text-red-700'],
     ];
-    $st = $statusMap[$campaign->status] ?? ['label' => $campaign->status, 'cls' => 'bg-gray-100 text-gray-600'];
+    $st = $statusMap[$campaign->status->value] ?? ['label' => $campaign->status->value, 'cls' => 'bg-gray-100 text-gray-600'];
     $adCurrency = $campaign->country?->currency_code ?? '';
 @endphp
 

@@ -14,7 +14,7 @@ class CustomerResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'status' => $this->status,
+            'status' => $this->status?->value,
             'date_of_birth' => $this->date_of_birth?->toDateString(),
             'total_orders' => $this->total_orders,
             'total_spent' => (float) $this->total_spent,

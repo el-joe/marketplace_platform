@@ -11,7 +11,7 @@ class QrCodeResource extends JsonResource
     {
         return [
             'id'          => $this->id,
-            'type'        => $this->code_type,
+            'type'        => $this->code_type?->value,
             'label'       => $this->custom_label,
             'target_url'  => $this->barcode_value,
             'image_url'   => $this->qr_url,

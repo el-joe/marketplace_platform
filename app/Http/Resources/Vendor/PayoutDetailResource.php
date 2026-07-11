@@ -23,7 +23,7 @@ class PayoutDetailResource extends JsonResource
             'period_start'    => $this->period_start?->toDateString(),
             'period_end'      => $this->period_end?->toDateString(),
             'currency'        => $this->currency,
-            'status'          => $this->status,
+            'status'          => $this->status?->value,
             'payout_method'   => $this->payout_method,
             'gateway_reference' => $this->gateway_reference,
             'processed_at'    => $this->processed_at?->toISOString(),

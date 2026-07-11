@@ -50,17 +50,17 @@
                         <dd class="font-medium mt-0.5">
                             @php
                                 $statusColors = ['pending_admin'=>'warning','active'=>'success','draft'=>'gray','paused'=>'gray','ended'=>'gray','cancelled'=>'danger'];
-                                $c = $statusColors[$offer->status] ?? 'gray';
+                                $c = $statusColors[$offer->status->value] ?? 'gray';
                                 $label = $offer->status === \App\Enums\VendorCampaignOfferStatus::PendingAdmin
                                     ? __('admin.vendor_campaign_offers.pending_review_option')
-                                    : __('admin.vendor_campaign_offers.' . $offer->status . '_option');
+                                    : __('admin.vendor_campaign_offers.' . $offer->status->value . '_option');
                             @endphp
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $label }}</span>
                         </dd>
                     </div>
                     <div>
                         <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.commission_type_label') }}</dt>
-                        <dd class="font-medium mt-0.5">{{ ucwords(str_replace('_', ' ', $offer->commission_type)) }}</dd>
+                        <dd class="font-medium mt-0.5">{{ ucwords(str_replace('_', ' ', $offer->commission_type->value)) }}</dd>
                     </div>
                     <div>
                         <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.date_range_label') }}</dt>
@@ -86,7 +86,7 @@
                     </div>
                     <div>
                         <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.attribution_model_label') }}</dt>
-                        <dd class="font-medium mt-0.5">{{ ucwords(str_replace('_', ' ', $offer->attribution_model)) }}</dd>
+                        <dd class="font-medium mt-0.5">{{ ucwords(str_replace('_', ' ', $offer->attribution_model?->value ?? '')) }}</dd>
                     </div>
                     <div>
                         <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.whatsapp_sharing_label') }}</dt>
@@ -174,13 +174,13 @@
                                 @foreach($offer->invitations->sortBy('created_at') as $inv)
                                     @php
                                         $invColors = ['pending'=>'warning','accepted'=>'success','declined'=>'danger','expired'=>'gray','revoked'=>'gray'];
-                                        $ic = $invColors[$inv->status] ?? 'gray';
+                                        $ic = $invColors[$inv->status->value] ?? 'gray';
                                     @endphp
                                     <tr>
                                         <td class="py-2 pr-4 font-medium">{{ $inv->marketer?->name ?? '—' }}</td>
                                         <td class="py-2 pr-4">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $ic }}-100 text-{{ $ic }}-700">
-                                                {{ __('admin.vendor_campaign_offers.invitation_status_' . $inv->status) }}
+                                                {{ __('admin.vendor_campaign_offers.invitation_status_' . $inv->status->value) }}
                                             </span>
                                         </td>
                                         <td class="py-2 pr-4 text-gray-500">

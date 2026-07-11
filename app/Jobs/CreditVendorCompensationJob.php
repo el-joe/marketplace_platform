@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\CarrierClaimStatus;
 use App\Models\CarrierClaim;
 use App\Services\WalletService;
 use Illuminate\Bus\Queueable;
@@ -23,7 +24,7 @@ class CreditVendorCompensationJob implements ShouldQueue
     {
         $claim = $this->claim->fresh(['shipment.subOrder.vendor']);
 
-        if (! $claim || $claim->status !== 'approved') {
+        if (! $claim || $claim->status !== CarrierClaimStatus::Approved) {
             return;
         }
 

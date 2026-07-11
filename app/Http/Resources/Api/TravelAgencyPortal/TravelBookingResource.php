@@ -12,7 +12,7 @@ class TravelBookingResource extends JsonResource
         return [
             'id' => $this->id,
             'booking_number' => $this->booking_number,
-            'status' => $this->status,
+            'status' => $this->status?->value,
             'travelers_count' => $this->travelers_count,
             'total_price_cents' => $this->total_price_cents,
             'currency' => $this->whenLoaded('package', fn () => $this->package->currency),

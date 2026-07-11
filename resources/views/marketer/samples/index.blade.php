@@ -59,7 +59,7 @@ $statusColors = [
                         {{ __('marketer.samples.items_count', ['count' => $sr->items->sum('marketer_quantity')]) }}
                     </td>
                     <td class="px-5 py-3">
-                        <span class="text-xs font-semibold rounded-full px-2.5 py-1 {{ $statusColors[$sr->status] ?? 'bg-gray-100 text-gray-600' }}">
+                        <span class="text-xs font-semibold rounded-full px-2.5 py-1 {{ $statusColors[$sr->status->value] ?? 'bg-gray-100 text-gray-600' }}">
                             {{ ucfirst($sr->status->value) }}
                         </span>
                         @if($sr->status === \App\Enums\MarketerSampleRequestStatus::Rejected && $sr->rejection_reason)

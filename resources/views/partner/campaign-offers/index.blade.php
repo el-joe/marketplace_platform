@@ -79,7 +79,7 @@
                                 'rejected'      => ['label' => __('partner.campaign_offers.status.rejected'),            'cls' => 'bg-red-100 text-red-700'],
                                 'ended'         => ['label' => __('partner.campaign_offers.status.ended'),            'cls' => 'bg-gray-100 text-gray-400'],
                             ];
-                            $st = $statusMap[$offer->status] ?? ['label' => $offer->status, 'cls' => 'bg-gray-100 text-gray-600'];
+                            $st = $statusMap[$offer->status->value] ?? ['label' => $offer->status->value, 'cls' => 'bg-gray-100 text-gray-600'];
                             $typeMap = [
                                 'product_promotion' => __('partner.campaign_offers.types.product_promotion'),
                                 'store_promotion'   => __('partner.campaign_offers.types.store_promotion'),
@@ -94,7 +94,7 @@
                                    class="font-medium text-primary-600 hover:underline">{{ $offer->name }}</a>
                                 <p class="text-xs text-gray-400 mt-0.5">{{ $offer->created_at->format('d M Y') }}</p>
                             </td>
-                            <td class="px-4 py-3 text-gray-700">{{ $typeMap[$offer->campaign_type] ?? $offer->campaign_type }}</td>
+                            <td class="px-4 py-3 text-gray-700">{{ $typeMap[$offer->campaign_type->value] ?? $offer->campaign_type->value }}</td>
                             <td class="px-4 py-3">
                                 <span class="font-semibold text-gray-900">{{ $offer->offered_commission_rate }}%</span>
                                 <span class="text-xs text-gray-400 mr-1">{{ __('partner.campaign_offers.commission_suffix.' . $offer->commission_type) }}</span>

@@ -149,7 +149,7 @@
                                 @foreach($vendor->documents as $doc)
                                     @php
                                         $docStatColors = ['verified'=>'success','approved'=>'success','pending'=>'warning','rejected'=>'danger','expired'=>'danger'];
-                                        $dc = $docStatColors[$doc->status] ?? 'gray';
+                                        $dc = $docStatColors[$doc->status->value] ?? 'gray';
                                     @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="py-2 pr-3 font-medium">
@@ -157,7 +157,7 @@
                                         </td>
                                         <td class="py-2 pr-3">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $dc }}-100 text-{{ $dc }}-700">
-                                                {{ __('admin.vendor_applications.doc_status_' . $doc->status) }}
+                                                {{ __('admin.vendor_applications.doc_status_' . $doc->status->value) }}
                                             </span>
                                             @if($doc->rejection_reason)
                                                 <div class="text-xs text-red-600 mt-0.5">{{ $doc->rejection_reason }}</div>
@@ -255,7 +255,7 @@
                         <div>
                             <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.status_label') }}</dt>
                             <dd>
-                                @php $bsc = $bankStatusColors[$primaryBank->verification_status] ?? 'gray'; @endphp
+                                @php $bsc = $bankStatusColors[$primaryBank->verification_status->value] ?? 'gray'; @endphp
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $bsc }}-100 text-{{ $bsc }}-700">
                                     {{ __('admin.vendor_applications.bank_status_' . ($primaryBank->verification_status ?? 'unverified')) }}
                                 </span>
@@ -270,7 +270,7 @@
                             <dd class="font-mono text-xs">{{ $primaryBank->swift_code ?? '—' }}</dd>
                         </div>
                     </dl>
-                    @if($primaryBank->verification_status !== 'verified')
+                    @if($primaryBank->verification_status !== \App\Enums\VendorBankAccountVerificationStatus::Verified)
                         <div class="mt-4">
                             <button type="button"
                                 class="btn btn-success btn-sm js-verify-bank-btn"

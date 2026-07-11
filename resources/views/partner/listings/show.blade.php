@@ -16,7 +16,7 @@
         'out_of_stock' => ['bg-red-50 text-red-500', __('partner.listings.show.statuses.out_of_stock')],
         'archived' => ['bg-gray-100 text-gray-400', __('partner.listings.show.statuses.archived')],
     ];
-    [$statusClass, $statusLabel] = $statusMap[$listing->status] ?? ['bg-gray-100 text-gray-600', $listing->status];
+    [$statusClass, $statusLabel] = $statusMap[$listing->status->value] ?? ['bg-gray-100 text-gray-600', $listing->status->value];
 
     $fulfillmentLabels = [
         'fbm' => __('partner.listings.show.fulfillment_labels.fbm'),

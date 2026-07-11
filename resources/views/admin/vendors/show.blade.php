@@ -418,10 +418,10 @@
                                 @forelse($payouts as $payout)
                                     @php
                                         $pc = match($payout->status) {
-                                            'completed','paid' => 'success',
-                                            'pending','processing' => 'gray',
-                                            'failed' => 'danger',
-                                            'on_hold' => 'warning',
+                                            \App\Enums\PayoutStatus::Completed, \App\Enums\PayoutStatus::Approved => 'success',
+                                            \App\Enums\PayoutStatus::Pending, \App\Enums\PayoutStatus::Processing => 'gray',
+                                            \App\Enums\PayoutStatus::Failed => 'danger',
+                                            \App\Enums\PayoutStatus::OnHold => 'warning',
                                             default => 'gray',
                                         };
                                     @endphp
@@ -432,7 +432,7 @@
                                         </td>
                                         <td class="py-3 pr-4 tabular-nums">${{ number_format($payout->gross_sales / 100, 2) }}</td>
                                         <td class="py-3 pr-4 tabular-nums font-medium">${{ number_format($payout->net_amount / 100, 2) }}</td>
-                                        <td class="py-3 pr-4"><x-badge :color="$pc">{{ __('admin.payouts.' . $payout->status) }}</x-badge></td>
+                                        <td class="py-3 pr-4"><x-badge :color="$pc">{{ __('admin.payouts.' . $payout->status->value) }}</x-badge></td>
                                         <td class="py-3 text-xs text-gray-500">{{ $payout->processed_at ? \Carbon\Carbon::parse($payout->processed_at)->format('d M Y') : '—' }}</td>
                                     </tr>
                                 @empty
