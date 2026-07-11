@@ -296,8 +296,6 @@ class PageBuilderService
                 ->orderBy('sale_ends_at')
                 ->first();
 
-        dd($sale, $flashSaleId, $country);
-
         if (!$sale) {
             return [];
         }
