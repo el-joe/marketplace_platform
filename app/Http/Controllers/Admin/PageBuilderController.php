@@ -402,8 +402,6 @@ class PageBuilderController extends Controller
                 ->orderBy('name_en')->get(['id', 'name_en']);
         }
 
-        dd($extra);
-
         return response()->view($view, array_merge([
             'blockType' => $blockType,
             'block' => $block,
