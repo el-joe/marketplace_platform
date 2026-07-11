@@ -20,7 +20,7 @@ class VendorActive
         if ($vendorAdmin) {
             $vendor = $vendorAdmin->vendor;
 
-            if ($vendor && !in_array($vendor->global_status, ['active', 'under_review'], true)) {
+            if ($vendor && !in_array($vendor->global_status->value, ['active', 'under_review'], true)) {
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => false,
