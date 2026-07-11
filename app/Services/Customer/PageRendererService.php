@@ -8,6 +8,7 @@ use App\Jobs\FlushBlockImpressionJob;
 use App\Jobs\LogAbImpressionJob;
 use App\Models\AbTest;
 use App\Models\AdImageItem;
+use App\Models\Banner;
 use App\Models\Category;
 use App\Models\Country;
 use App\Models\Customer;
@@ -639,24 +640,33 @@ class PageRendererService
 
     private function hydrateFullBanner(PageBlock $block): ?array
     {
-        $item = AdImageItem::where('page_block_id', $block->id)
-            ->where('is_active', true)
-            ->orderBy('position')
-            ->first();
+        $cfg = $block->config ?? [];
 
-        if (!$item) {
+        if (empty($cfg['banner_id'])) {
             return null;
         }
 
-        $cfg = $block->config ?? [];
+        $banner = Banner::with('files')->find($cfg['banner_id']);
+
+        if (!$banner) {
+            return null;
+        }
+
+        $desktopImage = $banner->files->firstWhere('file_type', 'banner_desktop');
+        $mobileImage = $banner->files->firstWhere('file_type', 'banner_mobile');
+
+        if (!$desktopImage) {
+            return null;
+        }
 
         return [
-            'image_url' => $item->file_url,
-            'link_url' => $item->link_url,
+            'image_url' => $desktopImage->full_path,
+            'mobile_image_url' => $mobileImage?->full_path,
+            'link_url' => $cfg['link_url'] ?? $banner->cta_url,
             'link_type' => $cfg['link_type'] ?? null,
             'link_reference_id' => $cfg['link_reference_id'] ?? null,
-            'alt_text' => Bilingual::pair($item, 'alt_text'),
-            'aspect_ratio' => $item->aspect_ratio,
+            'alt_text' => Bilingual::pair($banner, 'title'),
+            'aspect_ratio' => $cfg['aspect_ratio'] ?? null,
             'mobile_aspect_ratio' => $cfg['mobile_aspect_ratio'] ?? null,
         ];
     }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdImageItem;
 use App\Models\BlockAnalytic;
 use App\Models\BlockClickEvent;
+use App\Models\Banner;
 use App\Models\BlockType;
 use App\Models\Brand;
 use App\Models\Category;
@@ -400,6 +401,9 @@ class PageBuilderController extends Controller
             $extra['flashSales'] = FlashSale::whereIn('status', ['submission_open', 'approved', 'live'])
                 ->orWhere('id', $config['flash_sale_id'] ?? null)
                 ->orderBy('name_en')->get(['id', 'name_en']);
+        }
+        if ($blockType->code === 'full_banner') {
+            $extra['banners'] = Banner::orderBy('name')->get(['id', 'name']);
         }
 
         return response()->view($view, array_merge([

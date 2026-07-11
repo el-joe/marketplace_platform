@@ -7184,6 +7184,8 @@ return [
             ],
 
             'full_banner' => [
+                'banner'            => 'Banner',
+                'select_banner_placeholder' => 'Select a banner…',
                 'link_url'          => 'Link URL',
                 'link_type'         => 'Link type',
                 'link_type_url'     => 'External URL',
@@ -7193,7 +7195,8 @@ return [
                 'link_type_flash_sale' => 'Flash sale',
                 'desktop_ratio'     => 'Desktop ratio',
                 'mobile_ratio'      => 'Mobile ratio',
-                'upload_banner_help' => 'Upload the banner image via the',
+                'select_banner_help' => 'Need to create or upload a new banner first? Manage banners via the',
+                'banners_page_link' => 'Banners page',
             ],
 
             'text_block' => [

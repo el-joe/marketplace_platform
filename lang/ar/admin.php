@@ -7178,6 +7178,8 @@ return [
             ],
 
             'full_banner' => [
+                'banner'            => 'البانر',
+                'select_banner_placeholder' => 'اختر بانر…',
                 'link_url'          => 'رابط الوجهة',
                 'link_type'         => 'نوع الرابط',
                 'link_type_url'     => 'رابط خارجي',
@@ -7187,7 +7189,8 @@ return [
                 'link_type_flash_sale' => 'عرض سريع',
                 'desktop_ratio'     => 'نسبة سطح المكتب',
                 'mobile_ratio'      => 'نسبة الجوال',
-                'upload_banner_help' => 'ارفع صورة البانر عبر',
+                'select_banner_help' => 'هل تحتاج لإنشاء أو رفع بانر جديد؟ يمكنك إدارة البانرات عبر',
+                'banners_page_link' => 'صفحة البانرات',
             ],
 
             'text_block' => [
