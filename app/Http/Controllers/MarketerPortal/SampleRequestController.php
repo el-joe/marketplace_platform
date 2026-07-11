@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\MarketerPortal;
 
+use App\Enums\MarketerSampleRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\MarketerSampleRequest;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +34,7 @@ class SampleRequestController extends Controller
 
         abort_if($sampleRequest->marketer_id !== $marketer->id, 403);
 
-        if ($sampleRequest->status !== 'dispatched') {
+        if ($sampleRequest->status !== MarketerSampleRequestStatus::Dispatched) {
             if (request()->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Sample must be dispatched before marking received.'], 422);
             }

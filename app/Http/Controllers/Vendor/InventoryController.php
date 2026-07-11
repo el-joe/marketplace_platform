@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Vendor;
 
+use App\Enums\WarehouseType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Vendor\AdjustInventoryRequest;
 use App\Http\Requests\Vendor\CreateTransferRequest;
@@ -99,7 +100,7 @@ class InventoryController extends Controller
 
         // Destination must be a platform FBN warehouse
         $destination = Warehouse::findOrFail($request->destination_warehouse_id);
-        if ($destination->type !== 'platform_fbn' || ! $destination->is_active) {
+        if ($destination->type !== WarehouseType::PlatformFbn || ! $destination->is_active) {
             return ApiResponse::error('Destination must be an active platform FBN warehouse.', [], 422);
         }
 

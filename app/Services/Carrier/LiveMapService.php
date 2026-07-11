@@ -51,7 +51,7 @@ class LiveMapService
         $assignments = DB::table('delivery_assignments as da')
             ->join('delivery_agents as a', 'a.id', '=', 'da.agent_id')
             ->join('sub_orders as so', 'so.id', '=', 'da.sub_order_id')
-            ->where('da.status', 'picked_up')
+            ->where('da.status', DeliveryAssignmentStatus::PickedUp->value)
             ->where('a.shipping_company_id', $company->id)
             ->whereNotNull('a.current_latitude')
             ->select([

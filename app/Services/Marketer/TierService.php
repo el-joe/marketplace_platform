@@ -2,6 +2,7 @@
 
 namespace App\Services\Marketer;
 
+use App\Enums\MarketerTrackingStatus;
 use App\Models\Marketer;
 use App\Models\MarketerCommissionTier;
 
@@ -10,7 +11,7 @@ class TierService
     public function getProgress(Marketer $marketer): array
     {
         $salesCount = $marketer->conversions()
-            ->where('status', '!=', 'reversed')
+            ->where('status', '!=', MarketerTrackingStatus::Reversed)
             ->count();
 
         $tiers = MarketerCommissionTier::where('marketer_id', $marketer->id)

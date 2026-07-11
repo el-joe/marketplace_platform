@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PayoutSchedule;
 use App\Enums\VendorBusinessType;
 use App\Enums\VendorGlobalStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -72,6 +73,7 @@ class Vendor extends Model
             'strikes_count' => 'integer',
             'global_status' => VendorGlobalStatus::class,
             'business_type' => VendorBusinessType::class,
+            'payout_schedule' => PayoutSchedule::class,
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Vendor;
 
+use App\Enums\AdCampaignStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -26,7 +27,7 @@ class AdCampaignListResource extends JsonResource
             'quality_score'       => $this->quality_score !== null ? (float) $this->quality_score : null,
             'starts_at'           => $this->starts_at?->toISOString(),
             'ends_at'             => $this->ends_at?->toISOString(),
-            'rejection_reason'    => $this->when($this->status === 'rejected', $this->rejection_reason),
+            'rejection_reason'    => $this->when($this->status === AdCampaignStatus::Rejected, $this->rejection_reason),
             // today at-a-glance
             'today_impressions'   => $today?->impressions ?? 0,
             'today_clicks'        => $today?->clicks ?? 0,

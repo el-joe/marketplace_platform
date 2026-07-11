@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\ShippingCompanyStatus;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,21 +24,21 @@ class CarrierApiActive
 
         $company = $supervisor->company;
 
-        if ($company->status === 'pending') {
+        if ($company->status === ShippingCompanyStatus::Pending) {
             auth()->guard('shipping_supervisor_api')->logout();
             return response()->json([
                 'success' => false,
                 'message' => 'Your company is pending platform approval.',
-                'company_status' => 'pending',
+                'company_status' => ShippingCompanyStatus::Pending->value,
             ], 403);
         }
 
-        if ($company->status === 'suspended') {
+        if ($company->status === ShippingCompanyStatus::Suspended) {
             auth()->guard('shipping_supervisor_api')->logout();
             return response()->json([
                 'success' => false,
                 'message' => 'Your company has been suspended. Please contact platform support.',
-                'company_status' => 'suspended',
+                'company_status' => ShippingCompanyStatus::Suspended->value,
             ], 403);
         }
 

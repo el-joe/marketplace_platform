@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\ShippingCompanyStatus;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,14 +28,14 @@ class ShippingCompanySupervisorAuth
                 ->withErrors(['email' => 'حسابك موقوف. تواصل مع مدير الشركة.']);
         }
 
-        if ($supervisor->company->status === 'suspended') {
+        if ($supervisor->company->status === ShippingCompanyStatus::Suspended) {
             auth()->guard('shipping_supervisor')->logout();
 
             return redirect()->route('carrier.login')
                 ->withErrors(['email' => 'شركتك موقوفة من المنصة. تواصل مع الدعم.']);
         }
 
-        if ($supervisor->company->status === 'pending') {
+        if ($supervisor->company->status === ShippingCompanyStatus::Pending) {
             auth()->guard('shipping_supervisor')->logout();
 
             return redirect()->route('carrier.login')

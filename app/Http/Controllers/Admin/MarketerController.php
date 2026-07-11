@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\MarketerSampleRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Country;
@@ -1053,7 +1054,7 @@ class MarketerController extends Controller
 
     public function approveSample(Request $httpRequest, MarketerSampleRequest $req): JsonResponse
     {
-        if ($req->status !== 'requested') {
+        if ($req->status !== MarketerSampleRequestStatus::Requested) {
             return response()->json(['success' => false, 'message' => 'Request is not pending.'], 422);
         }
 
@@ -1097,7 +1098,7 @@ class MarketerController extends Controller
 
     public function dispatchSample(MarketerSampleRequest $req): JsonResponse
     {
-        if ($req->status !== 'approved') {
+        if ($req->status !== MarketerSampleRequestStatus::Approved) {
             return response()->json(['success' => false, 'message' => 'Request must be approved first.'], 422);
         }
 
@@ -1113,7 +1114,7 @@ class MarketerController extends Controller
 
     public function rejectSample(Request $httpRequest, MarketerSampleRequest $req): JsonResponse
     {
-        if ($req->status !== 'requested') {
+        if ($req->status !== MarketerSampleRequestStatus::Requested) {
             return response()->json(['success' => false, 'message' => 'Only pending requests can be rejected.'], 422);
         }
 
@@ -1174,10 +1175,10 @@ class MarketerController extends Controller
     {
         $html = '<div class="flex gap-1">';
         $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-secondary btn-view-sample">Details</button>';
-        if ($row->status === 'requested') {
+        if ($row->status === MarketerSampleRequestStatus::Requested) {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-success btn-approve-sample">Approve</button>';
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-danger btn-reject-sample">Reject</button>';
-        } elseif ($row->status === 'approved') {
+        } elseif ($row->status === MarketerSampleRequestStatus::Approved) {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-primary btn-dispatch-sample">Dispatch</button>';
         }
         $html .= '</div>';

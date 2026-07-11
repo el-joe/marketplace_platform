@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MarketerSampleRequestStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,7 @@ class MarketerSampleRequest extends Model
     protected function casts(): array
     {
         return [
+            'status' => MarketerSampleRequestStatus::class,
             'approved_at' => 'datetime',
             'dispatched_at' => 'datetime',
             'received_at' => 'datetime',
@@ -70,11 +72,11 @@ class MarketerSampleRequest extends Model
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'approved' => 'success',
-            'requested' => 'warning',
-            'dispatched' => 'primary',
-            'received' => 'success',
-            'rejected' => 'danger',
+            MarketerSampleRequestStatus::Approved => 'success',
+            MarketerSampleRequestStatus::Requested => 'warning',
+            MarketerSampleRequestStatus::Dispatched => 'primary',
+            MarketerSampleRequestStatus::Received => 'success',
+            MarketerSampleRequestStatus::Rejected => 'danger',
             default => 'secondary',
         };
     }

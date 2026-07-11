@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AdCampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdCampaign;
 use App\Notifications\Vendor\AdCampaignApproved;
@@ -30,9 +31,9 @@ class AdCampaignController extends Controller
         $today = today();
 
         $stats = [
-            'pending' => AdCampaign::where('status', 'pending_review')->count(),
-            'active' => AdCampaign::where('status', 'active')->count(),
-            'paused' => AdCampaign::where('status', 'paused')->count(),
+            'pending' => AdCampaign::where('status', AdCampaignStatus::PendingReview->value)->count(),
+            'active' => AdCampaign::where('status', AdCampaignStatus::Active->value)->count(),
+            'paused' => AdCampaign::where('status', AdCampaignStatus::Paused->value)->count(),
             'spend_today' => (int) AdDailyStat::whereDate('date', $today)->sum('spend_cents'),
         ];
 
@@ -149,12 +150,12 @@ class AdCampaignController extends Controller
         $html .= "<a href=\"{$showUrl}\" class=\"btn btn-xs btn-secondary\">View</a>";
 
         if ($canEdit) {
-            if ($campaign->status?->value === 'pending_review') {
+            if ($campaign->status?->value === AdCampaignStatus::PendingReview->value) {
                 $html .= "<button type=\"button\" class=\"btn btn-xs btn-success js-approve-btn\" data-url=\"{$approveUrl}\" data-name=\"" . e($campaign->name) . "\">Approve</button>";
                 $html .= "<button type=\"button\" class=\"btn btn-xs btn-danger js-reject-btn\" data-url=\"{$rejectUrl}\" data-name=\"" . e($campaign->name) . "\">Reject</button>";
-            } elseif ($campaign->status?->value === 'active') {
+            } elseif ($campaign->status?->value === AdCampaignStatus::Active->value) {
                 $html .= "<button type=\"button\" class=\"btn btn-xs btn-warning js-pause-btn\" data-url=\"{$pauseUrl}\" data-name=\"" . e($campaign->name) . "\">Pause</button>";
-            } elseif ($campaign->status?->value === 'paused') {
+            } elseif ($campaign->status?->value === AdCampaignStatus::Paused->value) {
                 $html .= "<button type=\"button\" class=\"btn btn-xs btn-success js-resume-btn\" data-url=\"{$resumeUrl}\" data-name=\"" . e($campaign->name) . "\">Resume</button>";
             }
         }
@@ -221,12 +222,12 @@ class AdCampaignController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
-        if (!in_array($campaign->status?->value, ['pending_review', 'paused'])) {
+        if (!in_array($campaign->status?->value, [AdCampaignStatus::PendingReview->value, AdCampaignStatus::Paused->value])) {
             return response()->json(['message' => 'Campaign is not pending review.'], 422);
         }
 
         $campaign->update([
-            'status' => 'active',
+            'status' => AdCampaignStatus::Active->value,
             'approved_by_admin_id' => $admin->id,
             'approved_at' => now(),
             'rejection_reason' => null,
@@ -249,7 +250,7 @@ class AdCampaignController extends Controller
         ]);
 
         $campaign->update([
-            'status' => 'rejected',
+            'status' => AdCampaignStatus::Rejected->value,
             'rejection_reason' => $request->input('rejection_reason'),
         ]);
 
@@ -265,11 +266,11 @@ class AdCampaignController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
-        if ($campaign->status?->value !== 'active') {
+        if ($campaign->status?->value !== AdCampaignStatus::Active->value) {
             return response()->json(['message' => 'Campaign is not active.'], 422);
         }
 
-        $campaign->update(['status' => 'paused']);
+        $campaign->update(['status' => AdCampaignStatus::Paused->value]);
 
         return response()->json(['message' => 'Campaign paused.']);
     }
@@ -281,11 +282,11 @@ class AdCampaignController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
-        if ($campaign->status?->value !== 'paused') {
+        if ($campaign->status?->value !== AdCampaignStatus::Paused->value) {
             return response()->json(['message' => 'Campaign is not paused.'], 422);
         }
 
-        $campaign->update(['status' => 'active']);
+        $campaign->update(['status' => AdCampaignStatus::Active->value]);
 
         return response()->json(['message' => 'Campaign resumed.']);
     }

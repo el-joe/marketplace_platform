@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\FlashSaleStatus;
+use App\Enums\VendorGlobalStatus;
+use App\Enums\VendorListingStatus;
 use App\Jobs\FlashSaleInviteBulkJob;
 use App\Jobs\SubmissionApprovedNotificationJob;
 use App\Jobs\SubmissionRejectedNotificationJob;
@@ -27,7 +30,7 @@ class FlashSaleService
 
         return FlashSale::create([
             ...$data,
-            'status' => 'draft',
+            'status' => FlashSaleStatus::Draft->value,
             'created_by_admin_id' => $admin->id,
             'updated_by_admin_id' => $admin->id,
             'approved_slots_count' => 0,
@@ -38,7 +41,7 @@ class FlashSaleService
 
     public function update(FlashSale $sale, array $data, Admin $admin): FlashSale
     {
-        if (in_array($sale->status?->value, ['live', 'ended', 'cancelled'], true)) {
+        if (in_array($sale->status?->value, [FlashSaleStatus::Live->value, FlashSaleStatus::Ended->value, FlashSaleStatus::Cancelled->value], true)) {
             throw new \LogicException(__('admin.flash_sales.cannot_update_status', ['status' => $sale->status]));
         }
 
@@ -128,7 +131,7 @@ class FlashSaleService
 
     private function buildEligibleVendorQuery(FlashSale $sale): \Illuminate\Database\Eloquent\Builder
     {
-        $query = Vendor::where('global_status', 'active');
+        $query = Vendor::where('global_status', VendorGlobalStatus::Active->value);
 
         if ($sale->country_id) {
             $query->where('country_id', $sale->country_id);
@@ -161,7 +164,7 @@ class FlashSaleService
         if (!empty($sale->eligible_categories)) {
             $categoryIds = $sale->eligible_categories;
             $query->whereHas('listings', function ($q) use ($categoryIds) {
-                $q->where('status', 'active')
+                $q->where('status', VendorListingStatus::Active->value)
                   ->whereHas('productVariant.product', function ($q2) use ($categoryIds) {
                       $q2->whereIn('category_id', $categoryIds);
                   });
@@ -187,7 +190,7 @@ class FlashSaleService
 
         $flashSale = $submission->flashSale;
 
-        if ($flashSale->status?->value === 'live') {
+        if ($flashSale->status?->value === FlashSaleStatus::Live->value) {
             throw new \LogicException(__('admin.flash_sales.cannot_review_while_live'));
         }
 

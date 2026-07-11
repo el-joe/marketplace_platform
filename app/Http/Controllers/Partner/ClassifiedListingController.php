@@ -8,6 +8,7 @@ use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedListing;
 use App\Models\Country;
 use App\Models\Vendor;
+use App\Enums\ClassifiedListingStatus;
 use App\Notifications\Admin\NewClassifiedListingPendingReview;
 use App\Services\Shared\ClassifiedListingService;
 use App\Traits\HasDataTable;
@@ -154,7 +155,7 @@ class ClassifiedListingController extends Controller
 
         $listing = app(ClassifiedListingService::class)->create($vendor, $data);
 
-        if ($listing->status === 'pending_review') {
+        if ($listing->status === ClassifiedListingStatus::PendingReview) {
             Notification::send(
                 Admin::where('status', 'active')->get(),
                 new NewClassifiedListingPendingReview($listing),
@@ -163,7 +164,7 @@ class ClassifiedListingController extends Controller
 
         return response()->json([
             'success'  => true,
-            'message'  => $listing->status === 'pending_contract'
+            'message'  => $listing->status === ClassifiedListingStatus::PendingContract
                 ? 'يرجى قبول العقد لإكمال نشر الإعلان.'
                 : 'تم إرسال إعلانك للمراجعة بنجاح.',
             'redirect' => route('partner.classifieds.show', $listing->id),
@@ -188,7 +189,7 @@ class ClassifiedListingController extends Controller
     {
         $listing = $this->ownedListing($id);
 
-        if ($listing->status !== 'active') {
+        if ($listing->status !== ClassifiedListingStatus::Active) {
             return response()->json(['success' => false, 'message' => 'الإعلان غير نشط حالياً.'], 422);
         }
 
@@ -201,7 +202,7 @@ class ClassifiedListingController extends Controller
     {
         $listing = $this->ownedListing($id);
 
-        if ($listing->status !== 'paused') {
+        if ($listing->status !== ClassifiedListingStatus::Paused) {
             return response()->json(['success' => false, 'message' => 'الإعلان ليس متوقفاً.'], 422);
         }
 
@@ -218,7 +219,7 @@ class ClassifiedListingController extends Controller
     {
         $listing = $this->ownedListing($id);
 
-        if (! in_array($listing->status, ['active', 'paused'], true)) {
+        if (! in_array($listing->status, [ClassifiedListingStatus::Active, ClassifiedListingStatus::Paused], true)) {
             return response()->json(['success' => false, 'message' => 'لا يمكن تحديد هذا الإعلان كمباع.'], 422);
         }
 
@@ -254,7 +255,7 @@ class ClassifiedListingController extends Controller
     {
         $listing = $this->ownedListing($id);
 
-        if ($listing->status !== 'pending_contract') {
+        if ($listing->status !== ClassifiedListingStatus::PendingContract) {
             return response()->json(['success' => false, 'message' => 'لا يوجد عقد بانتظار الموافقة.'], 422);
         }
 
@@ -276,7 +277,7 @@ class ClassifiedListingController extends Controller
             'agreed'         => 'accepted',
         ]);
 
-        if ($listing->status !== 'pending_contract') {
+        if ($listing->status !== ClassifiedListingStatus::PendingContract) {
             return response()->json(['success' => false, 'message' => 'لا يوجد عقد بانتظار الموافقة.'], 422);
         }
 
@@ -289,7 +290,7 @@ class ClassifiedListingController extends Controller
         app(ClassifiedListingService::class)->acceptContract($listing, $signatureData);
 
         $listing->refresh();
-        if ($listing->status === 'pending_review') {
+        if ($listing->status === ClassifiedListingStatus::PendingReview) {
             Notification::send(
                 Admin::where('status', 'active')->get(),
                 new NewClassifiedListingPendingReview($listing),

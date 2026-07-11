@@ -2,6 +2,8 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\PaidBannerBookingStatus;
+use App\Enums\VendorListingStatus;
 use App\Http\Resources\Customer\FlashSaleItemResource;
 use App\Http\Resources\Customer\ProductListResource;
 use App\Jobs\FlushBlockImpressionJob;
@@ -487,7 +489,7 @@ class PageRendererService
         return VendorListing::query()
             ->whereIn('product_variant_id', $variantIds)
             ->where('country_id', $country->id)
-            ->where('status', 'active')
+            ->where('status', VendorListingStatus::Active->value)
             ->whereNull('deleted_at')
             ->selectRaw('product_variant_id, MIN(price) as min_price, MAX(price) as max_price, COUNT(*) as seller_count')
             ->groupBy('product_variant_id')
@@ -576,7 +578,7 @@ class PageRendererService
         $listing = VendorListing::with('productVariant.product.images')
             ->find($cfg['vendor_listing_id']);
 
-        if (!$listing || (string) $listing->status !== 'active') {
+        if (!$listing || $listing->status !== VendorListingStatus::Active) {
             return null;
         }
 
@@ -683,7 +685,7 @@ class PageRendererService
         // booking_reference, booked_by_admin_id and seller_id must NEVER appear
         // in this response — the select() below is the enforcement point.
         $bookings = PaidBannerBooking::where('page_block_id', $block->id)
-            ->where('status', 'active')
+            ->where('status', PaidBannerBookingStatus::Active->value)
             ->where('booked_from', '<=', $today)
             ->where('booked_until', '>=', $today)
             ->inRandomOrder()

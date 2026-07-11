@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\ClassifiedListingStatus;
 use App\Models\ClassifiedInquiry;
 use App\Models\ClassifiedListing;
 use App\Models\Vendor;
@@ -23,41 +24,41 @@ class ClassifiedListingPolicy
     public function update(VendorAdmin $admin, ClassifiedListing $listing): bool
     {
         return $this->ownsListing($admin, $listing)
-            && in_array($listing->status, ['draft', 'rejected'], true);
+            && in_array($listing->status, [ClassifiedListingStatus::Draft, ClassifiedListingStatus::Rejected], true);
     }
 
     public function pause(VendorAdmin $admin, ClassifiedListing $listing): bool
     {
-        return $this->ownsListing($admin, $listing) && $listing->status === 'active';
+        return $this->ownsListing($admin, $listing) && $listing->status === ClassifiedListingStatus::Active;
     }
 
     public function resume(VendorAdmin $admin, ClassifiedListing $listing): bool
     {
-        return $this->ownsListing($admin, $listing) && $listing->status === 'paused';
+        return $this->ownsListing($admin, $listing) && $listing->status === ClassifiedListingStatus::Paused;
     }
 
     public function markSold(VendorAdmin $admin, ClassifiedListing $listing): bool
     {
         return $this->ownsListing($admin, $listing)
-            && in_array($listing->status, ['active', 'paused'], true);
+            && in_array($listing->status, [ClassifiedListingStatus::Active, ClassifiedListingStatus::Paused], true);
     }
 
     public function delete(VendorAdmin $admin, ClassifiedListing $listing): bool
     {
         return $this->ownsListing($admin, $listing)
-            && in_array($listing->status, ['draft', 'rejected', 'expired'], true);
+            && in_array($listing->status, [ClassifiedListingStatus::Draft, ClassifiedListingStatus::Rejected, ClassifiedListingStatus::Expired], true);
     }
 
     public function viewContract(VendorAdmin $admin, ClassifiedListing $listing): bool
     {
         return $this->ownsListing($admin, $listing)
-            && $listing->status === 'pending_contract';
+            && $listing->status === ClassifiedListingStatus::PendingContract;
     }
 
     public function acceptContract(VendorAdmin $admin, ClassifiedListing $listing): bool
     {
         return $this->ownsListing($admin, $listing)
-            && $listing->status === 'pending_contract';
+            && $listing->status === ClassifiedListingStatus::PendingContract;
     }
 
     public function viewInquiries(VendorAdmin $admin, ClassifiedListing $listing): bool

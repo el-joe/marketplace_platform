@@ -2,6 +2,7 @@
 
 namespace App\Services\Marketer;
 
+use App\Enums\MarketerTrackingStatus;
 use App\Models\Marketer;
 use App\Models\MarketerConversion;
 use App\Models\MarketerPayout;
@@ -106,7 +107,7 @@ class EarningsService
     {
         // Conversions are linked to a payout by being marked paid within the payout period
         return MarketerConversion::where('marketer_id', $payout->marketer_id)
-            ->where('status', 'paid')
+            ->where('status', MarketerTrackingStatus::Paid)
             ->whereBetween('paid_at', [
                 $payout->period_start->startOfDay(),
                 $payout->period_end->endOfDay(),

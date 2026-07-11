@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\DisputeStatus;
+use App\Enums\OrderStatus;
+use App\Enums\VendorGlobalStatus;
+use App\Enums\WalletWithdrawalRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\Dispute;
@@ -95,7 +99,7 @@ class DashboardController extends Controller
             ->join('customers as c', 'c.id', '=', 'orders.customer_id')
             ->selectRaw('DATE(orders.placed_at) as date, orders.currency, SUM(orders.total) as gmv')
             ->whereBetween('orders.placed_at', [$start, $end])
-            ->whereNotIn('orders.status', ['cancelled'])
+            ->whereNotIn('orders.status', [OrderStatus::Cancelled->value])
             ->when($countryId, fn($q) => $q->where('c.country_id', $countryId))
             ->groupBy('date', 'orders.currency')
             ->get()
@@ -109,7 +113,7 @@ class DashboardController extends Controller
                 ->join('customers as c', 'c.id', '=', 'o.customer_id')
                 ->selectRaw('DATE(o.placed_at) as date, o.currency, SUM(oi.commission_amount) as commission')
                 ->whereBetween('o.placed_at', [$start, $end])
-                ->whereNotIn('o.status', ['cancelled'])
+                ->whereNotIn('o.status', [OrderStatus::Cancelled->value])
                 ->when($countryId, fn($q) => $q->where('c.country_id', $countryId))
                 ->groupBy('date', 'o.currency')
                 ->get()
@@ -270,7 +274,7 @@ class DashboardController extends Controller
             ->join('orders as o', 'o.id', '=', 'oi.order_id')
             ->join('customers as c', 'c.id', '=', 'o.customer_id')
             ->where('o.created_at', '>=', now()->subDays(30))
-            ->whereNotIn('o.status', ['cancelled', 'refunded'])
+            ->whereNotIn('o.status', [OrderStatus::Cancelled->value, OrderStatus::Refunded->value])
             ->when($countryId, fn($q) => $q->where('c.country_id', $countryId))
             ->groupBy('v.id', 'v.business_name', 'v.store_rating_avg', 'o.currency')
             ->orderByDesc('gmv')
@@ -295,10 +299,10 @@ class DashboardController extends Controller
     {
         $counts = [
             'products' => Product::query()->where('status', 'pending_review')->count(),
-            'vendors' => Vendor::query()->whereIn('global_status', ['pending', 'under_review'])->count(),
-            'disputes' => Dispute::query()->where('status', 'open')->count(),
+            'vendors' => Vendor::query()->whereIn('global_status', [VendorGlobalStatus::Pending->value, VendorGlobalStatus::UnderReview->value])->count(),
+            'disputes' => Dispute::query()->where('status', DisputeStatus::Open->value)->count(),
             'withdrawals' => Schema::hasTable('withdrawal_requests')
-                ? WithdrawalRequest::query()->where('status', 'pending')->count()
+                ? WithdrawalRequest::query()->where('status', WalletWithdrawalRequestStatus::Pending->value)->count()
                 : Payout::query()->whereIn('status', ['pending', 'requested'])->count(),
             'returns' => ReturnRequest::query()->where('status', 'pending')->count(),
         ];
@@ -368,7 +372,7 @@ class DashboardController extends Controller
     {
         $gmv = (int) Order::query()
             ->whereBetween('placed_at', [$start, $end])
-            ->whereNotIn('status', ['cancelled'])
+            ->whereNotIn('status', [OrderStatus::Cancelled->value])
             ->when($countryId, fn($q) => $q->whereHas(
                 'customer', fn($cq) => $cq->where('country_id', $countryId)
             ))
@@ -376,7 +380,7 @@ class DashboardController extends Controller
 
         $orders = (int) Order::query()
             ->whereBetween('placed_at', [$start, $end])
-            ->whereNotIn('status', ['cancelled'])
+            ->whereNotIn('status', [OrderStatus::Cancelled->value])
             ->when($countryId, fn($q) => $q->whereHas(
                 'customer', fn($cq) => $cq->where('country_id', $countryId)
             ))
@@ -387,7 +391,7 @@ class DashboardController extends Controller
             $revenue = (int) OrderItem::query()->from('order_items as oi')
                 ->join('orders as o', 'o.id', '=', 'oi.order_id')
                 ->whereBetween('o.placed_at', [$start, $end])
-                ->whereNotIn('o.status', ['cancelled'])
+                ->whereNotIn('o.status', [OrderStatus::Cancelled->value])
                 ->when($countryId, function ($q) use ($countryId) {
                     $q->whereExists(function ($sub) use ($countryId) {
                         $sub->from('customers')
@@ -399,7 +403,7 @@ class DashboardController extends Controller
         }
 
         $sellers = (int) Vendor::query()
-            ->where('global_status', 'active')
+            ->where('global_status', VendorGlobalStatus::Active->value)
             ->when($countryId, fn($q) => $q->where('country_id', $countryId))
             ->count();
 

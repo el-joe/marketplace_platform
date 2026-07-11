@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\DeliveryAgentPayoutStatus;
+use App\Enums\MarketerPayoutStatus;
 use App\Models\Marketer;
 use App\Models\MarketerConversion;
 use App\Models\MarketerPayout;
@@ -92,7 +94,7 @@ class AuditPayoutCurrencyBug extends Command
                     // Flag if amounts differ OR the payout currency doesn't match this group.
                     if ($currencyMismatch || $payout->currency !== $currency || $grossDiff !== 0) {
                         $affected++;
-                        $isPaid = $payout->status === 'paid';
+                        $isPaid = $payout->status === MarketerPayoutStatus::Paid;
                         if ($isPaid) {
                             $alreadyPaid++;
                         }
@@ -245,7 +247,7 @@ class AuditPayoutCurrencyBug extends Command
 
                     if ($currencyMismatch || $payout->currency !== $row->currency || ($netDiff !== null && $netDiff !== 0)) {
                         $affected++;
-                        $isDisbursed = $payout->status === 'paid';
+                        $isDisbursed = $payout->status === DeliveryAgentPayoutStatus::Paid->value;
                         if ($isDisbursed) {
                             $alreadyPaid++;
                         }

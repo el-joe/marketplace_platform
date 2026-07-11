@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\SecretPromotionStatus;
+use App\Enums\VendorListingStatus;
 use App\Models\Admin;
 use App\Models\Marketer;
 use App\Models\MarketerConversion;
@@ -31,7 +33,7 @@ class SecretPromotionService
             'admin_share_pct' => round($data['total_commission_pct'] - $data['marketer_share_pct'], 2),
             'min_commission_pct' => $minFloor,
             'is_hidden_from_public' => 1,
-            'status' => 'active',
+            'status' => SecretPromotionStatus::Active->value,
             'valid_until' => $data['valid_until'] ?? null,
             'created_by_vendor' => 0,
             'approved_by_admin_id' => $admin->id,
@@ -53,7 +55,7 @@ class SecretPromotionService
 
     public function update(MarketerSecretPromotion $promo, array $data, Admin $admin): MarketerSecretPromotion
     {
-        if ($promo->status === 'expired') {
+        if ($promo->status === SecretPromotionStatus::Expired) {
             throw ValidationException::withMessages([
                 'status' => 'Cannot edit an expired promotion.',
             ]);
@@ -95,14 +97,14 @@ class SecretPromotionService
 
     public function approve(MarketerSecretPromotion $promo, Admin $admin): MarketerSecretPromotion
     {
-        if ($promo->status !== 'pending') {
+        if ($promo->status !== SecretPromotionStatus::Pending) {
             throw ValidationException::withMessages([
                 'status' => 'Only pending promotions can be approved.',
             ]);
         }
 
         $promo->update([
-            'status' => 'active',
+            'status' => SecretPromotionStatus::Active->value,
             'approved_by_admin_id' => $admin->id,
         ]);
 
@@ -120,13 +122,13 @@ class SecretPromotionService
 
     public function reject(MarketerSecretPromotion $promo, Admin $admin): MarketerSecretPromotion
     {
-        if ($promo->status !== 'pending') {
+        if ($promo->status !== SecretPromotionStatus::Pending) {
             throw ValidationException::withMessages([
                 'status' => 'Only pending promotions can be rejected.',
             ]);
         }
 
-        $promo->update(['status' => 'expired']);
+        $promo->update(['status' => SecretPromotionStatus::Expired->value]);
 
         app(ActivityLoggerService::class)->log(
             description: 'Secret promotion rejected',
@@ -142,13 +144,13 @@ class SecretPromotionService
 
     public function pause(MarketerSecretPromotion $promo, Admin $admin): MarketerSecretPromotion
     {
-        if ($promo->status !== 'active') {
+        if ($promo->status !== SecretPromotionStatus::Active) {
             throw ValidationException::withMessages([
                 'status' => 'Only active promotions can be paused.',
             ]);
         }
 
-        $promo->update(['status' => 'paused']);
+        $promo->update(['status' => SecretPromotionStatus::Paused->value]);
 
         app(ActivityLoggerService::class)->log(
             description: 'Secret promotion paused',
@@ -164,7 +166,7 @@ class SecretPromotionService
 
     public function resume(MarketerSecretPromotion $promo, Admin $admin): MarketerSecretPromotion
     {
-        if ($promo->status !== 'paused') {
+        if ($promo->status !== SecretPromotionStatus::Paused) {
             throw ValidationException::withMessages([
                 'status' => 'Only paused promotions can be resumed.',
             ]);
@@ -176,7 +178,7 @@ class SecretPromotionService
             ]);
         }
 
-        $promo->update(['status' => 'active']);
+        $promo->update(['status' => SecretPromotionStatus::Active->value]);
 
         app(ActivityLoggerService::class)->log(
             description: 'Secret promotion resumed',
@@ -193,7 +195,7 @@ class SecretPromotionService
     public function expire(MarketerSecretPromotion $promo, Admin $admin): MarketerSecretPromotion
     {
         $promo->update([
-            'status' => 'expired',
+            'status' => SecretPromotionStatus::Expired->value,
             'valid_until' => today(),
         ]);
 
@@ -221,7 +223,7 @@ class SecretPromotionService
             'admin_share_pct' => $promo->admin_share_pct,
             'min_commission_pct' => $promo->min_commission_pct,
             'is_hidden_from_public' => 1,
-            'status' => 'active',
+            'status' => SecretPromotionStatus::Active->value,
             'valid_until' => null,
             'created_by_vendor' => 0,
             'approved_by_admin_id' => $admin->id,
@@ -241,15 +243,15 @@ class SecretPromotionService
 
     public function getStatsForAdmin(): array
     {
-        $totalActive = MarketerSecretPromotion::where('status', 'active')
+        $totalActive = MarketerSecretPromotion::where('status', SecretPromotionStatus::Active->value)
             ->where(fn($q) => $q->whereNull('valid_until')->orWhere('valid_until', '>=', today()))
             ->count();
 
-        $totalPaused = MarketerSecretPromotion::where('status', 'paused')->count();
+        $totalPaused = MarketerSecretPromotion::where('status', SecretPromotionStatus::Paused->value)->count();
 
         $totalExpired = MarketerSecretPromotion::where(
             fn($q) =>
-            $q->where('status', 'expired')->orWhere('valid_until', '<', today())
+            $q->where('status', SecretPromotionStatus::Expired->value)->orWhere('valid_until', '<', today())
         )->count();
 
         // Admin revenue this month: sum across all conversions this month
@@ -268,7 +270,7 @@ class SecretPromotionService
             return (int) round($c->order_value_cents * $adminPct / 100);
         });
 
-        $avgAdminShare = MarketerSecretPromotion::where('status', 'active')
+        $avgAdminShare = MarketerSecretPromotion::where('status', SecretPromotionStatus::Active->value)
             ->where(fn($q) => $q->whereNull('valid_until')->orWhere('valid_until', '>=', today()))
             ->avg('admin_share_pct') ?? 0;
 
@@ -296,10 +298,10 @@ class SecretPromotionService
 
     public function expireOldPromotions(): int
     {
-        return MarketerSecretPromotion::where('status', 'active')
+        return MarketerSecretPromotion::where('status', SecretPromotionStatus::Active->value)
             ->whereNotNull('valid_until')
             ->where('valid_until', '<', today())
-            ->update(['status' => 'expired']);
+            ->update(['status' => SecretPromotionStatus::Expired->value]);
     }
 
     // ── For Marketer Portal (visibility-restricted) ───────────────────────────
@@ -350,7 +352,7 @@ class SecretPromotionService
             ]);
         }
 
-        if ($listing->status !== 'active') {
+        if ($listing->status !== VendorListingStatus::Active) {
             throw ValidationException::withMessages([
                 'vendor_listing_id' => 'Cannot create secret promotion for an inactive listing.',
             ]);

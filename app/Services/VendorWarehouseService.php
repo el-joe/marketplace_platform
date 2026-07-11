@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\InventoryTransferStatus;
+use App\Enums\WarehouseType;
 use App\Models\Address;
 use App\Models\InventoryMovement;
 use App\Models\InventoryTransfer;
@@ -25,7 +27,7 @@ class VendorWarehouseService
     {
         $existing = Warehouse::where('owner_vendor_id', $vendor->id)
             ->where('country_id', $data['country_id'])
-            ->where('type', 'seller_owned')
+            ->where('type', WarehouseType::SellerOwned->value)
             ->exists();
 
         if ($existing) {
@@ -41,7 +43,7 @@ class VendorWarehouseService
                 'country_id'       => $data['country_id'],
                 'name'             => $data['name'],
                 'code'             => $code,
-                'type'             => 'seller_owned',
+                'type'             => WarehouseType::SellerOwned->value,
                 'owner_vendor_id'  => $vendor->id,
                 'total_capacity_m3' => $data['total_capacity_m3'] ?? null,
                 'used_capacity_m3' => 0,
@@ -188,7 +190,7 @@ class VendorWarehouseService
                 'source_warehouse_id'      => $data['source_warehouse_id'],
                 'destination_warehouse_id' => $data['destination_warehouse_id'],
                 'vendor_id'                => $vendor->id,
-                'status'                   => 'draft',
+                'status'                   => InventoryTransferStatus::Draft->value,
                 'initiated_by_user_id'     => $vendorAdmin->id,
                 'expected_arrival_date'    => $data['expected_arrival_date'] ?? null,
                 'notes'                    => $data['notes'] ?? null,
@@ -214,7 +216,7 @@ class VendorWarehouseService
             throw new AuthorizationException('Transfer does not belong to your account.');
         }
 
-        if ($transfer->status !== 'draft') {
+        if ($transfer->status !== InventoryTransferStatus::Draft) {
             throw ValidationException::withMessages(['status' => ['Transfer is not in draft status.']]);
         }
 
@@ -247,7 +249,7 @@ class VendorWarehouseService
             }
 
             $transfer->update([
-                'status'           => 'in_transit',
+                'status'           => InventoryTransferStatus::InTransit->value,
                 'carrier'          => $data['carrier'] ?? null,
                 'tracking_number'  => $data['tracking_number'] ?? null,
                 'shipped_at'       => now(),
@@ -265,12 +267,12 @@ class VendorWarehouseService
             throw new AuthorizationException('Transfer does not belong to your account.');
         }
 
-        if (!in_array($transfer->status, ['draft', 'in_transit'])) {
+        if (!in_array($transfer->status, [InventoryTransferStatus::Draft, InventoryTransferStatus::InTransit])) {
             throw ValidationException::withMessages(['status' => ['Transfer cannot be cancelled in its current state.']]);
         }
 
         DB::transaction(function () use ($transfer) {
-            if ($transfer->status === 'in_transit') {
+            if ($transfer->status === InventoryTransferStatus::InTransit) {
                 foreach ($transfer->items as $item) {
                     $sourceInv = WarehouseInventory::lockForUpdate()
                         ->where('warehouse_id', $transfer->source_warehouse_id)
@@ -295,7 +297,7 @@ class VendorWarehouseService
                 }
             }
 
-            $transfer->update(['status' => 'cancelled']);
+            $transfer->update(['status' => InventoryTransferStatus::Cancelled->value]);
         });
 
         return $transfer->fresh();

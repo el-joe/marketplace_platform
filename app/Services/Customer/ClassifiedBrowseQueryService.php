@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\ClassifiedListingStatus;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedListing;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -30,7 +31,7 @@ class ClassifiedBrowseQueryService
         $query = ClassifiedListing::query()
             ->with(['images', 'city', 'seller'])
             ->whereIn('classified_category_id', $categoryIds)
-            ->where('status', 'active');
+            ->where('status', ClassifiedListingStatus::Active->value);
 
         if (!empty($filters['price_min'])) {
             $query->where('price_cents', '>=', (int) ($filters['price_min'] * 100));
@@ -58,7 +59,7 @@ class ClassifiedBrowseQueryService
     public function facets(array $categoryIds, array $filters): array
     {
         $base = ClassifiedListing::whereIn('classified_category_id', $categoryIds)
-            ->where('status', 'active');
+            ->where('status', ClassifiedListingStatus::Active->value);
 
         if (!empty($filters['listing_purpose'])) {
             $base->where('listing_purpose', $filters['listing_purpose']);

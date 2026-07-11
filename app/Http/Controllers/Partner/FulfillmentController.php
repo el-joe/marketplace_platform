@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\WarehouseType;
 use App\Http\Controllers\Controller;
 use App\Models\FbnInboundRequest;
 use App\Models\FbnStorageFee;
@@ -46,7 +47,7 @@ class FulfillmentController extends Controller
 
         $warehouses = Warehouse::where('is_active', true)
             ->where(function ($q) use ($vendor) {
-                $q->where('type', 'platform_fbn')
+                $q->where('type', WarehouseType::PlatformFbn->value)
                     ->orWhere('owner_vendor_id', $vendor->id);
             })
             ->get(['id', 'name', 'code']);

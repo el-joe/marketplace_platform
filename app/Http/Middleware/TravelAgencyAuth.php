@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\TravelAgencyStatus;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,14 +21,14 @@ class TravelAgencyAuth
 
         $agency = auth()->guard('travel_agency')->user();
 
-        if ($agency->status === 'suspended') {
+        if ($agency->status === TravelAgencyStatus::Suspended) {
             auth()->guard('travel_agency')->logout();
 
             return redirect()->route('travel-agency.login')
                 ->withErrors(['email' => 'Your account has been suspended. Please contact support.']);
         }
 
-        if ($agency->status === 'pending') {
+        if ($agency->status === TravelAgencyStatus::Pending) {
             auth()->guard('travel_agency')->logout();
 
             return redirect()->route('travel-agency.login')

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\PaymentTransactionStatus;
+use App\Enums\RefundStatus;
 use App\Models\PaymentTransaction;
 use App\Models\Refund;
 use App\Models\SubOrder;
@@ -81,7 +83,7 @@ class PayoutCalculationService
             // Refunds where the vendor bears the cost — filter by matching currency.
             $refundsDeducted = (int) Refund::whereHas('subOrder', fn($q) => $q->where('vendor_id', $vendor->id))
                 ->where('vendor_charged_back', true)
-                ->where('status', 'completed')
+                ->where('status', RefundStatus::Completed->value)
                 ->where('currency', $currency)
                 ->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()])
                 ->sum('amount');
@@ -89,7 +91,7 @@ class PayoutCalculationService
             // Chargebacks — payment_transactions.currency exists; filter by it.
             $chargebacksDeducted = (int) PaymentTransaction::where('type', 'chargeback')
                 ->whereHas('order', fn($q) => $q->whereHas('subOrders', fn($s) => $s->where('vendor_id', $vendor->id)))
-                ->where('status', 'succeeded')
+                ->where('status', PaymentTransactionStatus::Succeeded->value)
                 ->where('currency', $currency)
                 ->whereBetween('processed_at', [$from->startOfDay(), $to->endOfDay()])
                 ->sum('amount');

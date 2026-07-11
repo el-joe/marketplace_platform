@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\MarketerTrackingStatus;
 use App\Models\MarketerConversion;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,12 +23,12 @@ class ReverseMarketerConversionJob implements ShouldQueue
     public function handle(): void
     {
         $conversions = MarketerConversion::where('order_id', $this->orderId)
-            ->where('status', '!=', 'paid')
+            ->where('status', '!=', MarketerTrackingStatus::Paid)
             ->get();
 
         foreach ($conversions as $conversion) {
             $conversion->update([
-                'status' => 'reversed',
+                'status' => MarketerTrackingStatus::Reversed,
                 'reversed_at' => now(),
                 'reversal_reason' => $this->reason,
             ]);

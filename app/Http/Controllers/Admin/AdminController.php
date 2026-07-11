@@ -204,7 +204,7 @@ class AdminController extends Controller
             return response()->json(['message' => 'Cannot edit a super_admin account.'], 403);
         }
 
-        if ($authAdmin->id === $admin->id && $request->status === 'inactive') {
+        if ($authAdmin->id === $admin->id && $request->status === AdminStatus::Inactive->value) {
             return response()->json(['message' => 'Cannot deactivate your own account.'], 422);
         }
 

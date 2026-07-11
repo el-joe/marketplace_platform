@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Enums\MarketerCampaignStatus;
 use App\Events\SubOrderPlaced;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerClick;
@@ -25,7 +26,7 @@ class RecordMarketerConversion implements ShouldQueue
         // a queue worker, which has no access to the original HTTP session/cookies.
         $campaign = MarketerCampaign::find($order->marketer_campaign_id);
 
-        if (! $campaign || $campaign->status !== 'active') {
+        if (! $campaign || $campaign->status !== MarketerCampaignStatus::Active) {
             return;
         }
 

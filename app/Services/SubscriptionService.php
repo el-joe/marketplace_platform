@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\VendorSubscriptionStatus;
 use App\Models\Admin;
 use App\Models\SubscriptionPlan;
 use App\Models\Vendor;
@@ -20,7 +21,7 @@ class SubscriptionService
     {
         return VendorSubscription::with('plan')
             ->where('vendor_id', $vendorId)
-            ->where('status', 'active')
+            ->where('status', VendorSubscriptionStatus::Active)
             ->where('current_period_end', '>=', now()->toDateString())
             ->latest('started_at')
             ->first();
@@ -50,9 +51,9 @@ class SubscriptionService
         return DB::transaction(function () use ($vendor, $plan, $approvedBy) {
             // Cancel existing active subscription
             VendorSubscription::where('vendor_id', $vendor->id)
-                ->where('status', 'active')
+                ->where('status', VendorSubscriptionStatus::Active)
                 ->update([
-                    'status' => 'cancelled',
+                    'status' => VendorSubscriptionStatus::Cancelled,
                     'cancelled_at' => now(),
                     'cancellation_reason' => 'Replaced by new plan: ' . $plan->name_en,
                 ]);
@@ -63,7 +64,7 @@ class SubscriptionService
             $subscription = VendorSubscription::create([
                 'vendor_id' => $vendor->id,
                 'plan_id' => $plan->id,
-                'status' => 'active',
+                'status' => VendorSubscriptionStatus::Active,
                 'started_at' => now(),
                 'current_period_start' => $periodStart,
                 'current_period_end' => $periodEnd,
@@ -92,7 +93,7 @@ class SubscriptionService
     public function cancel(VendorSubscription $subscription, ?string $reason = null): VendorSubscription
     {
         $subscription->update([
-            'status' => 'cancelled',
+            'status' => VendorSubscriptionStatus::Cancelled,
             'cancelled_at' => now(),
             'cancellation_reason' => $reason,
             'auto_renew' => false,
@@ -199,7 +200,7 @@ class SubscriptionService
     public function incrementListingsUsed(string $vendorId, int $by = 1): void
     {
         VendorSubscription::where('vendor_id', $vendorId)
-            ->where('status', 'active')
+            ->where('status', VendorSubscriptionStatus::Active)
             ->where('current_period_end', '>=', now()->toDateString())
             ->increment('listings_used', $by);
     }

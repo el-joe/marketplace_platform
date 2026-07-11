@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MarketerTrackingStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -182,7 +183,7 @@ class Marketer extends Authenticatable implements JWTSubject
     public function getPendingEarningsCentsAttribute(): int
     {
         return $this->conversions()
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', [MarketerTrackingStatus::Pending, MarketerTrackingStatus::Approved])
             ->sum('commission_amount_cents');
     }
 
@@ -199,7 +200,7 @@ class Marketer extends Authenticatable implements JWTSubject
     public function getTotalPendingEarnings(): int
     {
         return (int) $this->conversions()
-            ->where('status', 'pending')
+            ->where('status', MarketerTrackingStatus::Pending)
             ->sum('commission_amount_cents');
     }
 

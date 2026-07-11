@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Marketer;
 
+use App\Enums\MarketerStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Marketer\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Marketer\Auth\LoginRequest;
@@ -68,11 +69,11 @@ class AuthController extends Controller
             return ApiResponse::error('Invalid credentials.', [], 401);
         }
 
-        if ($marketer->status !== 'active') {
+        if ($marketer->status !== MarketerStatus::Active) {
             $message = match ($marketer->status) {
-                'pending'   => 'Your account is pending admin approval.',
-                'suspended' => 'Your account has been suspended. Please contact support.',
-                'rejected'  => 'Your account application was not approved.',
+                MarketerStatus::Pending   => 'Your account is pending admin approval.',
+                MarketerStatus::Suspended => 'Your account has been suspended. Please contact support.',
+                MarketerStatus::Rejected  => 'Your account application was not approved.',
                 default     => 'Your account is not active.',
             };
             return ApiResponse::error($message, ['status' => $marketer->status], 403);

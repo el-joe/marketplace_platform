@@ -2,6 +2,13 @@
 
 namespace App\Services;
 
+use App\Enums\ClassifiedListingStatus;
+use App\Enums\DisputeStatus;
+use App\Enums\MarketerStatus;
+use App\Enums\SupportTicketStatus;
+use App\Enums\TravelPackageStatus;
+use App\Enums\VendorCampaignOfferStatus;
+use App\Enums\VendorGlobalStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
@@ -584,7 +591,7 @@ class NavigationService
             return 0;
         }
         try {
-            return (int) \App\Models\Dispute::query()->where('status', 'open')->count();
+            return (int) \App\Models\Dispute::query()->where('status', DisputeStatus::Open->value)->count();
         } catch (\Throwable) {
             return 0;
         }
@@ -596,7 +603,7 @@ class NavigationService
             return 0;
         }
         try {
-            return (int) \App\Models\Vendor::query()->where('global_status', 'pending')->count();
+            return (int) \App\Models\Vendor::query()->where('global_status', VendorGlobalStatus::Pending->value)->count();
         } catch (\Throwable) {
             return 0;
         }
@@ -605,7 +612,7 @@ class NavigationService
     protected function countOpenTickets(): int
     {
         try {
-            return (int) \App\Models\SupportTicket::query()->where('status', 'open')->count();
+            return (int) \App\Models\SupportTicket::query()->where('status', SupportTicketStatus::Open->value)->count();
         } catch (\Throwable) {
             return 0;
         }
@@ -614,7 +621,7 @@ class NavigationService
     protected function countPendingCampaignOffers(): int
     {
         try {
-            return (int) \App\Models\VendorCampaignOffer::query()->where('status', 'pending_admin')->count();
+            return (int) \App\Models\VendorCampaignOffer::query()->where('status', VendorCampaignOfferStatus::PendingAdmin->value)->count();
         } catch (\Throwable) {
             return 0;
         }
@@ -623,7 +630,7 @@ class NavigationService
     protected function countPendingMarketers(): int
     {
         try {
-            return (int) \App\Models\Marketer::query()->where('status', 'pending')->count();
+            return (int) \App\Models\Marketer::query()->where('status', MarketerStatus::Pending->value)->count();
         } catch (\Throwable) {
             return 0;
         }
@@ -641,7 +648,7 @@ class NavigationService
     protected function countPendingClassifieds(): int
     {
         try {
-            return (int) \App\Models\ClassifiedListing::query()->where('status', 'pending_review')->count();
+            return (int) \App\Models\ClassifiedListing::query()->where('status', ClassifiedListingStatus::PendingReview->value)->count();
         } catch (\Throwable) {
             return 0;
         }
@@ -650,7 +657,7 @@ class NavigationService
     protected function countPendingTravelPackages(): int
     {
         try {
-            return (int) \App\Models\TravelPackage::query()->where('status', 'pending_review')->count();
+            return (int) \App\Models\TravelPackage::query()->where('status', TravelPackageStatus::PendingReview->value)->count();
         } catch (\Throwable) {
             return 0;
         }

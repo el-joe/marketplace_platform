@@ -2,6 +2,7 @@
 
 namespace App\Services\Marketer;
 
+use App\Enums\MarketerTrackingStatus;
 use App\Models\Marketer;
 use App\Models\MarketerClick;
 use App\Models\MarketerCommissionTier;
@@ -37,16 +38,16 @@ class DashboardService
                 : 0.0;
 
             $pendingEarningsCents = (int) MarketerConversion::where('marketer_id', $marketer->id)
-                ->where('status', 'pending')
+                ->where('status', MarketerTrackingStatus::Pending)
                 ->sum('commission_amount_cents');
 
             $approvedEarningsCents = (int) MarketerConversion::where('marketer_id', $marketer->id)
-                ->where('status', 'approved')
+                ->where('status', MarketerTrackingStatus::Approved)
                 ->sum('commission_amount_cents');
 
             // Tier progress
             $salesCount = MarketerConversion::where('marketer_id', $marketer->id)
-                ->where('status', '!=', 'reversed')
+                ->where('status', '!=', MarketerTrackingStatus::Reversed)
                 ->count();
 
             $currentTier = MarketerCommissionTier::where('marketer_id', $marketer->id)

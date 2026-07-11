@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SecretPromotionStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -40,6 +41,7 @@ class MarketerSecretPromotion extends Model
             'is_hidden_from_public' => 'boolean',
             'created_by_vendor' => 'boolean',
             'valid_until' => 'date',
+            'status' => SecretPromotionStatus::class,
         ];
     }
 
@@ -88,14 +90,14 @@ class MarketerSecretPromotion extends Model
 
     public function scopeActive(Builder $q): Builder
     {
-        return $q->where('status', 'active')
+        return $q->where('status', SecretPromotionStatus::Active->value)
             ->where(fn($q2) => $q2->whereNull('valid_until')
                 ->orWhere('valid_until', '>=', today()));
     }
 
     public function scopeExpired(Builder $q): Builder
     {
-        return $q->where(fn($q2) => $q2->where('status', 'expired')
+        return $q->where(fn($q2) => $q2->where('status', SecretPromotionStatus::Expired->value)
             ->orWhere('valid_until', '<', today()));
     }
 
@@ -177,10 +179,10 @@ class MarketerSecretPromotion extends Model
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'pending' => 'info',
-            'active' => $this->isExpired() ? 'gray' : 'success',
-            'paused' => 'warning',
-            'expired' => 'gray',
+            SecretPromotionStatus::Pending => 'info',
+            SecretPromotionStatus::Active => $this->isExpired() ? 'gray' : 'success',
+            SecretPromotionStatus::Paused => 'warning',
+            SecretPromotionStatus::Expired => 'gray',
             default => 'gray',
         };
     }
@@ -194,6 +196,6 @@ class MarketerSecretPromotion extends Model
 
     public function isActive(): bool
     {
-        return $this->status === 'active' && !$this->isExpired();
+        return $this->status === SecretPromotionStatus::Active && !$this->isExpired();
     }
 }

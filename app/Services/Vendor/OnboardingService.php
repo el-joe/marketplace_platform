@@ -2,6 +2,7 @@
 
 namespace App\Services\Vendor;
 
+use App\Enums\WarehouseType;
 use App\Models\Address;
 use App\Models\Vendor;
 use App\Models\Warehouse;
@@ -86,7 +87,7 @@ class OnboardingService
                 'phone'            => $addr['phone'] ?? null,
             ]);
 
-            $warehouse = $vendor->warehouses()->where('type', 'seller_owned')->first();
+            $warehouse = $vendor->warehouses()->where('type', WarehouseType::SellerOwned->value)->first();
 
             if ($warehouse) {
                 $warehouse->update(['address_id' => $address->id, 'is_active' => true]);
@@ -95,7 +96,7 @@ class OnboardingService
                     'country_id'      => $vendor->country_id,
                     'name'            => ($vendor->store_name ?? 'Vendor') . ' Warehouse',
                     'code'            => strtoupper(Str::random(6)),
-                    'type'            => 'seller_owned',
+                    'type'            => WarehouseType::SellerOwned->value,
                     'owner_vendor_id' => $vendor->id,
                     'address_id'      => $address->id,
                     'storage_currency' => 'USD',

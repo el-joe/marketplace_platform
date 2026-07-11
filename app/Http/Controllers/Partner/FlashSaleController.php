@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\FlashSaleStatus;
+use App\Enums\FlashSaleSubmissionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\FlashSale;
 use App\Models\FlashSalePriceHistory;
@@ -62,16 +64,16 @@ class FlashSaleController extends Controller
 
         $grouped = [
             'upcoming' => $invitations->filter(
-                fn($i) => in_array($i->flashSale?->status, ['approved', 'submission_closed', 'under_review'])
+                fn($i) => in_array($i->flashSale?->status, [FlashSaleStatus::Approved, FlashSaleStatus::SubmissionClosed, FlashSaleStatus::UnderReview])
             )->values(),
             'open' => $invitations->filter(
-                fn($i) => $i->flashSale?->status === 'submission_open'
+                fn($i) => $i->flashSale?->status === FlashSaleStatus::SubmissionOpen
             )->values(),
             'live' => $invitations->filter(
-                fn($i) => $i->flashSale?->status === 'live'
+                fn($i) => $i->flashSale?->status === FlashSaleStatus::Live
             )->values(),
             'ended' => $invitations->filter(
-                fn($i) => in_array($i->flashSale?->status, ['ended', 'cancelled'])
+                fn($i) => in_array($i->flashSale?->status, [FlashSaleStatus::Ended, FlashSaleStatus::Cancelled])
             )->values(),
         ];
 
@@ -166,7 +168,7 @@ class FlashSaleController extends Controller
     {
         $flashSale = FlashSale::findOrFail($flashSaleId);
 
-        if ($flashSale->status !== 'submission_open') {
+        if ($flashSale->status !== FlashSaleStatus::SubmissionOpen) {
             return response()->json(['message' => 'هذا العرض لا يقبل طلبات حالياً.'], 422);
         }
 
@@ -274,7 +276,7 @@ class FlashSaleController extends Controller
         // quantity_remaining is a VIRTUAL column — safe to SELECT, never INSERT/UPDATE
         $submissions = FlashSaleSubmission::where('flash_sale_id', $flashSaleId)
             ->where('vendor_id', $this->vendorId())
-            ->whereIn('status', ['approved', 'live', 'sold_out'])
+            ->whereIn('status', [FlashSaleSubmissionStatus::Approved->value, FlashSaleSubmissionStatus::Live->value, FlashSaleSubmissionStatus::SoldOut->value])
             ->get([
                 'id',
                 'vendor_listing_id',

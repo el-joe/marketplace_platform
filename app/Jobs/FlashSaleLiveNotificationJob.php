@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Enums\FlashSaleStatus;
+use App\Enums\FlashSaleSubmissionStatus;
 use App\Models\FlashSale;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,7 +31,7 @@ class FlashSaleLiveNotificationJob implements ShouldQueue
     {
         $sale = FlashSale::find($this->flashSaleId);
 
-        if (!$sale || $sale->status?->value !== 'live') {
+        if (!$sale || $sale->status?->value !== FlashSaleStatus::Live->value) {
             Log::info('[FlashSaleLiveNotificationJob] Skipping — sale not found or not live.', [
                 'flash_sale_id' => $this->flashSaleId,
             ]);
@@ -37,7 +39,7 @@ class FlashSaleLiveNotificationJob implements ShouldQueue
         }
 
         $approvedSubmissions = $sale->submissions()
-            ->where('status', 'approved')
+            ->where('status', FlashSaleSubmissionStatus::Approved->value)
             ->with('vendor')
             ->get();
 

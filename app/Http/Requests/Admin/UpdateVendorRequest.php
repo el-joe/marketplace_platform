@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\PayoutSchedule;
 use App\Enums\VendorBusinessType;
 use App\Enums\VendorGlobalStatus;
 use Illuminate\Foundation\Http\FormRequest;
@@ -29,7 +30,7 @@ class UpdateVendorRequest extends FormRequest
             'contact_email' => ['nullable', 'email', 'max:150'],
             'contact_phone' => ['nullable', 'string', 'max:50'],
             'commission_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'payout_schedule' => ['nullable', Rule::in(['weekly', 'biweekly', 'monthly'])],
+            'payout_schedule' => ['nullable', Rule::enum(PayoutSchedule::class)],
             'global_status' => ['nullable', Rule::enum(VendorGlobalStatus::class)],
             'account_manager_admin_id' => ['nullable', 'uuid', 'exists:admins,id'],
         ];

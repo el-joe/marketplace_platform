@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\DeliveryAgentEarningStatus;
 use App\Enums\DeliveryAgentType;
 use App\Enums\DeliveryAgentVehicleType;
 use App\Http\Controllers\Controller;
@@ -299,7 +300,7 @@ class DeliveryAgentController extends Controller
 
         $base = fn($from, $to) => DB::table('delivery_agent_earnings')
             ->where('agent_id', $agent->id)
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled->value)
             ->whereBetween('created_at', [$from, $to]);
 
         $summary = [
@@ -309,7 +310,7 @@ class DeliveryAgentController extends Controller
                 ->sum('amount_cents'),
             'ytd_cents' => (int) DB::table('delivery_agent_earnings')
                 ->where('agent_id', $agent->id)
-                ->where('status', '!=', 'cancelled')
+                ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled->value)
                 ->whereYear('created_at', $now->year)
                 ->sum('amount_cents'),
         ];
@@ -317,7 +318,7 @@ class DeliveryAgentController extends Controller
         // Monthly breakdown for chart (last 6 months)
         $monthly = DB::table('delivery_agent_earnings')
             ->where('agent_id', $agent->id)
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled->value)
             ->where('created_at', '>=', $now->copy()->subMonths(5)->startOfMonth())
             ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(amount_cents) as total_cents')
             ->groupByRaw('YEAR(created_at), MONTH(created_at)')

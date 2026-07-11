@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Vendor;
 
+use App\Enums\VendorListingStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateListingStatusRequest extends FormRequest
 {
@@ -15,7 +17,10 @@ class UpdateListingStatusRequest extends FormRequest
     {
         // Vendors may only self-serve active/paused; admin-gated statuses are excluded
         return [
-            'status' => ['required', 'string', 'in:active,paused'],
+            'status' => ['required', 'string', Rule::in([
+                VendorListingStatus::Active->value,
+                VendorListingStatus::Paused->value,
+            ])],
         ];
     }
 }

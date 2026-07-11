@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Marketer;
 
+use App\Enums\MarketerSampleRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Marketer\Sample\SampleListRequest;
 use App\Http\Requests\Marketer\Sample\StoreSampleRequestRequest;
@@ -120,7 +121,7 @@ class SampleRequestController extends Controller
     {
         abort_if(! (new SampleRequestPolicy())->view($this->marketer(), $sampleRequest), 403);
 
-        if ($sampleRequest->status !== 'dispatched') {
+        if ($sampleRequest->status !== MarketerSampleRequestStatus::Dispatched) {
             return ApiResponse::error('Sample must be dispatched before it can be marked as received.', [], 422);
         }
 

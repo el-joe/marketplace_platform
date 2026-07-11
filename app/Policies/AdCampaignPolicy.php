@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\AdCampaignStatus;
 use App\Models\Admin;
 use App\Models\AdCampaign;
 use App\Models\VendorAdmin;
@@ -44,21 +45,21 @@ class AdCampaignPolicy
     {
         return $user instanceof VendorAdmin
             && $campaign->vendor_id === $user->vendor_id
-            && in_array($campaign->status, ['draft', 'pending_review', 'paused', 'rejected']);
+            && in_array($campaign->status, [AdCampaignStatus::Draft, AdCampaignStatus::PendingReview, AdCampaignStatus::Paused, AdCampaignStatus::Rejected]);
     }
 
     public function delete(mixed $user, AdCampaign $campaign): bool
     {
         return $user instanceof VendorAdmin
             && $campaign->vendor_id === $user->vendor_id
-            && in_array($campaign->status, ['draft', 'pending_review', 'rejected']);
+            && in_array($campaign->status, [AdCampaignStatus::Draft, AdCampaignStatus::PendingReview, AdCampaignStatus::Rejected]);
     }
 
     public function pause(mixed $user, AdCampaign $campaign): bool
     {
         return $user instanceof VendorAdmin
             && $campaign->vendor_id === $user->vendor_id
-            && $campaign->status === 'active'
+            && $campaign->status === AdCampaignStatus::Active
             && ($campaign->ends_at === null || $campaign->ends_at->isFuture());
     }
 
@@ -66,7 +67,7 @@ class AdCampaignPolicy
     {
         return $user instanceof VendorAdmin
             && $campaign->vendor_id === $user->vendor_id
-            && $campaign->status === 'paused'
+            && $campaign->status === AdCampaignStatus::Paused
             && ($campaign->ends_at === null || $campaign->ends_at->isFuture());
     }
 

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\AdCampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdCampaign;
 use App\Models\Admin;
 use App\Models\Vendor;
+use App\Enums\VendorListingStatus;
 use App\Models\Category;
 use App\Models\VendorListing;
 use App\Notifications\Admin\AdCampaignSubmittedForReview;
@@ -112,7 +114,7 @@ class AdsController extends Controller
                 'name'           => $data['name'],
                 'type'           => $data['type'],
                 'targeting_type' => $data['targeting_type'],
-                'status'         => 'pending_review',
+                'status'         => AdCampaignStatus::PendingReview->value,
                 'budget_total'   => (int) round($data['budget_total'] * 100),
                 'budget_daily'   => isset($data['budget_daily']) ? (int) round($data['budget_daily'] * 100) : null,
                 'bid'            => (int) round($data['bid'] * 100),
@@ -164,7 +166,7 @@ class AdsController extends Controller
         $vendorId = $this->vendorId();
 
         $categories = Category::where('is_active', true)
-            ->whereHas('vendorListings', fn($q) => $q->where('vendor_id', $vendorId)->where('status', 'active'))
+            ->whereHas('vendorListings', fn($q) => $q->where('vendor_id', $vendorId)->where('status', VendorListingStatus::Active->value))
             ->orderBy('name_ar')
             ->get(['id', 'name_ar', 'name_en']);
 
@@ -223,11 +225,11 @@ class AdsController extends Controller
     {
         $campaign = AdCampaign::where('vendor_id', $this->vendorId())->findOrFail($id);
 
-        if ($campaign->status !== 'active') {
+        if ($campaign->status !== AdCampaignStatus::Active) {
             return response()->json(['success' => false, 'message' => 'الحملة غير نشطة حالياً.'], 422);
         }
 
-        $campaign->update(['status' => 'paused']);
+        $campaign->update(['status' => AdCampaignStatus::Paused->value]);
 
         return response()->json(['success' => true, 'message' => 'تم إيقاف الحملة مؤقتاً.']);
     }
@@ -236,11 +238,11 @@ class AdsController extends Controller
     {
         $campaign = AdCampaign::where('vendor_id', $this->vendorId())->findOrFail($id);
 
-        if ($campaign->status !== 'paused') {
+        if ($campaign->status !== AdCampaignStatus::Paused) {
             return response()->json(['success' => false, 'message' => 'الحملة ليست متوقفة.'], 422);
         }
 
-        $campaign->update(['status' => 'active']);
+        $campaign->update(['status' => AdCampaignStatus::Active->value]);
 
         return response()->json(['success' => true, 'message' => 'تم استئناف الحملة.']);
     }

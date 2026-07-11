@@ -9,6 +9,7 @@ use App\Models\AdCampaign;
 use App\Models\AdCampaignCategoryTarget;
 use App\Models\AdCampaignKeyword;
 use App\Models\AdCampaignProduct;
+use App\Enums\VendorListingStatus;
 use App\Models\VendorAdmin;
 use App\Models\VendorListing;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,7 @@ class AdCampaignService
                 'country_id'     => $data['country_id'],
                 'name'           => $data['name'],
                 'type'           => $data['type'],
-                'status'         => 'pending_review',
+                'status'         => AdCampaignStatus::PendingReview->value,
                 'budget_total'   => $data['budget_total'],
                 'budget_daily'   => $data['budget_daily'] ?? null,
                 'bid'            => $data['bid'],
@@ -108,9 +109,9 @@ class AdCampaignService
     public function canEditField(AdCampaign $campaign, string $field): bool
     {
         return match ($campaign->status) {
-            'draft', 'pending_review', 'rejected' => true,
-            'paused' => !in_array($field, self::LOCKED_WHEN_ACTIVE),
-            'active' => in_array($field, ['budget_daily', 'bid']),
+            AdCampaignStatus::Draft, AdCampaignStatus::PendingReview, AdCampaignStatus::Rejected => true,
+            AdCampaignStatus::Paused => !in_array($field, self::LOCKED_WHEN_ACTIVE),
+            AdCampaignStatus::Active => in_array($field, ['budget_daily', 'bid']),
             default => false,
         };
     }
@@ -118,7 +119,7 @@ class AdCampaignService
     private function validateProducts(VendorAdmin $vendorAdmin, array $productVariantIds): void
     {
         $validCount = VendorListing::where('vendor_id', $vendorAdmin->vendor_id)
-            ->where('status', 'active')
+            ->where('status', VendorListingStatus::Active->value)
             ->whereIn('product_variant_id', $productVariantIds)
             ->count();
 
@@ -137,7 +138,7 @@ class AdCampaignService
         foreach ($productVariantIds as $variantId) {
             $listing = VendorListing::where('vendor_id', $vendorId)
                 ->where('product_variant_id', $variantId)
-                ->where('status', 'active')
+                ->where('status', VendorListingStatus::Active->value)
                 ->first();
 
             if (!$listing) continue;

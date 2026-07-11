@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\SubOrderStatus;
 use App\Models\OrderStatusHistory;
 use App\Models\SubOrder;
 use Illuminate\Bus\Queueable;
@@ -28,7 +29,7 @@ class AutoCompleteOrdersJob implements ShouldQueue
         // Find eligible sub-orders: delivered and past the auto-complete window
         $subOrders = SubOrder::with('order')
             ->whereNull('deleted_at')
-            ->where('status', 'delivered')
+            ->where('status', SubOrderStatus::Delivered->value)
             ->whereNotNull('delivered_at')
             ->where('delivered_at', '<=', $cutoff)
             ->get();

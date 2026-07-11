@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\MarketerTrackingStatus;
 use App\Models\Coupon;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
@@ -39,7 +40,7 @@ class MarketerService
         // Count non-reversed conversions for tiered rate
         $salesCount = MarketerConversion::where('marketer_id', $marketer->id)
             ->where('campaign_id', $campaign->id)
-            ->where('status', '!=', 'reversed')
+            ->where('status', '!=', MarketerTrackingStatus::Reversed)
             ->count();
 
         // Check campaign-specific tiers first, then marketer global tiers

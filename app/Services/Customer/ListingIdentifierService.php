@@ -2,6 +2,9 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\ProductStatus;
+use App\Enums\VendorGlobalStatus;
+use App\Enums\VendorListingStatus;
 use App\Models\Country;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -42,7 +45,7 @@ class ListingIdentifierService
     {
         return VendorListing::where('id', $identifier)
             ->where('country_id', $country->id)
-            ->when($activeOnly, fn ($q) => $q->where('status', 'active'))
+            ->when($activeOnly, fn ($q) => $q->where('status', VendorListingStatus::Active->value))
             ->with(self::EAGER_LOADS)
             ->first();
     }
@@ -51,7 +54,7 @@ class ListingIdentifierService
     {
         return VendorListing::whereHas('productVariant', fn ($q) => $q->where('sku', $identifier))
             ->where('country_id', $country->id)
-            ->when($activeOnly, fn ($q) => $q->where('status', 'active'))
+            ->when($activeOnly, fn ($q) => $q->where('status', VendorListingStatus::Active->value))
             ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
             ->orderBy('price')
             ->with(self::EAGER_LOADS)
@@ -62,14 +65,14 @@ class ListingIdentifierService
     {
         return VendorListing::where('vendor_sku', $identifier)
             ->where('country_id', $country->id)
-            ->when($activeOnly, fn ($q) => $q->where('status', 'active'))
+            ->when($activeOnly, fn ($q) => $q->where('status', VendorListingStatus::Active->value))
             ->with(self::EAGER_LOADS)
             ->first();
     }
 
     private function resolveByProductSlug(string $identifier, Country $country): ?VendorListing
     {
-        $product = Product::where('slug', $identifier)->where('status', 'active')->first();
+        $product = Product::where('slug', $identifier)->where('status', ProductStatus::Active->value)->first();
 
         if (!$product) {
             return null;
@@ -77,7 +80,7 @@ class ListingIdentifierService
 
         return VendorListing::whereHas('productVariant', fn ($q) => $q->where('product_id', $product->id))
             ->where('country_id', $country->id)
-            ->where('status', 'active')
+            ->where('status', VendorListingStatus::Active->value)
             ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
             ->orderBy('price')
             ->with(self::EAGER_LOADS)
@@ -122,8 +125,8 @@ class ListingIdentifierService
         $sameVariant = VendorListing::where('product_variant_id', $variantId)
             ->where('id', '!=', $listing->id)
             ->where('country_id', $country->id)
-            ->where('status', 'active')
-            ->whereHas('vendor', fn ($q) => $q->where('global_status', 'active'))
+            ->where('status', VendorListingStatus::Active->value)
+            ->whereHas('vendor', fn ($q) => $q->where('global_status', VendorGlobalStatus::Active->value))
             ->with(['vendor:id,store_name,store_rating_avg', 'primaryShippingMethod'])
             ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
             ->orderBy('price')
@@ -136,7 +139,7 @@ class ListingIdentifierService
             ->get()
             ->map(fn (ProductVariant $variant) => VendorListing::where('product_variant_id', $variant->id)
                 ->where('country_id', $country->id)
-                ->where('status', 'active')
+                ->where('status', VendorListingStatus::Active->value)
                 ->with([
                     'vendor:id,store_name',
                     'productVariant.variantAttributes.attribute',

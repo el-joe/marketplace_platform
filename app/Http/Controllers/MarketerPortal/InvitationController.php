@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\MarketerPortal;
 
+use App\Enums\VendorCampaignInvitationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerCampaignProduct;
@@ -24,12 +25,12 @@ class InvitationController extends Controller
         $marketer = Auth::guard('marketer')->user();
 
         $pendingCount = VendorCampaignInvitation::where('marketer_id', $marketer->id)
-            ->where('status', 'pending')
+            ->where('status', VendorCampaignInvitationStatus::Pending)
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
             ->count();
 
         $acceptedThisMonth = VendorCampaignInvitation::where('marketer_id', $marketer->id)
-            ->where('status', 'accepted')
+            ->where('status', VendorCampaignInvitationStatus::Accepted)
             ->whereMonth('responded_at', now()->month)
             ->whereYear('responded_at', now()->year)
             ->count();
@@ -64,7 +65,7 @@ class InvitationController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
         }
 
-        if ($invitation->status !== 'pending') {
+        if ($invitation->status !== VendorCampaignInvitationStatus::Pending) {
             return response()->json(['success' => false, 'message' => __('marketer.invitations.invitation_not_pending')], 422);
         }
 
@@ -137,7 +138,7 @@ class InvitationController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
         }
 
-        if ($invitation->status !== 'pending') {
+        if ($invitation->status !== VendorCampaignInvitationStatus::Pending) {
             return response()->json(['success' => false, 'message' => __('marketer.invitations.invitation_not_pending')], 422);
         }
 

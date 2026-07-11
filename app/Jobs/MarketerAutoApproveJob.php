@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Enums\MarketerCampaignStatus;
+use App\Enums\MarketerSampleRequestStatus;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerSampleRequest;
 use App\Notifications\Marketer\SampleRequestApproved as MarketerSampleRequestApproved;
@@ -33,7 +35,7 @@ class MarketerAutoApproveJob implements ShouldQueue
                 return;
             }
 
-            if ($campaign->status !== 'draft') {
+            if ($campaign->status !== MarketerCampaignStatus::Draft) {
                 return;
             }
 
@@ -52,7 +54,7 @@ class MarketerAutoApproveJob implements ShouldQueue
         if ($this->sampleRequestId) {
             $sampleRequest = MarketerSampleRequest::with('items')->find($this->sampleRequestId);
 
-            if (!$sampleRequest || $sampleRequest->status !== 'requested') {
+            if (!$sampleRequest || $sampleRequest->status !== MarketerSampleRequestStatus::Requested) {
                 return;
             }
 

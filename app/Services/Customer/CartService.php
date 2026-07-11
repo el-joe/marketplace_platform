@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\VendorListingStatus;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Coupon;
@@ -177,7 +178,7 @@ class CartService
         foreach ($cart->items as $item) {
             $listing = $item->vendorListing;
 
-            if (! $listing || $listing->status !== 'active') {
+            if (! $listing || $listing->status !== VendorListingStatus::Active) {
                 $item->delete();
                 continue;
             }

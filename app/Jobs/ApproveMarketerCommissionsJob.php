@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Enums\MarketerTrackingStatus;
+use App\Enums\ReturnRequestStatus;
 use App\Models\MarketerConversion;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -19,7 +21,7 @@ class ApproveMarketerCommissionsJob implements ShouldQueue
         //  • older than 14 days
         //  • on completed/delivered orders
         //  • with no unrejected return requests
-        MarketerConversion::where('status', 'pending')
+        MarketerConversion::where('status', MarketerTrackingStatus::Pending)
             ->where('created_at', '<=', now()->subDays(14))
             ->whereHas(
                 'order',
@@ -29,10 +31,10 @@ class ApproveMarketerCommissionsJob implements ShouldQueue
             ->whereDoesntHave(
                 'order.returnRequests',
                 fn($q) =>
-                $q->where('status', '!=', 'rejected')
+                $q->where('status', '!=', ReturnRequestStatus::Rejected)
             )
             ->update([
-                'status' => 'approved',
+                'status' => MarketerTrackingStatus::Approved,
                 'approved_at' => now(),
             ]);
     }

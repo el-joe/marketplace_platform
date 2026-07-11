@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\MarketerStatus;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,13 +14,13 @@ class MarketerApiActive
         /** @var \App\Models\Marketer $marketer */
         $marketer = auth()->guard('marketer_api')->user();
 
-        if ($marketer->status !== 'active') {
+        if ($marketer->status !== MarketerStatus::Active) {
             auth()->guard('marketer_api')->logout();
 
             $message = match ($marketer->status) {
-                'pending'   => 'Your account is pending admin approval.',
-                'suspended' => 'Your account has been suspended. Please contact support.',
-                'rejected'  => 'Your account application was not approved.',
+                MarketerStatus::Pending   => 'Your account is pending admin approval.',
+                MarketerStatus::Suspended => 'Your account has been suspended. Please contact support.',
+                MarketerStatus::Rejected  => 'Your account application was not approved.',
                 default     => 'Your account is not active.',
             };
 

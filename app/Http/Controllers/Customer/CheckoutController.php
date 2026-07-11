@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\VendorListingStatus;
 use App\Events\SubOrderPlaced;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\CheckoutPrepareRequest;
@@ -271,7 +272,7 @@ class CheckoutController extends Controller
         }
 
         foreach ($cart->items as $item) {
-            if ($item->vendorListing->status !== 'active') {
+            if ($item->vendorListing->status !== VendorListingStatus::Active) {
                 return ApiResponse::error("Listing {$item->vendorListing->id} is no longer available.", [], 422);
             }
 

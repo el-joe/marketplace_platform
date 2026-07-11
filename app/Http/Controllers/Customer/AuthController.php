@@ -9,6 +9,7 @@ use App\Http\Requests\Customer\Auth\RefreshTokenRequest;
 use App\Http\Requests\Customer\Auth\RegisterRequest;
 use App\Http\Requests\Customer\Auth\ResetPasswordRequest;
 use App\Http\Requests\Customer\Auth\VerifyEmailRequest;
+use App\Enums\CustomerStatus;
 use App\Http\Resources\Customer\CustomerResource;
 use App\Http\Responses\ApiResponse;
 use App\Jobs\SendVerificationEmailJob;
@@ -44,7 +45,7 @@ class AuthController extends Controller
                 'password' => $request->password,
                 'country_id' => $country->id,
                 'referral_code' => $this->referralService->generateUniqueCode(),
-                'status' => 'active',
+                'status' => CustomerStatus::Active,
             ]);
 
             if ($request->filled('referral_code')) {
@@ -79,11 +80,11 @@ class AuthController extends Controller
             return ApiResponse::error('Invalid credentials.', [], 401);
         }
 
-        if (in_array($customer->status, ['suspended', 'banned', 'deleted'])) {
+        if (in_array($customer->status, [CustomerStatus::Suspended, CustomerStatus::Banned, CustomerStatus::Deleted], true)) {
             $reason = match ($customer->status) {
-                'suspended' => 'Your account has been suspended.',
-                'banned'    => 'Your account has been banned.',
-                'deleted'   => 'This account no longer exists.',
+                CustomerStatus::Suspended => 'Your account has been suspended.',
+                CustomerStatus::Banned    => 'Your account has been banned.',
+                CustomerStatus::Deleted   => 'This account no longer exists.',
             };
             return ApiResponse::error($reason, [], 403);
         }
@@ -130,7 +131,7 @@ class AuthController extends Controller
 
         $customer = Customer::find($payload->getSubject());
 
-        if (!$customer || $customer->status !== 'active') {
+        if (!$customer || $customer->status !== CustomerStatus::Active) {
             return ApiResponse::error('Account not found or inactive.', [], 401);
         }
 
@@ -193,7 +194,7 @@ class AuthController extends Controller
         $field = filter_var($credential, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
         // Always return 200 to prevent user enumeration
-        $customer = Customer::where($field, $credential)->where('status', 'active')->first();
+        $customer = Customer::where($field, $credential)->where('status', CustomerStatus::Active)->first();
 
         if ($customer) {
             $customer->otpTokens()

@@ -2,6 +2,8 @@
 
 namespace App\Services\Marketer;
 
+use App\Enums\MarketerCampaignStatus;
+use App\Enums\MarketerStatus;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
 use Illuminate\Support\Facades\Cache;
@@ -15,7 +17,7 @@ class PublicProfileService
         return Cache::remember("public_marketer_profile:{$slug}", self::CACHE_TTL_SECONDS, function () use ($slug) {
             $marketer = Marketer::with('country')
                 ->where('boutiqaat_style_slug', $slug)
-                ->where('status', 'active')
+                ->where('status', MarketerStatus::Active)
                 ->firstOrFail();
 
             return [
@@ -47,7 +49,7 @@ class PublicProfileService
     private function getFeaturedProducts(Marketer $marketer): array
     {
         $campaigns = MarketerCampaign::where('marketer_id', $marketer->id)
-            ->where('status', 'active')
+            ->where('status', MarketerCampaignStatus::Active)
             ->with(['products.vendorListing.productVariant.product'])
             ->get();
 

@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\VendorListingStatus;
 use App\Models\Country;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
@@ -25,7 +26,7 @@ class BuyBoxService
             ->with(['vendor:id,store_name,store_slug,store_rating_avg', 'warehouseInventories'])
             ->whereIn('product_variant_id', $variantIds)
             ->where('country_id', $country->id)
-            ->where('status', 'active')
+            ->where('status', VendorListingStatus::Active->value)
             ->whereHas('warehouseInventories', function ($q) {
                 $q->where('quantity_available', '>', 0);
             })

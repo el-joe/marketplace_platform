@@ -3,6 +3,9 @@
 namespace App\Services\Delivery;
 
 use App\Enums\DeliveryAgentEarningStatus;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentTransactionStatus;
+use App\Enums\SubOrderStatus;
 use App\Jobs\CustomerDeliveredNotificationJob;
 use App\Jobs\GenerateVendorPayoutsJob;
 use App\Jobs\NotifyCustomerFailedDeliveryJob;
@@ -302,17 +305,17 @@ class AssignmentService
             // Customer refused a COD order = implicit cancellation; no cash changed hands.
             if ($isCodRefused) {
                 $order->update([
-                    'status'       => 'cancelled',
+                    'status'       => OrderStatus::Cancelled,
                     'cancelled_at' => now(),
                     // payment_status stays 'pending' — nothing was collected.
                 ]);
 
-                $assignment->subOrder->update(['status' => 'cancelled']);
+                $assignment->subOrder->update(['status' => SubOrderStatus::Cancelled]);
 
                 PaymentTransaction::where('order_id', $order->id)
                     ->where('gateway', 'cod')
-                    ->where('status', 'pending')
-                    ->update(['status' => 'cancelled']);
+                    ->where('status', PaymentTransactionStatus::Pending)
+                    ->update(['status' => PaymentTransactionStatus::Cancelled]);
             }
         });
 

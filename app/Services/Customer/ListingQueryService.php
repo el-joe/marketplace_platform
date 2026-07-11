@@ -2,6 +2,11 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\ClassifiedListingStatus;
+use App\Enums\ProductStatus;
+use App\Enums\TravelPackageStatus;
+use App\Enums\VendorGlobalStatus;
+use App\Enums\VendorListingStatus;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedListing;
 use App\Models\Country;
@@ -25,12 +30,12 @@ class ListingQueryService
     public function baseCategoryQuery(Country $country, array $categoryIds)
     {
         return VendorListing::where('country_id', $country->id)
-            ->where('status', 'active')
+            ->where('status', VendorListingStatus::Active->value)
             ->whereHas(
                 'productVariant.product',
-                fn($q) => $q->whereIn('category_id', $categoryIds)->where('status', 'active'),
+                fn($q) => $q->whereIn('category_id', $categoryIds)->where('status', ProductStatus::Active->value),
             )
-            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'));
+            ->whereHas('vendor', fn($q) => $q->where('global_status', VendorGlobalStatus::Active->value));
     }
 
     /**
@@ -41,9 +46,9 @@ class ListingQueryService
     public function baseSearchQuery(Country $country, string $query)
     {
         return VendorListing::where('country_id', $country->id)
-            ->where('status', 'active')
+            ->where('status', VendorListingStatus::Active->value)
             ->whereHas('productVariant.product', function ($q) use ($query) {
-                $q->where('status', 'active')
+                $q->where('status', ProductStatus::Active->value)
                     ->where(function ($q2) use ($query) {
                         $q2->where('name_en', 'like', "%{$query}%")
                             ->orWhere('name_ar', 'like', "%{$query}%")
@@ -51,7 +56,7 @@ class ListingQueryService
                             ->orWhere('model_number', 'like', "%{$query}%");
                     });
             })
-            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'));
+            ->whereHas('vendor', fn($q) => $q->where('global_status', VendorGlobalStatus::Active->value));
     }
 
     /**
@@ -161,8 +166,8 @@ class ListingQueryService
         return VendorListing::query()
             ->where('product_variant_id', $productVariantId)
             ->where('country_id', $country->id)
-            ->where('status', 'active')
-            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'))
+            ->where('status', VendorListingStatus::Active->value)
+            ->whereHas('vendor', fn($q) => $q->where('global_status', VendorGlobalStatus::Active->value))
             ->with([
                 'vendor:id,store_name,store_rating_avg,store_rating_count',
                 'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
@@ -193,8 +198,8 @@ class ListingQueryService
         $listings = VendorListing::query()
             ->whereIn('product_variant_id', $variantIds)
             ->where('country_id', $country->id)
-            ->where('status', 'active')
-            ->whereHas('vendor', fn($q) => $q->where('global_status', 'active'))
+            ->where('status', VendorListingStatus::Active->value)
+            ->whereHas('vendor', fn($q) => $q->where('global_status', VendorGlobalStatus::Active->value))
             ->with([
                 'primaryShippingMethod:id,name,badge_label_en,badge_label_ar,badge_color_hex,badge_text_color_hex,min_delivery_days,max_delivery_days',
                 'vendor:id,store_name,store_rating_avg',
@@ -293,7 +298,7 @@ class ListingQueryService
     ): LengthAwarePaginator {
         $childIds = ClassifiedCategory::where('parent_id', $categoryId)->pluck('id');
 
-        return ClassifiedListing::where('status', 'active')
+        return ClassifiedListing::where('status', ClassifiedListingStatus::Active->value)
             ->where(function ($q) use ($categoryId, $childIds) {
                 $q->where('classified_category_id', $categoryId)
                     ->orWhereIn('classified_category_id', $childIds);
@@ -334,7 +339,7 @@ class ListingQueryService
      */
     public function paginateTravelPackages(?string $travelCategoryId, int $perPage = 20): LengthAwarePaginator
     {
-        return TravelPackage::where('status', 'active')
+        return TravelPackage::where('status', TravelPackageStatus::Active->value)
             ->when($travelCategoryId, fn($q) => $q->whereHas(
                 'categories',
                 fn($q2) => $q2->where('travel_categories.id', $travelCategoryId),

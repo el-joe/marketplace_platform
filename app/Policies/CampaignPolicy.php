@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\MarketerCampaignStatus;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
 
@@ -20,7 +21,7 @@ class CampaignPolicy
     public function generateTrackingLink(Marketer $marketer, MarketerCampaign $campaign): bool
     {
         return $campaign->marketer_id === $marketer->id
-            && $campaign->status === 'active';
+            && $campaign->status === MarketerCampaignStatus::Active;
     }
 
     public function viewAnalytics(Marketer $marketer, MarketerCampaign $campaign): bool

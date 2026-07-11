@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\MarketerCampaignStatus;
+use App\Enums\MarketerStatus;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerClick;
 use App\Models\MarketerQrCode;
@@ -24,7 +26,7 @@ class MarketerTrackingService
     public function handleTrackingRequest(Request $request, string $slug, ?string $ref): void
     {
         $campaign = MarketerCampaign::where('tracking_url_slug', $slug)
-            ->where('status', 'active')
+            ->where('status', MarketerCampaignStatus::Active)
             ->first();
 
         if (!$campaign) {
@@ -34,7 +36,7 @@ class MarketerTrackingService
         // Resolve marketer from referral code or fall back to campaign owner
         $marketer = null;
         if ($ref) {
-            $marketer = Marketer::where('referral_code', $ref)->where('status', 'active')->first();
+            $marketer = Marketer::where('referral_code', $ref)->where('status', MarketerStatus::Active)->first();
         }
         $marketer ??= $campaign->marketer;
 

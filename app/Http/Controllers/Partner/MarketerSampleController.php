@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\MarketerSampleRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\MarketerSampleRequest;
 use App\Notifications\Vendor\SampleRequestApproved;
@@ -49,7 +50,7 @@ class MarketerSampleController extends Controller
     public function approve(MarketerSampleRequest $req): JsonResponse
     {
         abort_if($req->vendor_id !== $this->vendorId(), 403);
-        abort_unless($req->status === 'requested', 422, 'Only pending requests can be approved.');
+        abort_unless($req->status === MarketerSampleRequestStatus::Requested, 422, 'Only pending requests can be approved.');
 
         $req->update(['status' => 'approved', 'approved_at' => now()]);
 
@@ -64,7 +65,7 @@ class MarketerSampleController extends Controller
     public function reject(MarketerSampleRequest $req): JsonResponse
     {
         abort_if($req->vendor_id !== $this->vendorId(), 403);
-        abort_unless(in_array($req->status, ['requested', 'approved']), 422, 'Cannot reject at this stage.');
+        abort_unless(in_array($req->status, [MarketerSampleRequestStatus::Requested, MarketerSampleRequestStatus::Approved]), 422, 'Cannot reject at this stage.');
 
         $req->update(['status' => 'rejected']);
 
