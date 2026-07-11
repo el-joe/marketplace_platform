@@ -10,6 +10,7 @@ use App\Models\FlashSale;
 use App\Models\Product;
 use App\Models\ProductCountrySetting;
 use App\Services\Shared\PageBuilderService;
+use App\Support\Bilingual;
 use Illuminate\Support\Carbon;
 
 class HomeService
@@ -60,8 +61,7 @@ class HomeService
 
         return [
             'id'       => $sale->id,
-            'name'     => $sale->name_en,
-            'name_ar'  => $sale->name_ar,
+            'name'     => Bilingual::pair($sale, 'name'),
             'ends_at'  => $sale->sale_ends_at,
         ];
     }
@@ -167,8 +167,7 @@ class HomeService
             ->get()
             ->map(fn (Category $category) => [
                 'id' => $category->id,
-                'name_en' => $category->name_en,
-                'name_ar' => $category->name_ar,
+                'name' => Bilingual::pair($category, 'name'),
                 'slug' => $category->slug,
                 'icon' => null,
                 'image_url' => $category->files->first()?->url,

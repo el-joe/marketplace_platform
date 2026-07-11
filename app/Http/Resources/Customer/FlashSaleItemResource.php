@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,6 @@ class FlashSaleItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $lang = app()->getLocale() === 'ar' ? 'ar' : 'en';
         $listing = $this->vendorListing;
         $product = $listing?->productVariant?->product;
         $image = $product?->images?->firstWhere('is_primary', true) ?? $product?->images?->first();
@@ -27,7 +27,7 @@ class FlashSaleItemResource extends JsonResource
             'id' => $this->id,
             'product' => [
                 'id' => $product?->id,
-                'name' => $product?->{'name_' . $lang},
+                'name' => $product ? Bilingual::pair($product, 'name') : ['ar' => null, 'en' => null],
                 'slug' => $product?->slug,
                 'image' => $image?->url,
             ],

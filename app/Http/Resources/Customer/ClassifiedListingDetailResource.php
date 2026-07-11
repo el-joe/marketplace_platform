@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Customer;
 
 use App\Models\Vendor;
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,28 +13,23 @@ class ClassifiedListingDetailResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        $lang = app()->getLocale() === 'ar' ? 'ar' : 'en';
-
         return [
             'listing_number'   => $this->listing_number,
             'slug'             => $this->slug,
-            'title_en'         => $this->title_en,
-            'title_ar'         => $this->title_ar,
-            'description_en'   => $this->description_en,
-            'description_ar'   => $this->description_ar,
+            'title'            => Bilingual::pair($this->resource, 'title'),
+            'description'      => Bilingual::pair($this->resource, 'description'),
             'listing_purpose'  => $this->listing_purpose,
             'price_cents'      => $this->price_cents,
             'currency'         => $this->currency,
             'price_negotiable' => (bool) $this->price_negotiable,
             'attributes'       => $this->attributes ?? [],
             'location'         => [
-                'city' => $this->relationLoaded('city') ? $this->city?->{'name_' . $lang} : null,
+                'city' => $this->relationLoaded('city') ? Bilingual::pair($this->city, 'name') : null,
                 // lat/lng intentionally omitted from public detail — approximate area only
             ],
             'category'         => $this->relationLoaded('classifiedCategory') ? [
-                'id'      => $this->classifiedCategory?->id,
-                'name_en' => $this->classifiedCategory?->name_en,
-                'name_ar' => $this->classifiedCategory?->name_ar,
+                'id'   => $this->classifiedCategory?->id,
+                'name' => $this->classifiedCategory ? Bilingual::pair($this->classifiedCategory, 'name') : ['ar' => null, 'en' => null],
             ] : null,
             'images'           => $this->relationLoaded('images')
                 ? $this->images->map(fn ($img) => [

@@ -12,6 +12,7 @@ use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\ProductQueryService;
 use App\Services\Customer\UnifiedCategoryService;
 use App\Services\Shared\PageBuilderService;
+use App\Support\Bilingual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -103,15 +104,12 @@ class BrowseController extends Controller
     {
         return [
             'id'             => $category->id,
-            'name_en'        => $category->name_en,
-            'name_ar'        => $category->name_ar,
+            'name'           => Bilingual::pair($category, 'name'),
             'slug'           => $category->slug,
-            'description_en' => $category->description_en,
-            'description_ar' => $category->description_ar,
+            'description'    => Bilingual::pair($category, 'description'),
             'parent'         => $category->parent ? [
                 'id'      => $category->parent->id,
-                'name_en' => $category->parent->name_en,
-                'name_ar' => $category->parent->name_ar,
+                'name'    => Bilingual::pair($category->parent, 'name'),
                 'slug'    => $category->parent->slug,
             ] : null,
             'children' => $category->children()
@@ -121,8 +119,7 @@ class BrowseController extends Controller
                 ->get()
                 ->map(fn ($child) => [
                     'id'      => $child->id,
-                    'name_en' => $child->name_en,
-                    'name_ar' => $child->name_ar,
+                    'name'    => Bilingual::pair($child, 'name'),
                     'slug'    => $child->slug,
                     'icon'    => $child->icon,
                 ])
@@ -165,8 +162,7 @@ class BrowseController extends Controller
                 'category' => [
                     'id'          => $category->id,
                     'source_type' => 'classified',
-                    'name_en'     => $category->name_en,
-                    'name_ar'     => $category->name_ar,
+                    'name'        => Bilingual::pair($category, 'name'),
                     'slug'        => $category->slug,
                     'icon'        => $category->icon,
                     'link'        => "/browse/classified/{$category->id}",
@@ -224,8 +220,7 @@ class BrowseController extends Controller
             ->get()
             ->map(fn ($c) => [
                 'id'             => $c->id,
-                'name_en'        => $c->name_en,
-                'name_ar'        => $c->name_ar,
+                'name'           => Bilingual::pair($c, 'name'),
                 'slug'           => $c->slug,
                 'icon'           => $c->icon,
                 'package_count'  => $c->packages_count,
@@ -238,8 +233,9 @@ class BrowseController extends Controller
                 'category' => [
                     'id'                   => $travelCategory?->id,
                     'source_type'          => 'travel',
-                    'name_en'              => $travelCategory?->name_en ?? 'All Travel',
-                    'name_ar'              => $travelCategory?->name_ar ?? 'كل رحلات السفر',
+                    'name'                 => $travelCategory
+                        ? Bilingual::pair($travelCategory, 'name')
+                        : ['ar' => 'كل رحلات السفر', 'en' => 'All Travel'],
                     'slug'                 => $travelCategory?->slug ?? 'all',
                     'link'                 => '/travel',
                     'travel_category_slug' => $travelCategory?->slug,

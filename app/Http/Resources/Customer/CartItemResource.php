@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Customer;
 
 use App\Services\Customer\ListingIdentifierService;
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,8 +22,7 @@ class CartItemResource extends JsonResource
             'listing_ref'        => $listing ? app(ListingIdentifierService::class)->buildListingRef($listing) : null,
             'sku'                => $variant?->sku,
             'vendor_sku'         => $listing?->vendor_sku,
-            'name_en'            => $product?->name_en,
-            'name_ar'            => $product?->name_ar,
+            'name'               => $product ? Bilingual::pair($product, 'name') : ['ar' => null, 'en' => null],
             'thumbnail'          => $product?->images?->firstWhere('is_primary', true)?->url
                                         ?? $product?->images?->first()?->url,
             'unit_price_cents'   => $this->unit_price,
@@ -35,8 +35,7 @@ class CartItemResource extends JsonResource
             ] : null,
             'is_admin_listing' => $listing?->global_system_type === 'express_fbn',
             'shipping_badge'   => $listing?->primaryShippingMethod ? [
-                'label_en'          => $listing->primaryShippingMethod->badge_label_en,
-                'label_ar'          => $listing->primaryShippingMethod->badge_label_ar,
+                'label'             => Bilingual::pairFromKeys($listing->primaryShippingMethod, 'badge_label_ar', 'badge_label_en'),
                 'color_hex'         => $listing->primaryShippingMethod->badge_color_hex,
                 'text_color_hex'    => $listing->primaryShippingMethod->badge_text_color_hex,
                 'delivery_days_min' => $listing->primaryShippingMethod->min_delivery_days,

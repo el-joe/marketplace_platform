@@ -12,17 +12,14 @@ class NavigationController extends Controller
 {
     private const SECTION_LABELS = [
         'products' => [
-            'label_en' => 'Shop',
-            'label_ar' => 'تسوق',
+            'label' => ['ar' => 'تسوق', 'en' => 'Shop'],
         ],
         'classifieds' => [
-            'label_en' => 'Classifieds',
-            'label_ar' => 'الإعلانات المبوّبة',
+            'label' => ['ar' => 'الإعلانات المبوّبة', 'en' => 'Classifieds'],
         ],
         'travel' => [
-            'label_en' => 'Travel',
-            'label_ar' => 'السفر',
-            'link'     => '/travel',
+            'label' => ['ar' => 'السفر', 'en' => 'Travel'],
+            'link'  => '/travel',
         ],
     ];
 

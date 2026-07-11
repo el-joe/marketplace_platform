@@ -12,6 +12,7 @@ use App\Models\PaidBannerBooking;
 use App\Models\Product;
 use App\Models\ProductCountrySetting;
 use App\Services\Customer\ListingQueryService;
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
@@ -124,12 +125,9 @@ class PageBuilderService
                 'position' => $s->position,
                 'desktop_url' => $s->desktop_url,
                 'mobile_url' => $s->mobile_url,
-                'title_en' => $s->title_en,
-                'title_ar' => $s->title_ar,
-                'subtitle_en' => $s->subtitle_en,
-                'subtitle_ar' => $s->subtitle_ar,
-                'cta_label_en' => $s->cta_label_en,
-                'cta_label_ar' => $s->cta_label_ar,
+                'title' => Bilingual::pair($s, 'title'),
+                'subtitle' => Bilingual::pair($s, 'subtitle'),
+                'cta_label' => Bilingual::pair($s, 'cta_label'),
                 'cta_url' => $s->cta_url,
                 'cta_open_new_tab' => $s->cta_open_new_tab,
                 'text_color' => $s->text_color,
@@ -145,12 +143,10 @@ class PageBuilderService
                 'id' => $i->id,
                 'position' => $i->position,
                 'url' => $i->file_url,
-                'title_en' => $i->title_en,
-                'title_ar' => $i->title_ar,
+                'title' => Bilingual::pair($i, 'title'),
                 'link_url' => $i->link_url,
                 'link_open_new_tab' => $i->link_open_new_tab,
-                'alt_text_en' => $i->alt_text_en,
-                'alt_text_ar' => $i->alt_text_ar,
+                'alt_text' => Bilingual::pair($i, 'alt_text'),
                 'show_title_overlay' => $i->show_title_overlay,
                 'aspect_ratio' => $i->aspect_ratio,
             ])->values()->all();
@@ -184,8 +180,7 @@ class PageBuilderService
                 ->filter(fn($bc) => $bc->category !== null)
                 ->map(fn($bc) => [
                     'id' => $bc->category->id,
-                    'name_en' => $bc->category->name_en,
-                    'name_ar' => $bc->category->name_ar,
+                    'name' => Bilingual::pair($bc->category, 'name'),
                     'slug' => $bc->category->slug,
                 ])
                 ->values()

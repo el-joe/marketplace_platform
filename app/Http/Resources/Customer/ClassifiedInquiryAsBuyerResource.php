@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,8 +19,7 @@ class ClassifiedInquiryAsBuyerResource extends JsonResource
             'listing'        => $this->whenLoaded('listing', fn () => [
                 'id'             => $this->listing->id,
                 'listing_number' => $this->listing->listing_number,
-                'title_en'       => $this->listing->title_en,
-                'title_ar'       => $this->listing->title_ar,
+                'title'          => Bilingual::pair($this->listing, 'title'),
                 'status'         => $this->listing->status,
                 'primary_image'  => $this->listing->primary_image_url,
             ]),

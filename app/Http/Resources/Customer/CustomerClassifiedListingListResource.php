@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -15,8 +16,7 @@ class CustomerClassifiedListingListResource extends JsonResource
         return [
             'id'             => $this->id,
             'listing_number' => $this->listing_number,
-            'title_en'       => $this->title_en,
-            'title_ar'       => $this->title_ar,
+            'title'          => Bilingual::pair($this->resource, 'title'),
             'price_cents'    => $this->price_cents,
             'currency'       => $this->currency,
             'status'         => $this->status,

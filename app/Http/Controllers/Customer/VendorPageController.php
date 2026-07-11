@@ -8,6 +8,7 @@ use App\Models\Vendor;
 use App\Models\VendorListing;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Shared\PageBuilderService;
+use App\Support\Bilingual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -89,7 +90,7 @@ class VendorPageController extends Controller
             'store_name' => $vendor->store_name,
             'store_rating_avg' => $vendor->store_rating_avg,
             'store_rating_count' => $vendor->store_rating_count,
-            'country' => $vendor->country?->name_en,
+            'country' => $vendor->country ? Bilingual::pair($vendor->country, 'name') : null,
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,18 +12,21 @@ class ProductDetailResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        $lang = app()->getLocale() === 'ar' ? 'ar' : 'en';
-
         $countrySetting = $this->whenLoaded('countrySettings', function () {
             return $this->countrySettings->first();
         });
 
+        $name = [
+            'ar' => $countrySetting?->name_override_ar ?? $this->name_ar,
+            'en' => $countrySetting?->name_override_en ?? $this->name_en,
+        ];
+
         return [
             'id'               => $this->id,
             'slug'             => $this->slug,
-            'name'             => ($countrySetting?->{"name_override_{$lang}"}) ?? $this->{"name_{$lang}"},
-            'description'      => $this->{"description_{$lang}"},
-            'short_description' => $this->{"short_desc_{$lang}"},
+            'name'             => $name,
+            'description'      => Bilingual::pair($this->resource, 'description'),
+            'short_description' => Bilingual::pairFromKeys($this->resource, 'short_desc_ar', 'short_desc_en'),
             'model_number'     => $this->model_number,
             'gtin'             => $this->gtin,
             'is_age_restricted' => $this->is_age_restricted,
@@ -34,19 +38,19 @@ class ProductDetailResource extends JsonResource
             'total_sold'       => (int) $this->total_sold,
             'brand'            => $this->whenLoaded('brand', fn() => [
                 'id'   => $this->brand->id,
-                'name' => $this->brand->{"name_{$lang}"},
+                'name' => Bilingual::pair($this->brand, 'name'),
                 'slug' => $this->brand->slug,
             ]),
             'category'         => $this->whenLoaded('category', fn() => [
                 'id'   => $this->category->id,
-                'name' => $this->category->{"name_{$lang}"},
+                'name' => Bilingual::pair($this->category, 'name'),
                 'slug' => $this->category->slug,
             ]),
             'images'           => $this->whenLoaded('images', fn() =>
                 $this->images->map(fn($img) => [
                     'id'             => $img->id,
                     'url'            => \Storage::disk($img->disk)->url($img->path),
-                    'alt'            => $img->{"alt_text_{$lang}"},
+                    'alt'            => Bilingual::pairFromKeys($img, 'alt_text_ar', 'alt_text_en'),
                     'is_primary'     => $img->is_primary,
                     'position'       => $img->position,
                     'variant_id'     => $img->product_variant_id,
@@ -62,11 +66,12 @@ class ProductDetailResource extends JsonResource
                     'attributes'   => $v->variantAttributes->map(fn($va) => [
                         'attribute_id'   => $va->attribute_id,
                         'attribute_code' => $va->attribute?->code,
-                        'attribute_name' => $va->attribute?->{"name_{$lang}"},
+                        'attribute_name' => $va->attribute ? Bilingual::pair($va->attribute, 'name') : ['ar' => null, 'en' => null],
                         'value_id'       => $va->attribute_value_id,
-                        'value'          => $va->attributeValue?->{"value_{$lang}"}
-                                           ?? $va->{"value_text_{$lang}"}
-                                           ?? $va->value_number,
+                        'value'          => [
+                            'ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar ?? $va->value_number,
+                            'en' => $va->attributeValue?->value_en ?? $va->value_text_en ?? $va->value_number,
+                        ],
                         'color_hex'      => $va->attributeValue?->code_hex,
                     ]),
                 ])->values()
@@ -82,8 +87,11 @@ class ProductDetailResource extends JsonResource
             ),
             'is_wishlisted'    => $this->isWishlisted,
             'seo'              => [
-                'title'       => $countrySetting?->seo_title ?? $this->{"seo_title_{$lang}"},
-                'description' => $this->{"seo_description_{$lang}"},
+                'title'       => [
+                    'ar' => $countrySetting?->seo_title ?? $this->seo_title_ar,
+                    'en' => $countrySetting?->seo_title ?? $this->seo_title_en,
+                ],
+                'description' => Bilingual::pairFromKeys($this->resource, 'seo_description_ar', 'seo_description_en'),
             ],
         ];
     }

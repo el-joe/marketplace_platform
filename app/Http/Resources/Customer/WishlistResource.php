@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Customer;
 
 use App\Services\Customer\ListingIdentifierService;
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -27,8 +28,7 @@ class WishlistResource extends JsonResource
             'is_admin_listing' => $listing?->global_system_type === 'express_fbn',
             'product'         => $product ? [
                 'id'        => $product->id,
-                'name_en'   => $product->name_en,
-                'name_ar'   => $product->name_ar,
+                'name'      => Bilingual::pair($product, 'name'),
                 'slug'      => $product->slug,
                 'thumbnail' => $product->images?->first()?->url ?? null,
             ] : null,
@@ -37,8 +37,7 @@ class WishlistResource extends JsonResource
                 'store_name' => $listing->vendor->store_name,
             ] : null,
             'shipping_badge'  => $listing?->primaryShippingMethod ? [
-                'label_en'          => $listing->primaryShippingMethod->badge_label_en,
-                'label_ar'          => $listing->primaryShippingMethod->badge_label_ar,
+                'label'             => Bilingual::pairFromKeys($listing->primaryShippingMethod, 'badge_label_ar', 'badge_label_en'),
                 'color_hex'         => $listing->primaryShippingMethod->badge_color_hex,
                 'text_color_hex'    => $listing->primaryShippingMethod->badge_text_color_hex,
                 'delivery_days_min' => $listing->primaryShippingMethod->min_delivery_days,

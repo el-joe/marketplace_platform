@@ -10,6 +10,7 @@ use App\Models\Wishlist;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\ProductViewService;
 use App\Services\ListingShippingResolver;
+use App\Support\Bilingual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -148,12 +149,10 @@ class ListingDetailController extends Controller
         return [
             'method_code' => $method->code,
             'method_name' => $method->name,
-            'badge_label_en' => $method->badge_label_en,
-            'badge_label_ar' => $method->badge_label_ar,
+            'badge_label' => Bilingual::pair($method, 'badge_label'),
             'badge_color_hex' => $method->badge_color_hex,
             'badge_text_color_hex' => $method->badge_text_color_hex,
-            'delivery_label_en' => $method->delivery_label_en,
-            'delivery_label_ar' => $method->delivery_label_ar,
+            'delivery_label' => Bilingual::pair($method, 'delivery_label'),
             'delivery_days_min' => $method->min_delivery_days,
             'delivery_days_max' => $method->max_delivery_days,
         ];
@@ -164,21 +163,17 @@ class ListingDetailController extends Controller
         return [
             'id' => $product->id,
             'slug' => $product->slug,
-            'name_en' => $product->name_en,
-            'name_ar' => $product->name_ar,
-            'description_en' => $product->description_en,
-            'description_ar' => $product->description_ar,
+            'name' => Bilingual::pair($product, 'name'),
+            'description' => Bilingual::pair($product, 'description'),
             'brand' => $product->brand ? [
                 'id' => $product->brand->id,
-                'name_en' => $product->brand->name_en,
-                'name_ar' => $product->brand->name_ar,
+                'name' => Bilingual::pair($product->brand, 'name'),
                 'slug' => $product->brand->slug,
                 'is_verified' => $product->brand->is_verified,
             ] : null,
             'category' => $product->category ? [
                 'id' => $product->category->id,
-                'name_en' => $product->category->name_en,
-                'name_ar' => $product->category->name_ar,
+                'name' => Bilingual::pair($product->category, 'name'),
                 'slug' => $product->category->slug,
             ] : null,
             'images' => $product->images->map(fn($img) => [
@@ -189,15 +184,13 @@ class ListingDetailController extends Controller
             'rating_count' => (int) $listing->rating_count,
             'attributes_summary' => $this->attributesSummary($product),
             'seo' => [
-                'title_en' => $product->seo_title_en,
-                'title_ar' => $product->seo_title_ar,
-                'description_en' => $product->seo_description_en,
-                'description_ar' => $product->seo_description_ar,
+                'title' => Bilingual::pairFromKeys($product, 'seo_title_ar', 'seo_title_en'),
+                'description' => Bilingual::pairFromKeys($product, 'seo_description_ar', 'seo_description_en'),
             ],
         ];
     }
 
-    private function attributesSummary($product): ?string
+    private function attributesSummary($product): ?array
     {
         $variant = $product->variants->first();
 
@@ -205,9 +198,14 @@ class ListingDetailController extends Controller
             return null;
         }
 
-        return $variant->variantAttributes
-            ->map(fn($va) => ($va->attribute?->name_en) . ': ' . ($va->attributeValue?->value_en ?? $va->value_text_en))
-            ->implode(', ');
+        return [
+            'ar' => $variant->variantAttributes
+                ->map(fn($va) => ($va->attribute?->name_ar) . ': ' . ($va->attributeValue?->value_ar ?? $va->value_text_ar))
+                ->implode(', '),
+            'en' => $variant->variantAttributes
+                ->map(fn($va) => ($va->attribute?->name_en) . ': ' . ($va->attributeValue?->value_en ?? $va->value_text_en))
+                ->implode(', '),
+        ];
     }
 
     private function variantShape($variant): array
@@ -219,8 +217,14 @@ class ListingDetailController extends Controller
             'variant_name' => $variant->variant_name,
             'is_default' => $variant->is_default,
             'attributes' => $variant->variantAttributes->map(fn($va) => [
-                'attribute_name' => $va->attribute?->name_en,
-                'value' => $va->attributeValue?->value_en ?? $va->value_text_en,
+                'attribute_name' => [
+                    'ar' => $va->attribute?->name_ar,
+                    'en' => $va->attribute?->name_en,
+                ],
+                'value' => [
+                    'ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar,
+                    'en' => $va->attributeValue?->value_en ?? $va->value_text_en,
+                ],
             ])->values()->all(),
         ];
     }
@@ -239,8 +243,7 @@ class ListingDetailController extends Controller
             'is_admin_listing' => $listing->global_system_type === 'express_fbn',
             'is_express_fbn' => $listing->global_system_type === 'express_fbn',
             'shipping_badge' => $listing->primaryShippingMethod ? [
-                'label_en' => $listing->primaryShippingMethod->badge_label_en,
-                'label_ar' => $listing->primaryShippingMethod->badge_label_ar,
+                'label' => Bilingual::pair($listing->primaryShippingMethod, 'badge_label'),
                 'color_hex' => $listing->primaryShippingMethod->badge_color_hex,
                 'text_color_hex' => $listing->primaryShippingMethod->badge_text_color_hex,
                 'delivery_days_min' => $listing->primaryShippingMethod->min_delivery_days,
@@ -261,12 +264,17 @@ class ListingDetailController extends Controller
             'currency' => $listing->currency,
             'is_admin_listing' => $listing->global_system_type === 'express_fbn',
             'attributes' => $listing->productVariant->variantAttributes->map(fn($va) => [
-                'attribute_name' => $va->attribute?->name_en,
-                'value' => $va->attributeValue?->value_en ?? $va->value_text_en,
+                'attribute_name' => [
+                    'ar' => $va->attribute?->name_ar,
+                    'en' => $va->attribute?->name_en,
+                ],
+                'value' => [
+                    'ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar,
+                    'en' => $va->attributeValue?->value_en ?? $va->value_text_en,
+                ],
             ])->values()->all(),
             'shipping_badge' => $listing->primaryShippingMethod ? [
-                'label_en' => $listing->primaryShippingMethod->badge_label_en,
-                'label_ar' => $listing->primaryShippingMethod->badge_label_ar,
+                'label' => Bilingual::pair($listing->primaryShippingMethod, 'badge_label'),
                 'color_hex' => $listing->primaryShippingMethod->badge_color_hex,
                 'text_color_hex' => $listing->primaryShippingMethod->badge_text_color_hex,
                 'delivery_days_min' => $listing->primaryShippingMethod->min_delivery_days,

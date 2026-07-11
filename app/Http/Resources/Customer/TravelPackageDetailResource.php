@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -9,17 +10,13 @@ class TravelPackageDetailResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $lang = app()->getLocale() === 'ar' ? 'ar' : 'en';
-
         $agency = $this->relationLoaded('agency') ? $this->agency : null;
 
         return [
             'id'                  => $this->id,
             'slug'                => $this->slug,
-            'title_en'            => $this->title_en,
-            'title_ar'            => $this->title_ar,
-            'description_en'      => $this->description_en,
-            'description_ar'      => $this->description_ar,
+            'title'               => Bilingual::pair($this->resource, 'title'),
+            'description'         => Bilingual::pair($this->resource, 'description'),
             'destination_country' => $this->destination_country,
             'destination_city'    => $this->destination_city,
             'price_cents'         => $this->price_cents,
@@ -39,7 +36,7 @@ class TravelPackageDetailResource extends JsonResource
             'categories'          => $this->relationLoaded('categories')
                 ? $this->categories->map(fn ($c) => [
                     'id'   => $c->id,
-                    'name' => $c->{'name_' . $lang},
+                    'name' => Bilingual::pair($c, 'name'),
                     'slug' => $c->slug,
                 ])->values()
                 : [],

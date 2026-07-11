@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -13,10 +14,8 @@ class CustomerClassifiedListingDetailResource extends JsonResource
         return [
             'id'                      => $this->id,
             'listing_number'          => $this->listing_number,
-            'title_en'                => $this->title_en,
-            'title_ar'                => $this->title_ar,
-            'description_en'          => $this->description_en,
-            'description_ar'          => $this->description_ar,
+            'title'                   => Bilingual::pair($this->resource, 'title'),
+            'description'             => Bilingual::pair($this->resource, 'description'),
             'listing_purpose'         => $this->listing_purpose,
             'price_cents'             => $this->price_cents,
             'currency'                => $this->currency,
@@ -32,10 +31,9 @@ class CustomerClassifiedListingDetailResource extends JsonResource
             'country_id'              => $this->country_id,
             'city_id'                 => $this->city_id,
             'category'                => $this->whenLoaded('classifiedCategory', fn () => [
-                'id'      => $this->classifiedCategory->id,
-                'name_en' => $this->classifiedCategory->name_en,
-                'name_ar' => $this->classifiedCategory->name_ar,
-                'slug'    => $this->classifiedCategory->slug,
+                'id'   => $this->classifiedCategory->id,
+                'name' => Bilingual::pair($this->classifiedCategory, 'name'),
+                'slug' => $this->classifiedCategory->slug,
             ]),
             'images'                  => $this->whenLoaded('images', fn () => $this->images->map(fn ($img) => [
                 'id'         => $img->id,

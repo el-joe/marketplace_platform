@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,8 +18,7 @@ class TravelPackagePublicResource extends JsonResource
 
         return [
             'id'                  => $this->id,
-            'title_en'            => $this->title_en,
-            'title_ar'            => $this->title_ar,
+            'title'               => Bilingual::pair($this->resource, 'title'),
             'destination_country' => $this->destination_country,
             'destination_city'    => $this->destination_city,
             'price_cents'         => $this->price_cents,

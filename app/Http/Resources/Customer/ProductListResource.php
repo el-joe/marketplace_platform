@@ -9,12 +9,15 @@ class ProductListResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $lang = app()->getLocale() === 'ar' ? 'ar' : 'en';
+        $name = [
+            'ar' => $this->name_override_ar ?? $this->name_ar,
+            'en' => $this->name_override_en ?? $this->name_en,
+        ];
 
         return [
             'id'           => $this->id,
             'slug'         => $this->slug,
-            'name'         => $this->{'name_override_' . $lang} ?? $this->{'name_' . $lang},
+            'name'         => $name,
             'primary_image' => $this->whenLoaded('images', function () {
                 $primary = $this->images->firstWhere('is_primary', true) ?? $this->images->first();
                 return $primary ? \Storage::disk($primary->disk)->url($primary->path) : null;

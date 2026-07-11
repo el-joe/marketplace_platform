@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Customer;
 
 use App\Models\Vendor;
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -10,16 +11,13 @@ class ClassifiedListingPublicResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $lang = app()->getLocale() === 'ar' ? 'ar' : 'en';
-
         return [
             'listing_number'   => $this->listing_number,
-            'title_en'         => $this->title_en,
-            'title_ar'         => $this->title_ar,
+            'title'            => Bilingual::pair($this->resource, 'title'),
             'price_cents'      => $this->price_cents,
             'price_negotiable' => $this->price_negotiable,
             'primary_image'    => $this->primary_image_url,
-            'city'             => $this->relationLoaded('city') ? $this->city?->{'name_' . $lang} : null,
+            'city'             => $this->relationLoaded('city') ? Bilingual::pair($this->city, 'name') : null,
             'seller_label'     => $this->sellerLabel(),
             'listing_purpose'  => $this->listing_purpose,
             'views_count'      => $this->views_count,

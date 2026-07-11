@@ -23,6 +23,7 @@ use App\Models\PaidBannerBooking;
 use App\Models\ProductCountrySetting;
 use App\Models\ProductVariant;
 use App\Models\VendorListing;
+use App\Support\Bilingual;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -298,9 +299,9 @@ class PageRendererService
             'slides' => $slides->map(fn($s) => [
                 'desktop_image_url' => $s->desktop_url,
                 'mobile_image_url' => $s->mobile_url,
-                'title' => $s->title_en,
-                'subtitle' => $s->subtitle_en,
-                'cta_label' => $s->cta_label_en,
+                'title' => Bilingual::pair($s, 'title'),
+                'subtitle' => Bilingual::pair($s, 'subtitle'),
+                'cta_label' => Bilingual::pair($s, 'cta_label'),
                 'cta_url' => $s->cta_url,
                 'cta_open_new_tab' => (bool) $s->cta_open_new_tab,
                 'text_color' => $s->text_color,
@@ -360,8 +361,7 @@ class PageRendererService
         };
 
         return [
-            'title_en' => $cfg['title_en'] ?? null,
-            'title_ar' => $cfg['title_ar'] ?? null,
+            'title' => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
             'source' => $source,
             'items_per_row' => $cfg['items_per_row'] ?? 4,
             'scrollable_row' => (bool) ($cfg['scrollable_row'] ?? true),
@@ -550,7 +550,7 @@ class PageRendererService
 
         return [
             'flash_sale' => [
-                'name' => $flashSale->name_en,
+                'name' => Bilingual::pair($flashSale, 'name'),
                 'ends_at' => $flashSale->sale_ends_at->toIso8601String(),
                 'seconds_left' => max(0, now()->diffInSeconds($flashSale->sale_ends_at, false)),
             ],
@@ -598,7 +598,7 @@ class PageRendererService
         return [
             'title' => $cfg['title'] ?? null,
             'product' => [
-                'name' => $product->name_en,
+                'name' => Bilingual::pair($product, 'name'),
                 'image' => $image?->url,
                 'price_cents' => (int) $listing->price,
                 'compare_at_price_cents' => $listing->compare_at_price !== null ? (int) $listing->compare_at_price : null,
@@ -622,17 +622,14 @@ class PageRendererService
             ->get();
 
         return [
-            'title_en' => $cfg['title_en'] ?? null,
-            'title_ar' => $cfg['title_ar'] ?? null,
+            'title' => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
             'aspect_ratio' => $cfg['aspect_ratio'] ?? null,
             'items' => $items->map(fn($i) => [
                 'image_url' => $i->file_url,
-                'title_en' => $i->title_en,
-                'title_ar' => $i->title_ar,
+                'title' => Bilingual::pair($i, 'title'),
                 'link_url' => $i->link_url,
                 'link_open_new_tab' => (bool) $i->link_open_new_tab,
-                'alt_text_en' => $i->alt_text_en,
-                'alt_text_ar' => $i->alt_text_ar,
+                'alt_text' => Bilingual::pair($i, 'alt_text'),
                 'show_title_overlay' => (bool) $i->show_title_overlay,
             ])->all(),
         ];
@@ -658,7 +655,7 @@ class PageRendererService
             'link_url' => $item->link_url,
             'link_type' => $cfg['link_type'] ?? null,
             'link_reference_id' => $cfg['link_reference_id'] ?? null,
-            'alt_text' => app()->getLocale() === 'ar' ? $item->alt_text_ar : $item->alt_text_en,
+            'alt_text' => Bilingual::pair($item, 'alt_text'),
             'aspect_ratio' => $item->aspect_ratio,
             'mobile_aspect_ratio' => $cfg['mobile_aspect_ratio'] ?? null,
         ];
@@ -716,13 +713,11 @@ class PageRendererService
         }
 
         return [
-            'title_en' => $cfg['title_en'] ?? null,
-            'title_ar' => $cfg['title_ar'] ?? null,
+            'title' => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
             'items' => $categories->map(function ($c) use ($showProductCount) {
                 return [
                     'id' => $c->id,
-                    'name_en' => $c->name_en,
-                    'name_ar' => $c->name_ar,
+                    'name' => Bilingual::pair($c, 'name'),
                     'slug' => $c->slug,
                     // categories table has no `icon` column in this schema — always null.
                     'icon' => null,
@@ -756,8 +751,7 @@ class PageRendererService
             ->get();
 
         return [
-            'title_en' => $cfg['title_en'] ?? null,
-            'title_ar' => $cfg['title_ar'] ?? null,
+            'title' => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
             'show_logo_only' => (bool) ($cfg['show_logo_only'] ?? false),
             'brands' => $blockSellers
                 ->filter(fn($bs) => $bs->seller !== null)
@@ -800,8 +794,7 @@ class PageRendererService
         );
 
         return [
-            'title_en' => $cfg['title_en'] ?? null,
-            'title_ar' => $cfg['title_ar'] ?? null,
+            'title' => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
             'terms' => $terms,
         ];
     }
@@ -813,8 +806,10 @@ class PageRendererService
         $cfg = $block->config ?? [];
 
         return [
-            'content_html_en' => $this->sanitizeHtml($cfg['content_html_en'] ?? null),
-            'content_html_ar' => $this->sanitizeHtml($cfg['content_html_ar'] ?? null),
+            'content_html' => [
+                'ar' => $this->sanitizeHtml($cfg['content_html_ar'] ?? null),
+                'en' => $this->sanitizeHtml($cfg['content_html_en'] ?? null),
+            ],
             'text_align' => $cfg['text_align'] ?? 'left',
             'max_width' => $cfg['max_width'] ?? null,
         ];
@@ -868,10 +863,8 @@ class PageRendererService
         $cfg = $block->config ?? [];
 
         return [
-            'title_en' => $cfg['title_en'] ?? null,
-            'title_ar' => $cfg['title_ar'] ?? null,
-            'subtitle_en' => $cfg['subtitle_en'] ?? null,
-            'subtitle_ar' => $cfg['subtitle_ar'] ?? null,
+            'title' => Bilingual::pairFromKeys($cfg, 'title_ar', 'title_en'),
+            'subtitle' => Bilingual::pairFromKeys($cfg, 'subtitle_ar', 'subtitle_en'),
         ];
     }
 

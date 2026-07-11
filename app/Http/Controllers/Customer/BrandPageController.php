@@ -8,6 +8,7 @@ use App\Models\Country;
 use App\Models\VendorListing;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Shared\PageBuilderService;
+use App\Support\Bilingual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -91,12 +92,10 @@ class BrandPageController extends Controller
     {
         return [
             'id' => $brand->id,
-            'name_en' => $brand->name_en,
-            'name_ar' => $brand->name_ar,
+            'name' => Bilingual::pair($brand, 'name'),
             'slug' => $brand->slug,
             'logo_url' => $this->resolveLogoUrl($brand->logo_media_id),
-            'description_en' => $brand->description_en,
-            'description_ar' => $brand->description_ar,
+            'description' => Bilingual::pair($brand, 'description'),
             'is_verified' => $brand->is_verified,
         ];
     }

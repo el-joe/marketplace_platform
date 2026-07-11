@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,12 +14,10 @@ class ClassifiedCategoryTreeResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $lang = app()->getLocale() === 'ar' ? 'ar' : 'en';
-
         return [
             'id'        => $this->id,
             'type'      => 'classified',
-            'name'      => $this->{'name_' . $lang},
+            'name'      => Bilingual::pair($this->resource, 'name'),
             'slug'      => $this->slug,
             'parent_id' => $this->parent_id,
             'icon'      => $this->icon,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -23,12 +24,15 @@ class TravelBookingResource extends JsonResource
             'created_at'      => $this->created_at?->toIso8601String(),
             'package'         => $this->whenLoaded('package', fn () => [
                 'id'          => $this->package->id,
-                'title'       => $this->package->title,
+                'title'       => Bilingual::pair($this->package, 'title'),
                 'price_cents' => $this->package->price_cents,
                 'currency'    => $this->package->currency,
                 'agency'      => $this->when(
                     $this->package->relationLoaded('agency'),
-                    fn () => ['id' => $this->package->agency?->id, 'name' => $this->package->agency?->name]
+                    fn () => [
+                        'id'   => $this->package->agency?->id,
+                        'name' => $this->package->agency?->name,
+                    ]
                 ),
                 'cover_image' => $this->when(
                     $this->package->relationLoaded('media'),

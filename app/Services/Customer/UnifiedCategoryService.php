@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\ClassifiedCategory;
 use App\Models\Country;
 use App\Models\TravelCategory;
+use App\Support\Bilingual;
 use Illuminate\Support\Facades\Cache;
 
 class UnifiedCategoryService
@@ -199,8 +200,7 @@ class UnifiedCategoryService
         $node = [
             'id'          => $category->id,
             'source_type' => $sourceType,
-            'name_en'     => $category->name_en,
-            'name_ar'     => $category->name_ar,
+            'name'        => Bilingual::pair($category, 'name'),
             'slug'        => $category->slug,
             'icon'        => $sourceType === 'product' ? null : $category->icon,
             'is_featured' => $sourceType === 'product' ? (bool) $category->is_featured : false,

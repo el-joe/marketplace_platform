@@ -393,10 +393,12 @@ class PageBuilderController extends Controller
         if ($blockType->code === 'product_row') {
             $extra['categories'] = Category::orderBy('name_en')->get(['id', 'name_en']);
             $extra['flashSales'] = FlashSale::whereIn('status', ['submission_open', 'approved', 'live'])
+                ->orWhere('id', $config['flash_sale_id'] ?? null)
                 ->orderBy('name_en')->get(['id', 'name_en']);
         }
         if (in_array($blockType->code, ['flash_sale', 'deal_of_day'])) {
             $extra['flashSales'] = FlashSale::whereIn('status', ['submission_open', 'approved', 'live'])
+                ->orWhere('id', $config['flash_sale_id'] ?? null)
                 ->orderBy('name_en')->get(['id', 'name_en']);
         }
 

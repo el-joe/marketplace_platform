@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Support\Bilingual;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,39 +15,37 @@ class CategoryPageResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $lang = app()->getLocale() === 'ar' ? 'ar' : 'en';
-
         return [
             'id'             => $this->id,
-            'name'           => $this->{'name_' . $lang},
+            'name'           => Bilingual::pair($this->resource, 'name'),
             'slug'           => $this->slug,
-            'breadcrumbs'    => $this->buildBreadcrumbs($lang),
-            'subcategories'  => $this->directChildren($lang),
+            'breadcrumbs'    => $this->buildBreadcrumbs(),
+            'subcategories'  => $this->directChildren(),
         ];
     }
 
-    private function buildBreadcrumbs(string $lang): array
+    private function buildBreadcrumbs(): array
     {
         $crumbs = [];
 
         foreach ($this->ancestors()->get() as $ancestor) {
             $crumbs[] = [
                 'id'   => $ancestor->id,
-                'name' => $ancestor->{'name_' . $lang},
+                'name' => Bilingual::pair($ancestor, 'name'),
                 'slug' => $ancestor->slug,
             ];
         }
 
         $crumbs[] = [
             'id'   => $this->id,
-            'name' => $this->{'name_' . $lang},
+            'name' => Bilingual::pair($this->resource, 'name'),
             'slug' => $this->slug,
         ];
 
         return $crumbs;
     }
 
-    private function directChildren(string $lang): array
+    private function directChildren(): array
     {
         return $this->children()
             ->where('is_active', true)
@@ -55,7 +54,7 @@ class CategoryPageResource extends JsonResource
             ->get()
             ->map(fn($child) => [
                 'id'            => $child->id,
-                'name'          => $child->{'name_' . $lang},
+                'name'          => Bilingual::pair($child, 'name'),
                 'slug'          => $child->slug,
                 'image_url'     => $child->image_url,
                 'product_count' => (int) $child->product_count,
