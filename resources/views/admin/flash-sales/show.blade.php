@@ -37,7 +37,7 @@
     {{-- Pass data to JS --}}
     <script>
         window.FLASH_SALE_ID     = '{{ $flashSale->id }}';
-        window.FLASH_SALE_STATUS = '{{ $flashSale->status }}';
+        window.FLASH_SALE_STATUS = '{{ $flashSale->status->value }}';
         window.URLS = {
             show:              '{{ route('admin.flash-sales.show', $flashSale->id) }}',
             edit:              '{{ route('admin.flash-sales.edit', $flashSale->id) }}',
@@ -256,7 +256,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            @if(!in_array($flashSale->status, ['ended', 'cancelled']))
+                            @if(!in_array($flashSale->status->value, ['ended', 'cancelled']))
                                 <div class="flex gap-2">
                                     <button type="button" id="btn-auto-invite" class="btn btn-secondary btn-sm">
                                         <x-heroicon name="user-group" class="w-4 h-4 mr-1.5" />
@@ -277,7 +277,7 @@
 
                 {{-- ─── Live Monitor tab ─────────────────────────────────────── --}}
                 <div x-show="tab === 'live'" x-cloak>
-                    @if($flashSale->status === 'live')
+                    @if($flashSale->status->value === 'live')
                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                             <x-stat-card label="{{ __('admin.flash_sales.units_sold') }}"     id="live-units"     value="—" color="success" icon="shopping-bag" />
                             <x-stat-card label="{{ __('admin.flash_sales.revenue') }}"        id="live-revenue"   value="—" color="primary" icon="currency-dollar" />
@@ -307,7 +307,7 @@
                             <div class="text-center py-12 text-gray-400">
                                 <x-heroicon name="signal" class="w-12 h-12 mx-auto mb-3 opacity-30" />
                                 <p class="text-sm">{{ __('admin.flash_sales.live_monitor_unavailable') }}</p>
-                                <p class="text-xs mt-1">{{ __('admin.flash_sales.current_status', ['status' => $statusLabels[$flashSale->status] ?? $flashSale->status]) }}</p>
+                                <p class="text-xs mt-1">{{ __('admin.flash_sales.current_status', ['status' => $statusLabels[$flashSale->status->value] ?? $flashSale->status->value]) }}</p>
                             </div>
                         </x-card>
                     @endif
@@ -315,7 +315,7 @@
 
                 {{-- ─── Analytics tab ────────────────────────────────────────── --}}
                 <div x-show="tab === 'analytics'" x-cloak>
-                    @if(in_array($flashSale->status, ['live', 'ended']))
+                    @if(in_array($flashSale->status->value, ['live', 'ended']))
                         <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                             <x-stat-card label="{{ __('admin.flash_sales.total_units_sold') }}"    id="an-units"      value="—" color="primary" icon="shopping-bag" />
                             <x-stat-card label="{{ __('admin.flash_sales.gross_revenue') }}"       id="an-revenue"    value="—" color="success" icon="currency-dollar" />
@@ -436,7 +436,7 @@
                             </div>
                         </div>
 
-                        @if(!in_array($flashSale->status, ['live', 'ended', 'cancelled']))
+                        @if(!in_array($flashSale->status->value, ['live', 'ended', 'cancelled']))
                             <div class="mt-4 pt-4 border-t border-gray-100">
                                 <a href="{{ route('admin.flash-sales.edit', $flashSale->id) }}" class="btn btn-secondary btn-sm">
                                     <x-heroicon name="pencil-square" class="w-4 h-4 mr-1.5" />
@@ -460,8 +460,8 @@
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-500">{{ __('admin.status') }}</span>
-                        <x-badge :color="$statusColors[$flashSale->status] ?? 'gray'">
-                            {{ $statusLabels[$flashSale->status] ?? $flashSale->status }}
+                        <x-badge :color="$statusColors[$flashSale->status->value] ?? 'gray'">
+                            {{ $statusLabels[$flashSale->status->value] ?? $flashSale->status->value }}
                         </x-badge>
                     </div>
                     <div class="flex justify-between">
@@ -510,7 +510,7 @@
             </x-card>
 
             {{-- Actions --}}
-            @if(!in_array($flashSale->status, ['ended', 'cancelled']))
+            @if(!in_array($flashSale->status->value, ['ended', 'cancelled']))
                 <x-card title="{{ __('common.actions') }}">
                     <div class="space-y-2">
                         @php
@@ -535,7 +535,7 @@
                                 </button>
                             @endif
                         @endforeach
-                        @if(!in_array($flashSale->status, ['cancelled']) && !in_array('cancelled', collect($nextStatuses)->pluck('value')->toArray()))
+                        @if(!in_array($flashSale->status->value, ['cancelled']) && !in_array('cancelled', collect($nextStatuses)->pluck('value')->toArray()))
                             <button type="button"
                                 class="btn btn-danger w-full justify-center flash-sale-transition"
                                 data-action="cancel"

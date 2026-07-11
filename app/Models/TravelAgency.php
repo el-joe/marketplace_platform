@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TravelAgencyStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -34,6 +35,7 @@ class TravelAgency extends Authenticatable implements JWTSubject
         return [
             'approved_at' => 'datetime',
             'password'    => 'hashed',
+            'status'      => TravelAgencyStatus::class,
         ];
     }
 
@@ -70,7 +72,7 @@ class TravelAgency extends Authenticatable implements JWTSubject
 
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->status === TravelAgencyStatus::Active;
     }
 
     public function logoUrl(): ?string

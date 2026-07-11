@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\TravelPackageStatus;
 use App\Models\TravelCategory;
 use App\Models\TravelPackage;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -29,7 +30,7 @@ class TravelBrowseQueryService
         $query = TravelPackage::query()
             ->with(['media', 'agency'])
             ->whereHas('categories', fn ($q) => $q->whereIn('travel_categories.id', $categoryIds))
-            ->where('status', 'active')
+            ->where('status', TravelPackageStatus::Active)
             ->whereDate('departure_date', '>=', $today)
             ->where(function ($q) {
                 $q->whereNull('available_seats')
@@ -74,7 +75,7 @@ class TravelBrowseQueryService
         $today = now()->toDateString();
 
         $base = TravelPackage::whereHas('categories', fn ($q) => $q->whereIn('travel_categories.id', $categoryIds))
-            ->where('status', 'active')
+            ->where('status', TravelPackageStatus::Active)
             ->whereDate('departure_date', '>=', $today)
             ->where(function ($q) {
                 $q->whereNull('available_seats')

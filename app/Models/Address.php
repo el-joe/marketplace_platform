@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AddressType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -38,6 +39,7 @@ class Address extends Model
             'is_default' => 'boolean',
             'latitude' => 'float',
             'longitude' => 'float',
+            'address_type' => AddressType::class,
         ];
     }
 

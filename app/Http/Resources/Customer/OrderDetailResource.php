@@ -13,7 +13,7 @@ class OrderDetailResource extends JsonResource
         return [
             'id'                       => $this->id,
             'order_number'             => $this->order_number,
-            'status'                   => $this->status,
+            'status'                   => $this->status->value,
             'currency'                 => $this->currency,
             'subtotal'                 => $this->subtotal / 100,
             'discount'                 => $this->discount / 100,
@@ -33,7 +33,7 @@ class OrderDetailResource extends JsonResource
                 $this->subOrders->map(fn ($so) => [
                     'id'                     => $so->id,
                     'sub_order_number'       => $so->sub_order_number,
-                    'status'                 => $so->status,
+                    'status'                 => $so->status->value,
                     'fulfillment_model'      => $so->fulfillment_model,
                     'vendor_name'            => $so->vendor?->name,
                     'tracking_number'        => $so->tracking_number,
@@ -55,7 +55,7 @@ class OrderDetailResource extends JsonResource
                         'quantity'         => $item->quantity,
                         'unit_price'       => $item->unit_price / 100,
                         'line_total'       => $item->line_total / 100,
-                        'fulfillment_status' => $item->fulfillment_status,
+                        'fulfillment_status' => $item->fulfillment_status->value,
                         'return_eligible_until' => $item->return_eligible_until?->toDateString(),
                     ]),
                     'status_history' => $so->statusHistories->map(fn ($h) => [
@@ -79,7 +79,7 @@ class OrderDetailResource extends JsonResource
                     'type'       => $t->type,
                     'amount'     => $t->amount / 100,
                     'currency'   => $t->currency,
-                    'status'     => $t->status,
+                    'status'     => $t->status->value,
                     'gateway'    => $t->gateway,
                     'processed_at' => $t->processed_at?->toIso8601String(),
                 ])

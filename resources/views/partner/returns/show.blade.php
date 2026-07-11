@@ -8,7 +8,7 @@
     window.RETURN_CONFIG = {
         csrf: '{{ csrf_token() }}',
         messagesUrl: '/api/vendor/v1/returns/{{ $return->return_number }}/messages',
-        status: '{{ $return->status }}',
+        status: '{{ $return->status->value }}',
     };
 </script>
 @vite('resources/js/partner/returns.js')
@@ -56,11 +56,11 @@
         'platform'  => __('partner.returns.liability_platform'),
         'carrier'   => __('partner.returns.liability_carrier'),
     ];
-    $isFinal       = in_array($return->status, ['completed', 'cancelled']);
-    $hasInspection = in_array($return->status, ['inspecting', 'completed', 'cancelled']);
+    $isFinal       = in_array($return->status, [\App\Enums\ReturnRequestStatus::Completed, \App\Enums\ReturnRequestStatus::Cancelled], true);
+    $hasInspection = in_array($return->status, [\App\Enums\ReturnRequestStatus::Inspecting, \App\Enums\ReturnRequestStatus::Completed, \App\Enums\ReturnRequestStatus::Cancelled], true);
     $orderMasked   = $return->order ? '****' . substr($return->order->order_number, -4) : null;
     $customerName  = trim(($return->customer->first_name ?? '') . ' ' . (isset($return->customer->last_name) ? strtoupper(substr($return->customer->last_name, 0, 1)) . '.' : ''));
-    [$statusCls, $statusLabel] = $statusMap[$return->status] ?? ['bg-gray-100 text-gray-500', $return->status];
+    [$statusCls, $statusLabel] = $statusMap[$return->status->value] ?? ['bg-gray-100 text-gray-500', $return->status->value];
 @endphp
 
 {{-- Breadcrumb --}}
@@ -111,11 +111,11 @@
                 </div>
                 <div>
                     <dt class="text-xs text-gray-400 mb-0.5">{{ __('partner.returns.return_reason') }}</dt>
-                    <dd class="font-medium text-gray-800">{{ $reasonMap[$return->reason] ?? $return->reason }}</dd>
+                    <dd class="font-medium text-gray-800">{{ $reasonMap[$return->reason->value] ?? $return->reason->value }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs text-gray-400 mb-0.5">{{ __('partner.returns.type_header') }}</dt>
-                    <dd class="font-medium text-gray-800">{{ $typeMap[$return->return_type] ?? $return->return_type }}</dd>
+                    <dd class="font-medium text-gray-800">{{ $typeMap[$return->return_type->value] ?? $return->return_type->value }}</dd>
                 </div>
                 @if($return->pickup_scheduled_at)
                     <div>
@@ -148,7 +148,7 @@
         @if($hasInspection && $return->inspection_result)
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
                 <h2 class="text-sm font-semibold text-gray-700 mb-4">{{ __('partner.returns.inspection_result') }}</h2>
-                @php [$insCls, $insLabel] = $inspectionMap[$return->inspection_result] ?? ['bg-gray-100 text-gray-600', $return->inspection_result]; @endphp
+                @php [$insCls, $insLabel] = $inspectionMap[$return->inspection_result->value] ?? ['bg-gray-100 text-gray-600', $return->inspection_result->value]; @endphp
                 <div class="flex items-center gap-3 mb-3">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $insCls }}">
                         {{ $insLabel }}
@@ -168,7 +168,7 @@
                     @if($return->liability)
                         <div>
                             <dt class="text-xs text-gray-400 mb-0.5">{{ __('partner.returns.liability') }}</dt>
-                            <dd class="font-medium text-gray-800">{{ $liabilityMap[$return->liability] ?? $return->liability }}</dd>
+                            <dd class="font-medium text-gray-800">{{ $liabilityMap[$return->liability->value] ?? $return->liability->value }}</dd>
                         </div>
                     @endif
                     @if($return->refund_amount_cents)
@@ -207,7 +207,7 @@
                             </div>
                             @if($item->condition_received)
                                 <span class="flex-shrink-0 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                                    {{ $condMap[$item->condition_received] ?? $item->condition_received }}
+                                    {{ $condMap[$item->condition_received->value] ?? $item->condition_received->value }}
                                 </span>
                             @endif
                         </div>
@@ -230,11 +230,11 @@
             {{-- Thread --}}
             <div class="flex-1 overflow-y-auto px-4 py-4 space-y-3" id="thread" style="max-height: 400px;">
                 @forelse($return->messages as $msg)
-                    @php $isMine = $msg->sender_role === 'seller'; @endphp
+                    @php $isMine = $msg->sender_role === \App\Enums\DisputeMessageSenderRole::Seller; @endphp
                     <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }}">
                         <div class="max-w-[85%]">
                             <p class="text-xs mb-1 {{ $isMine ? 'text-end' : 'text-start' }} text-gray-400">
-                                {{ $isMine ? __('partner.returns.you') : ($msg->sender_role === 'customer' ? __('partner.returns.customer_role') : __('partner.returns.admin_role')) }}
+                                {{ $isMine ? __('partner.returns.you') : ($msg->sender_role === \App\Enums\DisputeMessageSenderRole::Customer ? __('partner.returns.customer_role') : __('partner.returns.admin_role')) }}
                                 · {{ \Carbon\Carbon::parse($msg->created_at)->format('d/m H:i') }}
                             </p>
                             <div @class([

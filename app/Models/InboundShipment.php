@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InboundShipmentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -27,6 +28,16 @@ class InboundShipment extends Model
         'damaged_quantity',
         'condition_notes',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => InboundShipmentStatus::class,
+            'expected_arrival_date' => 'date',
+            'arrived_at' => 'datetime',
+            'received_at' => 'datetime',
+        ];
+    }
 
     public function vendor(): BelongsTo
     {

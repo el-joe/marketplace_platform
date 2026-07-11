@@ -9,7 +9,7 @@
         window.SUPPORT_TICKET = {
             csrf: '{{ csrf_token() }}',
             replyUrl: '{{ route('partner.support.tickets.reply', $ticket->ticket_number) }}',
-            status: '{{ $ticket->status }}',
+            status: '{{ $ticket->status->value }}',
         };
     </script>
 @endpush
@@ -23,8 +23,8 @@
             'resolved' => ['label' => __('partner.support.status_resolved'), 'color' => 'bg-green-100 text-green-700'],
             'closed' => ['label' => __('partner.support.status_closed'), 'color' => 'bg-gray-100 text-gray-500'],
         ];
-        $statusCfg = $statusLabels[$ticket->status] ?? ['label' => $ticket->status, 'color' => 'bg-gray-100 text-gray-600'];
-        $isClosed = in_array($ticket->status, ['resolved', 'closed']);
+        $statusCfg = $statusLabels[$ticket->status->value] ?? ['label' => $ticket->status->value, 'color' => 'bg-gray-100 text-gray-600'];
+        $isClosed = in_array($ticket->status, [\App\Enums\SupportTicketStatus::Resolved, \App\Enums\SupportTicketStatus::Closed], true);
     @endphp
     <div class="px-4 py-6 sm:px-6 lg:px-8">
 
@@ -108,7 +108,7 @@
             </div>
         @else
             <div class="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-500 text-center">
-                {{ __('partner.support.ticket_resolved_notice', ['status' => $ticket->status === 'resolved' ? __('partner.support.status_resolved') : __('partner.support.status_closed')]) }}
+                {{ __('partner.support.ticket_resolved_notice', ['status' => $ticket->status === \App\Enums\SupportTicketStatus::Resolved ? __('partner.support.status_resolved') : __('partner.support.status_closed')]) }}
             </div>
         @endif
 

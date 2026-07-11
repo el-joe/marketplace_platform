@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Delivery;
 
+use App\Enums\DeliveryAgentEarningStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentCodSettlement;
@@ -33,7 +34,7 @@ class CodSettlementsController extends Controller
         $currentCodTotal     = $currentPeriodAssignments->sum('cod_amount_collected_cents');
         $currentEarningsTotal = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->whereIn('delivery_assignment_id', $currentPeriodAssignments->pluck('id'))
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled)
             ->sum('amount_cents');
         $currentNetOwed = max(0, $currentCodTotal - $currentEarningsTotal);
 

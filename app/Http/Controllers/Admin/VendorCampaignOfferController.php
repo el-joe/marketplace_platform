@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\VendorCampaignInvitationStatus;
+use App\Enums\VendorCampaignOfferStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Vendor;
@@ -26,10 +28,10 @@ class VendorCampaignOfferController extends Controller
         abort_unless($admin->hasPermissionTo('campaign_offers.view'), 403);
 
         $stats = [
-            'pending' => VendorCampaignOffer::where('status', 'pending_admin')->count(),
-            'active'  => VendorCampaignOffer::where('status', 'active')->count(),
-            'draft'   => VendorCampaignOffer::where('status', 'draft')->count(),
-            'ended'   => VendorCampaignOffer::where('status', 'ended')->count(),
+            'pending' => VendorCampaignOffer::where('status', VendorCampaignOfferStatus::PendingAdmin->value)->count(),
+            'active'  => VendorCampaignOffer::where('status', VendorCampaignOfferStatus::Active->value)->count(),
+            'draft'   => VendorCampaignOffer::where('status', VendorCampaignOfferStatus::Draft->value)->count(),
+            'ended'   => VendorCampaignOffer::where('status', VendorCampaignOfferStatus::Ended->value)->count(),
         ];
 
         $vendors = Vendor::orderBy('store_name')->get(['id', 'store_name']);
@@ -70,22 +72,22 @@ class VendorCampaignOfferController extends Controller
         ];
 
         $statusColors = [
-            'pending_admin' => 'warning',
-            'active'        => 'success',
-            'draft'         => 'gray',
-            'paused'        => 'gray',
-            'ended'         => 'gray',
-            'cancelled'     => 'danger',
+            VendorCampaignOfferStatus::PendingAdmin->value => 'warning',
+            VendorCampaignOfferStatus::Active->value        => 'success',
+            VendorCampaignOfferStatus::Draft->value         => 'gray',
+            VendorCampaignOfferStatus::Paused->value        => 'gray',
+            VendorCampaignOfferStatus::Ended->value         => 'gray',
+            VendorCampaignOfferStatus::Cancelled->value     => 'danger',
         ];
 
         $canEdit = $admin->hasPermissionTo('campaign_offers.edit');
 
         return $this->dataTableResponse($request, $query, $columns, function (VendorCampaignOffer $row) use ($statusColors, $canEdit) {
-            $statusColor = $statusColors[$row->status] ?? 'gray';
-            $statusLabel = ucwords(str_replace(['_', 'admin'], [' ', 'Review'], $row->status));
+            $statusColor = $statusColors[$row->status->value] ?? 'gray';
+            $statusLabel = $row->status->label();
             $statusBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{$statusColor}-100 text-{$statusColor}-700\">{$statusLabel}</span>";
 
-            $typeLabel = ucwords(str_replace('_', ' ', $row->campaign_type));
+            $typeLabel = $row->campaign_type->label();
 
             $dateRange = Carbon::parse($row->starts_at)->format('d M Y')
                 . ' – '
@@ -101,7 +103,7 @@ class VendorCampaignOfferController extends Controller
                 'invited'    => $row->invitations_count,
                 'status'     => $statusBadge,
                 'actions'    => $this->buildRowActions($row, $canEdit),
-                'DT_RowData' => ['id' => $row->id, 'status' => $row->status],
+                'DT_RowData' => ['id' => $row->id, 'status' => $row->status->value],
             ];
         });
     }
@@ -121,9 +123,9 @@ class VendorCampaignOfferController extends Controller
         ]);
 
         $conversionStats = [
-            'accepted'    => $offer->invitations->where('status', 'accepted')->count(),
-            'declined'    => $offer->invitations->whereIn('status', ['declined', 'expired', 'revoked'])->count(),
-            'pending'     => $offer->invitations->where('status', 'pending')->count(),
+            'accepted'    => $offer->invitations->where('status', VendorCampaignInvitationStatus::Accepted)->count(),
+            'declined'    => $offer->invitations->whereIn('status', [VendorCampaignInvitationStatus::Declined, VendorCampaignInvitationStatus::Expired, VendorCampaignInvitationStatus::Revoked])->count(),
+            'pending'     => $offer->invitations->where('status', VendorCampaignInvitationStatus::Pending)->count(),
             'conversions' => $offer->resultingCampaigns()
                 ->join('marketer_conversions', 'marketer_campaigns.id', '=', 'marketer_conversions.marketer_campaign_id')
                 ->count('marketer_conversions.id'),
@@ -137,18 +139,18 @@ class VendorCampaignOfferController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('campaign_offers.edit'), 403);
 
-        if ($offer->status !== 'pending_admin') {
+        if ($offer->status !== VendorCampaignOfferStatus::PendingAdmin) {
             return response()->json(['message' => 'Offer is not pending admin review.'], 422);
         }
 
         $offer->update([
-            'status'               => 'active',
+            'status'               => VendorCampaignOfferStatus::Active,
             'approved_by_admin_id' => $admin->id,
             'approved_at'          => now(),
         ]);
 
         // Fan out pending invitations created before approval
-        $offer->invitations()->where('status', 'pending')->each(
+        $offer->invitations()->where('status', VendorCampaignInvitationStatus::Pending->value)->each(
             fn($inv) => Notification::send($inv->marketer, new VendorCampaignInvitationReceived($inv))
         );
 
@@ -163,7 +165,7 @@ class VendorCampaignOfferController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('campaign_offers.edit'), 403);
 
-        if ($offer->status !== 'pending_admin') {
+        if ($offer->status !== VendorCampaignOfferStatus::PendingAdmin) {
             return response()->json(['message' => 'Offer is not pending admin review.'], 422);
         }
 
@@ -172,7 +174,7 @@ class VendorCampaignOfferController extends Controller
         ]);
 
         $offer->update([
-            'status'              => 'draft',
+            'status'              => VendorCampaignOfferStatus::Draft,
             'rejected_by_admin_id'=> $admin->id,
             'rejection_reason'    => $request->rejection_reason,
         ]);
@@ -191,7 +193,7 @@ class VendorCampaignOfferController extends Controller
         $html = '<div class="flex items-center gap-1">';
         $html .= "<a href=\"{$showUrl}\" class=\"btn btn-xs btn-secondary\">View</a>";
 
-        if ($canEdit && $offer->status === 'pending_admin') {
+        if ($canEdit && $offer->status === VendorCampaignOfferStatus::PendingAdmin) {
             $html .= "<button type=\"button\" class=\"btn btn-xs btn-success js-approve-btn\" data-url=\"{$approveUrl}\" data-name=\"" . e($offer->name) . "\">Approve</button>";
             $html .= "<button type=\"button\" class=\"btn btn-xs btn-danger js-reject-btn\" data-url=\"{$rejectUrl}\" data-name=\"" . e($offer->name) . "\">Reject</button>";
         }

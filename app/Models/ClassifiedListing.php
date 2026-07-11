@@ -38,6 +38,7 @@ class ClassifiedListing extends Model
         'price_negotiable'     => 'boolean',
         'marketer_promotion_enabled' => 'boolean',
         'is_vendor_listing'    => 'boolean',
+        'status'               => \App\Enums\ClassifiedListingStatus::class,
     ];
 
     protected static function booted(): void
@@ -131,7 +132,7 @@ class ClassifiedListing extends Model
         }
 
         $verified = $this->attachments
-            ->where('status', 'verified')
+            ->where('status', \App\Enums\ClassifiedListingAttachmentStatus::Verified)
             ->pluck('attachment_type')
             ->toArray();
 

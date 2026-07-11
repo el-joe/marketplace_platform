@@ -14,7 +14,7 @@
             <a href="{{ route('admin.radio.channels.index') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('admin.radio.back_to_channels') }}</a>
             <h1 class="text-xl font-bold text-gray-900 mt-1">
                 📅 {{ __('admin.radio.schedule_for', ['channel' => $channel->name_en]) }}
-                <span class="text-sm font-normal text-gray-500 ml-2">{{ __('admin.radio.' . $channel->type) }}</span>
+                <span class="text-sm font-normal text-gray-500 ml-2">{{ __('admin.radio.' . $channel->type->value) }}</span>
             </h1>
         </div>
         <button @click="openCreate()"

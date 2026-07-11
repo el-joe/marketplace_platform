@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Storefront;
 
+use App\Enums\TravelBookingStatus;
+use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
@@ -19,7 +21,7 @@ class TravelController extends Controller
     public function index(Request $request): View
     {
         $query = TravelPackage::query()
-            ->where('status', 'active')
+            ->where('status', TravelPackageStatus::Active)
             ->with(['agency', 'media'])
             ->when($request->input('country'), fn($q, $v) => $q->where('destination_country', $v))
             ->when($request->input('city'), fn($q, $v) => $q->where('destination_city', 'like', "%{$v}%"))
@@ -30,7 +32,7 @@ class TravelController extends Controller
 
         $packages = $query->orderBy('departure_date')->paginate(16)->withQueryString();
 
-        $countries = TravelPackage::where('status', 'active')
+        $countries = TravelPackage::where('status', TravelPackageStatus::Active)
             ->distinct()
             ->orderBy('destination_country')
             ->pluck('destination_country');
@@ -42,7 +44,7 @@ class TravelController extends Controller
 
     public function show(TravelPackage $package): View
     {
-        if ($package->status !== 'active') {
+        if ($package->status !== TravelPackageStatus::Active) {
             abort(404);
         }
 
@@ -55,7 +57,7 @@ class TravelController extends Controller
 
     public function bookForm(TravelPackage $package): View
     {
-        if ($package->status !== 'active') {
+        if ($package->status !== TravelPackageStatus::Active) {
             abort(404);
         }
 
@@ -72,7 +74,7 @@ class TravelController extends Controller
 
     public function book(Request $request, TravelPackage $package): RedirectResponse
     {
-        if ($package->status !== 'active') {
+        if ($package->status !== TravelPackageStatus::Active) {
             abort(404);
         }
 
@@ -106,7 +108,7 @@ class TravelController extends Controller
                 'passport_file_path'      => $passportPath,
                 'contract_signed_at'      => now(),
                 'contract_signature_data' => $request->input('contract_signature_data'),
-                'status'                  => 'confirmed',
+                'status'                  => TravelBookingStatus::Confirmed,
             ]);
 
             $pkg->increment('seats_booked', $count);
@@ -114,7 +116,7 @@ class TravelController extends Controller
             if ($pkg->available_seats !== null
                 && $pkg->seats_booked >= $pkg->available_seats
             ) {
-                $pkg->update(['status' => 'sold_out']);
+                $pkg->update(['status' => TravelPackageStatus::SoldOut]);
             }
 
             return $booking;

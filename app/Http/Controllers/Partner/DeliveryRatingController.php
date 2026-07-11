@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Partner;
 
 use App\Http\Controllers\Controller;
+use App\Enums\CarrierPerformanceRatedByType;
+use App\Enums\SubOrderStatus;
 use App\Models\CarrierPerformanceRating;
 use App\Models\SubOrder;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +17,7 @@ class DeliveryRatingController extends Controller
         $vendor = auth('vendor')->user();
 
         abort_unless($subOrder->vendor_id === $vendor->id, 403);
-        abort_unless($subOrder->status === 'delivered' || $subOrder->status === 'completed', 422);
+        abort_unless($subOrder->status === SubOrderStatus::Delivered || $subOrder->status === SubOrderStatus::Completed, 422);
 
         $data = $request->validate([
             'rating'  => ['required', 'integer', 'min:1', 'max:5'],
@@ -25,7 +27,7 @@ class DeliveryRatingController extends Controller
 
         // Prevent duplicate rating from same vendor
         $existing = CarrierPerformanceRating::where('sub_order_id', $subOrder->id)
-            ->where('rated_by_type', 'vendor')
+            ->where('rated_by_type', CarrierPerformanceRatedByType::Vendor)
             ->where('rated_by_id', $vendor->id)
             ->first();
 
@@ -39,7 +41,7 @@ class DeliveryRatingController extends Controller
             'shipping_company_id' => $shipment?->shippingCompanyId ?? null,
             'delivery_agent_id'   => $shipment?->delivery_agent_id ?? null,
             'sub_order_id'        => $subOrder->id,
-            'rated_by_type'       => 'vendor',
+            'rated_by_type'       => CarrierPerformanceRatedByType::Vendor,
             'rated_by_id'         => $vendor->id,
             'rating'              => $data['rating'],
             'on_time'             => $data['on_time'] ?? null,

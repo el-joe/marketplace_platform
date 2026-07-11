@@ -30,7 +30,7 @@
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
                 <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.ad_slots.pricing_model') }}</dt>
-                <dd class="font-semibold uppercase">{{ $adSlot->pricing_model ?? '—' }}</dd>
+                <dd class="font-semibold uppercase">{{ $adSlot->pricing_model?->label() ?? '—' }}</dd>
             </div>
             <div>
                 <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.ad_slots.base_rate') }}</dt>
@@ -77,7 +77,7 @@
                         @foreach($bookings as $booking)
                             @php
                                 $statusColors = ['pending' => 'warning', 'active' => 'success', 'rejected' => 'danger', 'cancelled' => 'gray', 'ended' => 'gray'];
-                                $sc = $statusColors[$booking->status] ?? 'gray';
+                                $sc = $statusColors[$booking->status->value] ?? 'gray';
                                 $payColors = ['unpaid' => 'danger', 'paid' => 'success', 'invoiced' => 'warning', 'refunded' => 'gray'];
                                 $pc = $payColors[$booking->payment_status ?? 'unpaid'] ?? 'gray';
                             @endphp
@@ -93,7 +93,7 @@
                                 <td class="py-2 pr-4">
                                     <span
                                         class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">
-                                        {{ ucfirst($booking->status) }}
+                                        {{ $booking->status->label() }}
                                     </span>
                                 </td>
                                 <td class="py-2 pr-4">

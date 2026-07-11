@@ -34,7 +34,7 @@
                     @foreach($rows as $row)
                         <div class="px-4 py-4 space-y-3">
                             <div class="flex items-center justify-between">
-                                <div class="text-xs font-mono text-gray-400">{{ $row->field_key }} <span class="ms-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500">{{ $row->type }}</span></div>
+                                <div class="text-xs font-mono text-gray-400">{{ $row->field_key }} <span class="ms-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500">{{ $row->type->value }}</span></div>
                                 <label class="inline-flex items-center gap-1.5 text-xs text-gray-500">
                                     <input type="checkbox" name="fields[{{ $row->id }}][is_active]" value="1" {{ $row->is_active ? 'checked' : '' }} class="rounded border-gray-300">
                                     {{ __('common.active') }}
@@ -44,7 +44,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('admin.portal_content.english') }}</label>
-                                    @if($row->type === 'richtext')
+                                    @if($row->type === \App\Enums\PortalContentType::RichText)
                                         <textarea name="fields[{{ $row->id }}][value_en]" rows="4" class="w-full rounded-lg border-gray-300 text-sm">{{ old("fields.{$row->id}.value_en", $row->value_en) }}</textarea>
                                     @else
                                         <input type="text" name="fields[{{ $row->id }}][value_en]" value="{{ old("fields.{$row->id}.value_en", $row->value_en) }}" class="w-full rounded-lg border-gray-300 text-sm" dir="ltr">
@@ -52,7 +52,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('admin.portal_content.arabic') }}</label>
-                                    @if($row->type === 'richtext')
+                                    @if($row->type === \App\Enums\PortalContentType::RichText)
                                         <textarea name="fields[{{ $row->id }}][value_ar]" rows="4" class="w-full rounded-lg border-gray-300 text-sm" dir="rtl">{{ old("fields.{$row->id}.value_ar", $row->value_ar) }}</textarea>
                                     @else
                                         <input type="text" name="fields[{{ $row->id }}][value_ar]" value="{{ old("fields.{$row->id}.value_ar", $row->value_ar) }}" class="w-full rounded-lg border-gray-300 text-sm" dir="rtl">
@@ -60,7 +60,7 @@
                                 </div>
                             </div>
 
-                            @if($row->type === 'link')
+                            @if($row->type === \App\Enums\PortalContentType::Link)
                                 <div>
                                     <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('admin.portal_content.url') }}</label>
                                     <input type="text" name="fields[{{ $row->id }}][value_url]" value="{{ old("fields.{$row->id}.value_url", $row->value_url) }}" class="w-full rounded-lg border-gray-300 text-sm font-mono" dir="ltr">

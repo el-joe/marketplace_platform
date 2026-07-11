@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CustomerStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -45,6 +46,7 @@ class Customer extends Authenticatable implements JWTSubject
             'loyalty_points' => 'decimal:2',
             'total_spent' => 'decimal:2',
             'password' => 'hashed',
+            'status' => CustomerStatus::class,
         ];
     }
 

@@ -25,7 +25,8 @@ class SettingsController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('settings.view'), 403);
 
-        $categories = Setting::select('category')->distinct()->orderBy('category')->pluck('category');
+        $categories = Setting::select('category')->distinct()->orderBy('category')->pluck('category')
+            ->map(fn($category) => $category instanceof \App\Enums\SettingCategory ? $category->value : $category);
         $activeCategory = request('tab', 'general');
         $settings = Setting::where('category', $activeCategory)->orderBy('key')->get();
         $countries = Country::where('is_active', 1)->get();
@@ -92,7 +93,7 @@ class SettingsController extends Controller
         // Re-run just this key from the seeder defaults (not possible without duplicating defaults).
         // Instead, we clear the cache so the next read gets fresh DB value.
         Cache::forget('setting:' . $key);
-        Cache::forget('settings:' . $setting->category);
+        Cache::forget('settings:' . $setting->category->value);
 
         return response()->json(['message' => "Setting [{$key}] cache cleared."]);
     }

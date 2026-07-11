@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SubOrderStatus;
 use App\Traits\HasStateMachine;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -65,6 +66,7 @@ class SubOrder extends Model
             'gateway_fee_rate' => 'decimal:6',
             'cod_remittance_confirmed' => 'boolean',
             'cod_remittance_confirmed_at' => 'datetime',
+            'status' => SubOrderStatus::class,
         ];
     }
 

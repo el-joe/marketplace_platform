@@ -2,6 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\ReturnRequestInspectionResult;
+use App\Enums\ReturnRequestLiability;
+use App\Enums\ReturnRequestReason;
+use App\Enums\ReturnRequestStatus;
+use App\Enums\ReturnRequestType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +14,17 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ReturnRequest extends Model
 {
+    protected function casts(): array
+    {
+        return [
+            'reason' => ReturnRequestReason::class,
+            'return_type' => ReturnRequestType::class,
+            'status' => ReturnRequestStatus::class,
+            'inspection_result' => ReturnRequestInspectionResult::class,
+            'liability' => ReturnRequestLiability::class,
+        ];
+    }
+
     protected $fillable = [
         'return_number',
         'order_id',

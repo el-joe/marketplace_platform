@@ -11,7 +11,11 @@
     $isEdit = $coupon !== null;
 
     $val = function (string $field, $default = '') use ($isEdit, $coupon) {
-        return old($field, $isEdit ? ($coupon->{$field} ?? $default) : $default);
+        $current = $isEdit ? ($coupon->{$field} ?? $default) : $default;
+        if ($current instanceof \BackedEnum) {
+            $current = $current->value;
+        }
+        return old($field, $current);
     };
 
     $bool = function (string $field, bool $default = false) use ($isEdit, $coupon): bool {
@@ -19,8 +23,8 @@
         return (bool) $raw;
     };
 
-    $currentType  = old('type',  $isEdit ? $coupon->type  : 'percentage');
-    $currentScope = old('scope', $isEdit ? $coupon->scope : 'platform');
+    $currentType  = old('type',  $isEdit ? $coupon->type->value  : 'percentage');
+    $currentScope = old('scope', $isEdit ? $coupon->scope->value : 'platform');
 @endphp
 
 <div class="space-y-6" x-data="{

@@ -26,7 +26,7 @@ class AddressResource extends JsonResource
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'is_default' => (bool) $this->is_default,
-            'address_type' => $this->address_type,
+            'address_type' => $this->address_type?->value,
             'full_address' => $this->buildFullAddress(),
         ];
     }

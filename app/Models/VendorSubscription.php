@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VendorSubscriptionStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,6 +35,7 @@ class VendorSubscription extends Model
             'cancelled_at' => 'datetime',
             'auto_renew' => 'boolean',
             'listings_used' => 'integer',
+            'status' => VendorSubscriptionStatus::class,
         ];
     }
 
@@ -75,7 +77,7 @@ class VendorSubscription extends Model
 
     public function isActive(): bool
     {
-        return $this->status === 'active'
+        return $this->status === VendorSubscriptionStatus::Active
             && $this->current_period_end->isFuture();
     }
 
@@ -91,11 +93,11 @@ class VendorSubscription extends Model
     public function statusColor(): string
     {
         return match ($this->status) {
-            'active' => 'success',
-            'cancelled' => 'danger',
-            'expired' => 'secondary',
-            'past_due' => 'warning',
-            'trialing' => 'primary',
+            VendorSubscriptionStatus::Active => 'success',
+            VendorSubscriptionStatus::Cancelled => 'danger',
+            VendorSubscriptionStatus::Expired => 'secondary',
+            VendorSubscriptionStatus::PastDue => 'warning',
+            VendorSubscriptionStatus::Trialing => 'primary',
             default => 'secondary',
         };
     }

@@ -42,7 +42,7 @@
                             <img src="{{ Storage::url($channel->thumbnail_path) }}" class="w-10 h-10 rounded-lg object-cover">
                             @else
                             <div class="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center text-primary-600">
-                                @if($channel->type === 'video') 📺 @else 📻 @endif
+                                @if($channel->type === \App\Enums\RadioChannelType::Video) 📺 @else 📻 @endif
                             </div>
                             @endif
                             <div>
@@ -53,8 +53,8 @@
                     </td>
                     <td class="px-4 py-3">
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium
-                            {{ $channel->type === 'video' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
-                            {{ __('admin.radio.' . $channel->type) }}
+                            {{ $channel->type === \App\Enums\RadioChannelType::Video ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                            {{ __('admin.radio.' . $channel->type->value) }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-gray-600">

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\DeliveryAgentType;
+use App\Enums\DeliveryAgentVehicleType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,8 +23,8 @@ class StoreDeliveryAgentRequest extends FormRequest
             'password' => ['required', 'string', 'min:8'],
             'country_id' => ['required', 'exists:countries,id'],
             'zone_id' => ['nullable', 'exists:delivery_zones,id'],
-            'agent_type' => ['required', Rule::in(['platform', 'third_party'])],
-            'vehicle_type' => ['required', Rule::in(['motorcycle', 'car', 'van', 'bicycle'])],
+            'agent_type' => ['required', Rule::enum(DeliveryAgentType::class)],
+            'vehicle_type' => ['required', Rule::enum(DeliveryAgentVehicleType::class)],
             'national_id' => ['nullable', 'string', 'max:30'],
             'vehicle_plate' => ['nullable', 'string', 'max:20'],
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],

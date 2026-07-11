@@ -134,7 +134,7 @@
                 <tbody class="divide-y divide-gray-50">
                     @foreach($returns as $ret)
                         @php
-                            [$statusCls, $statusLabel] = $statusMap[$ret->status] ?? ['bg-gray-100 text-gray-500', $ret->status];
+                            [$statusCls, $statusLabel] = $statusMap[$ret->status->value] ?? ['bg-gray-100 text-gray-500', $ret->status->value];
                             $orderMasked = $ret->order ? '****' . substr($ret->order->order_number, -4) : '—';
                             $customerName = trim(($ret->customer->first_name ?? '') . ' ' . (isset($ret->customer->last_name) ? strtoupper(substr($ret->customer->last_name, 0, 1)) . '.' : ''));
                         @endphp
@@ -145,10 +145,10 @@
                             <td class="py-3 px-4 text-xs text-gray-500 font-mono">{{ $orderMasked }}</td>
                             <td class="py-3 px-4 text-xs text-gray-700">{{ $customerName ?: '—' }}</td>
                             <td class="py-3 px-4 text-center text-xs text-gray-600">
-                                {{ $reasonMap[$ret->reason] ?? $ret->reason }}
+                                {{ $reasonMap[$ret->reason->value] ?? $ret->reason->value }}
                             </td>
                             <td class="py-3 px-4 text-center text-xs text-gray-600">
-                                {{ $typeMap[$ret->return_type] ?? $ret->return_type }}
+                                {{ $typeMap[$ret->return_type->value] ?? $ret->return_type->value }}
                             </td>
                             <td class="py-3 px-4 text-center">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusCls }}">

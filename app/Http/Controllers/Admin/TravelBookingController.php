@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\TravelBookingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\TravelBooking;
 use App\Traits\HasDataTable;
@@ -25,13 +26,13 @@ class TravelBookingController extends Controller
         $stats = [
             'total'       => TravelBooking::count(),
             'this_month'  => TravelBooking::where('created_at', '>=', $thisMonthStart)->count(),
-            'confirmed'   => TravelBooking::where('status', 'confirmed')->count(),
-            'cancelled'   => TravelBooking::where('status', 'cancelled')->count(),
+            'confirmed'   => TravelBooking::where('status', TravelBookingStatus::Confirmed)->count(),
+            'cancelled'   => TravelBooking::where('status', TravelBookingStatus::Cancelled)->count(),
         ];
 
         // Revenue grouped by currency — never a single blended sum across currencies
         $revenueByCurrency = TravelBooking::query()
-            ->whereIn('travel_bookings.status', ['confirmed', 'completed'])
+            ->whereIn('travel_bookings.status', [TravelBookingStatus::Confirmed, TravelBookingStatus::Completed])
             ->join('travel_packages', 'travel_packages.id', '=', 'travel_bookings.travel_package_id')
             ->selectRaw('travel_packages.currency, SUM(travel_bookings.total_price_cents) as total_cents')
             ->groupBy('travel_packages.currency')
@@ -76,15 +77,15 @@ class TravelBookingController extends Controller
         ];
 
         $statusColors = [
-            'pending_documents' => 'warning',
-            'confirmed'         => 'success',
-            'cancelled'         => 'danger',
-            'completed'         => 'gray',
+            TravelBookingStatus::PendingDocuments->value => 'warning',
+            TravelBookingStatus::Confirmed->value        => 'success',
+            TravelBookingStatus::Cancelled->value        => 'danger',
+            TravelBookingStatus::Completed->value        => 'gray',
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function (TravelBooking $row) use ($statusColors) {
-            $statusColor = $statusColors[$row->status] ?? 'gray';
-            $statusLabel = ucwords(str_replace('_', ' ', $row->status));
+            $statusColor = $statusColors[$row->status->value] ?? 'gray';
+            $statusLabel = $row->status->label();
             $statusBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{$statusColor}-100 text-{$statusColor}-700\">{$statusLabel}</span>";
 
             $currency   = $row->package?->currency ?? '';

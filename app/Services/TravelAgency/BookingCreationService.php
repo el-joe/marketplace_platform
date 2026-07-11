@@ -2,6 +2,8 @@
 
 namespace App\Services\TravelAgency;
 
+use App\Enums\TravelBookingStatus;
+use App\Enums\TravelPackageStatus;
 use App\Models\Customer;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
@@ -31,7 +33,7 @@ class BookingCreationService
                 abort(403);
             }
 
-            if ($pkg->status !== 'active') {
+            if ($pkg->status !== TravelPackageStatus::Active) {
                 throw ValidationException::withMessages(['travelers_count' => 'الباقة لم تعد نشطة.']);
             }
 
@@ -58,7 +60,7 @@ class BookingCreationService
                 'customer_id'       => $customer->id,
                 'travelers_count'   => $data['travelers_count'],
                 'total_price_cents' => $pkg->price_cents * $data['travelers_count'],
-                'status'            => 'pending_documents',
+                'status'            => TravelBookingStatus::PendingDocuments,
             ]);
 
             $pkg->increment('seats_booked', $data['travelers_count']);

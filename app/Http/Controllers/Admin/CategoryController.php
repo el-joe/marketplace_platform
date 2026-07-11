@@ -142,6 +142,8 @@ class CategoryController extends Controller
                 'seo_description_en' => $request->seo_description_en ?: null,
                 'seo_description_ar' => $request->seo_description_ar ?: null,
             ]);
+            Category::fixTree();
+            $category->refresh();
         }
 
         // Sync attribute assignments if provided

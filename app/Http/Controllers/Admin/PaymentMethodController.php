@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\CountryPaymentMethodEnvironment;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\CountryPaymentMethod;
@@ -61,7 +62,7 @@ class PaymentMethodController extends Controller
             'min_order_cents'      => ['nullable', 'integer', 'min:0'],
             'max_order_cents'      => ['nullable', 'integer', 'min:0'],
             'settlement_currency'  => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
-            'environment'          => ['nullable', Rule::in(['sandbox', 'production'])],
+            'environment'          => ['nullable', Rule::enum(CountryPaymentMethodEnvironment::class)],
             'sort_order'           => ['nullable', 'integer', 'min:0'],
             'credentials'          => ['nullable', 'array'],
             'credentials.*'        => ['nullable', 'string'],
@@ -101,7 +102,7 @@ class PaymentMethodController extends Controller
             'min_order_cents'     => ['nullable', 'integer', 'min:0'],
             'max_order_cents'     => ['nullable', 'integer', 'min:0'],
             'settlement_currency' => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
-            'environment'         => ['nullable', Rule::in(['sandbox', 'production'])],
+            'environment'         => ['nullable', Rule::enum(CountryPaymentMethodEnvironment::class)],
             'sort_order'          => ['nullable', 'integer', 'min:0'],
             'credentials'         => ['nullable', 'array'],
             'credentials.*'       => ['nullable', 'string'],

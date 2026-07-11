@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\WalletWithdrawalRequestStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,7 @@ class WalletWithdrawalRequest extends Model
     ];
 
     protected $casts = [
+        'status'       => WalletWithdrawalRequestStatus::class,
         'amount_cents' => 'integer',
         'processed_at' => 'datetime',
     ];

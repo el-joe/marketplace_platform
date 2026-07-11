@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ReviewStatus;
+use App\Enums\ReviewVendorReplyStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\Review;
@@ -28,16 +30,16 @@ class ReviewController extends Controller
         abort_unless($admin->hasPermissionTo('reviews.view'), 403);
 
         $stats = [
-            'pending' => Review::where('status', 'pending')->count(),
-            'auto_flagged' => Review::where('status', 'auto_flagged')->count(),
-            'published_today' => Review::where('status', 'published')
+            'pending' => Review::where('status', ReviewStatus::Pending)->count(),
+            'auto_flagged' => Review::where('status', ReviewStatus::AutoFlagged)->count(),
+            'published_today' => Review::where('status', ReviewStatus::Published)
                 ->whereDate('updated_at', today())
                 ->count(),
-            'avg_rating' => (float) Review::where('status', 'published')->avg('rating'),
+            'avg_rating' => (float) Review::where('status', ReviewStatus::Published)->avg('rating'),
         ];
 
         $aiFlaggedCount = $stats['auto_flagged']
-            + Review::where('status', 'flagged')->count();
+            + Review::where('status', ReviewStatus::Flagged)->count();
 
         $countries = Country::orderBy('name_en')
             ->where('is_launched', true)
@@ -63,7 +65,7 @@ class ReviewController extends Controller
             'status' => fn($q, $v) => $q->where('reviews.status', $v),
             'country_id' => fn($q, $v) => $q->where('reviews.country_id', $v),
             'verified_only' => fn($q, $v) => $v ? $q->where('reviews.is_verified_purchase', 1) : $q,
-            'ai_flagged' => fn($q, $v) => $v ? $q->whereIn('reviews.status', ['flagged', 'auto_flagged'])->orWhereNotNull('reviews.ai_flag_reason') : $q,
+            'ai_flagged' => fn($q, $v) => $v ? $q->whereIn('reviews.status', [ReviewStatus::Flagged, ReviewStatus::AutoFlagged])->orWhereNotNull('reviews.ai_flag_reason') : $q,
             'date_from' => fn($q, $v) => $q->whereDate('reviews.created_at', '>=', $v),
             'date_to' => fn($q, $v) => $q->whereDate('reviews.created_at', '<=', $v),
         ]);
@@ -122,8 +124,8 @@ class ReviewController extends Controller
                 'flagged' => 'orange',
                 'auto_flagged' => 'orange',
             ];
-            $sc = $statusColors[$review->status] ?? 'gray';
-            $label = ucwords(str_replace('_', ' ', $review->status));
+            $sc = $statusColors[$review->status->value] ?? 'gray';
+            $label = e($review->status->label());
             $statusBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{$sc}-100 text-{$sc}-700\">{$label}</span>";
 
             // AI flag
@@ -144,10 +146,10 @@ class ReviewController extends Controller
 
             $actions = "<div class=\"flex items-center gap-1\">"
                 . "<a href=\"{$showUrl}\" class=\"btn btn-xs btn-secondary\">View</a>";
-            if ($canModerate && $review->status !== 'published') {
+            if ($canModerate && $review->status !== ReviewStatus::Published) {
                 $actions .= "<button type=\"button\" class=\"btn btn-xs btn-success js-approve-btn\" data-url=\"{$approveUrl}\" data-id=\"{$review->id}\">Approve</button>";
             }
-            if ($canModerate && $review->status !== 'rejected') {
+            if ($canModerate && $review->status !== ReviewStatus::Rejected) {
                 $actions .= "<button type=\"button\" class=\"btn btn-xs btn-danger js-reject-btn\" data-url=\"{$rejectUrl}\" data-id=\"{$review->id}\">Reject</button>";
             }
             if ($canDelete) {
@@ -168,7 +170,7 @@ class ReviewController extends Controller
                 'created_at' => $review->created_at->format('d M Y'),
                 'actions' => $actions,
                 'DT_RowId' => 'row_' . $review->id,
-                'DT_RowData' => ['id' => $review->id, 'status' => $review->status],
+                'DT_RowData' => ['id' => $review->id, 'status' => $review->status->value],
             ];
         });
     }
@@ -200,7 +202,7 @@ class ReviewController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('reviews.edit'), 403);
 
-        if ($review->status === 'published') {
+        if ($review->status === ReviewStatus::Published) {
             return response()->json(['message' => 'Review is already published.'], 422);
         }
 
@@ -220,7 +222,7 @@ class ReviewController extends Controller
             'reason' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        if ($review->status === 'rejected') {
+        if ($review->status === ReviewStatus::Rejected) {
             return response()->json(['message' => 'Review is already rejected.'], 422);
         }
 
@@ -283,9 +285,9 @@ class ReviewController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('reviews.edit'), 403);
 
-        $reply->update(['status' => 'hidden']);
+        $reply->update(['status' => ReviewVendorReplyStatus::Hidden]);
 
-        return response()->json(['message' => 'Vendor reply hidden.', 'status' => 'hidden']);
+        return response()->json(['message' => 'Vendor reply hidden.', 'status' => ReviewVendorReplyStatus::Hidden->value]);
     }
 
     // ─── Vendor Reply: Show ───────────────────────────────────────────────────
@@ -295,9 +297,9 @@ class ReviewController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('reviews.edit'), 403);
 
-        $reply->update(['status' => 'published']);
+        $reply->update(['status' => ReviewVendorReplyStatus::Published]);
 
-        return response()->json(['message' => 'Vendor reply published.', 'status' => 'published']);
+        return response()->json(['message' => 'Vendor reply published.', 'status' => ReviewVendorReplyStatus::Published->value]);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

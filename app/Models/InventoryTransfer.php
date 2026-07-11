@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InventoryTransferStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,7 @@ class InventoryTransfer extends Model
         'shipped_at' => 'datetime',
         'received_at' => 'datetime',
         'expected_arrival_date' => 'date',
+        'status' => InventoryTransferStatus::class,
     ];
 
     // ─── Relationships ─────────────────────────────────────────────────────────

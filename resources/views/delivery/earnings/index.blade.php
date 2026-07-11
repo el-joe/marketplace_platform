@@ -6,8 +6,8 @@
 
     @php
         /** @var \App\Models\DeliveryAgent $agent */
-        $pendingCents = $earnings->where('status', 'pending')->sum('amount_cents');
-        $paidCents = $earnings->where('status', 'paid')->sum('amount_cents');
+        $pendingCents = $earnings->where('status', \App\Enums\DeliveryAgentEarningStatus::Pending)->sum('amount_cents');
+        $paidCents = $earnings->where('status', \App\Enums\DeliveryAgentEarningStatus::Paid)->sum('amount_cents');
         $earningTypeColors = [
             'base_fee' => 'chip-accepted',
             'cod_handling' => 'chip-picked_up',
@@ -71,8 +71,8 @@
                             {{ $earning->earning_type === 'deduction' ? '-' : '+' }}{{ number_format($earning->amount_cents / 100, 2) }}
                         </p>
                         <span
-                            class="chip {{ $earning->status === 'paid' ? 'chip-delivered' : ($earning->status === 'cancelled' ? 'chip-failed' : 'chip-assigned') }} text-xs">
-                            {{ ucfirst($earning->status) }}
+                            class="chip {{ $earning->status === \App\Enums\DeliveryAgentEarningStatus::Paid ? 'chip-delivered' : ($earning->status === \App\Enums\DeliveryAgentEarningStatus::Cancelled ? 'chip-failed' : 'chip-assigned') }} text-xs">
+                            {{ $earning->status->label() }}
                         </span>
                     </div>
                 </div>
@@ -110,9 +110,9 @@
             @foreach($payouts as $payout)
                 @php
                     $payoutChip = match ($payout->status) {
-                        'paid' => 'chip-delivered',
-                        'approved' => 'chip-accepted',
-                        'failed' => 'chip-failed',
+                        \App\Enums\DeliveryAgentPayoutStatus::Paid => 'chip-delivered',
+                        \App\Enums\DeliveryAgentPayoutStatus::Approved => 'chip-accepted',
+                        \App\Enums\DeliveryAgentPayoutStatus::Failed => 'chip-failed',
                         default => 'chip-assigned',
                     };
                 @endphp
@@ -126,7 +126,7 @@
                     </div>
                     <div class="text-right ml-3 flex-shrink-0">
                         <p class="font-bold text-white">{{ number_format($payout->net_amount_cents / 100, 2) }}</p>
-                        <span class="chip {{ $payoutChip }}">{{ ucfirst($payout->status) }}</span>
+                        <span class="chip {{ $payoutChip }}">{{ $payout->status->label() }}</span>
                     </div>
                 </div>
             @endforeach

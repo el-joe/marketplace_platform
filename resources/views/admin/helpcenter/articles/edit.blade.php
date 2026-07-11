@@ -24,7 +24,7 @@
     <form id="article-form" method="POST" action="{{ route('admin.helpcenter.articles.update', $article->id) }}">
         @csrf
         @method('PUT')
-        <input type="hidden" name="action" id="form-action" value="{{ $article->status === 'published' ? 'publish' : 'draft' }}">
+        <input type="hidden" name="action" id="form-action" value="{{ $article->status->value === 'published' ? 'publish' : 'draft' }}">
 
         <div class="flex flex-col lg:flex-row gap-6 items-start">
 
@@ -116,8 +116,8 @@
                     <div class="p-4 space-y-2">
                         <div class="text-xs text-gray-500 mb-2">
                             {{ __('common.status') }}:
-                            <span class="font-medium {{ $article->status === 'published' ? 'text-emerald-600' : 'text-gray-600' }}">
-                                {{ ucfirst($article->status) }}
+                            <span class="font-medium {{ $article->status->value === 'published' ? 'text-emerald-600' : 'text-gray-600' }}">
+                                {{ $article->status->label() }}
                             </span>
                         </div>
                         <button type="button" class="btn btn-secondary w-full text-sm" onclick="submitForm('draft')">{{ __('admin.helpcenter.save_draft') }}</button>

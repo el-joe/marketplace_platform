@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\VendorSubscriptionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\SubscriptionPlan;
 use App\Models\Vendor;
@@ -104,7 +105,7 @@ class SubscriptionController extends Controller
 
     public function destroyPlan(SubscriptionPlan $plan): JsonResponse
     {
-        if ($plan->subscriptions()->where('status', 'active')->exists()) {
+        if ($plan->subscriptions()->where('status', VendorSubscriptionStatus::Active->value)->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot delete a plan that has active subscriptions.',
@@ -124,11 +125,11 @@ class SubscriptionController extends Controller
     {
         $stats = [
             'total' => VendorSubscription::count(),
-            'active' => VendorSubscription::where('status', 'active')->count(),
-            'expired' => VendorSubscription::where('status', 'expired')->count(),
-            'cancelled' => VendorSubscription::where('status', 'cancelled')->count(),
+            'active' => VendorSubscription::where('status', VendorSubscriptionStatus::Active->value)->count(),
+            'expired' => VendorSubscription::where('status', VendorSubscriptionStatus::Expired->value)->count(),
+            'cancelled' => VendorSubscription::where('status', VendorSubscriptionStatus::Cancelled->value)->count(),
             'mrr_cents' => VendorSubscription::with('plan')
-                ->where('status', 'active')
+                ->where('status', VendorSubscriptionStatus::Active->value)
                 ->get()
                 ->sum(fn($s) => $s->plan?->price_cents ?? 0),
             'mrr_currency' => SubscriptionPlan::active()->value('currency') ?? '',
@@ -172,13 +173,13 @@ class SubscriptionController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
             $statusColors = [
-                'active' => 'success',
-                'cancelled' => 'danger',
-                'expired' => 'secondary',
-                'past_due' => 'warning',
-                'trialing' => 'primary',
+                VendorSubscriptionStatus::Active->value => 'success',
+                VendorSubscriptionStatus::Cancelled->value => 'danger',
+                VendorSubscriptionStatus::Expired->value => 'secondary',
+                VendorSubscriptionStatus::PastDue->value => 'warning',
+                VendorSubscriptionStatus::Trialing->value => 'primary',
             ];
-            $sc = $statusColors[$row->status] ?? 'secondary';
+            $sc = $statusColors[$row->status->value] ?? 'secondary';
 
             $listingsLabel = is_null($row->max_listings)
                 ? $row->listings_used . ' / ∞'
@@ -187,7 +188,7 @@ class SubscriptionController extends Controller
             $actions = '<div class="flex gap-1">'
                 . '<a href="' . route('admin.subscriptions.show', $row->id) . '" class="btn btn-xs btn-ghost">View</a>';
 
-            if ($row->status === 'active') {
+            if ($row->status === VendorSubscriptionStatus::Active) {
                 $actions .= '<button class="btn btn-xs btn-danger btn-cancel-sub" data-id="' . $row->id . '">Cancel</button>';
             }
 
@@ -196,7 +197,7 @@ class SubscriptionController extends Controller
             return [
                 '<a href="' . route('admin.subscriptions.show', $row->id) . '" class="font-medium hover:underline">' . e($row->store_name) . '</a>',
                 e($row->plan_name_en),
-                '<span class="badge badge-' . $sc . '">' . ucfirst($row->status) . '</span>',
+                '<span class="badge badge-' . $sc . '">' . $row->status->label() . '</span>',
                 $row->current_period_start,
                 $row->current_period_end,
                 $listingsLabel,

@@ -29,7 +29,7 @@ class FlashSaleLiveNotificationJob implements ShouldQueue
     {
         $sale = FlashSale::find($this->flashSaleId);
 
-        if (!$sale || $sale->status !== 'live') {
+        if (!$sale || $sale->status?->value !== 'live') {
             Log::info('[FlashSaleLiveNotificationJob] Skipping — sale not found or not live.', [
                 'flash_sale_id' => $this->flashSaleId,
             ]);

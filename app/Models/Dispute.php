@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\DisputeReason;
+use App\Enums\DisputeResolution;
+use App\Enums\DisputeStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +19,9 @@ class Dispute extends Model
     {
         return [
             'resolved_at' => 'datetime',
+            'status' => DisputeStatus::class,
+            'reason' => DisputeReason::class,
+            'resolution' => DisputeResolution::class,
         ];
     }
 

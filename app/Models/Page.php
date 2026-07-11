@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PageStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,6 +38,7 @@ class Page extends Model
         'publish_at' => 'datetime',
         'published_at' => 'datetime',
         'unpublish_at' => 'datetime',
+        'status' => PageStatus::class,
     ];
 
     public function country(): BelongsTo
@@ -78,32 +80,32 @@ class Page extends Model
 
     public function scopeDraft($query)
     {
-        return $query->where('status', 'draft');
+        return $query->where('status', PageStatus::Draft);
     }
 
     public function scopePublished($query)
     {
-        return $query->where('status', 'published');
+        return $query->where('status', PageStatus::Published);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────
 
     public function isPublished(): bool
     {
-        return $this->status === 'published';
+        return $this->status === PageStatus::Published;
     }
 
     public function isDraft(): bool
     {
-        return $this->status === 'draft';
+        return $this->status === PageStatus::Draft;
     }
 
     public function getStatusBadgeColorAttribute(): string
     {
         return match ($this->status) {
-            'published' => 'success',
-            'scheduled' => 'warning',
-            'archived' => 'danger',
+            PageStatus::Published => 'success',
+            PageStatus::Scheduled => 'warning',
+            PageStatus::Archived => 'danger',
             default => 'gray',
         };
     }

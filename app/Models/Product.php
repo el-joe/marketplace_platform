@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\ProductStatus;
+use App\Enums\VendorListingStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -57,6 +59,7 @@ class Product extends Model
         'view_count' => 'integer',
         'ai_quality_score' => 'integer',
         'published_at' => 'datetime',
+        'status' => ProductStatus::class,
     ];
 
     public function category(): BelongsTo
@@ -117,7 +120,7 @@ class Product extends Model
             "(SELECT COALESCE(SUM(vl.rating_avg * vl.rating_count) / NULLIF(SUM(vl.rating_count), 0), 0)
               FROM vendor_listings vl
               JOIN product_variants pv ON pv.id = vl.product_variant_id
-              WHERE pv.product_id = products.id AND vl.status = 'active' AND vl.deleted_at IS NULL
+              WHERE pv.product_id = products.id AND vl.status = '" . VendorListingStatus::Active->value . "' AND vl.deleted_at IS NULL
              ) " . $direction
         );
     }
@@ -132,7 +135,7 @@ class Product extends Model
         $vendorAgg = DB::table('vendor_listings as vl')
             ->join('product_variants as pv', 'pv.id', '=', 'vl.product_variant_id')
             ->where('pv.product_id', $this->id)
-            ->where('vl.status', 'active')
+            ->where('vl.status', VendorListingStatus::Active->value)
             ->whereNull('vl.deleted_at')
             ->selectRaw('COALESCE(SUM(vl.rating_avg * vl.rating_count), 0) as weighted, COALESCE(SUM(vl.rating_count), 0) as count')
             ->first();
@@ -140,7 +143,7 @@ class Product extends Model
         $adminAgg = DB::table('admin_product_listings as apl')
             ->join('product_variants as pv', 'pv.id', '=', 'apl.product_variant_id')
             ->where('pv.product_id', $this->id)
-            ->where('apl.status', 'active')
+            ->where('apl.status', \App\Enums\AdminProductListingStatus::Active->value)
             ->selectRaw('COALESCE(SUM(apl.rating_avg * apl.rating_count), 0) as weighted, COALESCE(SUM(apl.rating_count), 0) as count')
             ->first();
 

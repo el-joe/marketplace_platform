@@ -50,7 +50,7 @@ class OrderService
 
     public function canCancel(Order $order): bool
     {
-        return in_array($order->status, self::PRE_SHIPMENT_STATUSES, true);
+        return in_array($order->status->value, self::PRE_SHIPMENT_STATUSES, true);
     }
 
     public function cancel(Order $order, string $reason): void

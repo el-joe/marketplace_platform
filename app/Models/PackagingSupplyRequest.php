@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PackagingSupplyRequestStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,7 @@ class PackagingSupplyRequest extends Model
         return [
             'total_cost_cents' => 'integer',
             'approved_at'      => 'datetime',
+            'status'           => PackagingSupplyRequestStatus::class,
         ];
     }
 
@@ -63,17 +65,17 @@ class PackagingSupplyRequest extends Model
 
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === PackagingSupplyRequestStatus::Pending;
     }
 
     public function statusBadgeClass(): string
     {
-        return match($this->status) {
-            'pending'   => 'bg-yellow-100 text-yellow-800',
-            'approved'  => 'bg-blue-100 text-blue-800',
-            'shipped'   => 'bg-indigo-100 text-indigo-800',
-            'delivered' => 'bg-green-100 text-green-800',
-            'rejected'  => 'bg-red-100 text-red-800',
+        return match ($this->status) {
+            PackagingSupplyRequestStatus::Pending   => 'bg-yellow-100 text-yellow-800',
+            PackagingSupplyRequestStatus::Approved  => 'bg-blue-100 text-blue-800',
+            PackagingSupplyRequestStatus::Shipped   => 'bg-indigo-100 text-indigo-800',
+            PackagingSupplyRequestStatus::Delivered => 'bg-green-100 text-green-800',
+            PackagingSupplyRequestStatus::Rejected  => 'bg-red-100 text-red-800',
             default     => 'bg-gray-100 text-gray-800',
         };
     }

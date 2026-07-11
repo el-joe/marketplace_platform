@@ -10,7 +10,7 @@
             csrf: '{{ csrf_token() }}',
             replyUrl: '{{ route('partner.disputes.reply', $dispute->dispute_number) }}',
             evidenceUrl: '{{ route('partner.disputes.evidence', $dispute->dispute_number) }}',
-            status: '{{ $dispute->status }}',
+            status: '{{ $dispute->status->value }}',
         };
     </script>
 @endpush
@@ -36,8 +36,8 @@
             'refund_not_received' => __('partner.disputes.reasons.refund_not_received'),
             'other' => __('partner.disputes.reasons.other'),
         ];
-        $statusCfg = $statusLabels[$dispute->status] ?? ['label' => $dispute->status, 'color' => 'bg-gray-100 text-gray-600'];
-        $isClosed = in_array($dispute->status, ['resolved', 'closed']);
+        $statusCfg = $statusLabels[$dispute->status->value] ?? ['label' => $dispute->status->value, 'color' => 'bg-gray-100 text-gray-600'];
+        $isClosed = in_array($dispute->status->value, ['resolved', 'closed']);
     @endphp
     <div class="px-4 py-6 sm:px-6 lg:px-8">
 
@@ -56,7 +56,7 @@
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                 <div class="min-w-0">
                     <h1 class="text-lg font-bold text-gray-900">
-                        {{ __('partner.disputes.dispute_heading', ['reason' => $reasonLabels[$dispute->reason] ?? $dispute->reason]) }}
+                        {{ __('partner.disputes.dispute_heading', ['reason' => $reasonLabels[$dispute->reason->value] ?? $dispute->reason->value]) }}
                     </h1>
                     <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
                         <span class="font-mono">{{ $dispute->dispute_number }}</span>
@@ -159,7 +159,7 @@
                     </div>
                 @else
                     <div class="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-500 text-center">
-                        {{ __('partner.disputes.dispute_closed_notice', ['status' => $dispute->status === 'resolved' ? __('partner.disputes.status.resolved') : __('partner.disputes.status.closed')]) }}
+                        {{ __('partner.disputes.dispute_closed_notice', ['status' => $dispute->status->value === 'resolved' ? __('partner.disputes.status.resolved') : __('partner.disputes.status.closed')]) }}
                     </div>
                 @endif
             </div>

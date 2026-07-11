@@ -28,9 +28,9 @@
                          class="w-16 h-16 rounded-xl object-cover">
                     @else
                     <div class="w-16 h-16 rounded-xl
-                        {{ $channel->type === 'video' ? 'bg-purple-100' : 'bg-blue-100' }}
+                        {{ $channel->type === \App\Enums\RadioChannelType::Video ? 'bg-purple-100' : 'bg-blue-100' }}
                         flex items-center justify-center text-2xl">
-                        {{ $channel->type === 'video' ? '📺' : '📻' }}
+                        {{ $channel->type === \App\Enums\RadioChannelType::Video ? '📺' : '📻' }}
                     </div>
                     @endif
                     @if($channel->is_live)
@@ -44,7 +44,7 @@
                 <div class="flex-1 min-w-0">
                     <div class="font-bold text-gray-900 truncate">{{ $channel->name_ar }}</div>
                     <div class="text-xs text-gray-500 mt-0.5">
-                        {{ $channel->type === 'video' ? 'بث مرئي' : 'بث صوتي' }}
+                        {{ $channel->type === \App\Enums\RadioChannelType::Video ? 'بث مرئي' : 'بث صوتي' }}
                         @if($channel->country) · {{ $channel->country->name_ar ?? $channel->country->name_en }} @endif
                     </div>
                     @if($channel->now_playing)

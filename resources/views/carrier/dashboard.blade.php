@@ -62,10 +62,10 @@
                                 'delivered' => __('carrier.assignments.status_delivered'),
                                 'failed'    => __('carrier.assignments.status_failed'),
                             ];
-                            $c = $colors[$a->status] ?? 'gray';
+                            $c = $colors[$a->status->value] ?? 'gray';
                         @endphp
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $c }}-100 text-{{ $c }}-700">
-                            {{ $labels[$a->status] ?? $a->status }}
+                            {{ $labels[$a->status->value] ?? $a->status->value }}
                         </span>
                     </td>
                     <td class="px-6 py-3 text-gray-500 text-xs">{{ $a->assigned_at?->format('Y-m-d H:i') }}</td>

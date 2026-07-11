@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Carrier;
 
 use App\Http\Controllers\Controller;
+use App\Enums\ShippingCompanyStatus;
 use App\Http\Requests\Carrier\Auth\LoginRequest;
 use App\Http\Resources\Carrier\ShippingCompanyResource;
 use App\Http\Resources\Carrier\SupervisorResource;
@@ -34,7 +35,7 @@ class AuthController extends Controller
         // gives a clearer message than a generic "account inactive" response.
         $company = $supervisor->company;
 
-        if ($company->status === 'pending') {
+        if ($company->status === ShippingCompanyStatus::Pending) {
             return ApiResponse::error(
                 'Your company is pending platform approval and cannot log in yet.',
                 ['company_status' => 'pending'],
@@ -42,7 +43,7 @@ class AuthController extends Controller
             );
         }
 
-        if ($company->status === 'suspended') {
+        if ($company->status === ShippingCompanyStatus::Suspended) {
             return ApiResponse::error(
                 'Your company has been suspended by the platform. Please contact support.',
                 ['company_status' => 'suspended'],

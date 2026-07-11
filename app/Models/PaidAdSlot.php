@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaidAdSlotPricingModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class PaidAdSlot extends Model
 {
     use HasUuids;
+
+    protected $casts = [
+        'pricing_model' => PaidAdSlotPricingModel::class,
+    ];
 
     protected $fillable = [
         'placement_definition_id',

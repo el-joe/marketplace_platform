@@ -63,8 +63,8 @@ class AutoCompleteOrdersJob implements ShouldQueue
 
                 if ($allCompleted) {
                     $order = \App\Models\Order::find($orderId);
-                    if ($order && $order->status !== 'completed') {
-                        $prevStatus = $order->status;
+                    if ($order && $order->status->value !== 'completed') {
+                        $prevStatus = $order->status->value;
                         $order->update(['status' => 'completed', 'completed_at' => now()]);
 
                         OrderStatusHistory::create([

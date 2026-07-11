@@ -37,7 +37,7 @@
                         'ended' => 'bg-blue-100 text-blue-700',
                         'cancelled' => 'bg-red-100 text-red-600',
                     ];
-                    $sc = $statusColors[$campaign->status] ?? 'bg-gray-100 text-gray-600';
+                    $sc = $statusColors[$campaign->status->value] ?? 'bg-gray-100 text-gray-600';
                 @endphp
                 <div class="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col">
                     <div class="flex items-start justify-between mb-3">
@@ -47,11 +47,11 @@
                                 {{ $campaign->name }}
                             </a>
                             <p class="text-xs text-gray-400 mt-0.5">
-                                {{ ucfirst(str_replace('_', ' ', $campaign->campaign_type)) }}
+                                {{ $campaign->campaign_type->label() }}
                             </p>
                         </div>
                         <span class="flex-shrink-0 text-xs font-semibold rounded-full px-2.5 py-0.5 {{ $sc }}">
-                            {{ ucfirst($campaign->status) }}
+                            {{ $campaign->status->label() }}
                         </span>
                     </div>
 

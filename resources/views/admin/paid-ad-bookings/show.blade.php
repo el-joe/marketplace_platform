@@ -18,7 +18,7 @@
             <h1 class="text-2xl font-bold text-gray-900 font-mono">{{ $paidAdBooking->booking_reference }}</h1>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            @if($paidAdBooking->status === 'pending')
+            @if($paidAdBooking->status->value === 'pending')
                 <button type="button"
                     class="btn btn-success js-approve-booking-btn"
                     data-url="{{ route('admin.paid-ad-bookings.approve', $paidAdBooking->id) }}"
@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    @if($paidAdBooking->status === 'rejected' && $paidAdBooking->rejection_reason)
+    @if($paidAdBooking->status->value === 'rejected' && $paidAdBooking->rejection_reason)
         <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
             <strong>{{ __('admin.paid_ad_bookings.rejection_reason_shown') }}</strong> {{ $paidAdBooking->rejection_reason }}
         </div>
@@ -50,7 +50,7 @@
                 <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm">
                     @php
                         $statusColors = ['pending'=>'warning','active'=>'success','rejected'=>'danger','cancelled'=>'gray','ended'=>'gray'];
-                        $sc = $statusColors[$paidAdBooking->status] ?? 'gray';
+                        $sc = $statusColors[$paidAdBooking->status->value] ?? 'gray';
                         $payColors = ['unpaid'=>'danger','paid'=>'success','invoiced'=>'warning','refunded'=>'gray'];
                         $pc = $payColors[$paidAdBooking->payment_status ?? 'unpaid'] ?? 'gray';
                     @endphp
@@ -58,7 +58,7 @@
                         <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.paid_ad_bookings.status') }}</dt>
                         <dd>
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">
-                                {{ ucfirst($paidAdBooking->status) }}
+                                {{ $paidAdBooking->status->label() }}
                             </span>
                         </dd>
                     </div>
@@ -116,14 +116,14 @@
                         @foreach($paidAdBooking->creatives as $creative)
                             @php
                                 $crColors = ['pending_review'=>'warning','approved'=>'success','rejected'=>'danger','draft'=>'gray'];
-                                $cc = $crColors[$creative->status] ?? 'gray';
+                                $cc = $crColors[$creative->status->value] ?? 'gray';
                             @endphp
                             <div class="border border-gray-100 rounded-lg p-4">
                                 <div class="flex items-start justify-between gap-4 flex-wrap">
                                     <div>
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $cc }}-100 text-{{ $cc }}-700">
-                                                {{ ucwords(str_replace('_', ' ', $creative->status)) }}
+                                                {{ $creative->status->label() }}
                                             </span>
                                             @if($creative->is_current)
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">{{ __('admin.paid_ad_bookings.current') }}</span>
@@ -177,7 +177,7 @@
                                     </div>
 
                                     {{-- Review actions --}}
-                                    @if($creative->status === 'pending_review')
+                                    @if($creative->status->value === 'pending_review')
                                         <div class="flex gap-2 flex-shrink-0">
                                             <button type="button"
                                                 class="btn btn-success btn-sm js-approve-creative-btn"
@@ -222,7 +222,7 @@
                         @endif
                         <div>
                             <dt class="text-xs text-gray-400">{{ __('admin.paid_ad_bookings.pricing_model') }}</dt>
-                            <dd class="uppercase">{{ $paidAdBooking->slot->pricing_model ?? '—' }}</dd>
+                            <dd class="uppercase">{{ $paidAdBooking->slot->pricing_model?->value ?? '—' }}</dd>
                         </div>
                         <div>
                             <dt class="text-xs text-gray-400">{{ __('admin.paid_ad_bookings.base_rate') }}</dt>

@@ -4,6 +4,7 @@ namespace App\Services\Delivery;
 
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentShift;
+use App\Models\DeliveryAssignment;
 use App\Notifications\Carrier\AgentWentOffline;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -43,7 +44,7 @@ class ShiftService
         }
 
         $hasActiveAssignment = $agent->assignments()
-            ->whereIn('status', ['accepted', 'picked_up'])
+            ->whereIn('status', [DeliveryAssignment::STATUS_ACCEPTED, DeliveryAssignment::STATUS_PICKED_UP])
             ->exists();
 
         if ($hasActiveAssignment) {

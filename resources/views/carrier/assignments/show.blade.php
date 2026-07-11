@@ -45,9 +45,9 @@
         ? preg_replace('/(\d{3})\d+(\d{2})/', '$1•••••$2', $customer->phone)
         : '—';
 
-    $c = $statusColors[$assignment->status] ?? 'gray';
+    $c = $statusColors[$assignment->status->value] ?? 'gray';
 
-    $canReassign = in_array($assignment->status, ['assigned', 'accepted']);
+    $canReassign = in_array($assignment->status, [\App\Enums\DeliveryAssignmentStatus::Assigned, \App\Enums\DeliveryAssignmentStatus::Accepted], true);
 
     $timeline = [
         ['label' => __('carrier.assignment_detail.stage_assigned'),  'at' => $assignment->assigned_at],
@@ -74,7 +74,7 @@
         @endif
     </div>
     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-{{ $c }}-100 text-{{ $c }}-700">
-        {{ $statusLabels[$assignment->status] ?? $assignment->status }}
+        {{ $statusLabels[$assignment->status->value] ?? $assignment->status->value }}
     </span>
 </div>
 
@@ -180,7 +180,7 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">{{ __('carrier.assignment_detail.vehicle') }}</span>
-                    <span class="text-gray-700">{{ $assignment->agent?->vehicle_type ?? '—' }}</span>
+                    <span class="text-gray-700">{{ $assignment->agent?->vehicle_type?->label() ?? '—' }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">{{ __('carrier.assignment_detail.phone') }}</span>
@@ -205,7 +205,7 @@
             @endif
 
             {{-- Failed callout --}}
-            @if($assignment->status === 'failed')
+            @if($assignment->status === \App\Enums\DeliveryAssignmentStatus::Failed)
             <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm">
                 <p class="font-semibold text-red-700 mb-1">
                     {{ $failureReasonLabels[$assignment->failure_reason] ?? $assignment->failure_reason ?? __('carrier.assignment_detail.delivery_failed') }}
@@ -217,7 +217,7 @@
             @endif
 
             {{-- Delivered extras --}}
-            @if($assignment->status === 'delivered')
+            @if($assignment->status === \App\Enums\DeliveryAssignmentStatus::Delivered)
             <div class="mb-4 pb-4 border-b border-gray-100 text-sm space-y-1.5">
                 @if($assignment->customer_rating)
                 <div class="flex justify-between items-center">
@@ -273,7 +273,7 @@
             </div>
             <div class="flex justify-between">
                 <span class="text-gray-500">{{ __('carrier.assignment_detail.status') }}</span>
-                <span class="text-gray-700">{{ $shipment->status }}</span>
+                <span class="text-gray-700">{{ $shipment->status->value }}</span>
             </div>
             @if($shipment->weight_grams)
             <div class="flex justify-between">
@@ -306,7 +306,7 @@
                 <input type="radio" name="reassign_agent" value="{{ $agent->id }}" class="accent-indigo-600">
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-gray-900">{{ $agent->name }}</p>
-                    <p class="text-xs text-gray-500">{{ $agent->vehicle_type }}</p>
+                    <p class="text-xs text-gray-500">{{ $agent->vehicle_type->label() }}</p>
                 </div>
                 @if($agent->rating_avg)
                 <span class="text-xs text-amber-500 shrink-0">★ {{ number_format($agent->rating_avg, 1) }}</span>

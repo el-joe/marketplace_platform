@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\BannerAudience;
+use App\Enums\BannerDeviceTarget;
+use App\Enums\BannerLinkType;
+use App\Enums\BannerStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +14,14 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Banner extends Model
 {
     use HasUuids;
+
+    protected $casts = [
+        'status' => BannerStatus::class,
+        'link_type' => BannerLinkType::class,
+        'device_target' => BannerDeviceTarget::class,
+        'audience' => BannerAudience::class,
+    ];
+
     protected $fillable = [
         'country_id',
         'name',

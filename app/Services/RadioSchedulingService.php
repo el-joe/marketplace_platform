@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\RadioScheduleSlotRecurrence;
 use App\Models\RadioChannel;
 use App\Models\RadioScheduleSlot;
 use Carbon\Carbon;
@@ -53,9 +54,9 @@ class RadioSchedulingService
         $endTime   = $slot->ends_at->format('H:i:s');
 
         return match ($slot->recurrence) {
-            'once'   => $at->between($slot->starts_at, $slot->ends_at),
-            'daily'  => $at->format('H:i:s') >= $startTime && $at->format('H:i:s') <= $endTime,
-            'weekly' => $this->matchesWeeklySlot($slot, $at),
+            RadioScheduleSlotRecurrence::Once   => $at->between($slot->starts_at, $slot->ends_at),
+            RadioScheduleSlotRecurrence::Daily  => $at->format('H:i:s') >= $startTime && $at->format('H:i:s') <= $endTime,
+            RadioScheduleSlotRecurrence::Weekly => $this->matchesWeeklySlot($slot, $at),
             default  => false,
         };
     }
@@ -78,7 +79,7 @@ class RadioSchedulingService
     /** Expand a slot into concrete occurrences within the given window */
     private function expandSlot(RadioScheduleSlot $slot, Carbon $start, Carbon $end): array
     {
-        if ($slot->recurrence === 'once') {
+        if ($slot->recurrence === RadioScheduleSlotRecurrence::Once) {
             if ($slot->ends_at->greaterThan($start) && $slot->starts_at->lessThan($end)) {
                 return [['slot' => $slot, 'starts_at' => $slot->starts_at, 'ends_at' => $slot->ends_at]];
             }
@@ -91,13 +92,13 @@ class RadioSchedulingService
         $slotEnd     = $slot->ends_at;
 
         while ($cursor->lessThan($end)) {
-            if ($slot->recurrence === 'daily') {
+            if ($slot->recurrence === RadioScheduleSlotRecurrence::Daily) {
                 $oStart = $cursor->copy()->setTimeFrom($slotStart);
                 $oEnd   = $cursor->copy()->setTimeFrom($slotEnd);
                 if ($oEnd->greaterThan($start)) {
                     $occurrences[] = ['slot' => $slot, 'starts_at' => $oStart, 'ends_at' => $oEnd];
                 }
-            } elseif ($slot->recurrence === 'weekly') {
+            } elseif ($slot->recurrence === RadioScheduleSlotRecurrence::Weekly) {
                 $days    = $slot->recurrence_days ?? [];
                 $dayName = strtolower($cursor->format('D'));
                 if (in_array($dayName, $days)) {

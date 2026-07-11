@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\CountryPaymentMethodEnvironment;
+use App\Enums\CountryPaymentMethodVerificationStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -46,13 +48,15 @@ class CountryPaymentMethod extends Model
     ];
 
     protected $casts = [
-        'is_active'         => 'boolean',
-        'fee_pct'           => 'decimal:2',
-        'fee_fixed_cents'   => 'integer',
-        'min_order_cents'   => 'integer',
-        'max_order_cents'   => 'integer',
-        'sort_order'        => 'integer',
-        'last_verified_at'  => 'datetime',
+        'is_active'                 => 'boolean',
+        'fee_pct'                   => 'decimal:2',
+        'fee_fixed_cents'           => 'integer',
+        'min_order_cents'           => 'integer',
+        'max_order_cents'           => 'integer',
+        'sort_order'                => 'integer',
+        'environment'               => CountryPaymentMethodEnvironment::class,
+        'last_verified_at'          => 'datetime',
+        'last_verification_status' => CountryPaymentMethodVerificationStatus::class,
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────

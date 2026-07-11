@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\WarehouseType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreWarehouseRequest extends FormRequest
 {
@@ -16,7 +18,7 @@ class StoreWarehouseRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:150'],
             'code' => ['required', 'string', 'max:20', 'unique:warehouses,code'],
-            'type' => ['required', 'in:platform_fbn,seller_owned,third_party'],
+            'type' => ['required', Rule::enum(WarehouseType::class)],
             'country_id' => ['required', 'uuid', 'exists:countries,id'],
             'owner_vendor_id' => ['nullable', 'uuid', 'exists:vendors,id'],
             'manager_admin_id' => ['nullable', 'uuid', 'exists:admins,id'],

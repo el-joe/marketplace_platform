@@ -53,7 +53,7 @@
                 @forelse($recentRatings as $r)
                     <li class="px-5 py-3 flex items-start justify-between gap-3">
                         <div>
-                            <span class="font-medium capitalize">{{ $r->rated_by_type }}</span>
+                            <span class="font-medium capitalize">{{ $r->rated_by_type->label() }}</span>
                             @if($r->comment)
                                 <p class="text-gray-500 text-xs mt-0.5 line-clamp-2">{{ $r->comment }}</p>
                             @endif

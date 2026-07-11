@@ -85,7 +85,7 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            @if($campaign->status === 'pending_review')
+            @if($campaign->status->value === 'pending_review')
                 <button type="button"
                     class="btn btn-success js-approve-btn"
                     data-url="{{ route('admin.ad-campaigns.approve', $campaign->id) }}"
@@ -98,14 +98,14 @@
                     data-name="{{ e($campaign->name) }}">
                     {{ __('admin.ad_campaigns.reject_campaign_btn') }}
                 </button>
-            @elseif($campaign->status === 'active')
+            @elseif($campaign->status->value === 'active')
                 <button type="button"
                     class="btn btn-warning js-pause-btn"
                     data-url="{{ route('admin.ad-campaigns.pause', $campaign->id) }}"
                     data-name="{{ e($campaign->name) }}">
                     {{ __('admin.ad_campaigns.pause_campaign_btn') }}
                 </button>
-            @elseif($campaign->status === 'paused')
+            @elseif($campaign->status->value === 'paused')
                 <button type="button"
                     class="btn btn-success js-resume-btn"
                     data-url="{{ route('admin.ad-campaigns.resume', $campaign->id) }}"
@@ -118,7 +118,7 @@
     </div>
 
     {{-- ─── Status banner for rejected campaigns ──────────────────────────────── --}}
-    @if($campaign->status === 'rejected' && $campaign->rejection_reason)
+    @if($campaign->status->value === 'rejected' && $campaign->rejection_reason)
         <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
             <strong>{{ __('admin.ad_campaigns.rejection_reason_shown') }}</strong> {{ $campaign->rejection_reason }}
         </div>
@@ -162,7 +162,7 @@
                                 <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.type') }}</dt>
                                 <dd>
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-100 text-primary-700">
-                                        {{ strtoupper($campaign->type) }}
+                                        {{ strtoupper($campaign->type->value) }}
                                     </span>
                                 </dd>
                             </div>
@@ -171,16 +171,16 @@
                                 <dd>
                                     @php
                                         $statusColors = ['active'=>'success','pending_review'=>'warning','paused'=>'gray','rejected'=>'danger','ended'=>'gray','draft'=>'gray'];
-                                        $sc = $statusColors[$campaign->status] ?? 'gray';
+                                        $sc = $statusColors[$campaign->status->value] ?? 'gray';
                                     @endphp
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">
-                                        {{ ucwords(str_replace('_', ' ', $campaign->status)) }}
+                                        {{ $campaign->status->label() }}
                                     </span>
                                 </dd>
                             </div>
                             <div>
                                 <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.targeting_type') }}</dt>
-                                <dd class="font-medium">{{ ucfirst($campaign->targeting_type) }}</dd>
+                                <dd class="font-medium">{{ $campaign->targeting_type->label() }}</dd>
                             </div>
                             <div>
                                 <dt class="text-gray-500 text-xs uppercase font-medium mb-0.5">{{ __('admin.ad_campaigns.total_budget') }}</dt>
@@ -375,13 +375,13 @@
                                 @foreach($campaign->keywords as $kw)
                                     @php
                                         $matchColors = ['broad' => 'gray', 'phrase' => 'primary', 'exact' => 'success'];
-                                        $mc = $matchColors[$kw->match_type] ?? 'gray';
+                                        $mc = $matchColors[$kw->match_type->value] ?? 'gray';
                                     @endphp
                                     <tr>
                                         <td class="py-2 pr-4 font-medium">{{ $kw->keyword }}</td>
                                         <td class="py-2 pr-4">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $mc }}-100 text-{{ $mc }}-700">
-                                                {{ ucfirst($kw->match_type) }}
+                                                {{ $kw->match_type->label() }}
                                             </span>
                                         </td>
                                         <td class="py-2 pr-4">

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\InventoryMovementReferenceType;
+use App\Enums\InventoryMovementType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +27,8 @@ class InventoryMovement extends Model
 
     protected $casts = [
         'created_at' => 'datetime',
+        'movement_type' => InventoryMovementType::class,
+        'reference_type' => InventoryMovementReferenceType::class,
     ];
 
     // Append-only: forbid updates and deletes

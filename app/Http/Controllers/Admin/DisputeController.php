@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\DisputeResolution;
+use App\Enums\DisputeStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Dispute;
@@ -11,6 +13,7 @@ use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class DisputeController extends Controller
 {
@@ -88,11 +91,11 @@ class DisputeController extends Controller
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function ($d) {
-            $statusBadge = $this->statusBadgeClass($d->status);
-            $reasonLabel = __('admin.disputes_section.reason_' . $d->reason);
-            $statusLabel = __('admin.disputes_section.' . $d->status);
+            $statusBadge = $this->statusBadgeClass($d->status->value);
+            $reasonLabel = __('admin.disputes_section.reason_' . $d->reason->value);
+            $statusLabel = __('admin.disputes_section.' . $d->status->value);
 
-            $isHot = in_array($d->status, ['open', 'escalated'], true)
+            $isHot = in_array($d->status->value, ['open', 'escalated'], true)
                 && \Carbon\Carbon::parse($d->created_at)->diffInHours(now()) > 48;
 
             $showUrl = route('admin.disputes.show', $d->id);
@@ -172,8 +175,8 @@ class DisputeController extends Controller
             ]);
 
             // Advance status from open → under_review on first admin (non-internal) reply
-            $previousStatus = $dispute->status;
-            if (!$isInternal && $dispute->status === 'open') {
+            $previousStatus = $dispute->status->value;
+            if (!$isInternal && $dispute->status === DisputeStatus::Open) {
                 $dispute->update(['status' => 'under_review']);
             }
 
@@ -185,7 +188,7 @@ class DisputeController extends Controller
 
         $dispute->refresh();
 
-        if (isset($previousStatus) && $dispute->status !== $previousStatus) {
+        if (isset($previousStatus) && $dispute->status->value !== $previousStatus) {
             $dispute->loadMissing('customer');
             $dispute->customer?->notify(new DisputeStatusChanged($dispute, $previousStatus));
         }
@@ -194,7 +197,7 @@ class DisputeController extends Controller
             'message' => $isInternal
                 ? __('admin.disputes_section.internal_note_saved')
                 : __('admin.disputes_section.reply_sent'),
-            'status' => $dispute->status,
+            'status' => $dispute->status->value,
             'sender_name' => $admin->name,
         ]);
     }
@@ -253,10 +256,10 @@ class DisputeController extends Controller
         abort_unless($admin->hasPermissionTo('disputes.manage'), 403);
 
         $data = $request->validate([
-            'status' => 'required|in:open,seller_responded,under_review,escalated,resolved,closed',
+            'status' => ['required', Rule::enum(DisputeStatus::class)],
         ]);
 
-        $previousStatus = $dispute->status;
+        $previousStatus = $dispute->status->value;
 
         $updates = ['status' => $data['status']];
 
@@ -268,7 +271,7 @@ class DisputeController extends Controller
 
         $dispute->update($updates);
 
-        if ($dispute->status !== $previousStatus) {
+        if ($dispute->status->value !== $previousStatus) {
             $dispute->loadMissing('customer');
             $dispute->customer?->notify(new DisputeStatusChanged($dispute, $previousStatus));
         }
@@ -289,13 +292,13 @@ class DisputeController extends Controller
         abort_unless($admin->hasPermissionTo('disputes.manage'), 403);
 
         $data = $request->validate([
-            'resolution' => 'required|in:favor_customer,favor_seller,split,no_action',
+            'resolution' => ['required', Rule::enum(DisputeResolution::class)],
             'resolution_notes' => 'nullable|string|max:5000',
             'compensation' => 'nullable|numeric|min:0|max:1000000',
             'close' => 'boolean',
         ]);
 
-        $previousStatus = $dispute->status;
+        $previousStatus = $dispute->status->value;
 
         DB::beginTransaction();
         try {
@@ -336,14 +339,14 @@ class DisputeController extends Controller
 
         $dispute->refresh();
 
-        if ($dispute->status !== $previousStatus) {
+        if ($dispute->status->value !== $previousStatus) {
             $dispute->loadMissing('customer');
             $dispute->customer?->notify(new DisputeStatusChanged($dispute, $previousStatus));
         }
 
         return response()->json([
             'message' => __('admin.disputes_section.resolved_message'),
-            'status' => $dispute->status,
+            'status' => $dispute->status->value,
         ]);
     }
 

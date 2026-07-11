@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AdCampaignKeywordMatchType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class AdCampaignKeyword extends Model
 {
     use HasUuids;
+
+    protected $casts = [
+        'match_type' => AdCampaignKeywordMatchType::class,
+    ];
 
     protected $fillable = [
         'ad_campaign_id',

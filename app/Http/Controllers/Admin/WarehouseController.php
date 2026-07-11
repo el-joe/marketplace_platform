@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\InventoryTransferStatus;
+use App\Enums\WarehouseType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreTransferRequest;
 use App\Http\Requests\Admin\StoreWarehouseRequest;
@@ -38,9 +40,9 @@ class WarehouseController extends Controller
         abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
 
         $stats = [
-            'platform' => Warehouse::where('type', 'platform_fbn')->count(),
-            'seller_owned' => Warehouse::where('type', 'seller_owned')->count(),
-            'third_party' => Warehouse::where('type', 'third_party')->count(),
+            'platform' => Warehouse::where('type', WarehouseType::PlatformFbn->value)->count(),
+            'seller_owned' => Warehouse::where('type', WarehouseType::SellerOwned->value)->count(),
+            'third_party' => Warehouse::where('type', WarehouseType::ThirdParty->value)->count(),
             'total_capacity' => (float) Warehouse::sum('total_capacity_m3'),
             'used_capacity' => (float) Warehouse::sum('used_capacity_m3'),
             'active' => Warehouse::where('is_active', true)->count(),
@@ -87,9 +89,9 @@ class WarehouseController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, function (Warehouse $wh) {
             $typeBadge = match ($wh->type) {
-                'platform_fbn' => 'bg-indigo-100 text-indigo-700',
-                'seller_owned' => 'bg-orange-100 text-orange-700',
-                'third_party' => 'bg-gray-100 text-gray-600',
+                WarehouseType::PlatformFbn => 'bg-indigo-100 text-indigo-700',
+                WarehouseType::SellerOwned => 'bg-orange-100 text-orange-700',
+                WarehouseType::ThirdParty => 'bg-gray-100 text-gray-600',
                 default => 'bg-gray-100 text-gray-700',
             };
 
@@ -106,7 +108,7 @@ class WarehouseController extends Controller
                 'DT_RowId' => 'wh-' . $wh->id,
                 'name' => '<a href="' . $showUrl . '" class="font-medium text-primary-600 hover:underline">' . e($wh->name) . '</a>',
                 'code' => '<span class="font-mono text-xs text-gray-600">' . e($wh->code) . '</span>',
-                'type' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $typeBadge . '">' . e(str_replace('_', ' ', $wh->type)) . '</span>',
+                'type' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $typeBadge . '">' . e($wh->type->label()) . '</span>',
                 'country' => '<span class="text-sm">' . e($wh->country_name ?? '—') . '</span>',
                 'vendor' => $wh->owner_vendor_id ? '<span class="text-sm text-gray-700">' . e($wh->vendor_name) . '</span>' : '<span class="text-gray-300">—</span>',
                 'manager' => $wh->manager_admin_id ? '<span class="text-sm text-gray-700">' . e($wh->manager_name) . '</span>' : '<span class="text-gray-300">—</span>',
@@ -310,7 +312,7 @@ class WarehouseController extends Controller
 
         $request->validate([
             'delta' => ['required', 'integer', 'not_in:0'],
-            'movement_type' => ['required', 'string', 'max:50'],
+            'movement_type' => ['required', \Illuminate\Validation\Rule::enum(\App\Enums\InventoryMovementType::class)],
             'reason' => ['required', 'string', 'max:500'],
         ]);
 
@@ -355,10 +357,10 @@ class WarehouseController extends Controller
         $warehouses = Warehouse::where('is_active', true)->orderBy('name')->pluck('name', 'id');
 
         $stats = [
-            'pending' => InventoryTransfer::where('status', 'pending')->count(),
-            'in_transit' => InventoryTransfer::where('status', 'in_transit')->count(),
-            'received' => InventoryTransfer::where('status', 'received')->count(),
-            'cancelled' => InventoryTransfer::where('status', 'cancelled')->count(),
+            'pending' => InventoryTransfer::where('status', InventoryTransferStatus::Draft->value)->count(),
+            'in_transit' => InventoryTransfer::where('status', InventoryTransferStatus::InTransit->value)->count(),
+            'received' => InventoryTransfer::where('status', InventoryTransferStatus::Received->value)->count(),
+            'cancelled' => InventoryTransfer::where('status', InventoryTransferStatus::Cancelled->value)->count(),
         ];
 
         return view('admin.warehouses.transfers.index', compact('warehouses', 'stats'));
@@ -400,11 +402,10 @@ class WarehouseController extends Controller
             $showUrl = route('admin.warehouses.transfers.show', $transfer->id);
 
             $statusBadge = match ($transfer->status) {
-                'pending' => 'bg-yellow-100 text-yellow-700',
-                'in_transit' => 'bg-blue-100 text-blue-700',
-                'received' => 'bg-green-100 text-green-700',
-                'cancelled' => 'bg-gray-100 text-gray-500',
-                default => 'bg-gray-100 text-gray-700',
+                InventoryTransferStatus::InTransit => 'bg-blue-100 text-blue-700',
+                InventoryTransferStatus::Received => 'bg-green-100 text-green-700',
+                InventoryTransferStatus::Cancelled => 'bg-gray-100 text-gray-500',
+                default => 'bg-yellow-100 text-yellow-700', // draft / others
             };
 
             return [
@@ -413,7 +414,7 @@ class WarehouseController extends Controller
                 'source' => e($transfer->source_name ?? '—'),
                 'destination' => e($transfer->destination_name ?? '—'),
                 'vendor' => e($transfer->vendor_name ?? '—'),
-                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e(str_replace('_', ' ', $transfer->status)) . '</span>',
+                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e($transfer->status->label()) . '</span>',
                 'created_at' => $transfer->created_at?->format('Y-m-d H:i'),
                 'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-ghost">View</a>',
             ];

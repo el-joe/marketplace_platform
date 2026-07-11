@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VendorDocumentStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -29,23 +30,23 @@ class VendorDocument extends Model
         return [
             'verified_at' => 'datetime',
             'expires_at' => 'datetime',
+            'status' => VendorDocumentStatus::class,
         ];
     }
 
     public function isVerified(): bool
     {
-        return in_array($this->status, ['approved', 'verified']);
+        return $this->status === VendorDocumentStatus::Approved;
     }
 
     public function isExpired(): bool
     {
-        return $this->status === 'expired'
-            || ($this->expires_at !== null && $this->expires_at->isPast());
+        return $this->expires_at !== null && $this->expires_at->isPast();
     }
 
     public function scopePending(Builder $query): Builder
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', VendorDocumentStatus::Pending->value);
     }
 
     public function documentType(): BelongsTo

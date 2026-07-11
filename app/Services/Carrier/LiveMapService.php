@@ -2,6 +2,7 @@
 
 namespace App\Services\Carrier;
 
+use App\Enums\DeliveryAssignmentStatus;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
 use App\Models\ShippingCompany;
@@ -24,7 +25,7 @@ class LiveMapService
 
         // Batch-fetch which agents have an active delivery to avoid N+1
         $onDeliveryIds = DeliveryAssignment::whereIn('agent_id', $agents->pluck('id'))
-            ->where('status', 'picked_up')
+            ->where('status', DeliveryAssignmentStatus::PickedUp)
             ->pluck('agent_id')
             ->flip(); // keyed for O(1) lookup
 

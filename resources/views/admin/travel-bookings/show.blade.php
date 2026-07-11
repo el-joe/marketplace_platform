@@ -20,8 +20,8 @@
             'completed'         => 'bg-gray-100 text-gray-600',
         ];
         @endphp
-        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$travelBooking->status] ?? 'bg-gray-100 text-gray-600' }}">
-            {{ __('admin.travel.booking_status_' . $travelBooking->status) }}
+        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$travelBooking->status->value] ?? 'bg-gray-100 text-gray-600' }}">
+            {{ $travelBooking->status->label() }}
         </span>
     </div>
 

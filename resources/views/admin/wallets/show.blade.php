@@ -12,7 +12,7 @@
         </a>
         <div>
             <h1 class="text-2xl font-bold text-gray-900">{{ $wallet->owner?->name ?? $wallet->owner_id }}</h1>
-            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.wallets.' . $wallet->owner_type) }} · {{ $wallet->currency }}</p>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.wallets.' . $wallet->owner_type->value) }} · {{ $wallet->currency }}</p>
         </div>
     </div>
 
@@ -96,7 +96,7 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $tx->created_at->format('d M Y H:i') }}</td>
                         <td class="px-4 py-3">
-                            @if($tx->type === 'credit')
+                            @if($tx->type->value === 'credit')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">+ {{ __('admin.wallets.credit') }}</span>
                             @else
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">− {{ __('admin.wallets.debit') }}</span>
@@ -104,8 +104,8 @@
                         </td>
                         <td class="px-4 py-3 text-gray-600 text-xs">{{ str_replace('_',' ', $tx->source_type) }}</td>
                         <td class="px-4 py-3 text-gray-700">{{ $tx->description }}</td>
-                        <td class="px-4 py-3 text-end font-semibold {{ $tx->type === 'credit' ? 'text-green-700' : 'text-red-600' }}">
-                            {{ $tx->type === 'credit' ? '+' : '−' }}{{ number_format($tx->amount_cents / 100, 2) }}
+                        <td class="px-4 py-3 text-end font-semibold {{ $tx->type->value === 'credit' ? 'text-green-700' : 'text-red-600' }}">
+                            {{ $tx->type->value === 'credit' ? '+' : '−' }}{{ number_format($tx->amount_cents / 100, 2) }}
                         </td>
                         <td class="px-4 py-3 text-end text-gray-700">{{ number_format($tx->balance_after_cents / 100, 2) }}</td>
                     </tr>

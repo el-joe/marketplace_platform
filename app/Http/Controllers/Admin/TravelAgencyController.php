@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\TravelAgencyStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\TravelAgency;
@@ -14,7 +15,7 @@ class TravelAgencyController extends Controller
 
     public function index()
     {
-        $pendingCount = TravelAgency::where('status', 'pending')->count();
+        $pendingCount = TravelAgency::where('status', TravelAgencyStatus::Pending)->count();
         $countries    = Country::orderBy('name_en')->get(['id', 'name_en']);
 
         return view('admin.travel-agencies.index', compact('pendingCount', 'countries'));
@@ -76,7 +77,7 @@ class TravelAgencyController extends Controller
     public function approve(TravelAgency $travelAgency): JsonResponse
     {
         $travelAgency->update([
-            'status'               => 'active',
+            'status'               => TravelAgencyStatus::Active,
             'approved_by_admin_id' => auth('admin')->id(),
             'approved_at'          => now(),
         ]);
@@ -90,7 +91,7 @@ class TravelAgencyController extends Controller
     {
         $request->validate(['reason' => ['required', 'string', 'min:5', 'max:500']]);
 
-        $travelAgency->update(['status' => 'suspended']);
+        $travelAgency->update(['status' => TravelAgencyStatus::Suspended]);
 
         return response()->json(['message' => 'Travel agency suspended.']);
     }
@@ -99,7 +100,7 @@ class TravelAgencyController extends Controller
 
     public function reactivate(TravelAgency $travelAgency): JsonResponse
     {
-        $travelAgency->update(['status' => 'active']);
+        $travelAgency->update(['status' => TravelAgencyStatus::Active]);
 
         return response()->json(['message' => 'Travel agency reactivated.']);
     }

@@ -24,7 +24,7 @@
             @endif
             <div>
                 <h2 class="text-xl font-bold text-gray-900">{{ $marketer->name }}</h2>
-                <span class="badge badge-{{ $marketer->status_color }}">{{ ucfirst($marketer->status) }}</span>
+                <span class="badge badge-{{ $marketer->status_color }}">{{ $marketer->status->label() }}</span>
                 <span class="badge badge-secondary ml-1">{{ $marketer->type_label }}</span>
             </div>
         </div>
@@ -70,12 +70,12 @@
 
         {{-- Action buttons --}}
         <div class="flex gap-2 mt-5 pt-4 border-t border-gray-100">
-            @if($marketer->status === 'pending')
+            @if($marketer->status === \App\Enums\MarketerStatus::Pending)
                 <button type="button" class="btn btn-success btn-sm flex-1" id="btn-approve">{{ __('admin.marketers.approve') }}</button>
                 <button type="button" class="btn btn-danger btn-sm flex-1" id="btn-reject">{{ __('admin.marketers.reject') }}</button>
-            @elseif($marketer->status === 'active')
+            @elseif($marketer->status === \App\Enums\MarketerStatus::Active)
                 <button type="button" class="btn btn-warning btn-sm flex-1" id="btn-suspend">{{ __('admin.marketers.suspend') }}</button>
-            @elseif($marketer->status === 'suspended')
+            @elseif($marketer->status === \App\Enums\MarketerStatus::Suspended)
                 <button type="button" class="btn btn-success btn-sm flex-1" id="btn-activate">{{ __('admin.marketers.activate') }}</button>
             @endif
         </div>

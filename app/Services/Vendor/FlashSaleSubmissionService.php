@@ -2,6 +2,7 @@
 
 namespace App\Services\Vendor;
 
+use App\Enums\FlashSaleSubmissionStatus;
 use App\Models\FlashSale;
 use App\Models\FlashSaleSubmission;
 use App\Models\Vendor;
@@ -104,8 +105,8 @@ class FlashSaleSubmissionService
 
     private function assertEditable(FlashSaleSubmission $submission): void
     {
-        if ($submission->status !== 'submitted') {
-            abort(422, "Submission cannot be modified in its current status '{$submission->status}'. Only 'submitted' submissions are editable.");
+        if ($submission->status !== FlashSaleSubmissionStatus::Submitted) {
+            abort(422, "Submission cannot be modified in its current status '{$submission->status->value}'. Only 'submitted' submissions are editable.");
         }
     }
 }

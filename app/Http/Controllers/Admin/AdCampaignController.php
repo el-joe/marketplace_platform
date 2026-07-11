@@ -111,12 +111,12 @@ class AdCampaignController extends Controller
             $qColor = $qScore >= 7 ? 'success' : ($qScore >= 4 ? 'warning' : 'danger');
             $qualityBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-{$qColor}-100 text-{$qColor}-700\">{$qScore}</span>";
 
-            $statusColor = $statusColors[$row->status] ?? 'gray';
-            $statusLabel = ucwords(str_replace('_', ' ', $row->status));
+            $statusColor = $statusColors[$row->status->value] ?? 'gray';
+            $statusLabel = $row->status->label();
             $statusBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{$statusColor}-100 text-{$statusColor}-700\">{$statusLabel}</span>";
 
-            $typeColor = $typeColors[$row->type] ?? 'gray';
-            $typeLabel = strtoupper($row->type);
+            $typeColor = $typeColors[$row->type->value] ?? 'gray';
+            $typeLabel = strtoupper($row->type->value);
             $typeBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-{$typeColor}-100 text-{$typeColor}-700\">{$typeLabel}</span>";
 
             $dateRange = Carbon::parse($row->starts_at)->format('d M') . ' – ' . ($row->ends_at ? Carbon::parse($row->ends_at)->format('d M Y') : '∞');
@@ -149,12 +149,12 @@ class AdCampaignController extends Controller
         $html .= "<a href=\"{$showUrl}\" class=\"btn btn-xs btn-secondary\">View</a>";
 
         if ($canEdit) {
-            if ($campaign->status === 'pending_review') {
+            if ($campaign->status?->value === 'pending_review') {
                 $html .= "<button type=\"button\" class=\"btn btn-xs btn-success js-approve-btn\" data-url=\"{$approveUrl}\" data-name=\"" . e($campaign->name) . "\">Approve</button>";
                 $html .= "<button type=\"button\" class=\"btn btn-xs btn-danger js-reject-btn\" data-url=\"{$rejectUrl}\" data-name=\"" . e($campaign->name) . "\">Reject</button>";
-            } elseif ($campaign->status === 'active') {
+            } elseif ($campaign->status?->value === 'active') {
                 $html .= "<button type=\"button\" class=\"btn btn-xs btn-warning js-pause-btn\" data-url=\"{$pauseUrl}\" data-name=\"" . e($campaign->name) . "\">Pause</button>";
-            } elseif ($campaign->status === 'paused') {
+            } elseif ($campaign->status?->value === 'paused') {
                 $html .= "<button type=\"button\" class=\"btn btn-xs btn-success js-resume-btn\" data-url=\"{$resumeUrl}\" data-name=\"" . e($campaign->name) . "\">Resume</button>";
             }
         }
@@ -221,7 +221,7 @@ class AdCampaignController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
-        if (!in_array($campaign->status, ['pending_review', 'paused'])) {
+        if (!in_array($campaign->status?->value, ['pending_review', 'paused'])) {
             return response()->json(['message' => 'Campaign is not pending review.'], 422);
         }
 
@@ -265,7 +265,7 @@ class AdCampaignController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
-        if ($campaign->status !== 'active') {
+        if ($campaign->status?->value !== 'active') {
             return response()->json(['message' => 'Campaign is not active.'], 422);
         }
 
@@ -281,7 +281,7 @@ class AdCampaignController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
-        if ($campaign->status !== 'paused') {
+        if ($campaign->status?->value !== 'paused') {
             return response()->json(['message' => 'Campaign is not paused.'], 422);
         }
 

@@ -58,20 +58,20 @@
                         'delivered' => __('carrier.assignments.status_delivered'),
                         'failed'    => __('carrier.assignments.status_failed'),
                     ];
-                    $c = $colors[$a->status] ?? 'gray';
+                    $c = $colors[$a->status->value] ?? 'gray';
                 @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-3 font-mono text-xs text-gray-600">{{ substr($a->id, 0, 8) }}…</td>
                     <td class="px-6 py-3 font-medium text-gray-900">{{ $a->agent?->name ?? '—' }}</td>
                     <td class="px-6 py-3">
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $c }}-100 text-{{ $c }}-700">
-                            {{ $labels[$a->status] ?? $a->status }}
+                            {{ $labels[$a->status->value] ?? $a->status->value }}
                         </span>
                     </td>
                     <td class="px-6 py-3 text-gray-500 text-xs">{{ $a->assigned_at?->format('Y-m-d H:i') }}</td>
                     @if(auth('shipping_supervisor')->user()->hasPermission('assign_orders'))
                     <td class="px-6 py-3">
-                        @if(in_array($a->status, ['assigned', 'accepted']))
+                        @if(in_array($a->status, [\App\Enums\DeliveryAssignmentStatus::Assigned, \App\Enums\DeliveryAssignmentStatus::Accepted], true))
                         <button
                             onclick="openReassignModal('{{ $a->id }}', '{{ addslashes($a->agent?->name) }}')"
                             class="text-indigo-600 hover:underline text-xs font-medium">
@@ -114,7 +114,7 @@
                 <input type="radio" name="reassign_agent" value="{{ $agent->id }}" class="accent-indigo-600">
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-gray-900">{{ $agent->name }}</p>
-                    <p class="text-xs text-gray-500">{{ $agent->vehicle_type }}</p>
+                    <p class="text-xs text-gray-500">{{ $agent->vehicle_type->label() }}</p>
                 </div>
                 @if($agent->rating_avg)
                 <span class="text-xs text-amber-500 shrink-0">★ {{ number_format($agent->rating_avg, 1) }}</span>

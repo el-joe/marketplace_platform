@@ -9,7 +9,7 @@
 @section('content')
 
     @php
-        $statusBadge = match ($dispute->status) {
+        $statusBadge = match ($dispute->status->value) {
             'open' => 'bg-yellow-100 text-yellow-700',
             'seller_responded' => 'bg-blue-100 text-blue-700',
             'under_review' => 'bg-indigo-100 text-indigo-700',
@@ -18,9 +18,9 @@
             'closed' => 'bg-gray-100 text-gray-500',
             default => 'bg-gray-100 text-gray-500',
         };
-        $reasonLabel = __('admin.disputes_section.reason_' . $dispute->reason);
-        $statusLabel = __('admin.disputes_section.' . $dispute->status);
-        $isClosed = in_array($dispute->status, ['resolved', 'closed'], true);
+        $reasonLabel = __('admin.disputes_section.reason_' . $dispute->reason->value);
+        $statusLabel = __('admin.disputes_section.' . $dispute->status->value);
+        $isClosed = in_array($dispute->status->value, ['resolved', 'closed'], true);
         $currency = $dispute->order->currency ?? 'USD';
         $compensation = $dispute->compensation_cents
             ? number_format($dispute->compensation_cents / 100, 2)
@@ -202,7 +202,7 @@
                             <select id="status-select" data-url="{{ route('admin.disputes.update-status', $dispute->id) }}"
                                 class="form-input text-xs py-1 pr-7">
                                 @foreach(['open', 'seller_responded', 'under_review', 'escalated', 'resolved', 'closed'] as $s)
-                                    <option value="{{ $s }}" {{ $dispute->status === $s ? 'selected' : '' }}>
+                                    <option value="{{ $s }}" {{ $dispute->status->value === $s ? 'selected' : '' }}>
                                         {{ __('admin.disputes_section.' . $s) }}
                                     </option>
                                 @endforeach
@@ -226,7 +226,7 @@
                             <dd>
                                 <span
                                     class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                                    {{ __('admin.disputes_section.' . $dispute->resolution) }}
+                                    {{ __('admin.disputes_section.' . $dispute->resolution->value) }}
                                 </span>
                             </dd>
                         </div>

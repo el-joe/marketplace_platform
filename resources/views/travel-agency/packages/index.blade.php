@@ -49,14 +49,14 @@
                             <td class="px-4 py-3 text-gray-600">{{ $pkg->seats_booked }} / {{ $pkg->available_seats ?? '∞' }}
                             </td>
                             <td class="px-4 py-3">
-                                <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$pkg->status] ?? '' }}">
-                                    {{ $labels[$pkg->status] ?? $pkg->status }}
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$pkg->status->value] ?? '' }}">
+                                    {{ $labels[$pkg->status->value] ?? $pkg->status->label() }}
                                 </span>
                             </td>
                             <td class="px-4 py-3 flex gap-2">
                                 <a href="{{ route('travel-agency.packages.show', $pkg) }}"
                                     class="text-blue-600 text-xs hover:underline">{{ __('travel.packages.view') }}</a>
-                                @if(in_array($pkg->status, ['draft', 'pending_review']))
+                                @if(in_array($pkg->status, [\App\Enums\TravelPackageStatus::Draft, \App\Enums\TravelPackageStatus::PendingReview]))
                                     <a href="{{ route('travel-agency.packages.edit', $pkg) }}"
                                         class="text-amber-600 text-xs hover:underline">{{ __('travel.packages.edit') }}</a>
                                 @endif

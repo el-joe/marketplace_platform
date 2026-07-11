@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\CouponCustomerEligibility;
+use App\Enums\CouponScope;
+use App\Enums\CouponType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,17 +23,17 @@ class UpdateCouponRequest extends FormRequest
             'code' => ['required', 'string', 'max:50', Rule::unique('coupons', 'code')->ignore($couponId)],
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'type' => ['required', Rule::in(['percentage', 'fixed_amount', 'free_shipping', 'bogo'])],
+            'type' => ['required', Rule::enum(CouponType::class)],
             'value' => ['required', 'numeric', 'min:0'],
             'currency' => ['nullable', 'string', 'size:3'],
-            'scope' => ['required', Rule::in(['platform', 'vendor', 'category', 'product'])],
+            'scope' => ['required', Rule::enum(CouponScope::class)],
             'vendor_id' => ['nullable', 'uuid', 'exists:vendors,id'],
             'category_id' => ['nullable', 'uuid', 'exists:categories,id'],
             'min_order_amount' => ['nullable', 'integer', 'min:0'],
             'max_discount' => ['nullable', 'integer', 'min:0'],
             'usage_limit_total' => ['nullable', 'integer', 'min:1'],
             'usage_limit_per_customer' => ['required', 'integer', 'min:1'],
-            'customer_eligibility' => ['required', Rule::in(['all', 'new_customers', 'specific_segment', 'specific_users'])],
+            'customer_eligibility' => ['required', Rule::enum(CouponCustomerEligibility::class)],
             'valid_from' => ['required', 'date'],
             'valid_until' => ['required', 'date', 'after:valid_from'],
             'is_active' => ['boolean'],

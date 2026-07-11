@@ -19,6 +19,10 @@ class FlashSaleSubmissionHistory extends Model
         'reason',
     ];
 
+    protected $casts = [
+        'changed_by_role' => \App\Enums\FlashSaleSubmissionChangedByRole::class,
+    ];
+
     public function submission(): BelongsTo
     {
         return $this->belongsTo(FlashSaleSubmission::class, 'flash_sale_submission_id');

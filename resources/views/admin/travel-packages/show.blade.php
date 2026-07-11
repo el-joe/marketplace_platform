@@ -15,10 +15,10 @@
             @endif
         </div>
         <div class="flex items-center gap-2 shrink-0">
-            @if($travelPackage->status === 'pending_review')
+            @if($travelPackage->status === \App\Enums\TravelPackageStatus::PendingReview)
                 <button type="button" class="btn btn-success js-show-approve-btn">{{ __('admin.travel.approve_publish') }}</button>
                 <button type="button" class="btn btn-danger js-show-reject-btn">{{ __('admin.travel.return_to_agency') }}</button>
-            @elseif(in_array($travelPackage->status, ['active', 'sold_out']))
+            @elseif(in_array($travelPackage->status, [\App\Enums\TravelPackageStatus::Active, \App\Enums\TravelPackageStatus::SoldOut]))
                 <button type="button" class="btn btn-secondary js-expire-btn"
                     data-url="{{ route('admin.travel.packages.expire', $travelPackage->id) }}">
                     {{ __('admin.travel.mark_expired') }}
@@ -38,8 +38,8 @@
     ];
     @endphp
     <div class="flex items-center gap-3">
-        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$travelPackage->status] ?? 'bg-gray-100 text-gray-600' }}">
-            {{ __('admin.travel.package_status_' . $travelPackage->status) }}
+        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$travelPackage->status->value] ?? 'bg-gray-100 text-gray-600' }}">
+            {{ $travelPackage->status->label() }}
         </span>
         @if($travelPackage->approved_at && $travelPackage->approvedByAdmin)
             <span class="text-xs text-gray-400">
@@ -117,7 +117,7 @@
                 @endif
                 <div class="flex justify-between">
                     <dt class="text-gray-500">{{ __('common.status') }}</dt>
-                    <dd><span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $agency->status === 'active' ? 'bg-success-100 text-success-700' : 'bg-gray-100 text-gray-600' }}">{{ __('admin.travel.agency_status_' . $agency->status) }}</span></dd>
+                    <dd><span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $agency->status === \App\Enums\TravelAgencyStatus::Active ? 'bg-success-100 text-success-700' : 'bg-gray-100 text-gray-600' }}">{{ $agency->status->label() }}</span></dd>
                 </div>
             </dl>
             <div class="mt-3">

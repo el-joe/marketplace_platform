@@ -43,6 +43,7 @@ class MarketerConversion extends \Illuminate\Database\Eloquent\Model
             'commission_amount_cents' => 'integer',
             'click_chain' => 'array',
             'is_whatsapp_conversion' => 'boolean',
+            'status' => \App\Enums\MarketerTrackingStatus::class,
         ];
     }
 
@@ -84,10 +85,10 @@ class MarketerConversion extends \Illuminate\Database\Eloquent\Model
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'approved' => 'success',
-            'pending' => 'warning',
-            'paid' => 'primary',
-            'reversed' => 'danger',
+            \App\Enums\MarketerTrackingStatus::Approved => 'success',
+            \App\Enums\MarketerTrackingStatus::Pending => 'warning',
+            \App\Enums\MarketerTrackingStatus::Paid => 'primary',
+            \App\Enums\MarketerTrackingStatus::Reversed => 'danger',
             default => 'secondary',
         };
     }

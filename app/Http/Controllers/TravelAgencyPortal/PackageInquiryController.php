@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\TravelAgencyPortal;
 
+use App\Enums\TravelPackageInquiryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\TravelPackage;
@@ -40,7 +41,7 @@ class PackageInquiryController extends Controller
             ->latest();
 
         if ($status = $request->query('status')) {
-            $query->where('status', $status);
+            $query->where('status', TravelPackageInquiryStatus::from($status));
         }
 
         if ($packageId = $request->query('package_id')) {
@@ -62,12 +63,12 @@ class PackageInquiryController extends Controller
     {
         $this->authorise($inquiry);
 
-        if (!in_array($inquiry->status, ['new'])) {
+        if (!in_array($inquiry->status, [TravelPackageInquiryStatus::New])) {
             return back()->withErrors(['status' => 'لا يمكن تغيير حالة هذا الطلب.']);
         }
 
         $inquiry->update([
-            'status'       => 'contacted',
+            'status'       => TravelPackageInquiryStatus::Contacted,
             'contacted_at' => now(),
         ]);
 
@@ -80,7 +81,7 @@ class PackageInquiryController extends Controller
     {
         $this->authorise($inquiry);
 
-        if (!in_array($inquiry->status, ['new', 'contacted'])) {
+        if (!in_array($inquiry->status, [TravelPackageInquiryStatus::New, TravelPackageInquiryStatus::Contacted])) {
             return back()->withErrors(['status' => 'هذا الطلب لا يمكن تحويله لحجز.']);
         }
 
@@ -112,7 +113,7 @@ class PackageInquiryController extends Controller
         $booking = $this->bookingCreationService->create($this->agencyId(), $data);
 
         $inquiry->update([
-            'status'                  => 'converted',
+            'status'                  => TravelPackageInquiryStatus::Converted,
             'converted_to_booking_id' => $booking->id,
         ]);
 
@@ -127,7 +128,7 @@ class PackageInquiryController extends Controller
     {
         $this->authorise($inquiry);
 
-        if (!in_array($inquiry->status, ['new', 'contacted'])) {
+        if (!in_array($inquiry->status, [TravelPackageInquiryStatus::New, TravelPackageInquiryStatus::Contacted])) {
             return back()->withErrors(['status' => 'لا يمكن إغلاق هذا الطلب.']);
         }
 
@@ -136,7 +137,7 @@ class PackageInquiryController extends Controller
         ]);
 
         $inquiry->update([
-            'status'       => 'closed',
+            'status'       => TravelPackageInquiryStatus::Closed,
             'close_reason' => $validated['reason'] ?? null,
         ]);
 

@@ -7,10 +7,10 @@
 @php
     /** @var \App\Models\DeliveryAgent $agent */
     $docStatusColors = [
-        'verified' => 'chip-delivered',
-        'pending'  => 'chip-assigned',
-        'rejected' => 'chip-failed',
-        'expired'  => 'chip-failed',
+        \App\Enums\DeliveryAgentDocumentStatus::Verified->value => 'chip-delivered',
+        \App\Enums\DeliveryAgentDocumentStatus::Pending->value  => 'chip-assigned',
+        \App\Enums\DeliveryAgentDocumentStatus::Rejected->value => 'chip-failed',
+        \App\Enums\DeliveryAgentDocumentStatus::Expired->value  => 'chip-failed',
     ];
 @endphp
 
@@ -31,7 +31,7 @@
             };
         @endphp
         <span class="chip {{ $statusColor }}">{{ ucfirst(str_replace('_', ' ', $agent->status)) }}</span>
-        <span class="chip chip-assigned">{{ ucfirst($agent->vehicle_type) }}</span>
+        <span class="chip chip-assigned">{{ $agent->vehicle_type->label() }}</span>
     </div>
     <div class="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-slate-700">
         <div class="text-center">
@@ -58,7 +58,7 @@
     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{{ __('delivery.profile.vehicle_info') }}</h3>
     <div class="space-y-3">
         @foreach([
-            __('delivery.profile.type')        => ucfirst($agent->vehicle_type),
+            __('delivery.profile.type')        => $agent->vehicle_type->label(),
             __('delivery.profile.plate')       => $agent->vehicle_plate ?? '—',
             __('delivery.profile.national_id') => $agent->national_id ? '••••' . substr($agent->national_id, -4) : '—',
         ] as $label => $value)
@@ -93,8 +93,8 @@
     @forelse($agent->documents as $doc)
         <div class="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
             <p class="text-sm font-medium text-slate-200">{{ $doc->label }}</p>
-            <span class="chip {{ $docStatusColors[$doc->status] ?? 'chip-assigned' }}">
-                {{ ucfirst($doc->status) }}
+            <span class="chip {{ $docStatusColors[$doc->status->value] ?? 'chip-assigned' }}">
+                {{ $doc->status->label() }}
             </span>
         </div>
     @empty

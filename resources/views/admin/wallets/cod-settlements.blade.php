@@ -79,10 +79,10 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','settled'=>'bg-green-100 text-green-700','disputed'=>'bg-red-100 text-red-700']; @endphp
-                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$s->status] ?? '' }}">{{ __('admin.wallets.' . $s->status) }}</span>
+                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$s->status->value] ?? '' }}">{{ __('admin.wallets.' . $s->status->value) }}</span>
                             </td>
                             <td class="px-4 py-3 text-end">
-                                @if($s->status === 'pending')
+                                @if($s->status === \App\Enums\DeliveryAgentCodSettlementStatus::Pending)
                                     <form method="POST" action="{{ route('admin.wallets.cod-settlements.settle', $s) }}">
                                         @csrf @method('PATCH')
                                         <button class="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700">{{ __('admin.wallets.mark_settled') }}</button>

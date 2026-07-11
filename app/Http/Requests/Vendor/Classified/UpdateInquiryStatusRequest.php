@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Vendor\Classified;
 
+use App\Enums\ClassifiedInquiryStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateInquiryStatusRequest extends FormRequest
 {
@@ -14,7 +16,10 @@ class UpdateInquiryStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'required|in:contacted,closed',
+            'status' => [
+                'required',
+                Rule::in([ClassifiedInquiryStatus::Contacted->value, ClassifiedInquiryStatus::Closed->value]),
+            ],
         ];
     }
 }

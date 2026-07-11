@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\AdCampaignStatus;
+use App\Enums\AdCampaignTargetingType;
+use App\Enums\AdCampaignType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +19,9 @@ class AdCampaign extends Model
         'starts_at'   => 'datetime',
         'ends_at'     => 'datetime',
         'approved_at' => 'datetime',
+        'status' => AdCampaignStatus::class,
+        'type' => AdCampaignType::class,
+        'targeting_type' => AdCampaignTargetingType::class,
     ];
 
     protected $fillable = [

@@ -11,7 +11,7 @@
      x-data="radioPlayer(
          @js($channel->id),
          @js($channel->current_stream_url),
-         @js($channel->type),
+         @js($channel->type->value),
          @js($channel->name_ar),
          @js($channel->is_live)
      )"
@@ -31,7 +31,7 @@
     </div>
 
     {{-- Video player (shown for video type) --}}
-    @if($channel->type === 'video')
+    @if($channel->type === \App\Enums\RadioChannelType::Video)
     <div class="bg-black aspect-video w-full">
         <video id="radio-video" class="w-full h-full" controls playsinline
                x-ref="videoEl"
@@ -60,7 +60,7 @@
                 {{ $channel->is_live ? 'يبث الآن' : 'يشغل حالياً' }}
             </div>
             <div class="font-bold text-gray-900 text-lg" x-text="nowPlaying || @js($channel->name_ar)"></div>
-            <div class="text-sm text-gray-500">{{ $channel->type === 'video' ? 'بث مرئي' : 'بث صوتي' }}</div>
+            <div class="text-sm text-gray-500">{{ $channel->type === \App\Enums\RadioChannelType::Video ? 'بث مرئي' : 'بث صوتي' }}</div>
         </div>
 
         {{-- Play / Pause --}}

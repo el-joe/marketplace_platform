@@ -208,8 +208,8 @@
                                         </span>
                                         <span class="text-xs text-gray-400 ml-2">{{ $subOrder->sub_order_number }}</span>
                                     </div>
-                                    <x-badge :color="$subStatusColors[$subOrder->status] ?? 'gray'">
-                                        {{ $subOrderStatusLabels[$subOrder->status] ?? ucwords(str_replace('_', ' ', $subOrder->status)) }}
+                                    <x-badge :color="$subStatusColors[$subOrder->status->value] ?? 'gray'">
+                                        {{ $subOrderStatusLabels[$subOrder->status->value] ?? ucwords(str_replace('_', ' ', $subOrder->status->value)) }}
                                     </x-badge>
                                     @if($subOrder->fulfillment_model === 'fbn')
                                         <x-badge color="primary">{{ __('admin.orders.fbn') }}</x-badge>
@@ -294,7 +294,7 @@
                                                     </td>
                                                     <td class="px-4 py-3 text-center">
                                                         <x-badge color="gray" class="text-xs">
-                                                            {{ $fulfillmentStatusLabels[$item->fulfillment_status] ?? ucfirst(str_replace('_', ' ', $item->fulfillment_status)) }}
+                                                            {{ $fulfillmentStatusLabels[$item->fulfillment_status->value] ?? ucfirst(str_replace('_', ' ', $item->fulfillment_status->value)) }}
                                                         </x-badge>
                                                     </td>
                                                 </tr>
@@ -390,7 +390,7 @@
                             data-sub-order-id="{{ $subOrder->id }}"
                             data-shipping-url="{{ route('admin.orders.sub-orders.shipping-methods', $subOrder->id) }}"
                             data-assign-url="{{ route('admin.orders.sub-orders.assign-shipping', $subOrder->id) }}"
-                            @if(in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) disabled
+                            @if(in_array($subOrder->status->value, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) disabled
                             @endif>
                             {{ $subOrder->shippingMethod ? __('admin.orders.reassign') : __('admin.orders.assign_shipping') }}
                         </button>
@@ -407,15 +407,15 @@
                 @forelse($order->transactions as $tx)
                     <div class="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
                         <div class="flex-shrink-0 mt-0.5">
-                            <x-badge :color="$txTypeColors[$tx->type] ?? 'gray'">
-                                {{ $txTypeLabels[$tx->type] ?? ucfirst($tx->type) }}
+                            <x-badge :color="$txTypeColors[$tx->type->value] ?? 'gray'">
+                                {{ $txTypeLabels[$tx->type->value] ?? ucfirst($tx->type->value) }}
                             </x-badge>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between">
                                 <p class="text-sm font-medium text-gray-900">{{ $fmt($tx->amount) }}</p>
-                                <x-badge :color="$tx->status === 'succeeded' ? 'success' : ($tx->status === 'failed' ? 'danger' : 'gray')">
-                                    {{ $txStatusLabels[$tx->status] ?? ucfirst($tx->status) }}
+                                <x-badge :color="$tx->status->value === 'succeeded' ? 'success' : ($tx->status->value === 'failed' ? 'danger' : 'gray')">
+                                    {{ $txStatusLabels[$tx->status->value] ?? ucfirst($tx->status->value) }}
                                 </x-badge>
                             </div>
                             <p class="text-xs text-gray-500 mt-0.5">
@@ -499,8 +499,8 @@
                                 <div class="flex items-center gap-2">
                                     <span
                                         class="font-mono text-sm font-semibold text-gray-700">{{ $dispute->dispute_number }}</span>
-                                    <x-badge :color="in_array($dispute->status, ['resolved', 'closed']) ? 'success' : ($dispute->status === 'escalated' ? 'danger' : 'warning')">
-                                        {{ $disputeStatusLabels[$dispute->status] ?? ucwords(str_replace('_', ' ', $dispute->status)) }}
+                                    <x-badge :color="in_array($dispute->status->value, ['resolved', 'closed']) ? 'success' : ($dispute->status->value === 'escalated' ? 'danger' : 'warning')">
+                                        {{ $disputeStatusLabels[$dispute->status->value] ?? ucwords(str_replace('_', ' ', $dispute->status->value)) }}
                                     </x-badge>
                                 </div>
                                 <span class="text-xs text-gray-400">
@@ -508,7 +508,7 @@
                                 </span>
                             </div>
                             <p class="text-xs font-medium text-gray-500 mb-1">
-                                {{ __('admin.disputes_section.reason') }}: {{ $disputeReasonLabels[$dispute->reason] ?? $dispute->reason }}
+                                {{ __('admin.disputes_section.reason') }}: {{ $disputeReasonLabels[$dispute->reason->value] ?? $dispute->reason->value }}
                             </p>
                             <p class="text-sm text-gray-700">{{ $dispute->description }}</p>
                             @if($dispute->resolution_notes)
@@ -549,8 +549,8 @@
                     @endif
                     <div class="flex items-center justify-between">
                         <span class="text-gray-500">{{ __('common.status') }}</span>
-                        <x-badge :color="$statusColors[$order->status] ?? 'gray'">
-                            {{ $allStatusLabels[$order->status] ?? ucwords(str_replace('_', ' ', $order->status)) }}
+                        <x-badge :color="$statusColors[$order->status->value] ?? 'gray'">
+                            {{ $allStatusLabels[$order->status->value] ?? ucwords(str_replace('_', ' ', $order->status->value)) }}
                         </x-badge>
                     </div>
                 </div>
@@ -588,8 +588,8 @@
                 <div class="border-t border-gray-100 mt-3 pt-3 flex items-center justify-between text-xs">
                     <span
                         class="text-gray-500">{{ $payMethodLabels[$order->payment_method] ?? $order->payment_method }}</span>
-                    <x-badge :color="$payStatusColors[$order->payment_status] ?? 'gray'">
-                        {{ $payStatusLabels[$order->payment_status] ?? ucwords(str_replace('_', ' ', $order->payment_status)) }}
+                    <x-badge :color="$payStatusColors[$order->payment_status->value] ?? 'gray'">
+                        {{ $payStatusLabels[$order->payment_status->value] ?? ucwords(str_replace('_', ' ', $order->payment_status->value)) }}
                     </x-badge>
                 </div>
 
@@ -725,10 +725,10 @@
                         <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 text-sm">
                             <div>
                                 <p class="font-medium text-gray-800">{{ $fmt($refund->amount) }}</p>
-                                <p class="text-xs text-gray-400">{{ $refundReasonLabels[$refund->reason] ?? $refund->reason }}</p>
+                                <p class="text-xs text-gray-400">{{ $refundReasonLabels[$refund->reason->value] ?? $refund->reason->value }}</p>
                             </div>
-                            <x-badge :color="$refund->status === 'completed' ? 'success' : ($refund->status === 'rejected' || $refund->status === 'failed' ? 'danger' : 'warning')">
-                                {{ $refundStatusLabels[$refund->status] ?? ucfirst($refund->status) }}
+                            <x-badge :color="$refund->status->value === 'completed' ? 'success' : ($refund->status->value === 'rejected' || $refund->status->value === 'failed' ? 'danger' : 'warning')">
+                                {{ $refundStatusLabels[$refund->status->value] ?? ucfirst($refund->status->value) }}
                             </x-badge>
                         </div>
                     @endforeach
@@ -747,7 +747,7 @@
                         <x-heroicon name="arrow-uturn-left" class="w-4 h-4 mr-1.5" />
                         {{ __('admin.orders.process_refund') }}
                     </button>
-                    @if(!in_array($order->status, ['cancelled', 'refunded', 'completed']))
+                    @if(!in_array($order->status->value, ['cancelled', 'refunded', 'completed']))
                         <button type="button" data-modal-open="force-cancel-modal"
                             class="btn btn-ghost w-full justify-center text-danger-600 hover:bg-danger-50">
                             <x-heroicon name="x-circle" class="w-4 h-4 mr-1.5" />
@@ -788,7 +788,7 @@
             'refunded' => [],
             'disputed' => ['delivered', 'cancelled', 'refunded', 'completed'],
         ];
-        $allowedNextStatuses = $orderStatusTransitions[$order->status] ?? [];
+        $allowedNextStatuses = $orderStatusTransitions[$order->status->value] ?? [];
     @endphp
     <x-modal id="update-status-modal" title="{{ __('admin.orders.update_status') }}" size="md">
         <form id="update-status-form">
@@ -796,8 +796,8 @@
             <div class="space-y-4">
                 <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-sm text-gray-700">
                     {{ __('admin.orders.current_status') }}:
-                    <x-badge :color="$statusColors[$order->status] ?? 'gray'" class="ml-1">
-                        {{ $allStatusLabels[$order->status] ?? ucwords(str_replace('_', ' ', $order->status)) }}
+                    <x-badge :color="$statusColors[$order->status->value] ?? 'gray'" class="ml-1">
+                        {{ $allStatusLabels[$order->status->value] ?? ucwords(str_replace('_', ' ', $order->status->value)) }}
                     </x-badge>
                 </div>
                 <div>
@@ -841,7 +841,7 @@
                     <div class="space-y-2 mt-1">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="refund_type" value="full" class="text-primary-600"
-                                @if($order->payment_status !== 'refunded') checked @endif>
+                                @if($order->payment_status->value !== 'refunded') checked @endif>
                             <span class="text-sm">{{ __('admin.orders.full_order') }} — <strong>{{ $fmt($order->total) }}</strong></span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">

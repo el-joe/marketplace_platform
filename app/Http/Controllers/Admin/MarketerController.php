@@ -129,13 +129,13 @@ class MarketerController extends Controller
                 ? '<img src="' . asset('storage/' . $row->profile_photo_path) . '" class="w-8 h-8 rounded-full object-cover">'
                 : '<span class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm">' . strtoupper(substr($row->name, 0, 1)) . '</span>',
                 '<div><p class="font-medium">' . e($row->name) . '</p><p class="text-xs text-gray-400">' . e($row->email) . '</p></div>',
-                '<span class="badge badge-' . $this->typeColor($row->type) . '">' . ucfirst(str_replace('_', ' ', $row->type)) . '</span>',
+                '<span class="badge badge-' . $this->typeColor($row->type?->value) . '">' . ucfirst(str_replace('_', ' ', $row->type?->value)) . '</span>',
                 e($row->country_name ?? '—'),
                 number_format($row->followers_count),
                 number_format($row->total_clicks),
                 number_format($row->total_conversions),
                 number_format($row->total_earnings_cents / 100, 2),
-                '<span class="badge badge-' . $this->statusColor($row->status) . '">' . ucfirst($row->status) . '</span>',
+                '<span class="badge badge-' . $this->statusColor($row->status?->value) . '">' . ucfirst($row->status?->value) . '</span>',
                 $this->actions($row),
             ];
         });
@@ -174,7 +174,7 @@ class MarketerController extends Controller
 
     public function approve(Marketer $marketer): JsonResponse
     {
-        if ($marketer->status !== 'pending') {
+        if ($marketer->status !== \App\Enums\MarketerStatus::Pending) {
             return response()->json(['success' => false, 'message' => 'Marketer is not pending.'], 422);
         }
 
@@ -370,8 +370,8 @@ class MarketerController extends Controller
             return [
                 $campaignCell,
                 '<a href="' . route('admin.marketers.all.show', $row->marketer_id) . '" class="text-primary-600 hover:underline">' . e($row->marketer_name) . '</a>',
-                ucfirst(str_replace('_', ' ', $row->campaign_type)),
-                '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status) . '</span>',
+                ucfirst(str_replace('_', ' ', $row->campaign_type?->value)),
+                '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
                 number_format($row->total_clicks),
                 number_format($row->total_conversions),
                 number_format($row->total_revenue_cents / 100, 2),
@@ -383,7 +383,7 @@ class MarketerController extends Controller
 
     public function approveCampaign(MarketerCampaign $campaign): JsonResponse
     {
-        if ($campaign->status !== 'draft') {
+        if ($campaign->status !== \App\Enums\MarketerCampaignStatus::Draft) {
             return response()->json(['success' => false, 'message' => 'Campaign is not in draft status.'], 422);
         }
 
@@ -447,7 +447,7 @@ class MarketerController extends Controller
 
     public function updateCampaignSamplesRequired(Request $request, MarketerCampaign $campaign): JsonResponse
     {
-        abort_if(!in_array($campaign->status, ['draft', 'active']), 422, 'Cannot update samples_required on a campaign that is ended or cancelled.');
+        abort_if(!in_array($campaign->status?->value, ['draft', 'active'], true), 422, 'Cannot update samples_required on a campaign that is ended or cancelled.');
 
         $validated = $request->validate([
             'samples_required' => 'required|integer|min:0|max:10',
@@ -591,7 +591,7 @@ class MarketerController extends Controller
             $row->period_start . ' – ' . $row->period_end,
             number_format($row->total_conversions),
             number_format($row->net_amount_cents / 100, 2) . ' ' . $row->currency,
-            '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status) . '</span>',
+            '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
             $row->processed_at?->format('d M Y') ?? '—',
             $this->payoutActions($row),
         ]);
@@ -668,7 +668,7 @@ class MarketerController extends Controller
 
     public function approvePayout(MarketerPayout $payout): JsonResponse
     {
-        if ($payout->status !== 'pending') {
+        if ($payout->status !== \App\Enums\MarketerPayoutStatus::Pending) {
             return response()->json(['success' => false, 'message' => 'Payout is not pending.'], 422);
         }
 
@@ -684,7 +684,7 @@ class MarketerController extends Controller
     {
         $request->validate(['payment_reference' => 'required|string|max:255']);
 
-        if ($payout->status !== 'approved') {
+        if ($payout->status !== \App\Enums\MarketerPayoutStatus::Approved) {
             return response()->json(['success' => false, 'message' => 'Payout must be approved first.'], 422);
         }
 
@@ -792,9 +792,9 @@ class MarketerController extends Controller
             e($row->campaign_name),
             number_format($row->order_value_cents / 100, 2),
             number_format($row->commission_amount_cents / 100, 2),
-            '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status) . '</span>',
+            '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
             $row->created_at->format('d M Y'),
-            $row->status === 'pending'
+            $row->status === \App\Enums\MarketerTrackingStatus::Pending
             ? '<input type="checkbox" class="conv-check" value="' . $row->id . '">'
             : '',
         ]);
@@ -828,12 +828,12 @@ class MarketerController extends Controller
         $html = '<div class="flex gap-1">';
         $html .= '<a href="' . $url . '" class="btn btn-xs btn-ghost">View</a>';
 
-        if ($row->status === 'pending') {
+        if ($row->status === \App\Enums\MarketerStatus::Pending) {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-success btn-approve-marketer">Approve</button>';
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-danger btn-reject-marketer">Reject</button>';
-        } elseif ($row->status === 'active') {
+        } elseif ($row->status === \App\Enums\MarketerStatus::Active) {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-warning btn-suspend-marketer">Suspend</button>';
-        } elseif ($row->status === 'suspended') {
+        } elseif ($row->status === \App\Enums\MarketerStatus::Suspended) {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-success btn-activate-marketer">Activate</button>';
         }
 
@@ -844,7 +844,7 @@ class MarketerController extends Controller
     private function campaignActions(object $row): string
     {
         $html = '<div class="flex gap-1">';
-        if ($row->status === 'draft') {
+        if ($row->status === \App\Enums\MarketerCampaignStatus::Draft) {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-success btn-approve-campaign">Approve</button>';
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-danger btn-reject-campaign">Reject</button>';
         } else {
@@ -857,9 +857,9 @@ class MarketerController extends Controller
     private function payoutActions(object $row): string
     {
         $html = '<div class="flex gap-1">';
-        if ($row->status === 'pending') {
+        if ($row->status === \App\Enums\MarketerPayoutStatus::Pending) {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-primary btn-approve-payout">Approve</button>';
-        } elseif ($row->status === 'approved') {
+        } elseif ($row->status === \App\Enums\MarketerPayoutStatus::Approved) {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-success btn-process-payout">Process</button>';
         }
         $html .= '</div>';

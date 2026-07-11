@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PortalContentType;
 use App\Models\PortalContent;
 
 if (!function_exists('portal_content')) {
@@ -59,7 +60,7 @@ if (!function_exists('portal_link')) {
 
         $row = PortalContent::forPage($pageKey)->get($blockKey . '.' . $fieldKey);
 
-        if (!$row || !$row->is_active || $row->type !== 'link') {
+        if (!$row || !$row->is_active || $row->type !== PortalContentType::Link) {
             return $fallback;
         }
 

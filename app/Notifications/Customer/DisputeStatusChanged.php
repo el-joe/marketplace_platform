@@ -28,7 +28,7 @@ class DisputeStatusChanged extends BaseCustomerNotification
 
     public function notificationData(object $notifiable): array
     {
-        $newLabel = self::$statusLabels[$this->dispute->status] ?? ucfirst($this->dispute->status);
+        $newLabel = self::$statusLabels[$this->dispute->status->value] ?? ucfirst($this->dispute->status->value);
 
         return [
             'title'           => 'Dispute Update',
@@ -36,7 +36,7 @@ class DisputeStatusChanged extends BaseCustomerNotification
             'url'             => route('customer.disputes.show', $this->dispute->dispute_number),
             'dispute_id'      => $this->dispute->id,
             'dispute_number'  => $this->dispute->dispute_number,
-            'status'          => $this->dispute->status,
+            'status'          => $this->dispute->status->value,
             'previous_status' => $this->previousStatus,
         ];
     }

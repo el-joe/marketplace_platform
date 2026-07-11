@@ -35,8 +35,8 @@
                 <x-badge :color="$statusColors[$agent->status] ?? 'gray'">
                     {{ ucwords(str_replace('_', ' ', $agent->status)) }}
                 </x-badge>
-                <x-badge color="gray">{{ ucfirst(str_replace('_', ' ', $agent->agent_type)) }}</x-badge>
-                <x-badge color="gray">{{ ucfirst($agent->vehicle_type) }}</x-badge>
+                <x-badge color="gray">{{ $agent->agent_type->label() }}</x-badge>
+                <x-badge color="gray">{{ $agent->vehicle_type->label() }}</x-badge>
                 @if($agent->is_available)
                     <x-badge color="success">{{ __('admin.delivery_section.available_badge') }}</x-badge>
                 @endif
@@ -108,8 +108,8 @@
                             __('admin.delivery_section.field_phone')                   => $agent->phone,
                             __('admin.delivery_section.field_country')                 => $agent->country?->name_en ?? '—',
                             __('admin.delivery_section.field_zone')                    => $agent->zone?->name ?? '—',
-                            __('admin.delivery_section.field_agent_type')              => ucfirst(str_replace('_', ' ', $agent->agent_type)),
-                            __('admin.delivery_section.field_vehicle_type')            => ucfirst($agent->vehicle_type),
+                            __('admin.delivery_section.field_agent_type')              => $agent->agent_type->label(),
+                            __('admin.delivery_section.field_vehicle_type')            => $agent->vehicle_type->label(),
                             __('admin.delivery_section.field_national_id')             => $agent->national_id ?? '—',
                             __('admin.delivery_section.field_vehicle_plate')           => $agent->vehicle_plate ?? '—',
                             __('admin.delivery_section.field_emergency_contact')       => $agent->emergency_contact_name ?? '—',
@@ -150,12 +150,12 @@
                                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.delivery_section.field_vehicle_type') }}</label>
                                 <select name="vehicle_type" class="form-input w-full text-sm">
                                     @foreach(['motorcycle','car','van','bicycle'] as $vt)
-                                        <option value="{{ $vt }}" {{ $agent->vehicle_type === $vt ? 'selected' : '' }}>{{ ucfirst($vt) }}</option>
+                                        <option value="{{ $vt }}" {{ $agent->vehicle_type->value === $vt ? 'selected' : '' }}>{{ ucfirst($vt) }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <input type="hidden" name="country_id" value="{{ $agent->country_id }}">
-                            <input type="hidden" name="agent_type" value="{{ $agent->agent_type }}">
+                            <input type="hidden" name="agent_type" value="{{ $agent->agent_type->value }}">
                         </div>
                         <div class="mt-4 flex gap-3">
                             <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.delivery_section.save') }}</button>
@@ -266,8 +266,8 @@
                                 </p>
                             @endif
                         </div>
-                        <x-badge :color="$docStatusColors[$doc->status] ?? 'gray'">
-                            {{ ucfirst($doc->status) }}
+                        <x-badge :color="$docStatusColors[$doc->status->value] ?? 'gray'">
+                            {{ $doc->status->label() }}
                         </x-badge>
                     </div>
 
@@ -280,7 +280,7 @@
                         <p class="text-xs text-red-600 bg-red-50 rounded p-2 mb-3">{{ $doc->rejection_reason }}</p>
                     @endif
 
-                    @if($doc->status === 'pending')
+                    @if($doc->status === \App\Enums\DeliveryAgentDocumentStatus::Pending)
                         <div class="flex gap-2">
                             <button type="button" data-doc-id="{{ $doc->id }}" data-action="verify"
                                 class="doc-action-btn btn btn-xs btn-success flex-1">{{ __('admin.delivery_section.verify') }}</button>

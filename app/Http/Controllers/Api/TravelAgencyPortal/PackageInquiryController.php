@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\TravelAgencyPortal;
 
+use App\Enums\TravelPackageInquiryStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\TravelAgencyPortal\TravelPackageInquiryResource;
 use App\Http\Responses\ApiResponse;
@@ -38,7 +39,7 @@ class PackageInquiryController extends Controller
             ->latest();
 
         if ($status = $request->query('status')) {
-            $query->where('status', $status);
+            $query->where('status', TravelPackageInquiryStatus::from($status));
         }
 
         if ($packageId = $request->query('package_id')) {
@@ -56,12 +57,12 @@ class PackageInquiryController extends Controller
     {
         $this->authorise($inquiry);
 
-        if ($inquiry->status !== 'new') {
+        if ($inquiry->status !== TravelPackageInquiryStatus::New) {
             return ApiResponse::error('This inquiry status cannot be changed.', [], 422);
         }
 
         $inquiry->update([
-            'status' => 'contacted',
+            'status' => TravelPackageInquiryStatus::Contacted,
             'contacted_at' => now(),
         ]);
 
@@ -74,7 +75,7 @@ class PackageInquiryController extends Controller
     {
         $this->authorise($inquiry);
 
-        if (! in_array($inquiry->status, ['new', 'contacted'])) {
+        if (! in_array($inquiry->status, [TravelPackageInquiryStatus::New, TravelPackageInquiryStatus::Contacted])) {
             return ApiResponse::error('This inquiry cannot be converted to a booking.', [], 422);
         }
 
@@ -104,7 +105,7 @@ class PackageInquiryController extends Controller
         $booking = $this->bookingCreationService->create($this->agencyId(), $data);
 
         $inquiry->update([
-            'status'                  => 'converted',
+            'status'                  => TravelPackageInquiryStatus::Converted,
             'converted_to_booking_id' => $booking->id,
         ]);
 
@@ -117,7 +118,7 @@ class PackageInquiryController extends Controller
     {
         $this->authorise($inquiry);
 
-        if (! in_array($inquiry->status, ['new', 'contacted'])) {
+        if (! in_array($inquiry->status, [TravelPackageInquiryStatus::New, TravelPackageInquiryStatus::Contacted])) {
             return ApiResponse::error('This inquiry cannot be closed.', [], 422);
         }
 
@@ -126,7 +127,7 @@ class PackageInquiryController extends Controller
         ]);
 
         $inquiry->update([
-            'status'       => 'closed',
+            'status'       => TravelPackageInquiryStatus::Closed,
             'close_reason' => $validated['reason'] ?? null,
         ]);
 

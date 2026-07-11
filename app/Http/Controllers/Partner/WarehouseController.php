@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\InventoryMovementType;
+use App\Enums\WarehouseType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Partner\StoreTransferRequest;
 use App\Http\Requests\Partner\StoreVendorWarehouseRequest;
@@ -54,7 +56,7 @@ class WarehouseController extends Controller
             ->with(['country', 'warehouseInventories'])
             ->get();
 
-        $platformWarehouses = Warehouse::where('type', 'platform_fbn')
+        $platformWarehouses = Warehouse::where('type', WarehouseType::PlatformFbn->value)
             ->whereHas('warehouseInventories.vendorListing', fn($q) => $q->where('vendor_id', $vendor->id))
             ->with('country')
             ->get();
@@ -109,7 +111,7 @@ class WarehouseController extends Controller
 
         if (!$isOwned) {
             // Allow read-only view of platform FBN if they have stock there
-            $hasFbnInventory = $warehouse->type === 'platform_fbn'
+            $hasFbnInventory = $warehouse->type === WarehouseType::PlatformFbn
                 && $warehouse->warehouseInventories()
                     ->whereHas('vendorListing', fn($q) => $q->where('vendor_id', $vendorId))
                     ->exists();
@@ -236,7 +238,7 @@ class WarehouseController extends Controller
         $request->validate([
             'adjustment' => ['required', 'integer'],
             'reason' => ['required', 'string', 'max:255'],
-            'movement_type' => ['required', 'in:adjustment,inbound,return,damage'],
+            'movement_type' => ['required', \Illuminate\Validation\Rule::enum(InventoryMovementType::class)],
         ]);
 
         try {
@@ -323,7 +325,7 @@ class WarehouseController extends Controller
 
         $myWarehouseIds = Warehouse::where('owner_vendor_id', $vendor->id)->pluck('id');
 
-        $platformWarehouses = Warehouse::where('type', 'platform_fbn')
+        $platformWarehouses = Warehouse::where('type', WarehouseType::PlatformFbn->value)
             ->where('is_active', 1)
             ->get();
 
@@ -379,7 +381,7 @@ class WarehouseController extends Controller
         $destinationOptions = Warehouse::where('is_active', 1)
             ->where(fn($q) => $q
                 ->where('owner_vendor_id', $vendor->id)
-                ->orWhere('type', 'platform_fbn'))
+                ->orWhere('type', WarehouseType::PlatformFbn->value))
             ->get();
 
         $sourceWarehouseId = $request->query('source');

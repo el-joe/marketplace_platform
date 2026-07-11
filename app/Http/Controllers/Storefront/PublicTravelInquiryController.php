@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Storefront;
 
+use App\Enums\TravelPackageInquiryStatus;
+use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
 use App\Models\TravelPackage;
 use Illuminate\Http\RedirectResponse;
@@ -11,7 +13,7 @@ class PublicTravelInquiryController extends Controller
 {
     public function store(Request $request, TravelPackage $package): RedirectResponse
     {
-        if ($package->status !== 'active') {
+        if ($package->status !== TravelPackageStatus::Active) {
             abort(404);
         }
 
@@ -29,7 +31,7 @@ class PublicTravelInquiryController extends Controller
             'email'           => $request->input('email'),
             'travelers_count' => $request->input('travelers_count'),
             'message'         => $request->input('message'),
-            'status'          => 'new',
+            'status'          => TravelPackageInquiryStatus::New,
         ]);
 
         return back()->with('inquiry_sent', true);

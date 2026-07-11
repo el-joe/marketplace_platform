@@ -83,8 +83,8 @@
                         <td class="px-4 py-3 text-gray-600">{{ $listing->classifiedCategory?->name_en }}</td>
                         <td class="px-4 py-3 font-medium text-gray-900">{{ $listing->price_formatted }}</td>
                         <td class="px-4 py-3">
-                            <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$listing->status] ?? '' }}">
-                                {{ __('admin.classifieds.status_' . $listing->status) }}
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$listing->status->value] ?? '' }}">
+                                {{ __('admin.classifieds.status_' . $listing->status->value) }}
                             </span>
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $listing->created_at->format('Y-m-d') }}</td>

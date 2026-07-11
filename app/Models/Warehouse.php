@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\WarehouseType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +34,7 @@ class Warehouse extends Model
         'longitude' => 'decimal:7',
         'total_capacity_m3' => 'decimal:2',
         'used_capacity_m3' => 'decimal:2',
+        'type' => WarehouseType::class,
     ];
 
     // ─── Relationships ─────────────────────────────────────────────────────────

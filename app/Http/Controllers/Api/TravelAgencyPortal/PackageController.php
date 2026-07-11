@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\TravelAgencyPortal;
 
+use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\TravelAgencyPortal\Package\StorePackageRequest;
 use App\Http\Requests\Api\TravelAgencyPortal\Package\UpdatePackageRequest;
@@ -39,7 +40,7 @@ class PackageController extends Controller
             ->latest();
 
         if ($status = $request->query('status')) {
-            $query->where('status', $status);
+            $query->where('status', TravelPackageStatus::from($status));
         }
 
         $paginator = $query->paginate($request->integer('per_page', 20));
@@ -54,7 +55,7 @@ class PackageController extends Controller
         $package = TravelPackage::create([
             ...$request->validated(),
             'travel_agency_id' => $this->agencyId(),
-            'status' => 'draft',
+            'status' => TravelPackageStatus::Draft,
         ]);
 
         $this->storeContractFile($request, $package);
@@ -81,7 +82,7 @@ class PackageController extends Controller
     {
         $this->authorise($package);
 
-        if (! in_array($package->status, ['draft', 'pending_review'])) {
+        if (! in_array($package->status, [TravelPackageStatus::Draft, TravelPackageStatus::PendingReview])) {
             return ApiResponse::error('Active packages cannot be edited. Contact support.', [], 422);
         }
 
@@ -107,7 +108,7 @@ class PackageController extends Controller
     {
         $this->authorise($package);
 
-        if ($package->status !== 'draft') {
+        if ($package->status !== TravelPackageStatus::Draft) {
             return ApiResponse::error('Only draft packages can be deleted.', [], 422);
         }
 
@@ -161,7 +162,7 @@ class PackageController extends Controller
     {
         $this->authorise($package);
 
-        if ($package->status !== 'draft') {
+        if ($package->status !== TravelPackageStatus::Draft) {
             return ApiResponse::error('Only draft packages can be submitted for review.', [], 422);
         }
 
@@ -170,7 +171,7 @@ class PackageController extends Controller
             return ApiResponse::error('Package is not ready for review.', ['submission' => $errors], 422);
         }
 
-        $package->update(['status' => 'pending_review']);
+        $package->update(['status' => TravelPackageStatus::PendingReview]);
 
         $package->load(['media', 'destinationCountry', 'destinationCity']);
 

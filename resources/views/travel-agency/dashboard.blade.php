@@ -77,8 +77,8 @@
                     <td class="px-4 py-3 text-gray-600">{{ $bk->package->title_ar ?: $bk->package->title_en }}</td>
                     <td class="px-4 py-3 font-medium">{{ $bk->totalFormatted() }}</td>
                     <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $bkColors[$bk->status] ?? '' }}">
-                            {{ $bkLabels[$bk->status] ?? $bk->status }}
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $bkColors[$bk->status->value] ?? '' }}">
+                            {{ $bkLabels[$bk->status->value] ?? $bk->status->label() }}
                         </span>
                     </td>
                 </tr>
@@ -120,8 +120,8 @@
                     <td class="px-4 py-3 text-gray-600">{{ $pkg->departure_date->format('d M Y') }}</td>
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $pkg->priceFormatted() }}</td>
                     <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$pkg->status] ?? '' }}">
-                            {{ $labels[$pkg->status] ?? $pkg->status }}
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$pkg->status->value] ?? '' }}">
+                            {{ $labels[$pkg->status->value] ?? $pkg->status->label() }}
                         </span>
                     </td>
                     <td class="px-4 py-3">

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RadioScheduleSlotRecurrence;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,7 @@ class RadioScheduleSlot extends Model
             'ends_at'         => 'datetime',
             'recurrence_days' => 'array',
             'is_active'       => 'boolean',
+            'recurrence'      => RadioScheduleSlotRecurrence::class,
         ];
     }
 

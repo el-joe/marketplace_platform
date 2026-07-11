@@ -13,7 +13,7 @@
 @section('content')
 
 @php
-    $isEditable = !in_array($sale->status, ['live', 'ended', 'cancelled']);
+    $isEditable = !in_array($sale->status->value, ['live', 'ended', 'cancelled']);
     $hasSubmissions = $sale->submissions()->exists();
 @endphp
 
@@ -21,7 +21,7 @@
 
     {{-- ─── Left column ───────────────────────────────────────────────────── --}}
     <div class="flex-1 min-w-0"
-         x-data="{ tab: '{{ $sale->status === 'live' ? 'live-monitor' : ($sale->status === 'ended' ? 'analytics' : 'details') }}' }">
+         x-data="{ tab: '{{ $sale->status->value === 'live' ? 'live-monitor' : ($sale->status->value === 'ended' ? 'analytics' : 'details') }}' }">
 
         {{-- Tab nav --}}
         <div class="border-b border-gray-200 mb-6">
@@ -36,7 +36,7 @@
                     class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
                     {{ __('admin.flash_sales.rules_eligibility') }}
                 </button>
-                @if($sale->status !== 'draft')
+                @if($sale->status->value !== 'draft')
                 <button type="button" @click="tab='invitations'"
                     :class="tab==='invitations' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
                     class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
@@ -50,14 +50,14 @@
                     {{ __('admin.flash_sales.submissions_tab') }}
                 </button>
                 @endif
-                @if($sale->status === 'live')
+                @if($sale->status->value === 'live')
                 <button type="button" @click="tab='live-monitor'"
                     :class="tab==='live-monitor' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
                     class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
                     ⚡ {{ __('admin.flash_sales.live_monitor') }}
                 </button>
                 @endif
-                @if($sale->status === 'ended')
+                @if($sale->status->value === 'ended')
                 <button type="button" @click="tab='analytics'"
                     :class="tab==='analytics' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
                     class="border-b-2 py-3 px-5 text-sm font-medium transition-colors duration-150 focus:outline-none whitespace-nowrap">
@@ -168,7 +168,7 @@
         </div>
 
         {{-- ── Tab: invitations ───────────────────────────────────────────── --}}
-        @if($sale->status !== 'draft')
+        @if($sale->status->value !== 'draft')
         <div x-show="tab==='invitations'" class="space-y-4">
 
             @php
@@ -202,7 +202,7 @@
                             @endforeach
                         </select>
                     </div>
-                    @if(!in_array($sale->status, ['ended', 'cancelled']))
+                    @if(!in_array($sale->status->value, ['ended', 'cancelled']))
                         <div class="flex gap-2">
                             <button type="button" id="btn-auto-invite" class="btn btn-secondary btn-sm">
                                 <x-heroicon name="user-group" class="w-4 h-4 mr-1.5" />
@@ -286,7 +286,7 @@
         @endif
 
         {{-- ── Tab: live-monitor ──────────────────────────────────────────── --}}
-        @if($sale->status === 'live')
+        @if($sale->status->value === 'live')
         <div x-show="tab==='live-monitor'" id="live-monitor-section" class="space-y-4">
             @php $remaining = max(0, now()->diffInSeconds($sale->sale_ends_at, false)); @endphp
 
@@ -324,7 +324,7 @@
         @endif
 
         {{-- ── Tab: analytics ─────────────────────────────────────────────── --}}
-        @if($sale->status === 'ended')
+        @if($sale->status->value === 'ended')
         <div x-show="tab==='analytics'" class="space-y-4" id="analytics-section">
             <div class="grid grid-cols-3 gap-3">
                 <x-stat-card label="{{ __('admin.flash_sales.total_units_sold') }}"    value="—" id="an-units"      color="primary" />
@@ -368,8 +368,8 @@
                     'ended'             => __('admin.flash_sales.status_ended'),
                     'cancelled'         => __('admin.flash_sales.status_cancelled'),
                 ];
-                $color = $statusColors[$sale->status] ?? 'gray';
-                $label = $flashSaleStatusLabels[$sale->status] ?? $sale->status;
+                $color = $statusColors[$sale->status->value] ?? 'gray';
+                $label = $flashSaleStatusLabels[$sale->status->value] ?? $sale->status->value;
             @endphp
             <div class="text-center mb-4">
                 <span class="badge badge-{{ $color }} text-base px-4 py-1">{{ $label }}</span>
@@ -390,10 +390,10 @@
                     @if($sv === 'cancelled') @continue @endif
                     @php
                         $steps = ['draft','submission_open','submission_closed','under_review','approved','live','ended'];
-                        $currentIdx = array_search($sale->status, $steps);
+                        $currentIdx = array_search($sale->status->value, $steps);
                         $stepIdx    = array_search($sv, $steps);
                         $isDone     = $currentIdx !== false && $stepIdx < $currentIdx;
-                        $isCurrent  = $sv === $sale->status;
+                        $isCurrent  = $sv === $sale->status->value;
                     @endphp
                     <li class="flex items-center gap-2 text-xs">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0
@@ -409,39 +409,39 @@
 
             {{-- Action buttons --}}
             <div class="space-y-2" x-data="{}">
-                @if($sale->status === 'draft')
+                @if($sale->status->value === 'draft')
                     <button data-transition="open_submissions" data-sale-id="{{ $sale->id }}"
                         class="btn btn-primary w-full justify-center btn-sm">{{ __('admin.flash_sales.open_submissions') }}</button>
                     <button data-transition="cancel" data-sale-id="{{ $sale->id }}"
                         class="btn btn-danger-outline w-full justify-center btn-sm">{{ __('common.cancel') }}</button>
-                @elseif($sale->status === 'submission_open')
+                @elseif($sale->status->value === 'submission_open')
                     <button data-transition="close_submissions" data-sale-id="{{ $sale->id }}"
                         class="btn btn-warning w-full justify-center btn-sm">{{ __('admin.flash_sales.close_submissions_early') }}</button>
                     <button data-transition="cancel" data-sale-id="{{ $sale->id }}"
                         class="btn btn-danger-outline w-full justify-center btn-sm">{{ __('common.cancel') }}</button>
-                @elseif($sale->status === 'submission_closed')
+                @elseif($sale->status->value === 'submission_closed')
                     <button data-transition="move_to_review" data-sale-id="{{ $sale->id }}"
                         class="btn btn-primary w-full justify-center btn-sm">{{ __('admin.flash_sales.start_review') }}</button>
                     <button data-transition="cancel" data-sale-id="{{ $sale->id }}"
                         class="btn btn-danger-outline w-full justify-center btn-sm">{{ __('common.cancel') }}</button>
-                @elseif($sale->status === 'under_review')
+                @elseif($sale->status->value === 'under_review')
                     <button data-transition="mark_approved" data-sale-id="{{ $sale->id }}"
                         class="btn btn-primary w-full justify-center btn-sm">{{ __('admin.flash_sales.mark_approved') }}</button>
                     <button data-transition="cancel" data-sale-id="{{ $sale->id }}"
                         class="btn btn-danger-outline w-full justify-center btn-sm">{{ __('common.cancel') }}</button>
-                @elseif($sale->status === 'approved')
+                @elseif($sale->status->value === 'approved')
                     <button data-transition="start_sale" data-sale-id="{{ $sale->id }}"
                         class="btn btn-primary w-full justify-center btn-sm">{{ __('admin.flash_sales.start_sale_now') }}</button>
                     <button data-transition="cancel" data-sale-id="{{ $sale->id }}"
                         class="btn btn-danger-outline w-full justify-center btn-sm">{{ __('common.cancel') }}</button>
-                @elseif($sale->status === 'live')
+                @elseif($sale->status->value === 'live')
                     <button data-transition="end_sale" data-sale-id="{{ $sale->id }}"
                         class="btn btn-warning w-full justify-center btn-sm">{{ __('admin.flash_sales.end_sale_early') }}</button>
                     <button data-transition="cancel" data-sale-id="{{ $sale->id }}"
                         class="btn btn-danger-outline w-full justify-center btn-sm">{{ __('common.cancel') }}</button>
                 @endif
 
-                @if($sale->status === 'draft')
+                @if($sale->status->value === 'draft')
                     <form method="POST" action="{{ route('admin.flash-sales.destroy', $sale->id) }}"
                         onsubmit="return confirm('{{ __('admin.flash_sales.delete_confirm') }}')">
                         @csrf @method('DELETE')
@@ -657,7 +657,7 @@
 <script>
 window.FLASH_SALE_ID         = '{{ $sale->id }}';
 window.FLASH_SALE_UPDATE_URL = '{{ route('admin.flash-sales.update', $sale->id) }}';
-window.FLASH_SALE_STATUS     = '{{ $sale->status }}';
+window.FLASH_SALE_STATUS     = '{{ $sale->status->value }}';
 window.MIN_DISCOUNT_PCT      = {{ (float) $sale->min_discount_pct }};
 window.URLS = {
     update:            '{{ route('admin.flash-sales.update', $sale->id) }}',

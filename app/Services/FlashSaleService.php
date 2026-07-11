@@ -38,7 +38,7 @@ class FlashSaleService
 
     public function update(FlashSale $sale, array $data, Admin $admin): FlashSale
     {
-        if (in_array($sale->status, ['live', 'ended', 'cancelled'], true)) {
+        if (in_array($sale->status?->value, ['live', 'ended', 'cancelled'], true)) {
             throw new \LogicException(__('admin.flash_sales.cannot_update_status', ['status' => $sale->status]));
         }
 
@@ -187,11 +187,11 @@ class FlashSaleService
 
         $flashSale = $submission->flashSale;
 
-        if ($flashSale->status === 'live') {
+        if ($flashSale->status?->value === 'live') {
             throw new \LogicException(__('admin.flash_sales.cannot_review_while_live'));
         }
 
-        $fromStatus = $submission->status;
+        $fromStatus = $submission->status?->value;
 
         DB::transaction(function () use ($submission, $decision, $data, $admin, $flashSale, $fromStatus) {
             if ($decision === 'approved') {

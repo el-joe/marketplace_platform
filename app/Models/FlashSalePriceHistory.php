@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FlashSalePriceHistoryRecordedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,7 @@ class FlashSalePriceHistory extends Model
         return [
             'price' => 'integer',
             'recorded_at' => 'datetime',
+            'recorded_by' => FlashSalePriceHistoryRecordedBy::class,
         ];
     }
 

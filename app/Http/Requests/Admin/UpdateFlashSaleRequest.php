@@ -56,10 +56,10 @@ class UpdateFlashSaleRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $flashSale = $this->route('flashSale');
-        if ($flashSale && in_array($flashSale->status, ['live', 'ended', 'cancelled'], true)) {
+        if ($flashSale && in_array($flashSale->status?->value, ['live', 'ended', 'cancelled'], true)) {
             $validator->errors()->add(
                 'status',
-                'Cannot edit a ' . $flashSale->status . ' flash sale.'
+                'Cannot edit a ' . $flashSale->status->value . ' flash sale.'
             );
         }
     }

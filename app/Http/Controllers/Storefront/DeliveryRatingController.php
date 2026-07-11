@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Storefront;
 
+use App\Enums\CarrierPerformanceRatedByType;
 use App\Http\Controllers\Controller;
 use App\Models\CarrierPerformanceRating;
 use App\Models\SubOrder;
@@ -16,7 +17,7 @@ class DeliveryRatingController extends Controller
 
         // Ensure this sub-order belongs to the authenticated customer
         abort_unless($subOrder->order?->customer_id === $customer->id, 403);
-        abort_unless(in_array($subOrder->status, ['delivered', 'completed']), 422);
+        abort_unless(in_array($subOrder->status->value, ['delivered', 'completed']), 422);
 
         $data = $request->validate([
             'rating'  => ['required', 'integer', 'min:1', 'max:5'],
@@ -25,7 +26,7 @@ class DeliveryRatingController extends Controller
         ]);
 
         $existing = CarrierPerformanceRating::where('sub_order_id', $subOrder->id)
-            ->where('rated_by_type', 'customer')
+            ->where('rated_by_type', CarrierPerformanceRatedByType::Customer)
             ->where('rated_by_id', $customer->id)
             ->first();
 
@@ -39,7 +40,7 @@ class DeliveryRatingController extends Controller
             'shipping_company_id' => $shipment?->shippingCompanyId ?? null,
             'delivery_agent_id'   => $shipment?->delivery_agent_id ?? null,
             'sub_order_id'        => $subOrder->id,
-            'rated_by_type'       => 'customer',
+            'rated_by_type'       => CarrierPerformanceRatedByType::Customer,
             'rated_by_id'         => $customer->id,
             'rating'              => $data['rating'],
             'on_time'             => $data['on_time'] ?? null,

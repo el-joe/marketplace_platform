@@ -2,6 +2,7 @@
 
 namespace App\Services\Carrier;
 
+use App\Enums\DeliveryAgentType;
 use App\Mail\Carrier\AgentWelcomeMail;
 use App\Models\DeliveryAgent;
 use App\Models\ShippingCompany;
@@ -26,7 +27,7 @@ class AgentRosterService
         $agent = DeliveryAgent::create([
             'shipping_company_id'      => $company->id,
             'added_by_supervisor_id'   => $supervisor->id,
-            'agent_type'               => 'third_party',
+            'agent_type'               => DeliveryAgentType::ThirdParty->value,
             'status'                   => 'inactive',
             'country_id'               => $data['country_id'],
             'name'                     => $data['name'],

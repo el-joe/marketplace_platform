@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\VendorBusinessType;
+use App\Enums\VendorGlobalStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -68,6 +70,8 @@ class Vendor extends Model
             'return_rate_pct' => 'float',
             'cancellation_rate_pct' => 'float',
             'strikes_count' => 'integer',
+            'global_status' => VendorGlobalStatus::class,
+            'business_type' => VendorBusinessType::class,
         ];
     }
 

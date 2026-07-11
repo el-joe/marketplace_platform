@@ -28,7 +28,7 @@
         <span class="text-gray-300">/</span>
         <h1 class="text-xl font-bold text-gray-900">{{ $claim->claim_number }}</h1>
         <span class="badge {{ $claim->statusBadgeClass() }}">
-            {{ $statusLabels[$claim->status] ?? Str::title(str_replace('_',' ',$claim->status)) }}
+            {{ $statusLabels[$claim->status->value] ?? Str::title(str_replace('_',' ',$claim->status->value)) }}
         </span>
     </div>
 
@@ -42,7 +42,7 @@
                 <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                     <div>
                         <dt class="text-gray-500">{{ __('admin.carriers_section.type_label') }}</dt>
-                        <dd class="font-medium">{{ $claimTypeLabels[$claim->claim_type] ?? Str::title(str_replace('_',' ',$claim->claim_type)) }}</dd>
+                        <dd class="font-medium">{{ $claimTypeLabels[$claim->claim_type->value] ?? Str::title(str_replace('_',' ',$claim->claim_type->value)) }}</dd>
                     </div>
                     <div>
                         <dt class="text-gray-500">{{ __('admin.carriers_section.claimed_amount_label') }}</dt>
@@ -94,12 +94,12 @@
 
             {{-- Resolution --}}
             @if($claim->isResolved())
-                <div class="card p-5 border-l-4 {{ $claim->status === 'rejected' ? 'border-red-400' : 'border-green-400' }}">
+                <div class="card p-5 border-l-4 {{ $claim->status === \App\Enums\CarrierClaimStatus::Rejected ? 'border-red-400' : 'border-green-400' }}">
                     <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">{{ __('admin.carriers_section.resolution') }}</h2>
                     <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                         <div>
                             <dt class="text-gray-500">{{ __('admin.carriers_section.decision_label') }}</dt>
-                            <dd class="font-medium capitalize">{{ $statusLabels[$claim->status] ?? Str::title(str_replace('_',' ',$claim->status)) }}</dd>
+                            <dd class="font-medium capitalize">{{ $statusLabels[$claim->status->value] ?? Str::title(str_replace('_',' ',$claim->status->value)) }}</dd>
                         </div>
                         <div>
                             <dt class="text-gray-500">{{ __('admin.carriers_section.compensated_amount_label') }}</dt>
@@ -126,7 +126,7 @@
 
             @if(! $claim->isResolved())
 
-                @if($claim->status === 'submitted')
+                @if($claim->status === \App\Enums\CarrierClaimStatus::Submitted)
                     <form method="POST" action="{{ route('admin.carrier-claims.under-review', $claim) }}">
                         @csrf @method('PATCH')
                         <button class="w-full btn btn-secondary">{{ __('admin.carriers_section.mark_under_review') }}</button>

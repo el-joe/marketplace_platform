@@ -9,7 +9,7 @@
             <a href="{{ route('admin.packaging-supplies.requests') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('admin.packaging_supplies.requests_back') }}</a>
             <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ __('admin.packaging_supplies.request_number_prefix') }}{{ $req->request_number }}</h1>
         </div>
-        <span class="badge text-sm px-3 py-1 {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status) }}</span>
+        <span class="badge text-sm px-3 py-1 {{ $req->statusBadgeClass() }}">{{ $req->status->label() }}</span>
     </div>
 
     @if(session('success'))
@@ -38,7 +38,7 @@
                             <tr>
                                 <td class="td font-medium">{{ $item->supply->name_en }}</td>
                                 <td class="td">
-                                    <span class="badge {{ $item->supply->typeBadgeClass() }}">{{ ucfirst($item->supply->type) }}</span>
+                                    <span class="badge {{ $item->supply->typeBadgeClass() }}">{{ $item->supply->type->label() }}</span>
                                 </td>
                                 <td class="td">{{ $item->supply->unit_cost_formatted }}</td>
                                 <td class="td">{{ number_format($item->quantity) }}</td>
@@ -101,16 +101,16 @@
                         <button class="btn btn-danger w-full" onclick="return confirm('{{ __('admin.packaging_supplies.reject_request_confirm') }}')">{{ __('admin.packaging_supplies.reject') }}</button>
                     </form>
                 </div>
-            @elseif(in_array($req->status, ['approved', 'shipped']))
+            @elseif(in_array($req->status, [\App\Enums\PackagingSupplyRequestStatus::Approved, \App\Enums\PackagingSupplyRequestStatus::Shipped], true))
                 <div class="card p-5">
                     <p class="text-sm font-medium text-gray-700 mb-3">{{ __('admin.packaging_supplies.update_status') }}</p>
                     <form method="POST" action="{{ route('admin.packaging-supplies.update-request-status', $req) }}">
                         @csrf @method('PATCH')
                         <div class="flex gap-2">
-                            @if($req->status === 'approved')
+                            @if($req->status === \App\Enums\PackagingSupplyRequestStatus::Approved)
                                 <button name="status" value="shipped" class="btn btn-secondary flex-1">{{ __('admin.packaging_supplies.mark_shipped') }}</button>
                             @endif
-                            @if($req->status === 'shipped')
+                            @if($req->status === \App\Enums\PackagingSupplyRequestStatus::Shipped)
                                 <button name="status" value="delivered" class="btn btn-primary flex-1">{{ __('admin.packaging_supplies.mark_delivered') }}</button>
                             @endif
                         </div>

@@ -18,9 +18,9 @@ class ReturnRequestListResource extends JsonResource
             'return_number'       => $this->return_number,
             'order_number_masked' => $this->order ? ('****' . substr($this->order->order_number, -4)) : null,
             'customer_name'       => $masked ?: null,
-            'reason'              => $this->reason,
-            'return_type'         => $this->return_type,
-            'status'              => $this->status,
+            'reason'              => $this->reason?->value,
+            'return_type'         => $this->return_type?->value,
+            'status'              => $this->status?->value,
             'created_at'          => $this->created_at->toIso8601String(),
         ];
     }

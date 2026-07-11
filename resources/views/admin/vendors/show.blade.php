@@ -10,25 +10,22 @@
 
 @php
     $statusColors = [
-        'pending'      => 'gray',
-        'active'       => 'success',
-        'suspended'    => 'warning',
-        'rejected'     => 'danger',
-        'blacklisted'  => 'danger',
-        'under_review' => 'primary',
+        \App\Enums\VendorGlobalStatus::Pending->value      => 'gray',
+        \App\Enums\VendorGlobalStatus::Active->value       => 'success',
+        \App\Enums\VendorGlobalStatus::Suspended->value    => 'warning',
+        \App\Enums\VendorGlobalStatus::Rejected->value     => 'danger',
+        \App\Enums\VendorGlobalStatus::Blacklisted->value  => 'danger',
+        \App\Enums\VendorGlobalStatus::UnderReview->value  => 'primary',
     ];
     $docStatusColors = [
-        'pending'  => 'gray',
-        'approved' => 'success',
-        'verified' => 'success',
-        'rejected' => 'danger',
-        'expired'  => 'danger',
+        \App\Enums\VendorDocumentStatus::Pending->value  => 'gray',
+        \App\Enums\VendorDocumentStatus::Approved->value => 'success',
+        \App\Enums\VendorDocumentStatus::Rejected->value => 'danger',
     ];
     $strikeColors = [
-        'warning'  => 'gray',
-        'minor'    => 'warning',
-        'major'    => 'warning',
-        'critical' => 'danger',
+        \App\Enums\VendorStrikeSeverity::Minor->value    => 'warning',
+        \App\Enums\VendorStrikeSeverity::Major->value    => 'warning',
+        \App\Enums\VendorStrikeSeverity::Critical->value => 'danger',
     ];
     $activeStrikesCount = $vendor->strikes->where('is_active', true)->count();
 @endphp
@@ -46,8 +43,8 @@
         <div class="min-w-0">
             <h1 class="text-2xl font-bold text-gray-900 truncate">{{ $vendor->store_name }}</h1>
             <div class="flex items-center gap-2 mt-1 flex-wrap">
-                <x-badge :color="$statusColors[$vendor->global_status] ?? 'gray'">
-                    {{ __('admin.vendors.' . $vendor->global_status) }}
+                <x-badge :color="$statusColors[$vendor->global_status->value] ?? 'gray'">
+                    {{ __('admin.vendors.' . $vendor->global_status->value) }}
                 </x-badge>
                 @if($vendor->payout_hold_active)
                     <x-badge color="warning">{{ __('admin.vendors.payout_hold') }}</x-badge>
@@ -104,7 +101,7 @@
                             __('admin.vendors.store_name')      => $vendor->store_name,
                             __('admin.vendors.store_slug')      => $vendor->store_slug,
                             __('admin.vendors.business_name')   => $vendor->business_name ?: '—',
-                            __('admin.vendors.business_type')   => $vendor->business_type ? __('admin.vendor_applications.business_type_' . $vendor->business_type) : '—',
+                            __('admin.vendors.business_type')   => $vendor->business_type ? __('admin.vendor_applications.business_type_' . $vendor->business_type->value) : '—',
                             __('admin.vendors.reg_number')      => $vendor->business_registration_number ?: '—',
                             __('admin.vendors.tax_id')          => $vendor->tax_id ?: '—',
                             __('admin.vendors.contact_email')   => $vendor->contact_email ?: '—',
@@ -137,7 +134,7 @@
                             <x-form.input name="store_name"    label="{{ __('admin.vendors.store_name') }}"    :value="$vendor->store_name"    required />
                             <x-form.input name="store_slug"    label="{{ __('admin.vendors.store_slug') }}"    :value="$vendor->store_slug"    required />
                             <x-form.input name="business_name" label="{{ __('admin.vendors.business_name') }}" :value="$vendor->business_name" />
-                            <x-form.select name="business_type" label="{{ __('admin.vendors.business_type') }}" :value="$vendor->business_type"
+                            <x-form.select name="business_type" label="{{ __('admin.vendors.business_type') }}" :value="$vendor->business_type?->value"
                                 :options="['individual' => __('admin.vendors.individual'), 'sole_prop' => __('admin.vendors.sole_prop'), 'llc' => __('admin.vendors.llc'), 'corp' => __('admin.vendors.corp')]"/>
                             <x-form.input name="contact_email"   label="{{ __('admin.vendors.contact_email') }}" :value="$vendor->contact_email"   type="email"/>
                             <x-form.input name="contact_phone"   label="{{ __('admin.vendors.contact_phone') }}" :value="$vendor->contact_phone" />
@@ -180,7 +177,7 @@
                                             {{ ucwords(str_replace('_', ' ', $doc->document_type)) }}
                                         </td>
                                         <td class="py-3 pr-4">
-                                            <x-badge :color="$docStatusColors[$doc->status] ?? 'gray'">{{ __('admin.vendor_applications.doc_status_' . $doc->status) }}</x-badge>
+                                            <x-badge :color="$docStatusColors[$doc->status->value] ?? 'gray'">{{ __('admin.vendor_applications.doc_status_' . $doc->status->value) }}</x-badge>
                                         </td>
                                         <td class="py-3 pr-4 text-gray-600">{{ $doc->expires_at?->format('d M Y') ?? '—' }}</td>
                                         <td class="py-3 pr-4 text-gray-600">{{ $doc->verifiedByAdmin?->name ?? '—' }}</td>
@@ -189,10 +186,10 @@
                                                 @if($doc->file_path)
                                                     <a href="{{ $doc->full_file_path }}" target="_blank" class="text-xs text-primary-600 hover:underline">{{ __('admin.vendors.view') }}</a>
                                                 @endif
-                                                @if(!in_array($doc->status, ['approved', 'verified']))
+                                                @if($doc->status !== \App\Enums\VendorDocumentStatus::Approved)
                                                     <button type="button" class="text-xs text-success-700 hover:underline" data-verify-doc="{{ $doc->id }}">{{ __('admin.vendors.verify') }}</button>
                                                 @endif
-                                                @if($doc->status !== 'rejected')
+                                                @if($doc->status !== \App\Enums\VendorDocumentStatus::Rejected)
                                                     <button type="button" class="text-xs text-danger-600 hover:underline" data-reject-doc="{{ $doc->id }}">{{ __('admin.vendors.reject') }}</button>
                                                 @endif
                                             </div>
@@ -239,12 +236,12 @@
                                                 @endif
                                             </td>
                                             <td class="py-3 pr-4">
-                                                <x-badge :color="$account->verification_status === 'verified' ? 'success' : ($account->verification_status === 'rejected' ? 'danger' : 'gray')">
-                                                    {{ __('admin.vendor_applications.bank_status_' . $account->verification_status) }}
+                                                <x-badge :color="$account->verification_status === \App\Enums\VendorBankAccountVerificationStatus::Verified ? 'success' : ($account->verification_status === \App\Enums\VendorBankAccountVerificationStatus::Rejected ? 'danger' : 'gray')">
+                                                    {{ __('admin.vendor_applications.bank_status_' . $account->verification_status->value) }}
                                                 </x-badge>
                                             </td>
                                             <td class="py-3 text-end">
-                                                @if($account->verification_status !== 'verified')
+                                                @if($account->verification_status !== \App\Enums\VendorBankAccountVerificationStatus::Verified)
                                                     <button type="button"
                                                             class="text-xs text-success-700 hover:underline"
                                                             data-verify-bank="{{ $account->id }}"
@@ -306,13 +303,13 @@
                                     <tr class="hover:bg-gray-50/50">
                                         <td class="py-3 pr-4 text-gray-600 whitespace-nowrap">{{ $strike->created_at->format('d M Y') }}</td>
                                         <td class="py-3 pr-4 text-gray-900 max-w-xs">
-                                            <div class="font-medium">{{ ucwords(str_replace('_', ' ', $strike->reason)) }}</div>
+                                            <div class="font-medium">{{ $strike->reason->label() }}</div>
                                             @if($strike->description)
                                                 <div class="text-xs text-gray-500 truncate">{{ $strike->description }}</div>
                                             @endif
                                         </td>
                                         <td class="py-3 pr-4">
-                                            <x-badge :color="$strikeColors[$strike->severity] ?? 'gray'">{{ __('admin.vendors.severity_' . $strike->severity) }}</x-badge>
+                                            <x-badge :color="$strikeColors[$strike->severity->value] ?? 'gray'">{{ __('admin.vendors.severity_' . $strike->severity->value) }}</x-badge>
                                         </td>
                                         <td class="py-3 pr-4 text-gray-600">{{ $strike->issuedByAdmin?->name ?? '—' }}</td>
                                         <td class="py-3 pr-4 text-gray-600">{{ $strike->expires_at?->format('d M Y') ?? __('admin.vendors.never') }}</td>
@@ -389,7 +386,7 @@
                                         </td>
                                         <td class="py-3 pr-4 tabular-nums">${{ number_format($so->vendor_payout / 100, 2) }}</td>
                                         <td class="py-3 pr-4">
-                                            <x-badge color="gray">{{ ucwords(str_replace('_', ' ', $so->status)) }}</x-badge>
+                                            <x-badge color="gray">{{ ucwords(str_replace('_', ' ', $so->status->value)) }}</x-badge>
                                         </td>
                                         <td class="py-3 text-xs text-gray-500 whitespace-nowrap">{{ \Carbon\Carbon::parse($so->created_at)->format('d M Y') }}</td>
                                     </tr>
@@ -533,11 +530,11 @@
 
         <x-card title="{{ __('admin.vendors.quick_actions') }}">
             <div class="space-y-2">
-                @if($vendor->global_status === 'active')
+                @if($vendor->global_status === \App\Enums\VendorGlobalStatus::Active)
                     <button type="button" data-modal-open="suspend-modal" class="w-full btn btn-warning btn-sm">{{ __('admin.vendors.suspend_vendor_action') }}</button>
-                @elseif($vendor->global_status === 'suspended')
+                @elseif($vendor->global_status === \App\Enums\VendorGlobalStatus::Suspended)
                     <button type="button" data-reactivate-vendor="{{ $vendor->id }}" class="w-full btn btn-success btn-sm">{{ __('admin.vendors.reactivate_vendor_action') }}</button>
-                @elseif($vendor->global_status === 'pending')
+                @elseif($vendor->global_status === \App\Enums\VendorGlobalStatus::Pending)
                     <button type="button" data-approve-vendor="{{ $vendor->id }}" class="w-full btn btn-success btn-sm">{{ __('admin.vendors.approve_vendor_action') }}</button>
                     <button type="button" data-modal-open="reject-modal" class="w-full btn btn-ghost btn-sm text-danger-600">{{ __('admin.vendors.reject_application') }}</button>
                 @endif
@@ -548,7 +545,7 @@
                     <button type="button" data-modal-open="place-hold-modal" class="w-full btn btn-ghost btn-sm">{{ __('admin.vendors.place_payout_hold') }}</button>
                 @endif
 
-                @if($vendor->global_status !== 'blacklisted')
+                @if($vendor->global_status !== \App\Enums\VendorGlobalStatus::Blacklisted)
                     <button type="button" data-modal-open="blacklist-modal" class="w-full btn btn-danger btn-sm">{{ __('admin.vendors.blacklist_vendor') }}</button>
                 @endif
 

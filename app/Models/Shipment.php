@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ShipmentStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,13 @@ class Shipment extends Model
         'delivered_at',
         'delivery_otp',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => ShipmentStatus::class,
+        ];
+    }
 
     public function subOrder(): BelongsTo
     {

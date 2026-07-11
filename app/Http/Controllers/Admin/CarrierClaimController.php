@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\CarrierClaimStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CarrierClaim;
 use App\Models\ShippingCompany;
@@ -20,11 +21,11 @@ class CarrierClaimController extends Controller
         abort_unless($admin->hasPermissionTo('carrier-claims.view'), 403);
 
         $stats = [
-            'submitted'    => CarrierClaim::where('status', 'submitted')->count(),
-            'under_review' => CarrierClaim::where('status', 'under_review')->count(),
-            'approved'     => CarrierClaim::where('status', 'approved')->count(),
-            'compensated'  => CarrierClaim::where('status', 'compensated')->count(),
-            'rejected'     => CarrierClaim::where('status', 'rejected')->count(),
+            'submitted'    => CarrierClaim::where('status', CarrierClaimStatus::Submitted)->count(),
+            'under_review' => CarrierClaim::where('status', CarrierClaimStatus::UnderReview)->count(),
+            'approved'     => CarrierClaim::where('status', CarrierClaimStatus::Approved)->count(),
+            'compensated'  => CarrierClaim::where('status', CarrierClaimStatus::Compensated)->count(),
+            'rejected'     => CarrierClaim::where('status', CarrierClaimStatus::Rejected)->count(),
         ];
 
         $query = CarrierClaim::with(['shipment', 'shippingCompany'])

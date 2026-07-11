@@ -2,6 +2,7 @@
 
 namespace App\Services\Vendor;
 
+use App\Enums\DisputeMessageSenderRole;
 use App\Models\Dispute;
 use App\Models\DisputeMessage;
 use App\Models\VendorAdmin;
@@ -27,7 +28,7 @@ class DisputeService
         $msg = DisputeMessage::create([
             'dispute_id'      => $dispute->id,
             'sender_user_id'  => null, // VendorAdmin is not in the users table
-            'sender_role'     => 'seller',
+            'sender_role'     => DisputeMessageSenderRole::Seller,
             'message'         => $message,
             'is_internal_note' => false,
         ]);
@@ -47,7 +48,7 @@ class DisputeService
         }
 
         // Advance dispute status so customer / admin know vendor responded
-        if ($dispute->status === 'open') {
+        if ($dispute->status === \App\Enums\DisputeStatus::Open) {
             $dispute->update(['status' => 'seller_responded']);
         }
 

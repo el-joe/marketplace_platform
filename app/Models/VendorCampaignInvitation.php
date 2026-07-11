@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VendorCampaignInvitationStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,7 @@ class VendorCampaignInvitation extends Model
     protected $casts = [
         'responded_at' => 'datetime',
         'expires_at' => 'datetime',
+        'status' => VendorCampaignInvitationStatus::class,
     ];
 
     public function offer(): BelongsTo
@@ -43,7 +45,7 @@ class VendorCampaignInvitation extends Model
 
     public function isExpired(): bool
     {
-        return $this->status === 'pending'
+        return $this->status === VendorCampaignInvitationStatus::Pending
             && $this->expires_at !== null
             && $this->expires_at->isPast();
     }

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\VendorStrikeReason;
+use App\Enums\VendorStrikeSeverity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +28,8 @@ class VendorStrike extends Model
         return [
             'expires_at' => 'datetime',
             'is_active' => 'boolean',
+            'reason' => VendorStrikeReason::class,
+            'severity' => VendorStrikeSeverity::class,
         ];
     }
 

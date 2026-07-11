@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\DisputeMessageSenderRole;
+use App\Enums\SupportTicketRequesterRole;
+use App\Enums\SupportTicketStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Dispute;
 use App\Models\SupportTicket;
@@ -32,7 +35,7 @@ class SupportController extends Controller
         $admin = $this->vendorAdmin();
 
         $tickets = SupportTicket::where('requester_user_id', $admin->id)
-            ->where('requester_role', 'seller')
+            ->where('requester_role', SupportTicketRequesterRole::Seller)
             ->orderByDesc('created_at')
             ->get();
 
@@ -60,7 +63,7 @@ class SupportController extends Controller
 
         $ticket = SupportTicket::where('ticket_number', $ticketNumber)
             ->where('requester_user_id', $admin->id)
-            ->where('requester_role', 'seller')
+            ->where('requester_role', SupportTicketRequesterRole::Seller)
             ->firstOrFail();
 
         // Exclude internal notes from vendor view
@@ -92,10 +95,10 @@ class SupportController extends Controller
             'id' => (string) Str::uuid(),
             'ticket_number' => $ticketNumber,
             'requester_user_id' => (string) $admin->id,
-            'requester_role' => 'seller',
+            'requester_role' => SupportTicketRequesterRole::Seller,
             'category' => $validated['category'],
             'priority' => $validated['priority'] ?? 'normal',
-            'status' => 'open',
+            'status' => SupportTicketStatus::Open,
             'subject' => $validated['subject'],
             'description' => $validated['description'],
         ]);
@@ -125,10 +128,10 @@ class SupportController extends Controller
 
         $ticket = SupportTicket::where('ticket_number', $ticketNumber)
             ->where('requester_user_id', $admin->id)
-            ->where('requester_role', 'seller')
+            ->where('requester_role', SupportTicketRequesterRole::Seller)
             ->firstOrFail();
 
-        if (in_array($ticket->status, ['resolved', 'closed'])) {
+        if (in_array($ticket->status, [SupportTicketStatus::Resolved, SupportTicketStatus::Closed], true)) {
             return response()->json(['message' => 'لا يمكن الرد على تذكرة مغلقة أو محلولة'], 422);
         }
 
@@ -145,8 +148,8 @@ class SupportController extends Controller
         ]);
 
         // Reopen if it was waiting on customer response
-        if ($ticket->status === 'waiting_customer') {
-            $ticket->update(['status' => 'open']);
+        if ($ticket->status === SupportTicketStatus::WaitingCustomer) {
+            $ticket->update(['status' => SupportTicketStatus::Open]);
         }
 
         return response()->json([
@@ -154,7 +157,7 @@ class SupportController extends Controller
             'msg' => [
                 'id' => $msg->id,
                 'message' => $msg->message,
-                'sender_role' => 'seller',
+                'sender_role' => DisputeMessageSenderRole::Seller->value,
                 'created_at' => now()->toIso8601String(),
             ],
         ]);

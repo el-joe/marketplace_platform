@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\DeliveryAgentCodSettlementStatus;
+use App\Enums\WalletTransactionType;
+use App\Enums\WalletWithdrawalRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\DeliveryAgent;
@@ -11,6 +14,7 @@ use App\Models\WalletWithdrawalRequest;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class WalletController extends Controller
 {
@@ -37,7 +41,7 @@ class WalletController extends Controller
     public function adjustBalance(Request $request, Wallet $wallet)
     {
         $data = $request->validate([
-            'type'        => ['required', 'in:credit,debit'],
+            'type'        => ['required', Rule::enum(WalletTransactionType::class)],
             'amount'      => ['required', 'numeric', 'min:0.01'],
             'description' => ['required', 'string', 'max:255'],
         ]);
@@ -46,7 +50,7 @@ class WalletController extends Controller
         $admin = Auth::guard('admin')->user();
         $amountCents = (int) round($data['amount'] * 100);
 
-        if ($data['type'] === 'credit') {
+        if ($data['type'] === WalletTransactionType::Credit->value) {
             $this->walletService->credit($wallet, $amountCents, 'admin_adjustment', null, $data['description'], $admin->id);
         } else {
             $this->walletService->debit($wallet, $amountCents, 'admin_adjustment', null, $data['description'], $admin->id);
@@ -97,7 +101,7 @@ class WalletController extends Controller
 
     public function markWithdrawalProcessed(WalletWithdrawalRequest $withdrawal)
     {
-        $withdrawal->update(['status' => 'processed', 'processed_at' => now()]);
+        $withdrawal->update(['status' => WalletWithdrawalRequestStatus::Processed, 'processed_at' => now()]);
         return back()->with('success', 'Marked as processed.');
     }
 
@@ -129,7 +133,7 @@ class WalletController extends Controller
 
     public function markSettlementSettled(DeliveryAgentCodSettlement $settlement)
     {
-        $settlement->update(['status' => 'settled', 'settled_at' => now()]);
+        $settlement->update(['status' => DeliveryAgentCodSettlementStatus::Settled, 'settled_at' => now()]);
         return back()->with('success', 'Settlement marked as settled.');
     }
 }

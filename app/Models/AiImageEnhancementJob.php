@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\AiImageEnhancementJobStatus;
+use App\Enums\AiJobRequestedByType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,7 +27,9 @@ class AiImageEnhancementJob extends Model
     ];
 
     protected $casts = [
-        'applied' => 'boolean',
+        'status'             => AiImageEnhancementJobStatus::class,
+        'requested_by_type'  => AiJobRequestedByType::class,
+        'applied'            => 'boolean',
     ];
 
     public function productImage(): BelongsTo
@@ -45,11 +49,11 @@ class AiImageEnhancementJob extends Model
 
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === AiImageEnhancementJobStatus::Completed;
     }
 
     public function isFailed(): bool
     {
-        return $this->status === 'failed';
+        return $this->status === AiImageEnhancementJobStatus::Failed;
     }
 }

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\FbnInboundRequestStatus;
+use App\Enums\FbnStorageFeeStatus;
+use App\Enums\MarketplaceShippingRuleCommissionType;
 use App\Http\Controllers\Controller;
 use App\Jobs\GenerateFbnStorageFeesJob;
 use App\Models\FbnInboundRequest;
@@ -15,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class FbnController extends Controller
@@ -29,12 +33,12 @@ class FbnController extends Controller
     {
         $stats = [
             'total' => FbnInboundRequest::count(),
-            'draft' => FbnInboundRequest::where('status', 'draft')->count(),
-            'submitted' => FbnInboundRequest::where('status', 'submitted')->count(),
-            'approved' => FbnInboundRequest::where('status', 'approved')->count(),
-            'shipped' => FbnInboundRequest::where('status', 'shipped')->count(),
-            'received' => FbnInboundRequest::where('status', 'received')->count(),
-            'rejected' => FbnInboundRequest::where('status', 'rejected')->count(),
+            'draft' => FbnInboundRequest::where('status', FbnInboundRequestStatus::Draft)->count(),
+            'submitted' => FbnInboundRequest::where('status', FbnInboundRequestStatus::Submitted)->count(),
+            'approved' => FbnInboundRequest::where('status', FbnInboundRequestStatus::Approved)->count(),
+            'shipped' => FbnInboundRequest::where('status', FbnInboundRequestStatus::Shipped)->count(),
+            'received' => FbnInboundRequest::where('status', FbnInboundRequestStatus::Received)->count(),
+            'rejected' => FbnInboundRequest::where('status', FbnInboundRequestStatus::Rejected)->count(),
         ];
 
         $warehouses = Warehouse::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']);
@@ -122,7 +126,7 @@ class FbnController extends Controller
         ]);
 
         $inboundRequest->update([
-            'status' => 'approved',
+            'status' => FbnInboundRequestStatus::Approved,
             'admin_approved_by' => Auth::guard('admin')->id(),
             'approved_at' => now(),
             'expected_arrival' => $data['expected_arrival'] ?? null,
@@ -142,7 +146,7 @@ class FbnController extends Controller
         ]);
 
         $inboundRequest->update([
-            'status' => 'rejected',
+            'status' => FbnInboundRequestStatus::Rejected,
             'rejection_reason' => $data['rejection_reason'],
         ]);
 
@@ -161,7 +165,7 @@ class FbnController extends Controller
         ]);
 
         $inboundRequest->update([
-            'status' => 'shipped',
+            'status' => FbnInboundRequestStatus::Shipped,
             'tracking_number' => $data['tracking_number'],
             'expected_arrival' => $data['expected_arrival'] ?? $inboundRequest->expected_arrival,
         ]);
@@ -181,7 +185,7 @@ class FbnController extends Controller
 
         DB::transaction(function () use ($inboundRequest, $data) {
             $inboundRequest->update([
-                'status' => 'received',
+                'status' => FbnInboundRequestStatus::Received,
                 'quantity_received' => $data['quantity_received'],
             ]);
 
@@ -207,11 +211,11 @@ class FbnController extends Controller
     {
         $stats = [
             'total' => FbnStorageFee::count(),
-            'pending' => FbnStorageFee::where('status', 'pending')->count(),
-            'invoiced' => FbnStorageFee::where('status', 'invoiced')->count(),
-            'paid' => FbnStorageFee::where('status', 'paid')->count(),
-            'pending_cents' => FbnStorageFee::where('status', 'pending')->sum('total_fee_cents'),
-            'paid_cents' => FbnStorageFee::where('status', 'paid')->sum('total_fee_cents'),
+            'pending' => FbnStorageFee::where('status', FbnStorageFeeStatus::Pending)->count(),
+            'invoiced' => FbnStorageFee::where('status', FbnStorageFeeStatus::Invoiced)->count(),
+            'paid' => FbnStorageFee::where('status', FbnStorageFeeStatus::Paid)->count(),
+            'pending_cents' => FbnStorageFee::where('status', FbnStorageFeeStatus::Pending)->sum('total_fee_cents'),
+            'paid_cents' => FbnStorageFee::where('status', FbnStorageFeeStatus::Paid)->sum('total_fee_cents'),
             'currency' => FbnStorageFee::query()->value('currency') ?? '',
         ];
 
@@ -253,9 +257,9 @@ class FbnController extends Controller
             'orderable_column' => 'fbn_storage_fees.month',
         ], function ($row) {
             $actions = '';
-            if ($row->status === 'pending') {
+            if ($row->status === FbnStorageFeeStatus::Pending) {
                 $actions = '<button class="btn btn-xs btn-primary btn-mark-invoiced" data-id="' . $row->id . '">Mark Invoiced</button>';
-            } elseif ($row->status === 'invoiced') {
+            } elseif ($row->status === FbnStorageFeeStatus::Invoiced) {
                 $actions = '<button class="btn btn-xs btn-success btn-mark-fee-paid" data-id="' . $row->id . '">Mark Paid</button>';
             }
 
@@ -265,7 +269,7 @@ class FbnController extends Controller
                 'units_stored' => number_format($row->units_stored),
                 'rate' => number_format($row->rate_per_unit_cents / 100, 2) . ' ' . $row->currency,
                 'total_fee' => '<span class="font-semibold">' . $row->totalFormatted() . '</span>',
-                'status' => '<span class="badge badge-' . $row->statusColor() . '">' . ucfirst($row->status) . '</span>',
+                'status' => '<span class="badge badge-' . $row->statusColor() . '">' . $row->status->label() . '</span>',
                 'actions' => $actions,
             ];
         });
@@ -274,17 +278,22 @@ class FbnController extends Controller
     public function updateStorageFeeStatus(Request $request, FbnStorageFee $fee): JsonResponse
     {
         $data = $request->validate([
-            'status' => 'required|in:invoiced,paid',
+            'status' => ['required', Rule::enum(FbnStorageFeeStatus::class)->only([
+                FbnStorageFeeStatus::Invoiced,
+                FbnStorageFeeStatus::Paid,
+            ])],
         ]);
 
-        if ($data['status'] === 'invoiced' && $fee->status !== 'pending') {
+        $newStatus = FbnStorageFeeStatus::from($data['status']);
+
+        if ($newStatus === FbnStorageFeeStatus::Invoiced && $fee->status !== FbnStorageFeeStatus::Pending) {
             return response()->json(['success' => false, 'message' => 'Only pending fees can be marked invoiced.'], 422);
         }
-        if ($data['status'] === 'paid' && $fee->status !== 'invoiced') {
+        if ($newStatus === FbnStorageFeeStatus::Paid && $fee->status !== FbnStorageFeeStatus::Invoiced) {
             return response()->json(['success' => false, 'message' => 'Only invoiced fees can be marked paid.'], 422);
         }
 
-        $fee->update(['status' => $data['status']]);
+        $fee->update(['status' => $newStatus]);
 
         return response()->json(['success' => true, 'message' => 'Storage fee status updated.']);
     }
@@ -313,7 +322,7 @@ class FbnController extends Controller
             'total' => MarketplaceShippingRule::count(),
             'special_vehicle' => MarketplaceShippingRule::where('requires_special_vehicle', 1)->count(),
             'refrigerated' => MarketplaceShippingRule::where('requires_refrigeration', 1)->count(),
-            'fixed_commission' => MarketplaceShippingRule::where('commission_type', 'fixed')->count(),
+            'fixed_commission' => MarketplaceShippingRule::where('commission_type', MarketplaceShippingRuleCommissionType::Fixed)->count(),
         ];
 
         return view('admin.fbn.marketplace-rules.index', [
@@ -381,7 +390,7 @@ class FbnController extends Controller
             'max_weight_kg' => 'nullable|numeric|min:0',
             'max_dimensions_cm' => 'nullable|string|max:50',
             'special_handling_notes' => 'nullable|string',
-            'commission_type' => 'required|in:fixed,percentage,mixed',
+            'commission_type' => ['required', Rule::enum(MarketplaceShippingRuleCommissionType::class)],
             'commission_value' => 'required|numeric|min:0',
             'extra_delivery_fee_cents' => 'integer|min:0',
         ]);
@@ -403,7 +412,7 @@ class FbnController extends Controller
             'max_weight_kg' => 'nullable|numeric|min:0',
             'max_dimensions_cm' => 'nullable|string|max:50',
             'special_handling_notes' => 'nullable|string',
-            'commission_type' => 'required|in:fixed,percentage,mixed',
+            'commission_type' => ['required', Rule::enum(MarketplaceShippingRuleCommissionType::class)],
             'commission_value' => 'required|numeric|min:0',
             'extra_delivery_fee_cents' => 'integer|min:0',
         ]);

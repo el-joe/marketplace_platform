@@ -15,6 +15,10 @@ class ClassifiedListingAttachment extends Model
         'file_path', 'status', 'verified_by_admin_id',
     ];
 
+    protected $casts = [
+        'status' => \App\Enums\ClassifiedListingAttachmentStatus::class,
+    ];
+
     public function listing(): BelongsTo
     {
         return $this->belongsTo(ClassifiedListing::class, 'classified_listing_id');

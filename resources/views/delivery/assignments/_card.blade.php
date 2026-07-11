@@ -1,10 +1,10 @@
 @php
     /** @var \App\Models\DeliveryAssignment $assignment */
-    $chipClass = 'chip-' . $assignment->status;
+    $chipClass = 'chip-' . $assignment->status->value;
     $actionLabel = match ($assignment->status) {
-        'assigned' => __('delivery.assignments.accept'),
-        'accepted' => __('delivery.dashboard.mark_picked_up'),
-        'picked_up' => __('delivery.assignments.confirm_delivery'),
+        \App\Enums\DeliveryAssignmentStatus::Assigned => __('delivery.assignments.accept'),
+        \App\Enums\DeliveryAssignmentStatus::Accepted => __('delivery.dashboard.mark_picked_up'),
+        \App\Enums\DeliveryAssignmentStatus::PickedUp => __('delivery.assignments.confirm_delivery'),
         default => __('delivery.dashboard.view'),
     };
 @endphp
@@ -23,7 +23,7 @@
             </p>
         </div>
         <span class="chip {{ $chipClass }} ml-2 flex-shrink-0">
-            {{ ucfirst(str_replace('_', ' ', $assignment->status)) }}
+            {{ $assignment->status->label() }}
         </span>
     </div>
 </a>

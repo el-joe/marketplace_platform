@@ -220,7 +220,7 @@ class FlashSaleController extends Controller
 
     public function destroy(FlashSale $flashSale): JsonResponse
     {
-        if ($flashSale->status !== 'draft') {
+        if ($flashSale->status?->value !== 'draft') {
             return response()->json(['message' => __('admin.flash_sales.only_draft_deletable')], 422);
         }
         $flashSale->delete();
@@ -358,7 +358,7 @@ class FlashSaleController extends Controller
                 'notified_at' => $row->notified_at?->toDateTimeString(),
                 'responded_at' => $row->responded_at?->toDateTimeString(),
                 'decline_reason' => e($row->decline_reason ?? ''),
-                'can_resend' => in_array($row->status, ['pending', 'declined'], true),
+                'can_resend' => in_array($row->status?->value, ['pending', 'declined'], true),
             ];
         });
     }
@@ -369,7 +369,7 @@ class FlashSaleController extends Controller
             return response()->json(['message' => __('admin.flash_sales.invitation_not_belong')], 403);
         }
 
-        if (!in_array($invitation->status, ['pending', 'declined'], true)) {
+        if (!in_array($invitation->status?->value, ['pending', 'declined'], true)) {
             return response()->json(['message' => __('admin.flash_sales.notifications_resend_restricted')], 422);
         }
 
@@ -587,7 +587,7 @@ class FlashSaleController extends Controller
 
     public function liveMonitorData(FlashSale $flashSale): JsonResponse
     {
-        if ($flashSale->status !== 'live') {
+        if ($flashSale->status?->value !== 'live') {
             return response()->json(['message' => __('admin.flash_sales.sale_not_live')], 422);
         }
 
@@ -638,7 +638,7 @@ class FlashSaleController extends Controller
 
     public function analyticsData(FlashSale $flashSale): JsonResponse
     {
-        if (!in_array($flashSale->status, ['live', 'ended'])) {
+        if (!in_array($flashSale->status?->value, ['live', 'ended'])) {
             return response()->json(['message' => __('admin.flash_sales.analytics_available_after_live')], 422);
         }
 

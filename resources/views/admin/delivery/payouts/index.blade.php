@@ -214,9 +214,9 @@ Object.assign(window.TRANSLATIONS, {
             { data: 'net_amount_cents',      render: v => `<strong>${(v / 100).toFixed(2)}</strong>` },
             {
                 data: 'status',
-                render: v => {
+                render: (v, t, r) => {
                     const c = { pending:'warning', approved:'primary', paid:'success', failed:'danger' }[v] ?? 'gray';
-                    return `<span class="badge badge-${c} text-xs capitalize">${v}</span>`;
+                    return `<span class="badge badge-${c} text-xs">${r.status_label ?? v}</span>`;
                 }
             },
             { data: 'approved_by', defaultContent: '—' },

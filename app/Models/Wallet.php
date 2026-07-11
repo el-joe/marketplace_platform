@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\WalletOwnerType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +22,7 @@ class Wallet extends Model
     ];
 
     protected $casts = [
+        'owner_type'            => WalletOwnerType::class,
         'balance_cents'         => 'integer',
         'pending_balance_cents' => 'integer',
         'is_frozen'             => 'boolean',
@@ -29,11 +31,11 @@ class Wallet extends Model
     public function getOwnerAttribute(): Model|null
     {
         return match ($this->owner_type) {
-            'customer'       => Customer::find($this->owner_id),
-            'vendor'         => Vendor::find($this->owner_id),
-            'marketer'       => Marketer::find($this->owner_id),
-            'delivery_agent' => DeliveryAgent::find($this->owner_id),
-            default          => null,
+            WalletOwnerType::Customer      => Customer::find($this->owner_id),
+            WalletOwnerType::Vendor        => Vendor::find($this->owner_id),
+            WalletOwnerType::Marketer      => Marketer::find($this->owner_id),
+            WalletOwnerType::DeliveryAgent => DeliveryAgent::find($this->owner_id),
+            default                        => null,
         };
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\OrderItemFulfillmentStatus;
 use App\Models\Customer;
 use App\Models\DeliveryAssignment;
 use App\Models\Order;
@@ -67,11 +68,11 @@ class OrderTrackingService
 
         return [
             'order_number'    => $order->order_number,
-            'status'          => $order->status,
-            'status_label_en' => self::ORDER_STATUS_LABELS[$order->status]['en'] ?? $order->status,
-            'status_label_ar' => self::ORDER_STATUS_LABELS[$order->status]['ar'] ?? $order->status,
+            'status'          => $order->status->value,
+            'status_label_en' => self::ORDER_STATUS_LABELS[$order->status->value]['en'] ?? $order->status->value,
+            'status_label_ar' => self::ORDER_STATUS_LABELS[$order->status->value]['ar'] ?? $order->status->value,
             'payment_method'  => $order->payment_method,
-            'payment_status'  => $order->payment_status,
+            'payment_status'  => $order->payment_status->value,
             'placed_at'       => $order->placed_at?->toIso8601String(),
             'currency'        => $order->currency,
             'summary'         => [
@@ -108,7 +109,7 @@ class OrderTrackingService
 
         return [
             'sub_order_number'  => $subOrder->sub_order_number,
-            'status'            => $subOrder->status,
+            'status'            => $subOrder->status->value,
             'fulfillment_model' => $subOrder->fulfillment_model,
             'vendor'            => [
                 'id'         => $subOrder->vendor?->id,
@@ -139,7 +140,7 @@ class OrderTrackingService
         return [
             "id"                => $subOrder->id,
             'sub_order_number'  => $subOrder->sub_order_number,
-            'status'            => $subOrder->status,
+            'status'            => $subOrder->status->value,
             'fulfillment_model' => $subOrder->fulfillment_model,
             'vendor'            => [
                 'id'         => $subOrder->vendor?->id,
@@ -160,9 +161,9 @@ class OrderTrackingService
             ->sortBy(fn (ShipmentTrackingEvent $event) => $event->occurred_at)
             ->values()
             ->map(fn (ShipmentTrackingEvent $event) => [
-                'status'          => $event->status,
-                'status_label_en' => self::TRACKING_EVENT_LABELS[$event->status]['en'] ?? $event->status,
-                'status_label_ar' => self::TRACKING_EVENT_LABELS[$event->status]['ar'] ?? $event->status,
+                'status'          => $event->status->value,
+                'status_label_en' => self::TRACKING_EVENT_LABELS[$event->status->value]['en'] ?? $event->status->value,
+                'status_label_ar' => self::TRACKING_EVENT_LABELS[$event->status->value]['ar'] ?? $event->status->value,
                 'location'        => $event->location,
                 'description'     => $event->description,
                 'occurred_at'     => $event->occurred_at?->toIso8601String(),
@@ -189,7 +190,7 @@ class OrderTrackingService
 
         return [
             'name'         => $assignment->agent?->name,
-            'status'       => $assignment->status,
+            'status'       => $assignment->status->value,
             'otp_required' => $assignment->delivery_otp !== null,
             'otp_verified' => $assignment->otp_verified,
         ];
@@ -201,9 +202,9 @@ class OrderTrackingService
             ->flatMap(fn (Shipment $shipment) => $shipment->trackingEvents)
             ->map(fn (ShipmentTrackingEvent $event) => [
                 'source'          => 'carrier',
-                'status'          => $event->status,
-                'status_label_en' => self::TRACKING_EVENT_LABELS[$event->status]['en'] ?? $event->status,
-                'status_label_ar' => self::TRACKING_EVENT_LABELS[$event->status]['ar'] ?? $event->status,
+                'status'          => $event->status->value,
+                'status_label_en' => self::TRACKING_EVENT_LABELS[$event->status->value]['en'] ?? $event->status->value,
+                'status_label_ar' => self::TRACKING_EVENT_LABELS[$event->status->value]['ar'] ?? $event->status->value,
                 'location'        => $event->location,
                 'description'     => $event->description,
                 'occurred_at'     => $event->occurred_at,
@@ -242,10 +243,10 @@ class OrderTrackingService
     private function buildItem(OrderItem $item, Collection $reviewedItemIds): array
     {
         $snapshot = $item->product_snapshot ?? [];
-        $canReturn = $item->fulfillment_status === 'delivered'
+        $canReturn = $item->fulfillment_status === OrderItemFulfillmentStatus::Delivered
             && $item->return_eligible_until !== null
             && $item->return_eligible_until->greaterThanOrEqualTo(today());
-        $canReview = $item->fulfillment_status === 'delivered'
+        $canReview = $item->fulfillment_status === OrderItemFulfillmentStatus::Delivered
             && !$reviewedItemIds->contains($item->id);
 
         return [
@@ -260,7 +261,7 @@ class OrderTrackingService
             'quantity'              => $item->quantity,
             'unit_price_cents'      => $item->unit_price,
             'line_total_cents'      => $item->line_total,
-            'fulfillment_status'    => $item->fulfillment_status,
+            'fulfillment_status'    => $item->fulfillment_status->value,
             'return_eligible_until' => $item->return_eligible_until?->toDateString(),
             'can_return'            => $canReturn,
             'can_review'            => $canReview,

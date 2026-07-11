@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaidBannerBookingStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,6 +39,7 @@ class PaidBannerBooking extends Model
         'clicks_delivered' => 'integer',
         'booked_from' => 'date',
         'booked_until' => 'date',
+        'status' => PaidBannerBookingStatus::class,
     ];
 
     public function pageBlock(): BelongsTo

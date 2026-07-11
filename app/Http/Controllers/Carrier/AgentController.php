@@ -159,8 +159,8 @@ class AgentController extends Controller
 
         $docs = $agent->documents()->orderBy('document_type')->get()->map(fn ($doc) => [
             'id'               => $doc->id,
-            'document_type'    => $doc->document_type,
-            'status'           => $doc->status,
+            'document_type'    => $doc->document_type->value,
+            'status'           => $doc->status->value,
             'expires_at'       => $doc->expires_at?->toDateString(),
             'verified_at'      => $doc->verified_at?->toIso8601String(),
             'rejection_reason' => $doc->rejection_reason,
@@ -186,7 +186,7 @@ class AgentController extends Controller
 
         $items = $assignments->getCollection()->map(fn ($a) => [
             'id'          => $a->id,
-            'status'      => $a->status,
+            'status'      => $a->status->value,
             'assigned_at' => $a->assigned_at->toIso8601String(),
             'delivered_at'=> $a->delivered_at?->toIso8601String(),
             'failed_at'   => $a->failed_at?->toIso8601String(),
@@ -273,7 +273,7 @@ class AgentController extends Controller
         return ApiResponse::success([
             'assignment_id'   => $updated->id,
             'new_agent_id'    => $updated->agent_id,
-            'status'          => $updated->status,
+            'status'          => $updated->status->value,
         ], 'Assignment reassigned successfully.');
     }
 

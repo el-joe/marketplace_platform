@@ -2,6 +2,8 @@
 
 namespace App\Services\Vendor;
 
+use App\Enums\AdCampaignStatus;
+use App\Enums\AdCampaignTargetingType;
 use App\Jobs\NotifyAdminNewAdCampaignJob;
 use App\Models\AdCampaign;
 use App\Models\AdCampaignCategoryTarget;
@@ -58,7 +60,7 @@ class AdCampaignService
     public function update(AdCampaign $campaign, VendorAdmin $vendorAdmin, array $data): AdCampaign
     {
         return DB::transaction(function () use ($campaign, $vendorAdmin, $data) {
-            $isActive = $campaign->status === 'active';
+            $isActive = $campaign->status === AdCampaignStatus::Active;
 
             foreach (self::LOCKED_WHEN_ACTIVE as $field) {
                 if ($isActive && array_key_exists($field, $data)) {
@@ -91,11 +93,11 @@ class AdCampaignService
 
             $targetingType = $campaign->fresh()->targeting_type;
 
-            if (isset($data['keywords']) && in_array($targetingType, ['keyword', 'mixed'])) {
+            if (isset($data['keywords']) && in_array($targetingType, [AdCampaignTargetingType::Keyword, AdCampaignTargetingType::Mixed], true)) {
                 $this->syncKeywords($campaign, $data['keywords']);
             }
 
-            if (isset($data['category_ids']) && in_array($targetingType, ['category', 'mixed'])) {
+            if (isset($data['category_ids']) && in_array($targetingType, [AdCampaignTargetingType::Category, AdCampaignTargetingType::Mixed], true)) {
                 $this->syncCategoryTargets($campaign, $data['category_ids']);
             }
 

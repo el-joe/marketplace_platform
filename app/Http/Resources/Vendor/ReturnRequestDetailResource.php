@@ -23,8 +23,8 @@ class ReturnRequestDetailResource extends JsonResource
             'items' => $this->return->relationLoaded('items')
                 ? $this->return->items->map(fn ($ri) => [
                     'quantity'           => $ri->quantity,
-                    'condition_received' => $ri->condition_received,
-                    'restock_decision'   => $ri->restock_decision,
+                    'condition_received' => $ri->condition_received?->value,
+                    'restock_decision'   => $ri->restock_decision?->value,
                     'product'            => $ri->orderItem?->product_snapshot ?? [],
                 ])
                 : [],

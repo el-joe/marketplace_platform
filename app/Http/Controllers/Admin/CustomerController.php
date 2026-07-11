@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\CustomerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\Country;
@@ -11,6 +12,7 @@ use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 
 class CustomerController extends Controller
 {
@@ -25,9 +27,9 @@ class CustomerController extends Controller
 
         $stats = [
             'total' => Customer::count(),
-            'active' => Customer::where('status', 'active')->count(),
-            'suspended' => Customer::where('status', 'suspended')->count(),
-            'banned' => Customer::where('status', 'banned')->count(),
+            'active' => Customer::where('status', CustomerStatus::Active)->count(),
+            'suspended' => Customer::where('status', CustomerStatus::Suspended)->count(),
+            'banned' => Customer::where('status', CustomerStatus::Banned)->count(),
             'new_this_week' => Customer::where('created_at', '>=', now()->startOfWeek())->count(),
         ];
 
@@ -74,7 +76,7 @@ class CustomerController extends Controller
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function (Customer $row) use ($statusColors) {
-            $color = $statusColors[$row->status] ?? 'gray';
+            $color = $statusColors[$row->status->value] ?? 'gray';
             $canEdit = auth('admin')->user()->hasPermissionTo('customers.edit');
             $canSuspend = auth('admin')->user()->hasPermissionTo('customers.suspend');
 
@@ -86,7 +88,7 @@ class CustomerController extends Controller
                     ? ($row->country->flag_emoji ? $row->country->flag_emoji . ' ' : '') . e($row->country->name_en)
                     : '—',
                 'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-' . $color . '-100 text-' . $color . '-700">'
-                    . ucfirst($row->status) . '</span>',
+                    . e($row->status->label()) . '</span>',
                 'total_orders' => $row->total_orders,
                 'total_spent' => number_format((float) $row->total_spent, 2),
                 'loyalty_points' => number_format((float) $row->loyalty_points, 2),
@@ -94,7 +96,7 @@ class CustomerController extends Controller
                 'actions' => $this->buildRowActions($row, $canEdit, $canSuspend),
                 'DT_RowData' => [
                     'id' => $row->id,
-                    'status' => $row->status,
+                    'status' => $row->status->value,
                 ],
             ];
         });
@@ -111,17 +113,17 @@ class CustomerController extends Controller
         $actions .= '<a href="' . $viewUrl . '" class="btn btn-xs btn-secondary">View</a>';
 
         if ($canSuspend) {
-            if ($customer->status === 'active') {
+            if ($customer->status === CustomerStatus::Active) {
                 $actions .= '<button type="button" class="btn btn-xs btn-warning js-suspend-btn"'
                     . ' data-url="' . $suspendUrl . '" data-name="' . e($customer->name) . '">Suspend</button>';
                 $actions .= '<button type="button" class="btn btn-xs btn-danger js-ban-btn"'
                     . ' data-url="' . $banUrl . '" data-name="' . e($customer->name) . '">Ban</button>';
-            } elseif ($customer->status === 'suspended') {
+            } elseif ($customer->status === CustomerStatus::Suspended) {
                 $actions .= '<button type="button" class="btn btn-xs btn-success js-reactivate-btn"'
                     . ' data-url="' . $reactivateUrl . '" data-name="' . e($customer->name) . '">Reactivate</button>';
                 $actions .= '<button type="button" class="btn btn-xs btn-danger js-ban-btn"'
                     . ' data-url="' . $banUrl . '" data-name="' . e($customer->name) . '">Ban</button>';
-            } elseif ($customer->status === 'banned') {
+            } elseif ($customer->status === CustomerStatus::Banned) {
                 $actions .= '<button type="button" class="btn btn-xs btn-success js-reactivate-btn"'
                     . ' data-url="' . $reactivateUrl . '" data-name="' . e($customer->name) . '">Reactivate</button>';
             }
@@ -180,7 +182,7 @@ class CustomerController extends Controller
         abort_unless($admin->hasPermissionTo('customers.edit'), 403);
 
         $validated = $request->validate([
-            'status' => 'sometimes|in:active,suspended,banned',
+            'status' => ['sometimes', Rule::enum(CustomerStatus::class)],
             'loyalty_points' => 'sometimes|numeric|min:0',
         ]);
 
@@ -198,7 +200,7 @@ class CustomerController extends Controller
 
         $request->validate(['reason' => 'required|string|max:1000']);
 
-        $customer->update(['status' => 'suspended']);
+        $customer->update(['status' => CustomerStatus::Suspended]);
 
         Notification::create([
             'notifiable_type' => Customer::class,
@@ -236,7 +238,7 @@ class CustomerController extends Controller
 
         $request->validate(['reason' => 'required|string|max:1000']);
 
-        $customer->update(['status' => 'banned']);
+        $customer->update(['status' => CustomerStatus::Banned]);
 
         // Revoke Sanctum tokens if the model has the HasApiTokens trait
         if (method_exists($customer, 'tokens')) {
@@ -265,7 +267,7 @@ class CustomerController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('customers.suspend'), 403);
 
-        $customer->update(['status' => 'active']);
+        $customer->update(['status' => CustomerStatus::Active]);
 
         Activity::create([
             'log_name' => 'customers',
@@ -390,7 +392,7 @@ class CustomerController extends Controller
                 'phone' => $customer->phone,
                 'phone_verified_at' => $customer->phone_verified_at?->toIso8601String(),
                 'country_id' => $customer->country_id,
-                'status' => $customer->status,
+                'status' => $customer->status->value,
                 'date_of_birth' => $customer->date_of_birth,
                 'last_login_at' => $customer->last_login_at?->toIso8601String(),
                 'last_login_ip' => $customer->last_login_ip,
@@ -402,18 +404,18 @@ class CustomerController extends Controller
             ],
             'orders' => $orders->map(fn($o) => [
                 'order_number' => $o->order_number,
-                'status' => $o->status,
+                'status' => $o->status->value,
                 'total' => (float) $o->total,
                 'currency' => $o->currency,
                 'payment_method' => $o->payment_method,
-                'payment_status' => $o->payment_status,
+                'payment_status' => $o->payment_status->value,
                 'placed_at' => $o->placed_at ? \Carbon\Carbon::parse($o->placed_at)->toIso8601String() : null,
             ])->values(),
             'reviews' => $reviews->map(fn($r) => [
                 'product' => $r->product?->name ?? $r->product_id,
                 'rating' => $r->rating,
                 'title' => $r->title,
-                'status' => $r->status,
+                'status' => $r->status->value,
                 'created_at' => $r->created_at->toIso8601String(),
             ])->values(),
         ];

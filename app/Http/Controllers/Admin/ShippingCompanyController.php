@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ShippingCompanyStatus;
 use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\Country;
@@ -19,9 +20,9 @@ class ShippingCompanyController extends Controller
     {
         $stats = [
             'total'     => ShippingCompany::count(),
-            'active'    => ShippingCompany::where('status', 'active')->count(),
-            'pending'   => ShippingCompany::where('status', 'pending')->count(),
-            'suspended' => ShippingCompany::where('status', 'suspended')->count(),
+            'active'    => ShippingCompany::where('status', ShippingCompanyStatus::Active)->count(),
+            'pending'   => ShippingCompany::where('status', ShippingCompanyStatus::Pending)->count(),
+            'suspended' => ShippingCompany::where('status', ShippingCompanyStatus::Suspended)->count(),
         ];
 
         $companies = ShippingCompany::with('country')
@@ -42,7 +43,7 @@ class ShippingCompanyController extends Controller
     public function approve(ShippingCompany $shippingCompany): RedirectResponse
     {
         $shippingCompany->update([
-            'status'              => 'active',
+            'status'              => ShippingCompanyStatus::Active,
             'approved_by_admin_id' => auth('admin')->id(),
             'approved_at'         => now(),
         ]);
@@ -52,7 +53,7 @@ class ShippingCompanyController extends Controller
 
     public function suspend(ShippingCompany $shippingCompany): RedirectResponse
     {
-        $shippingCompany->update(['status' => 'suspended']);
+        $shippingCompany->update(['status' => ShippingCompanyStatus::Suspended]);
 
         return back()->with('success', 'تم إيقاف شركة الشحن.');
     }

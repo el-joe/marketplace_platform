@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PortalContentType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,6 +42,7 @@ class PortalContent extends Model
         return [
             'is_active' => 'boolean',
             'sort_order' => 'integer',
+            'type' => PortalContentType::class,
         ];
     }
 

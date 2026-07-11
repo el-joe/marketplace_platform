@@ -29,8 +29,8 @@
     <form method="GET" class="flex flex-wrap gap-3 mb-5">
         <select name="status" class="input-sm">
             <option value="">{{ __('admin.packaging_supplies.all_statuses') }}</option>
-            @foreach(['pending','approved','shipped','delivered','rejected'] as $s)
-                <option value="{{ $s }}" @selected(request('status') === $s)>{{ __('admin.packaging_supplies.' . $s) }}</option>
+            @foreach(\App\Enums\PackagingSupplyRequestStatus::cases() as $s)
+                <option value="{{ $s->value }}" @selected(request('status') === $s->value)>{{ $s->label() }}</option>
             @endforeach
         </select>
         <button type="submit" class="btn-sm btn-primary">{{ __('admin.packaging_supplies.filter') }}</button>
@@ -60,7 +60,7 @@
                             <td class="td text-gray-500">{{ $req->warehouse?->name ?? '—' }}</td>
                             <td class="td">{{ $req->total_cost_formatted }}</td>
                             <td class="td">
-                                <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status) }}</span>
+                                <span class="badge {{ $req->statusBadgeClass() }}">{{ $req->status->label() }}</span>
                             </td>
                             <td class="td text-gray-500 text-xs">{{ $req->created_at->format('d M Y') }}</td>
                             <td class="td text-end">

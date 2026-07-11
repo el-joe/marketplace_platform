@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ProductStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,7 +26,7 @@ class StoreProductRequest extends FormRequest
             'description_ar' => ['nullable', 'string'],
             'short_desc_en' => ['nullable', 'string', 'max:500'],
             'short_desc_ar' => ['nullable', 'string', 'max:500'],
-            'status' => ['required', 'in:draft,active,discontinued,restricted'],
+            'status' => ['required', Rule::enum(ProductStatus::class)],
             'has_variants' => ['boolean'],
             'is_featured' => ['boolean'],
             'requires_brand_auth' => ['boolean'],

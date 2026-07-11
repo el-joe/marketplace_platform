@@ -64,10 +64,10 @@
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                     class="flex items-center gap-2 whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors">
                     {{ __('partner.support.support_tickets_tab') }}
-                    @if ($tickets->where('status', 'waiting_customer')->count() > 0)
+                    @if ($tickets->where('status', \App\Enums\SupportTicketStatus::WaitingCustomer)->count() > 0)
                         <span
                             class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                            {{ $tickets->where('status', 'waiting_customer')->count() }}
+                            {{ $tickets->where('status', \App\Enums\SupportTicketStatus::WaitingCustomer)->count() }}
                         </span>
                     @endif
                 </button>
@@ -127,11 +127,11 @@
                     <tbody class="divide-y divide-gray-100">
                         @forelse ($tickets as $ticket)
                             @php
-                                $statusCfg = $statusLabels[$ticket->status] ?? ['label' => $ticket->status, 'color' => 'bg-gray-100 text-gray-600'];
+                                $statusCfg = $statusLabels[$ticket->status->value] ?? ['label' => $ticket->status->value, 'color' => 'bg-gray-100 text-gray-600'];
                                 $priorityCfg = $priorityLabels[$ticket->priority] ?? ['label' => $ticket->priority, 'color' => 'bg-gray-100 text-gray-600'];
                             @endphp
                             <tr class="hover:bg-gray-50 transition-colors"
-                                x-show="ticketFilter === 'all' || ticketFilter === '{{ $ticket->status }}'" x-cloak>
+                                x-show="ticketFilter === 'all' || ticketFilter === '{{ $ticket->status->value }}'" x-cloak>
                                 <td class="px-5 py-4">
                                     <span
                                         class="font-mono text-xs font-semibold text-gray-700">{{ $ticket->ticket_number }}</span>
@@ -212,16 +212,16 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse ($disputes as $dispute)
-                            @php $dStatusCfg = $disputeStatusLabels[$dispute->status] ?? ['label' => $dispute->status, 'color' => 'bg-gray-100 text-gray-600']; @endphp
+                            @php $dStatusCfg = $disputeStatusLabels[$dispute->status->value] ?? ['label' => $dispute->status->value, 'color' => 'bg-gray-100 text-gray-600']; @endphp
                             <tr class="hover:bg-gray-50 transition-colors"
-                                x-show="disputeFilter === 'all' || disputeFilter === '{{ $dispute->status }}'" x-cloak>
+                                x-show="disputeFilter === 'all' || disputeFilter === '{{ $dispute->status->value }}'" x-cloak>
                                 <td class="px-5 py-4">
                                     <span
                                         class="font-mono text-xs font-semibold text-gray-700">{{ $dispute->dispute_number }}</span>
                                 </td>
                                 <td class="px-5 py-4">
                                     <span
-                                        class="text-sm text-gray-700">{{ $disputeReasonLabels[$dispute->reason] ?? $dispute->reason }}</span>
+                                        class="text-sm text-gray-700">{{ $disputeReasonLabels[$dispute->reason->value] ?? $dispute->reason->value }}</span>
                                 </td>
                                 <td class="px-5 py-4">
                                     <span

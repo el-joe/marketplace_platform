@@ -21,8 +21,8 @@ $statusLabels = [
         </a>
         <div>
             <h1 class="text-2xl font-black text-gray-900">{{ $booking->booking_number }}</h1>
-            <span class="px-2.5 py-0.5 rounded-full text-sm font-medium {{ $statusColors[$booking->status] ?? '' }}">
-                {{ $statusLabels[$booking->status] ?? $booking->status }}
+            <span class="px-2.5 py-0.5 rounded-full text-sm font-medium {{ $statusColors[$booking->status->value] ?? '' }}">
+                {{ $statusLabels[$booking->status->value] ?? $booking->status->label() }}
             </span>
         </div>
     </div>
@@ -107,11 +107,11 @@ $statusLabels = [
     </div>
 
     {{-- Status actions --}}
-    @if(in_array($booking->status, ['pending_documents', 'confirmed']))
+    @if(in_array($booking->status, [\App\Enums\TravelBookingStatus::PendingDocuments, \App\Enums\TravelBookingStatus::Confirmed]))
     <div class="bg-white rounded-xl border border-gray-200 p-6">
         <h2 class="font-bold text-gray-800 mb-4">{{ __('travel.bookings.booking_actions') }}</h2>
         <div class="flex gap-3 flex-wrap">
-            @if($booking->status === 'pending_documents')
+            @if($booking->status === \App\Enums\TravelBookingStatus::PendingDocuments)
             <form method="POST" action="{{ route('travel-agency.bookings.status', $booking) }}">
                 @csrf @method('PATCH')
                 <input type="hidden" name="status" value="confirmed">

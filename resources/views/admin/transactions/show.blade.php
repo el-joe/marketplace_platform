@@ -49,7 +49,7 @@
                         <dt class="text-xs font-medium text-gray-400 uppercase mb-0.5">{{ __('common.type') }}</dt>
                         <dd>
                             @php
-                                $typeBadge = match($transaction->type) {
+                                $typeBadge = match($transaction->type->value) {
                                     'authorization' => 'bg-blue-100 text-blue-700',
                                     'capture'       => 'bg-indigo-100 text-indigo-700',
                                     'sale'          => 'bg-green-100 text-green-700',
@@ -60,7 +60,7 @@
                                 };
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium {{ $typeBadge }}">
-                                {{ __('admin.transactions.' . $transaction->type) }}
+                                {{ __('admin.transactions.' . $transaction->type->value) }}
                             </span>
                         </dd>
                     </div>
@@ -78,19 +78,19 @@
                         <dt class="text-xs font-medium text-gray-400 uppercase mb-0.5">{{ __('common.status') }}</dt>
                         <dd>
                             @php
-                                $statusBadge = match($transaction->status) {
+                                $statusBadge = match($transaction->status->value) {
                                     'pending'   => 'bg-yellow-100 text-yellow-700',
                                     'succeeded' => 'bg-green-100 text-green-700',
                                     'failed'    => 'bg-red-100 text-red-700',
                                     'cancelled' => 'bg-gray-100 text-gray-500',
                                     default     => 'bg-gray-100 text-gray-700',
                                 };
-                                $statusLabel = match($transaction->status) {
+                                $statusLabel = match($transaction->status->value) {
                                     'pending'   => __('common.pending'),
                                     'succeeded' => __('admin.transactions.succeeded'),
                                     'failed'    => __('admin.finance.failed'),
                                     'cancelled' => __('common.cancelled'),
-                                    default     => $transaction->status,
+                                    default     => $transaction->status->value,
                                 };
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium {{ $statusBadge }}">
@@ -125,7 +125,7 @@
                         </dd>
                     </div>
 
-                    @if($transaction->status === 'failed' && $transaction->failure_code)
+                    @if($transaction->status === \App\Enums\PaymentTransactionStatus::Failed && $transaction->failure_code)
                         <div class="col-span-2">
                             <dt class="text-xs font-medium text-gray-400 uppercase mb-0.5">{{ __('admin.transactions.failure') }}</dt>
                             <dd class="rounded bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-800">
@@ -209,24 +209,24 @@
                                 <tr>
                                     <td class="py-2 pr-4 font-semibold tabular-nums" dir="ltr">{{ number_format($refund->amount / 100, 2) }} {{ $refund->currency }}</td>
                                     <td class="py-2 pr-4">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">{{ __('admin.transactions.refund_type_' . $refund->refund_type) }}</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">{{ __('admin.transactions.refund_type_' . $refund->refund_type->value) }}</span>
                                     </td>
-                                    <td class="py-2 pr-4 text-gray-600">{{ $refund->reason }}</td>
+                                    <td class="py-2 pr-4 text-gray-600">{{ $refund->reason->value }}</td>
                                     <td class="py-2 pr-4">
                                         @php
-                                            $rsBadge = match($refund->status) {
+                                            $rsBadge = match($refund->status->value) {
                                                 'pending'    => 'bg-yellow-100 text-yellow-700',
                                                 'approved'   => 'bg-blue-100 text-blue-700',
                                                 'completed'  => 'bg-green-100 text-green-700',
                                                 'rejected'   => 'bg-red-100 text-red-700',
                                                 default      => 'bg-gray-100 text-gray-700',
                                             };
-                                            $rsLabel = match($refund->status) {
+                                            $rsLabel = match($refund->status->value) {
                                                 'pending'    => __('common.pending'),
                                                 'approved'   => __('admin.transactions.refund_status_approved'),
                                                 'completed'  => __('admin.transactions.refund_status_completed'),
                                                 'rejected'   => __('admin.transactions.refund_status_rejected'),
-                                                default      => $refund->status,
+                                                default      => $refund->status->value,
                                             };
                                         @endphp
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $rsBadge }}">{{ $rsLabel }}</span>

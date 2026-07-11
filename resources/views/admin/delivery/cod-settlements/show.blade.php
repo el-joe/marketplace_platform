@@ -16,12 +16,12 @@
     <div class="flex gap-2">
         @php
             $badgeClass = match($settlement->status) {
-                'settled'  => 'badge-success',
-                'disputed' => 'badge-warning',
+                \App\Enums\DeliveryAgentCodSettlementStatus::Settled  => 'badge-success',
+                \App\Enums\DeliveryAgentCodSettlementStatus::Disputed => 'badge-warning',
                 default    => 'badge-gray',
             };
         @endphp
-        <span class="badge {{ $badgeClass }} text-sm capitalize">{{ $settlement->status }}</span>
+        <span class="badge {{ $badgeClass }} text-sm capitalize">{{ $settlement->status->label() }}</span>
     </div>
 </div>
 
@@ -35,12 +35,12 @@
             &minus; {{ __('admin.cod.earnings_label') }} {{ number_format($settlement->total_earnings_owed_cents / 100, 2) }}
         </p>
     </div>
-    @if($settlement->status === 'pending')
+    @if($settlement->status === \App\Enums\DeliveryAgentCodSettlementStatus::Pending)
         <div class="flex gap-2">
             <button type="button" id="settle-btn" class="btn btn-success btn-sm">{{ __('admin.cod.mark_settled') }}</button>
             <button type="button" id="dispute-btn" class="btn btn-warning btn-sm">{{ __('admin.cod.flag_dispute') }}</button>
         </div>
-    @elseif($settlement->status === 'settled')
+    @elseif($settlement->status === \App\Enums\DeliveryAgentCodSettlementStatus::Settled)
         <div class="text-end">
             <p class="text-xs text-green-600 font-semibold">{{ __('admin.cod.settled_on') }} {{ $settlement->settled_at?->format('M d, Y H:i') }}</p>
             @if($settlement->notes)
@@ -122,7 +122,7 @@
                             <tr>
                                 <td class="px-4 py-2 capitalize text-xs">{{ str_replace('_', ' ', $e->earning_type) }}</td>
                                 <td class="px-4 py-2">
-                                    <span class="badge badge-gray text-xs capitalize">{{ $e->status }}</span>
+                                    <span class="badge badge-gray text-xs capitalize">{{ $e->status->label() }}</span>
                                 </td>
                                 <td class="px-4 py-2 text-end">{{ number_format($e->amount_cents / 100, 2) }}</td>
                             </tr>
@@ -180,7 +180,7 @@
     <div class="space-y-6">
 
         {{-- Mark as Settled Form --}}
-        @if($settlement->status === 'pending')
+        @if($settlement->status === \App\Enums\DeliveryAgentCodSettlementStatus::Pending)
             <div class="bg-white rounded-xl border border-gray-200 p-4" id="settle-form-panel">
                 <h2 class="font-semibold text-gray-800 text-sm mb-3">{{ __('admin.cod.mark_as_settled_form_title') }}</h2>
                 <form id="settle-form" class="space-y-3">
@@ -230,9 +230,9 @@
                             </div>
                             <div class="flex flex-col items-end gap-1">
                                 @php
-                                    $bc = match($h->status) { 'settled' => 'badge-success', 'disputed' => 'badge-warning', default => 'badge-gray' };
+                                    $bc = match($h->status) { \App\Enums\DeliveryAgentCodSettlementStatus::Settled => 'badge-success', \App\Enums\DeliveryAgentCodSettlementStatus::Disputed => 'badge-warning', default => 'badge-gray' };
                                 @endphp
-                                <span class="badge {{ $bc }} text-xs capitalize">{{ $h->status }}</span>
+                                <span class="badge {{ $bc }} text-xs capitalize">{{ $h->status->label() }}</span>
                                 @if($h->id !== $settlement->id)
                                     <a href="{{ route('admin.delivery.cod-settlements.show', $h) }}" class="text-xs text-primary-600 hover:underline">{{ __('common.view') }}</a>
                                 @endif

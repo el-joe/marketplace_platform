@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\WalletTransactionType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,9 +26,10 @@ class WalletTransaction extends Model
     ];
 
     protected $casts = [
-        'amount_cents'        => 'integer',
-        'balance_after_cents' => 'integer',
-        'created_at'          => 'datetime',
+        'type'                 => WalletTransactionType::class,
+        'amount_cents'         => 'integer',
+        'balance_after_cents'  => 'integer',
+        'created_at'           => 'datetime',
     ];
 
     protected static function boot(): void

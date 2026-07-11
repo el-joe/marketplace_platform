@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\CampaignType;
+use App\Enums\CommissionType;
+use App\Enums\VendorCampaignOfferStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -47,6 +50,9 @@ class VendorCampaignOffer extends Model
         'invitation_deadline' => 'datetime',
         'approved_at' => 'datetime',
         'whatsapp_sharing_enabled' => 'boolean',
+        'campaign_type' => CampaignType::class,
+        'commission_type' => CommissionType::class,
+        'status' => VendorCampaignOfferStatus::class,
     ];
 
     public function vendor(): BelongsTo
@@ -88,16 +94,16 @@ class VendorCampaignOffer extends Model
 
     public function scopeDraft(Builder $query): Builder
     {
-        return $query->where('status', 'draft');
+        return $query->where('status', VendorCampaignOfferStatus::Draft->value);
     }
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('status', 'active');
+        return $query->where('status', VendorCampaignOfferStatus::Active->value);
     }
 
     public function scopeEnded(Builder $query): Builder
     {
-        return $query->where('status', 'ended');
+        return $query->where('status', VendorCampaignOfferStatus::Ended->value);
     }
 }

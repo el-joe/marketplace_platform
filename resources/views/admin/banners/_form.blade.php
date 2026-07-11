@@ -14,7 +14,11 @@
     $mobileImage  = $mobileImage ?? null;
 
     $val = function (string $field, $default = '') use ($isEdit, $banner) {
-        return old($field, $isEdit ? ($banner->{$field} ?? $default) : $default);
+        $current = $isEdit ? ($banner->{$field} ?? $default) : $default;
+        if ($current instanceof \BackedEnum) {
+            $current = $current->value;
+        }
+        return old($field, $current);
     };
 
     $placementsJson = $placements->keyBy('code')->map(fn ($p) => [
@@ -27,9 +31,9 @@
         'base_rate_weekly_cents' => $p->base_rate_weekly_cents,
     ])->toJson();
 
-    $currentStatus       = old('status',       $isEdit ? $banner->status       : 'active');
-    $currentDeviceTarget = old('device_target', $isEdit ? $banner->device_target : 'all');
-    $currentLinkType     = old('link_type',     $isEdit ? $banner->link_type    : '');
+    $currentStatus       = old('status',       $isEdit ? $banner->status?->value       : 'active');
+    $currentDeviceTarget = old('device_target', $isEdit ? $banner->device_target?->value : 'all');
+    $currentLinkType     = old('link_type',     $isEdit ? $banner->link_type?->value    : '');
     $currentPlacement    = old('placement_code',$isEdit ? $banner->placement_code : '');
 @endphp
 

@@ -2,6 +2,10 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\BannerAudience;
+use App\Enums\BannerDeviceTarget;
+use App\Enums\BannerLinkType;
+use App\Enums\BannerStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,13 +29,15 @@ class UpdateBannerRequest extends FormRequest
             'cta_label_en' => ['nullable', 'string', 'max:100'],
             'cta_label_ar' => ['nullable', 'string', 'max:100'],
             'cta_url' => ['nullable', 'string', 'max:500'],
-            'link_type' => ['nullable', Rule::in(['url', 'product', 'category', 'brand', 'flash_sale', 'page', 'none'])],
+            'link_type' => ['nullable', Rule::enum(BannerLinkType::class)],
             'link_reference_id' => ['nullable', 'uuid'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
-            'status' => ['required', Rule::in(['active', 'inactive', 'scheduled'])],
-            'device_target' => ['required', Rule::in(['all', 'desktop', 'mobile', 'app'])],
-            'audience' => ['required', Rule::in(['all', 'guest', 'logged_in', 'vip', 'new_user'])],
+            'status' => ['required', Rule::enum(BannerStatus::class)->only([
+                BannerStatus::Active, BannerStatus::Inactive, BannerStatus::Scheduled,
+            ])],
+            'device_target' => ['required', Rule::enum(BannerDeviceTarget::class)],
+            'audience' => ['required', Rule::enum(BannerAudience::class)],
             'priority' => ['nullable', 'integer', 'min:0'],
             'desktop_image' => ['nullable', 'image', 'max:5120'],
             'mobile_image' => ['nullable', 'image', 'max:5120'],

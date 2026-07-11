@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Customer\Dispute;
 
+use App\Enums\DisputeReason;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class DisputeStoreRequest extends FormRequest
 {
@@ -11,7 +13,7 @@ class DisputeStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'reason'      => ['required', 'string', 'in:item_not_received,item_damaged,item_not_as_described,counterfeit,wrong_item,quality_issue,seller_unresponsive,refund_not_received,other'],
+            'reason'      => ['required', 'string', Rule::enum(DisputeReason::class)],
             'description' => ['required', 'string', 'max:5000'],
         ];
     }

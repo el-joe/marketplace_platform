@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\Payment\ConnectionTestResult;
+use App\Enums\CountryPaymentMethodVerificationStatus;
 use App\DTOs\Payment\PaymentInitiationData;
 use App\DTOs\Payment\PaymentInitiationResult;
 use App\DTOs\Payment\PaymentVerificationResult;
@@ -123,7 +124,7 @@ class PaymentService
 
         $methodConfig->update([
             'last_verified_at'           => now(),
-            'last_verification_status'   => $result->success ? 'success' : 'failed',
+            'last_verification_status'   => $result->success ? CountryPaymentMethodVerificationStatus::Success : CountryPaymentMethodVerificationStatus::Failed,
             'last_verification_message'  => $result->message,
         ]);
 

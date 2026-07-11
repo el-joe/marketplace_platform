@@ -2,6 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\DeliveryAgentCodSettlementStatus;
+use App\Enums\DeliveryAgentEarningStatus;
+use App\Enums\DeliveryAssignmentStatus;
+use App\Enums\WalletTransactionType;
+use App\Enums\WalletWithdrawalRequestStatus;
 use App\Exceptions\InsufficientBalanceException;
 use App\Models\Admin;
 use App\Models\DeliveryAgent;
@@ -42,7 +47,7 @@ class WalletService
 
             return WalletTransaction::create([
                 'wallet_id'              => $wallet->id,
-                'type'                   => 'credit',
+                'type'                   => WalletTransactionType::Credit,
                 'amount_cents'           => $amountCents,
                 'balance_after_cents'    => $newBalance,
                 'source_type'            => $sourceType,
@@ -78,7 +83,7 @@ class WalletService
 
             return WalletTransaction::create([
                 'wallet_id'              => $wallet->id,
-                'type'                   => 'debit',
+                'type'                   => WalletTransactionType::Debit,
                 'amount_cents'           => $amountCents,
                 'balance_after_cents'    => $newBalance,
                 'source_type'            => $sourceType,
@@ -111,7 +116,7 @@ class WalletService
                 'currency'     => $wallet->currency,
                 'bank_name'    => $bankDetails['bank_name'] ?? null,
                 'bank_iban'    => $bankDetails['bank_iban'] ?? null,
-                'status'       => 'pending',
+                'status'       => WalletWithdrawalRequestStatus::Pending,
             ]);
         });
     }
@@ -128,7 +133,7 @@ class WalletService
 
             WalletTransaction::create([
                 'wallet_id'             => $wallet->id,
-                'type'                  => 'debit',
+                'type'                  => WalletTransactionType::Debit,
                 'amount_cents'          => $request->amount_cents,
                 'balance_after_cents'   => $wallet->balance_cents,
                 'source_type'           => 'withdrawal',
@@ -139,7 +144,7 @@ class WalletService
             ]);
 
             $request->update([
-                'status'                => 'approved',
+                'status'                => WalletWithdrawalRequestStatus::Approved,
                 'approved_by_admin_id'  => $admin->id,
             ]);
 
@@ -159,7 +164,7 @@ class WalletService
             ]);
 
             $request->update([
-                'status'           => 'rejected',
+                'status'           => WalletWithdrawalRequestStatus::Rejected,
                 'rejection_reason' => $reason,
             ]);
 
@@ -173,14 +178,14 @@ class WalletService
         $codCollected = DB::table('orders')
             ->join('delivery_assignments', 'delivery_assignments.order_id', '=', 'orders.id')
             ->where('delivery_assignments.agent_id', $agent->id)
-            ->where('delivery_assignments.status', 'delivered')
+            ->where('delivery_assignments.status', DeliveryAssignmentStatus::Delivered->value)
             ->where('orders.payment_method', 'cod')
             ->whereBetween('delivery_assignments.delivered_at', [$periodStart . ' 00:00:00', $periodEnd . ' 23:59:59'])
             ->sum('orders.total_cents');
 
         // Sum approved earnings owed to this agent in the period
         $earningsOwed = DeliveryAgentEarning::where('agent_id', $agent->id)
-            ->where('status', 'approved')
+            ->where('status', DeliveryAgentEarningStatus::Approved)
             ->whereBetween('created_at', [$periodStart . ' 00:00:00', $periodEnd . ' 23:59:59'])
             ->sum('amount_cents');
 
@@ -194,7 +199,7 @@ class WalletService
                 'total_cod_collected_cents'  => (int) $codCollected,
                 'total_earnings_owed_cents'  => (int) $earningsOwed,
                 'net_to_remit_cents'         => $net,
-                'status'                     => 'pending',
+                'status'                     => DeliveryAgentCodSettlementStatus::Pending,
             ]);
 
             $wallet = $this->getOrCreateWallet('delivery_agent', $agent->id, 'EGP');

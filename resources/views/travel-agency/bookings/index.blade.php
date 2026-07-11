@@ -80,8 +80,8 @@
                     <td class="px-4 py-3 text-center text-gray-700">{{ $bk->travelers_count }}</td>
                     <td class="px-4 py-3 font-medium text-gray-900">{{ $bk->totalFormatted() }}</td>
                     <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$bk->status] ?? '' }}">
-                            {{ $labels[$bk->status] ?? $bk->status }}
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$bk->status->value] ?? '' }}">
+                            {{ $labels[$bk->status->value] ?? $bk->status->label() }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $bk->created_at->format('d M Y') }}</td>

@@ -38,6 +38,7 @@ class MarketerPayout extends \Illuminate\Database\Eloquent\Model
             'gross_commission_cents' => 'integer',
             'tax_deduction_cents' => 'integer',
             'net_amount_cents' => 'integer',
+            'status' => \App\Enums\MarketerPayoutStatus::class,
         ];
     }
 
@@ -64,11 +65,10 @@ class MarketerPayout extends \Illuminate\Database\Eloquent\Model
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'paid' => 'success',
-            'approved' => 'primary',
-            'pending' => 'warning',
-            'failed' => 'danger',
-            'cancelled' => 'secondary',
+            \App\Enums\MarketerPayoutStatus::Paid => 'success',
+            \App\Enums\MarketerPayoutStatus::Approved => 'primary',
+            \App\Enums\MarketerPayoutStatus::Pending => 'warning',
+            \App\Enums\MarketerPayoutStatus::Failed => 'danger',
             default => 'secondary',
         };
     }

@@ -22,12 +22,12 @@
         </div>
 
         <div class="flex gap-2">
-            @if($travelAgency->status === 'pending')
+            @if($travelAgency->status === \App\Enums\TravelAgencyStatus::Pending)
             <button onclick="approveAgency()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium">{{ __('admin.travel.approve') }}</button>
             <button onclick="rejectAgency()" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium">{{ __('admin.classifieds.reject') }}</button>
-            @elseif($travelAgency->status === 'active')
+            @elseif($travelAgency->status === \App\Enums\TravelAgencyStatus::Active)
             <button onclick="suspendAgency()" class="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium">{{ __('admin.travel.suspend') }}</button>
-            @elseif($travelAgency->status === 'suspended')
+            @elseif($travelAgency->status === \App\Enums\TravelAgencyStatus::Suspended)
             <button onclick="reactivateAgency()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium">{{ __('admin.travel.reactivate') }}</button>
             @endif
             <a href="{{ route('admin.travel.agencies.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">{{ __('admin.travel.back') }}</a>
@@ -38,8 +38,8 @@
     @php
     $statusColors = ['pending' => 'bg-amber-100 text-amber-700', 'active' => 'bg-emerald-100 text-emerald-700', 'suspended' => 'bg-red-100 text-red-700'];
     @endphp
-    <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$travelAgency->status] ?? '' }}">
-        {{ __('admin.travel.agency_status_' . $travelAgency->status) }}
+    <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$travelAgency->status->value] ?? '' }}">
+        {{ $travelAgency->status->label() }}
     </span>
 
     {{-- Details Grid --}}
@@ -91,8 +91,8 @@
                         <td class="px-4 py-3 text-gray-600">{{ $pkg->departure_date->format('d M Y') }}</td>
                         <td class="px-4 py-3 font-medium text-gray-900">{{ $pkg->priceFormatted() }}</td>
                         <td class="px-4 py-3">
-                            <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $pkgColors[$pkg->status] ?? '' }}">
-                                {{ __('admin.travel.package_status_' . $pkg->status) }}
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $pkgColors[$pkg->status->value] ?? '' }}">
+                                {{ $pkg->status->label() }}
                             </span>
                         </td>
                         <td class="px-4 py-3">

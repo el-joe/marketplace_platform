@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CustomerOtpTokenType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,6 +19,7 @@ class CustomerOtpToken extends Model
     protected function casts(): array
     {
         return [
+            'type' => CustomerOtpTokenType::class,
             'expires_at' => 'datetime',
             'used_at' => 'datetime',
         ];

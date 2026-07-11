@@ -23,7 +23,7 @@
     <div>
         <h1 class="text-2xl font-bold text-gray-900">{{ $campaign->name }}</h1>
         <p class="text-sm text-gray-500 mt-0.5">
-            {{ ucfirst(str_replace('_', ' ', $campaign->campaign_type)) }}
+            {{ $campaign->campaign_type->label() }}
             &nbsp;·&nbsp;
             <a href="{{ route('admin.marketers.all.show', $campaign->marketer_id) }}" class="text-primary-600 hover:underline">
                 {{ $campaign->marketer->name }}
@@ -31,7 +31,7 @@
         </p>
     </div>
 
-    @if ($campaign->status === 'draft')
+    @if ($campaign->status === \App\Enums\MarketerCampaignStatus::Draft)
         <div class="flex gap-2">
             <button type="button"
                 class="btn btn-success btn-sm btn-approve-campaign"
@@ -46,7 +46,7 @@
         </div>
     @else
         <span class="badge badge-{{ $campaign->status_color }} text-sm px-3 py-1">
-            {{ ucfirst($campaign->status) }}
+            {{ $campaign->status->label() }}
         </span>
     @endif
 </div>
@@ -77,8 +77,8 @@
                             <span><span class="text-gray-400">{{ __('admin.marketers.price') }}:</span> {{ number_format($campaignable->price, 2) }} {{ $campaignable->currency ?? '' }}</span>
                         @endif
                         <span><span class="text-gray-400">{{ __('admin.status') }}:</span>
-                            <span class="font-medium {{ $campaignable->status === 'active' ? 'text-green-600' : 'text-gray-500' }}">
-                                {{ ucfirst($campaignable->status) }}
+                            <span class="font-medium {{ $campaignable->status === \App\Enums\ClassifiedListingStatus::Active ? 'text-green-600' : 'text-gray-500' }}">
+                                {{ $campaignable->status->label() }}
                             </span>
                         </span>
                         @if ($campaignable->seller)
@@ -145,7 +145,7 @@
                     <dt class="text-gray-400">{{ __('admin.commission') }}</dt>
                     <dd class="font-medium text-gray-800">
                         {{ $campaign->commission_rate }}%
-                        ({{ ucfirst($campaign->commission_type ?? 'standard') }})
+                        ({{ $campaign->commission_type?->label() ?? 'Standard' }})
                     </dd>
                 </div>
                 <div>
@@ -211,7 +211,7 @@
             <dl class="space-y-3 text-sm">
                 <div class="flex justify-between">
                     <dt class="text-gray-400">{{ __('admin.marketers.current_status') }}</dt>
-                    <dd><span class="badge badge-{{ $campaign->status_color }}">{{ ucfirst($campaign->status) }}</span></dd>
+                    <dd><span class="badge badge-{{ $campaign->status_color }}">{{ $campaign->status->label() }}</span></dd>
                 </div>
                 <div class="flex justify-between">
                     <dt class="text-gray-400">{{ __('admin.marketers.created') }}</dt>
@@ -240,17 +240,17 @@
                 <input type="number" id="samples-required-input"
                     value="{{ $campaign->samples_required }}" min="0" max="10"
                     class="form-input w-24 text-sm py-1.5"
-                    {{ !in_array($campaign->status, ['draft', 'active']) ? 'disabled' : '' }}>
+                    {{ !in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::Active], true) ? 'disabled' : '' }}>
                 <button type="button" id="samples-required-btn"
                     onclick="saveSamplesRequired()"
                     class="btn btn-sm btn-primary"
-                    {{ !in_array($campaign->status, ['draft', 'active']) ? 'disabled' : '' }}>
+                    {{ !in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::Active], true) ? 'disabled' : '' }}>
                     {{ __('admin.save') }}
                 </button>
             </div>
             <p id="samples-required-msg" class="text-xs mt-2 hidden"></p>
-            @if (!in_array($campaign->status, ['draft', 'active']))
-                <p class="text-xs text-gray-400 mt-2">{{ __('admin.marketers.editing_locked', ['status' => $campaign->status]) }}</p>
+            @if (!in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::Active], true))
+                <p class="text-xs text-gray-400 mt-2">{{ __('admin.marketers.editing_locked', ['status' => $campaign->status->label()]) }}</p>
             @endif
         </x-card>
 

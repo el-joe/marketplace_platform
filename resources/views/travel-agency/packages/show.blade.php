@@ -12,11 +12,11 @@
                 <p class="text-sm text-gray-400">{{ $package->title_en }}</p>
             </div>
             <div class="flex gap-2">
-                @if(in_array($package->status, ['draft', 'pending_review']))
+                @if(in_array($package->status, [\App\Enums\TravelPackageStatus::Draft, \App\Enums\TravelPackageStatus::PendingReview]))
                     <a href="{{ route('travel-agency.packages.edit', $package) }}"
                         class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">{{ __('travel.packages.edit') }}</a>
                 @endif
-                @if($package->status === 'draft')
+                @if($package->status === \App\Enums\TravelPackageStatus::Draft)
                     <form method="POST" action="{{ route('travel-agency.packages.submit', $package) }}" class="inline">
                         @csrf
                         <button type="submit"
@@ -25,7 +25,7 @@
                         </button>
                     </form>
                 @endif
-                @if($package->status === 'active' && ($package->seatsRemaining() === null || $package->seatsRemaining() > 0))
+                @if($package->status === \App\Enums\TravelPackageStatus::Active && ($package->seatsRemaining() === null || $package->seatsRemaining() > 0))
                     <a href="{{ route('travel-agency.bookings.create', ['package_id' => $package->id]) }}"
                         class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500">
                         + {{ __('travel.bookings.new_booking') }}
@@ -47,8 +47,8 @@
                 'expired' => __('travel.dashboard.expired')
             ];
         @endphp
-        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $colors[$package->status] ?? '' }}">
-            {{ $labels[$package->status] ?? $package->status }}
+        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {{ $colors[$package->status->value] ?? '' }}">
+            {{ $labels[$package->status->value] ?? $package->status->label() }}
         </span>
 
         {{-- Details --}}
@@ -154,7 +154,7 @@
                                 <td class="px-4 py-3 text-gray-700">{{ $booking->customer?->name }}</td>
                                 <td class="px-4 py-3 text-gray-700">{{ $booking->travelers_count }}</td>
                                 <td class="px-4 py-3 font-medium text-gray-900">{{ $booking->totalFormatted() }}</td>
-                                <td class="px-4 py-3 text-gray-600">{{ $booking->status }}</td>
+                                <td class="px-4 py-3 text-gray-600">{{ $booking->status->label() }}</td>
                                 <td class="px-4 py-3 text-gray-500">{{ $booking->created_at->format('d M Y') }}</td>
                             </tr>
                         @endforeach

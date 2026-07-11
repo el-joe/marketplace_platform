@@ -80,8 +80,8 @@ class PaidAdBookingController extends Controller
         $canEdit = $admin->hasPermissionTo('ad_campaigns.edit');
 
         return $this->dataTableResponse($request, $query, $columns, function (PaidAdBooking $row) use ($statusColors, $paymentColors, $canEdit) {
-            $statusColor = $statusColors[$row->status] ?? 'gray';
-            $statusLabel = ucfirst($row->status);
+            $statusColor = $statusColors[$row->status->value] ?? 'gray';
+            $statusLabel = $row->status->label();
             $statusBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{$statusColor}-100 text-{$statusColor}-700\">{$statusLabel}</span>";
 
             $payColor = $paymentColors[$row->payment_status] ?? 'gray';
@@ -94,7 +94,7 @@ class PaidAdBookingController extends Controller
 
             $actions = '<div class="flex items-center gap-1">';
             $actions .= "<a href=\"{$showUrl}\" class=\"btn btn-xs btn-secondary\">View</a>";
-            if ($canEdit && $row->status === 'pending') {
+            if ($canEdit && $row->status?->value === 'pending') {
                 $actions .= "<button type=\"button\" class=\"btn btn-xs btn-success js-approve-booking-btn\" data-url=\"{$approveUrl}\" data-ref=\"" . e($row->booking_reference) . "\">Approve</button>";
                 $actions .= "<button type=\"button\" class=\"btn btn-xs btn-danger js-reject-booking-btn\" data-url=\"{$rejectUrl}\" data-ref=\"" . e($row->booking_reference) . "\">Reject</button>";
             }
@@ -103,7 +103,7 @@ class PaidAdBookingController extends Controller
             // Current creative status
             $creative = $row->creatives->first();
             $creativeStatus = $creative
-                ? "<span class=\"text-xs text-gray-500\">Creative: " . ucfirst($creative->status) . "</span>"
+                ? "<span class=\"text-xs text-gray-500\">Creative: " . $creative->status->label() . "</span>"
                 : '<span class="text-xs text-gray-400">No creative</span>';
 
             return [
@@ -139,7 +139,7 @@ class PaidAdBookingController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
 
-        if ($paidAdBooking->status !== 'pending') {
+        if ($paidAdBooking->status?->value !== 'pending') {
             return response()->json(['message' => 'Booking is not pending approval.'], 422);
         }
 

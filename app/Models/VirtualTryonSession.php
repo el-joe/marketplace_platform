@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VirtualTryonSessionStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,10 @@ class VirtualTryonSession extends Model
         'error_message',
     ];
 
+    protected $casts = [
+        'status' => VirtualTryonSessionStatus::class,
+    ];
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
@@ -32,11 +37,11 @@ class VirtualTryonSession extends Model
 
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === VirtualTryonSessionStatus::Completed;
     }
 
     public function isFailed(): bool
     {
-        return $this->status === 'failed';
+        return $this->status === VirtualTryonSessionStatus::Failed;
     }
 }

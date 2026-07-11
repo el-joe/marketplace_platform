@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Delivery\Api;
 
+use App\Enums\DeliveryAgentDocumentStatus;
+use App\Enums\DeliveryAgentDocumentType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Delivery\Profile\ReuploadDocumentRequest;
 use App\Http\Requests\Delivery\Profile\UpdatePasswordRequest;
@@ -58,9 +60,7 @@ class ProfileController extends Controller
 
     public function reuploadDocument(ReuploadDocumentRequest $request, string $type): JsonResponse
     {
-        $allowed = ['national_id', 'driving_license', 'vehicle_registration', 'insurance', 'profile_photo'];
-
-        if (!in_array($type, $allowed, true)) {
+        if (!in_array($type, array_column(DeliveryAgentDocumentType::cases(), 'value'), true)) {
             return ApiResponse::error('Invalid document type.', [], 422);
         }
 
@@ -73,7 +73,7 @@ class ProfileController extends Controller
             ['agent_id' => $agent->id, 'document_type' => $type],
             [
                 'file_path'         => $path,
-                'status'            => 'pending',
+                'status'            => DeliveryAgentDocumentStatus::Pending,
                 'rejection_reason'  => null,
                 'verified_at'       => null,
                 'verified_by_admin_id' => null,

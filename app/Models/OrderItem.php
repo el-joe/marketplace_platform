@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderItemFulfillmentStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,7 @@ class OrderItem extends Model
         return [
             'product_snapshot' => 'array',
             'return_eligible_until' => 'date',
+            'fulfillment_status' => OrderItemFulfillmentStatus::class,
         ];
     }
 

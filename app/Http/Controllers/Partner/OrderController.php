@@ -140,7 +140,7 @@ class OrderController extends Controller
             $maskedLocation = $area ? "{$city}, {$area}" : $city;
 
             $slaHtml = '—';
-            if ($row->sla_ship_deadline && !in_array($row->status, ['shipped', 'delivered', 'completed', 'cancelled'])) {
+            if ($row->sla_ship_deadline && !in_array($row->status->value, ['shipped', 'delivered', 'completed', 'cancelled'])) {
                 $isUrgent = now()->addHours(2)->gt($row->sla_ship_deadline);
                 $isPast = now()->gt($row->sla_ship_deadline);
                 $diff = $row->sla_ship_deadline->diffForHumans();
@@ -153,7 +153,7 @@ class OrderController extends Controller
                 'show_url' => Route::has('partner.orders.show')
                     ? route('partner.orders.show', $row->sub_order_number)
                     : '#',
-                'status' => $row->status,
+                'status' => $row->status->value,
                 'vendor_payout' => number_format($row->vendor_payout / 100, 2),
                 'location' => $maskedLocation,
                 'item_count' => $row->item_count,
@@ -201,7 +201,7 @@ class OrderController extends Controller
     {
         $subOrder = $this->vendorSubOrder($subOrderNumber);
 
-        if ($subOrder->status !== 'placed') {
+        if ($subOrder->status !== \App\Enums\SubOrderStatus::Placed) {
             return response()->json(['success' => false, 'message' => 'الطلب لا يمكن تأكيده في حالته الحالية.'], 422);
         }
 
@@ -236,7 +236,7 @@ class OrderController extends Controller
 
         $subOrder = $this->vendorSubOrder($subOrderNumber);
 
-        if (!in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'packed'])) {
+        if (!in_array($subOrder->status->value, ['placed', 'confirmed', 'processing', 'packed'])) {
             return response()->json(['success' => false, 'message' => 'لا يمكن شحن هذا الطلب في حالته الحالية.'], 422);
         }
 
@@ -248,7 +248,7 @@ class OrderController extends Controller
 
         try {
             DB::transaction(function () use ($request, $subOrder, $vendorId) {
-                $fromStatus = $subOrder->status;
+                $fromStatus = $subOrder->status->value;
 
                 // 1. Update sub_order
                 $subOrder->update([
@@ -363,7 +363,7 @@ class OrderController extends Controller
         $subOrder = $this->vendorSubOrder($subOrderNumber);
 
         $nonCancellableStatuses = ['shipped', 'delivered', 'completed', 'cancelled', 'return_requested', 'returned'];
-        if (in_array($subOrder->status, $nonCancellableStatuses)) {
+        if (in_array($subOrder->status->value, $nonCancellableStatuses)) {
             return response()->json(['success' => false, 'message' => 'لا يمكن إلغاء هذا الطلب في حالته الحالية.'], 422);
         }
 
@@ -371,7 +371,7 @@ class OrderController extends Controller
 
         try {
             DB::transaction(function () use ($request, $subOrder, $vendorId) {
-                $fromStatus = $subOrder->status;
+                $fromStatus = $subOrder->status->value;
 
                 $subOrder->update([
                     'status' => 'cancelled',
@@ -442,13 +442,13 @@ class OrderController extends Controller
     {
         $subOrder = $this->vendorSubOrder($subOrderNumber);
 
-        if ($subOrder->status !== 'shipped') {
+        if ($subOrder->status !== \App\Enums\SubOrderStatus::Shipped) {
             return response()->json(['success' => false, 'message' => 'لا يمكن تحديث هذا الطلب في حالته الحالية.'], 422);
         }
 
         try {
             DB::transaction(function () use ($subOrder) {
-                $fromStatus = $subOrder->status;
+                $fromStatus = $subOrder->status->value;
                 $subOrder->update(['status' => 'out_for_delivery']);
 
                 OrderStatusHistory::create([
@@ -480,13 +480,13 @@ class OrderController extends Controller
     {
         $subOrder = $this->vendorSubOrder($subOrderNumber);
 
-        if (!in_array($subOrder->status, ['shipped', 'out_for_delivery'])) {
+        if (!in_array($subOrder->status->value, ['shipped', 'out_for_delivery'])) {
             return response()->json(['success' => false, 'message' => 'لا يمكن تحديث هذا الطلب في حالته الحالية.'], 422);
         }
 
         try {
             DB::transaction(function () use ($subOrder) {
-                $fromStatus = $subOrder->status;
+                $fromStatus = $subOrder->status->value;
                 $subOrder->update([
                     'status' => 'delivered',
                     'delivered_at' => now(),

@@ -17,6 +17,8 @@ class ClassifiedListingMarketer extends Model
 
     protected $casts = [
         'commission_value' => 'decimal:2',
+        'status' => \App\Enums\ClassifiedListingMarketerStatus::class,
+        'commission_type' => \App\Enums\ClassifiedListingMarketerCommissionType::class,
     ];
 
     protected static function booted(): void

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\VendorBankAccountVerificationStatus;
+use App\Enums\VendorDocumentStatus;
+use App\Enums\VendorGlobalStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ApproveVendorRequest;
 use App\Http\Requests\Admin\AssignVendorManagerRequest;
@@ -34,7 +37,7 @@ class VendorController extends Controller
 
     public function index()
     {
-        $pendingCount = Vendor::where('global_status', 'pending')->count();
+        $pendingCount = Vendor::where('global_status', VendorGlobalStatus::Pending->value)->count();
         $admins = Admin::orderBy('name')->get(['id', 'name']);
         $countries = Country::orderBy('name_en')->get(['id', 'name_en']);
 
@@ -99,7 +102,7 @@ class VendorController extends Controller
 
     public function applicationQueue()
     {
-        $vendors = Vendor::where('global_status', 'pending')
+        $vendors = Vendor::where('global_status', VendorGlobalStatus::Pending->value)
             ->with(['country', 'documents'])
             ->orderBy('created_at', 'asc')
             ->paginate(24);
@@ -149,7 +152,7 @@ class VendorController extends Controller
     {
         // Verify all critical documents are verified before approval
         $unverified = $vendor->documents()
-            ->whereNotIn('status', ['approved', 'verified'])
+            ->where('status', '!=', VendorDocumentStatus::Approved->value)
             ->count();
 
         if ($unverified > 0) {
@@ -285,7 +288,7 @@ class VendorController extends Controller
         ]);
 
         $document->update([
-            'status' => 'rejected',
+            'status' => VendorDocumentStatus::Rejected,
             'rejection_reason' => $request->input('rejection_reason'),
             'notes' => $request->input('notes'),
         ]);
@@ -300,7 +303,7 @@ class VendorController extends Controller
         $account = $vendor->bankAccounts()->findOrFail($accountId);
 
         $account->update([
-            'verification_status' => 'verified',
+            'verification_status' => VendorBankAccountVerificationStatus::Verified,
             'verified_by_admin_id' => auth('admin')->id(),
             'verified_at' => now(),
         ]);
@@ -347,7 +350,7 @@ class VendorController extends Controller
 
         // Platform averages
         $platformAvg = Vendor::query()
-            ->whereIn('global_status', ['active', 'suspended'])
+            ->whereIn('global_status', [VendorGlobalStatus::Active->value, VendorGlobalStatus::Suspended->value])
             ->selectRaw('AVG(total_sales) as gmv, AVG(total_orders) as orders, AVG(store_rating_avg) as rating')
             ->first();
 

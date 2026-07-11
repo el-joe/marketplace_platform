@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DeliveryAgentPayoutStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,6 +37,7 @@ class DeliveryAgentPayout extends Model
             'deductions_cents' => 'integer',
             'net_amount_cents' => 'integer',
             'processed_at' => 'datetime',
+            'status' => DeliveryAgentPayoutStatus::class,
         ];
     }
 

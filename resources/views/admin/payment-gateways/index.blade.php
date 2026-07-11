@@ -81,10 +81,10 @@
                             <td class="px-4 py-3 text-center">
                                 @if($method->environment ?? null)
                                     <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset
-                                        {{ $method->environment === 'production'
+                                        {{ $method->environment === \App\Enums\CountryPaymentMethodEnvironment::Production
                                             ? 'bg-green-50 text-green-700 ring-green-200'
                                             : 'bg-yellow-50 text-yellow-700 ring-yellow-200' }}">
-                                        {{ $method->environment }}
+                                        {{ $method->environment->value }}
                                     </span>
                                 @else
                                     <span class="text-gray-400 text-xs">—</span>
@@ -105,8 +105,8 @@
                             </td>
                             <td class="px-4 py-3 text-center text-xs">
                                 @if($method->last_verified_at)
-                                    <span class="{{ $method->last_verification_status === 'success' ? 'text-green-600' : 'text-red-500' }}">
-                                        {{ $method->last_verification_status === 'success' ? '✓' : '✗' }}
+                                    <span class="{{ $method->last_verification_status === \App\Enums\CountryPaymentMethodVerificationStatus::Success ? 'text-green-600' : 'text-red-500' }}">
+                                        {{ $method->last_verification_status === \App\Enums\CountryPaymentMethodVerificationStatus::Success ? '✓' : '✗' }}
                                     </span>
                                     <span class="text-gray-400">{{ $method->last_verified_at->diffForHumans() }}</span>
                                 @else

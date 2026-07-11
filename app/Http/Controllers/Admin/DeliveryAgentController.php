@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\DeliveryAgentType;
+use App\Enums\DeliveryAgentVehicleType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreDeliveryAgentRequest;
 use App\Models\Country;
@@ -14,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class DeliveryAgentController extends Controller
@@ -169,8 +172,8 @@ class DeliveryAgentController extends Controller
             'phone' => ['required', 'string', 'max:30', 'unique:delivery_agents,phone,' . $agent->id],
             'country_id' => ['required', 'exists:countries,id'],
             'zone_id' => ['nullable', 'exists:delivery_zones,id'],
-            'agent_type' => ['required', 'in:platform,third_party'],
-            'vehicle_type' => ['required', 'in:motorcycle,car,van,bicycle'],
+            'agent_type' => ['required', Rule::enum(DeliveryAgentType::class)],
+            'vehicle_type' => ['required', Rule::enum(DeliveryAgentVehicleType::class)],
             'national_id' => ['nullable', 'string', 'max:30'],
             'vehicle_plate' => ['nullable', 'string', 'max:20'],
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],

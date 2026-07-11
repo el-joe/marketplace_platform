@@ -57,7 +57,7 @@
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ $inq->package->agency->name ?? '—' }}</td>
                     <td class="px-4 py-3 text-center text-gray-700">{{ $inq->travelers_count ?? '—' }}</td>
                     <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$inq->status] ?? '' }}">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$inq->status->value] ?? '' }}">
                             {{ $inq->statusLabel() }}
                         </span>
                     </td>

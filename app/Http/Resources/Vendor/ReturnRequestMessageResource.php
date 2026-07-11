@@ -18,8 +18,8 @@ class ReturnRequestMessageResource extends JsonResource
     {
         return [
             'id'          => $this->id,
-            'sender_role' => $this->sender_role,
-            'sender_label' => self::$senderLabels[$this->sender_role] ?? $this->sender_role,
+            'sender_role' => $this->sender_role->value,
+            'sender_label' => self::$senderLabels[$this->sender_role->value] ?? $this->sender_role->value,
             'message'     => $this->message,
             'attachments' => $this->whenLoaded('attachments', fn () =>
                 $this->attachments->map(fn ($att) => [

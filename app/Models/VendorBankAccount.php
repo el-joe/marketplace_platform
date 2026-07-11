@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VendorBankAccountVerificationStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class VendorBankAccount extends Model
 {
     use HasUuids;
+
+    protected function casts(): array
+    {
+        return [
+            'verification_status' => VendorBankAccountVerificationStatus::class,
+        ];
+    }
 
     protected $fillable = [
         'vendor_id',

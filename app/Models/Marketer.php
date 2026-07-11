@@ -67,6 +67,8 @@ class Marketer extends Authenticatable implements JWTSubject
             'total_clicks' => 'integer',
             'total_conversions' => 'integer',
             'followers_count' => 'integer',
+            'status' => \App\Enums\MarketerStatus::class,
+            'type' => \App\Enums\MarketerType::class,
         ];
     }
 
@@ -163,22 +165,16 @@ class Marketer extends Authenticatable implements JWTSubject
 
     public function getTypeLabelAttribute(): string
     {
-        return match ($this->type) {
-            'influencer' => 'Influencer',
-            'celebrity' => 'Celebrity',
-            'affiliate' => 'Affiliate',
-            'brand_ambassador' => 'Brand Ambassador',
-            default => ucfirst($this->type),
-        };
+        return $this->type?->label() ?? '';
     }
 
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'active' => 'success',
-            'pending' => 'warning',
-            'suspended' => 'danger',
-            'rejected' => 'secondary',
+            \App\Enums\MarketerStatus::Active => 'success',
+            \App\Enums\MarketerStatus::Pending => 'warning',
+            \App\Enums\MarketerStatus::Suspended => 'danger',
+            \App\Enums\MarketerStatus::Rejected => 'secondary',
             default => 'secondary',
         };
     }
@@ -214,11 +210,11 @@ class Marketer extends Authenticatable implements JWTSubject
 
     public function scopeActive($q)
     {
-        return $q->where('status', 'active');
+        return $q->where('status', \App\Enums\MarketerStatus::Active);
     }
 
     public function scopePending($q)
     {
-        return $q->where('status', 'pending');
+        return $q->where('status', \App\Enums\MarketerStatus::Pending);
     }
 }

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Enums\PackagingSupplyRequestStatus;
+use App\Enums\PackagingSupplyType;
 use App\Models\PackagingSupply;
 use App\Models\PackagingSupplyRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PackagingSupplyController extends Controller
@@ -30,7 +33,7 @@ class PackagingSupplyController extends Controller
         $data = $request->validate([
             'name_en'         => ['required', 'string', 'max:150'],
             'name_ar'         => ['required', 'string', 'max:150'],
-            'type'            => ['required', 'in:box,bag,tape,label,other'],
+            'type'            => ['required', Rule::enum(PackagingSupplyType::class)],
             'size'            => ['nullable', 'string', 'max:50'],
             'unit_cost_cents' => ['required', 'integer', 'min:0'],
             'stock_available' => ['nullable', 'integer', 'min:0'],
@@ -55,7 +58,7 @@ class PackagingSupplyController extends Controller
         $data = $request->validate([
             'name_en'         => ['required', 'string', 'max:150'],
             'name_ar'         => ['required', 'string', 'max:150'],
-            'type'            => ['required', 'in:box,bag,tape,label,other'],
+            'type'            => ['required', Rule::enum(PackagingSupplyType::class)],
             'size'            => ['nullable', 'string', 'max:50'],
             'unit_cost_cents' => ['required', 'integer', 'min:0'],
             'stock_available' => ['nullable', 'integer', 'min:0'],
@@ -86,11 +89,11 @@ class PackagingSupplyController extends Controller
     public function requests(Request $request): View
     {
         $stats = [
-            'pending'   => PackagingSupplyRequest::where('status', 'pending')->count(),
-            'approved'  => PackagingSupplyRequest::where('status', 'approved')->count(),
-            'shipped'   => PackagingSupplyRequest::where('status', 'shipped')->count(),
-            'delivered' => PackagingSupplyRequest::where('status', 'delivered')->count(),
-            'rejected'  => PackagingSupplyRequest::where('status', 'rejected')->count(),
+            'pending'   => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Pending)->count(),
+            'approved'  => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Approved)->count(),
+            'shipped'   => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Shipped)->count(),
+            'delivered' => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Delivered)->count(),
+            'rejected'  => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Rejected)->count(),
         ];
 
         $query = PackagingSupplyRequest::with(['vendor', 'warehouse'])->latest();
@@ -118,7 +121,7 @@ class PackagingSupplyController extends Controller
         $admin = auth('admin')->user();
 
         $packagingSupplyRequest->update([
-            'status'              => 'approved',
+            'status'              => PackagingSupplyRequestStatus::Approved,
             'approved_by_admin_id'=> $admin->id,
             'approved_at'         => now(),
         ]);
@@ -132,7 +135,7 @@ class PackagingSupplyController extends Controller
     {
         abort_if(! $packagingSupplyRequest->isPending(), 422, 'Request is not pending.');
 
-        $packagingSupplyRequest->update(['status' => 'rejected']);
+        $packagingSupplyRequest->update(['status' => PackagingSupplyRequestStatus::Rejected]);
 
         return redirect()
             ->route('admin.packaging-supplies.show-request', $packagingSupplyRequest)
@@ -142,11 +145,17 @@ class PackagingSupplyController extends Controller
     public function updateRequestStatus(Request $request, PackagingSupplyRequest $packagingSupplyRequest): RedirectResponse
     {
         $data = $request->validate([
-            'status' => ['required', 'in:shipped,delivered'],
+            'status' => ['required', Rule::enum(PackagingSupplyRequestStatus::class)->only([
+                PackagingSupplyRequestStatus::Shipped,
+                PackagingSupplyRequestStatus::Delivered,
+            ])],
         ]);
 
         abort_if(
-            ! in_array($packagingSupplyRequest->status, ['approved', 'shipped']),
+            ! in_array($packagingSupplyRequest->status, [
+                PackagingSupplyRequestStatus::Approved,
+                PackagingSupplyRequestStatus::Shipped,
+            ], true),
             422,
             'Cannot update status from current state.'
         );

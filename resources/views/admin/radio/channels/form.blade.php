@@ -44,7 +44,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.radio.type') }} <span class="text-red-500">*</span></label>
                 <select name="type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     @foreach(['audio','video'] as $t)
-                    <option value="{{ $t }}" {{ old('type', $channel->type ?? '') === $t ? 'selected' : '' }}>
+                    <option value="{{ $t }}" {{ old('type', $channel->type?->value ?? '') === $t ? 'selected' : '' }}>
                         {{ __('admin.radio.' . $t) }}
                     </option>
                     @endforeach

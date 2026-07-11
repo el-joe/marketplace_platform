@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Currency;
+use App\Enums\DeliveryAgentEarningStatus;
+use App\Enums\DeliveryAgentPayoutStatus;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentPayout;
 use App\Traits\HasDataTable;
@@ -31,7 +33,7 @@ class DeliveryPayoutController extends Controller
             [],
         ];
 
-        $pendingCount = DeliveryAgentPayout::where('status', 'pending')->count();
+        $pendingCount = DeliveryAgentPayout::where('status', DeliveryAgentPayoutStatus::Pending)->count();
 
         $agents = DeliveryAgent::orderBy('name')->get(['id', 'name']);
         $currencies = Currency::where('is_active', true)->orderBy('code')->pluck('code');
@@ -84,7 +86,8 @@ class DeliveryPayoutController extends Controller
                 'gross_earnings' => number_format($payout->gross_earnings_cents / 100, 2),
                 'net_amount' => number_format($payout->net_amount_cents / 100, 2),
                 'currency' => $payout->currency,
-                'status' => $payout->status,
+                'status' => $payout->status->value,
+                'status_label' => $payout->status->label(),
                 'processed_at' => $payout->processed_at?->format('d M Y H:i') ?? '—',
             ];
         });
@@ -105,7 +108,7 @@ class DeliveryPayoutController extends Controller
         // Group by the earnings' own currency — one payout row per currency.
         $rows = DB::table('delivery_agent_earnings')
             ->where('agent_id', $agentId)
-            ->where('status', 'approved')
+            ->where('status', DeliveryAgentEarningStatus::Approved->value)
             ->whereBetween('created_at', [$request->period_start . ' 00:00:00', $request->period_end . ' 23:59:59'])
             ->selectRaw('
                 currency,
@@ -139,7 +142,7 @@ class DeliveryPayoutController extends Controller
                 'deductions_cents'     => $deductions,
                 'net_amount_cents'     => $net,
                 'currency'             => $row->currency,
-                'status'               => 'pending',
+                'status'               => DeliveryAgentPayoutStatus::Pending,
             ]);
 
             $payouts[] = [
@@ -161,12 +164,12 @@ class DeliveryPayoutController extends Controller
 
     public function approve(DeliveryAgentPayout $payout): JsonResponse
     {
-        if ($payout->status !== 'pending') {
+        if ($payout->status !== DeliveryAgentPayoutStatus::Pending) {
             return response()->json(['success' => false, 'message' => 'Only pending payouts can be approved.'], 422);
         }
 
         $payout->update([
-            'status' => 'approved',
+            'status' => DeliveryAgentPayoutStatus::Approved,
             'approved_by_admin_id' => auth('admin')->id(),
         ]);
 
@@ -182,12 +185,12 @@ class DeliveryPayoutController extends Controller
             'payment_reference' => ['nullable', 'string', 'max:255'],
         ]);
 
-        if ($payout->status !== 'approved') {
+        if ($payout->status !== DeliveryAgentPayoutStatus::Approved) {
             return response()->json(['success' => false, 'message' => 'Payout must be approved before processing.'], 422);
         }
 
         $payout->update([
-            'status' => 'paid',
+            'status' => DeliveryAgentPayoutStatus::Paid,
             'payment_method' => $request->payment_method,
             'payment_reference' => $request->payment_reference,
             'processed_at' => now(),
@@ -196,12 +199,12 @@ class DeliveryPayoutController extends Controller
         // Mark underlying earnings as paid
         DB::table('delivery_agent_earnings')
             ->where('agent_id', $payout->agent_id)
-            ->where('status', 'approved')
+            ->where('status', DeliveryAgentEarningStatus::Approved->value)
             ->whereBetween('created_at', [
                 $payout->period_start->startOfDay(),
                 $payout->period_end->endOfDay(),
             ])
-            ->update(['status' => 'paid', 'paid_at' => now()]);
+            ->update(['status' => DeliveryAgentEarningStatus::Paid->value, 'paid_at' => now()]);
 
         return response()->json(['success' => true, 'message' => 'Payout marked as paid.']);
     }

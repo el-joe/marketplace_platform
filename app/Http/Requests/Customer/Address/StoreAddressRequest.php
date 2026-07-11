@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Customer\Address;
 
+use App\Enums\AddressType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,7 +28,7 @@ class StoreAddressRequest extends FormRequest
             'landmark' => ['nullable', 'string', 'max:255'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'address_type' => ['required', Rule::in(['shipping', 'billing', 'both'])],
+            'address_type' => ['required', Rule::enum(AddressType::class)],
             'is_default' => ['boolean'],
         ];
     }

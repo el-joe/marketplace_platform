@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\DeliveryAgentDocumentStatus;
+use App\Enums\DeliveryAgentDocumentType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,6 +28,8 @@ class DeliveryAgentDocument extends Model
         return [
             'verified_at' => 'datetime',
             'expires_at' => 'date',
+            'status' => DeliveryAgentDocumentStatus::class,
+            'document_type' => DeliveryAgentDocumentType::class,
         ];
     }
 
@@ -50,13 +54,6 @@ class DeliveryAgentDocument extends Model
 
     public function getLabelAttribute(): string
     {
-        return match ($this->document_type) {
-            'national_id' => 'National ID',
-            'driving_license' => 'Driving License',
-            'vehicle_registration' => 'Vehicle Registration',
-            'insurance' => 'Insurance',
-            'profile_photo' => 'Profile Photo',
-            default => ucwords(str_replace('_', ' ', $this->document_type)),
-        };
+        return $this->document_type->label();
     }
 }

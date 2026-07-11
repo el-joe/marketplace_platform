@@ -77,12 +77,12 @@
                             @if($lastSettlement)
                                 @php
                                     $badgeClass = match($lastSettlement->status) {
-                                        'settled'  => 'badge-success',
-                                        'disputed' => 'badge-warning',
+                                        \App\Enums\DeliveryAgentCodSettlementStatus::Settled  => 'badge-success',
+                                        \App\Enums\DeliveryAgentCodSettlementStatus::Disputed => 'badge-warning',
                                         default    => 'badge-gray',
                                     };
                                 @endphp
-                                <span class="badge {{ $badgeClass }} text-xs capitalize">{{ $lastSettlement->status }}</span>
+                                <span class="badge {{ $badgeClass }} text-xs capitalize">{{ $lastSettlement->status->label() }}</span>
                             @else
                                 <span class="text-gray-400 text-xs">—</span>
                             @endif

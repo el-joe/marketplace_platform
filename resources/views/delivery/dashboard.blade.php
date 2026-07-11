@@ -78,16 +78,16 @@
         <div class="space-y-3">
             @foreach($pendingAssignments as $a)
                 @php
-                    $chipClass = 'chip-' . $a->status;
+                    $chipClass = 'chip-' . $a->status->value;
                     $actionLabel = match($a->status) {
-                        'assigned'  => __('delivery.assignments.accept'),
-                        'accepted'  => __('delivery.dashboard.mark_picked_up'),
-                        'picked_up' => __('delivery.assignments.confirm_delivery'),
+                        \App\Enums\DeliveryAssignmentStatus::Assigned  => __('delivery.assignments.accept'),
+                        \App\Enums\DeliveryAssignmentStatus::Accepted  => __('delivery.dashboard.mark_picked_up'),
+                        \App\Enums\DeliveryAssignmentStatus::PickedUp => __('delivery.assignments.confirm_delivery'),
                         default     => __('delivery.dashboard.view'),
                     };
                     $actionColor = match($a->status) {
-                        'picked_up' => 'btn-yellow',
-                        'accepted'  => 'btn-blue',
+                        \App\Enums\DeliveryAssignmentStatus::PickedUp => 'btn-yellow',
+                        \App\Enums\DeliveryAssignmentStatus::Accepted  => 'btn-blue',
                         default     => 'btn-outline',
                     };
                 @endphp
@@ -102,7 +102,7 @@
                                 @endif
                             </p>
                         </div>
-                        <span class="chip {{ $chipClass }}">{{ __('delivery.assignments.status_' . $a->status) }}</span>
+                        <span class="chip {{ $chipClass }}">{{ __('delivery.assignments.status_' . $a->status->value) }}</span>
                     </div>
                     <div class="flex items-center gap-2 mt-3">
                         <span class="flex-1 btn-action {{ $actionColor }} text-sm min-h-[46px]">{{ $actionLabel }}</span>

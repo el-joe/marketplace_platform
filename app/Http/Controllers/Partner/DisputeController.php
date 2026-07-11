@@ -73,7 +73,7 @@ class DisputeController extends Controller
             ->where('vendor_id', $this->vendorId())
             ->firstOrFail();
 
-        if (in_array($dispute->status, ['resolved', 'closed'])) {
+        if (in_array($dispute->status->value, ['resolved', 'closed'])) {
             return response()->json(['message' => 'النزاع مغلق أو محلول ولا يمكن إضافة ردود'], 422);
         }
 
@@ -90,7 +90,7 @@ class DisputeController extends Controller
         ]);
 
         // Advance status after first seller reply
-        if ($dispute->status === 'open') {
+        if ($dispute->status === \App\Enums\DisputeStatus::Open) {
             $dispute->update(['status' => 'seller_responded']);
         }
 
@@ -117,7 +117,7 @@ class DisputeController extends Controller
             ->where('vendor_id', $this->vendorId())
             ->firstOrFail();
 
-        if (in_array($dispute->status, ['resolved', 'closed'])) {
+        if (in_array($dispute->status->value, ['resolved', 'closed'])) {
             return response()->json(['message' => 'النزاع مغلق أو محلول'], 422);
         }
 

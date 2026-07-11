@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SettingCategory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,7 @@ class Setting extends Model
     protected function casts(): array
     {
         return [
+            'category' => SettingCategory::class,
             'value' => 'json',
             'is_encrypted' => 'boolean',
             'is_public' => 'boolean',

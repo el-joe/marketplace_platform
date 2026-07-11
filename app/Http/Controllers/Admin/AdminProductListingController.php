@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AdminProductListingCommissionType;
+use App\Enums\AdminProductListingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdminProductListing;
 use App\Models\Category;
@@ -115,7 +117,7 @@ class AdminProductListingController extends Controller
             'country_id'           => ['required', 'exists:countries,id'],
             'price_cents'          => ['required', 'integer', 'min:0'],
             'cost_price_cents'     => ['nullable', 'integer', 'min:0'],
-            'commission_type'      => ['required', Rule::in(['fixed', 'percentage', 'mixed'])],
+            'commission_type'      => ['required', Rule::enum(AdminProductListingCommissionType::class)],
             'commission_value'     => ['required', 'numeric', 'min:0'],
             'currency'             => ['required', 'string', 'size:3'],
             'payment_options'      => ['required', Rule::in(['cod_only', 'electronic_only', 'both'])],
@@ -124,7 +126,7 @@ class AdminProductListingController extends Controller
             'nawy_category_id'     => ['nullable', 'exists:categories,id'],
             'shipping_cost_cents'  => ['required', 'integer', 'min:0'],
             'is_exclusive'         => ['boolean'],
-            'status'               => ['required', Rule::in(['active', 'paused', 'archived'])],
+            'status'               => ['required', Rule::enum(AdminProductListingStatus::class)],
             'available_for_vendors'    => ['boolean'],
             'available_for_marketers'  => ['boolean'],
         ];

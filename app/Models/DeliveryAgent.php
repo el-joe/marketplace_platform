@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Enums\DeliveryAgentType;
+use App\Enums\DeliveryAgentVehicleType;
 use App\Models\DeliveryZone;
 use App\Models\DeliveryAgentEarning;
 use App\Models\DeliveryAgentPayout;
@@ -66,6 +68,8 @@ class DeliveryAgent extends Authenticatable implements JWTSubject
             'current_latitude' => 'float',
             'current_longitude' => 'float',
             'rating_avg' => 'float',
+            'agent_type' => DeliveryAgentType::class,
+            'vehicle_type' => DeliveryAgentVehicleType::class,
         ];
     }
 

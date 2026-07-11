@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\TravelAgencyPortal;
 
+use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Currency;
 use App\Models\TravelCity;
@@ -82,7 +83,7 @@ class PackageController extends Controller
         $package = TravelPackage::create([
             ...$data,
             'travel_agency_id' => $this->agencyId(),
-            'status' => 'draft',
+            'status' => TravelPackageStatus::Draft,
         ]);
 
         $this->storeContractFile($request, $package);
@@ -116,7 +117,7 @@ class PackageController extends Controller
     {
         $this->authorise($package);
 
-        if (!in_array($package->status, ['draft', 'pending_review'])) {
+        if (!in_array($package->status, [TravelPackageStatus::Draft, TravelPackageStatus::PendingReview])) {
             return back()->withErrors(['status' => 'Active packages cannot be edited. Contact support.']);
         }
 
@@ -174,7 +175,7 @@ class PackageController extends Controller
     {
         $this->authorise($package);
 
-        if ($package->status !== 'draft') {
+        if ($package->status !== TravelPackageStatus::Draft) {
             return back()->withErrors(['status' => 'Only draft packages can be submitted for review.']);
         }
 
@@ -183,7 +184,7 @@ class PackageController extends Controller
             return back()->withErrors(['submission' => $errors]);
         }
 
-        $package->update(['status' => 'pending_review']);
+        $package->update(['status' => TravelPackageStatus::PendingReview]);
 
         return back()->with('success', 'Package submitted for admin review.');
     }

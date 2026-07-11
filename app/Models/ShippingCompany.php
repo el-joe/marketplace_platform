@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ShippingCompanyStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +34,7 @@ class ShippingCompany extends Model
             'served_cities'                             => 'array',
             'can_supervisors_receive_all_notifications' => 'boolean',
             'approved_at'                               => 'datetime',
+            'status'                                     => ShippingCompanyStatus::class,
         ];
     }
 
@@ -67,6 +69,6 @@ class ShippingCompany extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('status', ShippingCompanyStatus::Active);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ReviewStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Review extends Model
 {
     use HasUuids, SoftDeletes;
+
+    protected function casts(): array
+    {
+        return [
+            'status' => ReviewStatus::class,
+        ];
+    }
+
     protected $fillable = [
         'product_id',
         'vendor_listing_id',

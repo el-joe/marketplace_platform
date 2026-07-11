@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\SupportTicketRequesterRole;
+use App\Enums\SupportTicketStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\SupportTicket;
@@ -10,6 +12,7 @@ use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class SupportTicketController extends Controller
 {
@@ -25,10 +28,10 @@ class SupportTicketController extends Controller
         abort_unless($admin->hasPermissionTo('support.view'), 403);
 
         $stats = [
-            'open' => SupportTicket::where('status', 'open')->count(),
-            'in_progress' => SupportTicket::where('status', 'in_progress')->count(),
-            'urgent' => SupportTicket::where('priority', 'urgent')->whereNotIn('status', ['resolved', 'closed'])->count(),
-            'unassigned' => SupportTicket::whereNull('assigned_to_admin_id')->whereNotIn('status', ['resolved', 'closed'])->count(),
+            'open' => SupportTicket::where('status', SupportTicketStatus::Open)->count(),
+            'in_progress' => SupportTicket::where('status', SupportTicketStatus::InProgress)->count(),
+            'urgent' => SupportTicket::where('priority', 'urgent')->whereNotIn('status', [SupportTicketStatus::Resolved, SupportTicketStatus::Closed])->count(),
+            'unassigned' => SupportTicket::whereNull('assigned_to_admin_id')->whereNotIn('status', [SupportTicketStatus::Resolved, SupportTicketStatus::Closed])->count(),
             'avg_first_response_minutes' => (int) SupportTicket::whereNotNull('first_response_at')
                 ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, first_response_at)) as avg_minutes')
                 ->value('avg_minutes'),
@@ -85,21 +88,21 @@ class SupportTicketController extends Controller
                 default => 'bg-gray-100 text-gray-500',
             };
             $statusBadge = match ($t->status) {
-                'open' => 'bg-yellow-100 text-yellow-700',
-                'in_progress' => 'bg-blue-100 text-blue-700',
-                'waiting_customer' => 'bg-indigo-100 text-indigo-700',
-                'resolved' => 'bg-green-100 text-green-700',
-                'closed' => 'bg-gray-100 text-gray-500',
+                SupportTicketStatus::Open => 'bg-yellow-100 text-yellow-700',
+                SupportTicketStatus::InProgress => 'bg-blue-100 text-blue-700',
+                SupportTicketStatus::WaitingCustomer => 'bg-indigo-100 text-indigo-700',
+                SupportTicketStatus::Resolved => 'bg-green-100 text-green-700',
+                SupportTicketStatus::Closed => 'bg-gray-100 text-gray-500',
                 default => 'bg-gray-100 text-gray-500',
             };
             $categoryBadge = 'bg-gray-100 text-gray-600';
 
-            $statusLabelKey = ['waiting_customer' => 'waiting'][$t->status] ?? $t->status;
+            $statusLabelKey = $t->status === SupportTicketStatus::WaitingCustomer ? 'waiting' : $t->status->value;
 
-            $roleLabel = $t->requester_role === 'seller'
+            $roleLabel = $t->requester_role === SupportTicketRequesterRole::Seller
                 ? __('admin.support_tickets.vendor_seller')
                 : __('admin.support_tickets.customer');
-            $roleBadge = $t->requester_role === 'seller' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700';
+            $roleBadge = $t->requester_role === SupportTicketRequesterRole::Seller ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700';
 
             // Response time
             $responseTime = '—';
@@ -112,7 +115,7 @@ class SupportTicketController extends Controller
 
             return [
                 'DT_RowId' => 'st-' . $t->id,
-                'DT_RowClass' => $t->priority === 'urgent' && !in_array($t->status, ['resolved', 'closed']) ? 'bg-red-50' : '',
+                'DT_RowClass' => $t->priority === 'urgent' && !in_array($t->status, [SupportTicketStatus::Resolved, SupportTicketStatus::Closed], true) ? 'bg-red-50' : '',
                 'ticket_number' => '<a href="' . $showUrl . '" class="font-mono font-medium text-primary-600 hover:underline text-xs">' . e($t->ticket_number) . '</a>',
                 'requester' => '<div class="flex items-center gap-1.5"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ' . $roleBadge . '">' . $roleLabel . '</span><span class="text-xs font-mono text-gray-500">' . e(substr($t->requester_user_id, 0, 8)) . '</span></div>',
                 'category' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $categoryBadge . '">' . e(__('admin.support_tickets.category_' . $t->category)) . '</span>',
@@ -144,7 +147,7 @@ class SupportTicketController extends Controller
         ]);
 
         // Load requester info based on role
-        if ($ticket->requester_role === 'seller') {
+        if ($ticket->requester_role === SupportTicketRequesterRole::Seller) {
             $ticket->load('requesterVendor:id,store_name,email');
         } else {
             $ticket->load('requesterCustomer:id,name,email');
@@ -190,8 +193,8 @@ class SupportTicketController extends Controller
             }
 
             // Advance status on non-internal reply
-            if (!$isInternal && $ticket->status === 'open') {
-                $updates['status'] = 'in_progress';
+            if (!$isInternal && $ticket->status === SupportTicketStatus::Open) {
+                $updates['status'] = SupportTicketStatus::InProgress;
             }
 
             if (!empty($updates)) {
@@ -258,14 +261,16 @@ class SupportTicketController extends Controller
         abort_unless($admin->hasPermissionTo('support.reply'), 403);
 
         $data = $request->validate([
-            'status' => 'required|in:open,in_progress,waiting_customer,resolved,closed',
+            'status' => ['required', Rule::enum(SupportTicketStatus::class)],
         ]);
 
-        $updates = ['status' => $data['status']];
+        $status = SupportTicketStatus::from($data['status']);
 
-        if ($data['status'] === 'resolved' && !$ticket->resolved_at) {
+        $updates = ['status' => $status];
+
+        if ($status === SupportTicketStatus::Resolved && !$ticket->resolved_at) {
             $updates['resolved_at'] = now();
-        } elseif (in_array($data['status'], ['open', 'in_progress', 'waiting_customer'], true)) {
+        } elseif (in_array($status, [SupportTicketStatus::Open, SupportTicketStatus::InProgress, SupportTicketStatus::WaitingCustomer], true)) {
             $updates['resolved_at'] = null;
         }
 

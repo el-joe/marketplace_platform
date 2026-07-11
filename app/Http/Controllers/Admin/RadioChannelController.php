@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\RadioChannelType;
+use App\Enums\RadioScheduleSlotRecurrence;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\RadioChannel;
@@ -10,6 +12,7 @@ use App\Services\RadioSchedulingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class RadioChannelController extends Controller
@@ -36,7 +39,7 @@ class RadioChannelController extends Controller
         $data = $request->validate([
             'name_en'             => 'required|string|max:150',
             'name_ar'             => 'required|string|max:150',
-            'type'                => 'required|in:audio,video',
+            'type'                => ['required', Rule::enum(RadioChannelType::class)],
             'stream_url'          => 'nullable|url|max:500',
             'fallback_media_path' => 'nullable|string|max:255',
             'thumbnail_path'      => 'nullable|string|max:255',
@@ -61,7 +64,7 @@ class RadioChannelController extends Controller
         $data = $request->validate([
             'name_en'             => 'required|string|max:150',
             'name_ar'             => 'required|string|max:150',
-            'type'                => 'required|in:audio,video',
+            'type'                => ['required', Rule::enum(RadioChannelType::class)],
             'stream_url'          => 'nullable|url|max:500',
             'fallback_media_path' => 'nullable|string|max:255',
             'thumbnail_path'      => 'nullable|string|max:255',
@@ -99,7 +102,7 @@ class RadioChannelController extends Controller
             'title' => $occ['slot']->title,
             'start' => $occ['starts_at']->toIso8601String(),
             'end'   => $occ['ends_at']->toIso8601String(),
-            'color' => $occ['slot']->recurrence === 'once' ? '#6366f1' : '#0ea5e9',
+            'color' => $occ['slot']->recurrence === RadioScheduleSlotRecurrence::Once ? '#6366f1' : '#0ea5e9',
             'extendedProps' => [
                 'recurrence'      => $occ['slot']->recurrence,
                 'recurrence_days' => $occ['slot']->recurrence_days,
@@ -116,7 +119,7 @@ class RadioChannelController extends Controller
             'title'           => 'required|string|max:200',
             'starts_at'       => 'required|date',
             'ends_at'         => 'required|date|after:starts_at',
-            'recurrence'      => 'required|in:once,daily,weekly',
+            'recurrence'      => ['required', Rule::enum(RadioScheduleSlotRecurrence::class)],
             'recurrence_days' => 'nullable|array',
             'recurrence_days.*' => 'in:mon,tue,wed,thu,fri,sat,sun',
             'is_active'       => 'boolean',
@@ -138,7 +141,7 @@ class RadioChannelController extends Controller
             'title'           => 'required|string|max:200',
             'starts_at'       => 'required|date',
             'ends_at'         => 'required|date|after:starts_at',
-            'recurrence'      => 'required|in:once,daily,weekly',
+            'recurrence'      => ['required', Rule::enum(RadioScheduleSlotRecurrence::class)],
             'recurrence_days' => 'nullable|array',
             'recurrence_days.*' => 'in:mon,tue,wed,thu,fri,sat,sun',
             'is_active'       => 'boolean',

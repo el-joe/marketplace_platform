@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ReviewStatus;
 use App\Models\Admin;
 use App\Models\Review;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ class ReviewModerationService
     {
         DB::transaction(function () use ($review, $admin) {
             $review->update([
-                'status' => 'published',
+                'status' => ReviewStatus::Published,
                 'moderated_by_admin_id' => $admin->id,
             ]);
 
@@ -30,7 +31,7 @@ class ReviewModerationService
     {
         DB::transaction(function () use ($review, $admin) {
             $review->update([
-                'status' => 'rejected',
+                'status' => ReviewStatus::Rejected,
                 'moderated_by_admin_id' => $admin->id,
             ]);
 
@@ -60,7 +61,7 @@ class ReviewModerationService
     private function recalculate(string $table, string $column, string $listingId): void
     {
         $stats = Review::where($column, $listingId)
-            ->where('status', 'published')
+            ->where('status', ReviewStatus::Published)
             ->whereNull('deleted_at')
             ->selectRaw('AVG(rating) as rating_avg, COUNT(*) as rating_count')
             ->first();

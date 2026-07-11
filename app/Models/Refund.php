@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\RefundReason;
+use App\Enums\RefundStatus;
+use App\Enums\RefundType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,6 +29,15 @@ class Refund extends Model
         'vendor_charged_back',
         'status',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => RefundStatus::class,
+            'reason' => RefundReason::class,
+            'refund_type' => RefundType::class,
+        ];
+    }
 
     public function order(): BelongsTo
     {

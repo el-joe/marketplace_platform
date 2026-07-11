@@ -46,25 +46,25 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
                             <p class="font-medium text-gray-900">{{ $owner?->name ?? '—' }}</p>
-                            <p class="text-xs text-gray-500">{{ $wr->wallet?->owner_type ? __('admin.wallets.' . $wr->wallet->owner_type) : '' }}</p>
+                            <p class="text-xs text-gray-500">{{ $wr->wallet?->owner_type ? __('admin.wallets.' . $wr->wallet->owner_type->value) : '' }}</p>
                         </td>
                         <td class="px-4 py-3 text-gray-700">{{ $wr->bank_name ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ $wr->bank_iban ?? '—' }}</td>
                         <td class="px-4 py-3 text-end font-semibold text-gray-900">{{ number_format($wr->amount_cents / 100, 2) }} {{ $wr->currency }}</td>
                         <td class="px-4 py-3 text-center">
-                            @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','approved'=>'bg-blue-100 text-blue-700','processed'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700']; @endphp
-                            <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$wr->status] ?? '' }}">{{ __('admin.wallets.' . $wr->status) }}</span>
+                            @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','approved'=>'bg-blue-100 text-blue-700','processed'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700']; $wrStatus = $wr->status->value; @endphp
+                            <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$wrStatus] ?? '' }}">{{ __('admin.wallets.' . $wrStatus) }}</span>
                         </td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $wr->created_at->format('d M Y') }}</td>
                         <td class="px-4 py-3 text-end">
                             <div class="flex justify-end gap-2">
-                                @if($wr->status === 'pending')
+                                @if($wrStatus === 'pending')
                                     <form method="POST" action="{{ route('admin.wallets.withdrawals.approve', $wr) }}">
                                         @csrf @method('PATCH')
                                         <button class="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700">{{ __('admin.wallets.approve') }}</button>
                                     </form>
                                     <button onclick="showRejectModal('{{ $wr->id }}')" class="text-xs px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">{{ __('admin.wallets.reject') }}</button>
-                                @elseif($wr->status === 'approved')
+                                @elseif($wrStatus === 'approved')
                                     <form method="POST" action="{{ route('admin.wallets.withdrawals.processed', $wr) }}">
                                         @csrf @method('PATCH')
                                         <button class="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{{ __('admin.wallets.mark_processed') }}</button>

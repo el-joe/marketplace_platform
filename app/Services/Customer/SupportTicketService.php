@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\SupportTicketStatus;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\SupportTicket;
@@ -108,7 +109,7 @@ class SupportTicketService
 
     public function rate(Customer $customer, SupportTicket $ticket, array $data): SupportTicket
     {
-        if (!in_array($ticket->status, ['resolved', 'closed'], true)) {
+        if (!in_array($ticket->status, [SupportTicketStatus::Resolved, SupportTicketStatus::Closed], true)) {
             throw ValidationException::withMessages([
                 'ticket' => ['Only resolved or closed tickets can be rated.'],
             ]);

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AttributeType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -28,11 +29,12 @@ class Attribute extends Model
         'is_filterable' => 'boolean',
         'is_required' => 'boolean',
         'sort_order' => 'integer',
+        'type' => AttributeType::class,
     ];
 
     public function requiresValues(): bool
     {
-        return in_array($this->type, ['select', 'multi_select', 'color'], true);
+        return in_array($this->type, [AttributeType::Select, AttributeType::MultiSelect, AttributeType::Color], true);
     }
 
     public function values(): HasMany

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RadioChannelType;
 use App\Services\RadioSchedulingService;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +28,7 @@ class RadioChannel extends Model
     {
         return [
             'is_active' => 'boolean',
+            'type' => RadioChannelType::class,
         ];
     }
 

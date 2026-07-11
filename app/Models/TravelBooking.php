@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TravelBookingStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,7 @@ class TravelBooking extends Model
     {
         return [
             'contract_signed_at' => 'datetime',
+            'status' => TravelBookingStatus::class,
         ];
     }
 

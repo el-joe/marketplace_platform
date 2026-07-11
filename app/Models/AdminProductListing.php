@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\AdminProductListingCommissionType;
+use App\Enums\AdminProductListingStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,6 +45,8 @@ class AdminProductListing extends Model
         'available_for_marketers' => 'boolean',
         'rating_avg'          => 'decimal:2',
         'rating_count'        => 'integer',
+        'status'              => AdminProductListingStatus::class,
+        'commission_type'     => AdminProductListingCommissionType::class,
     ];
 
     public function productVariant(): BelongsTo

@@ -57,6 +57,9 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
             'auto_approved' => 'boolean',
             'whatsapp_sharing_enabled' => 'boolean',
             'samples_required' => 'integer',
+            'status' => \App\Enums\MarketerCampaignStatus::class,
+            'campaign_type' => \App\Enums\CampaignType::class,
+            'commission_type' => \App\Enums\CommissionType::class,
         ];
     }
 
@@ -168,17 +171,17 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
     {
         return $this->auto_approve_at !== null
             && now() >= $this->auto_approve_at
-            && $this->status === 'draft';
+            && $this->status === \App\Enums\MarketerCampaignStatus::Draft;
     }
 
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'active' => 'success',
-            'draft' => 'secondary',
-            'paused' => 'warning',
-            'ended' => 'primary',
-            'cancelled' => 'danger',
+            \App\Enums\MarketerCampaignStatus::Active => 'success',
+            \App\Enums\MarketerCampaignStatus::Draft => 'secondary',
+            \App\Enums\MarketerCampaignStatus::Paused => 'warning',
+            \App\Enums\MarketerCampaignStatus::Ended => 'primary',
+            \App\Enums\MarketerCampaignStatus::Cancelled => 'danger',
             default => 'secondary',
         };
     }

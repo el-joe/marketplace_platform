@@ -92,7 +92,7 @@
 
         @forelse($settlements as $settlement)
             @php
-                $chip = $statusChipMap[$settlement->status] ?? ['class' => 'chip-cod-pending', 'label' => $settlement->status];
+                $chip = $statusChipMap[$settlement->status->value] ?? ['class' => 'chip-cod-pending', 'label' => $settlement->status->label()];
             @endphp
 
             <div class="d-card mb-3" x-data="{ open: false }">
@@ -156,7 +156,7 @@
                         <p class="text-xs text-slate-500 text-center py-2">{{ __('delivery.cod.no_linked_deliveries') }}</p>
                     @endforelse
 
-                    @if($settlement->status === 'pending' && $settlement->net_to_remit_cents > 0)
+                    @if($settlement->status === \App\Enums\DeliveryAgentCodSettlementStatus::Pending && $settlement->net_to_remit_cents > 0)
                         <div class="mt-3 p-3 rounded-xl bg-yellow-900/30 border border-yellow-700/40 text-yellow-300 text-xs leading-relaxed">
                             {{ __('delivery.cod.please_remit') }}
                             <span class="font-bold">{{ codCents($settlement->net_to_remit_cents, $currency) }}</span>

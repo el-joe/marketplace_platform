@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VendorListingStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +14,13 @@ class VendorListing extends Model
 
     public $incrementing = false;
     protected $keyType = 'string';
+
+    protected function casts(): array
+    {
+        return [
+            'status' => VendorListingStatus::class,
+        ];
+    }
 
     protected $fillable = [
         'id',

@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\ReturnRequestStatus;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -33,7 +34,7 @@ class ReturnService
             'reason' => $data['reason'],
             'reason_description' => $data['comments'] ?? null,
             'return_type' => $data['return_type'],
-            'status' => 'requested',
+            'status' => ReturnRequestStatus::Requested,
         ]);
 
         foreach ($items as $item) {

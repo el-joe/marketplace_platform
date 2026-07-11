@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FlashSaleSubmissionStatus;
 use App\Traits\HasStateMachine;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -80,6 +81,7 @@ class FlashSaleSubmission extends Model
             'reviewed_at' => 'datetime',
             'approved_at' => 'datetime',
             'sold_out_at' => 'datetime',
+            'status' => FlashSaleSubmissionStatus::class,
         ];
     }
 

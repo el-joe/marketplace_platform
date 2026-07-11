@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Delivery;
 
+use App\Enums\DeliveryAgentCodSettlementStatus;
+use App\Enums\DeliveryAgentEarningStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentCodSettlement;
@@ -31,7 +33,7 @@ class EarningsController extends Controller
 
         // Settled period ranges — deliveries within these dates are already remitted
         $settledPeriods = DeliveryAgentCodSettlement::where('agent_id', $agent->id)
-            ->where('status', 'settled')
+            ->where('status', DeliveryAgentCodSettlementStatus::Settled)
             ->get(['period_start', 'period_end']);
 
         // Cash physically held by the agent and not yet remitted
@@ -62,11 +64,11 @@ class EarningsController extends Controller
             ->sum('amount_cents');
 
         $pendingBalance = DeliveryAgentEarning::where('agent_id', $agent->id)
-            ->where('status', 'pending')
+            ->where('status', DeliveryAgentEarningStatus::Pending)
             ->sum('amount_cents');
 
         $paidBalance = DeliveryAgentEarning::where('agent_id', $agent->id)
-            ->where('status', 'paid')
+            ->where('status', DeliveryAgentEarningStatus::Paid)
             ->sum('amount_cents');
 
         $todayEarnings = DeliveryAgentEarning::where('agent_id', $agent->id)

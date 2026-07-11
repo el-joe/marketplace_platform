@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\PageStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdImageItem;
 use App\Models\BlockType;
@@ -102,7 +103,7 @@ class PageBuilderController extends Controller
     {
         $this->authorizeManage();
         abort_if(
-            $page->status === 'published' && !$this->admin()->hasPermissionTo('pages.delete_published'),
+            $page->status === PageStatus::Published && !$this->admin()->hasPermissionTo('pages.delete_published'),
             403,
             'Cannot delete a published page without the pages.delete_published permission.'
         );

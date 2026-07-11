@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TravelPackageInquiryStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,7 @@ class TravelPackageInquiry extends Model
     {
         return [
             'contacted_at' => 'datetime',
+            'status' => TravelPackageInquiryStatus::class,
         ];
     }
 
@@ -42,23 +44,16 @@ class TravelPackageInquiry extends Model
 
     public function statusLabel(): string
     {
-        return match ($this->status) {
-            'new'       => 'جديد',
-            'contacted' => 'تم التواصل',
-            'converted' => 'تحوّل لحجز',
-            'closed'    => 'مغلق',
-            default     => $this->status,
-        };
+        return $this->status->label();
     }
 
     public function statusColor(): string
     {
         return match ($this->status) {
-            'new'       => 'bg-blue-100 text-blue-700',
-            'contacted' => 'bg-amber-100 text-amber-700',
-            'converted' => 'bg-emerald-100 text-emerald-700',
-            'closed'    => 'bg-gray-100 text-gray-500',
-            default     => 'bg-gray-100 text-gray-600',
+            TravelPackageInquiryStatus::New       => 'bg-blue-100 text-blue-700',
+            TravelPackageInquiryStatus::Contacted => 'bg-amber-100 text-amber-700',
+            TravelPackageInquiryStatus::Converted => 'bg-emerald-100 text-emerald-700',
+            TravelPackageInquiryStatus::Closed    => 'bg-gray-100 text-gray-500',
         };
     }
 }

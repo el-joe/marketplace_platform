@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DeliveryAssignmentStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,11 +11,11 @@ class DeliveryAssignment extends Model
 {
     use HasUuids;
 
-    public const STATUS_ASSIGNED = 'assigned';
-    public const STATUS_ACCEPTED = 'accepted';
-    public const STATUS_PICKED_UP = 'picked_up';
-    public const STATUS_DELIVERED = 'delivered';
-    public const STATUS_FAILED = 'failed';
+    public const STATUS_ASSIGNED = DeliveryAssignmentStatus::Assigned;
+    public const STATUS_ACCEPTED = DeliveryAssignmentStatus::Accepted;
+    public const STATUS_PICKED_UP = DeliveryAssignmentStatus::PickedUp;
+    public const STATUS_DELIVERED = DeliveryAssignmentStatus::Delivered;
+    public const STATUS_FAILED = DeliveryAssignmentStatus::Failed;
 
     protected $fillable = [
         'shipment_id',
@@ -58,6 +59,7 @@ class DeliveryAssignment extends Model
             'pickup_longitude' => 'float',
             'delivery_latitude' => 'float',
             'delivery_longitude' => 'float',
+            'status' => DeliveryAssignmentStatus::class,
         ];
     }
 

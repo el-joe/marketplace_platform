@@ -3,6 +3,7 @@
 namespace App\Services\Payments;
 
 use App\Contracts\Payments\PaymentGatewayInterface;
+use App\Enums\CountryPaymentMethodEnvironment;
 use App\Models\CountryPaymentMethod;
 use App\Models\PaymentGatewayWebhookLog;
 
@@ -19,7 +20,7 @@ abstract class AbstractPaymentGateway implements PaymentGatewayInterface
 
     protected function isProduction(): bool
     {
-        return $this->config->environment === 'production';
+        return $this->config->environment === CountryPaymentMethodEnvironment::Production;
     }
 
     protected function settlementCurrency(): string

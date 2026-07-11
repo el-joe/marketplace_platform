@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\MarketerPortal;
 
+use App\Enums\MarketerCampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ClassifiedListing;
 use App\Models\MarketerCampaign;
@@ -87,7 +88,7 @@ class TrackingController extends Controller
     {
         $campaign = MarketerCampaign::with('campaignable')->where('tracking_url_slug', $slug)->first();
 
-        if (!$campaign || $campaign->status !== 'active') {
+        if (!$campaign || $campaign->status !== MarketerCampaignStatus::Active) {
             return redirect('/');
         }
 

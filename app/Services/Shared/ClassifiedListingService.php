@@ -2,6 +2,7 @@
 
 namespace App\Services\Shared;
 
+use App\Enums\ClassifiedListingStatus;
 use App\Jobs\NotifyAdminNewClassifiedListingJob;
 use App\Models\ClassifiedCategory;
 use App\Models\ClassifiedListing;
@@ -125,7 +126,7 @@ class ClassifiedListingService
 
     public function canEdit(ClassifiedListing $listing): bool
     {
-        return in_array($listing->status, ['draft', 'rejected'], true);
+        return in_array($listing->status, [ClassifiedListingStatus::Draft, ClassifiedListingStatus::Rejected], true);
     }
 
     public function pause(ClassifiedListing $listing): ClassifiedListing

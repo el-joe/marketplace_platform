@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\InventoryMovementReferenceType;
+use App\Enums\InventoryMovementType;
+use App\Enums\ProductStatus;
+use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\InventoryMovement;
@@ -158,7 +162,7 @@ class ListingController extends Controller
                 'image_url' => $imageUrl,
                 'variant_name' => $row->variant_name ?: '—',
                 'sku' => $row->sku,
-                'status' => $row->status,
+                'status' => $row->status instanceof VendorListingStatus ? $row->status->value : $row->status,
                 'price' => number_format($row->price / 100, 2),
                 'price_raw' => $row->price,
                 'available_stock' => $stockHtml,
@@ -183,7 +187,7 @@ class ListingController extends Controller
         }
 
         $products = Product::query()
-            ->where('status', 'active')
+            ->where('status', ProductStatus::Active->value)
             ->where(function ($query) use ($q) {
                 $query->where('name_en', 'like', '%' . $q . '%')
                     ->orWhere('name_ar', 'like', '%' . $q . '%')
@@ -221,7 +225,7 @@ class ListingController extends Controller
             // Get which variant IDs the vendor already has listed for this product
             $existingVariantIds = VendorListing::where('vendor_id', $vendorId)
                 ->whereIn('product_variant_id', $product->variants->pluck('id'))
-                ->whereNotIn('status', ['archived'])
+                ->whereNotIn('status', [VendorListingStatus::Archived->value])
                 ->pluck('product_variant_id')
                 ->all();
 
@@ -409,7 +413,7 @@ class ListingController extends Controller
         $vendor = $this->vendor();
 
         // Established vendor (> 10 orders) gets active status directly
-        $status = ($vendor->total_orders >= 10) ? 'active' : 'pending_review';
+        $status = ($vendor->total_orders >= 10) ? VendorListingStatus::Active->value : VendorListingStatus::PendingReview->value;
 
         $currency = Country::find($request->country_id)?->currency_code ?? '';
 
@@ -447,10 +451,10 @@ class ListingController extends Controller
             if ((int) $request->initial_quantity > 0) {
                 InventoryMovement::create([
                     'warehouse_inventory_id' => $inventory->id,
-                    'movement_type' => 'inbound',
+                    'movement_type' => InventoryMovementType::Inbound->value,
                     'quantity_delta' => (int) $request->initial_quantity,
                     'quantity_after' => (int) $request->initial_quantity,
-                    'reference_type' => 'inbound_shipment',
+                    'reference_type' => InventoryMovementReferenceType::InboundShipment->value,
                     'reference_id' => $listing->id,
                     'reason' => 'initial_stock',
                     'created_by_user_id' => Auth::guard('vendor')->user()->id,
@@ -464,7 +468,7 @@ class ListingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $status === 'active' ? 'تم إنشاء القائمة بنجاح وهي نشطة الآن.' : 'تم إنشاء القائمة وهي قيد المراجعة.',
+            'message' => $status === VendorListingStatus::Active->value ? 'تم إنشاء القائمة بنجاح وهي نشطة الآن.' : 'تم إنشاء القائمة وهي قيد المراجعة.',
             'redirect' => Route::has('partner.listings.show') ? route('partner.listings.show', $listing->id) : route('partner.listings.index'),
         ]);
     }
@@ -532,14 +536,14 @@ class ListingController extends Controller
     {
         $this->authoriseListing($listing);
 
-        if (!in_array($listing->status, ['active', 'paused'])) {
+        if (!in_array($listing->status, [VendorListingStatus::Active, VendorListingStatus::Paused], true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'لا يمكن تغيير حالة هذه القائمة.',
             ], 422);
         }
 
-        if ($listing->status === 'paused') {
+        if ($listing->status === VendorListingStatus::Paused) {
             // Check if any stock available before activating
             $available = WarehouseInventory::where('vendor_listing_id', $listing->id)
                 ->selectRaw('COALESCE(SUM(quantity_on_hand - quantity_reserved), 0) as total')
@@ -553,16 +557,16 @@ class ListingController extends Controller
             }
         }
 
-        $newStatus = $listing->status === 'active' ? 'paused' : 'active';
+        $newStatus = $listing->status === VendorListingStatus::Active ? VendorListingStatus::Paused : VendorListingStatus::Active;
         $listing->update(['status' => $newStatus]);
 
-        $statusLabels = ['active' => 'نشط', 'paused' => 'موقوف مؤقتاً'];
+        $statusLabels = [VendorListingStatus::Active->value => 'نشط', VendorListingStatus::Paused->value => 'موقوف مؤقتاً'];
 
         return response()->json([
             'success' => true,
-            'new_status' => $newStatus,
-            'label' => $statusLabels[$newStatus] ?? $newStatus,
-            'message' => $newStatus === 'active' ? 'تم تفعيل القائمة.' : 'تم إيقاف القائمة مؤقتاً.',
+            'new_status' => $newStatus->value,
+            'label' => $statusLabels[$newStatus->value] ?? $newStatus->value,
+            'message' => $newStatus === VendorListingStatus::Active ? 'تم تفعيل القائمة.' : 'تم إيقاف القائمة مؤقتاً.',
         ]);
     }
 

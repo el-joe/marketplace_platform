@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\PaymentTransactionType;
 use App\Models\Admin;
 use App\Models\Dispute;
 use App\Models\Order;
@@ -73,16 +74,16 @@ class OrderInterventionService
         string $reason,
         string $adminId
     ): void {
-        $allowed = self::ORDER_STATUS_TRANSITIONS[$order->status] ?? [];
+        $allowed = self::ORDER_STATUS_TRANSITIONS[$order->status->value] ?? [];
 
         if (!in_array($newStatus, $allowed, true)) {
             throw ValidationException::withMessages([
-                'new_status' => ["Transition from '{$order->status}' to '{$newStatus}' is not allowed."],
+                'new_status' => ["Transition from '{$order->status->value}' to '{$newStatus}' is not allowed."],
             ]);
         }
 
         DB::transaction(function () use ($order, $newStatus, $reason, $adminId) {
-            $old = $order->status;
+            $old = $order->status->value;
 
             $updates = ['status' => $newStatus];
             if ($newStatus === 'completed') {
@@ -122,12 +123,12 @@ class OrderInterventionService
     ): void {
         if (!$subOrder->canTransitionTo($newStatus)) {
             throw ValidationException::withMessages([
-                'new_status' => ["Status transition from '{$subOrder->status}' to '{$newStatus}' is not allowed."],
+                'new_status' => ["Status transition from '{$subOrder->status->value}' to '{$newStatus}' is not allowed."],
             ]);
         }
 
         DB::transaction(function () use ($subOrder, $newStatus, $reason, $adminId) {
-            $old = $subOrder->status;
+            $old = $subOrder->status->value;
 
             $updates = ['status' => $newStatus];
 
@@ -205,11 +206,11 @@ class OrderInterventionService
 
         DB::transaction(function () use ($order, $reason, $adminId) {
             foreach ($order->subOrders as $subOrder) {
-                if (in_array($subOrder->status, ['cancelled', 'refunded'], true)) {
+                if (in_array($subOrder->status->value, ['cancelled', 'refunded'], true)) {
                     continue;
                 }
 
-                $old = $subOrder->status;
+                $old = $subOrder->status->value;
                 $subOrder->update([
                     'status' => 'cancelled',
                     'cancelled_at' => now(),
@@ -228,7 +229,7 @@ class OrderInterventionService
                 Notification::send($subOrder->vendor->vendorAdmins, new OrderCancelledByAdmin($subOrder, $reason));
             }
 
-            $originalStatus = $order->status;
+            $originalStatus = $order->status->value;
             $order->update(['status' => 'cancelled', 'cancelled_at' => now()]);
 
             OrderStatusHistory::create([
@@ -268,8 +269,8 @@ class OrderInterventionService
         // COD orders never produce a gateway capture; treat as manual refund.
         $isCod = $order->payment_method === 'cod';
 
-        $capturedTx = $order->transactions->firstWhere('type', 'capture')
-            ?? $order->transactions->firstWhere('type', 'sale');
+        $capturedTx = $order->transactions->firstWhere('type', PaymentTransactionType::Capture)
+            ?? $order->transactions->firstWhere('type', PaymentTransactionType::Sale);
 
         if (!$capturedTx && !$isCod) {
             throw ValidationException::withMessages([
@@ -316,8 +317,8 @@ class OrderInterventionService
             OrderStatusHistory::create([
                 'order_id'            => $order->id,
                 'sub_order_id'        => $subOrderId,
-                'from_status'         => $order->status,
-                'to_status'           => $order->status,
+                'from_status'         => $order->status->value,
+                'to_status'           => $order->status->value,
                 'changed_by_admin_id' => $adminId,
                 'reason'              => "[Refund] {$reason}" . ($reasonNotes ? " — {$reasonNotes}" : ''),
                 'metadata'            => [
@@ -361,7 +362,7 @@ class OrderInterventionService
                 'assigned_to_admin_id' => $adminId,
             ]);
 
-            $previousStatus = $order->status;
+            $previousStatus = $order->status->value;
             if ($previousStatus !== 'disputed') {
                 $order->update(['status' => 'disputed']);
 
@@ -395,8 +396,8 @@ class OrderInterventionService
             OrderStatusHistory::create([
                 'order_id' => $order->id,
                 'sub_order_id' => null,
-                'from_status' => $order->status,
-                'to_status' => $order->status,
+                'from_status' => $order->status->value,
+                'to_status' => $order->status->value,
                 'changed_by_admin_id' => $adminId,
                 'reason' => '[Fraud Flagged] ' . $reason,
                 'metadata' => ['action' => 'fraud_flagged'],
@@ -429,7 +430,7 @@ class OrderInterventionService
             return;
         }
 
-        $statuses = $order->subOrders->pluck('status');
+        $statuses = $order->subOrders->pluck('status')->map(fn ($s) => $s->value);
 
         $newStatus = null;
 
@@ -450,8 +451,8 @@ class OrderInterventionService
             $newStatus = 'shipped';
         }
 
-        if ($newStatus && $newStatus !== $order->status) {
-            $old = $order->status;
+        if ($newStatus && $newStatus !== $order->status->value) {
+            $old = $order->status->value;
             $order->update([
                 'status' => $newStatus,
                 'completed_at' => $newStatus === 'completed' ? now() : $order->completed_at,

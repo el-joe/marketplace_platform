@@ -41,7 +41,7 @@
                                 <div class="text-xs text-gray-400 font-arabic" dir="rtl">{{ $supply->name_ar }}</div>
                             </td>
                             <td class="td">
-                                <span class="badge {{ $supply->typeBadgeClass() }}">{{ ucfirst($supply->type) }}</span>
+                                <span class="badge {{ $supply->typeBadgeClass() }}">{{ $supply->type->label() }}</span>
                             </td>
                             <td class="td text-gray-500">{{ $supply->size ?? '—' }}</td>
                             <td class="td font-medium">{{ $supply->unit_cost_formatted }}</td>

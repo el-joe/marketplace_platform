@@ -20,8 +20,8 @@ class OrderFulfillmentService
 
     public function ship(SubOrder $subOrder, array $data): SubOrder
     {
-        if (! in_array($subOrder->status, self::SHIPPABLE_STATUSES)) {
-            abort(422, "Order cannot be shipped from status '{$subOrder->status}'.");
+        if (! in_array($subOrder->status->value, self::SHIPPABLE_STATUSES)) {
+            abort(422, "Order cannot be shipped from status '{$subOrder->status->value}'.");
         }
 
         DB::transaction(function () use ($subOrder, $data) {
@@ -58,12 +58,12 @@ class OrderFulfillmentService
 
     public function cancel(SubOrder $subOrder, string $reason): SubOrder
     {
-        if (! in_array($subOrder->status, self::CANCELLABLE_STATUSES)) {
-            abort(422, "Order cannot be cancelled from status '{$subOrder->status}'.");
+        if (! in_array($subOrder->status->value, self::CANCELLABLE_STATUSES)) {
+            abort(422, "Order cannot be cancelled from status '{$subOrder->status->value}'.");
         }
 
         DB::transaction(function () use ($subOrder, $reason) {
-            $previousStatus = $subOrder->status;
+            $previousStatus = $subOrder->status->value;
 
             $subOrder->update([
                 'status'              => 'cancelled',

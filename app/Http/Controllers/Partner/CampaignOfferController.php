@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\VendorCampaignInvitationStatus;
+use App\Enums\VendorCampaignOfferStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Country;
@@ -34,13 +36,13 @@ class CampaignOfferController extends Controller
         $vendorId = $this->vendorId();
 
         $offers = VendorCampaignOffer::where('vendor_id', $vendorId)
-            ->withCount(['invitations', 'invitations as accepted_count' => fn($q) => $q->where('status', 'accepted')])
+            ->withCount(['invitations', 'invitations as accepted_count' => fn($q) => $q->where('status', VendorCampaignInvitationStatus::Accepted->value)])
             ->latest()
             ->get();
 
         $stats = [
-            'draft'       => $offers->where('status', 'draft')->count(),
-            'active'      => $offers->where('status', 'active')->count(),
+            'draft'       => $offers->where('status', VendorCampaignOfferStatus::Draft)->count(),
+            'active'      => $offers->where('status', VendorCampaignOfferStatus::Active)->count(),
             'invited'     => $offers->sum('invitations_count'),
             'accepted'    => $offers->sum('accepted_count'),
             'conversions' => VendorCampaignOffer::where('vendor_id', $vendorId)
@@ -68,9 +70,9 @@ class CampaignOfferController extends Controller
             'name'                                  => 'required|string|max:255',
             'description'                           => 'nullable|string|max:2000',
             'requirements'                          => 'nullable|string|max:2000',
-            'campaign_type'                         => 'required|in:product_promotion,store_promotion,brand_deal,product_specific,flash_sale',
+            'campaign_type'                         => ['required', \Illuminate\Validation\Rule::enum(\App\Enums\CampaignType::class)],
             'offered_commission_rate'               => 'required|numeric|min:0|max:100',
-            'commission_type'                       => 'required|in:percentage,flat_per_order,flat_per_click',
+            'commission_type'                       => ['required', \Illuminate\Validation\Rule::enum(\App\Enums\CommissionType::class)],
             'budget_per_marketer_cents_display'     => 'nullable|numeric|min:0',
             'total_budget_cents_display'            => 'nullable|numeric|min:0',
             'starts_at'                             => 'required|date|after_or_equal:today',
@@ -120,7 +122,7 @@ class CampaignOfferController extends Controller
                 'invitation_deadline'        => $validated['invitation_deadline'] ?? null,
                 'attribution_model'          => $validated['attribution_model'],
                 'whatsapp_sharing_enabled'   => $validated['whatsapp_sharing_enabled'] ?? false,
-                'status'                     => 'draft',
+                'status'                     => VendorCampaignOfferStatus::Draft,
             ]);
 
             foreach ($validated['listing_ids'] as $i => $listingId) {
@@ -149,8 +151,8 @@ class CampaignOfferController extends Controller
 
         $invitationStats = [
             'invited'  => $offer->invitations->count(),
-            'accepted' => $offer->invitations->where('status', 'accepted')->count(),
-            'declined' => $offer->invitations->whereIn('status', ['declined', 'expired', 'revoked'])->count(),
+            'accepted' => $offer->invitations->where('status', VendorCampaignInvitationStatus::Accepted)->count(),
+            'declined' => $offer->invitations->whereIn('status', [VendorCampaignInvitationStatus::Declined, VendorCampaignInvitationStatus::Expired, VendorCampaignInvitationStatus::Revoked])->count(),
         ];
 
         return view('partner.campaign-offers.show', compact('offer', 'invitationStats'));
@@ -160,58 +162,58 @@ class CampaignOfferController extends Controller
     {
         abort_if($offer->vendor_id !== $this->vendorId(), 404);
 
-        if ($offer->status !== 'draft') {
+        if ($offer->status !== VendorCampaignOfferStatus::Draft) {
             return response()->json(['success' => false, 'message' => 'يمكن تقديم العروض ذات حالة مسودة فقط.'], 422);
         }
 
-        $offer->update(['status' => 'pending_admin']);
+        $offer->update(['status' => VendorCampaignOfferStatus::PendingAdmin]);
 
         Notification::send(Admin::permission('campaign_offers.view')->get(), new VendorCampaignOfferSubmitted($offer));
 
-        return response()->json(['success' => true, 'message' => 'تم إرسال العرض للمراجعة.', 'status' => 'pending_admin']);
+        return response()->json(['success' => true, 'message' => 'تم إرسال العرض للمراجعة.', 'status' => VendorCampaignOfferStatus::PendingAdmin->value]);
     }
 
     public function pauseOffer(VendorCampaignOffer $offer): JsonResponse
     {
         abort_if($offer->vendor_id !== $this->vendorId(), 404);
 
-        if ($offer->status !== 'active') {
+        if ($offer->status !== VendorCampaignOfferStatus::Active) {
             return response()->json(['success' => false, 'message' => 'العرض غير نشط حالياً.'], 422);
         }
 
-        $offer->update(['status' => 'paused']);
+        $offer->update(['status' => VendorCampaignOfferStatus::Paused]);
 
         MarketerCampaign::whereIn('id', $offer->invitations()
-            ->where('status', 'accepted')
+            ->where('status', VendorCampaignInvitationStatus::Accepted->value)
             ->pluck('resulting_campaign_id'))
             ->update(['status' => 'paused']);
 
-        return response()->json(['success' => true, 'message' => 'تم إيقاف العرض مؤقتاً.', 'status' => 'paused']);
+        return response()->json(['success' => true, 'message' => 'تم إيقاف العرض مؤقتاً.', 'status' => VendorCampaignOfferStatus::Paused->value]);
     }
 
     public function resumeOffer(VendorCampaignOffer $offer): JsonResponse
     {
         abort_if($offer->vendor_id !== $this->vendorId(), 404);
 
-        if ($offer->status !== 'paused') {
+        if ($offer->status !== VendorCampaignOfferStatus::Paused) {
             return response()->json(['success' => false, 'message' => 'العرض ليس متوقفاً.'], 422);
         }
 
-        $offer->update(['status' => 'active']);
+        $offer->update(['status' => VendorCampaignOfferStatus::Active]);
 
         MarketerCampaign::whereIn('id', $offer->invitations()
-            ->where('status', 'accepted')
+            ->where('status', VendorCampaignInvitationStatus::Accepted->value)
             ->pluck('resulting_campaign_id'))
             ->update(['status' => 'active']);
 
-        return response()->json(['success' => true, 'message' => 'تم استئناف العرض.', 'status' => 'active']);
+        return response()->json(['success' => true, 'message' => 'تم استئناف العرض.', 'status' => VendorCampaignOfferStatus::Active->value]);
     }
 
     public function invite(Request $request, VendorCampaignOffer $offer): JsonResponse
     {
         abort_if($offer->vendor_id !== $this->vendorId(), 404);
 
-        if (!in_array($offer->status, ['active', 'draft', 'pending_admin'])) {
+        if (!in_array($offer->status, [VendorCampaignOfferStatus::Active, VendorCampaignOfferStatus::Draft, VendorCampaignOfferStatus::PendingAdmin], true)) {
             return response()->json(['success' => false, 'message' => 'لا يمكن دعوة مسوّقين لهذا العرض في حالته الحالية.'], 422);
         }
 
@@ -233,7 +235,7 @@ class CampaignOfferController extends Controller
             $invitation = VendorCampaignInvitation::firstOrCreate(
                 ['vendor_campaign_offer_id' => $offer->id, 'marketer_id' => $marketerId],
                 [
-                    'status'      => 'pending',
+                    'status'      => VendorCampaignInvitationStatus::Pending,
                     'vendor_note' => $validated['vendor_note'] ?? null,
                     'expires_at'  => $offer->invitation_deadline,
                 ]
@@ -243,7 +245,7 @@ class CampaignOfferController extends Controller
                 $created++;
                 // Only fan-out immediately when the offer is already active;
                 // pending_admin offers send invitations on approval instead.
-                if ($offer->status === 'active') {
+                if ($offer->status === VendorCampaignOfferStatus::Active) {
                     Notification::send($invitation->marketer, new VendorCampaignInvitationReceived($invitation));
                 }
             }
@@ -260,11 +262,11 @@ class CampaignOfferController extends Controller
     {
         abort_if($invitation->offer->vendor_id !== $this->vendorId(), 404);
 
-        if ($invitation->status !== 'pending') {
+        if ($invitation->status !== VendorCampaignInvitationStatus::Pending) {
             return response()->json(['success' => false, 'message' => 'لا يمكن سحب دعوة تمت الاستجابة عليها.'], 422);
         }
 
-        $invitation->update(['status' => 'revoked']);
+        $invitation->update(['status' => VendorCampaignInvitationStatus::Revoked]);
 
         return response()->json(['success' => true, 'message' => 'تم سحب الدعوة.']);
     }

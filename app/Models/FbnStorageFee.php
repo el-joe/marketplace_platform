@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FbnStorageFeeStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,7 @@ class FbnStorageFee extends Model
     ];
 
     protected $casts = [
+        'status' => FbnStorageFeeStatus::class,
         'month' => 'date',
         'units_stored' => 'integer',
         'rate_per_unit_cents' => 'integer',
@@ -46,15 +48,15 @@ class FbnStorageFee extends Model
 
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', FbnStorageFeeStatus::Pending);
     }
     public function scopeInvoiced($query)
     {
-        return $query->where('status', 'invoiced');
+        return $query->where('status', FbnStorageFeeStatus::Invoiced);
     }
     public function scopePaid($query)
     {
-        return $query->where('status', 'paid');
+        return $query->where('status', FbnStorageFeeStatus::Paid);
     }
 
     public function scopeForMonth($query, string $month)
@@ -67,9 +69,9 @@ class FbnStorageFee extends Model
     public function statusColor(): string
     {
         return match ($this->status) {
-            'pending' => 'warning',
-            'invoiced' => 'primary',
-            'paid' => 'success',
+            FbnStorageFeeStatus::Pending => 'warning',
+            FbnStorageFeeStatus::Invoiced => 'primary',
+            FbnStorageFeeStatus::Paid => 'success',
             default => 'secondary',
         };
     }

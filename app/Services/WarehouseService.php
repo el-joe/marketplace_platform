@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\InventoryTransferStatus;
 use App\Models\InventoryMovement;
 use App\Models\InventoryTransfer;
 use App\Models\InventoryTransferItem;
@@ -120,7 +121,7 @@ class WarehouseService
 
             InventoryMovement::create([
                 'warehouse_inventory_id' => $locked->id,
-                'movement_type' => 'damaged',
+                'movement_type' => \App\Enums\InventoryMovementType::Damage->value,
                 'quantity_delta' => -$quantity,
                 'quantity_after' => $newQty,
                 'reason' => $reason,
@@ -155,7 +156,7 @@ class WarehouseService
 
             InventoryMovement::create([
                 'warehouse_inventory_id' => $locked->id,
-                'movement_type' => 'count',
+                'movement_type' => \App\Enums\InventoryMovementType::Adjustment->value,
                 'quantity_delta' => $delta,
                 'quantity_after' => $newCount,
                 'reason' => $reason,
@@ -181,7 +182,7 @@ class WarehouseService
                 'source_warehouse_id' => $data['source_warehouse_id'],
                 'destination_warehouse_id' => $data['destination_warehouse_id'],
                 'vendor_id' => $data['vendor_id'] ?? null,
-                'status' => 'pending',
+                'status' => InventoryTransferStatus::Draft->value,
                 'initiated_by_user_id' => $initiatedByUserId,
                 'expected_arrival_date' => $data['expected_arrival_date'] ?? null,
                 'notes' => $data['notes'] ?? null,
@@ -206,13 +207,13 @@ class WarehouseService
      */
     public function shipTransfer(InventoryTransfer $transfer, array $data, string $adminId): InventoryTransfer
     {
-        if ($transfer->status !== 'pending') {
-            throw new \RuntimeException("Only pending transfers can be shipped.");
+        if ($transfer->status !== InventoryTransferStatus::Draft) {
+            throw new \RuntimeException("Only draft transfers can be shipped.");
         }
 
         return DB::transaction(function () use ($transfer, $data, $adminId) {
             $transfer->update([
-                'status' => 'in_transit',
+                'status' => InventoryTransferStatus::InTransit->value,
                 'shipped_at' => now(),
                 'carrier' => $data['carrier'] ?? $transfer->carrier,
                 'tracking_number' => $data['tracking_number'] ?? $transfer->tracking_number,
@@ -228,7 +229,7 @@ class WarehouseService
                     $this->adjustInventory(
                         warehouseInventoryId: $sourceInventory->id,
                         delta: -$item->quantity_requested,
-                        movementType: 'transfer_out',
+                        movementType: \App\Enums\InventoryMovementType::Transfer->value,
                         reason: "Shipped via transfer {$transfer->transfer_number}",
                         createdByUserId: $adminId,
                         referenceType: InventoryTransfer::class,
@@ -247,7 +248,7 @@ class WarehouseService
      */
     public function receiveTransfer(InventoryTransfer $transfer, array $receivedItems, string $adminId): InventoryTransfer
     {
-        if ($transfer->status !== 'in_transit') {
+        if ($transfer->status !== InventoryTransferStatus::InTransit) {
             throw new \RuntimeException("Only in-transit transfers can be received.");
         }
 
@@ -283,7 +284,7 @@ class WarehouseService
                     $this->adjustInventory(
                         warehouseInventoryId: $destInventory->id,
                         delta: $goodQty,
-                        movementType: 'transfer_in',
+                        movementType: \App\Enums\InventoryMovementType::Transfer->value,
                         reason: "Received via transfer {$transfer->transfer_number}",
                         createdByUserId: $adminId,
                         referenceType: InventoryTransfer::class,
@@ -310,7 +311,7 @@ class WarehouseService
             }
 
             $transfer->update([
-                'status' => 'received',
+                'status' => InventoryTransferStatus::Received->value,
                 'received_at' => now(),
             ]);
 
@@ -323,11 +324,11 @@ class WarehouseService
      */
     public function cancelTransfer(InventoryTransfer $transfer): InventoryTransfer
     {
-        if (!in_array($transfer->status, ['pending'])) {
-            throw new \RuntimeException("Only pending transfers can be cancelled.");
+        if ($transfer->status !== InventoryTransferStatus::Draft) {
+            throw new \RuntimeException("Only draft transfers can be cancelled.");
         }
 
-        $transfer->update(['status' => 'cancelled']);
+        $transfer->update(['status' => InventoryTransferStatus::Cancelled->value]);
 
         return $transfer->refresh();
     }

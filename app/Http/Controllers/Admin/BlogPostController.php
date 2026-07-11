@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\BlogPostStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\BlogCategory;
@@ -118,10 +119,10 @@ class BlogPostController extends Controller
                 ? e(($row->country->flag_emoji ? $row->country->flag_emoji . ' ' : '') . $row->country->name_en)
                 : '<span class="text-gray-400 text-xs">All Countries</span>';
 
-            $sc = $statusColors[$row->status] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'label' => ucfirst($row->status)];
+            $sc = $statusColors[$row->status->value] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'label' => $row->status->label()];
             $statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ' . $sc['bg'] . ' ' . $sc['text'] . '">' . $sc['label'] . '</span>';
 
-            $dateHtml = $row->status === 'scheduled' && $row->scheduled_for
+            $dateHtml = $row->status === BlogPostStatus::Scheduled && $row->scheduled_for
                 ? '<div class="text-xs text-blue-600">' . $row->scheduled_for->format('d M Y H:i') . '</div><div class="text-xs text-gray-400">Scheduled</div>'
                 : ($row->published_at
                     ? '<div class="text-xs text-gray-700">' . $row->published_at->format('d M Y') . '</div>'

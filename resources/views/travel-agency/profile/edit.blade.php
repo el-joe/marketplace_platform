@@ -57,8 +57,7 @@
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-500 mb-1">{{ __('travel.profile.status') }}</label>
-                @php $statusLabels = ['pending'=>__('travel.profile.pending'),'active'=>__('travel.profile.active'),'suspended'=>__('travel.profile.suspended')]; @endphp
-                <input type="text" value="{{ $statusLabels[$agency->status] ?? $agency->status }}" disabled
+                <input type="text" value="{{ $agency->status->label() }}" disabled
                        class="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-500 cursor-not-allowed">
             </div>
         </div>

@@ -15,13 +15,13 @@
         @endif
     </div>
     <div class="flex items-center gap-2">
-        @if($shippingCompany->status === 'pending')
+        @if($shippingCompany->status === \App\Enums\ShippingCompanyStatus::Pending)
         <form method="POST" action="{{ route('admin.shipping-companies.approve', $shippingCompany->id) }}">
             @csrf
             <button class="btn btn-success btn-sm">{{ __('admin.shipping_section.approve') }}</button>
         </form>
         @endif
-        @if($shippingCompany->status !== 'suspended')
+        @if($shippingCompany->status !== \App\Enums\ShippingCompanyStatus::Suspended)
         <form method="POST" action="{{ route('admin.shipping-companies.suspend', $shippingCompany->id) }}"
               onsubmit="return confirm('{{ __('admin.shipping_section.suspend_confirm') }}')">
             @csrf
@@ -41,9 +41,9 @@
                 <div>
                     <dt class="text-gray-500 text-xs uppercase tracking-wide">{{ __('admin.shipping_section.company_details_status') }}</dt>
                     <dd class="mt-0.5">
-                        @php $sc = ['active'=>'emerald','pending'=>'amber','suspended'=>'red'][$shippingCompany->status] ?? 'gray'; @endphp
+                        @php $sc = ['active'=>'emerald','pending'=>'amber','suspended'=>'red'][$shippingCompany->status->value] ?? 'gray'; @endphp
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-{{ $sc }}-100 text-{{ $sc }}-700 capitalize">
-                            {{ __('admin.shipping_section.company_status_' . $shippingCompany->status) }}
+                            {{ __('admin.shipping_section.company_status_' . $shippingCompany->status->value) }}
                         </span>
                     </dd>
                 </div>

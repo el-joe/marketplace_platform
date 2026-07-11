@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentMethodType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,6 +21,13 @@ class PaymentMethod extends Model
         'billing_address_id',
         'is_default',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'type' => PaymentMethodType::class,
+        ];
+    }
 
     public function customer(): BelongsTo
     {

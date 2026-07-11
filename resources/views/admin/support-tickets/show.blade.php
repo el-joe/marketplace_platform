@@ -44,19 +44,19 @@ Object.assign(window.TRANSLATIONS, {
             default => 'bg-gray-100 text-gray-500',
         };
         $statusBadge = match ($ticket->status) {
-            'open' => 'bg-yellow-100 text-yellow-700',
-            'in_progress' => 'bg-blue-100 text-blue-700',
-            'waiting_customer' => 'bg-indigo-100 text-indigo-700',
-            'resolved' => 'bg-green-100 text-green-700',
-            'closed' => 'bg-gray-100 text-gray-500',
+            \App\Enums\SupportTicketStatus::Open => 'bg-yellow-100 text-yellow-700',
+            \App\Enums\SupportTicketStatus::InProgress => 'bg-blue-100 text-blue-700',
+            \App\Enums\SupportTicketStatus::WaitingCustomer => 'bg-indigo-100 text-indigo-700',
+            \App\Enums\SupportTicketStatus::Resolved => 'bg-green-100 text-green-700',
+            \App\Enums\SupportTicketStatus::Closed => 'bg-gray-100 text-gray-500',
             default => 'bg-gray-100 text-gray-500',
         };
-        $requester = $ticket->requester_role === 'seller'
+        $requester = $ticket->requester_role === \App\Enums\SupportTicketRequesterRole::Seller
             ? $ticket->requesterVendor
             : $ticket->requesterCustomer;
         $requesterName = $requester->store_name ?? $requester->name ?? __('admin.support_tickets.unknown');
-        $statusLabelKey = ['waiting_customer' => 'waiting'][$ticket->status] ?? $ticket->status;
-        $requesterRoute = $ticket->requester_role === 'seller'
+        $statusLabelKey = $ticket->status === \App\Enums\SupportTicketStatus::WaitingCustomer ? 'waiting' : $ticket->status->value;
+        $requesterRoute = $ticket->requester_role === \App\Enums\SupportTicketRequesterRole::Seller
             ? route('admin.vendors.show', $ticket->requester_user_id)
             : route('admin.customers.show', $ticket->requester_user_id);
     @endphp
@@ -144,7 +144,7 @@ Object.assign(window.TRANSLATIONS, {
             </div>
 
             {{-- Reply form --}}
-            @if(!in_array($ticket->status, ['resolved', 'closed']))
+            @if(!in_array($ticket->status, [\App\Enums\SupportTicketStatus::Resolved, \App\Enums\SupportTicketStatus::Closed], true))
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5" id="reply-area">
                     <form id="reply-form" data-url="{{ route('admin.support-tickets.reply', $ticket->id) }}" novalidate>
                         @csrf
@@ -179,7 +179,7 @@ Object.assign(window.TRANSLATIONS, {
                 </div>
             @else
                 <div class="text-center text-sm text-gray-400 py-4">
-                    {{ __('admin.support_tickets.ticket_status_reopen', ['status' => $ticket->status]) }}
+                    {{ __('admin.support_tickets.ticket_status_reopen', ['status' => $ticket->status->value]) }}
                 </div>
             @endif
 
@@ -202,7 +202,7 @@ Object.assign(window.TRANSLATIONS, {
                                 data-url="{{ route('admin.support-tickets.update-status', $ticket->id) }}"
                                 class="form-input text-xs py-1 pr-7">
                                 @foreach(['open', 'in_progress', 'waiting_customer', 'resolved', 'closed'] as $s)
-                                    <option value="{{ $s }}" {{ $ticket->status === $s ? 'selected' : '' }}>
+                                    <option value="{{ $s }}" {{ $ticket->status->value === $s ? 'selected' : '' }}>
                                         {{ __('admin.support_tickets.' . (['waiting_customer' => 'waiting'][$s] ?? $s)) }}
                                     </option>
                                 @endforeach
@@ -240,8 +240,8 @@ Object.assign(window.TRANSLATIONS, {
                         <dd class="flex items-center gap-1.5">
                             <span
                                 class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium
-                                    {{ $ticket->requester_role === 'seller' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700' }}">
-                                {{ $ticket->requester_role === 'seller' ? __('admin.support_tickets.vendor_seller') : __('admin.support_tickets.customer') }}
+                                    {{ $ticket->requester_role === \App\Enums\SupportTicketRequesterRole::Seller ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700' }}">
+                                {{ $ticket->requester_role === \App\Enums\SupportTicketRequesterRole::Seller ? __('admin.support_tickets.vendor_seller') : __('admin.support_tickets.customer') }}
                             </span>
                             <a href="{{ $requesterRoute }}" class="text-sm text-primary-600 hover:underline truncate">
                                 {{ $requesterName }}

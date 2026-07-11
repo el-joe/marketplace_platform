@@ -157,8 +157,8 @@
         'ended'     => 'bg-blue-100 text-blue-700',
         'cancelled' => 'bg-red-100 text-red-600',
     ];
-    $sc = $statusColors[$campaign->status] ?? 'bg-gray-100 text-gray-600';
-    $isActive = $campaign->status === 'active';
+    $sc = $statusColors[$campaign->status->value] ?? 'bg-gray-100 text-gray-600';
+    $isActive = $campaign->status === \App\Enums\MarketerCampaignStatus::Active;
 @endphp
 
 {{-- ── Header ───────────────────────────────────────────────────────────────── --}}
@@ -168,10 +168,10 @@
             <a href="{{ route('marketer.campaigns.index') }}" class="text-sm text-gray-400 hover:text-gray-600">{{ __('marketer.campaigns.back_to_campaigns') }}</a>
         </div>
         <h1 class="text-xl font-bold text-gray-800">{{ $campaign->name }}</h1>
-        <p class="text-sm text-gray-500 mt-0.5">{{ ucfirst(str_replace('_', ' ', $campaign->campaign_type)) }}</p>
+        <p class="text-sm text-gray-500 mt-0.5">{{ $campaign->campaign_type->label() }}</p>
     </div>
     <div class="flex items-center gap-3">
-        <span class="text-sm font-semibold rounded-full px-3 py-1 {{ $sc }}">{{ ucfirst($campaign->status) }}</span>
+        <span class="text-sm font-semibold rounded-full px-3 py-1 {{ $sc }}">{{ $campaign->status->label() }}</span>
     </div>
 </div>
 
@@ -296,7 +296,7 @@ function copyTrackingUrl() {
                 <p class="font-semibold text-sm text-gray-800">{{ $listing->title_en }}</p>
                 <p class="text-xs text-gray-500 mt-0.5">
                     {{ number_format($listing->price_cents / 100, 2) }} {{ $listing->currency }}
-                    · {{ ucfirst($listing->status) }}
+                    · {{ $listing->status->label() }}
                 </p>
                 <p class="text-xs text-gray-400 mt-1">#{{ $listing->listing_number }}</p>
             </div>
@@ -646,9 +646,9 @@ function copyTrackingUrl() {
                         : '—'));
         @endphp
         @foreach([
-            __('marketer.campaigns.status')            => ucfirst($campaign->status),
-            __('marketer.campaigns.type')               => ucfirst(str_replace('_', ' ', $campaign->campaign_type)),
-            __('marketer.campaigns.commission_rate_label') => "{$campaign->commission_rate}% (" . ucfirst(str_replace('_', ' ', $campaign->commission_type)) . ')',
+            __('marketer.campaigns.status')            => $campaign->status->label(),
+            __('marketer.campaigns.type')               => $campaign->campaign_type->label(),
+            __('marketer.campaigns.commission_rate_label') => "{$campaign->commission_rate}% (" . $campaign->commission_type->label() . ')',
             __('marketer.campaigns.attribution_model')  => ucfirst(str_replace('_', ' ', $campaign->attribution_model ?? 'last_click')),
             __('marketer.campaigns.budget')             => $budgetDisplay,
             __('marketer.campaigns.start_date')         => $campaign->starts_at?->format('d M Y') ?? '—',

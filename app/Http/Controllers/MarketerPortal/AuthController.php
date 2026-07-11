@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\MarketerPortal;
 
+use App\Enums\MarketerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\Marketer;
@@ -32,14 +33,14 @@ class AuthController extends Controller
 
         $marketer = Auth::guard('marketer')->user();
 
-        if ($marketer->status === 'pending') {
+        if ($marketer->status === MarketerStatus::Pending) {
             Auth::guard('marketer')->logout();
             return back()->withErrors(['email' => 'Your account is pending approval. You will be notified once approved.'])->withInput();
         }
 
-        if (in_array($marketer->status, ['suspended', 'rejected'])) {
+        if (in_array($marketer->status, [MarketerStatus::Suspended, MarketerStatus::Rejected], true)) {
             Auth::guard('marketer')->logout();
-            return back()->withErrors(['email' => 'Your account is ' . $marketer->status . '. Contact support.'])->withInput();
+            return back()->withErrors(['email' => 'Your account is ' . $marketer->status->value . '. Contact support.'])->withInput();
         }
 
         $marketer->update([

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\TravelBookingStatus;
+use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
 use App\Models\TravelCountry;
 use App\Models\TravelPackage;
@@ -27,11 +29,11 @@ class TravelPackageController extends Controller
         $urgencyThreshold = now()->addDays(7);
 
         $stats = [
-            'pending' => TravelPackage::where('status', 'pending_review')->count(),
-            'active' => TravelPackage::where('status', 'active')->count(),
-            'sold_out' => TravelPackage::where('status', 'sold_out')->count(),
+            'pending' => TravelPackage::where('status', TravelPackageStatus::PendingReview)->count(),
+            'active' => TravelPackage::where('status', TravelPackageStatus::Active)->count(),
+            'sold_out' => TravelPackage::where('status', TravelPackageStatus::SoldOut)->count(),
             // Packages departing within 7 days that are still pending — fulfillment urgency
-            'urgent' => TravelPackage::where('status', 'pending_review')
+            'urgent' => TravelPackage::where('status', TravelPackageStatus::PendingReview)
                 ->whereDate('departure_date', '<=', $urgencyThreshold)
                 ->count(),
         ];
@@ -75,11 +77,11 @@ class TravelPackageController extends Controller
         ];
 
         $statusColors = [
-            'draft' => 'gray',
-            'pending_review' => 'warning',
-            'active' => 'success',
-            'sold_out' => 'purple',
-            'expired' => 'gray',
+            TravelPackageStatus::Draft->value => 'gray',
+            TravelPackageStatus::PendingReview->value => 'warning',
+            TravelPackageStatus::Active->value => 'success',
+            TravelPackageStatus::SoldOut->value => 'purple',
+            TravelPackageStatus::Expired->value => 'gray',
         ];
 
         $canEdit = $admin->hasPermissionTo('travel.view');
@@ -108,8 +110,8 @@ class TravelPackageController extends Controller
             $seatsBooked = $row->seats_booked;
             $seatDisplay = $seatsAvail !== null ? "{$seatsBooked} / {$seatsAvail}" : "{$seatsBooked} / ∞";
 
-            $statusColor = $statusColors[$row->status] ?? 'gray';
-            $statusLabel = ucwords(str_replace('_', ' ', $row->status));
+            $statusColor = $statusColors[$row->status->value] ?? 'gray';
+            $statusLabel = $row->status->label();
             $statusBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{$statusColor}-100 text-{$statusColor}-700\">{$statusLabel}</span>";
 
             $showUrl = route('admin.travel.packages.show', $row->id);
@@ -118,7 +120,7 @@ class TravelPackageController extends Controller
 
             $actions = '<div class="flex items-center gap-1">';
             $actions .= "<a href=\"{$showUrl}\" class=\"btn btn-xs btn-secondary\">View</a>";
-            if ($canEdit && $row->status === 'pending_review') {
+            if ($canEdit && $row->status === TravelPackageStatus::PendingReview) {
                 $actions .= "<button type=\"button\" class=\"btn btn-xs btn-success js-approve-btn\" data-url=\"{$approveUrl}\" data-name=\"" . e($row->title_en) . "\">Approve</button>";
                 $actions .= "<button type=\"button\" class=\"btn btn-xs btn-danger js-reject-btn\" data-url=\"{$rejectUrl}\" data-name=\"" . e($row->title_en) . "\">Reject</button>";
             }
@@ -156,10 +158,10 @@ class TravelPackageController extends Controller
 
         $bookingStats = [
             'total' => $travelPackage->bookings()->count(),
-            'confirmed' => $travelPackage->bookings()->where('status', 'confirmed')->count(),
-            'cancelled' => $travelPackage->bookings()->where('status', 'cancelled')->count(),
+            'confirmed' => $travelPackage->bookings()->where('status', TravelBookingStatus::Confirmed)->count(),
+            'cancelled' => $travelPackage->bookings()->where('status', TravelBookingStatus::Cancelled)->count(),
             'revenue_cents' => $travelPackage->bookings()
-                ->whereIn('status', ['confirmed', 'completed'])
+                ->whereIn('status', [TravelBookingStatus::Confirmed, TravelBookingStatus::Completed])
                 ->sum('total_price_cents'),
         ];
 
@@ -181,7 +183,7 @@ class TravelPackageController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('travel.approve'), 403);
 
-        if ($travelPackage->status !== 'pending_review') {
+        if ($travelPackage->status !== TravelPackageStatus::PendingReview) {
             return response()->json(['message' => 'Package is not pending review.'], 422);
         }
 
@@ -196,7 +198,7 @@ class TravelPackageController extends Controller
         // }
 
         $travelPackage->update([
-            'status' => 'active',
+            'status' => TravelPackageStatus::Active,
             'approved_by_admin_id' => $admin->id,
             'approved_at' => now(),
             'rejection_reason' => null,
@@ -222,7 +224,7 @@ class TravelPackageController extends Controller
         // so the agency can amend and resubmit. The rejection_reason preserves
         // context that would otherwise be lost with a silent status flip.
         $travelPackage->update([
-            'status' => 'draft',
+            'status' => TravelPackageStatus::Draft,
             'rejection_reason' => $request->input('rejection_reason'),
         ]);
 
@@ -238,11 +240,11 @@ class TravelPackageController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('travel.suspend'), 403);
 
-        if (!in_array($travelPackage->status, ['active', 'sold_out'])) {
+        if (!in_array($travelPackage->status, [TravelPackageStatus::Active, TravelPackageStatus::SoldOut])) {
             return response()->json(['message' => 'Package cannot be expired from its current status.'], 422);
         }
 
-        $travelPackage->update(['status' => 'expired']);
+        $travelPackage->update(['status' => TravelPackageStatus::Expired]);
 
         return response()->json(['message' => 'Package marked as expired.']);
     }

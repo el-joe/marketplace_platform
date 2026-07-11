@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Enums\CodSettlementDiscrepancyResolution;
+use App\Enums\DeliveryAgentCodSettlementStatus;
+use App\Enums\DeliveryAgentEarningStatus;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentCodSettlement;
 use App\Models\DeliveryAgentEarning;
@@ -19,23 +22,23 @@ class CodSettlementController extends Controller
 
     public function index(Request $request): View
     {
-        $pendingCashCents = DeliveryAgentCodSettlement::where('status', 'pending')
+        $pendingCashCents = DeliveryAgentCodSettlement::where('status', DeliveryAgentCodSettlementStatus::Pending)
             ->sum('net_to_remit_cents');
 
-        $settledThisMonthCents = DeliveryAgentCodSettlement::where('status', 'settled')
+        $settledThisMonthCents = DeliveryAgentCodSettlement::where('status', DeliveryAgentCodSettlementStatus::Settled)
             ->whereMonth('settled_at', now()->month)
             ->whereYear('settled_at', now()->year)
             ->sum('net_to_remit_cents');
 
-        $disputedCount = DeliveryAgentCodSettlement::where('status', 'disputed')->count();
+        $disputedCount = DeliveryAgentCodSettlement::where('status', DeliveryAgentCodSettlementStatus::Disputed)->count();
 
         $discrepancyCount = DeliveryAgentCodSettlement::where('has_collection_discrepancy', true)
-            ->where('discrepancy_resolution', 'pending')
+            ->where('discrepancy_resolution', CodSettlementDiscrepancyResolution::Pending)
             ->count();
 
         // Per-agent summary: pending cash in custody + last settlement
         $agents = DeliveryAgent::query()
-            ->withCount(['codSettlements as pending_count' => fn($q) => $q->where('status', 'pending')])
+            ->withCount(['codSettlements as pending_count' => fn($q) => $q->where('status', DeliveryAgentCodSettlementStatus::Pending)])
             ->with(['codSettlements' => fn($q) => $q->orderByDesc('period_end')->limit(1)])
             ->whereHas('assignments', fn($q) => $q->whereNotNull('cod_amount_collected_cents'))
             ->orWhereHas('codSettlements')
@@ -54,7 +57,7 @@ class CodSettlementController extends Controller
         if ($request->boolean('discrepancies')) {
             $flaggedSettlements = DeliveryAgentCodSettlement::with('agent')
                 ->where('has_collection_discrepancy', true)
-                ->where('discrepancy_resolution', 'pending')
+                ->where('discrepancy_resolution', CodSettlementDiscrepancyResolution::Pending)
                 ->orderByDesc('created_at')
                 ->get();
         }
@@ -90,7 +93,7 @@ class CodSettlementController extends Controller
         // Earnings in the settlement's period for this agent
         $earnings = DeliveryAgentEarning::where('agent_id', $settlement->agent_id)
             ->whereBetween('created_at', [$settlement->period_start, $settlement->period_end])
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled)
             ->get();
 
         // Settlement history for this agent
@@ -167,7 +170,7 @@ class CodSettlementController extends Controller
         $earningsOwed = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->whereIn('earning_type', ['base_fee', 'cod_handling'])
             ->whereBetween('created_at', [$periodStart . ' 00:00:00', $periodEnd . ' 23:59:59'])
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled)
             ->sum('amount_cents');
 
         $netToRemit = $collected - $earningsOwed;
@@ -201,11 +204,11 @@ class CodSettlementController extends Controller
                 'total_cod_collected_cents'  => $collected,
                 'total_earnings_owed_cents'  => $earningsOwed,
                 'net_to_remit_cents'         => $netToRemit,
-                'status'                     => 'pending',
+                'status'                     => DeliveryAgentCodSettlementStatus::Pending,
                 'has_collection_discrepancy' => $hasDiscrepancy,
                 'discrepancy_notes'          => $hasDiscrepancy ? $discrepancyNotes : null,
                 'discrepancy_amount_cents'   => $discrepancyAmountCents,
-                'discrepancy_resolution'     => $hasDiscrepancy ? 'pending' : null,
+                'discrepancy_resolution'     => $hasDiscrepancy ? CodSettlementDiscrepancyResolution::Pending : null,
             ]);
 
             // Link all covered assignments to this settlement
@@ -237,7 +240,7 @@ class CodSettlementController extends Controller
 
     public function markSettled(Request $request, DeliveryAgentCodSettlement $settlement): JsonResponse
     {
-        if ($settlement->status !== 'pending') {
+        if ($settlement->status !== DeliveryAgentCodSettlementStatus::Pending) {
             return response()->json(['success' => false, 'message' => 'Only pending settlements can be marked settled.'], 422);
         }
 
@@ -258,7 +261,7 @@ class CodSettlementController extends Controller
 
         DB::transaction(function () use ($settlement, $validated) {
             $settlement->update([
-                'status'     => 'settled',
+                'status'     => DeliveryAgentCodSettlementStatus::Settled,
                 'settled_at' => now(),
                 'notes'      => isset($validated['notes'])
                     ? ($validated['payment_reference'] . ' | ' . $validated['notes'])
@@ -268,8 +271,8 @@ class CodSettlementController extends Controller
             // Approve earnings for this period
             DeliveryAgentEarning::where('agent_id', $settlement->agent_id)
                 ->whereBetween('created_at', [$settlement->period_start . ' 00:00:00', $settlement->period_end . ' 23:59:59'])
-                ->where('status', 'pending')
-                ->update(['status' => 'approved']);
+                ->where('status', DeliveryAgentEarningStatus::Pending)
+                ->update(['status' => DeliveryAgentEarningStatus::Approved]);
 
             // Unlock vendor payouts for all COD sub_orders covered by this settlement.
             $subOrderIds = DeliveryAssignment::where('agent_id', $settlement->agent_id)
@@ -298,7 +301,7 @@ class CodSettlementController extends Controller
 
     public function dispute(Request $request, DeliveryAgentCodSettlement $settlement): JsonResponse
     {
-        if ($settlement->status === 'settled') {
+        if ($settlement->status === DeliveryAgentCodSettlementStatus::Settled) {
             return response()->json(['success' => false, 'message' => 'A settled record cannot be disputed.'], 422);
         }
 
@@ -307,7 +310,7 @@ class CodSettlementController extends Controller
         ]);
 
         $settlement->update([
-            'status' => 'disputed',
+            'status' => DeliveryAgentCodSettlementStatus::Disputed,
             'notes'  => $validated['reason'],
         ]);
 

@@ -12,7 +12,11 @@ use App\Models\ShippingMethod;
 use App\Models\ShippingRate;
 use App\Models\ShippingZone;
 use App\Models\SubOrder;
+use App\Enums\DisputeReason;
+use App\Enums\RefundReason;
+use App\Enums\RefundType;
 use App\Services\OrderInterventionService;
+use Illuminate\Validation\Rule;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -183,7 +187,7 @@ class OrderController extends Controller
     {
         $subOrder = SubOrder::findOrFail($request->input('sub_order_id'));
 
-        $validTransitions = SubOrder::STATUS_TRANSITIONS[$subOrder->status] ?? [];
+        $validTransitions = SubOrder::STATUS_TRANSITIONS[$subOrder->status->value] ?? [];
 
         $request->validate([
             'sub_order_id' => 'required|string',
@@ -266,9 +270,9 @@ class OrderController extends Controller
         $order = Order::with('transactions')->findOrFail($id);
 
         $request->validate([
-            'refund_type' => 'required|in:full,partial,shipping_only',
+            'refund_type' => ['required', Rule::enum(RefundType::class)],
             'amount' => 'required_if:refund_type,partial|numeric|min:0.01',
-            'reason' => 'required|in:customer_request,out_of_stock,damaged,wrong_item,not_as_described,late_delivery,duplicate_order,other',
+            'reason' => ['required', Rule::enum(RefundReason::class)],
             'reason_notes' => 'nullable|string|max:500',
             'sub_order_id' => 'nullable|string|exists:sub_orders,id',
             'vendor_charged_back' => 'boolean',
@@ -305,7 +309,7 @@ class OrderController extends Controller
 
         $request->validate([
             'sub_order_id' => 'required|string|exists:sub_orders,id',
-            'reason' => 'required|in:item_not_received,item_damaged,item_not_as_described,counterfeit,wrong_item,quality_issue,seller_unresponsive,refund_not_received,other',
+            'reason' => ['required', Rule::enum(DisputeReason::class)],
             'description' => 'required|string|max:2000',
         ]);
 
@@ -425,7 +429,7 @@ class OrderController extends Controller
             'carrier_id' => 'nullable|uuid|exists:shipping_carriers,id',
         ]);
 
-        if (in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) {
+        if (in_array($subOrder->status->value, ['shipped', 'out_for_delivery', 'delivered', 'completed'])) {
             return response()->json(['success' => false, 'message' => __('admin.orders.cannot_change_shipping_after_shipped')], 422);
         }
 
@@ -443,7 +447,7 @@ class OrderController extends Controller
             abort_unless($eligible, 422, __('admin.orders.shipping_method_not_available_for_zone'));
         }
 
-        $fromStatus = $subOrder->status;
+        $fromStatus = $subOrder->status->value;
 
         $subOrder->update([
             'shipping_method_id' => $request->shipping_method_id,

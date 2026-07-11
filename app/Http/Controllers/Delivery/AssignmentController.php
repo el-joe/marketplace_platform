@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Delivery;
 
+use App\Enums\DeliveryAgentEarningStatus;
+use App\Enums\DeliveryAssignmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
@@ -32,7 +34,11 @@ class AssignmentController extends Controller
             ->orderByRaw("FIELD(status, 'assigned','accepted','picked_up','delivered','failed')")
             ->get();
 
-        $pending = $assignments->whereIn('status', ['assigned', 'accepted', 'picked_up']);
+        $pending = $assignments->whereIn('status', [
+            DeliveryAssignmentStatus::Assigned,
+            DeliveryAssignmentStatus::Accepted,
+            DeliveryAssignmentStatus::PickedUp,
+        ]);
         $completed = $assignments->where('status', DeliveryAssignment::STATUS_DELIVERED);
         $failed = $assignments->where('status', DeliveryAssignment::STATUS_FAILED);
 
@@ -235,7 +241,7 @@ class AssignmentController extends Controller
                 'earning_type'            => 'base_fee',
                 'amount_cents'            => $agent->per_delivery_fee_cents,
                 'currency'                => $currency,
-                'status'                  => 'pending',
+                'status'                  => DeliveryAgentEarningStatus::Pending,
             ]);
 
             // COD handling bonus — the agent earns the cod_fee the customer paid
@@ -247,7 +253,7 @@ class AssignmentController extends Controller
                     'earning_type'            => 'cod_handling',
                     'amount_cents'            => (int) $order->cod_fee,
                     'currency'                => $currency,
-                    'status'                  => 'pending',
+                    'status'                  => DeliveryAgentEarningStatus::Pending,
                     'notes'                   => $validated['discrepancy_note'] ?? null,
                 ]);
             }

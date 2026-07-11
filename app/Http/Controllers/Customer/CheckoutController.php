@@ -250,7 +250,7 @@ class CheckoutController extends Controller
         $validated = $request->validated();
 
         $existingTransaction = PaymentTransaction::where('idempotency_key', $validated['idempotency_key'])->first();
-        if ($existingTransaction && in_array($existingTransaction->status, ['pending', 'succeeded'], true)) {
+        if ($existingTransaction && in_array($existingTransaction->status->value, ['pending', 'succeeded'], true)) {
             $order = Order::where('id', $existingTransaction->order_id)->first();
             if ($order) {
                 return ApiResponse::error('Order already placed.', ['order_number' => $order->order_number], 409);
@@ -546,15 +546,15 @@ class CheckoutController extends Controller
 
         return ApiResponse::success([
             'order_number' => $order->order_number,
-            'status' => $order->status,
-            'payment_status' => $order->payment_status,
+            'status' => $order->status->value,
+            'payment_status' => $order->payment_status->value,
             'total_cents' => $order->total,
             'currency' => $order->currency,
             'placed_at' => $order->placed_at?->toIso8601String(),
             'sub_orders' => $order->subOrders->map(fn (SubOrder $so) => [
                 'sub_order_number' => $so->sub_order_number,
                 'vendor' => $so->vendor?->store_name,
-                'status' => $so->status,
+                'status' => $so->status->value,
                 'fulfillment_model' => $so->fulfillment_model,
                 'items' => $so->items->map(fn (OrderItem $item) => [
                     'listing_ref' => $item->vendorListing

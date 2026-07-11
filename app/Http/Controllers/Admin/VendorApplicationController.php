@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\VendorAdminRole;
+use App\Enums\VendorBankAccountVerificationStatus;
+use App\Enums\VendorDocumentStatus;
+use App\Enums\VendorGlobalStatus;
 use App\Http\Controllers\Controller;
 use App\Jobs\VendorApprovedJob;
 use App\Models\Admin;
@@ -37,13 +41,13 @@ class VendorApplicationController extends Controller
         abort_unless($admin->hasPermissionTo('vendors.view'), 403);
 
         $stats = [
-            'pending' => Vendor::where('global_status', 'pending')
+            'pending' => Vendor::where('global_status', VendorGlobalStatus::Pending->value)
                 ->whereNotNull('onboarding_completed_at')
                 ->count(),
-            'under_review' => Vendor::where('global_status', 'under_review')
+            'under_review' => Vendor::where('global_status', VendorGlobalStatus::UnderReview->value)
                 ->whereNotNull('onboarding_completed_at')
                 ->count(),
-            'waiting_5plus' => Vendor::whereIn('global_status', ['pending', 'under_review'])
+            'waiting_5plus' => Vendor::whereIn('global_status', [VendorGlobalStatus::Pending->value, VendorGlobalStatus::UnderReview->value])
                 ->whereNotNull('onboarding_completed_at')
                 ->where('onboarding_completed_at', '<=', now()->subDays(5))
                 ->count(),
@@ -63,7 +67,7 @@ class VendorApplicationController extends Controller
 
         $query = Vendor::query()
             ->with(['country', 'documents', 'bankAccounts'])
-            ->whereIn('global_status', ['pending', 'under_review'])
+            ->whereIn('global_status', [VendorGlobalStatus::Pending->value, VendorGlobalStatus::UnderReview->value])
             ->whereNotNull('onboarding_completed_at')
             ->select('vendors.*');
 
@@ -96,24 +100,28 @@ class VendorApplicationController extends Controller
             };
 
             $statusColors = [
-                'pending' => 'warning',
-                'under_review' => 'primary',
+                VendorGlobalStatus::Pending->value => 'warning',
+                VendorGlobalStatus::UnderReview->value => 'primary',
             ];
-            $statusColor = $statusColors[$vendor->global_status] ?? 'gray';
-            $statusLabel = ucwords(str_replace('_', ' ', $vendor->global_status));
+            $statusColor = $statusColors[$vendor->global_status->value] ?? 'gray';
+            $statusLabel = $vendor->global_status->label();
             $statusBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{$statusColor}-100 text-{$statusColor}-700\">{$statusLabel}</span>";
 
             // Documents X / Y verified
             $totalDocs = $vendor->documents->count();
-            $verifiedDocs = $vendor->documents->filter(fn($d) => in_array($d->status, ['verified', 'approved']))->count();
+            $verifiedDocs = $vendor->documents->filter(fn($d) => $d->status === VendorDocumentStatus::Approved)->count();
             $docsStatus = "{$verifiedDocs}/{$totalDocs} verified";
             $docsColor = $verifiedDocs === $totalDocs && $totalDocs > 0 ? 'text-green-600' : 'text-yellow-600';
 
             // Bank status
             $primaryBank = $vendor->bankAccounts->where('is_primary', true)->first()
                 ?? $vendor->bankAccounts->first();
-            $bankColors = ['verified' => 'success', 'pending' => 'warning', 'rejected' => 'danger'];
-            $bankStatus = $primaryBank?->verification_status ?? 'none';
+            $bankColors = [
+                VendorBankAccountVerificationStatus::Verified->value => 'success',
+                VendorBankAccountVerificationStatus::Pending->value => 'warning',
+                VendorBankAccountVerificationStatus::Rejected->value => 'danger',
+            ];
+            $bankStatus = $primaryBank?->verification_status?->value ?? 'none';
             $bc = $bankColors[$bankStatus] ?? 'gray';
             $bankBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{$bc}-100 text-{$bc}-700\">" . ucfirst($bankStatus) . "</span>";
 
@@ -126,13 +134,13 @@ class VendorApplicationController extends Controller
                 'store_name' => '<div><span class="font-medium">' . e($vendor->store_name) . '</span>' . '<br><span class="text-xs text-gray-400">' . $statusBadge . '</span></div>',
                 'business_name' => e($vendor->business_name ?? '—'),
                 'country' => e($vendor->country?->name_en ?? '—'),
-                'business_type' => e(ucfirst($vendor->business_type ?? '—')),
+                'business_type' => e($vendor->business_type?->label() ?? '—'),
                 'docs_status' => "<span class=\"text-sm {$docsColor}\">{$docsStatus}</span>",
                 'bank_status' => $bankBadge,
                 'days_waiting' => "<span class=\"{$urgencyClass}\">{$daysWaiting}d</span>",
                 'created_at' => $vendor->created_at->format('d M Y'),
                 'actions' => $actions,
-                'DT_RowData' => ['id' => $vendor->id, 'status' => $vendor->global_status],
+                'DT_RowData' => ['id' => $vendor->id, 'status' => $vendor->global_status->value],
             ];
         });
     }
@@ -164,7 +172,7 @@ class VendorApplicationController extends Controller
                     'label' => $this->docTypeLabel($type),
                     'doc' => $doc,
                     'uploaded' => (bool) $doc,
-                    'verified' => $doc ? in_array($doc->status, ['verified', 'approved']) : false,
+                    'verified' => $doc ? $doc->status === VendorDocumentStatus::Approved : false,
                 ]
             ];
         });
@@ -203,16 +211,16 @@ class VendorApplicationController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('vendors.edit'), 403);
 
-        if (!in_array($vendor->global_status, ['pending', 'under_review'])) {
+        if (!in_array($vendor->global_status, [VendorGlobalStatus::Pending, VendorGlobalStatus::UnderReview], true)) {
             return response()->json(['message' => 'Application is not pending review.'], 422);
         }
 
         $vendor->update([
-            'global_status' => 'under_review',
+            'global_status' => VendorGlobalStatus::UnderReview,
             'account_manager_admin_id' => $vendor->account_manager_admin_id ?? $admin->id,
         ]);
 
-        return response()->json(['message' => 'Application marked as under review.', 'status' => 'under_review']);
+        return response()->json(['message' => 'Application marked as under review.', 'status' => VendorGlobalStatus::UnderReview->value]);
     }
 
     // ─── Assign Me ────────────────────────────────────────────────────────────
@@ -249,7 +257,7 @@ class VendorApplicationController extends Controller
         $missingOrUnverified = [];
         foreach (self::REQUIRED_DOC_TYPES as $type) {
             $doc = $vendor->documents()->where('document_type', $type)->first();
-            if (!$doc || !in_array($doc->status, ['verified', 'approved'])) {
+            if (!$doc || $doc->status !== VendorDocumentStatus::Approved) {
                 $missingOrUnverified[] = $this->docTypeLabel($type);
             }
         }
@@ -268,8 +276,7 @@ class VendorApplicationController extends Controller
         DB::transaction(function () use ($vendor, $admin, $request) {
             // 1. Update vendor status
             $vendor->update([
-                'global_status' => 'active',
-                'status' => 'active',
+                'global_status' => VendorGlobalStatus::Active,
                 'approved_by_admin_id' => $admin->id,
                 'approved_at' => now(),
             ]);
@@ -285,14 +292,14 @@ class VendorApplicationController extends Controller
             }
 
             // 4. Create VendorAdmin (owner role) if not exists
-            $exists = VendorAdmin::where('vendor_id', $vendor->id)->where('role', 'owner')->exists();
+            $exists = VendorAdmin::where('vendor_id', $vendor->id)->where('role', VendorAdminRole::Owner->value)->exists();
             if (!$exists) {
                 VendorAdmin::create([
                     'vendor_id' => $vendor->id,
                     'name' => $vendor->business_name ?? $vendor->store_name,
                     'email' => $vendor->email,
                     'password' => Hash::make(Str::random(12)),
-                    'role' => 'owner',
+                    'role' => VendorAdminRole::Owner,
                     'is_active' => true,
                 ]);
             }
@@ -383,14 +390,14 @@ class VendorApplicationController extends Controller
         ]);
 
         $document->update([
-            'status' => 'rejected',
+            'status' => VendorDocumentStatus::Rejected,
             'rejection_reason' => $request->input('rejection_reason'),
         ]);
 
         return response()->json([
             'message' => 'Document rejected.',
             'doc_id' => $document->id,
-            'status' => 'rejected',
+            'status' => VendorDocumentStatus::Rejected->value,
         ]);
     }
 

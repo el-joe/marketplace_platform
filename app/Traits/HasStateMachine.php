@@ -29,8 +29,9 @@ trait HasStateMachine
      */
     public function getNextStatuses(): Collection
     {
-        $transitions = static::STATUS_TRANSITIONS[$this->status] ?? [];
-        $labels      = static::STATUS_LABELS ?? [];
+        $currentStatus = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
+        $transitions   = static::STATUS_TRANSITIONS[$currentStatus] ?? [];
+        $labels        = static::STATUS_LABELS ?? [];
 
         return collect($transitions)->map(fn ($s) => [
             'value' => $s,
@@ -43,7 +44,9 @@ trait HasStateMachine
      */
     public function canTransitionTo(string $newStatus): bool
     {
-        return in_array($newStatus, static::STATUS_TRANSITIONS[$this->status] ?? [], true);
+        $currentStatus = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
+
+        return in_array($newStatus, static::STATUS_TRANSITIONS[$currentStatus] ?? [], true);
     }
 
     /**
@@ -56,7 +59,9 @@ trait HasStateMachine
             return false;
         }
 
-        return in_array($this->status, static::BLOCK_CANCEL_STATUSES, true);
+        $currentStatus = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
+
+        return in_array($currentStatus, static::BLOCK_CANCEL_STATUSES, true);
     }
 
     /**
@@ -64,7 +69,9 @@ trait HasStateMachine
      */
     public function statusLabel(): string
     {
-        return static::STATUS_LABELS[$this->status]
-            ?? ucwords(str_replace('_', ' ', $this->status));
+        $currentStatus = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
+
+        return static::STATUS_LABELS[$currentStatus]
+            ?? ucwords(str_replace('_', ' ', $currentStatus));
     }
 }

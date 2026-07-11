@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FbnInboundRequestStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,7 @@ class FbnInboundRequest extends Model
     ];
 
     protected $casts = [
+        'status' => FbnInboundRequestStatus::class,
         'approved_at' => 'datetime',
         'expected_arrival' => 'date',
         'quantity_requested' => 'integer',
@@ -77,23 +79,23 @@ class FbnInboundRequest extends Model
 
     public function scopeDraft($query)
     {
-        return $query->where('status', 'draft');
+        return $query->where('status', FbnInboundRequestStatus::Draft);
     }
     public function scopeSubmitted($query)
     {
-        return $query->where('status', 'submitted');
+        return $query->where('status', FbnInboundRequestStatus::Submitted);
     }
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', FbnInboundRequestStatus::Approved);
     }
     public function scopeReceived($query)
     {
-        return $query->where('status', 'received');
+        return $query->where('status', FbnInboundRequestStatus::Received);
     }
     public function scopePendingApproval($query)
     {
-        return $query->whereIn('status', ['submitted']);
+        return $query->whereIn('status', [FbnInboundRequestStatus::Submitted]);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -101,47 +103,39 @@ class FbnInboundRequest extends Model
     public function statusColor(): string
     {
         return match ($this->status) {
-            'draft' => 'secondary',
-            'submitted' => 'warning',
-            'approved' => 'primary',
-            'shipped' => 'info',
-            'received' => 'success',
-            'rejected' => 'danger',
+            FbnInboundRequestStatus::Draft => 'secondary',
+            FbnInboundRequestStatus::Submitted => 'warning',
+            FbnInboundRequestStatus::Approved => 'primary',
+            FbnInboundRequestStatus::Shipped => 'info',
+            FbnInboundRequestStatus::Received => 'success',
+            FbnInboundRequestStatus::Rejected => 'danger',
             default => 'secondary',
         };
     }
 
     public function statusLabel(): string
     {
-        return match ($this->status) {
-            'draft' => 'Draft',
-            'submitted' => 'Submitted',
-            'approved' => 'Approved',
-            'shipped' => 'Shipped',
-            'received' => 'Received',
-            'rejected' => 'Rejected',
-            default => ucfirst($this->status),
-        };
+        return $this->status->label();
     }
 
     public function canBeApproved(): bool
     {
-        return $this->status === 'submitted';
+        return $this->status === FbnInboundRequestStatus::Submitted;
     }
     public function canBeRejected(): bool
     {
-        return in_array($this->status, ['submitted', 'approved']);
+        return in_array($this->status, [FbnInboundRequestStatus::Submitted, FbnInboundRequestStatus::Approved], true);
     }
     public function canMarkShipped(): bool
     {
-        return $this->status === 'approved';
+        return $this->status === FbnInboundRequestStatus::Approved;
     }
     public function canMarkReceived(): bool
     {
-        return $this->status === 'shipped';
+        return $this->status === FbnInboundRequestStatus::Shipped;
     }
     public function canBeCancelled(): bool
     {
-        return in_array($this->status, ['draft', 'submitted']);
+        return in_array($this->status, [FbnInboundRequestStatus::Draft, FbnInboundRequestStatus::Submitted], true);
     }
 }

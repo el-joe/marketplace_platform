@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaidAdCreativeStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class PaidAdCreative extends Model
 {
     use HasUuids;
+
+    protected $casts = [
+        'status' => PaidAdCreativeStatus::class,
+    ];
 
     protected $fillable = [
         'paid_ad_booking_id',

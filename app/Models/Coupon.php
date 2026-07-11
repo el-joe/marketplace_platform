@@ -34,6 +34,16 @@ class Coupon extends Model
         'created_by_user_id',
     ];
 
+    protected $casts = [
+        'type' => \App\Enums\CouponType::class,
+        'scope' => \App\Enums\CouponScope::class,
+        'customer_eligibility' => \App\Enums\CouponCustomerEligibility::class,
+        'valid_from' => 'datetime',
+        'valid_until' => 'datetime',
+        'is_active' => 'boolean',
+        'is_stackable' => 'boolean',
+    ];
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);

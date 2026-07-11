@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AiFeatureCreditOwnerType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,7 +24,8 @@ class AiFeatureCredit extends Model
     ];
 
     protected $casts = [
-        'reset_at' => 'date',
+        'owner_type' => AiFeatureCreditOwnerType::class,
+        'reset_at'   => 'date',
     ];
 
     public static function balanceFor(string $ownerType, string $ownerId, string $feature): self

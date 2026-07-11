@@ -28,7 +28,7 @@ class VendorDashboardResource extends JsonResource
                 'sub_order_number'  => $so->sub_order_number,
                 'item_count'        => $so->items->count(),
                 'total_cents'       => (int) $so->subtotal,
-                'status'            => $so->status,
+                'status'            => $so->status->value,
                 'vendor_payout_cents' => (int) $so->vendor_payout,
                 'placed_at'         => $so->order?->placed_at?->toIso8601String(),
                 'sla_ship_deadline' => $so->sla_ship_deadline?->toIso8601String(),

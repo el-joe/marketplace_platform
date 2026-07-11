@@ -55,7 +55,7 @@ class DashboardService
                     'id'               => $a->id,
                     'sub_order_number' => $a->subOrder?->sub_order_number,
                     'agent_name'       => $a->agent?->name,
-                    'status'           => $a->status,
+                    'status'           => $a->status->value,
                     'assigned_at'      => $a->assigned_at?->toIso8601String(),
                 ])
                 ->all();
@@ -66,7 +66,7 @@ class DashboardService
             return [
                 'agents_count'        => $agentsCount,
                 'today_assignments'   => $todayAssignments,
-                'company_status'      => $company->status,
+                'company_status'      => $company->status->value,
                 'served_area_summary' => [
                     'countries_count' => $servedCountries,
                     'cities_count'    => $servedCities,

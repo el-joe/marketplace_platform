@@ -31,6 +31,7 @@ class FlashSaleVendorInvitition extends Model
             'invited_at' => 'datetime',
             'notified_at' => 'datetime',
             'responded_at' => 'datetime',
+            'status' => \App\Enums\FlashSaleVendorInvitationStatus::class,
         ];
     }
 

@@ -24,7 +24,7 @@ class SubOrderDetailResource extends JsonResource
             'order_number'             => $this->order?->order_number,
             'payment_method'           => $this->order?->payment_method,
             'item_count'               => $this->items->count(),
-            'status'                   => $this->status,
+            'status'                   => $this->status->value,
             'fulfillment_model'        => $this->fulfillment_model,
             'tracking_number'          => $this->tracking_number,
             'carrier_id'               => $this->carrier_id,
@@ -63,7 +63,7 @@ class SubOrderDetailResource extends JsonResource
                 ->sortByDesc('occurred_at')
                 ->values()
                 ->map(fn ($event) => [
-                    'status'      => $event->status,
+                    'status'      => $event->status->value,
                     'description' => $event->description,
                     'location'    => $event->location,
                     'occurred_at' => $event->occurred_at->toIso8601String(),
@@ -114,7 +114,7 @@ class SubOrderDetailResource extends JsonResource
             'quantity'              => $item->quantity,
             'unit_price_cents'      => (int) $item->unit_price,
             'line_total_cents'      => (int) $item->line_total,
-            'fulfillment_status'    => $item->fulfillment_status,
+            'fulfillment_status'    => $item->fulfillment_status->value,
             'return_eligible_until' => $item->return_eligible_until?->toIso8601String(),
         ];
     }

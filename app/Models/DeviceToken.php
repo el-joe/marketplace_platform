@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DeviceTokenPlatform;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -22,6 +23,7 @@ class DeviceToken extends Model
     protected function casts(): array
     {
         return [
+            'platform' => DeviceTokenPlatform::class,
             'is_active' => 'boolean',
             'last_used_at' => 'datetime',
         ];

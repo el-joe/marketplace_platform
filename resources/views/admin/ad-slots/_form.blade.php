@@ -61,12 +61,12 @@
             <x-form-select
                 name="pricing_model"
                 label="{{ __('admin.ad_slots.pricing_model') }}"
-                :value="old('pricing_model', $adSlot?->pricing_model)"
+                :value="old('pricing_model', $adSlot?->pricing_model?->value)"
                 required>
                 <option value="">{{ __('admin.ad_slots.select_model') }}</option>
-                <option value="flat" {{ old('pricing_model', $adSlot?->pricing_model) === 'flat' ? 'selected' : '' }}>{{ __('admin.ad_slots.flat_rate') }}</option>
-                <option value="daily" {{ old('pricing_model', $adSlot?->pricing_model) === 'daily' ? 'selected' : '' }}>{{ __('admin.ad_slots.daily_rate') }}</option>
-                <option value="weekly" {{ old('pricing_model', $adSlot?->pricing_model) === 'weekly' ? 'selected' : '' }}>{{ __('admin.ad_slots.weekly_rate') }}</option>
+                @foreach(\App\Enums\PaidAdSlotPricingModel::cases() as $pm)
+                    <option value="{{ $pm->value }}" {{ old('pricing_model', $adSlot?->pricing_model?->value) === $pm->value ? 'selected' : '' }}>{{ $pm->label() }}</option>
+                @endforeach
             </x-form-select>
         </div>
 

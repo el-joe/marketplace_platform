@@ -2,6 +2,7 @@
 
 namespace App\Services\Carrier;
 
+use App\Enums\SupportTicketStatus;
 use App\Jobs\NotifyAdminNewTicketJob;
 use App\Models\ShippingCompanySupervisor;
 use App\Models\SupportTicket;
@@ -82,7 +83,7 @@ class SupportTicketService
 
     public function rate(ShippingCompanySupervisor $supervisor, SupportTicket $ticket, array $data): SupportTicket
     {
-        if (!in_array($ticket->status, ['resolved', 'closed'], true)) {
+        if (!in_array($ticket->status, [SupportTicketStatus::Resolved, SupportTicketStatus::Closed], true)) {
             throw ValidationException::withMessages([
                 'ticket' => ['Only resolved or closed tickets can be rated.'],
             ]);

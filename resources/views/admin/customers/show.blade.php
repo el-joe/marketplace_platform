@@ -14,7 +14,7 @@
         'suspended' => 'warning',
         'banned'    => 'danger',
     ];
-    $statusColor = $statusColors[$customer->status] ?? 'gray';
+    $statusColor = $statusColors[$customer->status->value] ?? 'gray';
 
     $reviewStatusColors = [
         'pending'  => 'gray',
@@ -33,7 +33,7 @@
             <h1 class="text-2xl font-bold text-gray-900 truncate">{{ $customer->name }}</h1>
             <div class="flex items-center gap-2 mt-1 flex-wrap">
                 <x-badge :color="$statusColor" size="md">
-                    {{ ucfirst($customer->status) }}
+                    {{ $customer->status->label() }}
                 </x-badge>
                 @if($customer->email_verified_at)
                     <x-badge color="success">{{ __('admin.customers_section.email_verified') }}</x-badge>
@@ -108,13 +108,13 @@
                                             'returned'         => 'danger',
                                             'refunded'         => 'danger',
                                         ];
-                                        $oColor = $orderStatusColors[$order->status] ?? 'gray';
+                                        $oColor = $orderStatusColors[$order->status->value] ?? 'gray';
                                     @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="py-2 pr-4 font-mono text-xs">{{ $order->order_number }}</td>
                                         <td class="py-2 pr-4">{{ number_format((float) $order->total, 2) }} {{ strtoupper($order->currency ?? '') }}</td>
                                         <td class="py-2 pr-4">
-                                            <x-badge :color="$oColor">{{ ucwords(str_replace('_', ' ', $order->status)) }}</x-badge>
+                                            <x-badge :color="$oColor">{{ ucwords(str_replace('_', ' ', $order->status->value)) }}</x-badge>
                                         </td>
                                         <td class="py-2 pr-4 text-gray-500">
                                             {{ $order->placed_at ? \Carbon\Carbon::parse($order->placed_at)->format('d M Y') : '—' }}
@@ -157,7 +157,7 @@
                             @foreach($customer->addresses as $address)
                             <div class="rounded-lg border border-gray-200 p-4 text-sm space-y-1">
                                 <div class="flex items-center justify-between gap-2 mb-2">
-                                    <span class="font-semibold text-gray-800">{{ $address->label ?: ucfirst($address->address_type ?? __('admin.customers_section.address_fallback')) }}</span>
+                                    <span class="font-semibold text-gray-800">{{ $address->label ?: ($address->address_type?->label() ?? __('admin.customers_section.address_fallback')) }}</span>
                                     @if($address->is_default)
                                         <x-badge color="primary">{{ __('admin.customers_section.default_badge') }}</x-badge>
                                     @endif
@@ -204,7 +204,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
                                     @foreach($reviews as $review)
-                                    @php $rColor = $reviewStatusColors[$review->status] ?? 'gray'; @endphp
+                                    @php $rColor = $reviewStatusColors[$review->status->value] ?? 'gray'; @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="py-2 pr-4 max-w-[180px] truncate">
                                             {{ $review->product?->name ?? '—' }}
@@ -217,7 +217,7 @@
                                             </span>
                                         </td>
                                         <td class="py-2 pr-4">
-                                            <x-badge :color="$rColor">{{ ucfirst($review->status) }}</x-badge>
+                                            <x-badge :color="$rColor">{{ $review->status->label() }}</x-badge>
                                         </td>
                                         <td class="py-2 pr-4">
                                             @if($review->is_verified_purchase)
@@ -256,9 +256,9 @@
                                     @foreach($returnRequests as $ret)
                                     <tr class="hover:bg-gray-50">
                                         <td class="py-2 pr-4 font-mono text-xs">{{ $ret->return_number }}</td>
-                                        <td class="py-2 pr-4">{{ ucfirst(str_replace('_', ' ', $ret->return_type ?? '—')) }}</td>
+                                        <td class="py-2 pr-4">{{ $ret->return_type?->label() ?? '—' }}</td>
                                         <td class="py-2 pr-4">
-                                            <x-badge color="gray">{{ ucfirst($ret->status) }}</x-badge>
+                                            <x-badge color="gray">{{ $ret->status->label() }}</x-badge>
                                         </td>
                                         <td class="py-2 pr-4 text-gray-500">{{ $ret->created_at->format('d M Y') }}</td>
                                     </tr>
@@ -290,9 +290,9 @@
                                     @foreach($disputes as $dispute)
                                     <tr class="hover:bg-gray-50">
                                         <td class="py-2 pr-4 font-mono text-xs">{{ $dispute->dispute_number }}</td>
-                                        <td class="py-2 pr-4 max-w-[200px] truncate">{{ $dispute->reason }}</td>
+                                        <td class="py-2 pr-4 max-w-[200px] truncate">{{ $dispute->reason->value }}</td>
                                         <td class="py-2 pr-4">
-                                            <x-badge color="gray">{{ ucfirst(str_replace('_', ' ', $dispute->status)) }}</x-badge>
+                                            <x-badge color="gray">{{ ucfirst(str_replace('_', ' ', $dispute->status->value)) }}</x-badge>
                                         </td>
                                         <td class="py-2 pr-4 text-gray-500">{{ $dispute->created_at->format('d M Y') }}</td>
                                     </tr>
@@ -328,7 +328,7 @@
                                         $ticketPriorityColors = ['low' => 'gray', 'medium' => 'primary', 'high' => 'warning', 'urgent' => 'danger'];
                                         $ticketStatusColors = ['open' => 'primary', 'in_progress' => 'warning', 'resolved' => 'success', 'closed' => 'gray'];
                                         $pColor = $ticketPriorityColors[$ticket->priority ?? 'low'] ?? 'gray';
-                                        $sColor = $ticketStatusColors[$ticket->status ?? 'open'] ?? 'gray';
+                                        $sColor = $ticketStatusColors[$ticket->status?->value ?? 'open'] ?? 'gray';
                                     @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="py-2 pr-4 font-mono text-xs">{{ $ticket->ticket_number }}</td>
@@ -338,7 +338,7 @@
                                             <x-badge :color="$pColor">{{ ucfirst($ticket->priority ?? '—') }}</x-badge>
                                         </td>
                                         <td class="py-2 pr-4">
-                                            <x-badge :color="$sColor">{{ ucwords(str_replace('_', ' ', $ticket->status ?? '—')) }}</x-badge>
+                                            <x-badge :color="$sColor">{{ $ticket->status?->label() ?? '—' }}</x-badge>
                                         </td>
                                         <td class="py-2 pr-4 text-gray-500">{{ $ticket->created_at->format('d M Y') }}</td>
                                     </tr>

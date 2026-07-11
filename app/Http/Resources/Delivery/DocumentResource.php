@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Delivery;
 
+use App\Enums\DeliveryAgentDocumentStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,7 +16,7 @@ class DocumentResource extends JsonResource
             'status'           => $this->status,
             'expires_at'       => $this->expires_at?->toDateString(),
             'rejection_reason' => $this->when(
-                $this->status === 'rejected',
+                $this->status === DeliveryAgentDocumentStatus::Rejected,
                 $this->rejection_reason
             ),
             'verified_at'      => $this->verified_at?->toIso8601String(),

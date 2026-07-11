@@ -92,7 +92,7 @@ class HelpCenterArticleController extends Controller
                 ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-primary-50 text-primary-700">' . e($row->category->name) . '</span>'
                 : '<span class="text-gray-400 text-xs">—</span>';
 
-            $sc = $statusColors[$row->status] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'label' => ucfirst($row->status)];
+            $sc = $statusColors[$row->status->value] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'label' => $row->status->label()];
             $statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ' . $sc['bg'] . ' ' . $sc['text'] . '">' . $sc['label'] . '</span>';
 
             $dateHtml = $row->published_at

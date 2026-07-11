@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AbTestStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +34,7 @@ class AbTest extends Model
         'min_sample_size' => 'integer',
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
+        'status' => AbTestStatus::class,
     ];
 
     public function page(): BelongsTo

@@ -41,7 +41,7 @@
                         <div class="text-xs text-gray-400">{{ $agent->email }}</div>
                     </td>
                     <td class="px-6 py-3 text-gray-600">{{ $agent->phone }}</td>
-                    <td class="px-6 py-3 text-gray-600">{{ __('carrier.vehicle_types.'.$agent->vehicle_type, [], 'ar') ?? $agent->vehicle_type }}</td>
+                    <td class="px-6 py-3 text-gray-600">{{ $agent->vehicle_type->label() }}</td>
                     <td class="px-6 py-3">
                         @php
                             $sc = ['active'=>'emerald','suspended'=>'red','inactive'=>'gray','on_shift'=>'blue'][$agent->status] ?? 'gray';

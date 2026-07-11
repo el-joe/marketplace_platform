@@ -79,7 +79,7 @@
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-semibold text-gray-900">{{ $agent->name }}</p>
                                     <p class="text-xs text-gray-500">
-                                        {{ $agent->vehicle_type }}
+                                        {{ $agent->vehicle_type->label() }}
                                         @if(!$agent->is_available)
                                             <span class="text-amber-500 mr-1">· {{ __('carrier.agents.unavailable') }}</span>
                                         @endif

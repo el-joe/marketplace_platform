@@ -48,7 +48,7 @@ class AssignmentReassignmentService
         if (! in_array($assignment->status, self::REASSIGNABLE_STATUSES, true)) {
             throw ValidationException::withMessages([
                 'assignment' => 'This assignment cannot be reassigned in its current status ('
-                    . $assignment->status . '). Only assigned or accepted assignments may be reassigned.',
+                    . $assignment->status->value . '). Only assigned or accepted assignments may be reassigned.',
             ]);
         }
 

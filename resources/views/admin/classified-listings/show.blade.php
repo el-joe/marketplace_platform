@@ -14,11 +14,11 @@
                 </a>
                 <h1 class="text-xl font-bold text-gray-900">{{ $listing->listing_number }}</h1>
                 <span class="px-2 py-0.5 rounded-full text-xs font-medium
-                    {{ $listing->status === 'active' ? 'bg-emerald-100 text-emerald-700'
-                        : ($listing->status === 'pending_review' ? 'bg-amber-100 text-amber-700'
-                        : ($listing->status === 'rejected' ? 'bg-red-100 text-red-700'
+                    {{ $listing->status === \App\Enums\ClassifiedListingStatus::Active ? 'bg-emerald-100 text-emerald-700'
+                        : ($listing->status === \App\Enums\ClassifiedListingStatus::PendingReview ? 'bg-amber-100 text-amber-700'
+                        : ($listing->status === \App\Enums\ClassifiedListingStatus::Rejected ? 'bg-red-100 text-red-700'
                         : 'bg-gray-100 text-gray-700')) }}">
-                    {{ __('admin.classifieds.status_' . $listing->status) }}
+                    {{ __('admin.classifieds.status_' . $listing->status->value) }}
                 </span>
             </div>
             <p class="text-sm text-gray-500 mt-1">
@@ -32,7 +32,7 @@
             </p>
         </div>
 
-        @if($listing->status === 'pending_review')
+        @if($listing->status === \App\Enums\ClassifiedListingStatus::PendingReview)
         <div class="flex gap-2">
             <form method="POST" action="{{ route('admin.classifieds.listings.approve', $listing) }}">
                 @csrf
@@ -129,16 +129,16 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="px-2 py-0.5 rounded-full text-xs font-medium
-                            {{ $att->status === 'verified' ? 'bg-emerald-100 text-emerald-700'
-                                : ($att->status === 'rejected' ? 'bg-red-100 text-red-700'
+                            {{ $att->status === \App\Enums\ClassifiedListingAttachmentStatus::Verified ? 'bg-emerald-100 text-emerald-700'
+                                : ($att->status === \App\Enums\ClassifiedListingAttachmentStatus::Rejected ? 'bg-red-100 text-red-700'
                                 : 'bg-amber-100 text-amber-700') }}">
-                            {{ __('admin.classifieds.attachment_status_' . $att->status) }}
+                            {{ __('admin.classifieds.attachment_status_' . $att->status->value) }}
                         </span>
-                        @if($att->status !== 'verified')
+                        @if($att->status !== \App\Enums\ClassifiedListingAttachmentStatus::Verified)
                         <button onclick="verifyAttachment('{{ $att->id }}', 'verify')"
                                 class="text-xs text-emerald-600 font-medium hover:underline">{{ __('admin.classifieds.verify') }}</button>
                         @endif
-                        @if($att->status !== 'rejected')
+                        @if($att->status !== \App\Enums\ClassifiedListingAttachmentStatus::Rejected)
                         <button onclick="verifyAttachment('{{ $att->id }}', 'reject')"
                                 class="text-xs text-red-500 font-medium hover:underline">{{ __('admin.classifieds.reject') }}</button>
                         @endif
@@ -223,7 +223,7 @@
                 @forelse($listing->listingMarketers as $lm)
                 <div class="text-xs text-gray-600 py-1 border-b border-gray-50 last:border-0">
                     <p class="font-medium">{{ $lm->marketer?->name ?? __('admin.classifieds.open_to_all') }}</p>
-                    <p>{{ $lm->commission_value }}{{ $lm->commission_type === 'percentage' ? '%' : __('admin.classifieds.fixed_commission') }}</p>
+                    <p>{{ $lm->commission_value }}{{ $lm->commission_type === \App\Enums\ClassifiedListingMarketerCommissionType::Percentage ? '%' : __('admin.classifieds.fixed_commission') }}</p>
                 </div>
                 @empty
                 <p class="text-xs text-gray-400">{{ __('admin.classifieds.no_marketers') }}</p>

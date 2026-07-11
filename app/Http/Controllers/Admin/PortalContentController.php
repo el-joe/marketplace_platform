@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\PortalContentType;
 use App\Http\Controllers\Controller;
 use App\Models\PortalContent;
 use Illuminate\Http\RedirectResponse;
@@ -85,7 +86,7 @@ class PortalContentController extends Controller
                 'updated_by_admin_id' => $admin->id,
             ];
 
-            if ($row->type === 'link') {
+            if ($row->type === PortalContentType::Link) {
                 $update['value_url'] = $data['value_url'] ?? null;
             }
 

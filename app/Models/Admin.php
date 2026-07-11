@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AdminStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -35,6 +36,7 @@ class Admin extends Authenticatable
     protected function casts(): array
     {
         return [
+            'status' => AdminStatus::class,
             'last_login_at' => 'datetime',
             'password' => 'hashed',
         ];

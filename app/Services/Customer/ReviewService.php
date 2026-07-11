@@ -2,6 +2,8 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\ReviewStatus;
+use App\Enums\ReviewVote as ReviewVoteEnum;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -23,7 +25,7 @@ class ReviewService
 
     private function reviewBlockReason(Customer $customer, OrderItem $item): ?string
     {
-        if ($item->fulfillment_status !== 'delivered') {
+        if ($item->fulfillment_status !== \App\Enums\OrderItemFulfillmentStatus::Delivered) {
             return 'This item has not been delivered yet.';
         }
 
@@ -65,7 +67,7 @@ class ReviewService
                 'title' => null,
                 'body' => $data['comment'] ?? null,
                 'is_verified_purchase' => true,
-                'status' => 'pending',
+                'status' => ReviewStatus::Pending,
             ]);
 
             if (!empty($data['images'])) {
@@ -120,7 +122,7 @@ class ReviewService
         ReviewVote::create([
             'review_id' => $review->id,
             'customer_id' => $customer->id,
-            'vote' => 'helpful',
+            'vote' => ReviewVoteEnum::Helpful,
         ]);
 
         $review->increment('helpful_count');
@@ -130,7 +132,7 @@ class ReviewService
     {
         return Review::where('product_id', $product->id)
             ->where('country_id', $countryId)
-            ->where('status', 'published')
+            ->where('status', ReviewStatus::Published)
             ->with(['customer', 'vendorReply', 'files'])
             ->orderByDesc('helpful_count')
             ->paginate(20);

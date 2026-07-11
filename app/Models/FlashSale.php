@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FlashSaleStatus;
 use App\Traits\HasStateMachine;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -85,6 +86,7 @@ class FlashSale extends Model
             'cancelled_at' => 'datetime',
             'min_discount_pct' => 'decimal:2',
             'commission_override_pct' => 'decimal:2',
+            'status' => FlashSaleStatus::class,
         ];
     }
 
@@ -172,12 +174,12 @@ class FlashSale extends Model
 
     public function isLive(): bool
     {
-        return $this->status === 'live';
+        return $this->status === FlashSaleStatus::Live;
     }
 
     public function isAcceptingSubmissions(): bool
     {
-        return $this->status === 'submission_open'
+        return $this->status === FlashSaleStatus::SubmissionOpen
             && $this->submission_opens_at
             && $this->submission_closes_at
             && now()->between($this->submission_opens_at, $this->submission_closes_at);
@@ -198,14 +200,14 @@ class FlashSale extends Model
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'draft' => 'gray',
-            'submission_open' => 'primary',
-            'submission_closed' => 'warning',
-            'under_review' => 'info',
-            'approved' => 'success',
-            'live' => 'success',
-            'ended' => 'gray',
-            'cancelled' => 'danger',
+            FlashSaleStatus::Draft => 'gray',
+            FlashSaleStatus::SubmissionOpen => 'primary',
+            FlashSaleStatus::SubmissionClosed => 'warning',
+            FlashSaleStatus::UnderReview => 'info',
+            FlashSaleStatus::Approved => 'success',
+            FlashSaleStatus::Live => 'success',
+            FlashSaleStatus::Ended => 'gray',
+            FlashSaleStatus::Cancelled => 'danger',
             default => 'gray',
         };
     }

@@ -2,6 +2,7 @@
 
 namespace App\Services\Delivery;
 
+use App\Enums\DeliveryAgentEarningStatus;
 use App\Jobs\CustomerDeliveredNotificationJob;
 use App\Jobs\GenerateVendorPayoutsJob;
 use App\Jobs\NotifyCustomerFailedDeliveryJob;
@@ -219,7 +220,7 @@ class AssignmentService
                 'earning_type'            => 'base_fee',
                 'amount_cents'            => $agent->per_delivery_fee_cents,
                 'currency'                => $currency,
-                'status'                  => 'pending',
+                'status'                  => DeliveryAgentEarningStatus::Pending,
             ]);
 
             // COD handling fee (separate from the cash physically collected).
@@ -233,7 +234,7 @@ class AssignmentService
                         'earning_type'            => 'cod_handling',
                         'amount_cents'            => $codFee,
                         'currency'                => $currency,
-                        'status'                  => 'pending',
+                        'status'                  => DeliveryAgentEarningStatus::Pending,
                     ]);
                 }
             }

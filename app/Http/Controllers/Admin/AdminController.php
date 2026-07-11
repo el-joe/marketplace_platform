@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAdminRequest;
 use App\Http\Requests\Admin\UpdateAdminRequest;
+use App\Enums\AdminStatus;
 use App\Models\Admin;
 use App\Models\AdminLoginSession;
 use App\Models\Country;
@@ -313,10 +314,10 @@ class AdminController extends Controller
             return response()->json(['message' => 'Cannot change your own status.'], 422);
         }
 
-        $newStatus = $admin->status === 'active' ? 'inactive' : 'active';
+        $newStatus = $admin->status === AdminStatus::Active ? AdminStatus::Inactive : AdminStatus::Active;
         $admin->update(['status' => $newStatus]);
 
-        return response()->json(['success' => true, 'new_status' => $newStatus]);
+        return response()->json(['success' => true, 'new_status' => $newStatus->value]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

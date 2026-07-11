@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\BannerStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBannerRequest;
 use App\Http\Requests\Admin\UpdateBannerRequest;
@@ -97,9 +98,9 @@ class BannerController extends Controller
             $thumbUrl = $desktopImg ? \Illuminate\Support\Facades\Storage::disk($desktopImg->storage_type ?: 'public')->url($desktopImg->path) : null;
 
             // Status badge with expiry countdown
-            $statusColor = $statusColors[$row->status] ?? 'gray';
-            $statusLabel = ucfirst($row->status);
-            if ($row->status === 'active' && $row->ends_at) {
+            $statusColor = $statusColors[$row->status->value] ?? 'gray';
+            $statusLabel = $row->status->label();
+            if ($row->status === BannerStatus::Active && $row->ends_at) {
                 $diff = $now->diffInDays(Carbon::parse($row->ends_at), false);
                 if ($diff >= 0 && $diff <= 3) {
                     $statusLabel .= ' (expires in ' . $diff . 'd)';
@@ -122,8 +123,8 @@ class BannerController extends Controller
                 'placement_code' => e($row->placement_code),
                 'country' => $countryDisplay,
                 'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-' . $statusColor . '-100 text-' . $statusColor . '-700">' . $statusLabel . '</span>',
-                'device_target' => $this->badgeHtml($deviceColors[$row->device_target] ?? 'gray', ucfirst($row->device_target)),
-                'audience' => $this->badgeHtml($audienceColors[$row->audience] ?? 'gray', ucwords(str_replace('_', ' ', $row->audience))),
+                'device_target' => $this->badgeHtml($deviceColors[$row->device_target->value] ?? 'gray', $row->device_target->label()),
+                'audience' => $this->badgeHtml($audienceColors[$row->audience->value] ?? 'gray', $row->audience->label()),
                 'date_range' => Carbon::parse($row->starts_at)->format('d M') . ' – ' . Carbon::parse($row->ends_at)->format('d M Y'),
                 'impressions' => number_format($row->impressions_count),
                 'clicks' => number_format($row->clicks_count),
@@ -248,7 +249,7 @@ class BannerController extends Controller
         $data = $request->validated();
 
         // Auto-schedule if status=active but starts_at is future
-        if (($data['status'] ?? $banner->status) === 'active' && Carbon::parse($data['starts_at'])->isFuture()) {
+        if (($data['status'] ?? $banner->status->value) === 'active' && Carbon::parse($data['starts_at'])->isFuture()) {
             $data['status'] = 'scheduled';
         }
 

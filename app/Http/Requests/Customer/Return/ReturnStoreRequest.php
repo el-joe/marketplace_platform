@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests\Customer\Return;
 
+use App\Enums\ReturnRequestReason;
+use App\Enums\ReturnRequestType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ReturnStoreRequest extends FormRequest
 {
@@ -13,8 +16,8 @@ class ReturnStoreRequest extends FormRequest
         return [
             'order_item_ids'   => ['required', 'array', 'min:1'],
             'order_item_ids.*' => ['required', 'uuid', 'exists:order_items,id'],
-            'reason'           => ['required', 'string', 'in:changed_mind,wrong_item,defective,damaged,not_as_described,size_issue,quality_issue,arrived_late,other'],
-            'return_type'      => ['required', 'string', 'in:refund,exchange,store_credit'],
+            'reason'           => ['required', Rule::enum(ReturnRequestReason::class)],
+            'return_type'      => ['required', Rule::enum(ReturnRequestType::class)],
             'comments'         => ['nullable', 'string', 'max:2000'],
         ];
     }

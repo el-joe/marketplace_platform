@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\TravelAgencyPortal;
 
+use App\Enums\TravelAgencyStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\TravelAgencyPortal\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Api\TravelAgencyPortal\Auth\LoginRequest;
@@ -32,14 +33,14 @@ class AuthController extends Controller
             return ApiResponse::error('Invalid credentials.', [], 401);
         }
 
-        if ($agency->status !== 'active') {
+        if ($agency->status !== TravelAgencyStatus::Active) {
             $message = match ($agency->status) {
-                'pending' => 'Your account is pending admin approval.',
-                'suspended' => 'Your account has been suspended. Please contact support.',
+                TravelAgencyStatus::Pending => 'Your account is pending admin approval.',
+                TravelAgencyStatus::Suspended => 'Your account has been suspended. Please contact support.',
                 default => 'Your account is not active.',
             };
 
-            return ApiResponse::error($message, ['status' => $agency->status], 403);
+            return ApiResponse::error($message, ['status' => $agency->status->value], 403);
         }
 
         if ($request->filled('fcm_token') && $request->filled('platform')) {

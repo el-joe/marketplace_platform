@@ -141,13 +141,13 @@
                         {{-- Status --}}
                         @php
                             $statusColors = ['pending' => 'warning', 'published' => 'success', 'rejected' => 'danger', 'flagged' => 'orange', 'auto_flagged' => 'orange'];
-                            $sc = $statusColors[$review->status] ?? 'gray';
+                            $sc = $statusColors[$review->status->value] ?? 'gray';
                         @endphp
                         <div>
                             <span class="text-xs text-gray-400 uppercase font-medium mr-1">{{ __('admin.reviews_section.status') }}</span>
                             <span
                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">
-                                {{ __('admin.reviews_section.' . $review->status) }}
+                                {{ __('admin.reviews_section.' . $review->status->value) }}
                             </span>
                         </div>
 
@@ -199,22 +199,22 @@
                         </div>
                         <div class="text-end">
                             <p class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.reviews_section.status') }}</p>
-                            @php $rc = $reply->status === 'published' ? 'success' : 'gray'; @endphp
+                            @php $rc = $reply->status === \App\Enums\ReviewVendorReplyStatus::Published ? 'success' : 'gray'; @endphp
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $rc }}-100 text-{{ $rc }}-700">
-                                {{ __('admin.reviews_section.reply_status_' . $reply->status) }}
+                                {{ __('admin.reviews_section.reply_status_' . $reply->status->value) }}
                             </span>
                         </div>
                     </div>
                     <p class="text-sm text-gray-700 whitespace-pre-wrap mb-4">{{ $reply->body }}</p>
                     <div class="flex gap-2">
-                        @if($reply->status !== 'hidden')
+                        @if($reply->status !== \App\Enums\ReviewVendorReplyStatus::Hidden)
                             <button type="button" class="btn btn-secondary btn-sm js-reply-toggle-btn" data-action="hide"
                                 data-url="{{ route('admin.reviews.vendor-replies.hide', $reply->id) }}">
                                 {{ __('admin.reviews_section.hide_reply') }}
                             </button>
                         @endif
-                        @if($reply->status !== 'published')
+                        @if($reply->status !== \App\Enums\ReviewVendorReplyStatus::Published)
                             <button type="button" class="btn btn-success btn-sm js-reply-toggle-btn" data-action="show"
                                 data-url="{{ route('admin.reviews.vendor-replies.show', $reply->id) }}">
                                 {{ __('admin.reviews_section.show_reply') }}
@@ -231,7 +231,7 @@
 
             {{-- ─── Moderation Actions ─────────────────────────────────────────────── --}}
             <x-card title="{{ __('admin.reviews_section.moderation') }}">
-                @if(in_array($review->status, ['pending', 'flagged', 'auto_flagged']))
+                @if(in_array($review->status, [\App\Enums\ReviewStatus::Pending, \App\Enums\ReviewStatus::Flagged, \App\Enums\ReviewStatus::AutoFlagged], true))
                     <div class="space-y-2">
                         <button type="button" class="w-full btn btn-primary" id="approve-btn"
                             data-url="{{ route('admin.reviews.approve', $review->id) }}">
@@ -243,14 +243,14 @@
                             </button>
                         </div>
                     </div>
-                @elseif($review->status === 'published')
+                @elseif($review->status === \App\Enums\ReviewStatus::Published)
                     <div class="rounded-lg bg-green-50 border border-green-100 px-4 py-3 text-sm text-green-800 mb-3">
                         {{ __('admin.reviews_section.published_badge') }}
                     </div>
                     <button type="button" class="w-full btn btn-danger" id="open-reject-modal-btn">
                         {!! __('admin.reviews_section.unpublish_and_reject') !!}
                     </button>
-                @elseif($review->status === 'rejected')
+                @elseif($review->status === \App\Enums\ReviewStatus::Rejected)
                     <div class="rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-800 mb-3">
                         {{ __('admin.reviews_section.rejected_badge') }}
                     </div>

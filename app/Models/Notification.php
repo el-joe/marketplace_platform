@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\NotificationChannel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -20,6 +21,13 @@ class Notification extends Model
         'sent_at',
         'created_at',
         'updated_at',
+    ];
+
+    protected $casts = [
+        // 'type' intentionally left as a plain string: it stores the full
+        // notification class name (e.g. App\Notifications\Vendor\...), which
+        // is not a closed set of values.
+        'channel' => NotificationChannel::class,
     ];
 
     /** The notifiable entity (Admin, Customer, Vendor). */

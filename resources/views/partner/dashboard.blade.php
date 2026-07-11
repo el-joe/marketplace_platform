@@ -176,7 +176,7 @@
                                     @endif
                                 </td>
                                 <td class="py-3">
-                                    <x-status-badge :status="$subOrder->status" />
+                                    <x-status-badge :status="$subOrder->status->value" />
                                 </td>
                                 <td class="py-3 font-medium text-gray-800">
                                     {{ number_format($subOrder->vendor_payout / 100, 2) }}

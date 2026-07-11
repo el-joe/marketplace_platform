@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\RefundStatus;
 use App\Http\Controllers\Controller;
 use App\Jobs\RefundProcessingJob;
 use App\Models\PaymentTransaction;
@@ -80,7 +81,7 @@ class TransactionController extends Controller
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function ($tx) {
-            $typeBadge = match ($tx->type) {
+            $typeBadge = match ($tx->type->value) {
                 'authorization' => 'bg-blue-100 text-blue-700',
                 'capture' => 'bg-indigo-100 text-indigo-700',
                 'sale' => 'bg-green-100 text-green-700',
@@ -90,7 +91,7 @@ class TransactionController extends Controller
                 default => 'bg-gray-100 text-gray-700',
             };
 
-            $statusBadge = match ($tx->status) {
+            $statusBadge = match ($tx->status->value) {
                 'pending' => 'bg-yellow-100 text-yellow-700',
                 'succeeded' => 'bg-green-100 text-green-700',
                 'failed' => 'bg-red-100 text-red-700',
@@ -116,10 +117,10 @@ class TransactionController extends Controller
                 'gateway_transaction_id' => '<span class="font-mono text-xs cursor-pointer js-copy" data-value="' . e($gwTxId) . '" title="Click to copy">' . e($gwShort) . '</span>',
                 'order' => $orderLink,
                 'customer' => $customerLink,
-                'type' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $typeBadge . '">' . e($tx->type) . '</span>',
+                'type' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $typeBadge . '">' . e($tx->type->value) . '</span>',
                 'gateway' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">' . e($tx->gateway) . '</span>',
                 'amount' => '<span class="font-semibold tabular-nums text-sm">' . number_format($tx->amount / 100, 2) . ' ' . e($tx->currency) . '</span>',
-                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e($tx->status) . '</span>',
+                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e($tx->status->value) . '</span>',
                 'failure_code' => $tx->failure_code
                     ? '<span class="font-mono text-xs text-red-600" title="' . e($tx->failure_message) . '">' . e($tx->failure_code) . '</span>'
                     : '<span class="text-gray-300">—</span>',
@@ -182,7 +183,7 @@ class TransactionController extends Controller
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function ($refund) {
-            $statusBadge = match ($refund->status) {
+            $statusBadge = match ($refund->status->value) {
                 'pending' => 'bg-yellow-100 text-yellow-700',
                 'approved' => 'bg-blue-100 text-blue-700',
                 'processing' => 'bg-indigo-100 text-indigo-700',
@@ -201,7 +202,7 @@ class TransactionController extends Controller
                 : '<span class="text-gray-300">—</span>';
 
             $actions = '';
-            if ($refund->status === 'pending') {
+            if ($refund->status === RefundStatus::Pending) {
                 $approveUrl = route('admin.transactions.refunds.approve', $refund->id);
                 $rejectUrl = route('admin.transactions.refunds.reject', $refund->id);
                 $actions = '<div class="flex items-center gap-1">'
@@ -215,10 +216,10 @@ class TransactionController extends Controller
                 'order' => $orderLink,
                 'customer' => '<span class="text-sm">' . e($refund->customer_name ?? '—') . '</span>',
                 'amount' => '<span class="font-semibold tabular-nums text-sm">' . number_format($refund->amount / 100, 2) . ' ' . e($refund->currency) . '</span>',
-                'reason' => '<span class="text-sm text-gray-700">' . e($refund->reason) . '</span>',
-                'refund_type' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">' . e(str_replace('_', ' ', $refund->refund_type)) . '</span>',
+                'reason' => '<span class="text-sm text-gray-700">' . e($refund->reason->value) . '</span>',
+                'refund_type' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">' . e(str_replace('_', ' ', $refund->refund_type->value)) . '</span>',
                 'vendor_charged_back' => $chargedBack,
-                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e($refund->status) . '</span>',
+                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e($refund->status->value) . '</span>',
                 'actions' => $actions,
             ];
         });
@@ -229,7 +230,7 @@ class TransactionController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('transactions.edit'), 403);
 
-        if ($refund->status !== 'pending') {
+        if ($refund->status !== RefundStatus::Pending) {
             return response()->json(['message' => 'This refund is no longer pending.'], 422);
         }
 
@@ -248,7 +249,7 @@ class TransactionController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('transactions.edit'), 403);
 
-        if ($refund->status !== 'pending') {
+        if ($refund->status !== RefundStatus::Pending) {
             return response()->json(['message' => 'This refund is no longer pending.'], 422);
         }
 

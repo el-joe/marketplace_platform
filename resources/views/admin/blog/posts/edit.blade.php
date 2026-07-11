@@ -28,8 +28,8 @@
                         'archived'  => __('common.archived'),
                     ];
                 @endphp
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$post->status] ?? 'bg-gray-100 text-gray-600' }}">
-                    {{ $statusPostLabels[$post->status] ?? ucfirst($post->status) }}
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$post->status->value] ?? 'bg-gray-100 text-gray-600' }}">
+                    {{ $statusPostLabels[$post->status->value] ?? $post->status->label() }}
                 </span>
                 @if($post->published_at)
                     <span class="text-xs text-gray-400">{{ __('admin.blog.published_at') }} {{ $post->published_at->format('d M Y') }}</span>
@@ -167,9 +167,9 @@
                 <div class="flex items-center gap-3 flex-wrap">
                     <button type="button" class="btn btn-secondary" onclick="submitForm('draft')">{{ __('admin.blog.save_draft') }}</button>
                     <button type="button" class="btn bg-emerald-600 text-white hover:bg-emerald-700" onclick="submitForm('publish')">
-                        {{ $post->status === 'archived' ? __('admin.blog.republish') : __('admin.blog.publish_now') }}
+                        {{ $post->status->value === 'archived' ? __('admin.blog.republish') : __('admin.blog.publish_now') }}
                     </button>
-                    @if(in_array($post->status, ['published', 'scheduled']))
+                    @if(in_array($post->status->value, ['published', 'scheduled']))
                         <button type="button" class="btn bg-amber-500 text-white hover:bg-amber-600" onclick="submitForm('archive')">
                             {{ __('admin.blog.archive') }}
                         </button>
@@ -186,7 +186,7 @@
                     <div class="p-4 space-y-4">
                         <div class="text-xs text-gray-500">
                             {{ __('admin.blog.current_status') }}
-                            <span class="font-semibold text-gray-800">{{ $statusPostLabels[$post->status] ?? ucfirst($post->status) }}</span>
+                            <span class="font-semibold text-gray-800">{{ $post->status->label() }}</span>
                         </div>
 
                         <div class="flex flex-col gap-2">
@@ -197,16 +197,16 @@
                                 {{ __('admin.blog.schedule') }}…
                             </button>
                             <button type="button" class="btn bg-emerald-600 text-white hover:bg-emerald-700 w-full text-sm" onclick="submitForm('publish')">
-                                {{ $post->status === 'archived' ? __('admin.blog.republish') : __('admin.blog.publish_now') }}
+                                {{ $post->status->value === 'archived' ? __('admin.blog.republish') : __('admin.blog.publish_now') }}
                             </button>
-                            @if(in_array($post->status, ['published', 'scheduled']))
+                            @if(in_array($post->status->value, ['published', 'scheduled']))
                                 <button type="button" class="btn bg-amber-500 text-white hover:bg-amber-600 w-full text-sm" onclick="submitForm('archive')">
                                     {{ __('admin.blog.archive') }}
                                 </button>
                             @endif
                         </div>
 
-                        <div id="schedule-panel" class="{{ $post->status === 'scheduled' ? '' : 'hidden' }} space-y-2 pt-2 border-t border-gray-100">
+                        <div id="schedule-panel" class="{{ $post->status->value === 'scheduled' ? '' : 'hidden' }} space-y-2 pt-2 border-t border-gray-100">
                             <label class="form-label text-xs">{{ __('admin.blog.scheduled_for') }}</label>
                             <input type="datetime-local" name="scheduled_for" id="scheduled-for"
                                    value="{{ old('scheduled_for', $post->scheduled_for?->format('Y-m-d\TH:i')) }}"

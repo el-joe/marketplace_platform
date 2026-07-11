@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MarketplaceShippingRuleCommissionType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,7 @@ class MarketplaceShippingRule extends Model
     ];
 
     protected $casts = [
+        'commission_type' => MarketplaceShippingRuleCommissionType::class,
         'requires_special_vehicle' => 'boolean',
         'requires_refrigeration' => 'boolean',
         'max_weight_kg' => 'decimal:2',
@@ -44,9 +46,9 @@ class MarketplaceShippingRule extends Model
     public function commissionLabel(): string
     {
         return match ($this->commission_type) {
-            'fixed' => number_format($this->commission_value, 2) . ' EGP',
-            'percentage' => $this->commission_value . '%',
-            'mixed' => $this->commission_value . '% + fees',
+            MarketplaceShippingRuleCommissionType::Fixed => number_format($this->commission_value, 2) . ' EGP',
+            MarketplaceShippingRuleCommissionType::Percentage => $this->commission_value . '%',
+            MarketplaceShippingRuleCommissionType::Mixed => $this->commission_value . '% + fees',
             default => (string) $this->commission_value,
         };
     }

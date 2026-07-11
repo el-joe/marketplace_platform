@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Api\TravelAgencyPortal;
 
+use App\Enums\TravelBookingStatus;
+use App\Enums\TravelPackageInquiryStatus;
+use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\TravelAgencyPortal\Booking\StoreBookingRequest;
 use App\Http\Requests\Api\TravelAgencyPortal\Booking\UpdateStatusRequest;
@@ -68,7 +71,7 @@ class BookingController extends Controller
             ->with(['package', 'customer']);
 
         if ($status = $request->query('status')) {
-            $query->where('status', $status);
+            $query->where('status', TravelBookingStatus::from($status));
         }
 
         if ($dateFrom = $request->query('date_from')) {
@@ -105,11 +108,11 @@ class BookingController extends Controller
         if (! empty($validated['from_inquiry'])) {
             $inquiry = TravelPackageInquiry::where('id', $validated['from_inquiry'])
                 ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $this->agencyId()))
-                ->where('status', '!=', 'converted')
+                ->where('status', '!=', TravelPackageInquiryStatus::Converted)
                 ->first();
 
             $inquiry?->update([
-                'status' => 'converted',
+                'status' => TravelPackageInquiryStatus::Converted,
                 'converted_to_booking_id' => $booking->id,
             ]);
         }
@@ -125,9 +128,11 @@ class BookingController extends Controller
     {
         $this->authorise($booking);
 
-        $allowed = match ($request->status) {
-            'confirmed' => in_array($booking->status, ['pending_documents']),
-            'cancelled' => in_array($booking->status, ['pending_documents', 'confirmed']),
+        $newStatus = TravelBookingStatus::from($request->status);
+
+        $allowed = match ($newStatus) {
+            TravelBookingStatus::Confirmed => in_array($booking->status, [TravelBookingStatus::PendingDocuments]),
+            TravelBookingStatus::Cancelled => in_array($booking->status, [TravelBookingStatus::PendingDocuments, TravelBookingStatus::Confirmed]),
             default => false,
         };
 
@@ -135,8 +140,8 @@ class BookingController extends Controller
             return ApiResponse::error('This booking status cannot be changed.', [], 422);
         }
 
-        DB::transaction(function () use ($booking, $request) {
-            if ($request->status === 'confirmed') {
+        DB::transaction(function () use ($booking, $newStatus) {
+            if ($newStatus === TravelBookingStatus::Confirmed) {
                 $pkg = TravelPackage::lockForUpdate()->findOrFail($booking->travel_package_id);
 
                 if ($pkg->available_seats !== null
@@ -151,7 +156,7 @@ class BookingController extends Controller
                 if ($pkg->available_seats !== null
                     && $pkg->seats_booked >= $pkg->available_seats
                 ) {
-                    $pkg->update(['status' => 'sold_out']);
+                    $pkg->update(['status' => TravelPackageStatus::SoldOut]);
                 } elseif ($pkg->available_seats !== null) {
                     $remaining = $pkg->available_seats - $pkg->seats_booked;
                     if ($remaining > 0 && $remaining <= 3) {
@@ -160,18 +165,18 @@ class BookingController extends Controller
                 }
             }
 
-            if ($request->status === 'cancelled' && $booking->status === 'confirmed') {
+            if ($newStatus === TravelBookingStatus::Cancelled && $booking->status === TravelBookingStatus::Confirmed) {
                 $booking->package()->increment('seats_booked', -$booking->travelers_count);
             }
 
-            $booking->update(['status' => $request->status]);
+            $booking->update(['status' => $newStatus]);
         });
 
         $booking->loadMissing(['package', 'customer']);
 
-        if ($request->status === 'confirmed') {
+        if ($newStatus === TravelBookingStatus::Confirmed) {
             $booking->customer?->notify(new TravelBookingConfirmed($booking));
-        } elseif ($request->status === 'cancelled') {
+        } elseif ($newStatus === TravelBookingStatus::Cancelled) {
             $booking->customer?->notify(new CustomerTravelBookingCancelled($booking, 'agency'));
         }
 

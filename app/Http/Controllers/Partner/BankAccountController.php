@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\VendorBankAccountVerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Payout;
 use App\Models\VendorBankAccount;
@@ -51,7 +52,7 @@ class BankAccountController extends Controller
             'swift_code' => $account->swift_code,
             'currency' => $account->currency,
             'is_primary' => $account->is_primary,
-            'verification_status' => $account->verification_status,
+            'verification_status' => $account->verification_status->value,
             'created_at' => $account->created_at?->format('Y-m-d'),
         ];
     }
@@ -89,7 +90,7 @@ class BankAccountController extends Controller
             ...$data,
             'vendor_id' => $this->vendorId(),
             'account_number_encrypted' => Crypt::encryptString($data['iban']),
-            'verification_status' => 'pending',
+            'verification_status' => VendorBankAccountVerificationStatus::Pending,
             'is_primary' => false,
         ]);
 
@@ -108,7 +109,7 @@ class BankAccountController extends Controller
     {
         $this->authorise($account);
 
-        if ($account->verification_status !== 'verified') {
+        if ($account->verification_status !== VendorBankAccountVerificationStatus::Verified) {
             return response()->json([
                 'success' => false,
                 'message' => 'يمكن تعيين الحسابات المعتمدة فقط كحسابات رئيسية.',
@@ -137,7 +138,7 @@ class BankAccountController extends Controller
     {
         $this->authorise($account);
 
-        if ($account->is_primary && $account->verification_status === 'verified') {
+        if ($account->is_primary && $account->verification_status === VendorBankAccountVerificationStatus::Verified) {
             $hasPendingPayouts = Payout::where('vendor_id', $this->vendorId())
                 ->where('bank_account_id', $account->id)
                 ->whereIn('status', ['pending', 'approved', 'processing'])

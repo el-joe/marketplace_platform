@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api\TravelAgencyPortal\Booking;
 
+use App\Enums\TravelBookingStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateStatusRequest extends FormRequest
 {
@@ -14,7 +16,10 @@ class UpdateStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'in:confirmed,cancelled'],
+            'status' => [
+                'required',
+                Rule::in([TravelBookingStatus::Confirmed->value, TravelBookingStatus::Cancelled->value]),
+            ],
         ];
     }
 }

@@ -29,7 +29,7 @@ class AutoAssignShippingMethodJob implements ShouldQueue
             return;
         }
 
-        if (in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed', 'cancelled', 'returned', 'refunded'])) {
+        if (in_array($subOrder->status->value, ['shipped', 'out_for_delivery', 'delivered', 'completed', 'cancelled', 'returned', 'refunded'])) {
             return;
         }
 
@@ -67,7 +67,7 @@ class AutoAssignShippingMethodJob implements ShouldQueue
             return;
         }
 
-        $fromStatus = $subOrder->status;
+        $fromStatus = $subOrder->status->value;
 
         $subOrder->update([
             'shipping_method_id' => $cheapestRate->shipping_method_id,

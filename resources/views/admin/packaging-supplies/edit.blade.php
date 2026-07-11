@@ -32,8 +32,8 @@
                 <div>
                     <label class="label">{{ __('admin.packaging_supplies.type') }}</label>
                     <select name="type" class="input @error('type') border-red-400 @enderror" required>
-                        @foreach(['box','bag','tape','label','other'] as $t)
-                            <option value="{{ $t }}" @selected(old('type', $supply->type) === $t)>{{ __('admin.packaging_supplies.' . $t) }}</option>
+                        @foreach(\App\Enums\PackagingSupplyType::cases() as $t)
+                            <option value="{{ $t->value }}" @selected(old('type', $supply->type->value) === $t->value)>{{ $t->label() }}</option>
                         @endforeach
                     </select>
                     @error('type') <p class="form-error">{{ $message }}</p> @enderror

@@ -15,6 +15,10 @@ class ClassifiedInquiry extends Model
         'message', 'contact_phone', 'status',
     ];
 
+    protected $casts = [
+        'status' => \App\Enums\ClassifiedInquiryStatus::class,
+    ];
+
     public function listing(): BelongsTo
     {
         return $this->belongsTo(ClassifiedListing::class, 'classified_listing_id');

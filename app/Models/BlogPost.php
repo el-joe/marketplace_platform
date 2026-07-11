@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BlogPostStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,6 +49,7 @@ class BlogPost extends Model
         'archived_at'    => 'datetime',
         'allow_comments' => 'boolean',
         'is_featured'    => 'boolean',
+        'status'         => BlogPostStatus::class,
         'tags'           => 'array',
         'views_count'    => 'integer',
         'reading_time_minutes' => 'integer',

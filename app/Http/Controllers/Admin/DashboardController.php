@@ -238,8 +238,8 @@ class DashboardController extends Controller
                 'order_number' => $order->order_number ?? '#—',
                 'customer_name' => $order->customer?->name ?? __('admin.dashboard.guest'),
                 'total' => number_format($order->total / 100, 2) . ' ' . ($order->currency ?? ''),
-                'status' => $order->status,
-                'status_label' => __("common.order_status.{$order->status}"),
+                'status' => $order->status->value,
+                'status_label' => __("common.order_status.{$order->status->value}"),
                 'created_at' => Carbon::parse($order->placed_at)->diffForHumans(),
             ]);
 

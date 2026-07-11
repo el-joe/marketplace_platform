@@ -13,7 +13,7 @@
             deliverUrl: '{{ route('partner.orders.deliver', $subOrder->sub_order_number) }}',
             cancelUrl: '{{ route('partner.orders.cancel', $subOrder->sub_order_number) }}',
             csrf: '{{ csrf_token() }}',
-            status: '{{ $subOrder->status }}',
+            status: '{{ $subOrder->status->value }}',
         };
         window.PARTNER_TRANSLATIONS = window.PARTNER_TRANSLATIONS || {};
         Object.assign(window.PARTNER_TRANSLATIONS, {
@@ -48,7 +48,7 @@
 
         $isUrgent = $subOrder->sla_ship_deadline &&
             now()->addHours(2)->gt($subOrder->sla_ship_deadline) &&
-            !in_array($subOrder->status, ['shipped', 'delivered', 'completed', 'cancelled']);
+            !in_array($subOrder->status->value, ['shipped', 'delivered', 'completed', 'cancelled']);
         $isPast = $subOrder->sla_ship_deadline && now()->gt($subOrder->sla_ship_deadline);
 
         $statusLabels = [
@@ -275,7 +275,7 @@
             @endif
 
             {{-- SLA card --}}
-            @if($subOrder->sla_ship_deadline && !in_array($subOrder->status, ['shipped', 'delivered', 'completed', 'cancelled']))
+            @if($subOrder->sla_ship_deadline && !in_array($subOrder->status->value, ['shipped', 'delivered', 'completed', 'cancelled']))
                 <div @class([
                     'rounded-2xl border p-5',
                     'bg-red-50 border-red-200' => $isPast,
@@ -307,10 +307,10 @@
                     {{-- Current status badge --}}
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs text-gray-500">{{ __('partner.orders.current_status') }}</span>
-                        <x-status-badge :status="$subOrder->status" />
+                        <x-status-badge :status="$subOrder->status->value" />
                     </div>
 
-                    @if($subOrder->status === 'placed')
+                    @if($subOrder->status->value === 'placed')
                         <button id="btn-confirm"
                             class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="check-circle" class="w-4 h-4" />
@@ -318,7 +318,7 @@
                         </button>
                     @endif
 
-                    @if(in_array($subOrder->status, ['placed', 'confirmed', 'processing', 'packed']))
+                    @if(in_array($subOrder->status->value, ['placed', 'confirmed', 'processing', 'packed']))
                         @if($subOrder->shipping_method_id)
                             <button id="btn-ship"
                                 class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
@@ -332,7 +332,7 @@
                         @endif
                     @endif
 
-                    @if($subOrder->status === 'shipped')
+                    @if($subOrder->status->value === 'shipped')
                         <button id="btn-out-for-delivery"
                             class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="truck" class="w-4 h-4" />
@@ -340,7 +340,7 @@
                         </button>
                     @endif
 
-                    @if(in_array($subOrder->status, ['shipped', 'out_for_delivery']))
+                    @if(in_array($subOrder->status->value, ['shipped', 'out_for_delivery']))
                         <button id="btn-deliver"
                             class="w-full bg-green-700 hover:bg-green-800 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="check-badge" class="w-4 h-4" />
@@ -348,7 +348,7 @@
                         </button>
                     @endif
 
-                    @if(!in_array($subOrder->status, ['shipped', 'out_for_delivery', 'delivered', 'completed', 'cancelled', 'return_requested', 'returned']))
+                    @if(!in_array($subOrder->status->value, ['shipped', 'out_for_delivery', 'delivered', 'completed', 'cancelled', 'return_requested', 'returned']))
                         <button id="btn-cancel"
                             class="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
                             <x-heroicon name="x-circle" class="w-4 h-4" />
@@ -356,7 +356,7 @@
                         </button>
                     @endif
 
-                    @if(in_array($subOrder->status, ['delivered', 'completed', 'cancelled']))
+                    @if(in_array($subOrder->status->value, ['delivered', 'completed', 'cancelled']))
                         <p class="text-xs text-gray-400 text-center py-1">{{ __('partner.orders.no_actions_available') }}</p>
                     @endif
 
@@ -364,7 +364,7 @@
             </div>
 
             {{-- Carrier / Tracking (if shipped) --}}
-            @if($subOrder->status !== 'placed' && $subOrder->tracking_number)
+            @if($subOrder->status->value !== 'placed' && $subOrder->tracking_number)
                 <div class="bg-white rounded-2xl border border-gray-200 p-5">
                     <h4 class="font-semibold text-gray-800 mb-3 text-sm flex items-center gap-2">
                         <x-heroicon name="truck" class="w-4 h-4 text-gray-400" />

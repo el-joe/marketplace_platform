@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PackagingSupplyType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,6 +28,7 @@ class PackagingSupply extends Model
             'unit_cost_cents'  => 'integer',
             'stock_available'  => 'integer',
             'is_active'        => 'boolean',
+            'type'             => PackagingSupplyType::class,
         ];
     }
 
@@ -49,11 +51,11 @@ class PackagingSupply extends Model
 
     public function typeBadgeClass(): string
     {
-        return match($this->type) {
-            'box'   => 'bg-orange-100 text-orange-800',
-            'bag'   => 'bg-blue-100 text-blue-800',
-            'tape'  => 'bg-yellow-100 text-yellow-800',
-            'label' => 'bg-purple-100 text-purple-800',
+        return match ($this->type) {
+            PackagingSupplyType::Box   => 'bg-orange-100 text-orange-800',
+            PackagingSupplyType::Bag   => 'bg-blue-100 text-blue-800',
+            PackagingSupplyType::Tape  => 'bg-yellow-100 text-yellow-800',
+            PackagingSupplyType::Label => 'bg-purple-100 text-purple-800',
             default => 'bg-gray-100 text-gray-800',
         };
     }

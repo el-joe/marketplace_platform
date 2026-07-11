@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CarrierPerformanceRatedByType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,7 @@ class CarrierPerformanceRating extends Model
             'rating'              => 'integer',
             'on_time'             => 'boolean',
             'visible_to_customer' => 'boolean',
+            'rated_by_type'       => CarrierPerformanceRatedByType::class,
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\PaidAdSlotPricingModel;
 use App\Http\Controllers\Controller;
 use App\Models\BannerPlacementDefinition;
 use App\Models\Country;
@@ -66,7 +67,7 @@ class AdSlotController extends Controller
                 : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Unavailable</span>';
 
             $rate = '$' . number_format($row->base_rate_cents / 100, 2);
-            $pricingModelLabel = ucwords(str_replace('_', '/', $row->pricing_model));
+            $pricingModelLabel = ucwords(str_replace('_', '/', $row->pricing_model->value));
 
             $editUrl = route('admin.ad-slots.edit', $row->id);
             $bookingsUrl = route('admin.ad-slots.bookings', $row->id);
@@ -85,7 +86,7 @@ class AdSlotController extends Controller
                     ? ($row->country->flag_emoji ? $row->country->flag_emoji . ' ' : '') . e($row->country->name_en)
                     : '<span class="text-gray-400 text-xs">Global</span>',
                 'pricing_model' => $pricingModelLabel,
-                'base_rate' => $rate . ' <span class="text-xs text-gray-400">/ ' . strtolower($row->pricing_model) . '</span>',
+                'base_rate' => $rate . ' <span class="text-xs text-gray-400">/ ' . strtolower($row->pricing_model->value) . '</span>',
                 'booking_days' => $row->min_booking_days . ' – ' . ($row->max_booking_days ?? '∞') . ' days',
                 'is_available' => $isAvailBadge,
                 'actions' => $actions,
@@ -119,7 +120,7 @@ class AdSlotController extends Controller
             'slot_code' => ['required', 'string', 'max:50', 'unique:paid_ad_slots,slot_code'],
             'banner_placement_definition_id' => ['required', 'uuid', 'exists:banner_placement_definitions,id'],
             'country_id' => ['nullable', 'uuid', 'exists:countries,id'],
-            'pricing_model' => ['required', Rule::in(['fixed_weekly', 'fixed_monthly', 'cpm', 'cpc'])],
+            'pricing_model' => ['required', Rule::enum(PaidAdSlotPricingModel::class)],
             'base_rate_display' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'min_booking_days' => ['required', 'integer', 'min:1'],
@@ -177,7 +178,7 @@ class AdSlotController extends Controller
             'name' => ['required', 'string', 'max:150'],
             'banner_placement_definition_id' => ['required', 'uuid', 'exists:banner_placement_definitions,id'],
             'country_id' => ['nullable', 'uuid', 'exists:countries,id'],
-            'pricing_model' => ['required', Rule::in(['fixed_weekly', 'fixed_monthly', 'cpm', 'cpc'])],
+            'pricing_model' => ['required', Rule::enum(PaidAdSlotPricingModel::class)],
             'base_rate_display' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'min_booking_days' => ['required', 'integer', 'min:1'],

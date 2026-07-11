@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AdSupportArticleStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,6 +38,7 @@ class AdSupportArticle extends Model
         'is_featured' => 'boolean',
         'related_article_ids' => 'array',
         'views_count' => 'integer',
+        'status' => AdSupportArticleStatus::class,
     ];
 
     public function getRouteKeyName(): string

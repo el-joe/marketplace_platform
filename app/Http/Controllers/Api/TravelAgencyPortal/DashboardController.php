@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Api\TravelAgencyPortal;
 
+use App\Enums\TravelBookingStatus;
+use App\Enums\TravelPackageInquiryStatus;
+use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\TravelAgencyPortal\TravelBookingResource;
 use App\Http\Resources\Api\TravelAgencyPortal\TravelPackageInquiryResource;
@@ -35,7 +38,7 @@ class DashboardController extends Controller
         $totalPackages = (int) $packageCounts->sum();
 
         $rejectedPackagesCount = TravelPackage::where('travel_agency_id', $agency->id)
-            ->where('status', 'draft')
+            ->where('status', TravelPackageStatus::Draft)
             ->whereNotNull('rejection_reason')
             ->count();
 
@@ -65,7 +68,7 @@ class DashboardController extends Controller
         $revenueByCurrency = TravelBooking::query()
             ->join('travel_packages', 'travel_packages.id', '=', 'travel_bookings.travel_package_id')
             ->where('travel_packages.travel_agency_id', $agency->id)
-            ->where('travel_bookings.status', '!=', 'cancelled')
+            ->where('travel_bookings.status', '!=', TravelBookingStatus::Cancelled)
             ->selectRaw('travel_packages.currency as currency, SUM(travel_bookings.total_price_cents) as revenue_cents')
             ->groupBy('travel_packages.currency')
             ->get()
@@ -77,7 +80,7 @@ class DashboardController extends Controller
 
         $openInquiriesCount = TravelPackageInquiry::query()
             ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
-            ->whereIn('status', ['new', 'contacted'])
+            ->whereIn('status', [TravelPackageInquiryStatus::New, TravelPackageInquiryStatus::Contacted])
             ->count();
 
         $recentPackages = TravelPackage::where('travel_agency_id', $agency->id)

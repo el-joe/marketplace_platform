@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\AiVideoGenerationJobRequestedByType;
+use App\Enums\AiVideoGenerationJobStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,7 +29,9 @@ class AiVideoGenerationJob extends Model
     ];
 
     protected $casts = [
-        'source_images' => 'array',
+        'requested_by_type' => AiVideoGenerationJobRequestedByType::class,
+        'status'            => AiVideoGenerationJobStatus::class,
+        'source_images'     => 'array',
     ];
 
     public function vendorListing(): BelongsTo
@@ -42,6 +46,6 @@ class AiVideoGenerationJob extends Model
 
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === AiVideoGenerationJobStatus::Completed;
     }
 }

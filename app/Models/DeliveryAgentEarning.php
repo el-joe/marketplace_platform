@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DeliveryAgentEarningStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,7 @@ class DeliveryAgentEarning extends Model
         return [
             'amount_cents' => 'integer',
             'paid_at' => 'datetime',
+            'status' => DeliveryAgentEarningStatus::class,
         ];
     }
 

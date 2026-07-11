@@ -68,23 +68,23 @@
                     <td class="px-6 py-4 text-center font-semibold text-gray-700">{{ $company->agents_count }}</td>
                     <td class="px-6 py-4">
                         @php
-                            $sc = ['active'=>'emerald','pending'=>'amber','suspended'=>'red'][$company->status] ?? 'gray';
+                            $sc = ['active'=>'emerald','pending'=>'amber','suspended'=>'red'][$company->status->value] ?? 'gray';
                         @endphp
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-{{ $sc }}-100 text-{{ $sc }}-700 capitalize">
-                            {{ __('admin.shipping_section.company_status_' . $company->status) }}
+                            {{ __('admin.shipping_section.company_status_' . $company->status->value) }}
                         </span>
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             <a href="{{ route('admin.shipping-companies.show', $company->id) }}"
                                class="text-indigo-600 hover:underline text-xs font-medium">{{ __('admin.shipping_section.view') }}</a>
-                            @if($company->status === 'pending')
+                            @if($company->status === \App\Enums\ShippingCompanyStatus::Pending)
                             <form method="POST" action="{{ route('admin.shipping-companies.approve', $company->id) }}">
                                 @csrf
                                 <button class="text-emerald-600 hover:underline text-xs font-medium">{{ __('admin.shipping_section.approve') }}</button>
                             </form>
                             @endif
-                            @if($company->status !== 'suspended')
+                            @if($company->status !== \App\Enums\ShippingCompanyStatus::Suspended)
                             <form method="POST" action="{{ route('admin.shipping-companies.suspend', $company->id) }}"
                                   onsubmit="return confirm('{{ __('admin.shipping_section.suspend_confirm') }}')">
                                 @csrf

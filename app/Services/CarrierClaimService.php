@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\CarrierClaimStatus;
 use App\Jobs\CreditVendorCompensationJob;
 use App\Models\Admin;
 use App\Models\CarrierClaim;
@@ -24,13 +25,13 @@ class CarrierClaimService
             'description'          => $data['description'],
             'claimed_amount_cents' => $data['claimed_amount_cents'],
             'evidence_files'       => $data['evidence_files'] ?? null,
-            'status'               => 'submitted',
+            'status'               => CarrierClaimStatus::Submitted,
         ]);
     }
 
     public function markUnderReview(CarrierClaim $claim): CarrierClaim
     {
-        $claim->update(['status' => 'under_review']);
+        $claim->update(['status' => CarrierClaimStatus::UnderReview]);
         return $claim;
     }
 
@@ -43,7 +44,7 @@ class CarrierClaimService
     ): CarrierClaim {
         if ($decision === 'approved') {
             $claim->update([
-                'status'                   => 'approved',
+                'status'                   => CarrierClaimStatus::Approved,
                 'compensated_amount_cents' => $compensatedAmount,
                 'resolution_notes'         => $notes,
                 'resolved_by_admin_id'     => $admin->id,
@@ -55,7 +56,7 @@ class CarrierClaimService
             }
         } else {
             $claim->update([
-                'status'               => 'rejected',
+                'status'               => CarrierClaimStatus::Rejected,
                 'resolution_notes'     => $notes,
                 'resolved_by_admin_id' => $admin->id,
                 'resolved_at'          => now(),
@@ -89,7 +90,7 @@ class CarrierClaimService
         $onTimeEligible = $ratings->whereNotNull('on_time')->count();
 
         $totalClaims    = $claims->count();
-        $approvedClaims = $claims->whereIn('status', ['approved', 'compensated'])->count();
+        $approvedClaims = $claims->whereIn('status', [CarrierClaimStatus::Approved, CarrierClaimStatus::Compensated])->count();
 
         return [
             'period'               => $period,
@@ -98,7 +99,7 @@ class CarrierClaimService
             'on_time_pct'          => $onTimeEligible ? round($onTimeCount / $onTimeEligible * 100, 1) : null,
             'total_claims'         => $totalClaims,
             'claims_approved_pct'  => $totalClaims ? round($approvedClaims / $totalClaims * 100, 1) : null,
-            'total_compensated'    => $claims->whereIn('status', ['approved', 'compensated'])
+            'total_compensated'    => $claims->whereIn('status', [CarrierClaimStatus::Approved, CarrierClaimStatus::Compensated])
                                              ->sum('compensated_amount_cents'),
         ];
     }

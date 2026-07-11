@@ -94,7 +94,7 @@
                     <td class="px-4 py-3">
                         <div class="flex gap-2 items-center justify-end flex-wrap">
 
-                            @if($inq->status === 'new')
+                            @if($inq->status === \App\Enums\TravelPackageInquiryStatus::New)
                             <form method="POST" action="{{ route('travel-agency.inquiries.contacted', $inq) }}">
                                 @csrf
                                 <button type="submit"
@@ -104,7 +104,7 @@
                             </form>
                             @endif
 
-                            @if(in_array($inq->status, ['new', 'contacted']))
+                            @if(in_array($inq->status, [\App\Enums\TravelPackageInquiryStatus::New, \App\Enums\TravelPackageInquiryStatus::Contacted]))
                             <form method="POST" action="{{ route('travel-agency.inquiries.convert', $inq) }}">
                                 @csrf
                                 <button type="submit"
@@ -121,7 +121,7 @@
                             </form>
                             @endif
 
-                            @if($inq->status === 'converted' && $inq->converted_to_booking_id)
+                            @if($inq->status === \App\Enums\TravelPackageInquiryStatus::Converted && $inq->converted_to_booking_id)
                             <a href="{{ route('travel-agency.bookings.show', $inq->converted_to_booking_id) }}"
                                class="text-xs text-blue-600 hover:underline">{{ __('travel.inquiries.view_booking') }}</a>
                             @endif

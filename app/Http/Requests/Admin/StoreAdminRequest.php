@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\AdminStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreAdminRequest extends FormRequest
 {
@@ -18,7 +20,7 @@ class StoreAdminRequest extends FormRequest
             'email' => ['required', 'email', 'max:200', 'unique:admins,email'],
             'phone' => ['nullable', 'string', 'max:30'],
             'country_id' => ['nullable', 'uuid', 'exists:countries,id'],
-            'status' => ['required', 'in:active,inactive'],
+            'status' => ['required', Rule::enum(AdminStatus::class)],
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', 'exists:roles,name'],
         ];

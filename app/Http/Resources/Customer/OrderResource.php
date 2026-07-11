@@ -13,7 +13,7 @@ class OrderResource extends JsonResource
         return [
             'id'               => $this->id,
             'order_number'     => $this->order_number,
-            'status'           => $this->status,
+            'status'           => $this->status->value,
             'payment_status'   => $this->payment_status,
             'payment_method'   => $this->payment_method,
             'currency'         => $this->currency,
@@ -30,7 +30,7 @@ class OrderResource extends JsonResource
                 $this->subOrders->map(fn ($so) => [
                     'id'                      => $so->id,
                     'sub_order_number'        => $so->sub_order_number,
-                    'status'                  => $so->status,
+                    'status'                  => $so->status->value,
                     'fulfillment_model'       => $so->fulfillment_model,
                     'vendor_name'             => $so->vendor?->store_name,
                     'subtotal'                => round($so->subtotal / 100, 2),
@@ -50,7 +50,7 @@ class OrderResource extends JsonResource
                         'quantity'              => $item->quantity,
                         'unit_price'            => round($item->unit_price / 100, 2),
                         'line_total'            => round($item->line_total / 100, 2),
-                        'fulfillment_status'    => $item->fulfillment_status,
+                        'fulfillment_status'    => $item->fulfillment_status->value,
                         'return_eligible_until' => $item->return_eligible_until?->toDateString(),
                     ]),
                 ])

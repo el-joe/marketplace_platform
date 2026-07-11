@@ -167,7 +167,7 @@
                                     'approved'  => 'bg-blue-100 text-blue-700',
                                     'pending'   => 'bg-yellow-100 text-yellow-700',
                                     'failed'    => 'bg-red-100 text-red-600',
-                                ][$payout->status] ?? 'bg-gray-100 text-gray-600';
+                                ][$payout->status->value] ?? 'bg-gray-100 text-gray-600';
                             @endphp
                             <tr class="border-t border-gray-50">
                                 <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ $payout->payout_number }}</td>
@@ -178,7 +178,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <span class="text-xs font-semibold rounded-full px-2.5 py-0.5 {{ $payoutColor }}">
-                                        {{ ucfirst($payout->status) }}
+                                        {{ $payout->status->label() }}
                                     </span>
                                 </td>
                             </tr>

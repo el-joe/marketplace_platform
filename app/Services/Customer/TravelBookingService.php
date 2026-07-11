@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\TravelBookingStatus;
 use App\Jobs\NotifyTravelBookingJob;
 use App\Notifications\Customer\TravelBookingCancelled as CustomerTravelBookingCancelled;
 use App\Notifications\TravelAgency\BookingCancelled;
@@ -20,7 +21,7 @@ class TravelBookingService
     {
         return $customer->travelBookings()
             ->with(['package:id,title,price_cents,currency'])
-            ->when(isset($filters['status']), fn ($q) => $q->where('status', $filters['status']))
+            ->when(isset($filters['status']), fn ($q) => $q->where('status', TravelBookingStatus::from($filters['status'])))
             ->latest()
             ->paginate(15);
     }
@@ -36,7 +37,7 @@ class TravelBookingService
     {
         $booking = $customer->travelBookings()->findOrFail($id);
 
-        if (! in_array($booking->status, ['pending_documents', 'confirmed'], true)) {
+        if (! in_array($booking->status, [TravelBookingStatus::PendingDocuments, TravelBookingStatus::Confirmed], true)) {
             throw ValidationException::withMessages([
                 'status' => 'This booking cannot be cancelled in its current state.',
             ]);
@@ -44,7 +45,7 @@ class TravelBookingService
 
         // No automatic refund logic or cancellation_reason column exists in
         // the schema — cancellation is marked and left for admin/agency review.
-        $booking->update(['status' => 'cancelled']);
+        $booking->update(['status' => TravelBookingStatus::Cancelled]);
 
         $booking->loadMissing('package.agency');
         $booking->package->agency->notify(new BookingCancelled($booking, 'customer'));
@@ -71,7 +72,7 @@ class TravelBookingService
             'travelers_count'    => $travelersCount,
             'total_price_cents'  => $totalCents,
             'passport_file_path' => $passportPath,
-            'status'             => 'pending_documents',
+            'status'             => TravelBookingStatus::PendingDocuments,
         ]);
 
         NotifyTravelBookingJob::dispatch($booking);
@@ -87,7 +88,7 @@ class TravelBookingService
             ->where('booking_number', $bookingNumber)
             ->firstOrFail();
 
-        if (! in_array($booking->status, ['pending_documents', 'confirmed'], true)) {
+        if (! in_array($booking->status, [TravelBookingStatus::PendingDocuments, TravelBookingStatus::Confirmed], true)) {
             throw ValidationException::withMessages([
                 'booking_number' => 'Contract cannot be signed in the current booking state.',
             ]);

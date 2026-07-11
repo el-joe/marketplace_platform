@@ -15,8 +15,12 @@
 
     @php
         /** @var \App\Models\DeliveryAssignment $assignment */
-        $isActive = in_array($assignment->status, ['assigned', 'accepted', 'picked_up']);
-        $chipClass = 'chip-' . $assignment->status;
+        $isActive = in_array($assignment->status, [
+            \App\Enums\DeliveryAssignmentStatus::Assigned,
+            \App\Enums\DeliveryAssignmentStatus::Accepted,
+            \App\Enums\DeliveryAssignmentStatus::PickedUp,
+        ], true);
+        $chipClass = 'chip-' . $assignment->status->value;
         $order = $assignment->subOrder?->order;
         $items = $assignment->subOrder?->items ?? collect();
         $customer = $order?->customer;
@@ -32,7 +36,7 @@
             <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.assignments.assigned') }} {{ $assignment->assigned_at?->diffForHumans() }}</p>
         </div>
         <span
-            class="chip {{ $chipClass }} text-sm px-3 py-1">{{ ucfirst(str_replace('_', ' ', $assignment->status)) }}</span>
+            class="chip {{ $chipClass }} text-sm px-3 py-1">{{ $assignment->status->label() }}</span>
     </div>
 
     {{-- ── Map: pickup → delivery ──────────────────────────────────────────────── --}}
@@ -135,21 +139,21 @@
         <div x-data="assignmentActions()" class="space-y-3 pb-6">
 
             {{-- ASSIGNED: Accept button --}}
-            @if($assignment->status === 'assigned')
+            @if($assignment->status === \App\Enums\DeliveryAssignmentStatus::Assigned)
                 <button type="button" @click="accept()" :disabled="loading" class="btn-action btn-yellow">
                     <span x-text="loading ? '{{ __('delivery.assignments.processing') }}' : '✓ {{ __('delivery.assignments.accept') }}'"></span>
                 </button>
             @endif
 
             {{-- ACCEPTED: Mark Picked Up --}}
-            @if($assignment->status === 'accepted')
+            @if($assignment->status === \App\Enums\DeliveryAssignmentStatus::Accepted)
                 <button type="button" @click="pickUp()" :disabled="loading" class="btn-action btn-blue">
                     <span x-text="loading ? '{{ __('delivery.assignments.getting_location') }}' : '📦 {{ __('delivery.dashboard.mark_picked_up') }}'"></span>
                 </button>
             @endif
 
             {{-- PICKED_UP: COD Card + OTP + Deliver --}}
-            @if($assignment->status === 'picked_up')
+            @if($assignment->status === \App\Enums\DeliveryAssignmentStatus::PickedUp)
 
                 {{-- COD Collection Card --}}
                 @if($isCod)
@@ -237,7 +241,7 @@
             @endif
 
             {{-- Fail button (available for accepted and picked_up) --}}
-            @if(in_array($assignment->status, ['accepted', 'picked_up']))
+            @if(in_array($assignment->status, [\App\Enums\DeliveryAssignmentStatus::Accepted, \App\Enums\DeliveryAssignmentStatus::PickedUp], true))
                 <button type="button" @click="showFail = true" class="btn-action btn-outline text-sm" style="min-height: 46px;">
                     {{ __('delivery.assignments.mark_as_failed') }}
                 </button>
@@ -283,13 +287,13 @@
     @else
         {{-- Completed / Read-only state --}}
         <div class="d-card text-center py-8 mb-6">
-            @if($assignment->status === 'delivered')
+            @if($assignment->status === \App\Enums\DeliveryAssignmentStatus::Delivered)
                 <div class="text-4xl mb-2">✅</div>
                 <p class="font-semibold text-green-400">{{ __('delivery.assignments.delivered') }}</p>
                 @if($assignment->delivered_at)
                     <p class="text-xs text-slate-400 mt-1">{{ $assignment->delivered_at->format('d M Y H:i') }}</p>
                 @endif
-            @elseif($assignment->status === 'failed')
+            @elseif($assignment->status === \App\Enums\DeliveryAssignmentStatus::Failed)
                 <div class="text-4xl mb-2">❌</div>
                 <p class="font-semibold text-red-400">{{ __('delivery.assignments.failed') }}</p>
                 @if($assignment->failure_reason)

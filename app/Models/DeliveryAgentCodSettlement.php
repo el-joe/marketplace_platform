@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\CodSettlementDiscrepancyResolution;
+use App\Enums\DeliveryAgentCodSettlementStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,6 +38,8 @@ class DeliveryAgentCodSettlement extends Model
         'discrepancy_amount_cents'   => 'integer',
         'has_collection_discrepancy' => 'boolean',
         'settled_at'                 => 'datetime',
+        'status'                     => DeliveryAgentCodSettlementStatus::class,
+        'discrepancy_resolution'     => CodSettlementDiscrepancyResolution::class,
     ];
 
     public function agent(): BelongsTo

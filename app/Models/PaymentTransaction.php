@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentTransactionStatus;
+use App\Enums\PaymentTransactionType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +20,8 @@ class PaymentTransaction extends Model
             'raw_request' => 'array',
             'raw_response' => 'array',
             'processed_at' => 'datetime',
+            'status' => PaymentTransactionStatus::class,
+            'type' => PaymentTransactionType::class,
         ];
     }
 
