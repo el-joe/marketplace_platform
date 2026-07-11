@@ -97,18 +97,18 @@ Route::prefix('v1/{country}')
         Route::get(
             'categories/{slug}',
             function (\Illuminate\Http\Request $request, $country, string $slug) {
-                $country = $request->attributes->get('country');
+            $country = $request->attributes->get('country');
 
-                $category = \App\Models\Category::where('slug', $slug)
-                    ->where('is_active', true)
-                    ->firstOrFail();
+            $category = \App\Models\Category::where('slug', $slug)
+                ->where('is_active', true)
+                ->firstOrFail();
 
-                return redirect()->route('customer.browse.show', [
-                    'country' => $country->site_code,
-                    'type' => 'product',
-                    'id' => $category->id,
-                ], 301);
-            }
+            return redirect()->route('customer.browse.show', [
+                'country' => $country->site_code,
+                'type' => 'product',
+                'id' => $category->id,
+            ], 301);
+        }
         )->name('customer.categories.show.legacy');
 
         // ── Categories (public) ───────────────────────────────────────────────
