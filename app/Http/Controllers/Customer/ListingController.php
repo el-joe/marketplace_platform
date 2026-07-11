@@ -127,10 +127,10 @@ class ListingController extends Controller
 
         $product = Product::where('slug', $slug)
             ->where('status', 'active')
-            ->whereHas('countrySettings', fn ($q) => $q
-                ->where('country_id', $country->id)
-                ->where('is_available', true)
-            )
+            // ->whereHas('countrySettings', fn ($q) => $q
+            //     ->where('country_id', $country->id)
+            //     ->where('is_available', true)
+            // )
             ->with([
                 'brand',
                 'category',
