@@ -120,10 +120,6 @@ class PageBuilderService
             'config' => $b->config,
         ];
 
-        if ($b->block_type === 'flash_sale') {
-            dd($b, $b->blockProducts, $country);
-        }
-
         if ($b->slides->isNotEmpty()) {
             $data['slides'] = $b->slides->map(fn($s) => [
                 'id' => $s->id,
@@ -295,6 +291,8 @@ class PageBuilderService
                 ->where('sale_ends_at', '>', now())
                 ->orderBy('sale_ends_at')
                 ->first();
+
+        dd($sale, $flashSaleId, $country);
 
         if (!$sale) {
             return [];
