@@ -5,3 +5,6 @@
  database/seeders/PermissionSeeder.php              |   6 +
  database/seeders/PortalContentSeeder.php           | 108 ++++
  database/seeders/RolesAndPermissionsSeeder.php     |   2 +
+
+----------------------------------------------------------------
+
