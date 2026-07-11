@@ -5277,6 +5277,10 @@ return [
         'block_removed'     => 'Block removed.',
         'could_not_remove_block' => 'Could not remove block.',
         'block_settings'    => 'Block settings',
+        'analytics_impressions' => 'Impressions',
+        'analytics_clicks'  => 'Clicks',
+        'analytics_no_data' => 'No analytics recorded for this block in the selected range.',
+        'analytics_load_error' => 'Could not load analytics for this block.',
         'saving'            => 'Saving…',
         'save_failed'       => 'Save failed',
         'delete_slide_title' => 'Delete slide?',
@@ -6999,6 +7003,18 @@ return [
         'hidden'                   => 'Hidden',
         'scheduled'                => 'Scheduled',
         'drag_to_reorder'          => 'Drag to reorder',
+        'settings'                 => 'Settings',
+        'analytics'                => 'Analytics',
+        'analytics_impressions'    => 'Impressions',
+        'analytics_clicks'         => 'Clicks',
+        'analytics_ctr'            => 'CTR',
+        'analytics_more_details'   => 'Revenue & conversions',
+        'analytics_add_to_cart'    => 'Added to cart',
+        'analytics_orders'         => 'Orders attributed',
+        'analytics_revenue'        => 'Revenue attributed',
+        'analytics_top_targets'    => 'Top click destinations',
+        'analytics_no_data'        => 'No analytics recorded for this block in the selected range.',
+        'analytics_load_error'     => 'Could not load analytics for this block.',
 
         'create_page_modal' => [
             'title'                => 'Create new page',
@@ -7082,6 +7098,8 @@ return [
             'brand_strip' => [
                 'max_brands'       => 'Max brands',
                 'logos_only'       => 'Logos only',
+                'vendors'          => 'Vendors',
+                'add_vendor'       => 'Add vendor',
             ],
 
             'nawy_carousel' => [
@@ -7095,6 +7113,10 @@ return [
             ],
 
             'sponsored_products' => [
+                'placement_code'        => 'Placement',
+                'placement_help'        => 'Loaded from active banner placement definitions.',
+                'active_bookings'       => 'Active bookings for this placement',
+                'select_placement_first' => 'Select a placement to preview active bookings.',
                 'max_products'          => 'Max products',
                 'items_per_row'         => 'Items per row',
                 'ad_source'             => 'Ad source',
@@ -7107,6 +7129,8 @@ return [
 
             'deal_of_day' => [
                 'deal_ends_at'          => 'Deal ends at',
+                'vendor_listing'        => 'Vendor listing',
+                'vendor_listing_help'   => 'Search by product name, vendor, or SKU. Shows product, vendor, and price.',
                 'product_source'        => 'Product source',
                 'source_manual'         => 'Manual selection',
                 'source_flash_sale'     => 'Flash sale',
@@ -7137,6 +7161,7 @@ return [
                 'thumbnail_url'        => 'Thumbnail image URL',
                 'thumbnail_url_placeholder' => 'https://…/thumbnail.jpg',
                 'thumbnail_url_help'   => 'Displayed before the video loads.',
+                'autoplay_muted_warning' => 'For autoplay to work on most browsers, the video MUST be muted.',
                 'overlay_title_en'     => 'Overlay title (EN)',
                 'overlay_title_ar'     => 'Overlay title (AR)',
                 'cta_url'              => 'CTA URL',
@@ -7217,11 +7242,14 @@ return [
                 'view_all_link'       => 'View-all link',
                 'scrollable'          => 'Scrollable',
                 'ratings'             => 'Ratings',
+                'discount_badge'      => 'Discount badge',
             ],
 
             'category_pills' => [
                 'max_items'          => 'Max items',
                 'show_product_count' => 'Show product count',
+                'categories'         => 'Categories',
+                'add_category'       => 'Add category',
             ],
 
             'flash_sale' => [

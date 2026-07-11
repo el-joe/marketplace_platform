@@ -11,8 +11,10 @@ use App\Models\Category;
 use App\Models\Country;
 use App\Models\Page;
 use App\Models\PageBlock;
+use App\Models\PageBlockCategory;
 use App\Models\PageBlockProduct;
 use App\Models\PageBlockRevision;
+use App\Models\PageBlockSeller;
 use App\Models\PageRevision;
 use App\Models\SliderSlide;
 use App\Models\Vendor;
@@ -454,6 +456,40 @@ class PageBuilderService
         DB::transaction(function () use ($ordered) {
             foreach ($ordered as $row) {
                 PageBlockProduct::whereKey($row['id'])->update(['position' => (int) $row['position']]);
+            }
+        });
+    }
+
+    public function addBlockCategory(PageBlock $block, string $categoryId): PageBlockCategory
+    {
+        return PageBlockCategory::firstOrCreate(
+            ['page_block_id' => $block->id, 'category_id' => $categoryId],
+            ['position' => (int) PageBlockCategory::where('page_block_id', $block->id)->max('position') + 1]
+        );
+    }
+
+    public function reorderBlockCategories(array $ordered): void
+    {
+        DB::transaction(function () use ($ordered) {
+            foreach ($ordered as $row) {
+                PageBlockCategory::whereKey($row['id'])->update(['position' => (int) $row['position']]);
+            }
+        });
+    }
+
+    public function addBlockSeller(PageBlock $block, string $sellerId): PageBlockSeller
+    {
+        return PageBlockSeller::firstOrCreate(
+            ['page_block_id' => $block->id, 'seller_id' => $sellerId],
+            ['position' => (int) PageBlockSeller::where('page_block_id', $block->id)->max('position') + 1]
+        );
+    }
+
+    public function reorderBlockSellers(array $ordered): void
+    {
+        DB::transaction(function () use ($ordered) {
+            foreach ($ordered as $row) {
+                PageBlockSeller::whereKey($row['id'])->update(['position' => (int) $row['position']]);
             }
         });
     }

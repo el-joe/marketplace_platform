@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\PageStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdImageItem;
+use App\Models\BlockAnalytic;
+use App\Models\BlockClickEvent;
 use App\Models\BlockType;
 use App\Models\Brand;
 use App\Models\Category;
@@ -21,6 +23,8 @@ use App\Models\Vendor;
 use App\Models\File;
 use App\Services\PageBuilderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
@@ -205,6 +209,77 @@ class PageBuilderController extends Controller
             'device_target' => $block->device_target,
             'audience' => $block->audience,
         ]);
+    }
+
+    // Read-only, admin-only aggregate view — never expose user_id/session_id/ip_address from block_click_events.
+    public function blockAnalytics(Request $request, PageBlock $block)
+    {
+        $data = $request->validate([
+            'date_from' => 'nullable|date',
+            'date_to' => 'nullable|date',
+        ]);
+
+        $dateTo = isset($data['date_to']) ? Carbon::parse($data['date_to'])->startOfDay() : today();
+        $dateFrom = isset($data['date_from']) ? Carbon::parse($data['date_from'])->startOfDay() : $dateTo->copy()->subDays(30);
+
+        $cacheKey = "block_analytics:{$block->id}:{$dateFrom->toDateString()}:{$dateTo->toDateString()}";
+
+        $payload = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($block, $dateFrom, $dateTo) {
+            $rows = BlockAnalytic::where('page_block_id', $block->id)
+                ->whereBetween('date', [$dateFrom->toDateString(), $dateTo->toDateString()])
+                ->orderBy('date')
+                ->get();
+
+            $totals = [
+                'impressions' => (int) $rows->sum('impressions'),
+                'clicks' => (int) $rows->sum('clicks'),
+                'unique_visitors' => (int) $rows->sum('unique_visitors'),
+                'add_to_cart_count' => (int) $rows->sum('add_to_cart_count'),
+                'orders_attributed' => (int) $rows->sum('orders_attributed'),
+                'revenue_attributed_cents' => (int) $rows->sum('revenue_attributed_cents'),
+            ];
+            $totals['ctr'] = $totals['impressions'] > 0
+                ? round($totals['clicks'] / $totals['impressions'], 4)
+                : 0.0;
+
+            $byDate = $rows->keyBy(fn ($row) => $row->date->toDateString());
+            $chart = [];
+            for ($day = $dateFrom->copy(); $day->lte($dateTo); $day->addDay()) {
+                $key = $day->toDateString();
+                $row = $byDate->get($key);
+                $impressions = $row->impressions ?? 0;
+                $clicks = $row->clicks ?? 0;
+                $chart[] = [
+                    'date' => $key,
+                    'impressions' => $impressions,
+                    'clicks' => $clicks,
+                    'ctr' => $impressions > 0 ? round($clicks / $impressions, 4) : 0.0,
+                ];
+            }
+
+            $topClickTargets = BlockClickEvent::query()
+                ->selectRaw('click_target, click_target_type, COUNT(*) as count')
+                ->where('page_block_id', $block->id)
+                ->whereBetween('clicked_at', [$dateFrom->copy()->startOfDay(), $dateTo->copy()->endOfDay()])
+                ->groupBy('click_target', 'click_target_type')
+                ->orderByDesc('count')
+                ->limit(5)
+                ->get()
+                ->map(fn ($row) => [
+                    'click_target' => $row->click_target,
+                    'click_target_type' => $row->click_target_type,
+                    'count' => (int) $row->count,
+                ])
+                ->values();
+
+            return [
+                'totals' => $totals,
+                'chart' => $chart,
+                'top_click_targets' => $topClickTargets,
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     public function updateBlockConfig(Request $request, PageBlock $block)
@@ -538,6 +613,76 @@ class PageBuilderController extends Controller
         ]);
     }
 
+    public function searchVendorListings(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $rows = \App\Models\VendorListing::query()
+            ->with(['vendor:id,store_name', 'productVariant:id,product_id,sku', 'productVariant.product:id,name_en'])
+            ->where('status', \App\Enums\VendorListingStatus::Active)
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($inner) use ($q) {
+                    $inner->whereHas('productVariant.product', fn($p) => $p->where('name_en', 'like', "%{$q}%"))
+                        ->orWhereHas('vendor', fn($v) => $v->where('store_name', 'like', "%{$q}%"))
+                        ->orWhereHas('productVariant', fn($pv) => $pv->where('sku', 'like', "%{$q}%"));
+                });
+            })
+            ->limit(20)
+            ->get();
+
+        return response()->json([
+            'results' => $rows->map(fn($vl) => [
+                'id' => $vl->id,
+                'text' => trim(
+                    optional(optional($vl->productVariant)->product)->name_en
+                    . ' — ' . optional($vl->vendor)->store_name
+                    . ' — ' . number_format((float) $vl->price, 2) . ' ' . $vl->currency,
+                    ' —'
+                ),
+            ])->values(),
+        ]);
+    }
+
+    public function getBannerPlacements(Request $request)
+    {
+        $rows = \App\Models\BannerPlacementDefinition::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'code', 'name']);
+
+        return response()->json([
+            'results' => $rows->map(fn($p) => ['id' => $p->code, 'text' => $p->name])->values(),
+        ]);
+    }
+
+    public function getPlacementBookings(Request $request)
+    {
+        $placementCode = trim((string) $request->query('placement_code', ''));
+        $today = now()->toDateString();
+
+        // Bookings are associated with a page_block, not directly with a placement_code,
+        // so filter by the block's own placement_code config plus the active date window.
+        $active = \App\Models\PaidBannerBooking::query()
+            ->with('pageBlock')
+            ->where('status', \App\Enums\PaidBannerBookingStatus::Active)
+            ->whereDate('booked_from', '<=', $today)
+            ->whereDate('booked_until', '>=', $today)
+            ->get()
+            ->filter(fn($b) => ($b->pageBlock?->config['placement_code'] ?? null) === $placementCode)
+            ->values();
+
+        return response()->json([
+            'results' => $active->map(fn($b) => [
+                'id' => $b->id,
+                'booking_reference' => $b->booking_reference,
+                'brand_name' => $b->brand_name ?? optional($b->seller)->store_name,
+                'image_url' => $b->image_url,
+                'booked_from' => optional($b->booked_from)->format('M d, Y'),
+                'booked_until' => optional($b->booked_until)->format('M d, Y'),
+            ])->values(),
+        ]);
+    }
+
     public function reorderAdImages(Request $request, PageBlock $block)
     {
         $this->authorizeManage();
@@ -555,6 +700,20 @@ class PageBuilderController extends Controller
     // ─────────────────────────────────────────────────────────────────────
     // Block products
     // ─────────────────────────────────────────────────────────────────────
+
+    public function getBlockProducts(PageBlock $block)
+    {
+        $items = $block->blockProducts()->with('productVariant.product:id,name_en')->get();
+
+        return response()->json([
+            'results' => $items->map(fn($item) => [
+                'id' => $item->id,
+                'product_variant_id' => $item->product_variant_id,
+                'position' => $item->position,
+                'text' => trim(optional(optional($item->productVariant)->product)->name_en . ' — ' . optional($item->productVariant)->sku, ' —'),
+            ])->values(),
+        ]);
+    }
 
     public function addBlockProduct(Request $request, PageBlock $block)
     {
@@ -586,6 +745,108 @@ class PageBuilderController extends Controller
         ]);
 
         $this->service->reorderBlockProducts($data['products']);
+        return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Block categories (category_pills)
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function getBlockCategories(PageBlock $block)
+    {
+        $items = $block->blockCategories()->with('category:id,name_en')->get();
+
+        return response()->json([
+            'results' => $items->map(fn($item) => [
+                'id' => $item->id,
+                'category_id' => $item->category_id,
+                'position' => $item->position,
+                'text' => optional($item->category)->name_en,
+            ])->values(),
+        ]);
+    }
+
+    public function addBlockCategory(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'category_id' => 'required|uuid|exists:categories,id',
+        ]);
+
+        $item = $this->service->addBlockCategory($block, $data['category_id']);
+        return response()->json(['item' => $item]);
+    }
+
+    public function removeBlockCategory(\App\Models\PageBlockCategory $blockCategory)
+    {
+        $this->authorizeManage();
+        $blockCategory->delete();
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderBlockCategories(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'categories' => 'required|array',
+            'categories.*.id' => 'required|uuid',
+            'categories.*.position' => 'required|integer|min:0',
+        ]);
+
+        $this->service->reorderBlockCategories($data['categories']);
+        return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Block sellers (brand_strip)
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function getBlockSellers(PageBlock $block)
+    {
+        $items = $block->blockSellers()->with('seller:id,store_name')->get();
+
+        return response()->json([
+            'results' => $items->map(fn($item) => [
+                'id' => $item->id,
+                'seller_id' => $item->seller_id,
+                'position' => $item->position,
+                'text' => optional($item->seller)->store_name,
+            ])->values(),
+        ]);
+    }
+
+    public function addBlockSeller(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'seller_id' => 'required|uuid|exists:vendors,id',
+        ]);
+
+        $item = $this->service->addBlockSeller($block, $data['seller_id']);
+        return response()->json(['item' => $item]);
+    }
+
+    public function removeBlockSeller(\App\Models\PageBlockSeller $blockSeller)
+    {
+        $this->authorizeManage();
+        $blockSeller->delete();
+        return response()->json(['success' => true]);
+    }
+
+    public function reorderBlockSellers(Request $request, PageBlock $block)
+    {
+        $this->authorizeManage();
+
+        $data = $request->validate([
+            'sellers' => 'required|array',
+            'sellers.*.id' => 'required|uuid',
+            'sellers.*.position' => 'required|integer|min:0',
+        ]);
+
+        $this->service->reorderBlockSellers($data['sellers']);
         return response()->json(['success' => true]);
     }
 

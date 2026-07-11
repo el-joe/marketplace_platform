@@ -29,6 +29,7 @@ const ROUTES = {
 
     blocks: '/page-builder/blocks',
     blockConfig: (id) => `/page-builder/blocks/${id}/config`,
+    blockAnalytics: (id) => `/page-builder/blocks/${id}/analytics`,
     blockVisibility: (id) => `/page-builder/blocks/${id}/visibility`,
     blockRemove: (id) => `/page-builder/blocks/${id}`,
     blockRevisions: (id) => `/page-builder/blocks/${id}/revisions`,
@@ -53,6 +54,20 @@ const ROUTES = {
 
     searchVendors: '/page-builder/search/vendors',
     searchFlashSales: '/page-builder/search/flash-sales',
+    searchProducts: '/page-builder/search/products',
+    searchCategories: '/page-builder/search/categories',
+
+    blockProducts: (id) => `/page-builder/blocks/${id}/products`,
+    blockProductRemove: (id) => `/page-builder/block-products/${id}`,
+    blockProductReorder: (id) => `/page-builder/blocks/${id}/products/reorder`,
+
+    blockCategories: (id) => `/page-builder/blocks/${id}/categories`,
+    blockCategoryRemove: (id) => `/page-builder/block-categories/${id}`,
+    blockCategoryReorder: (id) => `/page-builder/blocks/${id}/categories/reorder`,
+
+    blockSellers: (id) => `/page-builder/blocks/${id}/sellers`,
+    blockSellerRemove: (id) => `/page-builder/block-sellers/${id}`,
+    blockSellerReorder: (id) => `/page-builder/blocks/${id}/sellers/reorder`,
 };
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
@@ -266,7 +281,162 @@ function selectBlock(blockId) {
     state.selectedBlockId = blockId;
     $('.block-card').removeClass('is-selected');
     $(`.block-card[data-block-id="${blockId}"]`).addClass('is-selected');
+    resetAnalyticsTab();
+    switchConfigTab('settings');
     openConfigPanel(blockId);
+}
+
+/* ─── Analytics tab ─────────────────────────────────────────────────────── */
+const analyticsState = {
+    cache: {}, // blockId -> parsed response, cleared whenever a new block is selected
+    chart: null,
+};
+
+function switchConfigTab(tab) {
+    $('.config-tab-btn').each(function () {
+        const active = $(this).data('config-tab') === tab;
+        $(this).toggleClass('border-primary-600 text-primary-700', active);
+        $(this).toggleClass('border-transparent text-gray-500', !active);
+    });
+    $('[data-config-tab-panel]').addClass('hidden');
+    $(`[data-config-tab-panel="${tab}"]`).removeClass('hidden');
+
+    if (tab === 'analytics' && state.selectedBlockId) {
+        loadBlockAnalytics(state.selectedBlockId);
+    }
+}
+
+$(document).on('click', '.config-tab-btn', function () {
+    switchConfigTab($(this).data('config-tab'));
+});
+
+function resetAnalyticsTab() {
+    if (analyticsState.chart) {
+        analyticsState.chart.destroy();
+        analyticsState.chart = null;
+    }
+    analyticsState.cache = {};
+    $('#analytics-content, #analytics-empty, #analytics-error').addClass('hidden');
+    $('#analytics-loading').removeClass('hidden');
+}
+
+function loadBlockAnalytics(blockId) {
+    if (analyticsState.cache[blockId]) {
+        renderBlockAnalytics(analyticsState.cache[blockId]);
+        return;
+    }
+
+    $('#analytics-content, #analytics-empty, #analytics-error').addClass('hidden');
+    $('#analytics-loading').removeClass('hidden');
+
+    ajax({ url: ROUTES.blockAnalytics(blockId), method: 'GET' })
+        .done((res) => {
+            analyticsState.cache[blockId] = res;
+            if (state.selectedBlockId === blockId) renderBlockAnalytics(res);
+        })
+        .fail(() => {
+            if (state.selectedBlockId === blockId) {
+                $('#analytics-loading, #analytics-content, #analytics-empty').addClass('hidden');
+                $('#analytics-error').removeClass('hidden');
+            }
+        });
+}
+
+function renderBlockAnalytics(res) {
+    $('#analytics-loading, #analytics-error').addClass('hidden');
+
+    const totals = res.totals || {};
+    if (!totals.impressions && !totals.clicks) {
+        $('#analytics-content').addClass('hidden');
+        $('#analytics-empty').removeClass('hidden');
+        return;
+    }
+    $('#analytics-empty').addClass('hidden');
+    $('#analytics-content').removeClass('hidden');
+
+    $('#analytics-stat-impressions').text(formatCompactNumber(totals.impressions));
+    $('#analytics-stat-clicks').text(formatCompactNumber(totals.clicks));
+    $('#analytics-stat-ctr').text(`${(Number(totals.ctr || 0) * 100).toFixed(2)}%`);
+    $('#analytics-stat-add-to-cart').text(formatCompactNumber(totals.add_to_cart_count));
+    $('#analytics-stat-orders').text(formatCompactNumber(totals.orders_attributed));
+    $('#analytics-stat-revenue').text(formatCents(totals.revenue_attributed_cents));
+
+    const targets = res.top_click_targets || [];
+    const $list = $('#analytics-top-targets');
+    $list.empty();
+    if (!targets.length) {
+        $list.append(`<li class="text-gray-400">${window.TRANSLATIONS?.analyticsNoData || 'No analytics recorded for this block in the selected range.'}</li>`);
+    } else {
+        targets.forEach((t) => {
+            $list.append(`
+                <li class="flex items-center justify-between gap-2 py-1 border-b border-gray-100 last:border-0">
+                    <span class="truncate text-gray-700" title="${escapeHtml(t.click_target)}">${escapeHtml(t.click_target)}</span>
+                    <span class="flex-shrink-0 text-gray-400">${escapeHtml(t.click_target_type)} · ${formatCompactNumber(t.count)}</span>
+                </li>
+            `);
+        });
+    }
+
+    renderAnalyticsSparkline(res.chart || []);
+}
+
+function renderAnalyticsSparkline(chart) {
+    const canvas = document.getElementById('analytics-sparkline');
+    if (!canvas) return;
+
+    if (analyticsState.chart) {
+        analyticsState.chart.destroy();
+        analyticsState.chart = null;
+    }
+
+    import('chart.js/auto').then(({ default: Chart }) => {
+        analyticsState.chart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: chart.map((d) => d.date),
+                datasets: [
+                    {
+                        label: window.TRANSLATIONS?.analyticsImpressions || 'Impressions',
+                        data: chart.map((d) => d.impressions),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        borderWidth: 1.5,
+                    },
+                    {
+                        label: window.TRANSLATIONS?.analyticsClicks || 'Clicks',
+                        data: chart.map((d) => d.clicks),
+                        borderColor: '#10b981',
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        borderWidth: 1.5,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                scales: { x: { display: false }, y: { display: false } },
+                elements: { point: { radius: 0 } },
+            },
+        });
+    });
+}
+
+function formatCompactNumber(value) {
+    const n = Number(value || 0);
+    return new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+}
+
+function formatCents(cents) {
+    // Blocks can span multiple countries/currencies, so we show a plain compact
+    // number (major units) rather than assuming a single currency symbol.
+    return new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 })
+        .format(Number(cents || 0) / 100);
 }
 
 function closeConfigPanel() {
@@ -275,6 +445,7 @@ function closeConfigPanel() {
     $('#config-panel').removeClass('flex').addClass('hidden');
     $('#config-empty').removeClass('hidden');
     $('#config-form-body').empty();
+    resetAnalyticsTab();
 }
 
 $('#close-config-btn').on('click', closeConfigPanel);
@@ -303,11 +474,195 @@ function openConfigPanel(blockId) {
         Promise.resolve().then(() => {
             applyConfigToForm(cfg);
             if (getBlockTypeOf(blockId) === 'hero_slider') loadSlidesList(blockId);
+            initPlacementWidgets();
+            if ($('#config-form-body [data-block-products-list]').length) loadPickerList('products', blockId);
+            if ($('#config-form-body [data-block-categories-list]').length) loadPickerList('categories', blockId);
+            if ($('#config-form-body [data-block-sellers-list]').length) loadPickerList('sellers', blockId);
         });
     }).fail(() => {
         $('#config-form-body').html('<div class="text-sm text-rose-600 text-center py-8">Failed to load config form.</div>');
     });
 }
+
+/* ─── Sponsored products: placement_code picker + active bookings preview ── */
+function initPlacementWidgets() {
+    const $select = $('#config-form-body [data-placements-select]');
+    if (!$select.length) return;
+
+    const currentValue = $select.val();
+    ajax({ url: $select.data('placements-url'), method: 'GET' }).done((res) => {
+        (res.results || []).forEach((row) => {
+            $select.append(`<option value="${escapeHtml(row.id)}">${escapeHtml(row.text)}</option>`);
+        });
+        if (currentValue) $select.val(currentValue);
+        loadPlacementBookings($select.val());
+    });
+
+    $select.off('change.placementBookings').on('change.placementBookings', function () {
+        loadPlacementBookings($(this).val());
+    });
+}
+
+function loadPlacementBookings(placementCode) {
+    const $preview = $('#config-form-body [data-placement-bookings-preview]');
+    const $list = $preview.find('[data-bookings-list]');
+    if (!$preview.length) return;
+
+    if (!placementCode) {
+        $list.html(window.TRANSLATIONS?.selectPlacementFirst || 'Select a placement to preview active bookings.');
+        return;
+    }
+
+    $list.html('<span class="text-gray-400">Loading…</span>');
+    ajax({ url: $preview.data('bookings-url'), method: 'GET', data: { placement_code: placementCode } }).done((res) => {
+        const rows = res.results || [];
+        if (!rows.length) {
+            $list.html('<span class="text-gray-400">No active bookings for this placement right now.</span>');
+            return;
+        }
+        $list.html(rows.map((b) => `
+            <div class="flex items-center gap-2 py-1 border-b border-gray-100 last:border-0">
+                <span class="font-medium text-gray-700">${escapeHtml(b.brand_name || b.booking_reference)}</span>
+                <span class="text-xs text-gray-400">${escapeHtml(b.booked_from)} – ${escapeHtml(b.booked_until)}</span>
+            </div>
+        `).join(''));
+    }).fail(() => {
+        $list.html('<span class="text-rose-600">Failed to load bookings.</span>');
+    });
+}
+
+/* ─── Manual picker managers: products (product_row), categories (category_pills), sellers (brand_strip) ── */
+const PICKER_CONFIG = {
+    products: {
+        listUrl: ROUTES.blockProducts,
+        removeUrl: ROUTES.blockProductRemove,
+        reorderUrl: ROUTES.blockProductReorder,
+        searchUrl: ROUTES.searchProducts,
+        idField: 'product_variant_id',
+        reorderPayloadKey: 'products',
+        listSelector: '[data-block-products-list]',
+        searchInputSelector: '[data-action="search-block-products"]',
+        resultsSelector: '[data-block-product-search-results]',
+        emptyText: window.TRANSLATIONS?.noProductsYet || 'No products added yet. Search above to add some.',
+    },
+    categories: {
+        listUrl: ROUTES.blockCategories,
+        removeUrl: ROUTES.blockCategoryRemove,
+        reorderUrl: ROUTES.blockCategoryReorder,
+        searchUrl: ROUTES.searchCategories,
+        idField: 'category_id',
+        reorderPayloadKey: 'categories',
+        listSelector: '[data-block-categories-list]',
+        searchInputSelector: '[data-action="search-block-categories"]',
+        resultsSelector: '[data-block-category-search-results]',
+        emptyText: window.TRANSLATIONS?.noCategoriesYet || 'No categories added yet. Search above to add some.',
+    },
+    sellers: {
+        listUrl: ROUTES.blockSellers,
+        removeUrl: ROUTES.blockSellerRemove,
+        reorderUrl: ROUTES.blockSellerReorder,
+        searchUrl: ROUTES.searchVendors,
+        idField: 'seller_id',
+        reorderPayloadKey: 'sellers',
+        listSelector: '[data-block-sellers-list]',
+        searchInputSelector: '[data-action="search-block-sellers"]',
+        resultsSelector: '[data-block-seller-search-results]',
+        emptyText: window.TRANSLATIONS?.noVendorsYet || 'No vendors added yet. Search above to add some.',
+    },
+};
+
+function loadPickerList(kind, blockId) {
+    const cfg = PICKER_CONFIG[kind];
+    const $container = $(`#config-form-body ${cfg.listSelector}[data-block-id="${blockId}"]`);
+    if (!$container.length) return;
+
+    ajax({ url: cfg.listUrl(blockId), method: 'GET' }).done((res) => {
+        const rows = res.results || [];
+        if (!rows.length) {
+            $container.html(`<div class="text-xs text-gray-400 px-2 py-3 text-center">${escapeHtml(cfg.emptyText)}</div>`);
+            return;
+        }
+        $container.html(rows.map((row) => `
+            <div class="flex items-center gap-2 px-2 py-1.5 border border-gray-100 rounded hover:bg-gray-50" data-picker-item-id="${row.id}">
+                <span class="drag-handle text-gray-300 cursor-move">⠿</span>
+                <span class="flex-1 truncate text-sm text-gray-700">${escapeHtml(row.text || '')}</span>
+                <button type="button" class="text-xs text-rose-500 hover:text-rose-700" data-action="remove-picker-item" data-kind="${kind}" data-item-id="${row.id}" data-block-id="${blockId}">Remove</button>
+            </div>
+        `).join(''));
+
+        if (window.Sortable) {
+            Sortable.create($container[0], {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: () => {
+                    const ordered = $container.find('[data-picker-item-id]').map(function (i) {
+                        return { id: $(this).data('picker-item-id'), position: i };
+                    }).get();
+                    ajax({
+                        url: cfg.reorderUrl(blockId), method: 'POST',
+                        data: JSON.stringify({ [cfg.reorderPayloadKey]: ordered }), contentType: 'application/json',
+                    });
+                },
+            });
+        }
+    });
+}
+
+$(document).on('input', Object.values(PICKER_CONFIG).map((c) => c.searchInputSelector).join(', '), function () {
+    const $input = $(this);
+    const kind = Object.keys(PICKER_CONFIG).find((k) => $input.is(PICKER_CONFIG[k].searchInputSelector));
+    const cfg = PICKER_CONFIG[kind];
+    const blockId = $input.data('block-id');
+    const q = $input.val().trim();
+    const $results = $(`#config-form-body ${cfg.resultsSelector}[data-block-id="${blockId}"]`);
+
+    clearTimeout($input.data('searchTimer'));
+    if (q.length < 2) { $results.addClass('hidden').empty(); return; }
+
+    $input.data('searchTimer', setTimeout(() => {
+        ajax({ url: cfg.searchUrl, method: 'GET', data: { q } }).done((res) => {
+            const rows = res.results || [];
+            if (!rows.length) {
+                $results.removeClass('hidden').html('<div class="px-3 py-2 text-gray-400">No results.</div>');
+                return;
+            }
+            $results.removeClass('hidden').html(rows.map((row) => `
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-gray-50" data-action="add-picker-item" data-kind="${kind}" data-item-id="${row.id}" data-block-id="${blockId}">
+                    ${escapeHtml(row.text || '')}
+                </button>
+            `).join(''));
+        });
+    }, 300));
+});
+
+$(document).on('click', '[data-action="add-picker-item"]', function () {
+    const $btn = $(this);
+    const kind = $btn.data('kind');
+    const cfg = PICKER_CONFIG[kind];
+    const blockId = $btn.data('block-id');
+    const itemId = $btn.data('item-id');
+
+    ajax({
+        url: cfg.listUrl(blockId), method: 'POST',
+        data: JSON.stringify({ [cfg.idField]: itemId }), contentType: 'application/json',
+    }).done(() => {
+        $(`#config-form-body ${cfg.resultsSelector}[data-block-id="${blockId}"]`).addClass('hidden').empty();
+        $(`#config-form-body ${cfg.searchInputSelector}[data-block-id="${blockId}"]`).val('');
+        loadPickerList(kind, blockId);
+    }).fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not add item.'));
+});
+
+$(document).on('click', '[data-action="remove-picker-item"]', function () {
+    const $btn = $(this);
+    const kind = $btn.data('kind');
+    const cfg = PICKER_CONFIG[kind];
+    const blockId = $btn.data('block-id');
+    const itemId = $btn.data('item-id');
+
+    ajax({ url: cfg.removeUrl(itemId), method: 'DELETE' }).done(() => {
+        loadPickerList(kind, blockId);
+    }).fail(() => Toast.error('Could not remove item.'));
+});
 
 function getBlockTypeOf(blockId) {
     const $card = $(`.block-card[data-block-id="${blockId}"]`);

@@ -8,7 +8,7 @@
         <x-form.input name="title_ar" label="{{ __('admin.page_builder.config_forms.title_ar') }}" :value="$config['title_ar'] ?? ''" dir="rtl" />
     </div>
 
-    <x-form.input name="max_items" type="number" label="{{ __('admin.page_builder.config_forms.search_trends.max_items') }}" :value="$config['max_items'] ?? 10" min="1" max="50"
+    <x-form.input name="max_terms" type="number" label="{{ __('admin.page_builder.config_forms.search_trends.max_items') }}" :value="$config['max_terms'] ?? 10" min="1" max="50"
         class="mt-3" />
 
     <x-form.select name="source" label="{{ __('admin.page_builder.config_forms.search_trends.source') }}" :value="$config['source'] ?? 'auto'" class="mt-3">

@@ -119,6 +119,11 @@ Route::prefix('v1/{country}')
         // ── Page Renderer (public) ────────────────────────────────────────────
         Route::get('pages/{type}', [PageController::class, 'show'])->name('customer.pages.show');
 
+        // ── Page block click tracking (public — guests can click) ─────────────
+        Route::post('blocks/{id}/click', [PageController::class, 'click'])
+            ->middleware('throttle:60,1')
+            ->name('customer.blocks.click');
+
         // ── Vendor storefront page (public) ───────────────────────────────────
         Route::get('vendors/{vendor_id}', [VendorPageController::class, 'show'])
             ->name('customer.vendors.show');

@@ -32,6 +32,26 @@
         .palette-btn:hover { background: #f3f4f6; color: #111827; }
         .palette-btn svg { width: 18px; height: 18px; flex: 0 0 18px; color: #6b7280; }
 
+        .palette-info-btn {
+            flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
+            width: 18px; height: 18px; border-radius: 999px; border: none;
+            background: transparent; color: #9ca3af; cursor: pointer; padding: 0;
+        }
+        .palette-info-btn:hover { color: #6366f1; background: #eef2ff; }
+        .palette-info-btn svg { width: 14px; height: 14px; }
+
+        .palette-info-popover {
+            position: fixed; z-index: 9999; width: 280px;
+            background: #111827; color: #f3f4f6; font-size: 12px; line-height: 1.5;
+            border-radius: 8px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            display: none;
+        }
+        .palette-info-popover.is-open { display: block; }
+        .palette-info-popover::before {
+            content: ''; position: absolute; left: -5px; top: 10px;
+            width: 10px; height: 10px; background: #111827; transform: rotate(45deg);
+        }
+
         .block-canvas { padding: 20px; min-height: 100%; }
         .block-card {
             position: relative;
@@ -77,14 +97,32 @@
                         $allowed = ! $needsPerm || (auth('admin')->user()?->hasPermissionTo($needsPerm));
                     @endphp
                     @if($allowed)
-                        <button type="button"
-                                class="palette-btn"
-                                data-block-type="{{ $type->code }}"
-                                data-max-per-page="{{ $type->max_per_page ?? '' }}"
-                                title="{{ $type->description ?? $type->label_en }}">
-                            <x-heroicon :name="$type->icon ?? 'cube'" class="w-5 h-5" />
-                            <span class="flex-1">{{ $type->label_en }}</span>
-                        </button>
+                        <div class="relative flex items-center">
+                            <button type="button"
+                                    class="palette-btn"
+                                    data-block-type="{{ $type->code }}"
+                                    data-max-per-page="{{ $type->max_per_page ?? '' }}"
+                                    title="{{ $type->label_en }}">
+                                <x-heroicon :name="$type->icon ?? 'cube'" class="w-5 h-5" />
+                                <span class="flex-1">{{ $type->label_en }}</span>
+                            </button>
+                            @php
+                                $description = app()->getLocale() === 'ar'
+                                    ? ($type->description_ar ?: $type->description_en)
+                                    : ($type->description_en ?: $type->description_ar);
+                            @endphp
+                            @if($description)
+                                <button type="button"
+                                        class="palette-info-btn"
+                                        data-info-toggle
+                                        aria-label="What does this block do?">
+                                    <svg viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                                <div class="palette-info-popover" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" data-info-popover>{{ $description }}</div>
+                            @endif
+                        </div>
                     @endif
                 @endforeach
             </div>
@@ -155,7 +193,18 @@
                     </svg>
                 </button>
             </div>
-            <div id="config-form-body" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+            <div class="px-4 border-b border-gray-200 flex items-center gap-4">
+                <button type="button" data-config-tab="settings"
+                        class="config-tab-btn py-2 text-xs font-medium border-b-2 border-primary-600 text-primary-700">
+                    {{ __('admin.page_builder.settings') }}
+                </button>
+                <button type="button" data-config-tab="analytics"
+                        class="config-tab-btn py-2 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                    {{ __('admin.page_builder.analytics') }}
+                </button>
+            </div>
+            <div id="config-form-body" data-config-tab-panel="settings" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+            @include('admin.page-builder.partials.block-analytics-tab')
         </div>
         <div id="config-empty" class="flex items-center justify-center h-full text-center text-gray-400 px-6">
             <div>
@@ -197,6 +246,10 @@
             blockRemoved: @json(__('admin.page_builder_section.block_removed')),
             couldNotRemoveBlock: @json(__('admin.page_builder_section.could_not_remove_block')),
             blockSettings: @json(__('admin.page_builder_section.block_settings')),
+            analyticsImpressions: @json(__('admin.page_builder_section.analytics_impressions')),
+            analyticsClicks: @json(__('admin.page_builder_section.analytics_clicks')),
+            analyticsNoData: @json(__('admin.page_builder_section.analytics_no_data')),
+            analyticsLoadError: @json(__('admin.page_builder_section.analytics_load_error')),
             saving: @json(__('admin.page_builder_section.saving')),
             saveFailed: @json(__('admin.page_builder_section.save_failed')),
             deleteSlideTitle: @json(__('admin.page_builder_section.delete_slide_title')),
@@ -219,6 +272,50 @@
             restore: @json(__('admin.page_builder_section.restore')),
             versionRestored: @json(__('admin.page_builder_section.version_restored')),
             couldNotRestore: @json(__('admin.page_builder_section.could_not_restore')),
+        });
+    </script>
+    <script>
+        // Block palette "what does this do?" info popovers.
+        document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('click', function (e) {
+                const toggleBtn = e.target.closest('[data-info-toggle]');
+
+                document.querySelectorAll('.palette-info-popover.is-open').forEach(function (popover) {
+                    if (!toggleBtn || popover !== toggleBtn.nextElementSibling) {
+                        popover.classList.remove('is-open');
+                    }
+                });
+
+                if (!toggleBtn) return;
+                e.stopPropagation();
+                const popover = toggleBtn.nextElementSibling;
+                if (!popover || !popover.matches('[data-info-popover]')) return;
+                popover.classList.toggle('is-open');
+                if (popover.classList.contains('is-open')) {
+                    positionInfoPopover(toggleBtn, popover);
+                }
+            });
+
+            function positionInfoPopover(toggleBtn, popover) {
+                const rect = toggleBtn.getBoundingClientRect();
+                let left = rect.left;
+                if (left + 280 > window.innerWidth - 8) {
+                    left = window.innerWidth - 288;
+                }
+                popover.style.top = (rect.bottom + 4) + 'px';
+                popover.style.left = Math.max(8, left) + 'px';
+            }
+
+            function closeAllInfoPopovers() {
+                document.querySelectorAll('.palette-info-popover.is-open').forEach(function (popover) {
+                    popover.classList.remove('is-open');
+                });
+            }
+
+            document.querySelectorAll('.pb-panel, .pb-canvas').forEach(function (scrollable) {
+                scrollable.addEventListener('scroll', closeAllInfoPopovers);
+            });
+            window.addEventListener('resize', closeAllInfoPopovers);
         });
     </script>
     @vite([

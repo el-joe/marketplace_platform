@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
                 // ── Core reference data ────────────────────────────────────────
             BlockTypeSeeder::class,
+            BlockTypeDescriptionSeeder::class,
             CountrySeeder::class,
             CitySeeder::class,
             TravelCountrySeeder::class,

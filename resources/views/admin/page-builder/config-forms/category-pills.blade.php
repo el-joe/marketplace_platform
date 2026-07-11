@@ -12,5 +12,7 @@
         <x-form.toggle name="show_product_count"  label="{{ __('admin.page_builder.config_forms.category_pills.show_product_count') }}"      :value="$config['show_product_count'] ?? true" />
     </div>
 
+    @include('admin.page-builder.config-forms.partials.categories-manager', ['block' => $block])
+
     @include('admin.page-builder.config-forms.partials.visibility', ['block' => $block])
 </form>

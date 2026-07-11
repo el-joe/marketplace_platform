@@ -5277,6 +5277,10 @@ return [
         'block_removed'     => 'تمت إزالة الكتلة.',
         'could_not_remove_block' => 'تعذر إزالة الكتلة.',
         'block_settings'    => 'إعدادات الكتلة',
+        'analytics_impressions' => 'مرات الظهور',
+        'analytics_clicks'  => 'النقرات',
+        'analytics_no_data' => 'لا توجد بيانات تحليلية لهذه الكتلة في الفترة المحددة.',
+        'analytics_load_error' => 'تعذر تحميل تحليلات هذه الكتلة.',
         'saving'            => 'جارٍ الحفظ…',
         'save_failed'       => 'فشل الحفظ',
         'delete_slide_title' => 'حذف الشريحة؟',
@@ -6993,6 +6997,18 @@ return [
         'hidden'                   => 'مخفي',
         'scheduled'                => 'مجدول',
         'drag_to_reorder'          => 'اسحب لإعادة الترتيب',
+        'settings'                 => 'الإعدادات',
+        'analytics'                => 'التحليلات',
+        'analytics_impressions'    => 'مرات الظهور',
+        'analytics_clicks'         => 'النقرات',
+        'analytics_ctr'            => 'معدل النقر',
+        'analytics_more_details'   => 'الإيرادات والتحويلات',
+        'analytics_add_to_cart'    => 'أضيف إلى السلة',
+        'analytics_orders'         => 'الطلبات المنسوبة',
+        'analytics_revenue'        => 'الإيرادات المنسوبة',
+        'analytics_top_targets'    => 'أهم وجهات النقر',
+        'analytics_no_data'        => 'لا توجد بيانات تحليلية لهذه الكتلة في الفترة المحددة.',
+        'analytics_load_error'     => 'تعذر تحميل تحليلات هذه الكتلة.',
 
         'create_page_modal' => [
             'title'                => 'إنشاء صفحة جديدة',
@@ -7076,6 +7092,8 @@ return [
             'brand_strip' => [
                 'max_brands'       => 'أقصى عدد للعلامات التجارية',
                 'logos_only'       => 'الشعارات فقط',
+                'vendors'          => 'البائعون',
+                'add_vendor'       => 'إضافة بائع',
             ],
 
             'nawy_carousel' => [
@@ -7089,6 +7107,10 @@ return [
             ],
 
             'sponsored_products' => [
+                'placement_code'        => 'موضع الإعلان',
+                'placement_help'        => 'يتم تحميله من تعريفات مواضع البانر النشطة.',
+                'active_bookings'       => 'الحجوزات النشطة لهذا الموضع',
+                'select_placement_first' => 'اختر موضعًا لمعاينة الحجوزات النشطة.',
                 'max_products'          => 'أقصى عدد للمنتجات',
                 'items_per_row'         => 'العناصر لكل صف',
                 'ad_source'             => 'مصدر الإعلان',
@@ -7101,6 +7123,8 @@ return [
 
             'deal_of_day' => [
                 'deal_ends_at'          => 'ينتهي العرض في',
+                'vendor_listing'        => 'قائمة البائع',
+                'vendor_listing_help'   => 'ابحث باسم المنتج أو البائع أو رمز SKU. يعرض المنتج والبائع والسعر.',
                 'product_source'        => 'مصدر المنتجات',
                 'source_manual'         => 'اختيار يدوي',
                 'source_flash_sale'     => 'عرض سريع',
@@ -7131,6 +7155,7 @@ return [
                 'thumbnail_url'        => 'رابط الصورة المصغرة',
                 'thumbnail_url_placeholder' => 'https://…/thumbnail.jpg',
                 'thumbnail_url_help'   => 'تُعرض قبل تحميل الفيديو.',
+                'autoplay_muted_warning' => 'لكي يعمل التشغيل التلقائي في معظم المتصفحات، يجب كتم صوت الفيديو.',
                 'overlay_title_en'     => 'عنوان الطبقة (إنجليزي)',
                 'overlay_title_ar'     => 'عنوان الطبقة (عربي)',
                 'cta_url'              => 'رابط الزر',
@@ -7211,11 +7236,14 @@ return [
                 'view_all_link'       => 'رابط عرض الكل',
                 'scrollable'          => 'قابل للتمرير',
                 'ratings'             => 'التقييمات',
+                'discount_badge'      => 'شارة الخصم',
             ],
 
             'category_pills' => [
                 'max_items'          => 'أقصى عدد للعناصر',
                 'show_product_count' => 'إظهار عدد المنتجات',
+                'categories'         => 'الفئات',
+                'add_category'       => 'إضافة فئة',
             ],
 
             'flash_sale' => [

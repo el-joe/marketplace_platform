@@ -1,29 +1,33 @@
 @php /** @var \App\Models\PageBlock|null $block */ @endphp
 
-<form data-config-form data-block-id="{{ $block?->id }}">
+<form data-config-form data-block-id="{{ $block?->id }}"
+    x-data="{ placementCode: @js($config['placement_code'] ?? '') }">
     @csrf
 
-    <div class="grid grid-cols-2 gap-3">
-        <x-form.input name="title_en" label="{{ __('admin.page_builder.config_forms.title_en') }}" :value="$config['title_en'] ?? ''" dir="ltr" />
-        <x-form.input name="title_ar" label="{{ __('admin.page_builder.config_forms.title_ar') }}" :value="$config['title_ar'] ?? ''" dir="rtl" />
+    <div class="space-y-1">
+        <label for="placement_code" class="block text-sm font-medium text-gray-700">
+            {{ __('admin.page_builder.config_forms.sponsored_products.placement_code') }}
+            <span class="text-danger-500 ml-0.5" aria-hidden="true">*</span>
+        </label>
+        <select name="placement_code" id="placement_code" x-model="placementCode" required
+            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500"
+            data-placements-select data-placements-url="{{ route('admin.page-builder.banner-placements') }}">
+            <option value="">{{ __('admin.page_builder.config_forms.deal_of_day.select_placeholder') }}</option>
+        </select>
+        <p class="text-xs text-gray-500">{{ __('admin.page_builder.config_forms.sponsored_products.placement_help') }}</p>
     </div>
 
-    <div class="grid grid-cols-2 gap-3 mt-3">
-        <x-form.input name="max_items" type="number" label="{{ __('admin.page_builder.config_forms.sponsored_products.max_products') }}" :value="$config['max_items'] ?? 8" min="1"
-            max="30" />
-        <x-form.input name="items_per_row" type="number" label="{{ __('admin.page_builder.config_forms.sponsored_products.items_per_row') }}" :value="$config['items_per_row'] ?? 4"
-            min="1" max="8" />
-    </div>
+    <x-form.input name="max_items" type="number" label="{{ __('admin.page_builder.config_forms.sponsored_products.max_products') }}" :value="$config['max_items'] ?? 8" min="1"
+        max="30" class="mt-3" />
 
-    <x-form.select name="source" label="{{ __('admin.page_builder.config_forms.sponsored_products.ad_source') }}" :value="$config['source'] ?? 'active_campaigns'" class="mt-3">
-        <option value="active_campaigns">{{ __('admin.page_builder.config_forms.sponsored_products.active_campaigns') }}</option>
-        <option value="manual">{{ __('admin.page_builder.config_forms.sponsored_products.manual_selection') }}</option>
-    </x-form.select>
-
-    <div class="grid grid-cols-3 gap-3 mt-3">
-        <x-form.toggle name="show_sponsored_badge" label="{{ __('admin.page_builder.config_forms.sponsored_products.sponsored_badge') }}" :value="$config['show_sponsored_badge'] ?? true" />
-        <x-form.toggle name="scrollable_row" label="{{ __('admin.page_builder.config_forms.sponsored_products.scrollable') }}" :value="$config['scrollable_row'] ?? false" />
-        <x-form.toggle name="show_ratings" label="{{ __('admin.page_builder.config_forms.sponsored_products.ratings') }}" :value="$config['show_ratings'] ?? true" />
+    <div class="mt-3 rounded-lg border border-gray-200 p-3" data-placement-bookings-preview
+        data-bookings-url="{{ route('admin.page-builder.banner-placements.bookings') }}">
+        <p class="text-xs font-medium text-gray-500 mb-2">
+            {{ __('admin.page_builder.config_forms.sponsored_products.active_bookings') }}
+        </p>
+        <div data-bookings-list class="text-sm text-gray-400">
+            {{ __('admin.page_builder.config_forms.sponsored_products.select_placement_first') }}
+        </div>
     </div>
 
     @include('admin.page-builder.config-forms.partials.visibility', ['block' => $block])

@@ -7,7 +7,7 @@
             <option value="solid">{{ __('admin.page_builder.config_forms.divider.style_solid') }}</option>
             <option value="dashed">{{ __('admin.page_builder.config_forms.divider.style_dashed') }}</option>
             <option value="dotted">{{ __('admin.page_builder.config_forms.divider.style_dotted') }}</option>
-            <option value="spacer">{{ __('admin.page_builder.config_forms.divider.style_spacer') }}</option>
+            <option value="none">{{ __('admin.page_builder.config_forms.divider.style_spacer') }}</option>
         </x-form.select>
         <x-form.input name="color" type="color" label="{{ __('admin.page_builder.config_forms.divider.color') }}" :value="$config['color'] ?? '#e5e7eb'" />
     </div>

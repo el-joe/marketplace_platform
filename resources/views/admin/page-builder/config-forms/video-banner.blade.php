@@ -7,7 +7,7 @@
         placeholder="{{ __('admin.page_builder.config_forms.video_banner.video_url_placeholder') }}"
         helpText="{{ __('admin.page_builder.config_forms.video_banner.video_url_help') }}" />
 
-    <x-form.input name="thumbnail_url" label="{{ __('admin.page_builder.config_forms.video_banner.thumbnail_url') }}" :value="$config['thumbnail_url'] ?? ''" class="mt-3"
+    <x-form.input name="poster_url" label="{{ __('admin.page_builder.config_forms.video_banner.thumbnail_url') }}" :value="$config['poster_url'] ?? ''" class="mt-3"
         placeholder="{{ __('admin.page_builder.config_forms.video_banner.thumbnail_url_placeholder') }}" helpText="{{ __('admin.page_builder.config_forms.video_banner.thumbnail_url_help') }}" />
 
     <div class="grid grid-cols-2 gap-3 mt-3">
@@ -35,6 +35,10 @@
         <x-form.toggle name="muted" label="{{ __('admin.page_builder.config_forms.video_banner.muted') }}" :value="$config['muted'] ?? true" />
         <x-form.toggle name="loop" label="{{ __('admin.page_builder.config_forms.video_banner.loop') }}" :value="$config['loop'] ?? false" />
     </div>
+
+    <p class="mt-2 text-xs text-amber-600">
+        {{ __('admin.page_builder.config_forms.video_banner.autoplay_muted_warning') }}
+    </p>
 
     @include('admin.page-builder.config-forms.partials.visibility', ['block' => $block])
 </form>

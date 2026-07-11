@@ -321,6 +321,7 @@ Route::middleware('auth.admin')->group(function () {
         // Blocks
         Route::post('/blocks', [PageBuilderController::class, 'addBlock'])->name('blocks.add');
         Route::get('/blocks/{block}/config', [PageBuilderController::class, 'getBlockConfig'])->name('blocks.get-config');
+        Route::get('/blocks/{block}/analytics', [PageBuilderController::class, 'blockAnalytics'])->name('blocks.analytics');
         Route::post('/blocks/{block}/config', [PageBuilderController::class, 'updateBlockConfig'])->name('blocks.config');
         Route::post('/blocks/{block}/visibility', [PageBuilderController::class, 'updateBlockVisibility'])->name('blocks.visibility');
         Route::delete('/blocks/{block}', [PageBuilderController::class, 'removeBlock'])->name('blocks.remove');
@@ -354,11 +355,27 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/search/brands', [PageBuilderController::class, 'searchBrands'])->name('search.brands');
         Route::get('/search/vendors', [PageBuilderController::class, 'searchVendors'])->name('search.vendors');
         Route::get('/search/flash-sales', [PageBuilderController::class, 'searchFlashSales'])->name('search.flash-sales');
+        Route::get('/search/vendor-listings', [PageBuilderController::class, 'searchVendorListings'])->name('search.vendor-listings');
+        Route::get('/banner-placements', [PageBuilderController::class, 'getBannerPlacements'])->name('banner-placements');
+        Route::get('/banner-placements/bookings', [PageBuilderController::class, 'getPlacementBookings'])->name('banner-placements.bookings');
 
         // Block product pickers
+        Route::get('/blocks/{block}/products', [PageBuilderController::class, 'getBlockProducts'])->name('products.list');
         Route::post('/blocks/{block}/products', [PageBuilderController::class, 'addBlockProduct'])->name('products.add');
         Route::delete('/block-products/{blockProduct}', [PageBuilderController::class, 'removeBlockProduct'])->name('products.remove');
         Route::post('/blocks/{block}/products/reorder', [PageBuilderController::class, 'reorderBlockProducts'])->name('products.reorder');
+
+        // Block category pickers (category_pills)
+        Route::get('/blocks/{block}/categories', [PageBuilderController::class, 'getBlockCategories'])->name('categories.list');
+        Route::post('/blocks/{block}/categories', [PageBuilderController::class, 'addBlockCategory'])->name('categories.add');
+        Route::delete('/block-categories/{blockCategory}', [PageBuilderController::class, 'removeBlockCategory'])->name('categories.remove');
+        Route::post('/blocks/{block}/categories/reorder', [PageBuilderController::class, 'reorderBlockCategories'])->name('categories.reorder');
+
+        // Block seller pickers (brand_strip)
+        Route::get('/blocks/{block}/sellers', [PageBuilderController::class, 'getBlockSellers'])->name('sellers.list');
+        Route::post('/blocks/{block}/sellers', [PageBuilderController::class, 'addBlockSeller'])->name('sellers.add');
+        Route::delete('/block-sellers/{blockSeller}', [PageBuilderController::class, 'removeBlockSeller'])->name('sellers.remove');
+        Route::post('/blocks/{block}/sellers/reorder', [PageBuilderController::class, 'reorderBlockSellers'])->name('sellers.reorder');
     });
 
     // ─── Vendors ─────────────────────────────────────────────────────────────────
