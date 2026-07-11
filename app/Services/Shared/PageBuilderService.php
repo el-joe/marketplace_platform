@@ -26,7 +26,8 @@ class PageBuilderService
 
     public function __construct(
         private readonly ListingQueryService $listingQuery,
-    ) {}
+    ) {
+    }
 
     /**
      * Resolve the active published page for the given type + reference,
@@ -118,6 +119,10 @@ class PageBuilderService
             'device_target' => $b->device_target,
             'config' => $b->config,
         ];
+
+        if ($b->block_type === 'flash_sale') {
+            dd($b, $b->blockProducts, $country);
+        }
 
         if ($b->slides->isNotEmpty()) {
             $data['slides'] = $b->slides->map(fn($s) => [
