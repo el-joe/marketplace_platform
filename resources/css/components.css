@@ -130,6 +130,64 @@
     @apply ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-danger-600 text-white;
 }
 
+/* ---- Grouped dropdown navigation ---- */
+
+.nav-group {
+    @apply mb-0.5;
+}
+
+.nav-group-header {
+    @apply w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors duration-150 cursor-pointer;
+}
+
+.nav-group-header.is-active {
+    @apply text-white;
+}
+
+.nav-group-chevron {
+    @apply w-4 h-4 flex-shrink-0 text-gray-500 transition-transform duration-200 ease-out;
+}
+
+.nav-group.is-open > .nav-group-header .nav-group-chevron {
+    @apply text-gray-300;
+    transform: rotate(90deg);
+}
+
+html[dir="rtl"] .nav-group.is-open > .nav-group-header .nav-group-chevron {
+    transform: rotate(-90deg);
+}
+
+.nav-group-header .sidebar-badge {
+    @apply bg-gray-700;
+}
+
+.nav-group-items {
+    @apply grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 200ms ease;
+}
+
+.nav-group-items-inner {
+    @apply overflow-hidden pl-2 border-l border-gray-800 ms-[1.15rem] mt-0.5 space-y-0.5;
+    min-height: 0;
+}
+
+.nav-group.is-open > .nav-group-items {
+    grid-template-rows: 1fr;
+}
+
+.nav-group-items > .nav-subitem {
+    @apply text-[13px] py-1.5;
+}
+
+body.sidebar-collapsed .nav-group-header {
+    @apply justify-center px-0;
+}
+
+body.sidebar-collapsed .nav-group-items {
+    display: none;
+}
+
 /* =========================================================
    MODALS
    ========================================================= */

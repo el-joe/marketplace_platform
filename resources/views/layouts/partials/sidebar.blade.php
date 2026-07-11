@@ -21,22 +21,44 @@
     </div>
 
     {{-- Navigation --}}
-    <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-1">
-        @foreach($navGroups as $group)
-            <div class="sidebar-group-label">{{ $group['group'] }}</div>
-            @foreach($group['items'] as $item)
-                @php
-                    $isActive = NavigationService::isActive($item['route']);
-                    $url = \Illuminate\Support\Facades\Route::has($item['route']) ? route($item['route']) : '#';
-                @endphp
-                <a href="{{ $url }}" class="nav-item {{ $isActive ? 'is-active' : '' }}" title="{{ $item['label'] }}">
-                    <x-heroicon :name="$item['icon']" class="nav-item-icon" />
-                    <span class="sidebar-label truncate">{{ $item['label'] }}</span>
-                    @if(!empty($item['badge']))
-                        <span class="sidebar-badge">{{ $item['badge'] }}</span>
+    <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-1" id="sidebar-nav">
+        @foreach($navGroups as $groupIndex => $group)
+            @php
+                $groupIsActive = NavigationService::isGroupActive($group);
+                $groupBadgeTotal = collect($group['items'])->sum(fn($i) => (int) ($i['badge'] ?? 0));
+            @endphp
+            <div class="nav-group {{ $groupIsActive ? 'is-open' : '' }}" data-group-id="{{ $groupIndex }}">
+                <button type="button"
+                    class="nav-group-header {{ $groupIsActive ? 'is-active' : '' }}"
+                    aria-expanded="{{ $groupIsActive ? 'true' : 'false' }}"
+                    title="{{ $group['group'] }}">
+                    <x-heroicon :name="$group['icon']" class="nav-item-icon" />
+                    <span class="sidebar-label truncate flex-1 text-start">{{ $group['group'] }}</span>
+                    @if($groupBadgeTotal > 0)
+                        <span class="sidebar-badge sidebar-label">{{ $groupBadgeTotal }}</span>
                     @endif
-                </a>
-            @endforeach
+                    <svg class="nav-group-chevron sidebar-label" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <div class="nav-group-items">
+                    <div class="nav-group-items-inner">
+                        @foreach($group['items'] as $item)
+                            @php
+                                $isActive = NavigationService::isActive($item['route']);
+                                $url = \Illuminate\Support\Facades\Route::has($item['route']) ? route($item['route']) : '#';
+                            @endphp
+                            <a href="{{ $url }}" class="nav-item nav-subitem {{ $isActive ? 'is-active' : '' }}" title="{{ $item['label'] }}">
+                                <x-heroicon :name="$item['icon']" class="nav-item-icon" />
+                                <span class="sidebar-label truncate">{{ $item['label'] }}</span>
+                                @if(!empty($item['badge']))
+                                    <span class="sidebar-badge">{{ $item['badge'] }}</span>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
         @endforeach
     </nav>
 
