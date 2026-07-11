@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\GlobalSystemType;
 use App\Models\Address;
 use App\Models\City;
 use App\Models\Coupon;
@@ -108,7 +109,7 @@ class CheckoutCalculationService
         int $quantity,
         int $unitPriceCents,
     ): array {
-        $isFBN = $listing->global_system_type === 'express_fbn';
+        $isFBN = $listing->global_system_type === GlobalSystemType::ExpressFbn;
         $category = $listing->productVariant?->product?->category;
 
         $resolvedCategory = $this->resolveCommissionCategory($category, $isFBN);

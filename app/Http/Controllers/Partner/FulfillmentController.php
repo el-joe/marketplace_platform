@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Partner;
 
+use App\Enums\GlobalSystemType;
 use App\Enums\WarehouseType;
 use App\Http\Controllers\Controller;
 use App\Models\FbnInboundRequest;
@@ -33,17 +34,17 @@ class FulfillmentController extends Controller
             ->get();
 
         $stats = [
-            'fbn_count' => $listings->where('global_system_type', 'express_fbn')->count(),
-            'fbp_count' => $listings->where('global_system_type', 'merchant_fbp')->count(),
-            'marketplace_count' => $listings->where('global_system_type', 'marketplace')->count(),
+            'fbn_count' => $listings->where('global_system_type', GlobalSystemType::ExpressFbn)->count(),
+            'fbp_count' => $listings->where('global_system_type', GlobalSystemType::MerchantFbp)->count(),
+            'marketplace_count' => $listings->where('global_system_type', GlobalSystemType::Marketplace)->count(),
             'pending_requests' => FbnInboundRequest::where('vendor_id', $vendor->id)
                 ->whereIn('status', ['draft', 'submitted', 'approved'])
                 ->count(),
         ];
 
-        $fbnListings = $listings->where('global_system_type', 'express_fbn')->values();
-        $fbpListings = $listings->where('global_system_type', 'merchant_fbp')->values();
-        $marketplaceListings = $listings->where('global_system_type', 'marketplace')->values();
+        $fbnListings = $listings->where('global_system_type', GlobalSystemType::ExpressFbn)->values();
+        $fbpListings = $listings->where('global_system_type', GlobalSystemType::MerchantFbp)->values();
+        $marketplaceListings = $listings->where('global_system_type', GlobalSystemType::Marketplace)->values();
 
         $warehouses = Warehouse::where('is_active', true)
             ->where(function ($q) use ($vendor) {
@@ -109,7 +110,7 @@ class FulfillmentController extends Controller
         // Verify listing belongs to this vendor
         $listing = VendorListing::where('id', $data['vendor_listing_id'])
             ->where('vendor_id', $vendor->id)
-            ->where('global_system_type', 'express_fbn')
+            ->where('global_system_type', GlobalSystemType::ExpressFbn)
             ->firstOrFail();
 
         $req = FbnInboundRequest::create([
@@ -169,7 +170,7 @@ class FulfillmentController extends Controller
             ->join('vendor_listings', 'vendor_listings.id', '=', 'warehouse_inventories.vendor_listing_id')
             ->join('warehouses', 'warehouses.id', '=', 'warehouse_inventories.warehouse_id')
             ->where('vendor_listings.vendor_id', $vendor->id)
-            ->where('vendor_listings.global_system_type', 'merchant_fbp')
+            ->where('vendor_listings.global_system_type', GlobalSystemType::MerchantFbp)
             ->with('vendorListing.productVariant.product')
             ->orderByDesc('warehouse_inventories.updated_at')
             ->get()

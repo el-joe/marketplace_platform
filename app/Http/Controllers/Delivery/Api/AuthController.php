@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Delivery\Api;
 
+use App\Enums\DeliveryAgentShiftStatus;
+use App\Enums\DeliveryAgentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Delivery\Auth\LoginRequest;
 use App\Http\Resources\Delivery\DeliveryAgentProfileResource;
@@ -32,8 +34,8 @@ class AuthController extends Controller
             return ApiResponse::error('Invalid credentials.', [], 401);
         }
 
-        if (in_array($agent->status, ['suspended', 'inactive'], true)) {
-            $message = $agent->status === 'suspended'
+        if (in_array($agent->status, [DeliveryAgentStatus::Suspended, DeliveryAgentStatus::Inactive], true)) {
+            $message = $agent->status === DeliveryAgentStatus::Suspended
                 ? 'Your account has been suspended. Please contact support.'
                 : 'Your account is not active.';
 
@@ -117,13 +119,13 @@ class AuthController extends Controller
         $agent = auth('delivery_api')->user();
 
         // Force agent offline on logout — they shouldn't appear available after closing the app
-        if ($agent->status === 'on_shift') {
-            $agent->update(['status' => 'active', 'is_available' => false]);
+        if ($agent->status === DeliveryAgentStatus::OnShift) {
+            $agent->update(['status' => DeliveryAgentStatus::Active, 'is_available' => false]);
 
             DeliveryAgentShift::where('agent_id', $agent->id)
-                ->where('status', 'active')
+                ->where('status', DeliveryAgentShiftStatus::Active)
                 ->whereDate('shift_date', now()->toDateString())
-                ->update(['actual_end' => now(), 'status' => 'completed']);
+                ->update(['actual_end' => now(), 'status' => DeliveryAgentShiftStatus::Completed]);
         } else {
             $agent->update(['is_available' => false]);
         }

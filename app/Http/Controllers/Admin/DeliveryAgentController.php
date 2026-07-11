@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\DeliveryAgentEarningStatus;
+use App\Enums\DeliveryAgentStatus;
 use App\Enums\DeliveryAgentType;
 use App\Enums\DeliveryAgentVehicleType;
 use App\Http\Controllers\Controller;
@@ -33,9 +34,9 @@ class DeliveryAgentController extends Controller
 
         $stats = [
             'total' => DeliveryAgent::withoutTrashed()->count(),
-            'active' => DeliveryAgent::where('status', 'active')->count(),
-            'on_shift' => DeliveryAgent::where('status', 'on_shift')->count(),
-            'suspended' => DeliveryAgent::where('status', 'suspended')->count(),
+            'active' => DeliveryAgent::where('status', DeliveryAgentStatus::Active)->count(),
+            'on_shift' => DeliveryAgent::where('status', DeliveryAgentStatus::OnShift)->count(),
+            'suspended' => DeliveryAgent::where('status', DeliveryAgentStatus::Suspended)->count(),
         ];
 
         return view('admin.delivery.agents.index', [
@@ -104,7 +105,7 @@ class DeliveryAgentController extends Controller
                 'country' => e($agent->country_name ?? '—'),
                 'zone' => e($agent->zone_name ?? '—'),
                 'agent_type' => $agent->agent_type,
-                'status' => $agent->status,
+                'status' => $agent->status->value,
                 'rating_avg' => $agent->rating_avg ? number_format((float) $agent->rating_avg, 1) : '—',
                 'total_deliveries' => (int) $agent->total_deliveries,
                 'is_available' => (bool) $agent->is_available,
@@ -154,7 +155,7 @@ class DeliveryAgentController extends Controller
         $agent = DeliveryAgent::create([
             ...$request->validated(),
             'password' => Hash::make($request->input('password')),
-            'status' => 'active',
+            'status' => DeliveryAgentStatus::Active,
         ]);
 
         return response()->json([
@@ -194,7 +195,7 @@ class DeliveryAgentController extends Controller
     {
         $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
-        $agent->update(['status' => 'suspended']);
+        $agent->update(['status' => DeliveryAgentStatus::Suspended]);
 
         return response()->json(['success' => true, 'message' => 'Agent suspended.']);
     }
@@ -203,7 +204,7 @@ class DeliveryAgentController extends Controller
 
     public function activate(DeliveryAgent $agent): JsonResponse
     {
-        $agent->update(['status' => 'active', 'is_available' => false]);
+        $agent->update(['status' => DeliveryAgentStatus::Active, 'is_available' => false]);
 
         return response()->json(['success' => true, 'message' => 'Agent activated.']);
     }

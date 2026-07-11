@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Enums\HelpCenterArticleStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\HelpCenterArticle;
@@ -79,7 +80,7 @@ class HelpCenterController extends Controller
     {
         $country = Country::resolveSiteCode($country);
 
-        abort_unless($article->status === 'published', 404);
+        abort_unless($article->status === HelpCenterArticleStatus::Published, 404);
 
         $article->load('category.parent');
 

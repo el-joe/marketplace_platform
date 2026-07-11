@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\VendorSubscriptionInvoiceStatus;
 use App\Enums\VendorSubscriptionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\SubscriptionPlan;
@@ -304,15 +305,15 @@ class SubscriptionController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
             $sc = match ($row->status) {
-                'paid' => 'success',
-                'open' => 'warning',
-                'void' => 'secondary',
-                'uncollectible' => 'danger',
+                VendorSubscriptionInvoiceStatus::Paid->value => 'success',
+                VendorSubscriptionInvoiceStatus::Open->value => 'warning',
+                VendorSubscriptionInvoiceStatus::Void->value => 'secondary',
+                VendorSubscriptionInvoiceStatus::Uncollectible->value => 'danger',
                 default => 'secondary',
             };
 
             $actions = '';
-            if ($row->status === 'open') {
+            if ($row->status === VendorSubscriptionInvoiceStatus::Open->value) {
                 $actions = '<button class="btn btn-xs btn-success btn-mark-paid" data-id="' . $row->id . '">Mark Paid</button>';
             }
 
@@ -331,7 +332,7 @@ class SubscriptionController extends Controller
 
     public function markInvoicePaid(Request $request, VendorSubscriptionInvoice $invoice): JsonResponse
     {
-        if ($invoice->status === 'paid') {
+        if ($invoice->status === VendorSubscriptionInvoiceStatus::Paid) {
             return response()->json(['success' => false, 'message' => 'Invoice already paid.'], 422);
         }
 

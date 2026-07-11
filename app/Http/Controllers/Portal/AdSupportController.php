@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Enums\AdSupportArticleStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdSupportArticle;
 use App\Models\AdSupportCollection;
@@ -49,7 +50,7 @@ class AdSupportController extends Controller
     {
         $country = Country::resolveSiteCode($country);
 
-        abort_unless($article->status === 'published', 404);
+        abort_unless($article->status === AdSupportArticleStatus::Published, 404);
 
         $article->load('collection.parent');
 

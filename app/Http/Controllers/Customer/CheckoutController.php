@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\GlobalSystemType;
 use App\Enums\VendorListingStatus;
 use App\Events\SubOrderPlaced;
 use App\Http\Controllers\Controller;
@@ -203,7 +204,7 @@ class CheckoutController extends Controller
 
         $items = collect($cartItems)->map(function ($item) {
             $listing = $item->vendorListing;
-            $isAdminListing = $listing->global_system_type === 'express_fbn';
+            $isAdminListing = $listing->global_system_type === GlobalSystemType::ExpressFbn;
             $product = $listing->productVariant->product;
 
             return [
@@ -371,7 +372,7 @@ class CheckoutController extends Controller
                     $idx++;
                     $vendorSubtotal = (int) $items->sum(fn ($i) => $i->unit_price * $i->quantity);
                     $firstListing = $items->first()->vendorListing;
-                    $isFbn = $firstListing->global_system_type === 'express_fbn';
+                    $isFbn = $firstListing->global_system_type === GlobalSystemType::ExpressFbn;
 
                     $vendorShipping = $isFbn
                         ? 0
@@ -674,7 +675,7 @@ class CheckoutController extends Controller
             'price_cents' => $listing->price,
             'currency' => $listing->currency,
             'condition' => $listing->condition,
-            'global_system_type' => $listing->global_system_type,
+            'global_system_type' => $listing->global_system_type?->value,
             'thumbnail_url' => $thumbnail,
             'brand_name' => $product->brand?->name_en,
             'category_name' => $product->category?->name_en,

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\GlobalSystemType;
 use App\Models\Category;
 use App\Models\ShippingMethod;
 use App\Models\VendorListing;
@@ -34,7 +35,7 @@ class ListingShippingResolver
 
         if (!$category) return null;
 
-        $isFBN = $listing->global_system_type === 'express_fbn';
+        $isFBN = $listing->global_system_type === GlobalSystemType::ExpressFbn;
         $fbpField = $isFBN ? 'is_available_for_express_fbn' : 'is_available_for_merchant_fbp';
 
         return $category->shippingMethods()

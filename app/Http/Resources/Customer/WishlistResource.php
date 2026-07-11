@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Enums\GlobalSystemType;
 use App\Services\Customer\ListingIdentifierService;
 use App\Support\Bilingual;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class WishlistResource extends JsonResource
             'price_formatted' => $listing ? number_format($listing->price / 100, 2) : null,
             'currency'        => $listing?->currency,
             'status'          => $listing?->status,
-            'is_admin_listing' => $listing?->global_system_type === 'express_fbn',
+            'is_admin_listing' => $listing?->global_system_type === GlobalSystemType::ExpressFbn,
             'product'         => $product ? [
                 'id'        => $product->id,
                 'name'      => Bilingual::pair($product, 'name'),

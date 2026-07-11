@@ -126,7 +126,7 @@ class HomeService
             ->filter(fn ($submission) => $submission->vendorListing && $submission->vendorListing->productVariant?->product);
 
         $ordered = $submissions
-            ->sortBy(fn ($submission) => self::BUY_BOX_ORDER[$submission->vendorListing->global_system_type] ?? 3)
+            ->sortBy(fn ($submission) => self::BUY_BOX_ORDER[$submission->vendorListing->global_system_type->value] ?? 3)
             ->take(8)
             ->values();
 
@@ -196,7 +196,7 @@ class HomeService
             ->values();
 
         $sorted = $pairs
-            ->sortBy(fn (array $pair) => self::BUY_BOX_ORDER[$pair[1]->global_system_type] ?? 3)
+            ->sortBy(fn (array $pair) => self::BUY_BOX_ORDER[$pair[1]->global_system_type->value] ?? 3)
             ->values();
 
         return $sorted

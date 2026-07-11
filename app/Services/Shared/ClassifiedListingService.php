@@ -25,8 +25,8 @@ class ClassifiedListingService
         $this->validateCategoryRequirements($category, $data);
 
         $status = $category->contract_template_id
-            ? 'pending_contract'
-            : 'pending_review';
+            ? ClassifiedListingStatus::PendingContract
+            : ClassifiedListingStatus::PendingReview;
 
         /** @var ClassifiedListing $listing */
         $listing = $owner->classifiedListings()->create([
@@ -54,7 +54,7 @@ class ClassifiedListingService
         $this->storeSketch($listing, $data['sketch_file'] ?? null);
         $this->storeAttachments($listing, $data['attachments'] ?? []);
 
-        if ($status === 'pending_review') {
+        if ($status === ClassifiedListingStatus::PendingReview) {
             NotifyAdminNewClassifiedListingJob::dispatch($listing);
         }
 

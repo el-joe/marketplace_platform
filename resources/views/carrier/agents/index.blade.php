@@ -44,20 +44,20 @@
                     <td class="px-6 py-3 text-gray-600">{{ $agent->vehicle_type->label() }}</td>
                     <td class="px-6 py-3">
                         @php
-                            $sc = ['active'=>'emerald','suspended'=>'red','inactive'=>'gray','on_shift'=>'blue'][$agent->status] ?? 'gray';
+                            $sc = ['active'=>'emerald','suspended'=>'red','inactive'=>'gray','on_shift'=>'blue'][$agent->status->value] ?? 'gray';
                             $sl = [
                                 'active'    => __('carrier.agents.active'),
                                 'suspended' => __('carrier.agents.suspended'),
                                 'inactive'  => __('carrier.agents.inactive'),
                                 'on_shift'  => __('carrier.agents.on_shift'),
-                            ][$agent->status] ?? $agent->status;
+                            ][$agent->status->value] ?? $agent->status->value;
                         @endphp
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">{{ $sl }}</span>
                     </td>
                     <td class="px-6 py-3 text-gray-600">{{ number_format($agent->rating_avg, 1) }} ⭐</td>
                     <td class="px-6 py-3">
                         @if(auth('shipping_supervisor')->user()->hasPermission('manage_agents'))
-                        @if($agent->status === 'suspended')
+                        @if($agent->status === \App\Enums\DeliveryAgentStatus::Suspended)
                         <form method="POST" action="{{ route('carrier.agents.activate', $agent->id) }}" class="inline">
                             @csrf @method('PATCH')
                             <button class="text-emerald-600 hover:underline text-xs font-medium">{{ __('carrier.agents.activate') }}</button>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\PayoutStatus;
 use App\Http\Controllers\Controller;
 use App\Models\LedgerEntry;
 use App\Models\Payout;
@@ -124,7 +125,7 @@ class PayoutController extends Controller
      */
     public function approve(Request $request, Payout $payout): JsonResponse
     {
-        if ($payout->status !== 'pending') {
+        if ($payout->status !== PayoutStatus::Pending) {
             return response()->json(['message' => 'Only pending payouts can be approved.'], 422);
         }
 
@@ -132,7 +133,7 @@ class PayoutController extends Controller
 
         DB::transaction(function () use ($payout, $request) {
             $payout->update([
-                'status'               => 'approved',
+                'status'               => PayoutStatus::Approved,
                 'approved_by_admin_id' => auth('admin')->id(),
             ]);
 
@@ -172,7 +173,7 @@ class PayoutController extends Controller
      */
     public function process(Request $request, Payout $payout): JsonResponse
     {
-        if ($payout->status !== 'approved') {
+        if ($payout->status !== PayoutStatus::Approved) {
             return response()->json(['message' => 'Only approved payouts can be processed.'], 422);
         }
 
@@ -183,7 +184,7 @@ class PayoutController extends Controller
 
         try {
             $payout->update([
-                'status'            => 'completed',
+                'status'            => PayoutStatus::Completed,
                 'gateway_reference' => $request->gateway_reference,
                 'receipt_url'       => $request->receipt_url,
                 'processed_at'      => now(),
@@ -203,14 +204,14 @@ class PayoutController extends Controller
      */
     public function hold(Request $request, Payout $payout): JsonResponse
     {
-        if (in_array($payout->status, ['completed', 'failed'], true)) {
+        if (in_array($payout->status, [PayoutStatus::Completed, PayoutStatus::Failed], true)) {
             return response()->json(['message' => 'Cannot hold a completed or failed payout.'], 422);
         }
 
         $request->validate(['reason' => 'required|string|max:500']);
 
         $payout->update([
-            'status'        => 'on_hold',
+            'status'        => PayoutStatus::OnHold,
             'failed_reason' => $request->reason,
         ]);
 
@@ -222,7 +223,7 @@ class PayoutController extends Controller
      */
     public function recalculate(Request $request, Payout $payout): JsonResponse
     {
-        if (!in_array($payout->status, ['pending', 'on_hold'], true)) {
+        if (!in_array($payout->status, [PayoutStatus::Pending, PayoutStatus::OnHold], true)) {
             return response()->json(['message' => 'Only pending or on-hold payouts can be recalculated.'], 422);
         }
 

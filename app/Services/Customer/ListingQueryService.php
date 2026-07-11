@@ -3,6 +3,7 @@
 namespace App\Services\Customer;
 
 use App\Enums\ClassifiedListingStatus;
+use App\Enums\GlobalSystemType;
 use App\Enums\ProductStatus;
 use App\Enums\TravelPackageStatus;
 use App\Enums\VendorGlobalStatus;
@@ -256,8 +257,8 @@ class ListingQueryService
             'price_formatted' => number_format($listing->price / 100, 2),
             'currency' => $country->currency_code,
             'condition' => $listing->condition,
-            'is_admin_listing' => $listing->global_system_type === 'express_fbn',
-            'is_express_fbn' => $listing->global_system_type === 'express_fbn',
+            'is_admin_listing' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
+            'is_express_fbn' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
             'fulfillment_model' => $listing->fulfillment_model,
             'vendor' => [
                 'id' => $listing->vendor->id,

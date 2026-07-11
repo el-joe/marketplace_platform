@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VendorSubscriptionInvoiceStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,6 +32,7 @@ class VendorSubscriptionInvoice extends Model
             'period_start' => 'date',
             'period_end' => 'date',
             'paid_at' => 'datetime',
+            'status' => VendorSubscriptionInvoiceStatus::class,
         ];
     }
 
@@ -65,22 +67,21 @@ class VendorSubscriptionInvoice extends Model
 
     public function scopePaid($query)
     {
-        return $query->where('status', 'paid');
+        return $query->where('status', VendorSubscriptionInvoiceStatus::Paid);
     }
 
     public function scopeOpen($query)
     {
-        return $query->where('status', 'open');
+        return $query->where('status', VendorSubscriptionInvoiceStatus::Open);
     }
 
     public function statusColor(): string
     {
         return match ($this->status) {
-            'paid' => 'success',
-            'open' => 'warning',
-            'void' => 'secondary',
-            'uncollectible' => 'danger',
-            default => 'secondary',
+            VendorSubscriptionInvoiceStatus::Paid => 'success',
+            VendorSubscriptionInvoiceStatus::Open => 'warning',
+            VendorSubscriptionInvoiceStatus::Void => 'secondary',
+            VendorSubscriptionInvoiceStatus::Uncollectible => 'danger',
         };
     }
 

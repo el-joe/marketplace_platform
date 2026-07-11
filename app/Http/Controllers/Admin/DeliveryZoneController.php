@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\DeliveryAgentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\DeliveryAgent;
@@ -21,7 +22,7 @@ class DeliveryZoneController extends Controller
     public function index(): View
     {
         $zones = DeliveryZone::with('country')
-            ->withCount(['agents' => fn($q) => $q->whereIn('status', ['active', 'on_shift'])])
+            ->withCount(['agents' => fn($q) => $q->whereIn('status', [DeliveryAgentStatus::Active, DeliveryAgentStatus::OnShift])])
             ->orderBy('name')
             ->get();
 

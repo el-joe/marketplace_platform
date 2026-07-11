@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PayoutStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,6 +17,7 @@ class Payout extends Model
             'period_start' => 'date',
             'period_end'   => 'date',
             'processed_at' => 'datetime',
+            'status'       => PayoutStatus::class,
         ];
     }
 

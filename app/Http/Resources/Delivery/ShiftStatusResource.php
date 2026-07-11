@@ -13,7 +13,7 @@ class ShiftStatusResource extends JsonResource
             'id'                   => $this->id,
             'shift_date'           => $this->shift_date?->toDateString(),
             'zone_id'              => $this->zone_id,
-            'status'               => $this->status,
+            'status'               => $this->status->value,
             'actual_start'         => $this->actual_start?->toIso8601String(),
             'actual_end'           => $this->actual_end?->toIso8601String(),
             'duration_minutes'     => $this->duration_minutes,

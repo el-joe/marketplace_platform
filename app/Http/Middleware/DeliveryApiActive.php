@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\DeliveryAgentStatus;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,10 +14,10 @@ class DeliveryApiActive
         /** @var \App\Models\DeliveryAgent $agent */
         $agent = auth()->guard('delivery_api')->user();
 
-        if (in_array($agent->status, ['suspended', 'inactive'], true)) {
+        if (in_array($agent->status, [DeliveryAgentStatus::Suspended, DeliveryAgentStatus::Inactive], true)) {
             auth()->guard('delivery_api')->logout();
 
-            $message = $agent->status === 'suspended'
+            $message = $agent->status === DeliveryAgentStatus::Suspended
                 ? 'Your account has been suspended. Please contact support.'
                 : 'Your account is not active.';
 

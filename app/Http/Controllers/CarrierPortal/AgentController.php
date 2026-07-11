@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\CarrierPortal;
 
+use App\Enums\DeliveryAgentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use Illuminate\Http\RedirectResponse;
@@ -48,7 +49,7 @@ class AgentController extends Controller
             'agent_type'             => 'third_party',
             'shipping_company_id'    => $supervisor->shipping_company_id,
             'added_by_supervisor_id' => $supervisor->id,
-            'status'                 => 'active',
+            'status'                 => DeliveryAgentStatus::Active,
         ]);
 
         return redirect()->route('carrier.agents.index')
@@ -60,7 +61,7 @@ class AgentController extends Controller
         $this->requirePermission('manage_agents');
 
         $agent = $this->agentForCurrentCompany($id);
-        $agent->update(['status' => 'suspended']);
+        $agent->update(['status' => DeliveryAgentStatus::Suspended]);
 
         return back()->with('success', 'تم إيقاف المندوب.');
     }
@@ -70,7 +71,7 @@ class AgentController extends Controller
         $this->requirePermission('manage_agents');
 
         $agent = $this->agentForCurrentCompany($id);
-        $agent->update(['status' => 'active']);
+        $agent->update(['status' => DeliveryAgentStatus::Active]);
 
         return back()->with('success', 'تم تفعيل المندوب.');
     }

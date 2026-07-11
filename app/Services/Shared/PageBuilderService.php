@@ -311,7 +311,7 @@ class PageBuilderService
             ->filter(fn($s) => $s->vendorListing && $s->vendorListing->productVariant?->product);
 
         return $submissions
-            ->sortBy(fn($s) => self::BUY_BOX_ORDER[$s->vendorListing->global_system_type] ?? 3)
+            ->sortBy(fn($s) => self::BUY_BOX_ORDER[$s->vendorListing->global_system_type->value] ?? 3)
             ->take($maxProducts)
             ->map(fn($s) => $this->listingQuery->toCardShape(
                 $s->vendorListing,

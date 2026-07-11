@@ -3,6 +3,7 @@
 namespace App\Services\Payments;
 
 use App\DTOs\Payment\ConnectionTestResult;
+use App\Enums\PaymentTransactionStatus;
 use App\DTOs\Payment\PaymentInitiationData;
 use App\DTOs\Payment\PaymentInitiationResult;
 use App\DTOs\Payment\PaymentVerificationResult;
@@ -131,7 +132,7 @@ class ThawaniGateway extends AbstractPaymentGateway
             if (!$response->successful()) {
                 return new PaymentVerificationResult(
                     success: false,
-                    status: 'failed',
+                    status: PaymentTransactionStatus::Failed->value,
                     amountCents: 0,
                     currency: $this->settlementCurrency(),
                     failureMessage: $response->body(),
@@ -144,9 +145,9 @@ class ThawaniGateway extends AbstractPaymentGateway
             $rawStatus   = $sessionData['payment_status'] ?? 'unpaid';
 
             $status = match ($rawStatus) {
-                'paid'   => 'succeeded',
-                'unpaid' => 'pending',
-                default  => 'failed',
+                'paid'   => PaymentTransactionStatus::Succeeded,
+                'unpaid' => PaymentTransactionStatus::Pending,
+                default  => PaymentTransactionStatus::Failed,
             };
 
             $amount = $this->fromGatewayAmount(
@@ -155,8 +156,8 @@ class ThawaniGateway extends AbstractPaymentGateway
             );
 
             return new PaymentVerificationResult(
-                success: $status === 'succeeded',
-                status: $status,
+                success: $status === PaymentTransactionStatus::Succeeded,
+                status: $status->value,
                 amountCents: $amount,
                 currency: $this->settlementCurrency(),
                 gatewayTransactionId: $transactionReference,
@@ -166,7 +167,7 @@ class ThawaniGateway extends AbstractPaymentGateway
             report($e);
             return new PaymentVerificationResult(
                 success: false,
-                status: 'failed',
+                status: PaymentTransactionStatus::Failed->value,
                 amountCents: 0,
                 currency: $this->settlementCurrency(),
                 failureMessage: $e->getMessage(),
@@ -225,9 +226,9 @@ class ThawaniGateway extends AbstractPaymentGateway
         $paymentStatus = $payload['payment_status'] ?? $payload['data']['payment_status'] ?? null;
 
         $resultingStatus = match ($paymentStatus) {
-            'paid'   => 'succeeded',
-            'unpaid' => 'pending',
-            default  => 'failed',
+            'paid'   => PaymentTransactionStatus::Succeeded->value,
+            'unpaid' => PaymentTransactionStatus::Pending->value,
+            default  => PaymentTransactionStatus::Failed->value,
         };
 
         $this->logWebhook(

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Customer;
 
+use App\Enums\GlobalSystemType;
 use App\Services\Customer\ListingIdentifierService;
 use App\Support\Bilingual;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ class CartItemResource extends JsonResource
                 'id'         => $listing->vendor->id,
                 'store_name' => $listing->vendor->store_name,
             ] : null,
-            'is_admin_listing' => $listing?->global_system_type === 'express_fbn',
+            'is_admin_listing' => $listing?->global_system_type === GlobalSystemType::ExpressFbn,
             'shipping_badge'   => $listing?->primaryShippingMethod ? [
                 'label'             => Bilingual::pairFromKeys($listing->primaryShippingMethod, 'badge_label_ar', 'badge_label_en'),
                 'color_hex'         => $listing->primaryShippingMethod->badge_color_hex,

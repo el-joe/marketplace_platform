@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GlobalSystemType;
 use App\Enums\VendorListingStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,7 @@ class VendorListing extends Model
     {
         return [
             'status' => VendorListingStatus::class,
+            'global_system_type' => GlobalSystemType::class,
         ];
     }
 

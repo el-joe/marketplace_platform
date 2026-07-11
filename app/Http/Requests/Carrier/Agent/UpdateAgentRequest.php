@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Carrier\Agent;
 
+use App\Enums\DeliveryAgentStatus;
 use App\Enums\DeliveryAgentVehicleType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,7 @@ class UpdateAgentRequest extends FormRequest
             'zone_id'       => ['sometimes', 'nullable', 'string', 'exists:delivery_zones,id'],
             'is_available'  => ['sometimes', 'boolean'],
             // status toggling: supervisors can activate/deactivate but not suspend
-            'status'        => ['sometimes', Rule::in(['active', 'inactive'])],
+            'status'        => ['sometimes', Rule::in([DeliveryAgentStatus::Active->value, DeliveryAgentStatus::Inactive->value])],
         ];
     }
 }

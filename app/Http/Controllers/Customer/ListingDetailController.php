@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\GlobalSystemType;
 use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiResponse;
 use App\Models\Country;
@@ -119,10 +120,10 @@ class ListingDetailController extends Controller
             'currency' => $country->currency_code,
             'condition' => $listing->condition,
             'condition_notes' => $listing->condition_notes,
-            'is_admin_listing' => $listing->global_system_type === 'express_fbn',
-            'is_express_fbn' => $listing->global_system_type === 'express_fbn',
+            'is_admin_listing' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
+            'is_express_fbn' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
             'fulfillment_model' => $listing->fulfillment_model,
-            'global_system_type' => $listing->global_system_type,
+            'global_system_type' => $listing->global_system_type?->value,
             'status' => $listing->status,
             'max_order_quantity' => $listing->max_order_quantity,
             'total_sold' => $listing->total_sold,
@@ -140,7 +141,7 @@ class ListingDetailController extends Controller
             'store_name' => $listing->vendor->store_name,
             'rating_avg' => $listing->vendor->store_rating_avg,
             'rating_count' => $listing->vendor->store_rating_count,
-            'is_admin_listing' => $listing->global_system_type === 'express_fbn',
+            'is_admin_listing' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
         ];
     }
 
@@ -240,8 +241,8 @@ class ListingDetailController extends Controller
             'price_formatted' => number_format($listing->price / 100, 2),
             'currency' => $country->currency_code,
             'condition' => $listing->condition,
-            'is_admin_listing' => $listing->global_system_type === 'express_fbn',
-            'is_express_fbn' => $listing->global_system_type === 'express_fbn',
+            'is_admin_listing' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
+            'is_express_fbn' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
             'shipping_badge' => $listing->primaryShippingMethod ? [
                 'label' => Bilingual::pair($listing->primaryShippingMethod, 'badge_label'),
                 'color_hex' => $listing->primaryShippingMethod->badge_color_hex,
@@ -262,7 +263,7 @@ class ListingDetailController extends Controller
             'price_cents' => $listing->price,
             'price_formatted' => number_format($listing->price / 100, 2),
             'currency' => $listing->currency,
-            'is_admin_listing' => $listing->global_system_type === 'express_fbn',
+            'is_admin_listing' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
             'attributes' => $listing->productVariant->variantAttributes->map(fn($va) => [
                 'attribute_name' => [
                     'ar' => $va->attribute?->name_ar,

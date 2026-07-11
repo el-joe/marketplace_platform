@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Enums\DeliveryAgentStatus;
 use App\Enums\DeliveryAgentType;
 use App\Enums\DeliveryAgentVehicleType;
 use App\Models\DeliveryZone;
@@ -70,6 +71,7 @@ class DeliveryAgent extends Authenticatable implements JWTSubject
             'rating_avg' => 'float',
             'agent_type' => DeliveryAgentType::class,
             'vehicle_type' => DeliveryAgentVehicleType::class,
+            'status' => DeliveryAgentStatus::class,
         ];
     }
 
@@ -156,16 +158,16 @@ class DeliveryAgent extends Authenticatable implements JWTSubject
 
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('status', DeliveryAgentStatus::Active);
     }
 
     public function scopeAvailable($query)
     {
-        return $query->where('is_available', true)->where('status', 'active');
+        return $query->where('is_available', true)->where('status', DeliveryAgentStatus::Active);
     }
 
     public function scopeOnShift($query)
     {
-        return $query->where('status', 'on_shift');
+        return $query->where('status', DeliveryAgentStatus::OnShift);
     }
 }

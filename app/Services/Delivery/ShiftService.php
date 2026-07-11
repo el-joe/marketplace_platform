@@ -2,6 +2,8 @@
 
 namespace App\Services\Delivery;
 
+use App\Enums\DeliveryAgentShiftStatus;
+use App\Enums\DeliveryAgentStatus;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentShift;
 use App\Models\DeliveryAssignment;
@@ -14,7 +16,7 @@ class ShiftService
 {
     public function start(DeliveryAgent $agent): DeliveryAgentShift
     {
-        if ($agent->status === 'on_shift') {
+        if ($agent->status === DeliveryAgentStatus::OnShift) {
             throw new RuntimeException('You are already on shift.');
         }
 
@@ -23,7 +25,7 @@ class ShiftService
         }
 
         return DB::transaction(function () use ($agent): DeliveryAgentShift {
-            $agent->update(['status' => 'on_shift', 'is_available' => true]);
+            $agent->update(['status' => DeliveryAgentStatus::OnShift, 'is_available' => true]);
 
             return DeliveryAgentShift::create([
                 'agent_id'         => $agent->id,
@@ -32,14 +34,14 @@ class ShiftService
                 'scheduled_start'  => now()->toTimeString(),
                 'scheduled_end'    => now()->addHours(8)->toTimeString(),
                 'actual_start'     => now(),
-                'status'           => 'active',
+                'status'           => DeliveryAgentShiftStatus::Active,
             ]);
         });
     }
 
     public function end(DeliveryAgent $agent): void
     {
-        if ($agent->status !== 'on_shift') {
+        if ($agent->status !== DeliveryAgentStatus::OnShift) {
             throw new RuntimeException('You are not currently on shift.');
         }
 
@@ -53,16 +55,16 @@ class ShiftService
 
         DB::transaction(function () use ($agent): void {
             $agent->update([
-                'status'       => 'active',
+                'status'       => DeliveryAgentStatus::Active,
                 'is_available' => false,
             ]);
 
             DeliveryAgentShift::where('agent_id', $agent->id)
-                ->where('status', 'active')
+                ->where('status', DeliveryAgentShiftStatus::Active)
                 ->whereDate('shift_date', now()->toDateString())
                 ->update([
                     'actual_end' => now(),
-                    'status'     => 'completed',
+                    'status'     => DeliveryAgentShiftStatus::Completed,
                 ]);
         });
 

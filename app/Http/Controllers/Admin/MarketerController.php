@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\MarketerSampleRequestStatus;
+use App\Enums\SecretPromotionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Country;
@@ -748,7 +749,7 @@ class MarketerController extends Controller
         return $this->dataTableResponse($request, $query, $columns, fn($row) => [
             e($row->vendor_name) . '<br><span class="text-xs text-gray-400">' . e($row->product_name ?? '') . '</span>',
             $row->total_commission_pct . '%',
-            '<span class="badge badge-' . ($row->status === 'active' ? 'success' : ($row->status === 'paused' ? 'warning' : 'secondary')) . '">' . ucfirst($row->status) . '</span>',
+            '<span class="badge badge-' . ($row->status === SecretPromotionStatus::Active->value ? 'success' : ($row->status === SecretPromotionStatus::Paused->value ? 'warning' : 'secondary')) . '">' . ucfirst($row->status) . '</span>',
             $row->valid_until ? \Carbon\Carbon::parse($row->valid_until)->format('d M Y') : '—',
         ]);
     }

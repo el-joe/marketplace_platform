@@ -247,8 +247,8 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-500">{{ __('admin.payouts.status') }}</span>
-                        <x-badge :color="$statusColors[$payout->status] ?? 'gray'">
-                            {{ ucwords(str_replace('_', ' ', $payout->status)) }}
+                        <x-badge :color="$statusColors[$payout->status->value] ?? 'gray'">
+                            {{ ucwords(str_replace('_', ' ', $payout->status->value)) }}
                         </x-badge>
                     </div>
                     <div class="flex justify-between">
@@ -350,14 +350,14 @@
             @endif
 
             {{-- On-hold reason --}}
-            @if($payout->status === 'on_hold' && $payout->failed_reason)
+            @if($payout->status === \App\Enums\PayoutStatus::OnHold && $payout->failed_reason)
                 <x-card title="{{ __('admin.payouts.hold_reason') }}">
                     <p class="text-sm text-amber-700">{{ $payout->failed_reason }}</p>
                 </x-card>
             @endif
 
             {{-- Failed reason --}}
-            @if($payout->status === 'failed' && $payout->failed_reason)
+            @if($payout->status === \App\Enums\PayoutStatus::Failed && $payout->failed_reason)
                 <x-card title="{{ __('admin.payouts.failure_reason') }}">
                     <p class="text-sm text-danger-700">{{ $payout->failed_reason }}</p>
                 </x-card>
@@ -366,7 +366,7 @@
             {{-- Actions --}}
             <x-card title="{{ __('admin.payouts.actions') }}">
                 <div class="space-y-2">
-                    @if($payout->status === 'pending')
+                    @if($payout->status === \App\Enums\PayoutStatus::Pending)
                         <button type="button" data-modal-open="approve-modal"
                             class="btn btn-primary w-full justify-center">
                             <x-heroicon name="check-circle" class="w-4 h-4 mr-1.5" />
@@ -378,21 +378,21 @@
                             {{ __('admin.payouts.recalculate') }}
                         </button>
                     @endif
-                    @if($payout->status === 'approved')
+                    @if($payout->status === \App\Enums\PayoutStatus::Approved)
                         <button type="button" data-modal-open="process-modal"
                             class="btn btn-primary w-full justify-center">
                             <x-heroicon name="banknotes" class="w-4 h-4 mr-1.5" />
                             {{ __('admin.payouts.mark_as_completed') }}
                         </button>
                     @endif
-                    @if(!in_array($payout->status, ['completed', 'failed']))
+                    @if(!in_array($payout->status, [\App\Enums\PayoutStatus::Completed, \App\Enums\PayoutStatus::Failed]))
                         <button type="button" data-modal-open="hold-modal"
                             class="btn btn-ghost w-full justify-center text-warning-700 hover:bg-warning-50">
                             <x-heroicon name="pause-circle" class="w-4 h-4 mr-1.5" />
                             {{ __('admin.payouts.put_on_hold') }}
                         </button>
                     @endif
-                    @if($payout->status === 'on_hold')
+                    @if($payout->status === \App\Enums\PayoutStatus::OnHold)
                         <button type="button" data-modal-open="recalculate-modal"
                             class="btn btn-secondary w-full justify-center">
                             <x-heroicon name="arrow-path" class="w-4 h-4 mr-1.5" />

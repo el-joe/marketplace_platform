@@ -32,8 +32,8 @@
         <div class="min-w-0">
             <h1 class="text-2xl font-bold text-gray-900 truncate">{{ $agent->name }}</h1>
             <div class="flex items-center gap-2 mt-1 flex-wrap">
-                <x-badge :color="$statusColors[$agent->status] ?? 'gray'">
-                    {{ ucwords(str_replace('_', ' ', $agent->status)) }}
+                <x-badge :color="$statusColors[$agent->status->value] ?? 'gray'">
+                    {{ ucwords(str_replace('_', ' ', $agent->status->value)) }}
                 </x-badge>
                 <x-badge color="gray">{{ $agent->agent_type->label() }}</x-badge>
                 <x-badge color="gray">{{ $agent->vehicle_type->label() }}</x-badge>
@@ -44,7 +44,7 @@
         </div>
     </div>
     <div class="flex items-center gap-2 flex-shrink-0">
-        @if($agent->status === 'active' || $agent->status === 'on_shift')
+        @if($agent->status === \App\Enums\DeliveryAgentStatus::Active || $agent->status === \App\Enums\DeliveryAgentStatus::OnShift)
             <button type="button" id="suspend-btn" class="btn btn-warning btn-sm">{{ __('admin.delivery_section.suspend') }}</button>
         @else
             <button type="button" id="activate-btn" class="btn btn-success btn-sm">{{ __('common.active') }}</button>
@@ -337,8 +337,8 @@
                                 @endif
                             </td>
                             <td class="py-2">
-                                <x-badge :color="$shiftColors[$shift->status] ?? 'gray'" class="text-xs">
-                                    {{ ucfirst(str_replace('_', ' ', $shift->status)) }}
+                                <x-badge :color="$shiftColors[$shift->status->value] ?? 'gray'" class="text-xs">
+                                    {{ ucfirst(str_replace('_', ' ', $shift->status->value)) }}
                                 </x-badge>
                             </td>
                             <td class="py-2 text-end">{{ $shift->total_deliveries }}</td>

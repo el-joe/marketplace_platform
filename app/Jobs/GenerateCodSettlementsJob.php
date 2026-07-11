@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\DeliveryAgentStatus;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentCodSettlement;
 use App\Models\DeliveryAgentEarning;
@@ -21,7 +22,7 @@ class GenerateCodSettlementsJob implements ShouldQueue
     {
         $generated = 0;
 
-        DeliveryAgent::where('status', 'active')
+        DeliveryAgent::where('status', DeliveryAgentStatus::Active)
             ->chunkById(50, function ($agents) use (&$generated) {
                 foreach ($agents as $agent) {
                     $uncoveredAssignments = DeliveryAssignment::with('subOrder.order')

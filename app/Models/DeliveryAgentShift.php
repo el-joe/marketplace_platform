@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DeliveryAgentShiftStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,6 +32,7 @@ class DeliveryAgentShift extends Model
             'actual_start' => 'datetime',
             'actual_end' => 'datetime',
             'total_earnings_cents' => 'integer',
+            'status' => DeliveryAgentShiftStatus::class,
         ];
     }
 

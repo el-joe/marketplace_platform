@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\VendorSubscriptionInvoiceStatus;
 use App\Enums\VendorSubscriptionStatus;
 use App\Models\Admin;
 use App\Models\SubscriptionPlan;
@@ -78,7 +79,7 @@ class SubscriptionService
                 'subscription_id' => $subscription->id,
                 'amount_cents' => $plan->price_cents,
                 'currency' => $plan->currency,
-                'status' => 'open',
+                'status' => VendorSubscriptionInvoiceStatus::Open,
                 'period_start' => $periodStart,
                 'period_end' => $periodEnd,
             ]);
@@ -125,7 +126,7 @@ class SubscriptionService
                 'subscription_id' => $subscription->id,
                 'amount_cents' => $subscription->plan->price_cents,
                 'currency' => $subscription->plan->currency,
-                'status' => 'open',
+                'status' => VendorSubscriptionInvoiceStatus::Open,
                 'period_start' => $newStart->toDateString(),
                 'period_end' => $newEnd->toDateString(),
             ]);
@@ -142,7 +143,7 @@ class SubscriptionService
         ?string $paymentTransactionId = null
     ): VendorSubscriptionInvoice {
         $invoice->update([
-            'status' => 'paid',
+            'status' => VendorSubscriptionInvoiceStatus::Paid,
             'paid_at' => now(),
             'payment_transaction_id' => $paymentTransactionId,
         ]);

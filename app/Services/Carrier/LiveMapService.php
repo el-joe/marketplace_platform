@@ -2,6 +2,7 @@
 
 namespace App\Services\Carrier;
 
+use App\Enums\DeliveryAgentStatus;
 use App\Enums\DeliveryAssignmentStatus;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
@@ -17,7 +18,7 @@ class LiveMapService
     public function getCompanyMapData(ShippingCompany $company): array
     {
         $agents = DeliveryAgent::where('shipping_company_id', $company->id)
-            ->where('status', 'on_shift')
+            ->where('status', DeliveryAgentStatus::OnShift)
             ->whereNotNull('current_latitude')
             ->whereNotNull('current_longitude')
             ->select(['id', 'name', 'status', 'is_available', 'current_latitude', 'current_longitude', 'last_location_at', 'zone_id'])
@@ -37,7 +38,7 @@ class LiveMapService
                 'type'      => 'agent',
                 'id'        => $a->id,
                 'name'      => $a->name,
-                'status'    => $a->status,
+                'status'    => $a->status->value,
                 'available' => (bool) $a->is_available,
                 'lat'       => (float) $a->current_latitude,
                 'lng'       => (float) $a->current_longitude,

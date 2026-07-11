@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Delivery\Api;
 
+use App\Enums\DeliveryAgentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Delivery\ShiftStatusResource;
 use App\Http\Responses\ApiResponse;
@@ -55,7 +56,7 @@ class ShiftController extends Controller
         /** @var DeliveryAgent $agent */
         $agent = auth('delivery_api')->user();
 
-        if ($agent->status !== 'on_shift') {
+        if ($agent->status !== DeliveryAgentStatus::OnShift) {
             return ApiResponse::error('You must be on shift to toggle availability.', [], 422);
         }
 

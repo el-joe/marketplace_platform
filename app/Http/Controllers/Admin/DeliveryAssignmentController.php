@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\DeliveryAgentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
@@ -23,7 +24,7 @@ class DeliveryAssignmentController extends Controller
     {
         $zones = DeliveryZone::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
-        $agents = DeliveryAgent::whereIn('status', ['active', 'on_shift'])
+        $agents = DeliveryAgent::whereIn('status', [DeliveryAgentStatus::Active, DeliveryAgentStatus::OnShift])
             ->orderBy('name')
             ->get(['id', 'name', 'status']);
 
@@ -128,7 +129,7 @@ class DeliveryAssignmentController extends Controller
         $lat = (float) $request->pickup_latitude;
         $lng = (float) $request->pickup_longitude;
 
-        $agent = DeliveryAgent::where('status', 'active')
+        $agent = DeliveryAgent::where('status', DeliveryAgentStatus::Active)
             ->where('is_available', true)
             ->whereNotNull('current_latitude')
             ->whereNotNull('current_longitude')
@@ -198,7 +199,7 @@ class DeliveryAssignmentController extends Controller
     public function liveMap(): JsonResponse
     {
         // All on_shift agents with coordinates
-        $agents = DeliveryAgent::where('status', 'on_shift')
+        $agents = DeliveryAgent::where('status', DeliveryAgentStatus::OnShift)
             ->whereNotNull('current_latitude')
             ->whereNotNull('current_longitude')
             ->select(['id', 'name', 'status', 'is_available', 'current_latitude', 'current_longitude', 'last_location_at', 'zone_id'])
@@ -207,7 +208,7 @@ class DeliveryAssignmentController extends Controller
                 'type' => 'agent',
                 'id' => $a->id,
                 'name' => $a->name,
-                'status' => $a->status,
+                'status' => $a->status->value,
                 'available' => (bool) $a->is_available,
                 'lat' => (float) $a->current_latitude,
                 'lng' => (float) $a->current_longitude,

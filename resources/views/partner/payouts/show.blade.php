@@ -9,7 +9,7 @@
         'failed' => ['bg-red-100 text-red-700', __('partner.payouts.status_failed')],
         'on_hold' => ['bg-gray-100 text-gray-600', __('partner.payouts.status_on_hold')],
     ];
-    [$statusCls, $statusLabel] = $statusMap[$payout->status] ?? ['bg-gray-100 text-gray-500', $payout->status];
+    [$statusCls, $statusLabel] = $statusMap[$payout->status->value] ?? ['bg-gray-100 text-gray-500', $payout->status->value];
 
     $methodLabels = [
         'bank_transfer' => __('partner.payouts.method_bank_transfer'),

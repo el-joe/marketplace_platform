@@ -2,6 +2,7 @@
 
 namespace App\Services\Carrier;
 
+use App\Enums\DeliveryAgentStatus;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
 use App\Models\ShippingCompany;
@@ -20,7 +21,7 @@ class DashboardService
             $agentsQuery = DeliveryAgent::where('shipping_company_id', $company->id);
             $agentsCount = [
                 'total'     => (int) $agentsQuery->count(),
-                'on_shift'  => (int) (clone $agentsQuery)->where('status', 'on_shift')->count(),
+                'on_shift'  => (int) (clone $agentsQuery)->where('status', DeliveryAgentStatus::OnShift)->count(),
                 'available' => (int) (clone $agentsQuery)->where('is_available', true)->count(),
             ];
 

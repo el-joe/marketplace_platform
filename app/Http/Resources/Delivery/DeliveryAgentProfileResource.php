@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Delivery;
 
+use App\Enums\DeliveryAgentStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,12 +15,12 @@ class DeliveryAgentProfileResource extends JsonResource
             'name'             => $this->name,
             'email'            => $this->email,
             'phone'            => $this->phone,
-            'status'           => $this->status,
+            'status'           => $this->status->value,
             'agent_type'       => $this->agent_type,
             'vehicle_type'     => $this->vehicle_type,
             'vehicle_plate'    => $this->vehicle_plate,
             'is_available'     => $this->is_available,
-            'is_on_shift'      => $this->status === 'on_shift',
+            'is_on_shift'      => $this->status === DeliveryAgentStatus::OnShift,
             'rating_avg'       => $this->rating_avg,
             'total_deliveries' => $this->total_deliveries,
             'per_delivery_fee_cents' => $this->per_delivery_fee_cents,
