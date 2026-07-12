@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ session('locale', 'ar') }}" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ session('locale', 'ar') }}" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}" class="scroll-smooth scroll-pt-[72px]">
 
 <head>
     <meta charset="UTF-8">
