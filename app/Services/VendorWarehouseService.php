@@ -25,17 +25,6 @@ class VendorWarehouseService
 
     public function registerWarehouse(array $data, Vendor $vendor): Warehouse
     {
-        $existing = Warehouse::where('owner_vendor_id', $vendor->id)
-            ->where('country_id', $data['country_id'])
-            ->where('type', WarehouseType::SellerOwned->value)
-            ->exists();
-
-        if ($existing) {
-            throw ValidationException::withMessages([
-                'country_id' => ['You already have a registered warehouse in this country. Edit the existing one instead.'],
-            ]);
-        }
-
         return DB::transaction(function () use ($data, $vendor) {
             $code = $this->generateUniqueCode('SW-', 'warehouses', 'code');
 
