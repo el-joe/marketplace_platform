@@ -21,22 +21,22 @@
 
     <div class="absolute inset-x-0 inset-y-0 flex items-center md:items-center">
         <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div class="max-w-[560px] {{ $isAr ? 'text-right' : 'text-left' }}">
+            <div class="max-w-[560px] md:mt-12 {{ $isAr ? 'text-right' : 'text-left' }}">
                 <h1 class="text-white md:text-[#feee00] font-black leading-[1.1] text-[40px] sm:text-[44px] md:text-[50px]">
-                    {{ $isAr ? 'اشحن بطريقتك' : 'Ship your way' }}
+                    {{ $isAr ? 'اشحن بطريقتك' : 'Ship Your Way' }}
                 </h1>
                 <h2 class="mt-3 text-white font-bold text-[24px] sm:text-[28px] md:text-[32px] leading-tight">
-                    {{ $isAr ? 'اختر طريقة الشحن المناسبة لك' : 'Choose the shipping method that fits you' }}
+                    {{ $isAr ? 'اختر طريقة الشحن المناسبة لك' : 'Choose how you ship' }}
                 </h2>
-                <p class="mt-3 text-gray-200 font-semibold text-[16px] md:text-[18px] max-w-[500px] leading-relaxed">
-                    {{ $isAr
+                <p class="mt-3 text-white font-semibold text-[16px] md:text-[18px] max-w-[500px] leading-relaxed">
+                    {!! $isAr
                         ? 'التنفيذ من قبل نون (FBN) أو التنفيذ من قبل الشريك (FBP). في كل الحالتين، نساعدك على التوصيل بسرعة.'
-                        : 'Fulfilled by noon (FBN) or Fulfilled by partner (FBP). Either way, we help you deliver fast.' }}
+                        : 'Fulfilled by noon (FBN) or Fulfilled by Partner (FBP).<br class="hidden md:block"> Either way, we\'ll help you deliver fast.' !!}
                 </p>
                 <a href="https://youtu.be/rm45BkhIBxY" target="_blank" rel="noopener"
                    class="inline-flex items-center justify-center mt-6 w-full sm:w-auto bg-[#feee00] hover:bg-[#e5d600] text-black
-                          font-black text-base px-7 py-3.5 rounded-full transition-colors">
-                    {{ $isAr ? 'شاهد الفيديو' : 'Watch the video' }}
+                          font-black text-base px-14 py-2.5 rounded-full transition-colors">
+                    {{ $isAr ? 'شاهد الفيديو' : 'Watch Video' }}
                 </a>
             </div>
         </div>
