@@ -65,8 +65,8 @@
 
                 <div class="flex items-center gap-4 mt-6 text-sm text-gray-500 flex-wrap">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-full bg-yellow-400/10 flex items-center justify-center
-                                    text-yellow-400 text-xs font-bold">
+                        <div class="w-7 h-7 rounded-full bg-[#feee00]/10 flex items-center justify-center
+                                    text-[#feee00] text-xs font-bold">
                             {{ mb_substr($post->author->name, 0, 1) }}
                         </div>
                         <span class="text-gray-300 font-medium">{{ $post->author->name }}</span>
@@ -106,7 +106,7 @@
                         @foreach($post->tags as $tag)
                             <a href="{{ route('portal.blog.index', ['tag' => $tag]) }}"
                                class="rounded-full px-3 py-1 text-xs font-medium bg-gray-800
-                                      text-gray-300 hover:bg-yellow-400/10 hover:text-yellow-400 transition-colors">
+                                      text-gray-300 hover:bg-[#feee00]/10 hover:text-[#feee00] transition-colors">
                                 #{{ $tag }}
                             </a>
                         @endforeach
@@ -117,8 +117,8 @@
             {{-- ── Author Card ──────────────────────────────────────── --}}
             <div class="px-8 pb-8">
                 <div class="p-6 bg-gray-950 rounded-2xl flex items-start gap-4 border border-gray-800">
-                    <div class="w-12 h-12 rounded-full bg-yellow-400/10 flex items-center
-                                justify-center text-yellow-400 font-bold text-lg flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-[#feee00]/10 flex items-center
+                                justify-center text-[#feee00] font-bold text-lg flex-shrink-0">
                         {{ mb_substr($post->author->name, 0, 1) }}
                     </div>
                     <div>

@@ -8,7 +8,7 @@
 
     {{-- Account Summary --}}
     <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700 space-y-2">
-        <h3 class="text-xs font-semibold text-yellow-400 uppercase tracking-wider mb-3">{{ $isAr ? 'معلومات الحساب' : 'Account Information' }}</h3>
+        <h3 class="text-xs font-semibold text-[#feee00] uppercase tracking-wider mb-3">{{ $isAr ? 'معلومات الحساب' : 'Account Information' }}</h3>
         <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <div class="text-gray-400">{{ $isAr ? 'الاسم' : 'Name' }}</div>
             <div class="text-white font-medium" x-text="form.name || '—'"></div>
@@ -21,7 +21,7 @@
 
     {{-- Store Summary --}}
     <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700 space-y-2">
-        <h3 class="text-xs font-semibold text-yellow-400 uppercase tracking-wider mb-3">{{ $isAr ? 'معلومات المتجر' : 'Store Information' }}</h3>
+        <h3 class="text-xs font-semibold text-[#feee00] uppercase tracking-wider mb-3">{{ $isAr ? 'معلومات المتجر' : 'Store Information' }}</h3>
         <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <div class="text-gray-400">{{ $isAr ? 'اسم المتجر' : 'Store Name' }}</div>
             <div class="text-white font-medium" x-text="form.store_name || '—'"></div>
@@ -36,7 +36,7 @@
 
     {{-- Address Summary --}}
     <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700 space-y-2">
-        <h3 class="text-xs font-semibold text-yellow-400 uppercase tracking-wider mb-3">{{ $isAr ? 'العنوان التجاري' : 'Business Address' }}</h3>
+        <h3 class="text-xs font-semibold text-[#feee00] uppercase tracking-wider mb-3">{{ $isAr ? 'العنوان التجاري' : 'Business Address' }}</h3>
         <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <div class="text-gray-400">{{ $isAr ? 'الشارع' : 'Street' }}</div>
             <div class="text-white font-medium" x-text="form.street_address || '—'"></div>
@@ -47,7 +47,7 @@
 
     {{-- Documents Summary --}}
     <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
-        <h3 class="text-xs font-semibold text-yellow-400 uppercase tracking-wider mb-3">{{ $isAr ? 'الوثائق المرفوعة' : 'Uploaded Documents' }}</h3>
+        <h3 class="text-xs font-semibold text-[#feee00] uppercase tracking-wider mb-3">{{ $isAr ? 'الوثائق المرفوعة' : 'Uploaded Documents' }}</h3>
         <ul class="space-y-1.5 text-sm">
             <template x-for="doc in docTypes" :key="doc.code">
                 <li class="flex items-center gap-2">
@@ -93,15 +93,15 @@
         {{-- Terms --}}
         <label class="flex items-start gap-3 cursor-pointer group">
             <input type="checkbox" x-model="form.terms_agreed"
-                class="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-800 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-gray-900">
+                class="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-800 text-[#feee00] focus:ring-[#feee00] focus:ring-offset-gray-900">
             <span class="text-sm text-gray-300 group-hover:text-white transition-colors leading-relaxed">
                 @if($isAr)
                     أوافق على
-                    <a href="#" class="text-yellow-400 hover:underline">الشروط والأحكام</a>
+                    <a href="#" class="text-[#feee00] hover:underline">الشروط والأحكام</a>
                     الخاصة ببائعي نون
                 @else
                     I agree to noon's
-                    <a href="#" class="text-yellow-400 hover:underline">Terms and Conditions</a>
+                    <a href="#" class="text-[#feee00] hover:underline">Terms and Conditions</a>
                     for sellers
                 @endif
             </span>
@@ -111,15 +111,15 @@
         {{-- Privacy --}}
         <label class="flex items-start gap-3 cursor-pointer group">
             <input type="checkbox" x-model="form.privacy_agreed"
-                class="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-800 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-gray-900">
+                class="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-800 text-[#feee00] focus:ring-[#feee00] focus:ring-offset-gray-900">
             <span class="text-sm text-gray-300 group-hover:text-white transition-colors leading-relaxed">
                 @if($isAr)
                     أوافق على
-                    <a href="#" class="text-yellow-400 hover:underline">سياسة الخصوصية</a>
+                    <a href="#" class="text-[#feee00] hover:underline">سياسة الخصوصية</a>
                     وأذن لنون بمعالجة بياناتي التجارية
                 @else
                     I agree to the
-                    <a href="#" class="text-yellow-400 hover:underline">Privacy Policy</a>
+                    <a href="#" class="text-[#feee00] hover:underline">Privacy Policy</a>
                     and authorize noon to process my business data
                 @endif
             </span>

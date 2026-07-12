@@ -21,7 +21,7 @@
     <div class="absolute inset-x-0 top-[30%] md:top-0 md:inset-y-0 flex items-start md:items-center">
         <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div class="max-w-[560px] {{ $isAr ? 'text-right' : 'text-left' }}">
-                <h1 class="text-white md:text-yellow-400 font-extrabold leading-[1.1] text-[36px] md:text-[50px]">
+                <h1 class="text-white md:text-[#feee00] font-extrabold leading-[1.1] text-[36px] md:text-[50px]">
                     {{ $isAr ? 'اشحن بطريقتك' : 'Ship your way' }}
                 </h1>
                 <h2 class="mt-3 text-white font-bold text-[20px] md:text-[32px] leading-tight">
@@ -33,7 +33,7 @@
                         : 'Fulfilled by noon (FBN) or Fulfilled by partner (FBP). Either way, we help you deliver fast.' }}
                 </p>
                 <a href="https://youtu.be/rm45BkhIBxY" target="_blank" rel="noopener"
-                   class="inline-flex items-center justify-center mt-6 w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-black
+                   class="inline-flex items-center justify-center mt-6 w-full sm:w-auto bg-[#feee00] hover:bg-[#e5d600] text-black
                           font-black text-base px-7 py-3.5 rounded-full transition-colors">
                     {{ $isAr ? 'شاهد الفيديو' : 'Watch the video' }}
                 </a>

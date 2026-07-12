@@ -20,6 +20,10 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
             colors: {
+                yellow: {
+                    300: '#e5d600',
+                    400: '#feee00',
+                },
                 primary: {
                     50: '#f0f9ff',
                     100: '#e0f2fe',

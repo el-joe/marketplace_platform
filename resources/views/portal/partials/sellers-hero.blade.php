@@ -13,7 +13,7 @@
                         : 'Join thousands of sellers leveraging our ad solutions to reach their marketing and sales objectives across locations and irrespective of their budgets.' }}
                 </p>
                 <a href="{{ route('portal.register') }}" target="_blank" rel="noopener"
-                   class="mt-6 inline-flex items-center justify-center bg-yellow-400 hover:bg-yellow-300 text-black
+                   class="mt-6 inline-flex items-center justify-center bg-[#feee00] hover:bg-[#e5d600] text-black
                           font-black text-sm sm:text-base px-6 sm:px-8 py-3 rounded-full transition-colors">
                     {{ $isAr ? 'ابدأ الآن' : 'Start now' }}
                 </a>

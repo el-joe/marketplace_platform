@@ -14,11 +14,11 @@
         </div>
         <div class="flex flex-wrap justify-center gap-3">
             <a href="{{ route('portal.faq') }}"
-               class="border border-gray-600 hover:border-yellow-400 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors">
+               class="border border-gray-600 hover:border-[#feee00] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors">
                 {{ $isAr ? 'حمل الدليل' : 'Download the guide' }}
             </a>
             <a href="{{ route('portal.how-it-works') }}"
-               class="bg-yellow-400 hover:bg-yellow-300 text-black text-sm font-black px-5 py-2.5 rounded-full transition-colors">
+               class="bg-[#feee00] hover:bg-[#e5d600] text-black text-sm font-black px-5 py-2.5 rounded-full transition-colors">
                 {{ $isAr ? 'شاهد فيديوهات الشرح' : 'Watch how-to videos' }}
             </a>
         </div>

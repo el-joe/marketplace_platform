@@ -17,7 +17,7 @@
         {{-- Logo --}}
         <div class="text-center mb-8">
             <a href="{{ route('portal.home') }}" class="inline-flex items-center gap-2">
-                <span class="bg-yellow-400 text-gray-950 font-black text-2xl px-3 py-1 rounded">noon</span>
+                <span class="bg-[#feee00] text-gray-950 font-black text-2xl px-3 py-1 rounded">noon</span>
                 <span class="text-white text-lg font-semibold">{{ $isAr ? 'للبائعين' : 'for Sellers' }}</span>
             </a>
             <h1 class="mt-5 text-2xl font-black text-white">{{ $isAr ? 'انضم إلى منصة نون كبائع' : 'Join noon as a Seller' }}</h1>
@@ -38,8 +38,8 @@
                             <div
                                 class="relative flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold border-2 transition-all duration-300 flex-shrink-0"
                                 :class="{
-                                    'bg-yellow-400 border-yellow-400 text-gray-900': step === n,
-                                    'bg-yellow-400/20 border-yellow-400 text-yellow-400': step > n,
+                                    'bg-[#feee00] border-[#feee00] text-gray-900': step === n,
+                                    'bg-[#feee00]/20 border-[#feee00] text-[#feee00]': step > n,
                                     'bg-gray-700 border-gray-600 text-gray-400': step < n
                                 }"
                             >
@@ -55,14 +55,14 @@
                             <div
                                 x-show="n < totalSteps"
                                 class="flex-1 h-0.5 mx-1 transition-all duration-300"
-                                :class="step > n ? 'bg-yellow-400' : 'bg-gray-600'"
+                                :class="step > n ? 'bg-[#feee00]' : 'bg-gray-600'"
                             ></div>
                         </div>
                     </template>
                 </div>
                 <div class="text-center">
                     <p class="text-xs text-gray-400">
-                        {{ $isAr ? 'الخطوة' : 'Step' }} <span x-text="step" class="text-yellow-400 font-semibold"></span>
+                        {{ $isAr ? 'الخطوة' : 'Step' }} <span x-text="step" class="text-[#feee00] font-semibold"></span>
                         {{ $isAr ? 'من' : 'of' }} <span x-text="totalSteps" class="font-semibold text-white"></span>
                     </p>
                     <p class="text-white font-semibold mt-1 text-sm" x-text="stepTitle()"></p>
@@ -119,7 +119,7 @@
                     @click="nextStep()"
                     type="button"
                     :disabled="loading"
-                    class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-yellow-400 hover:bg-yellow-300 text-gray-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#feee00] hover:bg-[#e5d600] text-gray-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                     <span x-show="!loading">{{ $isAr ? 'التالي ←' : '→ Next' }}</span>
                     <span x-show="loading" class="flex items-center justify-center gap-2">
@@ -136,7 +136,7 @@
                     @click="submit()"
                     type="button"
                     :disabled="loading || !form.terms_agreed || !form.privacy_agreed"
-                    class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-yellow-400 hover:bg-yellow-300 text-gray-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#feee00] hover:bg-[#e5d600] text-gray-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                     <span x-show="!loading">{{ $isAr ? 'إرسال الطلب ✓' : 'Submit Application ✓' }}</span>
                     <span x-show="loading" class="flex items-center justify-center gap-2">
@@ -153,7 +153,7 @@
 
         <p class="text-center text-sm text-gray-500 mt-6">
             {{ $isAr ? 'لديك حساب بائع بالفعل؟' : 'Already have a seller account?' }}
-            <a href="{{ route('partner.login') }}" class="text-yellow-400 hover:underline">{{ $isAr ? 'تسجيل الدخول' : 'Log in' }}</a>
+            <a href="{{ route('partner.login') }}" class="text-[#feee00] hover:underline">{{ $isAr ? 'تسجيل الدخول' : 'Log in' }}</a>
         </p>
 
     </div>

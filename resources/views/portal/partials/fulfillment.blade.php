@@ -8,7 +8,7 @@
                  class="absolute inset-0 w-full h-full object-cover">
         </div>
         <div class="pt-8 px-6 pb-8 md:pt-10 md:px-10 md:pb-10">
-            <h2 class="text-yellow-400 font-black text-xl lg:text-2xl">{{ $isAr ? 'الشحن والتوصيل' : 'Shipping and Fulfilment' }}</h2>
+            <h2 class="text-[#feee00] font-black text-xl lg:text-2xl">{{ $isAr ? 'الشحن والتوصيل' : 'Shipping and Fulfilment' }}</h2>
             <h3 class="text-white font-black text-lg lg:text-xl mt-1 mb-4">
                 {{ $isAr ? 'خيارات تنفيذ مرنة تناسبك' : 'Flexible fulfilment options that work for you' }}
             </h3>
@@ -21,14 +21,14 @@
                     [$isAr ? 'التنفيذ من قبل الشريك — مصمم للمرونة' : 'Fulfilled by Partner — Built for flexibility'],
                 ] as $item)
                     <li class="flex items-start gap-3 text-gray-200 text-[15px]">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3E008" width="18" class="shrink-0 mt-1 {{ $isAr ? '-scale-x-100' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#feee00" width="18" class="shrink-0 mt-1 {{ $isAr ? '-scale-x-100' : '' }}">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                         </svg>
                         <span>{{ $item[0] }}</span>
                     </li>
                 @endforeach
             </ul>
-            <a href="{{ route('portal.fulfillment') }}" class="inline-flex items-center gap-2 text-yellow-400 font-bold text-sm">
+            <a href="{{ route('portal.fulfillment') }}" class="inline-flex items-center gap-2 text-[#feee00] font-bold text-sm">
                 {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" class="{{ $isAr ? '-scale-x-100' : '' }}">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />

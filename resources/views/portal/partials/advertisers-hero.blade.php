@@ -13,7 +13,7 @@
                         : 'Not selling on noon, but looking to boost your visibility to large audiences across geographies? Want to increase awareness of specific events/ launches? Planning on sharing specific offers to targeted customers?' }}
                 </p>
                 <a href="{{ route('portal.advertise.request', $country ?? 'ae') }}"
-                   class="mt-6 inline-flex items-center justify-center bg-yellow-400 hover:bg-yellow-300 text-black
+                   class="mt-6 inline-flex items-center justify-center bg-[#feee00] hover:bg-[#e5d600] text-black
                           font-black text-sm sm:text-base px-6 sm:px-8 py-3 rounded-full transition-colors">
                     {{ $isAr ? 'اتصل بنا' : 'Contact us' }}
                 </a>

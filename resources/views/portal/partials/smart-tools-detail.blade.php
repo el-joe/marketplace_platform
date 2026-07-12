@@ -18,7 +18,7 @@
                         ? 'وصل لعدد أكبر من العملاء، زوّد مبيعاتك، ووسّع شغلك بشكل أسرع.'
                         : 'Reach more customers, grow your sales, and scale your business faster.' }}
                 </p>
-                <p class="text-yellow-400 font-black text-xs uppercase tracking-wider mt-5">
+                <p class="text-[#feee00] font-black text-xs uppercase tracking-wider mt-5">
                     {{ $isAr ? 'مع حلولنا متعددة الصيغ، ستحصل على إمكانية الوصول إلى:' : 'With our multi-format solutions, you get access to:' }}
                 </p>
                 <ul class="mt-2 text-[16px] font-medium text-gray-300 list-disc list-inside space-y-1">
@@ -27,7 +27,7 @@
                 </ul>
                 <div class="mt-6">
                     <a href="{{ route('portal.sellers', $country ?? 'ae') }}"
-                       class="inline-flex items-center gap-2 text-yellow-400 font-bold text-sm">
+                       class="inline-flex items-center gap-2 text-[#feee00] font-bold text-sm">
                         {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" class="{{ $isAr ? '-scale-x-100' : '' }}">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
@@ -45,7 +45,7 @@
     {{-- Fee structure --}}
     <section id="fees" class="bg-[#1c1c1c] py-12 lg:py-16 w-full">
         <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-yellow-400 font-black text-xl lg:text-2xl">{{ $isAr ? 'هيكل الرسوم' : 'Fee structure' }}</h2>
+            <h2 class="text-[#feee00] font-black text-xl lg:text-2xl">{{ $isAr ? 'هيكل الرسوم' : 'Fee structure' }}</h2>
             <h3 class="text-white font-black text-lg lg:text-xl mt-1 mb-8 text-pretty">
                 {{ $isAr
                     ? 'هيكل رسوم شفاف وبسيط بدون أي تكاليف خفية – مصمم للنمو المستدام.'
@@ -63,7 +63,7 @@
                     <p class="text-[16px] font-medium text-gray-300">{{ $isAr ? 'الإعدادات شفافة، مرنة، ومصممة لتنمو معك.' : 'Fees are transparent, flexible, and designed to grow with you.' }}</p>
                     <div class="mt-8">
                         <a href="https://support.noon.partners/portal/{{ $isAr ? 'ar' : 'en' }}/kb/search/{{ $isAr ? 'رسوم' : 'fees' }}" target="_blank" rel="noopener"
-                           class="inline-flex items-center justify-center w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-black
+                           class="inline-flex items-center justify-center w-full sm:w-auto bg-[#feee00] hover:bg-[#e5d600] text-black
                                   font-black text-sm px-6 py-3 rounded-full transition-colors">
                             {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
                         </a>
@@ -122,7 +122,7 @@
                         <p class="mt-2 text-gray-300 text-sm font-medium text-pretty">{{ $isAr ? $card['desc_ar'] : $card['desc_en'] }}</p>
                         <div class="flex flex-col gap-1 mt-3">
                             @foreach($card['links'] as $link)
-                                <a href="{{ $link['url'] }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-yellow-400 font-bold text-sm">
+                                <a href="{{ $link['url'] }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-[#feee00] font-bold text-sm">
                                     {{ $isAr ? $link['label_ar'] : $link['label_en'] }}
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" class="{{ $isAr ? '-scale-x-100' : '' }}">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
@@ -141,7 +141,7 @@
         <div class="rounded-2xl border-2 border-[#1c1c1c] p-6 lg:p-12 grid grid-cols-1 md:grid-cols-[1fr_auto] items-center gap-6 lg:gap-16">
             <div>
                 <h2 class="text-2xl sm:text-[26px] font-bold leading-tight mb-4 lg:mb-6">
-                    {{ $isAr ? 'استلام' : 'Receiving' }} <span class="text-yellow-400">{{ $isAr ? 'الأرباح' : 'Payouts' }}</span>
+                    {{ $isAr ? 'استلام' : 'Receiving' }} <span class="text-[#feee00]">{{ $isAr ? 'الأرباح' : 'Payouts' }}</span>
                 </h2>
                 <h3 class="text-[16px] font-bold leading-tight">{{ $isAr ? 'كل اللي عليك تربط حسابك البنكي.' : 'All you have to do is link your bank account.' }}</h3>
                 <p class="text-[14px] font-medium mt-3 text-gray-300">
@@ -152,7 +152,7 @@
             </div>
             <div class="mt-2 md:mt-0">
                 <a href="https://support.noon.partners/portal/{{ $isAr ? 'ar' : 'en' }}/kb/articles/how-do-i-receive-my-payouts" target="_blank" rel="noopener"
-                   class="inline-flex items-center justify-center w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-black
+                   class="inline-flex items-center justify-center w-full sm:w-auto bg-[#feee00] hover:bg-[#e5d600] text-black
                           font-black text-sm px-6 py-3 rounded-full transition-colors">
                     {{ $isAr ? 'اكتشف كيف' : 'Discover how' }}
                 </a>
@@ -169,7 +169,7 @@
                      class="absolute inset-0 w-full h-full object-cover">
             </div>
             <div class="pt-8 px-6 pb-10 md:px-8">
-                <h2 class="text-yellow-400 font-black text-xl lg:text-2xl">{{ $isAr ? 'التحليلات والرؤى' : 'Analytics & insights' }}</h2>
+                <h2 class="text-[#feee00] font-black text-xl lg:text-2xl">{{ $isAr ? 'التحليلات والرؤى' : 'Analytics & insights' }}</h2>
                 <h3 class="text-white font-black text-lg lg:text-xl mt-3 mb-3 leading-tight">
                     {{ $isAr
                         ? 'تابع سلوك عملائك وأداء مبيعاتك وحسّن عملك باستخدام تحليلات قوية عبر:'
@@ -184,7 +184,7 @@
                         [$isAr ? 'إدارة السمعة' : 'Reputation management'],
                     ] as $item)
                         <li class="flex items-center gap-3 text-gray-300 font-medium text-[15px]">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3E008" width="16" class="shrink-0 {{ $isAr ? '-scale-x-100' : '' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#feee00" width="16" class="shrink-0 {{ $isAr ? '-scale-x-100' : '' }}">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                             </svg>
                             <span>{{ $item[0] }}</span>

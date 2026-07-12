@@ -76,12 +76,12 @@
                                     <span>{{ $isAr ? 'الخطوة '.$i.':' : 'Step '.$i.':' }}</span>
                                     <span>{{ $isAr ? $step['title_ar'] : $step['title_en'] }}</span>
                                 </div>
-                                <span class="text-[12px] font-bold uppercase tracking-wider text-yellow-400">
+                                <span class="text-[12px] font-bold uppercase tracking-wider text-[#feee00]">
                                     {{ $isAr ? $step['caption_ar'] : $step['caption_en'] }}
                                 </span>
                             </div>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                 class="h-5 w-5 shrink-0 text-yellow-400 transition-transform"
+                                 class="h-5 w-5 shrink-0 text-[#feee00] transition-transform"
                                  :style="openStep === {{ $i }} ? 'transform:rotate(180deg)' : ''">
                                 <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
                             </svg>
@@ -92,13 +92,13 @@
                             <ul class="space-y-3">
                                 @foreach($step['items'] as $item)
                                     <li class="flex items-start gap-3 text-gray-200 text-[14px]">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3E008" width="16" class="shrink-0 mt-1 {{ $isAr ? '-scale-x-100' : '' }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#feee00" width="16" class="shrink-0 mt-1 {{ $isAr ? '-scale-x-100' : '' }}">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                                         </svg>
                                         <span class="flex flex-col gap-1">
                                             <span>{{ $isAr ? $item['text_ar'] : $item['text_en'] }}</span>
                                             @if(isset($item['link_route']))
-                                                <a href="{{ route($item['link_route']) }}" class="text-yellow-400 font-bold text-[13px] hover:underline">
+                                                <a href="{{ route($item['link_route']) }}" class="text-[#feee00] font-bold text-[13px] hover:underline">
                                                     {{ $isAr ? $item['link_ar'] : $item['link_en'] }}
                                                 </a>
                                             @endif
@@ -109,7 +109,7 @@
 
                             @if(isset($step['cta_route']))
                                 <a href="{{ route($step['cta_route']) }}"
-                                   class="inline-block mt-4 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm px-6 py-2.5 rounded-full transition-colors">
+                                   class="inline-block mt-4 bg-[#feee00] hover:bg-[#e5d600] text-black font-black text-sm px-6 py-2.5 rounded-full transition-colors">
                                     {{ $isAr ? $step['cta_ar'] : $step['cta_en'] }}
                                 </a>
                             @endif

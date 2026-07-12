@@ -2,7 +2,7 @@
 
 <div class="bg-[#151515] py-10 lg:py-12">
     <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-[#F3E008] font-bold text-[28px] lg:text-[36px] mb-2">{{ $isAr ? 'البدء' : 'Getting Started' }}</h1>
+        <h1 class="text-[#feee00] font-bold text-[28px] lg:text-[36px] mb-2">{{ $isAr ? 'البدء' : 'Getting Started' }}</h1>
         <h2 class="text-white font-bold text-[22px] lg:text-[26px] leading-tight mb-8 lg:mb-10">
             {{ $isAr ? 'جاهز انك تبدأ البيع؟' : 'Ready to start selling?' }}<br>
             {{ $isAr ? 'انه سريع و سهل — اليك ما تحتاجه' : "It's quick and easy — here's what you'll need" }}
@@ -42,7 +42,7 @@
                         [$isAr ? 'إثبات الهوية — جواز السفر / بطاقة الهوية الإماراتية' : 'Identity proof — Passport / Emirates ID'],
                     ] as $item)
                         <li class="flex items-start gap-3 text-gray-200 text-[15px]">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3E008" width="18" class="shrink-0 mt-1 {{ $isAr ? '-scale-x-100' : '' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#feee00" width="18" class="shrink-0 mt-1 {{ $isAr ? '-scale-x-100' : '' }}">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                             </svg>
                             <span>{{ $item[0] }}</span>
@@ -51,7 +51,7 @@
                 </ul>
 
                 <a href="{{ route('portal.faq') }}"
-                   class="inline-block bg-[#F3E008] text-black text-[15px] font-bold w-full sm:w-[260px] text-center py-2.5 rounded-full hover:bg-[#e3d107] transition-colors mb-10">
+                   class="inline-block bg-[#feee00] text-black text-[15px] font-bold w-full sm:w-[260px] text-center py-2.5 rounded-full hover:bg-[#e5d600] transition-colors mb-10">
                     {{ $isAr ? 'الأسئلة الشائعة حول المستندات' : 'Documents FAQs' }}
                 </a>
 
@@ -77,7 +77,7 @@
                     {{ $isAr ? ' عميلك الأول قد يكون على بعد نقرة واحدة فقط.' : ' Your first customer could be just a click away.' }}
                 </p>
 
-                <a href="{{ route('portal.how-it-works') }}" class="inline-flex items-center gap-2 text-[#F3E008] font-bold text-[15px] hover:text-[#e3d107] transition-colors">
+                <a href="{{ route('portal.how-it-works') }}" class="inline-flex items-center gap-2 text-[#feee00] font-bold text-[15px] hover:text-[#e5d600] transition-colors">
                     {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" class="{{ $isAr ? '-scale-x-100' : '' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />

@@ -39,7 +39,7 @@
                     </h1>
                     @php($heroCta = portal_link('home', 'hero', 'cta_button', 'Sign Up Now', 'سجل الآن', route('portal.register')))
                     <a href="{{ $heroCta['url'] }}"
-                       class="group inline-flex items-center justify-center gap-2 mt-6 bg-[#f3e00b] hover:opacity-90 text-black
+                       class="group inline-flex items-center justify-center gap-2 mt-6 bg-[#feee00] hover:opacity-90 text-black
                               font-bold text-base min-w-[222px] h-10 px-12 rounded-full transition-all duration-300 capitalize">
                         <span>{{ $heroCta['label'] }}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20"

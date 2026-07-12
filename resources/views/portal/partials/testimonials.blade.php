@@ -12,7 +12,7 @@
                         referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
             <div>
-                <p class="text-yellow-400 font-black uppercase tracking-wide text-xs mb-2">{{ $isAr ? 'قصة نجاح بائع' : 'Seller success story' }}</p>
+                <p class="text-[#feee00] font-black uppercase tracking-wide text-xs mb-2">{{ $isAr ? 'قصة نجاح بائع' : 'Seller success story' }}</p>
                 <h3 class="text-white font-black text-lg lg:text-2xl leading-snug mb-4 text-pretty">
                     {{ $isAr
                         ? 'اختارت حول الإمارات نموذج التوصيل عن طريق البائع (FBP) من نون — وأصبحت البائع رقم 1 للأثاث في المنطقة.'
@@ -23,7 +23,7 @@
                         ? 'اكتشف كيف ساعد الدعم المخصص، والإدارة المصممة خصيصا، والأدوات القوية في تحقيق نجاحهم.'
                         : 'Discover how dedicated support, tailored account management, and powerful tools helped drive their success.' }}
                 </p>
-                <p class="text-xs font-bold text-yellow-400 tracking-wide">- {{ $isAr ? 'حول الإمارات' : 'Hawel Emirates' }}</p>
+                <p class="text-xs font-bold text-[#feee00] tracking-wide">- {{ $isAr ? 'حول الإمارات' : 'Hawel Emirates' }}</p>
             </div>
         </div>
 
@@ -79,7 +79,7 @@
                             {{ $isAr ? $t['quote_ar'] : $t['quote_en'] }}
                         </p>
                         <p class="text-white text-xs font-extrabold mt-2">{{ $isAr ? $t['name_ar'] : $t['name_en'] }}</p>
-                        <p class="text-yellow-400 text-xs font-extrabold">{{ $t['company'] }}</p>
+                        <p class="text-[#feee00] text-xs font-extrabold">{{ $t['company'] }}</p>
                     </div>
                 </div>
             @endforeach
