@@ -12,8 +12,9 @@
 </style>
 @endpush
 
-<section class="bg-[#1c1c1c] pt-8 pb-10 lg:pb-12 md:py-10 lg:py-12">
-    <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+<section class="bg-[#1c1c1c] relative pt-8 pb-10 lg:pb-12 md:py-10 lg:py-12">
+    <div class="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black to-transparent pointer-events-none"></div>
+    <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <h2 class="text-2xl sm:text-[32px] font-extrabold mb-6 lg:mb-8 text-white">
             {{ $isAr ? 'خطوات لـ ' : 'Steps to ' }}<span class="text-[#feee00] animate-blink-4 inline-block">{{ $isAr ? 'البدء' : 'Go Live' }}</span>
         </h2>
