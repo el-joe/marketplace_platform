@@ -30,7 +30,9 @@ class ListingController extends Controller
 {
     use HasDataTable;
 
-    public function __construct(private readonly ListingShippingResolver $shippingResolver) {}
+    public function __construct(private readonly ListingShippingResolver $shippingResolver)
+    {
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Helpers
@@ -604,7 +606,7 @@ class ListingController extends Controller
                     'movement_type' => 'adjustment',
                     'quantity_delta' => (int) $request->adjustment,
                     'quantity_after' => $newOnHand,
-                    'reference_type' => 'manual_adjustment',
+                    'reference_type' => 'adjustment',
                     'reference_id' => $listing->id,
                     'reason' => $request->reason,
                     'created_by_user_id' => Auth::guard('vendor')->user()->id,

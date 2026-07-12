@@ -8,13 +8,13 @@
         ?? $product->images->first();
 
     $statusMap = [
-        'active' => ['bg-green-100 text-green-700', __('partner.listings.show.statuses.active')],
-        'paused' => ['bg-gray-100 text-gray-600', __('partner.listings.show.statuses.paused')],
-        'pending_review' => ['bg-yellow-100 text-yellow-700', __('partner.listings.show.statuses.pending_review')],
-        'draft' => ['bg-gray-100 text-gray-500', __('partner.listings.show.statuses.draft')],
-        'rejected' => ['bg-red-100 text-red-700', __('partner.listings.show.statuses.rejected')],
-        'out_of_stock' => ['bg-red-50 text-red-500', __('partner.listings.show.statuses.out_of_stock')],
-        'archived' => ['bg-gray-100 text-gray-400', __('partner.listings.show.statuses.archived')],
+        \App\Enums\VendorListingStatus::Active->value => ['bg-green-100 text-green-700', __('partner.listings.show.statuses.active')],
+        \App\Enums\VendorListingStatus::Paused->value => ['bg-gray-100 text-gray-600', __('partner.listings.show.statuses.paused')],
+        \App\Enums\VendorListingStatus::PendingReview->value => ['bg-yellow-100 text-yellow-700', __('partner.listings.show.statuses.pending_review')],
+        \App\Enums\VendorListingStatus::Draft->value => ['bg-gray-100 text-gray-500', __('partner.listings.show.statuses.draft')],
+        \App\Enums\VendorListingStatus::Rejected->value => ['bg-red-100 text-red-700', __('partner.listings.show.statuses.rejected')],
+        \App\Enums\VendorListingStatus::OutOfStock->value => ['bg-red-50 text-red-500', __('partner.listings.show.statuses.out_of_stock')],
+        \App\Enums\VendorListingStatus::Archived->value => ['bg-gray-100 text-gray-400', __('partner.listings.show.statuses.archived')],
     ];
     [$statusClass, $statusLabel] = $statusMap[$listing->status->value] ?? ['bg-gray-100 text-gray-600', $listing->status->value];
 
@@ -31,11 +31,14 @@
         'refurbished' => __('partner.listings.show.condition_labels.refurbished'),
     ];
     $movementTypeLabels = [
-        'inbound' => ['text-green-600', __('partner.listings.show.movement_types.inbound')],
-        'outbound' => ['text-red-600', __('partner.listings.show.movement_types.outbound')],
-        'adjustment' => ['text-blue-600', __('partner.listings.show.movement_types.adjustment')],
-        'reservation' => ['text-purple-600', __('partner.listings.show.movement_types.reservation')],
-        'reservation_release' => ['text-teal-600', __('partner.listings.show.movement_types.reservation_release')],
+        \App\Enums\InventoryMovementType::Inbound->value => ['text-green-600', __('partner.listings.show.movement_types.inbound')],
+        \App\Enums\InventoryMovementType::Outbound->value => ['text-red-600', __('partner.listings.show.movement_types.outbound')],
+        \App\Enums\InventoryMovementType::Adjustment->value => ['text-blue-600', __('partner.listings.show.movement_types.adjustment')],
+        \App\Enums\InventoryMovementType::Reservation->value => ['text-purple-600', __('partner.listings.show.movement_types.reservation')],
+        \App\Enums\InventoryMovementType::Release->value => ['text-teal-600', __('partner.listings.show.movement_types.reservation_release')],
+        \App\Enums\InventoryMovementType::Damage->value => ['text-orange-600', __('partner.listings.show.movement_types.damage')],
+        \App\Enums\InventoryMovementType::ReturnMovement->value => ['text-yellow-600', __('partner.listings.show.movement_types.return')],
+        \App\Enums\InventoryMovementType::Transfer->value => ['text-indigo-600', __('partner.listings.show.movement_types.transfer')],
     ];
 @endphp
 
@@ -275,8 +278,8 @@
                             <tbody class="divide-y divide-gray-50">
                                 @foreach($movements as $mov)
                                     @php
-                                        [$movCls, $movLabel] = $movementTypeLabels[$mov->movement_type]
-                                            ?? ['text-gray-600', $mov->movement_type];
+                                        [$movCls, $movLabel] = $movementTypeLabels[$mov->movement_type->value]
+                                            ?? ['text-gray-600', $mov->movement_type->value];
                                         $deltaSign = $mov->quantity_delta > 0 ? '+' : '';
                                     @endphp
                                     <tr>
