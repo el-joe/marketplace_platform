@@ -244,6 +244,7 @@ Route::prefix('v1/{country}')
 
             // Disputes
             Route::prefix('disputes')->name('customer.disputes.')->group(function (): void {
+                Route::get('/', [DisputeController::class, 'index'])->name('index');
                 Route::get('{dispute_number}', [DisputeController::class, 'show'])->name('show');
                 Route::post('{dispute_number}/messages', [DisputeController::class, 'addMessage'])->name('messages.store');
             });
