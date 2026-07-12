@@ -172,7 +172,6 @@ class Category extends Model
 
     public function brandsInSubtree()
     {
-        dd($this->descendantIds());
         return Brand::query()
             ->whereHas('categories', fn($q) => $q->where('categories.is_active', true)->whereIn('categories.id', $this->descendantIds()));
     }
