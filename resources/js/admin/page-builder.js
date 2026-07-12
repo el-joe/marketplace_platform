@@ -474,60 +474,12 @@ function openConfigPanel(blockId) {
         Promise.resolve().then(() => {
             applyConfigToForm(cfg);
             if (getBlockTypeOf(blockId) === 'hero_slider') loadSlidesList(blockId);
-            initPlacementWidgets();
             if ($('#config-form-body [data-block-products-list]').length) loadPickerList('products', blockId);
             if ($('#config-form-body [data-block-categories-list]').length) loadPickerList('categories', blockId);
             if ($('#config-form-body [data-block-sellers-list]').length) loadPickerList('sellers', blockId);
         });
     }).fail(() => {
         $('#config-form-body').html('<div class="text-sm text-rose-600 text-center py-8">Failed to load config form.</div>');
-    });
-}
-
-/* ─── Sponsored products: placement_code picker + active bookings preview ── */
-function initPlacementWidgets() {
-    const $select = $('#config-form-body [data-placements-select]');
-    if (!$select.length) return;
-
-    const currentValue = $select.val();
-    ajax({ url: $select.data('placements-url'), method: 'GET' }).done((res) => {
-        (res.results || []).forEach((row) => {
-            $select.append(`<option value="${escapeHtml(row.id)}">${escapeHtml(row.text)}</option>`);
-        });
-        if (currentValue) $select.val(currentValue);
-        loadPlacementBookings($select.val());
-    });
-
-    $select.off('change.placementBookings').on('change.placementBookings', function () {
-        loadPlacementBookings($(this).val());
-    });
-}
-
-function loadPlacementBookings(placementCode) {
-    const $preview = $('#config-form-body [data-placement-bookings-preview]');
-    const $list = $preview.find('[data-bookings-list]');
-    if (!$preview.length) return;
-
-    if (!placementCode) {
-        $list.html(window.TRANSLATIONS?.selectPlacementFirst || 'Select a placement to preview active bookings.');
-        return;
-    }
-
-    $list.html('<span class="text-gray-400">Loading…</span>');
-    ajax({ url: $preview.data('bookings-url'), method: 'GET', data: { placement_code: placementCode } }).done((res) => {
-        const rows = res.results || [];
-        if (!rows.length) {
-            $list.html('<span class="text-gray-400">No active bookings for this placement right now.</span>');
-            return;
-        }
-        $list.html(rows.map((b) => `
-            <div class="flex items-center gap-2 py-1 border-b border-gray-100 last:border-0">
-                <span class="font-medium text-gray-700">${escapeHtml(b.brand_name || b.booking_reference)}</span>
-                <span class="text-xs text-gray-400">${escapeHtml(b.booked_from)} – ${escapeHtml(b.booked_until)}</span>
-            </div>
-        `).join(''));
-    }).fail(() => {
-        $list.html('<span class="text-rose-600">Failed to load bookings.</span>');
     });
 }
 

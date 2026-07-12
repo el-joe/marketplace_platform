@@ -7106,21 +7106,6 @@ return [
                 'max_items'          => 'أقصى عدد للعناصر',
             ],
 
-            'sponsored_products' => [
-                'placement_code'        => 'موضع الإعلان',
-                'placement_help'        => 'يتم تحميله من تعريفات مواضع البانر النشطة.',
-                'active_bookings'       => 'الحجوزات النشطة لهذا الموضع',
-                'select_placement_first' => 'اختر موضعًا لمعاينة الحجوزات النشطة.',
-                'max_products'          => 'أقصى عدد للمنتجات',
-                'items_per_row'         => 'العناصر لكل صف',
-                'ad_source'             => 'مصدر الإعلان',
-                'active_campaigns'      => 'الحملات الإعلانية النشطة',
-                'manual_selection'      => 'اختيار يدوي',
-                'sponsored_badge'       => 'شارة إعلان ممول',
-                'scrollable'            => 'قابل للتمرير',
-                'ratings'               => 'التقييمات',
-            ],
-
             'deal_of_day' => [
                 'deal_ends_at'          => 'ينتهي العرض في',
                 'vendor_listing'        => 'قائمة البائع',

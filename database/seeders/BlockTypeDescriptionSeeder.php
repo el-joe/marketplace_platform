@@ -110,16 +110,6 @@ class BlockTypeDescriptionSeeder extends Seeder
                 'default_config' => ['aspect_ratio' => '4:1', 'mobile_aspect_ratio' => '2:1'],
             ],
             [
-                'code' => 'sponsored_products', 'group' => 'ads_banners',
-                'label_en' => 'Sponsored Products', 'label_ar' => 'منتجات مدفوعة',
-                'icon' => 'sparkles', 'max_per_page' => null,
-                'requires_permission' => 'banners.create',
-                'description_en' => "Displays currently active paid banner bookings for the selected placement. Placements are defined in the Banner Placement Definitions settings. Only active bookings (within their booked date range) appear. Billing and rate data is never visible to customers — this block only renders the banner image and link.",
-                'description_ar' => "تعرض الحجوزات الإعلانية المدفوعة النشطة حاليًا للموضع المحدد. تُعرَّف المواضع في إعدادات تعريفات مواضع البانرات. تظهر فقط الحجوزات النشطة (ضمن نطاق تاريخها المحجوز). بيانات الفوترة والأسعار لا تظهر أبدًا للعملاء — هذه الكتلة تعرض فقط صورة البانر ورابطه.",
-                'config_schema' => ['placement_code', 'max_items'],
-                'default_config' => ['max_items' => 8],
-            ],
-            [
                 'code' => 'category_pills', 'group' => 'discovery',
                 'label_en' => 'Category Pills', 'label_ar' => 'أزرار الفئات',
                 'icon' => 'tag', 'max_per_page' => null,

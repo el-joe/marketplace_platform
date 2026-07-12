@@ -7112,21 +7112,6 @@ return [
                 'max_items'          => 'Max items',
             ],
 
-            'sponsored_products' => [
-                'placement_code'        => 'Placement',
-                'placement_help'        => 'Loaded from active banner placement definitions.',
-                'active_bookings'       => 'Active bookings for this placement',
-                'select_placement_first' => 'Select a placement to preview active bookings.',
-                'max_products'          => 'Max products',
-                'items_per_row'         => 'Items per row',
-                'ad_source'             => 'Ad source',
-                'active_campaigns'      => 'Active ad campaigns',
-                'manual_selection'      => 'Manual selection',
-                'sponsored_badge'       => 'Sponsored badge',
-                'scrollable'            => 'Scrollable',
-                'ratings'               => 'Ratings',
-            ],
-
             'deal_of_day' => [
                 'deal_ends_at'          => 'Deal ends at',
                 'vendor_listing'        => 'Vendor listing',

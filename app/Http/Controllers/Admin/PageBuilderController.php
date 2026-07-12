@@ -649,46 +649,6 @@ class PageBuilderController extends Controller
         ]);
     }
 
-    public function getBannerPlacements(Request $request)
-    {
-        $rows = \App\Models\BannerPlacementDefinition::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->get(['id', 'code', 'name']);
-
-        return response()->json([
-            'results' => $rows->map(fn($p) => ['id' => $p->code, 'text' => $p->name])->values(),
-        ]);
-    }
-
-    public function getPlacementBookings(Request $request)
-    {
-        $placementCode = trim((string) $request->query('placement_code', ''));
-        $today = now()->toDateString();
-
-        // Bookings are associated with a page_block, not directly with a placement_code,
-        // so filter by the block's own placement_code config plus the active date window.
-        $active = \App\Models\PaidBannerBooking::query()
-            ->with('pageBlock')
-            ->where('status', \App\Enums\PaidBannerBookingStatus::Active)
-            ->whereDate('booked_from', '<=', $today)
-            ->whereDate('booked_until', '>=', $today)
-            ->get()
-            ->filter(fn($b) => ($b->pageBlock?->config['placement_code'] ?? null) === $placementCode)
-            ->values();
-
-        return response()->json([
-            'results' => $active->map(fn($b) => [
-                'id' => $b->id,
-                'booking_reference' => $b->booking_reference,
-                'brand_name' => $b->brand_name ?? optional($b->seller)->store_name,
-                'image_url' => $b->image_url,
-                'booked_from' => optional($b->booked_from)->format('M d, Y'),
-                'booked_until' => optional($b->booked_until)->format('M d, Y'),
-            ])->values(),
-        ]);
-    }
-
     public function reorderAdImages(Request $request, PageBlock $block)
     {
         $this->authorizeManage();

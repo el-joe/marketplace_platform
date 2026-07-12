@@ -356,8 +356,6 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/search/vendors', [PageBuilderController::class, 'searchVendors'])->name('search.vendors');
         Route::get('/search/flash-sales', [PageBuilderController::class, 'searchFlashSales'])->name('search.flash-sales');
         Route::get('/search/vendor-listings', [PageBuilderController::class, 'searchVendorListings'])->name('search.vendor-listings');
-        Route::get('/banner-placements', [PageBuilderController::class, 'getBannerPlacements'])->name('banner-placements');
-        Route::get('/banner-placements/bookings', [PageBuilderController::class, 'getPlacementBookings'])->name('banner-placements.bookings');
 
         // Block product pickers
         Route::get('/blocks/{block}/products', [PageBuilderController::class, 'getBlockProducts'])->name('products.list');

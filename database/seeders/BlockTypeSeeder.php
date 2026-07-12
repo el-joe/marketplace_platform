@@ -81,15 +81,6 @@ class BlockTypeSeeder extends Seeder
                 'config_schema' => ['link_url', 'link_type', 'aspect_ratio', 'mobile_aspect_ratio'],
                 'default_config' => ['aspect_ratio' => '4:1', 'mobile_aspect_ratio' => '2:1'],
             ],
-            [
-                'code' => 'sponsored_products', 'group' => 'ads_banners',
-                'label_en' => 'Sponsored Products', 'label_ar' => 'منتجات مدفوعة',
-                'icon' => 'sparkles', 'max_per_page' => null,
-                'requires_permission' => 'banners.create',
-                'config_schema' => ['placement_code', 'max_items'],
-                'default_config' => ['max_items' => 8],
-            ],
-
             // ── Discovery ───────────────────────────────────────────────────
             [
                 'code' => 'category_pills', 'group' => 'discovery',

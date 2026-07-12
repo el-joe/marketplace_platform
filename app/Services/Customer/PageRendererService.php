@@ -2,7 +2,6 @@
 
 namespace App\Services\Customer;
 
-use App\Enums\PaidBannerBookingStatus;
 use App\Enums\VendorListingStatus;
 use App\Http\Resources\Customer\FlashSaleItemResource;
 use App\Http\Resources\Customer\ProductListResource;
@@ -22,7 +21,6 @@ use App\Models\PageBlockCategory;
 use App\Models\PageBlockProduct;
 use App\Models\PageBlockSeller;
 use App\Models\PageSection;
-use App\Models\PaidBannerBooking;
 use App\Models\ProductCountrySetting;
 use App\Models\ProductVariant;
 use App\Models\VendorListing;
@@ -44,14 +42,14 @@ use Illuminate\Support\Facades\DB;
 class PageRendererService
 {
     /**
-     * Known block_type strings. 17 distinct types total, counting
+     * Known block_type strings. 16 distinct types total, counting
      * countdown_deal/countdown_timer and ad_images_2col/ad_images_4col as
      * separate types (both pairs share a hydrator method).
      */
     private const BLOCK_TYPES = [
         'hero_slider', 'countdown_deal', 'countdown_timer', 'video_banner',
         'product_row', 'flash_sale', 'deal_of_day', 'ad_images_2col',
-        'ad_images_4col', 'full_banner', 'sponsored_products', 'category_pills',
+        'ad_images_4col', 'full_banner', 'category_pills',
         'brand_strip', 'search_trends', 'text_block', 'divider', 'newsletter_signup',
     ];
 
@@ -262,7 +260,6 @@ class PageRendererService
             'ad_images_2col' => $this->hydrateAdImages($block, 2),
             'ad_images_4col' => $this->hydrateAdImages($block, 4),
             'full_banner' => $this->hydrateFullBanner($block),
-            'sponsored_products' => $this->hydrateSponsoredProducts($block),
             'category_pills' => $this->hydrateCategoryPills($block, $country),
             'brand_strip' => $this->hydrateBrandStrip($block),
             'search_trends' => $this->hydrateSearchTrends($block, $country),
@@ -671,33 +668,6 @@ class PageRendererService
             'aspect_ratio' => $cfg['aspect_ratio'] ?? null,
             'mobile_aspect_ratio' => $cfg['mobile_aspect_ratio'] ?? null,
         ];
-    }
-
-    // ─── 9. sponsored_products ──────────────────────────────────────────────
-
-    private function hydrateSponsoredProducts(PageBlock $block): array
-    {
-        $cfg = $block->config ?? [];
-        $maxItems = (int) ($cfg['max_items'] ?? 4);
-        $today = now()->toDateString();
-
-        // SECURITY: rate_cents, total_charged_cents, pricing_model,
-        // booking_reference, booked_by_admin_id and seller_id must NEVER appear
-        // in this response — the select() below is the enforcement point.
-        $bookings = PaidBannerBooking::where('page_block_id', $block->id)
-            ->where('status', PaidBannerBookingStatus::Active->value)
-            ->where('booked_from', '<=', $today)
-            ->where('booked_until', '>=', $today)
-            ->inRandomOrder()
-            ->limit($maxItems)
-            ->get(['image_url', 'link_url', 'alt_text', 'brand_name']);
-
-        return $bookings->map(fn($b) => [
-            'image_url' => $b->image_url,
-            'link_url' => $b->link_url,
-            'alt_text' => $b->alt_text,
-            'brand_name' => $b->brand_name,
-        ])->all();
     }
 
     // ─── 10. category_pills ─────────────────────────────────────────────────
