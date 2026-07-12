@@ -15,13 +15,14 @@
              class="absolute inset-0 w-full h-full object-cover object-[right_center] lg:object-center {{ $isAr ? '-scale-x-100' : '' }}">
     </div>
 
-    <div class="absolute inset-0 {{ $isAr ? 'bg-gradient-to-l' : 'bg-gradient-to-r' }} from-black via-black/85 to-transparent lg:via-black/70"></div>
-    <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black to-transparent"></div>
+    <div class="hidden md:block absolute inset-0 {{ $isAr ? 'bg-gradient-to-l' : 'bg-gradient-to-r' }} from-black via-black/85 to-transparent lg:via-black/70"></div>
+    <div class="md:hidden absolute inset-x-0 bottom-0 h-[70%] bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+    <div class="hidden md:block absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent"></div>
 
-    <div class="absolute inset-x-0 top-[30%] md:top-0 md:inset-y-0 flex items-start md:items-center">
+    <div class="absolute inset-x-0 inset-y-0 flex items-center md:items-center">
         <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div class="max-w-[560px] {{ $isAr ? 'text-right' : 'text-left' }}">
-                <h1 class="text-white font-black leading-[1.1] text-[36px] md:text-[50px]">
+                <h1 class="text-white font-black leading-[1.1] text-[40px] sm:text-[44px] md:text-[50px]">
                     {{ $isAr ? 'مرحبا بك في' : 'Welcome to' }}
                     <span class="block text-[#feee00]">{{ $isAr ? 'البيع على نون!' : 'selling on noon!' }}</span>
                 </h1>
