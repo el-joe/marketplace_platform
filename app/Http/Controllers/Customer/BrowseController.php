@@ -112,6 +112,20 @@ class BrowseController extends Controller
                 'name'    => Bilingual::pair($category->parent, 'name'),
                 'slug'    => $category->parent->slug,
             ] : null,
+            'attributes' => $category->attributes()->where('is_filterable', true)->with('values')->get()
+                ->map(fn ($attribute) => [
+                    'id'          => $attribute->id,
+                    'code'        => $attribute->code,
+                    'name'        => Bilingual::pair($attribute, 'name'),
+                    'type'        => $attribute->type->value,
+                    'unit'        => $attribute->unit,
+                    'is_required' => (bool) $attribute->pivot->is_required,
+                    'values'      => $attribute->values->map(fn ($value) => [
+                        'id'        => $value->id,
+                        'value'     => Bilingual::pair($value, 'value'),
+                        'color_hex' => $value->color_hex,
+                    ])->values()->all(),
+                ])->values()->all(),
             'children' => $category->children()
                 ->where('is_active', true)
                 ->where('is_visible', true)

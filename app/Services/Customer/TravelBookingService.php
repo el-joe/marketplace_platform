@@ -20,7 +20,7 @@ class TravelBookingService
     public function listForCustomer(Customer $customer, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         return $customer->travelBookings()
-            ->with(['package:id,title,price_cents,currency'])
+            ->with(['package.media', 'package.agency:id,name'])
             ->when(isset($filters['status']), fn ($q) => $q->where('status', TravelBookingStatus::from($filters['status'])))
             ->latest()
             ->paginate(15);

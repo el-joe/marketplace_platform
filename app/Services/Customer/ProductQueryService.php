@@ -3,9 +3,11 @@
 namespace App\Services\Customer;
 
 use App\Http\Resources\Customer\ProductListResource;
+use App\Models\Attribute;
 use App\Models\Country;
 use App\Models\Product;
 use App\Models\Wishlist;
+use App\Support\Bilingual;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -65,7 +67,58 @@ class ProductQueryService
                 'min' => $priceRange ? round($priceRange->low / 100, 2) : 0,
                 'max' => $priceRange ? round($priceRange->high / 100, 2) : 0,
             ],
+            'attributes' => $this->attributeFacets($base, $categoryIds ?? (!empty($filters['category']) ? [$filters['category']] : [])),
         ];
+    }
+
+    /**
+     * Filterable attributes for the given categories, with per-value product counts
+     * scoped to the already-filtered product set in $base.
+     *
+     * @param  list<string>  $categoryIds
+     */
+    private function attributeFacets($base, array $categoryIds): array
+    {
+        if (empty($categoryIds)) {
+            return [];
+        }
+
+        $productIds = (clone $base)->pluck('products.id');
+
+        if ($productIds->isEmpty()) {
+            return [];
+        }
+
+        $attributes = Attribute::query()
+            ->where('is_filterable', true)
+            ->whereHas('categories', fn ($q) => $q->whereIn('categories.id', $categoryIds))
+            ->with('values')
+            ->orderBy('sort_order')
+            ->get();
+
+        return $attributes->map(function (Attribute $attribute) use ($productIds) {
+            $counts = DB::table('product_variant_attributes as pva')
+                ->join('product_variants as pv', 'pv.id', '=', 'pva.product_variant_id')
+                ->whereIn('pv.product_id', $productIds)
+                ->where('pva.attribute_id', $attribute->id)
+                ->selectRaw('pva.attribute_value_id, COUNT(DISTINCT pv.product_id) as cnt')
+                ->groupBy('pva.attribute_value_id')
+                ->pluck('cnt', 'attribute_value_id');
+
+            return [
+                'id'     => $attribute->id,
+                'code'   => $attribute->code,
+                'name'   => Bilingual::pair($attribute, 'name'),
+                'type'   => $attribute->type->value,
+                'unit'   => $attribute->unit,
+                'values' => $attribute->values->map(fn ($value) => [
+                    'id'        => $value->id,
+                    'value'     => Bilingual::pair($value, 'value'),
+                    'color_hex' => $value->color_hex,
+                    'count'     => (int) ($counts[$value->id] ?? 0),
+                ])->values()->all(),
+            ];
+        })->values()->all();
     }
 
     /**

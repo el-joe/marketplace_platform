@@ -68,6 +68,19 @@ class DisputeController extends Controller
         return ApiResponse::success(new DisputeResource($dispute->load('messages')), 'Dispute opened.', 201);
     }
 
+    public function index(string $country): JsonResponse
+    {
+        /** @var Customer $customer */
+        $customer = auth('customer')->user();
+
+        $paginator = Dispute::where('customer_id', $customer->id)
+            ->with('order')
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return ApiResponse::paginated($paginator, DisputeResource::class);
+    }
+
     public function show(string $country, string $disputeNumber): JsonResponse
     {
         /** @var Customer $customer */
