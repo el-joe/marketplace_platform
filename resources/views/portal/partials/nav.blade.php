@@ -4,9 +4,29 @@
 
     $navLinks = [
         ['block' => 'link_home', 'label_ar' => 'الصفحة الرئيسية', 'label_en' => 'Home', 'route' => 'portal.home'],
-        ['block' => 'link_how_it_works', 'label_ar' => 'البدء', 'label_en' => 'Getting Started', 'route' => 'portal.how-it-works'],
-        ['block' => 'link_fulfillment', 'label_ar' => 'الشحن والتوصيل', 'label_en' => 'Shipping & Fulfilment', 'route' => 'portal.fulfillment'],
-        ['block' => 'link_smart_tools', 'label_ar' => 'نمّي بذكاء', 'label_en' => 'Grow Smarter', 'route' => 'portal.smart-tools'],
+        [
+            'block' => 'link_how_it_works', 'label_ar' => 'البدء', 'label_en' => 'Getting Started', 'route' => 'portal.how-it-works',
+            'submenu' => [
+                ['label_ar' => 'إعداد حسابك', 'label_en' => 'Setting up your account', 'route' => '#'],
+                ['label_ar' => 'إدراج منتجاتك', 'label_en' => 'Listing your products', 'route' => '#'],
+                ['label_ar' => 'اختيار نموذج الشحن الخاص بك', 'label_en' => 'Choosing your fulfilment model', 'route' => '#'],
+            ]
+        ],
+        [
+            'block' => 'link_fulfillment', 'label_ar' => 'الشحن والتوصيل', 'label_en' => 'Shipping & Fulfilment', 'route' => 'portal.fulfillment',
+            'submenu' => [
+                ['label_ar' => 'مشحون من نون (FBN)', 'label_en' => 'Fulfilled by noon (FBN)', 'route' => '#'],
+                ['label_ar' => 'مشحون من الشريك (FBP)', 'label_en' => 'Fulfilled by Partner (FBP)', 'route' => '#'],
+            ]
+        ],
+        [
+            'block' => 'link_smart_tools', 'label_ar' => 'نمّي بذكاء', 'label_en' => 'Grow Smarter', 'route' => 'portal.smart-tools',
+            'submenu' => [
+                ['label_ar' => 'الإعلان على نون', 'label_en' => 'Advertising on noon', 'route' => '#'],
+                ['label_ar' => 'هيكل رسوم نون', 'label_en' => 'noon\'s Fee Structure', 'route' => '#'],
+                ['label_ar' => 'النمو باستخدام التحليلات', 'label_en' => 'Scale with Insights', 'route' => '#'],
+            ]
+        ],
     ];
     foreach ($navLinks as $i => $l) {
         $navLinks[$i]['label'] = portal_content('nav', $l['block'], 'label', $l['label_en'], $l['label_ar']);
@@ -35,59 +55,113 @@
             </a>
 
             {{-- Desktop nav links --}}
-            <nav class="hidden lg:flex items-center gap-[32px]">
+            <nav class="hidden lg:flex items-center gap-[32px] h-full">
                 @foreach($navLinks as $link)
-                    <a href="{{ route($link['route']) }}"
-                       class="relative text-[15px] font-semibold py-2 transition-colors
-                              {{ request()->routeIs($link['route']) ? 'text-white' : 'text-gray-400 hover:text-white' }}">
-                        {{ $link['label'] }}
-                        @if(request()->routeIs($link['route']))
-                            <span class="absolute -bottom-[1px] inset-x-0 h-[2px] bg-yellow-400 rounded-full"></span>
+                    <div class="relative group h-full flex items-center" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                        <a href="{{ route($link['route']) }}"
+                           class="relative flex items-center h-full text-[16px] font-bold transition-all duration-300
+                                  {{ request()->routeIs($link['route']) ? 'text-white' : 'text-gray-200 hover:text-white' }}">
+                            {{ $link['label'] }}
+                            @if(request()->routeIs($link['route']))
+                                <span class="absolute bottom-0 inset-x-0 h-[3px] bg-yellow-400 rounded-t-full"></span>
+                            @endif
+                            <span class="absolute bottom-0 inset-x-0 h-[3px] bg-yellow-400 rounded-t-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 {{ $isAr ? 'origin-right' : 'origin-left' }}"
+                                  x-show="!{{ request()->routeIs($link['route']) ? 'true' : 'false' }}"></span>
+                        </a>
+
+                        @if(isset($link['submenu']))
+                            <div x-show="open" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 translate-y-4"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 translate-y-4"
+                                 class="absolute {{ $isAr ? 'right-0' : 'left-0' }} top-full w-[280px] z-50" x-cloak>
+                                <div class="bg-[#1c1c1c] border border-white/5 shadow-2xl rounded-xl py-2 overflow-hidden mt-1">
+                                    @foreach($link['submenu'] as $sub)
+                                        <a href="{{ $sub['route'] }}" 
+                                           class="relative block px-5 py-3.5 text-[15px] font-bold text-gray-300 hover:text-white transition-all duration-200 flex items-center group/sub hover:bg-white/5">
+                                            <div class="w-[3px] h-0 bg-yellow-400 absolute {{ $isAr ? 'right-0' : 'left-0' }} top-1/2 -translate-y-1/2 transition-all duration-300 group-hover/sub:h-[70%] {{ $isAr ? 'rounded-l-full' : 'rounded-r-full' }}"></div>
+                                            <span class="transition-transform duration-300 group-hover/sub:{{ $isAr ? '-translate-x-2' : 'translate-x-2' }}">{{ $isAr ? $sub['label_ar'] : $sub['label_en'] }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
                         @endif
-                    </a>
+                    </div>
                 @endforeach
 
                 <div class="w-px h-[24px] bg-white/20 self-center"></div>
 
                 {{-- Country --}}
-                <div class="relative" x-data="{ countryOpen: false }" @click.outside="countryOpen = false">
-                    <button type="button" @click="countryOpen = !countryOpen"
-                            class="flex items-center gap-[8px] text-sm font-bold text-white hover:text-yellow-400 transition-colors">
+                <div class="relative group h-full flex items-center" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" class="flex items-center gap-[8px] text-[15px] font-bold text-gray-200 hover:text-white transition-colors h-full">
                         @if($currentCountry)
                             <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($currentCountry->iso_code_2) }}.svg"
-                                 alt="{{ $isAr ? $currentCountry->name_ar : $currentCountry->name_en }}" width="20" height="20">
+                                 alt="{{ $isAr ? $currentCountry->name_ar : $currentCountry->name_en }}" width="20" height="20" class="rounded-sm">
                             <span>{{ $isAr ? $currentCountry->name_ar : $currentCountry->name_en }}</span>
                         @else
                             <span>{{ $isAr ? 'الدولة' : 'Country' }}</span>
                         @endif
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"
-                             class="transition-transform" :class="countryOpen ? 'rotate-180' : ''">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                        </svg>
                     </button>
 
-                    <div x-show="countryOpen" x-cloak x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                         class="absolute {{ $isAr ? 'start-0' : 'end-0' }} top-full mt-3 w-48 rounded-xl bg-gray-900 border border-white/10 shadow-xl py-2 z-50">
-                        @foreach($countries as $country)
-                            <a href="{{ route('portal.country', $country->site_code) }}"
-                               class="flex items-center gap-[10px] px-4 py-2 text-sm font-semibold transition-colors
-                                      {{ $currentCountry && $currentCountry->id === $country->id ? 'text-yellow-400' : 'text-gray-200 hover:text-white hover:bg-white/5' }}">
-                                <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($country->iso_code_2) }}.svg"
-                                     alt="{{ $isAr ? $country->name_ar : $country->name_en }}" width="18" height="18">
-                                <span>{{ $isAr ? $country->name_ar : $country->name_en }}</span>
-                            </a>
-                        @endforeach
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-4"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-4"
+                         class="absolute {{ $isAr ? 'start-0' : 'end-0' }} top-full w-48 pt-6 -mt-6 z-50" x-cloak>
+                        <div class="bg-[#1c1c1c] border border-white/5 shadow-2xl rounded-xl py-2 overflow-hidden mt-1">
+                            @foreach($countries as $country)
+                                <a href="{{ route('portal.country', $country->site_code) }}"
+                                   class="relative block px-5 py-3 text-[14px] font-bold transition-all duration-200 flex items-center gap-3 group/sub hover:bg-white/5 
+                                          {{ $currentCountry && $currentCountry->id === $country->id ? 'text-yellow-400' : 'text-gray-300 hover:text-white' }}">
+                                    <div class="w-[3px] h-0 bg-yellow-400 absolute {{ $isAr ? 'right-0' : 'left-0' }} top-1/2 -translate-y-1/2 transition-all duration-300 group-hover/sub:h-[70%] {{ $isAr ? 'rounded-l-full' : 'rounded-r-full' }}"></div>
+                                    <span class="flex items-center gap-3 transition-transform duration-300 group-hover/sub:{{ $isAr ? '-translate-x-2' : 'translate-x-2' }}">
+                                        <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($country->iso_code_2) }}.svg"
+                                             alt="{{ $isAr ? $country->name_ar : $country->name_en }}" width="18" height="18" class="rounded-sm">
+                                        <span>{{ $isAr ? $country->name_ar : $country->name_en }}</span>
+                                    </span>
+                                </a>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
                 {{-- Language --}}
-                <a href="{{ $langToggleUrl }}" class="flex items-center gap-[8px] text-sm font-bold text-white hover:text-yellow-400 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
-                    </svg>
-                    <span>{{ portal_content('nav', 'language_toggle', 'label', 'English', 'العربية') }}</span>
-                </a>
+                <div class="relative group h-full flex items-center" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" class="flex items-center gap-[8px] text-[15px] font-bold text-gray-200 hover:text-white transition-colors h-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
+                        </svg>
+                        <span>{{ portal_content('nav', 'language_toggle', 'label', 'English', 'العربية') }}</span>
+                    </button>
+                    
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-4"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-4"
+                         class="absolute {{ $isAr ? 'start-0' : 'end-0' }} top-full w-40 pt-6 -mt-6 z-50" x-cloak>
+                        <div class="bg-[#1c1c1c] border border-white/5 shadow-2xl rounded-xl py-2 overflow-hidden mt-1">
+                            <a href="{{ route('portal.language', 'en') }}" 
+                               class="relative block px-5 py-3 text-[14px] font-bold transition-all duration-200 flex items-center group/sub hover:bg-white/5 {{ !$isAr ? 'text-yellow-400' : 'text-gray-300 hover:text-white' }}">
+                                <div class="w-[3px] h-0 bg-yellow-400 absolute {{ $isAr ? 'right-0' : 'left-0' }} top-1/2 -translate-y-1/2 transition-all duration-300 group-hover/sub:h-[70%] {{ $isAr ? 'rounded-l-full' : 'rounded-r-full' }}"></div>
+                                <span class="transition-transform duration-300 group-hover/sub:{{ $isAr ? '-translate-x-2' : 'translate-x-2' }}">English</span>
+                            </a>
+                            <a href="{{ route('portal.language', 'ar') }}" 
+                               class="relative block px-5 py-3 text-[14px] font-bold transition-all duration-200 flex items-center group/sub hover:bg-white/5 {{ $isAr ? 'text-yellow-400' : 'text-gray-300 hover:text-white' }}">
+                                <div class="w-[3px] h-0 bg-yellow-400 absolute {{ $isAr ? 'right-0' : 'left-0' }} top-1/2 -translate-y-1/2 transition-all duration-300 group-hover/sub:h-[70%] {{ $isAr ? 'rounded-l-full' : 'rounded-r-full' }}"></div>
+                                <span class="transition-transform duration-300 group-hover/sub:{{ $isAr ? '-translate-x-2' : 'translate-x-2' }}">العربية</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </nav>
 
             {{-- Mobile controls --}}
@@ -96,25 +170,25 @@
                     <button type="button" @click="mobileCountryOpen = !mobileCountryOpen" aria-label="{{ $isAr ? 'اختر الدولة' : 'Select country' }}">
                         @if($currentCountry)
                             <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($currentCountry->iso_code_2) }}.svg"
-                                 alt="{{ $isAr ? $currentCountry->name_ar : $currentCountry->name_en }}" width="20" height="20">
+                                 alt="{{ $isAr ? $currentCountry->name_ar : $currentCountry->name_en }}" width="20" height="20" class="rounded-sm">
                         @endif
                     </button>
 
                     <div x-show="mobileCountryOpen" x-cloak x-transition:enter="transition ease-out duration-150"
                          x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                         class="absolute {{ $isAr ? 'start-0' : 'end-0' }} top-full mt-3 w-48 rounded-xl bg-gray-900 border border-white/10 shadow-xl py-2 z-50">
+                         class="absolute {{ $isAr ? 'start-0' : 'end-0' }} top-full mt-3 w-48 rounded-xl bg-[#1c1c1c] border border-white/10 shadow-2xl py-2 z-50">
                         @foreach($countries as $country)
                             <a href="{{ route('portal.country', $country->site_code) }}"
-                               class="flex items-center gap-[10px] px-4 py-2 text-sm font-semibold transition-colors
-                                      {{ $currentCountry && $currentCountry->id === $country->id ? 'text-yellow-400' : 'text-gray-200 hover:text-white hover:bg-white/5' }}">
+                               class="flex items-center gap-[10px] px-4 py-2 text-[14px] font-bold transition-colors
+                                      {{ $currentCountry && $currentCountry->id === $country->id ? 'text-yellow-400' : 'text-gray-300 hover:text-white hover:bg-white/5' }}">
                                 <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($country->iso_code_2) }}.svg"
-                                     alt="{{ $isAr ? $country->name_ar : $country->name_en }}" width="18" height="18">
+                                     alt="{{ $isAr ? $country->name_ar : $country->name_en }}" width="18" height="18" class="rounded-sm">
                                 <span>{{ $isAr ? $country->name_ar : $country->name_en }}</span>
                             </a>
                         @endforeach
                     </div>
                 </div>
-                <a href="{{ $langToggleUrl }}" class="text-white">
+                <a href="{{ $langToggleUrl }}" class="text-gray-200 hover:text-white transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
                     </svg>
@@ -132,12 +206,39 @@
     {{-- Mobile menu --}}
     <div x-show="mobileOpen" x-cloak x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-         class="lg:hidden bg-black border-t border-white/10 px-4 py-4 space-y-1">
+         class="lg:hidden bg-[#1c1c1c] border-t border-white/10 px-4 py-4 space-y-2 shadow-2xl">
         @foreach($navLinks as $link)
-            <a href="{{ route($link['route']) }}"
-               class="block py-2.5 font-semibold {{ request()->routeIs($link['route']) ? 'text-yellow-400' : 'text-gray-300' }}">
-                {{ $link['label'] }}
-            </a>
+            <div x-data="{ subOpen: false }" class="space-y-1">
+                <div class="flex items-center justify-between">
+                    <a href="{{ route($link['route']) }}"
+                       class="block py-2.5 font-bold text-[16px] {{ request()->routeIs($link['route']) ? 'text-yellow-400' : 'text-gray-200' }}">
+                        {{ $link['label'] }}
+                    </a>
+                    @if(isset($link['submenu']))
+                        <button @click="subOpen = !subOpen" class="text-gray-400 p-2 focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+                                 class="w-4 h-4 transition-transform duration-200" :class="subOpen ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                    @endif
+                </div>
+                
+                @if(isset($link['submenu']))
+                    <div x-show="subOpen" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 -translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="pl-4 pr-4 space-y-1 border-l-2 border-white/10 ml-2" x-cloak>
+                        @foreach($link['submenu'] as $sub)
+                            <a href="{{ $sub['route'] }}" 
+                               class="block py-2 text-[14px] font-bold text-gray-400 hover:text-white transition-colors">
+                                {{ $isAr ? $sub['label_ar'] : $sub['label_en'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
         @endforeach
     </div>
 </header>
