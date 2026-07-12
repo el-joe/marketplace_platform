@@ -412,14 +412,15 @@ class MarketerController extends Controller
                     'status' => 'requested',
                 ]);
 
-                $category = app(SampleQuotaResolver::class)->resolveFromRequest($sampleRequest);
+                $listingIds = $products->pluck('vendorListing.id')->filter()->values()->all();
+                $category = app(SampleQuotaResolver::class)->resolveFromListingIds($listingIds);
                 foreach ($products as $product) {
 
                     MarketerSampleItem::create([
                         'sample_request_id' => $sampleRequest->id,
                         'vendor_listing_id' => $product->vendorListing->id,
-                        'quantity' => $category->marketer_sample_quota,
-                        'marketer_quantity' => $category->marketer_sample_quota,
+                        'quantity' => $category?->marketer_sample_quota ?? 0,
+                        'marketer_quantity' => $category?->marketer_sample_quota ?? 0,
                         'admin_quantity' => 0,
                         'is_mandatory' => false,
                         'sample_cost_cents' => 0,
