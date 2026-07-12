@@ -173,7 +173,7 @@ class Category extends Model
     public function brandsInSubtree()
     {
         return Brand::query()
-            ->whereHas('categories', fn($q) => $q->where('categories.is_active', true)->whereIn('categories.id', $this->descendantIds()));
+            ->whereHas('categories', fn($q) => $q->where('categories.is_active', true)->whereIn('categories.id', array_merge([$this->id], $this->descendantIds())));
     }
 
     public function shippingMethods(): BelongsToMany
