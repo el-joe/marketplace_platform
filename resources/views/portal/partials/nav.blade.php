@@ -59,13 +59,13 @@
                 @foreach($navLinks as $link)
                     <div class="relative group h-full flex items-center" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
                         <a href="{{ route($link['route']) }}"
-                           class="relative flex items-center h-full text-[16px] font-bold transition-all duration-300
+                           class="relative flex items-center py-1.5 text-[16px] font-bold transition-all duration-300
                                   {{ request()->routeIs($link['route']) ? 'text-white' : 'text-gray-200 hover:text-white' }}">
                             {{ $link['label'] }}
                             @if(request()->routeIs($link['route']))
-                                <span class="absolute bottom-0 inset-x-0 h-[3px] bg-yellow-400 rounded-t-full"></span>
+                                <span class="absolute bottom-0 inset-x-0 h-[2px] bg-white rounded-full"></span>
                             @endif
-                            <span class="absolute bottom-0 inset-x-0 h-[3px] bg-yellow-400 rounded-t-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 {{ $isAr ? 'origin-right' : 'origin-left' }}"
+                            <span class="absolute bottom-0 inset-x-0 h-[2px] bg-white rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 {{ $isAr ? 'origin-right' : 'origin-left' }}"
                                   x-show="!{{ request()->routeIs($link['route']) ? 'true' : 'false' }}"></span>
                         </a>
 
