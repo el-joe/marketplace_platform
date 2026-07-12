@@ -2,10 +2,10 @@
 
 <div class="bg-[#151515] py-10 lg:py-12">
     <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <p class="text-yellow-400 font-black text-lg lg:text-xl mb-1">{{ $isAr ? 'البدء' : 'Getting started' }}</p>
-        <h2 class="text-white font-black text-xl lg:text-2xl leading-snug mb-8 lg:mb-10">
+        <h1 class="text-[#feee00] font-bold text-[28px] lg:text-[36px] mb-2">{{ $isAr ? 'البدء' : 'Getting Started' }}</h1>
+        <h2 class="text-white font-bold text-[22px] lg:text-[26px] leading-tight mb-8 lg:mb-10">
             {{ $isAr ? 'جاهز انك تبدأ البيع؟' : 'Ready to start selling?' }}<br>
-            {{ $isAr ? 'انه سريع و سهل - اليك ما تحتاجه' : "It's quick and easy - here's what you'll need" }}
+            {{ $isAr ? 'انه سريع و سهل — اليك ما تحتاجه' : "It's quick and easy — here's what you'll need" }}
         </h2>
 
         <div class="grid md:grid-cols-2 gap-10 lg:gap-16 items-start">
@@ -34,15 +34,15 @@
 
             {{-- Checklist + steps --}}
             <div>
-                <h3 class="text-white font-bold text-lg mb-4">{{ $isAr ? 'قائمة تجهيز البائع:' : 'Seller readiness checklist:' }}</h3>
+                <h3 class="text-white font-bold text-lg mb-4">{{ $isAr ? 'قائمة إعداد البائع:' : 'Seller Setup Checklist:' }}</h3>
                 <ul class="space-y-3 mb-8">
                     @foreach([
-                        [$isAr ? 'عنوان البريد الالكتروني (للاستخدام التجاري او الشخصي) و رقم الهاتف' : 'A business or personal email address and a phone number'],
-                        [$isAr ? 'السجل التجاري / رخصة التجارة' : 'Trade licence / commercial registration'],
-                        [$isAr ? 'الهوية الشخصية - جواز السفر / بطاقة الهوية الاماراتية' : 'A valid ID - passport or Emirates ID'],
+                        [$isAr ? 'عنوان بريد إلكتروني ورقم هاتف' : 'Email address and a phone number'],
+                        [$isAr ? 'السجل التجاري / رخصة التجارة' : 'Commercial Registration / Trade License'],
+                        [$isAr ? 'إثبات الهوية — جواز السفر / بطاقة الهوية الإماراتية' : 'Identity proof — Passport / Emirates ID'],
                     ] as $item)
                         <li class="flex items-start gap-3 text-gray-200 text-[15px]">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3E008" width="18" class="shrink-0 mt-1 {{ $isAr ? '-scale-x-100' : '' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#feee00" width="18" class="shrink-0 mt-1 {{ $isAr ? '-scale-x-100' : '' }}">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                             </svg>
                             <span>{{ $item[0] }}</span>
@@ -51,15 +51,19 @@
                 </ul>
 
                 <a href="{{ route('portal.faq') }}"
-                   class="inline-block border border-gray-600 hover:border-yellow-400 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors mb-10">
-                    {{ $isAr ? 'الأسئلة الشائعة حول المستندات' : 'Document FAQs' }}
+                   class="inline-block bg-[#feee00] text-black text-[15px] font-bold w-full sm:w-[260px] text-center py-2.5 rounded-full hover:bg-[#e5d600] transition-colors mb-10">
+                    {{ $isAr ? 'الأسئلة الشائعة حول المستندات' : 'Documents FAQs' }}
                 </a>
+
+                <p class="text-[15px] text-gray-200 mb-4">
+                    {{ $isAr ? 'بمجرد أن يكون لديك كل شيء جاهزًا، فإن البدء بسيط جدًا:' : 'Once you have everything ready, getting started is super simple:' }}
+                </p>
 
                 <div class="space-y-3 mb-6">
                     @foreach([
-                        [$isAr ? 'الخطوة 1:' : 'Step 1:', $isAr ? 'قم بالتسجيل كبائع' : 'Sign up as a seller'],
-                        [$isAr ? 'الخطوة 2:' : 'Step 2:', $isAr ? 'اختر نظام التسجيل' : 'Choose your fulfilment model'],
-                        [$isAr ? 'الخطوة 3:' : 'Step 3:', $isAr ? 'قم بادراج منتجاتك' : 'List your products'],
+                        [$isAr ? 'الخطوة 1:' : 'Step 1:', $isAr ? 'إعداد حسابك' : 'Set up your account'],
+                        [$isAr ? 'الخطوة 2:' : 'Step 2:', $isAr ? 'إدراج منتجاتك' : 'List your products'],
+                        [$isAr ? 'الخطوة 3:' : 'Step 3:', $isAr ? 'اختر نموذج التنفيذ الخاص بك' : 'Choose your fulfilment model'],
                     ] as $step)
                         <p class="text-[15px]">
                             <span class="text-gray-500">{{ $step[0] }} </span>
@@ -70,12 +74,12 @@
 
                 <p class="text-[15px] text-gray-300 mb-4">
                     <span class="text-white font-bold">{{ $isAr ? 'و هذا هو كل شئ!' : "And that's it!" }}</span>
-                    {{ $isAr ? ' عميلك الاول قد يكون علي بعد نقرة واحدة فقط' : ' Your first customer could just be one click away' }}
+                    {{ $isAr ? ' عميلك الأول قد يكون على بعد نقرة واحدة فقط.' : ' Your first customer could be just a click away.' }}
                 </p>
 
-                <a href="{{ route('portal.how-it-works') }}" class="inline-flex items-center gap-2 text-yellow-400 font-bold text-sm">
+                <a href="{{ route('portal.how-it-works') }}" class="inline-flex items-center gap-2 text-[#feee00] font-bold text-[15px] hover:text-[#e5d600] transition-colors">
                     {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" class="{{ $isAr ? '-scale-x-100' : '' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" class="{{ $isAr ? '-scale-x-100' : '' }}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
                     </svg>
                 </a>
@@ -85,11 +89,11 @@
 </div>
 
 {{-- Dubai Traders Program banner --}}
-<section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-    <a href="{{ route('portal.register') }}" class="block">
-        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-trader-banner-ar.png"
+<section class="max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <a href="{{ route('portal.register') }}" class="block w-full">
+        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-trader-banner-{{ $isAr ? 'ar' : 'en' }}.png"
              alt="{{ $isAr ? 'برنامج تجار دبي' : 'Dubai Traders Program' }}" class="w-full rounded-2xl lg:hidden">
-        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-trader-banner-strip-ar.jpg"
+        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-trader-banner-strip-{{ $isAr ? 'ar' : 'en' }}.jpg"
              alt="{{ $isAr ? 'برنامج تجار دبي' : 'Dubai Traders Program' }}" class="w-full rounded-2xl hidden lg:block">
     </a>
 </section>

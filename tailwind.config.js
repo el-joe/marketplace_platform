@@ -20,6 +20,10 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
             colors: {
+                yellow: {
+                    300: '#e5d600',
+                    400: '#feee00',
+                },
                 primary: {
                     50: '#f0f9ff',
                     100: '#e0f2fe',
@@ -93,10 +97,21 @@ export default {
                     '0%': { opacity: '0' },
                     '100%': { opacity: '1' },
                 },
+                'bounce-x': {
+                    '0%, 100%': {
+                        transform: 'translateX(25%)',
+                        animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)'
+                    },
+                    '50%': {
+                        transform: 'translateX(0)',
+                        animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)'
+                    }
+                }
             },
             animation: {
                 'slide-in-right': 'slide-in-right 250ms ease-out',
                 'fade-in': 'fade-in 200ms ease-out',
+                'bounce-x': 'bounce-x 1s infinite',
             },
         },
     },

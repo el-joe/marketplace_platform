@@ -23,7 +23,7 @@
                         ? 'يمكنك تنفيذ الطلبات بنفسك (FBP) أو ترك المهمة لنون من خلال التنفيذ من قِبل نون (FBN).'
                         : 'You can fulfil orders yourself (FBP) or leave it to noon with Fulfilled by noon (FBN).' }}
                 </p>
-                <p class="text-yellow-400 font-black text-xs uppercase tracking-wider mt-5">{{ $isAr ? 'نصيحة احترافية:' : 'Pro tip:' }}</p>
+                <p class="text-[#feee00] font-black text-xs uppercase tracking-wider mt-5">{{ $isAr ? 'نصيحة احترافية:' : 'Pro tip:' }}</p>
                 <p class="text-gray-300 text-[14px] font-medium">
                     {{ $isAr
                         ? 'يمكنك الدمج بين النماذج — اختر أفضل نموذج لكل منتج لتحسين عملياتك.'
@@ -33,10 +33,10 @@
                 <div class="mt-8 flex flex-col gap-4 items-start sm:flex-row sm:items-center sm:gap-6">
                     <a target="_blank" rel="noopener" title="{{ $isAr ? 'يفتح في نافذة جديدة' : 'Opens in a new window' }}"
                        href="https://www.youtube.com/@noonsellerlab7442/videos"
-                       class="w-full sm:w-auto text-center bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm px-6 py-2.5 rounded-full transition-colors">
+                       class="w-full sm:w-auto text-center bg-[#feee00] hover:bg-[#e5d600] text-black font-black text-sm px-6 py-2.5 rounded-full transition-colors">
                         {{ $isAr ? 'شاهد فيديوهات الشرح' : 'Watch explainer videos' }}
                     </a>
-                    <a href="{{ route('portal.fulfillment') }}" class="inline-flex items-center gap-2 text-yellow-400 font-bold text-sm">
+                    <a href="{{ route('portal.fulfillment') }}" class="inline-flex items-center gap-2 text-[#feee00] font-bold text-sm">
                         {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" class="{{ $isAr ? '-scale-x-100' : '' }}">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />

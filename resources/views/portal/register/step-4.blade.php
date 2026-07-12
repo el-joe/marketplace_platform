@@ -8,7 +8,7 @@
 
     {{-- Loading state --}}
     <div x-show="docTypesLoading" class="flex items-center gap-3 text-sm text-gray-400 py-6 justify-center" x-cloak>
-        <svg class="animate-spin w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="none">
+        <svg class="animate-spin w-5 h-5 text-[#feee00]" viewBox="0 0 24 24" fill="none">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
         </svg>
@@ -59,7 +59,7 @@
                     'py-5 px-4': doc.requirement_level === 'mandatory',
                     'py-3 px-4': doc.requirement_level === 'optional',
                     'border-green-600 bg-green-900/20': documents[doc.code],
-                    'border-gray-600 hover:border-yellow-400/60 bg-gray-800': !documents[doc.code]
+                    'border-gray-600 hover:border-[#feee00]/60 bg-gray-800': !documents[doc.code]
                 }"
             >
                 <template x-if="!documents[doc.code]">
@@ -93,7 +93,7 @@
                     type="date"
                     :name="'doc_expiry_' + doc.code"
                     x-model="docExpiries[doc.code]"
-                    class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-400"
+                    class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#feee00]"
                 >
             </div>
 
@@ -107,7 +107,7 @@
             <p x-show="docErrors[doc.code]" x-text="docErrors[doc.code]" class="mt-1 text-xs text-red-400" x-cloak></p>
 
             {{-- Upload progress --}}
-            <div x-show="docUploading[doc.code]" class="mt-2 flex items-center gap-2 text-xs text-yellow-400" x-cloak>
+            <div x-show="docUploading[doc.code]" class="mt-2 flex items-center gap-2 text-xs text-[#feee00]" x-cloak>
                 <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>

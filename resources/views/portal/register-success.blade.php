@@ -10,8 +10,8 @@
 
             {{-- Success Icon --}}
             <div
-                class="w-20 h-20 bg-yellow-400/10 border-2 border-yellow-400/40 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg class="w-10 h-10 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                class="w-20 h-20 bg-[#feee00]/10 border-2 border-[#feee00]/40 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-[#feee00]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                     stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
@@ -21,11 +21,11 @@
             <p class="text-gray-400 text-base mb-8 leading-relaxed">
                 @if($isAr)
                     استلمنا طلبك بنجاح. سيقوم فريقنا بمراجعة بياناتك ووثائقك خلال
-                    <span class="text-yellow-400 font-semibold">٣–٥ أيام عمل</span>،
+                    <span class="text-[#feee00] font-semibold">٣–٥ أيام عمل</span>،
                     وسنتواصل معك عبر البريد الإلكتروني فور اتخاذ القرار.
                 @else
                     We've received your application successfully. Our team will review your information and documents within
-                    <span class="text-yellow-400 font-semibold">3–5 business days</span>,
+                    <span class="text-[#feee00] font-semibold">3–5 business days</span>,
                     and we'll reach out via email as soon as a decision is made.
                 @endif
             </p>
@@ -36,7 +36,7 @@
                 <ul class="space-y-4">
                     <li class="flex items-start gap-4">
                         <span
-                            class="shrink-0 w-8 h-8 bg-yellow-400/20 rounded-full flex items-center justify-center text-yellow-400 font-bold text-sm">{{ $isAr ? '١' : '1' }}</span>
+                            class="shrink-0 w-8 h-8 bg-[#feee00]/20 rounded-full flex items-center justify-center text-[#feee00] font-bold text-sm">{{ $isAr ? '١' : '1' }}</span>
                         <div>
                             <p class="text-sm text-white font-medium">{{ $isAr ? 'مراجعة الطلب' : 'Application review' }}</p>
                             <p class="text-xs text-gray-400 mt-0.5">{{ $isAr ? 'سيراجع فريقنا بياناتك ووثائقك خلال ٣–٥ أيام عمل' : 'Our team will review your information and documents within 3–5 business days' }}</p>
@@ -44,7 +44,7 @@
                     </li>
                     <li class="flex items-start gap-4">
                         <span
-                            class="shrink-0 w-8 h-8 bg-yellow-400/20 rounded-full flex items-center justify-center text-yellow-400 font-bold text-sm">{{ $isAr ? '٢' : '2' }}</span>
+                            class="shrink-0 w-8 h-8 bg-[#feee00]/20 rounded-full flex items-center justify-center text-[#feee00] font-bold text-sm">{{ $isAr ? '٢' : '2' }}</span>
                         <div>
                             <p class="text-sm text-white font-medium">{{ $isAr ? 'إشعار القرار' : 'Decision notification' }}</p>
                             <p class="text-xs text-gray-400 mt-0.5">{{ $isAr ? 'ستتلقى بريداً إلكترونياً يتضمن قرار القبول أو طلب معلومات إضافية' : 'You will receive an email with the approval decision or a request for additional information' }}</p>
@@ -52,7 +52,7 @@
                     </li>
                     <li class="flex items-start gap-4">
                         <span
-                            class="shrink-0 w-8 h-8 bg-yellow-400/20 rounded-full flex items-center justify-center text-yellow-400 font-bold text-sm">{{ $isAr ? '٣' : '3' }}</span>
+                            class="shrink-0 w-8 h-8 bg-[#feee00]/20 rounded-full flex items-center justify-center text-[#feee00] font-bold text-sm">{{ $isAr ? '٣' : '3' }}</span>
                         <div>
                             <p class="text-sm text-white font-medium">{{ $isAr ? 'ابدأ البيع!' : 'Start selling!' }}</p>
                             <p class="text-xs text-gray-400 mt-0.5">{{ $isAr ? 'بعد الموافقة تحصل على وصول كامل للوحة تحكم البائع لإضافة منتجاتك' : 'Once approved, you get full access to the seller dashboard to add your products' }}</p>
@@ -64,7 +64,7 @@
             {{-- CTA --}}
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
                 <a href="{{ route('portal.home') }}"
-                    class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold rounded-xl text-sm transition-colors">
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#feee00] hover:bg-[#e5d600] text-gray-900 font-bold rounded-xl text-sm transition-colors">
                     {{ $isAr ? 'العودة للرئيسية' : 'Back to Home' }}
                 </a>
                 <a href="mailto:vendors@noon.com"

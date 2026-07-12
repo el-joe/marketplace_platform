@@ -23,7 +23,7 @@
             <div class="max-w-[560px] {{ $isAr ? 'text-right' : 'text-left' }}">
                 <h1 class="text-white font-black leading-[1.1] text-[36px] md:text-[50px]">
                     {{ $isAr ? 'مرحبا بك في' : 'Welcome to' }}
-                    <span class="block text-yellow-400">{{ $isAr ? 'البيع على نون!' : 'selling on noon!' }}</span>
+                    <span class="block text-[#feee00]">{{ $isAr ? 'البيع على نون!' : 'selling on noon!' }}</span>
                 </h1>
                 <p class="mt-3 text-gray-200 font-semibold text-[16px] md:text-[18px] max-w-[500px] leading-relaxed">
                     {{ $isAr

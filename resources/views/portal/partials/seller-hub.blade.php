@@ -9,7 +9,7 @@
         </div>
 
         <div class="mt-8 lg:mt-0 max-w-[60ch]">
-            <p class="text-yellow-400 font-black text-xs uppercase tracking-wider">{{ $isAr ? 'مركز البائعين' : 'Seller Hub' }}</p>
+            <p class="text-[#feee00] font-black text-xs uppercase tracking-wider">{{ $isAr ? 'مركز البائعين' : 'Seller Hub' }}</p>
             <h2 class="text-white font-black text-xl lg:text-2xl mt-1 mb-6">
                 {{ $isAr ? 'مركز قيادتك للبيع على نون' : 'Your command centre for selling on noon' }}
             </h2>
@@ -30,7 +30,7 @@
                     ],
                 ] as $item)
                     <li class="flex items-start gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#F3E008" width="16" class="shrink-0 mt-1.5 {{ $isAr ? '-scale-x-100' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#feee00" width="16" class="shrink-0 mt-1.5 {{ $isAr ? '-scale-x-100' : '' }}">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                         </svg>
                         <div class="flex flex-col gap-1">

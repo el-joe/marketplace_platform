@@ -2,12 +2,12 @@
 
 <div class="bg-[#151515] pt-8 pb-10 lg:pt-10 lg:pb-14">
     <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-yellow-400 font-black text-xl lg:text-2xl">{{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow your business smarter' }}</h2>
-        <h3 class="text-white font-black text-lg lg:text-xl mt-1 mb-6 lg:mb-8">
+        <h2 class="text-[#feee00] font-bold text-[28px] lg:text-[36px] mb-2">{{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow smarter' }}</h2>
+        <h3 class="text-white font-bold text-[22px] lg:text-[26px] leading-tight mb-8 lg:mb-10">
             {{ $isAr ? 'كل ما تحتاجه للتوسع والبقاء في الصدارة' : 'Everything you need to scale and stay ahead' }}
         </h3>
 
-        <div class="grid gap-4 md:grid-cols-3 md:gap-4 lg:gap-8">
+        <div class="grid gap-4 md:grid-cols-3 md:gap-4 lg:gap-6">
             @php
                 $cards = [
                     [
@@ -35,15 +35,15 @@
             @endphp
 
             @foreach($cards as $card)
-                <div class="relative rounded-2xl overflow-hidden h-full min-h-[320px] md:min-h-[380px]">
+                <div class="relative rounded-xl overflow-hidden flex flex-col justify-center sm:justify-end min-h-[140px] sm:min-h-0 sm:aspect-square md:aspect-[4/3] lg:aspect-[16/9]">
                     <img src="{{ $card['image'] }}" alt="{{ $isAr ? $card['title_ar'] : $card['title_en'] }}"
                          class="absolute inset-0 w-full h-full object-cover object-bottom">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10"></div>
-                    <div class="relative h-full flex flex-col justify-end px-5 pb-6 pt-10 lg:px-6 lg:pb-8">
-                        <h4 class="text-white font-black text-lg lg:text-xl text-pretty">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+                    <div class="relative px-4 py-4 sm:pb-5 lg:px-5 lg:pb-6">
+                        <h4 class="text-white font-black text-base lg:text-lg text-pretty leading-tight">
                             {{ $isAr ? $card['title_ar'] : $card['title_en'] }}
                         </h4>
-                        <p class="mt-3 text-gray-300 text-sm font-medium text-pretty">
+                        <p class="mt-1.5 text-gray-300 text-xs sm:text-sm font-medium text-pretty leading-snug">
                             {{ $isAr ? $card['desc_ar'] : $card['desc_en'] }}
                         </p>
                     </div>
@@ -52,9 +52,9 @@
         </div>
 
         <div class="mt-8 flex justify-end">
-            <a href="{{ route('portal.smart-tools') }}" class="inline-flex items-center gap-2 text-yellow-400 font-bold text-sm">
+            <a href="{{ route('portal.smart-tools') }}" class="inline-flex items-center gap-2 text-[#feee00] font-bold text-[15px] hover:text-[#e5d600] transition-colors">
                 {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" class="{{ $isAr ? '-scale-x-100' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" class="{{ $isAr ? '-scale-x-100' : '' }}">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
                 </svg>
             </a>

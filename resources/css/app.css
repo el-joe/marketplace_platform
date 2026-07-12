@@ -65,6 +65,18 @@
 
     --animate-slide-in-right: slide-in-right 250ms ease-out;
     --animate-fade-in: fade-in 200ms ease-out;
+    --animate-bounce-x: bounce-x 1s infinite;
+}
+
+@keyframes bounce-x {
+    0%, 100% {
+        transform: translateX(25%);
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% {
+        transform: translateX(0);
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
 }
 
 @keyframes slide-in-right {

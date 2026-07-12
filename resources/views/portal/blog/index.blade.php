@@ -9,7 +9,7 @@
     <div class="absolute inset-0 opacity-20 pointer-events-none"
          style="background-image: radial-gradient(circle at 20% 20%, #F59E0B 0%, transparent 35%);"></div>
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <span class="inline-block text-xs font-bold tracking-widest uppercase text-yellow-400 mb-3">
+        <span class="inline-block text-xs font-bold tracking-widest uppercase text-[#feee00] mb-3">
             {{ $locale === 'ar' ? 'مدونة نون للبائعين' : 'Noon Sellers Blog' }}
         </span>
         <h1 class="text-4xl sm:text-5xl font-black text-white leading-tight">
@@ -32,11 +32,11 @@
                 <input type="text" name="search" value="{{ request('search') }}"
                        placeholder="{{ __('portal.blog.search_blog') }}"
                        class="w-full rounded-xl border border-gray-700 bg-gray-900 ps-10 pe-4 py-2.5 text-sm text-white
-                              placeholder-gray-500 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors">
+                              placeholder-gray-500 focus:border-[#feee00] focus:ring-1 focus:ring-[#feee00] transition-colors">
             </div>
             <button type="submit"
-                    class="text-sm font-bold bg-yellow-400 hover:bg-yellow-300 text-gray-950 px-6 py-2.5 rounded-xl
-                           transition-colors shadow-lg shadow-yellow-400/20">
+                    class="text-sm font-bold bg-[#feee00] hover:bg-[#e5d600] text-gray-950 px-6 py-2.5 rounded-xl
+                           transition-colors shadow-lg shadow-[#feee00]/20">
                 {{ __('portal.blog.search') }}
             </button>
         </form>
@@ -64,7 +64,7 @@
                                  color: {{ $featuredPost->category->color_hex ?? '#FBBF24' }}">
                         {{ $featuredPost->category->{'name_' . $locale} }}
                     </span>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-white group-hover:text-yellow-400
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white group-hover:text-[#feee00]
                                transition-colors leading-snug">
                         {{ $featuredPost->{'title_' . $locale} }}
                     </h2>
@@ -72,7 +72,7 @@
                         {{ $featuredPost->{'excerpt_' . $locale} }}
                     </p>
                     <div class="flex items-center gap-3 mt-6 text-xs text-gray-500">
-                        <div class="w-7 h-7 rounded-full bg-yellow-400/10 flex items-center justify-center text-yellow-400 text-xs font-bold">
+                        <div class="w-7 h-7 rounded-full bg-[#feee00]/10 flex items-center justify-center text-[#feee00] text-xs font-bold">
                             {{ mb_substr($featuredPost->author->name, 0, 1) }}
                         </div>
                         <span class="text-gray-300 font-medium">{{ $featuredPost->author->name }}</span>
@@ -93,7 +93,7 @@
     <a href="{{ route('portal.blog.index', array_filter(['search' => request('search'), 'tag' => request('tag')])) }}"
        class="rounded-full px-4 py-1.5 text-sm font-medium border transition-colors
               {{ !request('category')
-                  ? 'bg-yellow-400 text-gray-950 border-yellow-400'
+                  ? 'bg-[#feee00] text-gray-950 border-[#feee00]'
                   : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-600 hover:text-white' }}">
         {{ __('portal.blog.all') }}
     </a>

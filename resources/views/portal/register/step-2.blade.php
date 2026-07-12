@@ -10,7 +10,7 @@
         <input type="text" x-model="form.store_name" @input="generateSlug($event.target.value)"
             placeholder="{{ $isAr ? 'متجر الأناقة' : 'Elegance Store' }}"
             class="w-full bg-gray-800 border text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors"
-            :class="errors.store_name ? 'border-red-500' : 'border-gray-700 focus:border-yellow-400'">
+            :class="errors.store_name ? 'border-red-500' : 'border-gray-700 focus:border-[#feee00]'">
         <p x-show="errors.store_name" x-text="errors.store_name?.[0]" class="mt-1 text-xs text-red-400" x-cloak></p>
     </div>
 
@@ -28,7 +28,7 @@
                     :class="{
                         'border-red-500': errors.store_slug || slugStatus === 'taken',
                         'border-green-500': slugStatus === 'available',
-                        'border-gray-700 focus:border-yellow-400': !errors.store_slug && !slugStatus
+                        'border-gray-700 focus:border-[#feee00]': !errors.store_slug && !slugStatus
                     }">
                 <span x-show="slugChecking" class="absolute inset-y-0 left-3 flex items-center" x-cloak>
                     <svg class="animate-spin w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none">
@@ -48,7 +48,7 @@
         <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ $isAr ? 'وصف المتجر' : 'Store Description' }} <span
                 class="text-gray-500 font-normal">{{ $isAr ? '(اختياري)' : '(optional)' }}</span></label>
         <textarea x-model="form.store_description" rows="3" placeholder="{{ $isAr ? 'صف متجرك ومنتجاتك باختصار…' : 'Briefly describe your store and products…' }}"
-            class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-400 transition-colors resize-none"></textarea>
+            class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#feee00] transition-colors resize-none"></textarea>
     </div>
 
     {{-- Business Type --}}
@@ -57,7 +57,7 @@
                 class="text-red-400">*</span></label>
         <select x-model="form.business_type"
             class="w-full bg-gray-800 border text-white rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors"
-            :class="errors.business_type ? 'border-red-500' : 'border-gray-700 focus:border-yellow-400'">
+            :class="errors.business_type ? 'border-red-500' : 'border-gray-700 focus:border-[#feee00]'">
             <option value="individual">{{ $isAr ? 'فرد / شخصي' : 'Individual' }}</option>
             <option value="sole_prop">{{ $isAr ? 'مؤسسة فردية' : 'Sole Proprietorship' }}</option>
             <option value="llc">{{ $isAr ? 'شركة ذات مسؤولية محدودة' : 'Limited Liability Company (LLC)' }}</option>
@@ -73,7 +73,7 @@
                 class="text-red-400">*</span></label>
         <input type="text" x-model="form.business_name" placeholder="{{ $isAr ? 'اسم الشركة كما هو مسجل رسمياً' : 'Company name as officially registered' }}"
             class="w-full bg-gray-800 border text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors"
-            :class="errors.business_name ? 'border-red-500' : 'border-gray-700 focus:border-yellow-400'">
+            :class="errors.business_name ? 'border-red-500' : 'border-gray-700 focus:border-[#feee00]'">
         <p x-show="errors.business_name" x-text="errors.business_name?.[0]" class="mt-1 text-xs text-red-400" x-cloak>
         </p>
     </div>
@@ -83,12 +83,12 @@
         <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ $isAr ? 'رقم السجل التجاري' : 'Trade Registration Number' }}</label>
             <input type="text" x-model="form.business_registration_number" placeholder="CR-XXXXXXXX" dir="ltr"
-                class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-400 transition-colors">
+                class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#feee00] transition-colors">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ $isAr ? 'الرقم الضريبي' : 'Tax ID' }}</label>
             <input type="text" x-model="form.tax_id" placeholder="XXXXXXXXXXXXXXXXX" dir="ltr"
-                class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-400 transition-colors">
+                class="w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#feee00] transition-colors">
         </div>
     </div>
 </div>

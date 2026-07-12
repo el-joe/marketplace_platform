@@ -26,7 +26,7 @@
             <nav class="hidden lg:flex items-center gap-8">
                 <a href="{{ route('portal.sellers', $country) }}" class="relative text-[15px] font-bold text-gray-900 py-2">
                     {{ $navSellers }}
-                    <span class="absolute -bottom-[1px] inset-x-0 h-[2px] bg-yellow-400 rounded-full"></span>
+                    <span class="absolute -bottom-[1px] inset-x-0 h-[2px] bg-[#feee00] rounded-full"></span>
                 </a>
                 <a href="{{ route('portal.advertise.brands', $country) }}" class="text-[15px] font-semibold text-gray-500 hover:text-gray-900 py-2">{{ $navBrands }}</a>
                 <a href="{{ route('portal.advertise.advertisers', $country) }}" class="text-[15px] font-semibold text-gray-500 hover:text-gray-900 py-2">{{ $navAdvertisers }}</a>
@@ -36,7 +36,7 @@
 
             <div class="hidden lg:flex items-center gap-5">
                 <a href="{{ route('portal.register') }}" target="_blank" rel="noopener"
-                   class="bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm px-5 py-2.5 rounded-full transition-colors">
+                   class="bg-[#feee00] hover:bg-[#e5d600] text-black font-black text-sm px-5 py-2.5 rounded-full transition-colors">
                     {{ $navStartNow }}
                 </a>
                 <a href="{{ route('portal.advertise.request', $country) }}" class="text-[15px] font-semibold text-gray-700 hover:text-gray-900">{{ $navContactUs }}</a>
@@ -66,7 +66,7 @@
         <a href="{{ route('portal.adsupport.index', $country) }}" class="block font-semibold text-gray-600">{{ $navKnowledgeHub }}</a>
         <a href="{{ route('portal.advertise.request', $country) }}" class="block font-semibold text-gray-600">{{ $navContactUs }}</a>
         <a href="https://admanager.noon.partners/en-ae?utm_source=ad_site&utm_medium=header" target="_blank" rel="noopener"
-           class="inline-flex bg-yellow-400 text-black font-black text-sm px-5 py-2.5 rounded-full mt-1">
+           class="inline-flex bg-[#feee00] text-black font-black text-sm px-5 py-2.5 rounded-full mt-1">
             {{ $navStartNow }}
         </a>
     </div>

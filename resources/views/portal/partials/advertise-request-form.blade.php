@@ -4,8 +4,8 @@
     $country = $country ?? 'ae';
 
     $fieldClass = fn (string $field) => 'w-full rounded-xl border px-4 py-3 text-sm text-gray-900 placeholder-gray-400 '
-        . 'focus:outline-none focus:ring-2 focus:ring-yellow-400/30 transition-colors '
-        . ($errors->has($field) ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-yellow-400');
+        . 'focus:outline-none focus:ring-2 focus:ring-[#feee00]/30 transition-colors '
+        . ($errors->has($field) ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-[#feee00]');
 @endphp
 
 <section class="bg-white">
@@ -105,7 +105,7 @@
                     </div>
 
                     <button type="submit"
-                            class="w-full inline-flex items-center justify-center bg-yellow-400 hover:bg-yellow-300 text-black
+                            class="w-full inline-flex items-center justify-center bg-[#feee00] hover:bg-[#e5d600] text-black
                                    font-black text-sm sm:text-base px-6 py-3 rounded-full transition-colors">
                         {{ $isAr ? 'قدّم' : 'Submit' }}
                     </button>
