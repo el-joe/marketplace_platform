@@ -11,8 +11,9 @@
              class="absolute inset-0 w-full h-full object-cover object-[75%_center] hidden md:block {{ $isAr ? '-scale-x-100' : '' }}">
 
         {{-- Gradient overlay: dark on the text side, transparent toward the photo --}}
-        <div class="absolute inset-0 {{ $isAr ? 'bg-gradient-to-l' : 'bg-gradient-to-r' }} from-black via-black/85 to-transparent lg:via-black/70"></div>
-        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent"></div>
+        <div class="hidden md:block absolute inset-0 {{ $isAr ? 'bg-gradient-to-l' : 'bg-gradient-to-r' }} from-black via-black/85 to-transparent lg:via-black/70"></div>
+        <div class="md:hidden absolute inset-x-0 bottom-0 h-[70%] bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+        <div class="hidden md:block absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent"></div>
 
         {{-- Content --}}
         <div class="absolute inset-0 flex items-center">

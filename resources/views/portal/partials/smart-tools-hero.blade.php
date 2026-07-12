@@ -15,20 +15,21 @@
              class="h-full w-full max-w-none object-cover object-center lg:w-[80%] xl:w-[70%] xl:object-[100%_25%] {{ $isAr ? '-scale-x-100' : '' }}">
     </div>
 
-    <div class="absolute inset-0 {{ $isAr ? 'bg-gradient-to-l' : 'bg-gradient-to-r' }} from-black via-black/85 to-transparent lg:via-black/70"></div>
-    <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black to-transparent"></div>
+    <div class="hidden md:block absolute inset-0 {{ $isAr ? 'bg-gradient-to-l' : 'bg-gradient-to-r' }} from-black via-black/85 to-transparent lg:via-black/70"></div>
+    <div class="md:hidden absolute inset-x-0 bottom-0 h-[70%] bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+    <div class="hidden md:block absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent"></div>
 
-    <div class="absolute inset-x-0 top-[30%] md:top-0 md:inset-y-0 flex items-start md:items-center">
+    <div class="absolute inset-x-0 inset-y-0 flex items-center md:items-center">
         <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div class="max-w-[560px] {{ $isAr ? 'text-right' : 'text-left' }}">
-                <h1 class="text-[#feee00] font-black text-[28px] md:text-[36px] mb-2">
-                    {{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow smarter' }}
+                <h1 class="text-[#feee00] font-black leading-[1.1] text-[40px] sm:text-[44px] md:text-[50px] mb-2">
+                    {{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow Smarter' }}
                 </h1>
-                <h2 class="text-white font-extrabold leading-[1.1] text-[24px] md:text-[36px]">
-                    {{ $isAr ? 'الإعلانات، الرسوم، والرؤى التحليلية' : 'Ads, fees, and analytical insights' }}
+                <h2 class="text-white font-bold text-[24px] sm:text-[28px] md:text-[32px] leading-tight">
+                    {{ $isAr ? 'الإعلانات، الرسوم، والرؤى التحليلية' : 'Ads, Fees and insights' }}
                 </h2>
-                <p class="mt-3 text-white font-semibold text-[16px] md:text-[18px]">
-                    {{ $isAr ? 'أنفق بذكاء، وتوسّع بسرعة' : 'Spend smart, and scale fast' }}
+                <p class="mt-3 text-gray-200 font-semibold text-[16px] md:text-[18px] max-w-[500px] leading-relaxed">
+                    {{ $isAr ? 'أنفق بذكاء، وتوسّع بسرعة' : 'Spend smarter, scale faster' }}
                 </p>
             </div>
         </div>
