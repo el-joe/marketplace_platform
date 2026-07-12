@@ -97,10 +97,21 @@ export default {
                     '0%': { opacity: '0' },
                     '100%': { opacity: '1' },
                 },
+                'bounce-x': {
+                    '0%, 100%': {
+                        transform: 'translateX(25%)',
+                        animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)'
+                    },
+                    '50%': {
+                        transform: 'translateX(0)',
+                        animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)'
+                    }
+                }
             },
             animation: {
                 'slide-in-right': 'slide-in-right 250ms ease-out',
                 'fade-in': 'fade-in 200ms ease-out',
+                'bounce-x': 'bounce-x 1s infinite',
             },
         },
     },
