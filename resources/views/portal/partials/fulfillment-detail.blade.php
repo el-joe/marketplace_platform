@@ -1,20 +1,51 @@
 @php $isAr = session('locale', 'ar') === 'ar'; @endphp
 
+@push('head')
+<style>
+    @keyframes wavyText {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    .animate-wavy {
+        animation: wavyText 0.6s ease-in-out forwards;
+    }
+</style>
+@endpush
+
 {{-- Fulfilled by noon --}}
-<section id="fbn" class="mt-[48px] md:bg-[#1c1c1c] md:py-10 lg:py-12">
+<section id="fbn" class="bg-[#1c1c1c] pt-8 pb-10 lg:pb-12 md:py-10 lg:py-12">
     <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl sm:text-[32px] font-extrabold mb-6 lg:mb-8">
-            <span class="text-[#feee00]">{{ $isAr ? 'التنفيذ من قبل نون:' : 'Fulfilled by noon:' }}</span>
-            {{ $isAr ? 'مصمم للسرعة' : 'Built for speed' }}
+            <span class="text-[#feee00]">{{ $isAr ? 'التنفيذ من قبل نون: ' : 'Fulfilled by noon: ' }}</span>
+            <span class="relative inline-block"
+                  x-data="{ 
+                      text: @js($isAr ? 'مصمم للسرعة' : 'Built for Speed'),
+                      displayed: '',
+                      typewriter() {
+                          let i = 0;
+                          let interval = setInterval(() => {
+                              if (i < this.text.length) {
+                                  this.displayed += this.text.charAt(i);
+                              } else {
+                                  clearInterval(interval);
+                              }
+                              i++;
+                          }, 50);
+                      }
+                  }"
+                  x-init="setTimeout(() => typewriter(), 300)">
+                <span class="opacity-0">{{ $isAr ? 'مصمم للسرعة' : 'Built for Speed' }}</span>
+                <span class="absolute top-0 {{ $isAr ? 'right-0' : 'left-0' }} text-white whitespace-nowrap" x-text="displayed"></span>
+            </span>
         </h2>
 
-        <div class="bg-[#1c1c1c] rounded-2xl overflow-hidden md:grid md:grid-cols-[1.5fr_2fr] md:gap-10 lg:gap-14">
-            <div class="relative aspect-[4/3] sm:aspect-[2/1] md:aspect-auto">
+        <div class="md:grid md:grid-cols-[1.5fr_2fr] md:gap-10 lg:gap-14">
+            <div class="relative aspect-[4/3] sm:aspect-[2/1] md:aspect-auto rounded-2xl overflow-hidden">
                 <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/03-fbn.jpg"
                      alt="{{ $isAr ? 'موظف نون يعمل في المستودع' : 'A noon employee working in the warehouse' }}"
                      class="absolute inset-0 w-full h-full object-cover">
             </div>
-            <div class="pt-7 px-6 pb-10 md:px-0 md:py-6">
+            <div class="pt-7 pb-10 md:px-0 md:py-6">
                 <h3 class="text-white font-black text-lg lg:text-xl">
                     {{ $isAr ? 'العملاء يفضلون التوصيل السريع — ونون إكسبريس يقدمه.' : 'Customers love fast delivery — and noon express delivers it.' }}
                 </h3>
@@ -72,20 +103,36 @@
 </div>
 
 {{-- Fulfilled by partner --}}
-<section id="fbp" class="mt-[48px] md:bg-[#1c1c1c] md:py-10 lg:py-12">
+<section id="fbp" class="bg-[#1c1c1c] py-10 lg:py-12 mt-[24px] md:mt-[48px]">
     <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl sm:text-[32px] font-extrabold mb-6 lg:mb-8">
-            <span class="text-[#feee00]">{{ $isAr ? 'التنفيذ من قبل الشريك:' : 'Fulfilled by partner:' }}</span>
-            {{ $isAr ? 'مصمم للمرونة' : 'Built for flexibility' }}
+        <h2 class="text-2xl sm:text-[32px] font-extrabold mb-6 lg:mb-8"
+             x-data="{ 
+                 text: @js($isAr ? 'مصمم للمرونة' : 'Built for Flexibility'),
+                 play: true,
+                 triggerAnimation() {
+                     this.play = false;
+                     setTimeout(() => this.play = true, 50);
+                 }
+             }"
+             @hashchange.window="if (location.hash === '#fbp') triggerAnimation()">
+            <span class="text-[#feee00]">{{ $isAr ? 'التنفيذ من قبل الشريك: ' : 'Fulfilled by partner: ' }}</span>
+            <span class="inline-block">
+                <template x-for="(char, index) in text.split('')" :key="index">
+                    <span class="inline-block text-white"
+                          :class="play ? 'animate-wavy' : ''"
+                          :style="play ? `animation-delay: ${index * 0.05}s;` : ''"
+                          x-text="char === ' ' ? '\u00A0' : char"></span>
+                </template>
+            </span>
         </h2>
 
-        <div class="bg-[#1c1c1c] rounded-2xl overflow-hidden md:grid md:grid-cols-[1.5fr_2fr] md:gap-10 lg:gap-14">
-            <div class="relative aspect-[4/3] sm:aspect-[2/1] md:aspect-auto">
+        <div class="md:grid md:grid-cols-[1.5fr_2fr] md:gap-10 lg:gap-14">
+            <div class="relative aspect-[4/3] sm:aspect-[2/1] md:aspect-auto rounded-2xl overflow-hidden">
                 <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/03-fbp.jpg"
                      alt="{{ $isAr ? 'صناديق نون' : 'noon boxes' }}"
                      class="absolute inset-0 w-full h-full object-cover">
             </div>
-            <div class="pt-7 px-6 pb-10 md:px-0 md:py-6">
+            <div class="pt-7 pb-10 md:px-0 md:py-6">
                 <h3 class="text-white font-black text-lg lg:text-xl mb-4">
                     {{ $isAr
                         ? 'بعض المنتجات تحتاج إلى خطة مختلفة. نماذج FBP من نون تمنحك خيارات:'
