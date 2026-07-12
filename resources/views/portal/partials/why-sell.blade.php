@@ -33,11 +33,11 @@
         @endphp
 
         @foreach($cards as $card)
-            <div class="relative rounded-xl overflow-hidden flex flex-col justify-end aspect-[4/5] sm:aspect-square md:aspect-[4/3] lg:aspect-[16/9]">
+            <div class="relative rounded-xl overflow-hidden flex flex-col justify-center sm:justify-end min-h-[140px] sm:min-h-0 sm:aspect-square md:aspect-[4/3] lg:aspect-[16/9]">
                 <img src="{{ $card['image'] }}" alt="{{ $isAr ? $card['title_ar'] : $card['title_en'] }}"
                      class="absolute inset-0 w-full h-full object-cover object-bottom">
                 <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
-                <div class="relative px-4 pb-5 lg:px-5 lg:pb-6">
+                <div class="relative px-4 py-4 sm:pb-5 lg:px-5 lg:pb-6">
                     <h3 class="text-white font-black text-base lg:text-lg text-pretty leading-tight">
                         {{ $isAr ? $card['title_ar'] : $card['title_en'] }}
                     </h3>
