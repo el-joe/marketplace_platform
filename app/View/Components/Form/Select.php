@@ -46,10 +46,19 @@ class Select extends Component
         $current = old($this->name, $this->value);
 
         if ($this->multiple) {
-            return in_array((string) $optionValue, array_map('strval', (array) $current));
+            return in_array($this->scalarize($optionValue), array_map(fn ($v) => $this->scalarize($v), (array) $current));
         }
 
-        return (string) $optionValue === (string) $current;
+        return $this->scalarize($optionValue) === $this->scalarize($current);
+    }
+
+    private function scalarize(mixed $value): string
+    {
+        if ($value instanceof \BackedEnum) {
+            return (string) $value->value;
+        }
+
+        return (string) $value;
     }
 
     public function render()
