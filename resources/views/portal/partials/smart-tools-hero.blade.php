@@ -22,7 +22,7 @@
         <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div class="max-w-[560px] {{ $isAr ? 'text-right' : 'text-left' }}">
                 <h1 class="text-[#feee00] font-black text-[28px] md:text-[36px] mb-2">
-                    {{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow your business smarter' }}
+                    {{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow smarter' }}
                 </h1>
                 <h2 class="text-white font-extrabold leading-[1.1] text-[24px] md:text-[36px]">
                     {{ $isAr ? 'الإعلانات، الرسوم، والرؤى التحليلية' : 'Ads, fees, and analytical insights' }}

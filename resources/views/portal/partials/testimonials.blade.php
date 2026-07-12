@@ -2,7 +2,7 @@
 
 <section>
     <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl sm:text-3xl font-black text-white mb-8">{{ $isAr ? 'شهادات' : 'Testimonials' }}</h2>
+        <h2 class="text-[#feee00] font-bold text-[28px] lg:text-[36px] mb-8">{{ $isAr ? 'شهادات' : 'Testimonials' }}</h2>
 
         {{-- Featured video story --}}
         <div class="grid md:grid-cols-2 gap-8 lg:gap-16 items-center mb-10">

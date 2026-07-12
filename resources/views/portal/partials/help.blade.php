@@ -3,7 +3,7 @@
 <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
     <div class="rounded-2xl border-2 border-[#2a2a2a] p-6 md:p-8 grid md:grid-cols-[1fr_auto] items-center gap-6">
         <div class="text-center md:text-start">
-            <h2 class="text-white font-black text-lg lg:text-xl mb-1">
+            <h2 class="text-white font-bold text-[22px] lg:text-[26px] leading-tight mb-1">
                 {{ $isAr ? 'هل ما زلت بحاجة للمساعدة؟' : 'Still need help?' }}
             </h2>
             <p class="text-gray-400 text-sm">

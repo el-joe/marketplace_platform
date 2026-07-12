@@ -2,8 +2,8 @@
 
 <div class="bg-[#151515] pt-8 pb-10 lg:pt-10 lg:pb-14">
     <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-[#feee00] font-black text-xl lg:text-2xl">{{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow your business smarter' }}</h2>
-        <h3 class="text-white font-black text-lg lg:text-xl mt-1 mb-6 lg:mb-8">
+        <h2 class="text-[#feee00] font-bold text-[28px] lg:text-[36px] mb-2">{{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow your business smarter' }}</h2>
+        <h3 class="text-white font-bold text-[22px] lg:text-[26px] leading-tight mb-8 lg:mb-10">
             {{ $isAr ? 'كل ما تحتاجه للتوسع والبقاء في الصدارة' : 'Everything you need to scale and stay ahead' }}
         </h3>
 
@@ -52,9 +52,9 @@
         </div>
 
         <div class="mt-8 flex justify-end">
-            <a href="{{ route('portal.smart-tools') }}" class="inline-flex items-center gap-2 text-[#feee00] font-bold text-sm">
+            <a href="{{ route('portal.smart-tools') }}" class="inline-flex items-center gap-2 text-[#feee00] font-bold text-[15px] hover:text-[#e5d600] transition-colors">
                 {{ $isAr ? 'اعرف أكثر' : 'Learn more' }}
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" class="{{ $isAr ? '-scale-x-100' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" class="{{ $isAr ? '-scale-x-100' : '' }}">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
                 </svg>
             </a>
