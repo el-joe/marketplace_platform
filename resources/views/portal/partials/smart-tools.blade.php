@@ -2,12 +2,12 @@
 
 <div class="bg-[#151515] pt-8 pb-10 lg:pt-10 lg:pb-14">
     <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-[#feee00] font-bold text-[28px] lg:text-[36px] mb-2">{{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow your business smarter' }}</h2>
+        <h2 class="text-[#feee00] font-bold text-[28px] lg:text-[36px] mb-2">{{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow smarter' }}</h2>
         <h3 class="text-white font-bold text-[22px] lg:text-[26px] leading-tight mb-8 lg:mb-10">
             {{ $isAr ? 'كل ما تحتاجه للتوسع والبقاء في الصدارة' : 'Everything you need to scale and stay ahead' }}
         </h3>
 
-        <div class="grid gap-4 md:grid-cols-3 md:gap-4 lg:gap-8">
+        <div class="grid gap-4 md:grid-cols-3 md:gap-4 lg:gap-6">
             @php
                 $cards = [
                     [
@@ -35,15 +35,15 @@
             @endphp
 
             @foreach($cards as $card)
-                <div class="relative rounded-2xl overflow-hidden h-full min-h-[320px] md:min-h-[380px]">
+                <div class="relative rounded-xl overflow-hidden flex flex-col justify-center sm:justify-end min-h-[140px] sm:min-h-0 sm:aspect-square md:aspect-[4/3] lg:aspect-[16/9]">
                     <img src="{{ $card['image'] }}" alt="{{ $isAr ? $card['title_ar'] : $card['title_en'] }}"
                          class="absolute inset-0 w-full h-full object-cover object-bottom">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10"></div>
-                    <div class="relative h-full flex flex-col justify-end px-5 pb-6 pt-10 lg:px-6 lg:pb-8">
-                        <h4 class="text-white font-black text-lg lg:text-xl text-pretty">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+                    <div class="relative px-4 py-4 sm:pb-5 lg:px-5 lg:pb-6">
+                        <h4 class="text-white font-black text-base lg:text-lg text-pretty leading-tight">
                             {{ $isAr ? $card['title_ar'] : $card['title_en'] }}
                         </h4>
-                        <p class="mt-3 text-gray-300 text-sm font-medium text-pretty">
+                        <p class="mt-1.5 text-gray-300 text-xs sm:text-sm font-medium text-pretty leading-snug">
                             {{ $isAr ? $card['desc_ar'] : $card['desc_en'] }}
                         </p>
                     </div>
