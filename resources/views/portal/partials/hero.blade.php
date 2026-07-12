@@ -2,7 +2,7 @@
 
 <section class="relative overflow-hidden bg-black">
     {{-- Background photo --}}
-    <div class="h-[560px] sm:h-[620px] lg:h-[500px] relative">
+    <div class="h-[560px] sm:h-[620px] lg:h-[440px] xl:h-[420px] relative">
         <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/01-hero-back-sm.jpg"
              alt="{{ $isAr ? 'مندوب توصيل نون يحمل طرداً في دبي' : 'A noon delivery agent carrying a box for delivery in Dubai' }}"
              class="absolute inset-0 w-full h-full object-cover md:hidden {{ $isAr ? '-scale-x-100' : '' }}">
