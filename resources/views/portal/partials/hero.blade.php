@@ -17,17 +17,33 @@
         {{-- Content --}}
         <div class="absolute inset-0 flex items-center">
             <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                <div class="max-w-[560px] {{ $isAr ? 'text-right' : 'text-left' }}">
-                    <h1 class="text-white font-black leading-[1.1] text-[42px] sm:text-[52px] lg:text-[56px]">
-                        {{ portal_content('home', 'hero', 'title', 'Start selling on noon today!', 'ابدأ البيع على نون اليوم!') }}
+                <div class="max-w-[480px] {{ $isAr ? 'text-right' : 'text-left' }}"
+                     x-data="{ 
+                         text: @js(portal_content('home', 'hero', 'title', 'Start selling on noon today!', 'ابدأ البيع على نون اليوم!')),
+                         displayed: '',
+                         typewriter() {
+                             let i = 0;
+                             let interval = setInterval(() => {
+                                 this.displayed += this.text.charAt(i);
+                                 i++;
+                                 if (i >= this.text.length) {
+                                     clearInterval(interval);
+                                 }
+                             }, 50);
+                         }
+                     }"
+                     x-init="setTimeout(() => typewriter(), 300)">
+                    <h1 class="text-white font-extrabold leading-[1.1] text-[50px] relative">
+                        <span class="opacity-0">{{ portal_content('home', 'hero', 'title', 'Start selling on noon today!', 'ابدأ البيع على نون اليوم!') }}</span>
+                        <span class="absolute top-0 {{ $isAr ? 'right-0' : 'left-0' }} w-full" x-text="displayed"></span>
                     </h1>
-                    @php($heroCta = portal_link('home', 'hero', 'cta_button', 'Register now', 'سجل الآن', route('portal.register')))
+                    @php($heroCta = portal_link('home', 'hero', 'cta_button', 'Sign Up Now', 'سجل الآن', route('portal.register')))
                     <a href="{{ $heroCta['url'] }}"
-                       class="group inline-flex items-center gap-2 mt-8 bg-yellow-400 hover:bg-yellow-300 text-black
-                              font-black text-base px-7 py-3.5 rounded-full transition-colors">
-                        {{ $heroCta['label'] }}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20"
-                             class="{{ $isAr ? '-scale-x-100' : '' }} transition-transform group-hover:translate-x-1 {{ $isAr ? 'group-hover:-translate-x-1' : '' }}">
+                       class="group inline-flex items-center justify-center gap-2 mt-6 bg-[#f3e00b] hover:opacity-90 text-black
+                              font-bold text-base min-w-[222px] h-10 px-12 rounded-full transition-all duration-300 capitalize">
+                        <span>{{ $heroCta['label'] }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20"
+                             class="{{ $isAr ? '-scale-x-100' : '' }} mt-[1px] transition-transform duration-300 group-hover:translate-x-1 {{ $isAr ? 'group-hover:-translate-x-1' : '' }}">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
                         </svg>
                     </a>
