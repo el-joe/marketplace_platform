@@ -7,24 +7,24 @@
         [
             'block' => 'link_how_it_works', 'label_ar' => 'البدء', 'label_en' => 'Getting Started', 'route' => 'portal.how-it-works',
             'submenu' => [
-                ['label_ar' => 'إعداد حسابك', 'label_en' => 'Setting up your account', 'route' => '#'],
-                ['label_ar' => 'إدراج منتجاتك', 'label_en' => 'Listing your products', 'route' => '#'],
-                ['label_ar' => 'اختيار نموذج الشحن الخاص بك', 'label_en' => 'Choosing your fulfilment model', 'route' => '#'],
+                ['label_ar' => 'إعداد حسابك', 'label_en' => 'Setting up your account', 'route' => route('portal.how-it-works') . '#registering'],
+                ['label_ar' => 'إدراج منتجاتك', 'label_en' => 'Listing your products', 'route' => route('portal.how-it-works') . '#listings'],
+                ['label_ar' => 'اختيار نموذج الشحن الخاص بك', 'label_en' => 'Choosing your fulfilment model', 'route' => route('portal.how-it-works') . '#fulfilment'],
             ]
         ],
         [
             'block' => 'link_fulfillment', 'label_ar' => 'الشحن والتوصيل', 'label_en' => 'Shipping & Fulfilment', 'route' => 'portal.fulfillment',
             'submenu' => [
-                ['label_ar' => 'مشحون من نون (FBN)', 'label_en' => 'Fulfilled by noon (FBN)', 'route' => '#'],
-                ['label_ar' => 'مشحون من الشريك (FBP)', 'label_en' => 'Fulfilled by Partner (FBP)', 'route' => '#'],
+                ['label_ar' => 'مشحون من نون (FBN)', 'label_en' => 'Fulfilled by noon (FBN)', 'route' => route('portal.fulfillment') . '#fbn'],
+                ['label_ar' => 'مشحون من الشريك (FBP)', 'label_en' => 'Fulfilled by Partner (FBP)', 'route' => route('portal.fulfillment') . '#fbp'],
             ]
         ],
         [
             'block' => 'link_smart_tools', 'label_ar' => 'نمّي بذكاء', 'label_en' => 'Grow Smarter', 'route' => 'portal.smart-tools',
             'submenu' => [
-                ['label_ar' => 'الإعلان على نون', 'label_en' => 'Advertising on noon', 'route' => '#'],
-                ['label_ar' => 'هيكل رسوم نون', 'label_en' => 'noon\'s Fee Structure', 'route' => '#'],
-                ['label_ar' => 'النمو باستخدام التحليلات', 'label_en' => 'Scale with Insights', 'route' => '#'],
+                ['label_ar' => 'الإعلان على نون', 'label_en' => 'Advertising on noon', 'route' => route('portal.smart-tools') . '#ads'],
+                ['label_ar' => 'هيكل رسوم نون', 'label_en' => 'noon\'s Fee Structure', 'route' => route('portal.smart-tools') . '#fees'],
+                ['label_ar' => 'النمو باستخدام التحليلات', 'label_en' => 'Scale with Insights', 'route' => route('portal.smart-tools') . '#insights'],
             ]
         ],
     ];
@@ -82,7 +82,7 @@
                                  class="absolute {{ $isAr ? 'right-0' : 'left-0' }} top-full w-[280px] z-50" x-cloak>
                                 <div class="bg-[#1c1c1c] border border-white/5 shadow-2xl rounded-xl py-2 overflow-hidden mt-1">
                                     @foreach($link['submenu'] as $sub)
-                                        <a href="{{ $sub['route'] }}" 
+                                        <a href="{{ $sub['route'] }}" @click="open = false"
                                            class="relative block px-5 py-3.5 text-[15px] font-bold text-gray-300 hover:text-white transition-all duration-200 flex items-center group/sub hover:bg-white/5">
                                             <div class="w-[3px] h-0 bg-[#feee00] absolute {{ $isAr ? 'right-0' : 'left-0' }} top-1/2 -translate-y-1/2 transition-all duration-300 group-hover/sub:h-[70%] {{ $isAr ? 'rounded-l-full' : 'rounded-r-full' }}"></div>
                                             <span class="transition-transform duration-300 group-hover/sub:{{ $isAr ? '-translate-x-2' : 'translate-x-2' }}">{{ $isAr ? $sub['label_ar'] : $sub['label_en'] }}</span>
