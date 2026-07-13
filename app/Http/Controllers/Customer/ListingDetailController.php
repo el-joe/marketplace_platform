@@ -94,6 +94,7 @@ class ListingDetailController extends Controller
             'reviews' => [
                 'rating_avg' => (float) $listing->rating_avg,
                 'rating_count' => (int) $listing->rating_count,
+                'rating_percentage' => ($listing->rating_avg / 5) * 100,
                 'rating_breakdown' => $this->reviewService->ratingBreakdown($product),
                 'items' => $reviews->map(fn($review) => $this->reviewShape($review))->values()->all(),
             ],
