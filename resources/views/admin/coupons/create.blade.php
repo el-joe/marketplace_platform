@@ -22,6 +22,9 @@
             couponCreated: @json(__('admin.coupons_section.coupon_created')),
             saveFailed: @json(__('admin.coupons_section.save_failed')),
             networkErrorRetry: @json(__('admin.coupons_section.network_error_retry')),
+            editValueWarningTitle: @json(__('admin.coupons_section.edit_value_warning_title')),
+            editValueWarningBody: @json(__('admin.coupons_section.edit_value_warning_body', ['count' => ':count'])),
+            proceedAnyway: @json(__('admin.coupons_section.proceed_anyway')),
         });
     </script>
 @endpush

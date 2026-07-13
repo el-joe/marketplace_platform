@@ -108,7 +108,7 @@
                             __('admin.vendors.contact_phone')   => $vendor->contact_phone ?: '—',
                             __('admin.vendors.whatsapp')        => $vendor->whatsapp_number ?: '—',
                             __('admin.vendors.commission_rate') => $vendor->commission_rate ? $vendor->commission_rate . '%' : __('admin.vendors.platform_default'),
-                            __('admin.vendors.payout_schedule') => $vendor->payout_schedule ? __('admin.vendors.payout_schedule_' . $vendor->payout_schedule) : '—',
+                            __('admin.vendors.payout_schedule') => $vendor->payout_schedule ? __('admin.vendors.payout_schedule_' . $vendor->payout_schedule->value) : '—',
                             __('admin.vendors.country')         => $vendor->country?->name_en ?? '—',
                             __('admin.vendors.approved_at')     => $vendor->approved_at?->format('d M Y') ?? '—',
                             __('admin.vendors.approved_by')     => $vendor->approvedByAdmin?->name ?? '—',

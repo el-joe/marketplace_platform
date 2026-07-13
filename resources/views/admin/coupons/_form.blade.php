@@ -32,6 +32,10 @@
     scope: '{{ $currentScope }}'
 }">
     <input type="hidden" id="form-mode" name="_form_mode" value="{{ $isEdit ? 'edit' : 'create' }}">
+    <input type="hidden" id="form-times-used" value="{{ $isEdit ? $coupon->times_used : 0 }}">
+    <input type="hidden" id="form-original-code" value="{{ $isEdit ? $coupon->code : '' }}">
+    <input type="hidden" id="form-original-type" value="{{ $isEdit ? $coupon->type->value : '' }}">
+    <input type="hidden" id="form-original-value" value="{{ $isEdit ? $coupon->value : '' }}">
 
     {{-- ─── Page header ─────────────────────────────────────────────────── --}}
     <div class="flex items-center justify-between">
@@ -173,8 +177,8 @@
                         @error('value') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    {{-- Currency (only for fixed_amount) --}}
-                    <div x-show="type === 'fixed_amount'">
+                    {{-- Currency (required for fixed_amount/bogo) --}}
+                    <div x-show="type === 'fixed_amount' || type === 'bogo'">
                         <label for="currency" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.currency') }}</label>
                         <input
                             type="text"
@@ -185,6 +189,7 @@
                             placeholder="EGP"
                             maxlength="3"
                             oninput="this.value = this.value.toUpperCase()"
+                            :required="type === 'fixed_amount' || type === 'bogo'"
                         />
                         @error('currency') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -221,37 +226,18 @@
                         <label for="scope" class="block text-xs font-medium text-gray-700 mb-1">
                             {{ __('admin.coupons_section.applies_to_required') }} <span class="text-red-500">*</span>
                         </label>
-                        <select
-                            id="scope"
-                            name="scope"
-                            x-model="scope"
-                            class="input w-full @error('scope') border-red-400 @enderror"
-                            required
-                        >
-                            <option value="platform" {{ $currentScope === 'platform' ? 'selected' : '' }}>{{ __('admin.coupons_section.platform_all_products') }}</option>
-                            <option value="vendor"   {{ $currentScope === 'vendor'   ? 'selected' : '' }}>{{ __('admin.coupons_section.specific_vendor') }}</option>
-                            <option value="category" {{ $currentScope === 'category' ? 'selected' : '' }}>{{ __('admin.coupons_section.specific_category') }}</option>
-                            <option value="product"  {{ $currentScope === 'product'  ? 'selected' : '' }}>{{ __('admin.coupons_section.specific_products') }}</option>
-                        </select>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="scope" value="platform" x-model="scope" class="text-blue-600" {{ $currentScope === 'platform' ? 'checked' : '' }} required />
+                                <span class="text-sm text-gray-700">{{ __('admin.coupons_section.platform_all_products') }}</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="scope" value="category" x-model="scope" class="text-blue-600" {{ $currentScope === 'category' ? 'checked' : '' }} required />
+                                <span class="text-sm text-gray-700">{{ __('admin.coupons_section.specific_category') }}</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">{{ __('admin.coupons_section.admin_scope_hint') }}</p>
                         @error('scope') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-
-                    {{-- Vendor picker --}}
-                    <div x-show="scope === 'vendor'">
-                        <label for="vendor_id" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.vendor') }}</label>
-                        <select
-                            id="vendor_id"
-                            name="vendor_id"
-                            class="input w-full @error('vendor_id') border-red-400 @enderror"
-                        >
-                            <option value="">{{ __('admin.coupons_section.select_vendor') }}</option>
-                            @foreach($vendors as $vendor)
-                                <option value="{{ $vendor->id }}" {{ $val('vendor_id') === $vendor->id ? 'selected' : '' }}>
-                                    {{ e($vendor->store_name) }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('vendor_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     {{-- Category picker --}}
@@ -261,6 +247,7 @@
                             id="category_id"
                             name="category_id"
                             class="input w-full @error('category_id') border-red-400 @enderror"
+                            :required="scope === 'category'"
                         >
                             <option value="">{{ __('admin.coupons_section.select_category') }}</option>
                             @foreach($categories as $cat)
@@ -270,11 +257,6 @@
                             @endforeach
                         </select>
                         @error('category_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-
-                    {{-- Product note --}}
-                    <div x-show="scope === 'product'" class="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700">
-                        {!! __('admin.coupons_section.product_scope_note', ['table' => '<strong>coupon_products</strong>']) !!}
                     </div>
 
                 </div>

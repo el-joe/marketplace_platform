@@ -1,12 +1,12 @@
 @php
     $vendorAdmin = auth()->guard('vendor')->user();
     $vendor = $vendorAdmin?->vendor;
-    $statusColor = match ($vendor?->global_status) {
+    $statusColor = match ($vendor?->global_status?->value) {
         'active' => 'bg-green-400',
         'under_review' => 'bg-yellow-400',
         default => 'bg-gray-500',
     };
-    $statusLabel = match ($vendor?->global_status) {
+    $statusLabel = match ($vendor?->global_status?->value) {
         'active' => __('partner.nav.status_active'),
         'under_review' => __('partner.nav.status_under_review'),
         default => __('partner.nav.status_suspended'),

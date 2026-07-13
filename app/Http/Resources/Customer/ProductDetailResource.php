@@ -10,6 +10,9 @@ class ProductDetailResource extends JsonResource
 {
     public bool $isWishlisted = false;
 
+    /** @var array<string, mixed> */
+    public array $enrichment = [];
+
     public function toArray(Request $request): array
     {
         $countrySetting = $this->whenLoaded('countrySettings', function () {
@@ -20,6 +23,20 @@ class ProductDetailResource extends JsonResource
             'ar' => $countrySetting?->name_override_ar ?? $this->name_ar,
             'en' => $countrySetting?->name_override_en ?? $this->name_en,
         ];
+
+        $extras = [];
+        if (! empty($this->enrichment['best_seller_badge'] ?? null)) {
+            $extras['best_seller_badge'] = $this->enrichment['best_seller_badge'];
+        }
+        if (! empty($this->enrichment['delivery_options'] ?? null)) {
+            $extras['delivery_options'] = $this->enrichment['delivery_options'];
+        }
+        if (! empty($this->enrichment['coupons'] ?? null)) {
+            $extras['coupons'] = $this->enrichment['coupons'];
+        }
+        if (! empty($this->enrichment['payment_options'] ?? null)) {
+            $extras['payment_options'] = $this->enrichment['payment_options'];
+        }
 
         return [
             'id'               => $this->id,
@@ -93,6 +110,6 @@ class ProductDetailResource extends JsonResource
                 ],
                 'description' => Bilingual::pairFromKeys($this->resource, 'seo_description_ar', 'seo_description_en'),
             ],
-        ];
+        ] + $extras;
     }
 }

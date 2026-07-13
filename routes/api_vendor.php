@@ -3,6 +3,7 @@
 use App\Http\Controllers\Vendor\AdCampaignController;
 use App\Http\Controllers\Vendor\ClassifiedListingController;
 use App\Http\Controllers\Vendor\AuthController;
+use App\Http\Controllers\Vendor\CouponController;
 use App\Http\Controllers\Vendor\DashboardController;
 use App\Http\Controllers\Vendor\DisputeController;
 use App\Http\Controllers\Vendor\FinanceController;
@@ -125,6 +126,17 @@ Route::prefix('v1')->group(function (): void {
                 Route::get('{id}/shipping-methods', [ListingController::class, 'availableShippingMethods'])->name('shipping-methods');
                 Route::put('{id}/shipping', [ListingController::class, 'updateShipping'])->name('shipping');
                 Route::delete('{id}',      [ListingController::class, 'destroy'])->name('destroy');
+            });
+
+            // Coupons (vendor/product scope, vendor-owned only)
+            Route::prefix('coupons')->name('vendor.coupons.')->group(function (): void {
+                Route::get('/',                 [CouponController::class, 'index'])->name('index');
+                Route::post('/',                [CouponController::class, 'store'])->name('store');
+                Route::get('{id}',              [CouponController::class, 'show'])->name('show');
+                Route::put('{id}',              [CouponController::class, 'update'])->name('update');
+                Route::put('{id}/toggle-active', [CouponController::class, 'toggleActive'])->name('toggle-active');
+                Route::delete('{id}',           [CouponController::class, 'destroy'])->name('destroy');
+                Route::get('{id}/usage',        [CouponController::class, 'usages'])->name('usage');
             });
 
             // Warehouses (vendor-owned only)

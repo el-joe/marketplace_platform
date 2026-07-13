@@ -16,6 +16,7 @@ use App\Services\Customer\TravelBookingService;
 use App\Services\Customer\TravelPackageDetailService;
 use App\Services\Customer\BuyBoxService;
 use App\Services\Customer\ProductViewService;
+use App\Services\Customer\ProductDetailEnrichmentService;
 use App\Models\Product;
 use App\Models\Wishlist;
 use App\Http\Resources\Customer\ProductDetailResource;
@@ -32,6 +33,7 @@ class ListingController extends Controller
         private readonly TravelBookingService $bookingService,
         private readonly BuyBoxService $buyBox,
         private readonly ProductViewService $viewService,
+        private readonly ProductDetailEnrichmentService $enrichment,
     ) {}
 
     public function show(Request $request,$country, string $type, string $slug): JsonResponse
@@ -187,8 +189,31 @@ class ListingController extends Controller
             referrerUrl: $request->header('Referer'),
         );
 
-        $resource              = new ProductDetailResource($product);
+        $buyBoxListing = $listings->first();
+        $customer      = auth('customer')->user();
+
+        $resource               = new ProductDetailResource($product);
         $resource->isWishlisted = $isWishlisted;
+        $resource->enrichment   = [
+            'best_seller_badge' => $this->enrichment->getBestSellerBadge($product, $country),
+            'delivery_options'  => $this->enrichment->getDeliveryOptions(
+                $product,
+                $country,
+                $request->query('address_id'),
+                $buyBoxListing,
+            ),
+            'coupons' => $this->enrichment->getApplicableCoupons(
+                $product,
+                $country,
+                $customer,
+                $buyBoxListing,
+            ),
+            'payment_options' => $this->enrichment->getPaymentOptions(
+                $country,
+                (int) ($buyBoxListing?->price ?? 0),
+                $customer,
+            ),
+        ];
 
         return ApiResponse::success($resource->toArray($request));
     }

@@ -272,7 +272,7 @@ class VendorController extends Controller
     public function verifyDocument(VerifyVendorDocumentRequest $request, VendorDocument $document): JsonResponse
     {
         $document->update([
-            'status' => 'verified',
+            'status' => VendorDocumentStatus::Approved,
             'verified_by_admin_id' => auth('admin')->id(),
             'verified_at' => now(),
         ]);

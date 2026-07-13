@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\CouponCustomerEligibility;
-use App\Enums\CouponScope;
 use App\Enums\CouponType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -22,11 +21,24 @@ class StoreCouponRequest extends FormRequest
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
             'type' => ['required', Rule::enum(CouponType::class)],
-            'value' => ['required', 'numeric', 'min:0'],
-            'currency' => ['nullable', 'string', 'size:3'],
-            'scope' => ['required', Rule::enum(CouponScope::class)],
-            'vendor_id' => ['nullable', 'uuid', 'exists:vendors,id'],
-            'category_id' => ['nullable', 'uuid', 'exists:categories,id'],
+            'value' => [
+                'required',
+                'numeric',
+                'min:0',
+                Rule::when(fn () => $this->input('type') === 'percentage', ['max:100']),
+                Rule::when(fn () => $this->input('type') === 'fixed_amount', ['gt:0']),
+            ],
+            'currency' => [
+                Rule::when(fn () => in_array($this->input('type'), ['fixed_amount', 'bogo'], true), ['required'], ['nullable']),
+                'string', 'size:3',
+            ],
+            // Admin panel only manages platform/category scoped coupons; vendor/product
+            // scopes belong to the vendor panel and are read-only here.
+            'scope' => ['required', Rule::in(['platform', 'category'])],
+            'category_id' => [
+                Rule::when(fn () => $this->input('scope') === 'category', ['required'], ['nullable']),
+                'uuid', 'exists:categories,id',
+            ],
             'min_order_amount' => ['nullable', 'integer', 'min:0'],
             'max_discount' => ['nullable', 'integer', 'min:0'],
             'usage_limit_total' => ['nullable', 'integer', 'min:1'],

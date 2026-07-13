@@ -1,10 +1,2 @@
- database/seeders/AdSupportSeeder.php               | 194 +++++++
- database/seeders/DatabaseSeeder.php                |   9 +
- database/seeders/FaqSeeder.php                     |  73 +++
- database/seeders/HelpCenterSeeder.php              | 295 ++++++++++
- database/seeders/PermissionSeeder.php              |   6 +
- database/seeders/PortalContentSeeder.php           | 108 ++++
- database/seeders/RolesAndPermissionsSeeder.php     |   2 +
-
-----------------------------------------------------------------
-
+php artisan db:seed --class=PaymentInstallmentConfigSeeder
+php artisan db:seed --class=VendorDocumentTypeSeeder

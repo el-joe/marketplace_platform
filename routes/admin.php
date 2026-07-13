@@ -463,7 +463,9 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/', [CouponController::class, 'store'])->name('store');
         Route::get('/{coupon}/usages', [CouponController::class, 'usages'])->name('usages');
         Route::get('/{coupon}/edit', [CouponController::class, 'edit'])->name('edit');
+        Route::get('/{coupon}', [CouponController::class, 'show'])->name('show');
         Route::put('/{coupon}', [CouponController::class, 'update'])->name('update');
+        Route::put('/{coupon}/toggle-active', [CouponController::class, 'toggleActive'])->name('toggle-active');
         Route::delete('/{coupon}', [CouponController::class, 'destroy'])->name('destroy');
     });
 
@@ -818,6 +820,7 @@ Route::middleware('auth.admin')->group(function () {
 
         // Shipping method CRUD
         Route::post('/methods', [ShippingMethodController::class, 'storeMethod'])->name('methods.store')->middleware('admin.permission:settings.edit');
+        Route::get('/methods/{method}', [ShippingMethodController::class, 'showMethod'])->name('methods.show');
         Route::put('/methods/{method}', [ShippingMethodController::class, 'updateMethod'])->name('methods.update')->middleware('admin.permission:settings.edit');
         Route::post('/methods/{method}/toggle', [ShippingMethodController::class, 'toggleMethod'])->name('methods.toggle')->middleware('admin.permission:settings.edit');
 

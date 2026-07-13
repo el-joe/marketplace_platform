@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Partner\AuthController as PartnerAuthController;
 use App\Http\Controllers\Partner\BankAccountController;
+use App\Http\Controllers\Partner\CouponController;
 use App\Http\Controllers\Partner\DashboardController;
 use App\Http\Controllers\Partner\InventoryController;
 use App\Http\Controllers\Partner\ListingController;
@@ -127,6 +128,19 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/earnings-summary', 'earningsSummary')->name('earnings-summary');
         Route::get('/{payoutNumber}', 'show')->name('show');
+    });
+
+    // ── Coupons module ────────────────────────────────────────────────────────
+    Route::prefix('coupons')->name('coupons.')->controller(CouponController::class)->group(function () {
+        Route::get('/',                    'index')->name('index');
+        Route::get('/datatable',           'datatable')->name('datatable');
+        Route::get('/create',              'create')->name('create');
+        Route::post('/',                   'store')->name('store');
+        Route::get('/{id}',                'show')->name('show');
+        Route::get('/{id}/edit',           'edit')->name('edit');
+        Route::put('/{id}',                'update')->name('update');
+        Route::post('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+        Route::delete('/{id}',             'destroy')->name('destroy');
     });
 
     // ── Bank Accounts module ─────────────────────────────────────────────────

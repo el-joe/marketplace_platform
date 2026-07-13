@@ -258,6 +258,8 @@ function initMethodModal() {
         $form[0].reset();
         $('#method-id').val('');
         $('#method-http').val('POST');
+        $form.find('[name="code"]').prop('readonly', false);
+        $form.find('[data-code-locked-note]').hide();
         $modal.modal('open');
     });
 
@@ -273,8 +275,25 @@ function initMethodModal() {
         $form.find('[name="description"]').val(row.description ?? '');
         $form.find('[name="min_delivery_days"]').val(row.min_delivery_days);
         $form.find('[name="max_delivery_days"]').val(row.max_delivery_days);
+        $form.find('[name="order_cutoff_time"]').val(row.order_cutoff_time ? row.order_cutoff_time.slice(0, 5) : '');
+        $form.find('[name="handling_time_hours"]').val(row.handling_time_hours ?? '');
+        $form.find('[name="display_priority"]').val(row.display_priority ?? '');
+        $form.find('[name="badge_label_en"]').val(row.badge_label_en ?? '').trigger('input');
+        $form.find('[name="badge_label_ar"]').val(row.badge_label_ar ?? '');
+        $form.find('[name="badge_color_hex"]').val(row.badge_color_hex ?? '#e5e7eb').trigger('input');
+        $form.find('[name="badge_text_color_hex"]').val(row.badge_text_color_hex ?? '#111827').trigger('input');
+        $form.find('[name="delivery_label_en"]').val(row.delivery_label_en ?? '');
+        $form.find('[name="delivery_label_ar"]').val(row.delivery_label_ar ?? '');
 
+        // code is immutable after creation
+        $form.find('[name="code"]').prop('readonly', true);
+        $form.find('[data-code-locked-note]').show();
+
+        const $expressToggle = $form.find('[name="is_express_type"]');
+        const $priceToggle = $form.find('[name="show_estimated_price"]');
         const $toggle = $form.find('[name="is_active"]');
+        $expressToggle.prop('checked', !!row.is_express_type).trigger('change');
+        $priceToggle.prop('checked', !!row.show_estimated_price).trigger('change');
         $toggle.prop('checked', !!row.is_active).trigger('change');
 
         $modal.modal('open');
@@ -289,12 +308,26 @@ function initMethodModal() {
 
         const payload = {
             name: $form.find('[name="name"]').val(),
-            code: $form.find('[name="code"]').val(),
             description: $form.find('[name="description"]').val() || null,
             min_delivery_days: parseInt($form.find('[name="min_delivery_days"]').val()),
             max_delivery_days: parseInt($form.find('[name="max_delivery_days"]').val()),
+            order_cutoff_time: $form.find('[name="order_cutoff_time"]').val() || null,
+            handling_time_hours: $form.find('[name="handling_time_hours"]').val() || null,
+            display_priority: $form.find('[name="display_priority"]').val() || null,
+            badge_label_en: $form.find('[name="badge_label_en"]').val() || null,
+            badge_label_ar: $form.find('[name="badge_label_ar"]').val() || null,
+            badge_color_hex: $form.find('[name="badge_color_hex"]').val() || null,
+            badge_text_color_hex: $form.find('[name="badge_text_color_hex"]').val() || null,
+            delivery_label_en: $form.find('[name="delivery_label_en"]').val() || null,
+            delivery_label_ar: $form.find('[name="delivery_label_ar"]').val() || null,
+            is_express_type: $form.find('[name="is_express_type"]').is(':checked') ? 1 : 0,
+            show_estimated_price: $form.find('[name="show_estimated_price"]').is(':checked') ? 1 : 0,
             is_active: $form.find('[name="is_active"]').is(':checked') ? 1 : 0,
         };
+
+        if (!id) {
+            payload.code = $form.find('[name="code"]').val();
+        }
 
         try {
             await sendJson(url, method, payload);

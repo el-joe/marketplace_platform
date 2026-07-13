@@ -35,9 +35,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (form) {
         const isEdit = modeInput && modeInput.value === 'edit';
+        const timesUsed = parseInt(document.getElementById('form-times-used')?.value || '0', 10);
+        const originalCode = document.getElementById('form-original-code')?.value || '';
+        const originalType = document.getElementById('form-original-type')?.value || '';
+        const originalValue = document.getElementById('form-original-value')?.value || '';
 
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
+
+            if (isEdit && timesUsed > 0) {
+                const code = form.querySelector('#code')?.value || '';
+                const type = form.querySelector('#type')?.value || '';
+                const value = form.querySelector('#value')?.value || '';
+                const changedSensitiveField = code !== originalCode || type !== originalType || value !== originalValue;
+
+                if (changedSensitiveField) {
+                    const message = (window.TRANSLATIONS?.editValueWarningBody || 'This coupon has been used :count time(s). Changing its code, type, or value may cause confusion for customers who copied it.')
+                        .replace(':count', timesUsed);
+                    const confirmed = window.confirmDelete
+                        ? await window.confirmDelete(message, { title: window.TRANSLATIONS?.editValueWarningTitle || 'This coupon has already been used', confirmButtonText: window.TRANSLATIONS?.proceedAnyway || 'Save Anyway' })
+                        : confirm(message);
+                    if (!confirmed) return;
+                }
+            }
 
             const btn = document.getElementById('save-btn');
             const originalText = btn ? btn.textContent : '';

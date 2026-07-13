@@ -35,6 +35,7 @@ export default defineConfig({
                 'resources/js/admin/flash-sale-detail.js',
                 'resources/js/admin/page-builder.js',
                 'resources/js/admin/coupons.js',
+                'resources/js/admin/coupons-show.js',
                 'resources/js/admin/admins.js',
                 'resources/js/admin/customers.js',
                 'resources/js/admin/disputes.js',
@@ -53,6 +54,7 @@ export default defineConfig({
                 'resources/js/admin/activity-log.js',
                 'resources/js/admin/payment-methods.js',
                 'resources/js/admin/shipping-methods.js',
+                'resources/js/admin/shipping-method-show.js',
                 'resources/js/admin/secret-promotions.js',
                 'resources/js/admin/secret-promotion-detail.js',
                 'resources/js/admin/marketer-tiers.js',
@@ -82,6 +84,7 @@ export default defineConfig({
                 'resources/js/partner/warehouse-create.js',
                 'resources/js/partner/warehouse-detail.js',
                 'resources/js/partner/classifieds.js',
+                'resources/js/vendor/coupons.js',
                 // Delivery Agent Panel (delivery.noon.loc)
                 'resources/js/delivery/app.js',
                 'resources/js/marketer/app.js'

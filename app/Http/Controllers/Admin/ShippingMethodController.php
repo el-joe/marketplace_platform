@@ -50,6 +50,17 @@ class ShippingMethodController extends Controller
             'min_delivery_days' => ['required', 'integer', 'min:0'],
             'max_delivery_days' => ['required', 'integer', 'min:0', 'gte:min_delivery_days'],
             'is_active' => ['boolean'],
+            'badge_label_en' => ['nullable', 'string', 'max:50'],
+            'badge_label_ar' => ['nullable', 'string', 'max:50'],
+            'badge_color_hex' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'badge_text_color_hex' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'delivery_label_en' => ['nullable', 'string', 'max:150'],
+            'delivery_label_ar' => ['nullable', 'string', 'max:150'],
+            'is_express_type' => ['boolean'],
+            'show_estimated_price' => ['boolean'],
+            'display_priority' => ['nullable', 'integer', 'min:0'],
+            'order_cutoff_time' => ['nullable', 'date_format:H:i'],
+            'handling_time_hours' => ['nullable', 'integer', 'min:0', 'max:255'],
         ]);
 
         $method = ShippingMethod::create($data);
@@ -66,7 +77,21 @@ class ShippingMethodController extends Controller
             'min_delivery_days' => ['sometimes', 'integer', 'min:0'],
             'max_delivery_days' => ['sometimes', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
+            'badge_label_en' => ['nullable', 'string', 'max:50'],
+            'badge_label_ar' => ['nullable', 'string', 'max:50'],
+            'badge_color_hex' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'badge_text_color_hex' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'delivery_label_en' => ['nullable', 'string', 'max:150'],
+            'delivery_label_ar' => ['nullable', 'string', 'max:150'],
+            'is_express_type' => ['sometimes', 'boolean'],
+            'show_estimated_price' => ['sometimes', 'boolean'],
+            'display_priority' => ['nullable', 'integer', 'min:0'],
+            'order_cutoff_time' => ['nullable', 'date_format:H:i'],
+            'handling_time_hours' => ['nullable', 'integer', 'min:0', 'max:255'],
         ]);
+
+        // code is immutable after creation — never allow it to change via update
+        unset($data['code']);
 
         $method->update($data);
 
@@ -78,6 +103,15 @@ class ShippingMethodController extends Controller
         $method->update(['is_active' => !$method->is_active]);
 
         return response()->json(['success' => true, 'is_active' => $method->is_active]);
+    }
+
+    public function showMethod(ShippingMethod $method)
+    {
+        $method->load(['rates.originZone.country', 'rates.destinationZone.country', 'rates.carrier']);
+        $zones = ShippingZone::with('country')->where('is_active', 1)->orderBy('name')->get();
+        $carriers = ShippingCarrier::orderBy('name')->get();
+
+        return view('admin.shipping-methods.show', compact('method', 'zones', 'carriers'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -5,6 +5,7 @@ use App\Http\Controllers\Customer\AuthController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CategoryController;
 use App\Http\Controllers\Customer\CheckoutController;
+use App\Http\Controllers\Customer\CouponController;
 use App\Http\Controllers\Customer\DisputeController;
 use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\ProductController;
@@ -131,6 +132,10 @@ Route::prefix('v1/{country}')
         // ── Brand page (public) ───────────────────────────────────────────────
         Route::get('brands/{id}', [BrandPageController::class, 'show'])
             ->name('customer.brands.show');
+
+        // ── Coupon detail — public "Learn more" CTA (public) ──────────────────
+        Route::get('coupons/{code}', [CouponController::class, 'show'])
+            ->name('customer.coupons.show');
 
         // ── Search (public) ───────────────────────────────────────────────────
         Route::prefix('search')->name('customer.search.')->group(function (): void {

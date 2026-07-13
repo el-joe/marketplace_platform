@@ -5,23 +5,31 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCouponRequest;
 use App\Http\Requests\Admin\UpdateCouponRequest;
+use App\Http\Resources\Admin\CouponResource;
+use App\Http\Resources\Admin\CouponUsageResource;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
-use App\Models\Vendor;
+use App\Services\Admin\CouponService;
 use App\Traits\HasDataTable;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CouponController extends Controller
 {
-    use HasDataTable;
+    use HasDataTable, AuthorizesRequests;
+
+    public function __construct(private readonly CouponService $coupons)
+    {
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Index
@@ -29,6 +37,8 @@ class CouponController extends Controller
 
     public function index(): View
     {
+        Gate::forUser(Auth::guard('admin')->user())->authorize('viewAny', Coupon::class);
+
         return view('admin.coupons.index', [
             'breadcrumbs' => [
                 ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
@@ -43,6 +53,8 @@ class CouponController extends Controller
 
     public function datatable(Request $request): JsonResponse
     {
+        Gate::forUser(Auth::guard('admin')->user())->authorize('viewAny', Coupon::class);
+
         $columns = $this->columnDefinitions();
 
         $query = Coupon::query()
@@ -53,6 +65,7 @@ class CouponController extends Controller
                 'coupons.type',
                 'coupons.value',
                 'coupons.scope',
+                'coupons.vendor_id',
                 'coupons.times_used',
                 'coupons.usage_limit_total',
                 'coupons.customer_eligibility',
@@ -77,6 +90,8 @@ class CouponController extends Controller
         ]);
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
+            $isAdminManaged = in_array($row->scope->value, CouponService::ADMIN_MANAGEABLE_SCOPES, true);
+
             return [
                 'id' => $row->id,
                 'code' => e($row->code),
@@ -84,6 +99,7 @@ class CouponController extends Controller
                 'type' => $row->type,
                 'value' => $row->value,
                 'scope' => $row->scope,
+                'is_admin_managed' => $isAdminManaged,
                 'times_used' => (int) $row->times_used,
                 'usage_limit_total' => $row->usage_limit_total ? (int) $row->usage_limit_total : null,
                 'customer_eligibility' => $row->customer_eligibility,
@@ -93,8 +109,9 @@ class CouponController extends Controller
                 'is_stackable' => (bool) $row->is_stackable,
                 'created_at' => $row->created_at,
                 'is_expired' => $row->valid_until < now()->toDateTimeString(),
-                'edit_url' => route('admin.coupons.edit', $row->id),
-                'delete_url' => route('admin.coupons.destroy', $row->id),
+                'show_url' => route('admin.coupons.show', $row->id),
+                'edit_url' => $isAdminManaged ? route('admin.coupons.edit', $row->id) : null,
+                'delete_url' => $isAdminManaged ? route('admin.coupons.destroy', $row->id) : null,
             ];
         });
     }
@@ -105,39 +122,33 @@ class CouponController extends Controller
 
     public function create(): View
     {
+        Gate::forUser(Auth::guard('admin')->user())->authorize('create', Coupon::class);
+
         return view('admin.coupons.create', [
             'breadcrumbs' => [
                 ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
                 ['label' => __('admin.nav.coupons'), 'url' => route('admin.coupons.index')],
                 ['label' => __('admin.coupons_section.new_coupon')],
             ],
-            'vendors' => Vendor::query()->orderBy('store_name')->get(['id', 'store_name']),
             'categories' => Category::query()->where('is_active', true)->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en']),
         ]);
     }
 
     public function store(StoreCouponRequest $request): JsonResponse|RedirectResponse
     {
-        $data = $request->validated();
-        $data['code'] = strtoupper(trim($data['code']));
-        $data['is_active'] = (bool) ($data['is_active'] ?? true);
-        $data['is_stackable'] = (bool) ($data['is_stackable'] ?? false);
-        $data['created_by_user_id'] = Auth::guard('admin')->id();
+        Gate::forUser(Auth::guard('admin')->user())->authorize('create', Coupon::class);
 
-        // Clear scope-specific foreign keys
-        if ($data['scope'] !== 'vendor') {
-            $data['vendor_id'] = null;
-        }
-        if ($data['scope'] !== 'category') {
-            $data['category_id'] = null;
-        }
+        /** @var \App\Models\Admin $admin */
+        $admin = Auth::guard('admin')->user();
 
-        DB::beginTransaction();
         try {
-            $coupon = Coupon::query()->create(array_merge(['id' => Str::uuid()->toString()], $data));
-            DB::commit();
+            $coupon = $this->coupons->create($request->validated(), $admin);
+        } catch (ValidationException $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 422);
+            }
+            return back()->withInput()->withErrors($e->errors());
         } catch (\Throwable $e) {
-            DB::rollBack();
             Log::error('CouponController@store failed', ['error' => $e->getMessage()]);
 
             if ($request->wantsJson()) {
@@ -158,12 +169,62 @@ class CouponController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Show (detail + usage analytics)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function show(Coupon $coupon): View
+    {
+        Gate::forUser(Auth::guard('admin')->user())->authorize('view', $coupon);
+
+        $coupon->load(['vendor:id,store_name', 'category:id,name_en']);
+
+        $totalDiscountGranted = CouponUsage::query()->where('coupon_id', $coupon->id)->sum('discount_amount');
+
+        $dailyRedemptions = CouponUsage::query()
+            ->where('coupon_id', $coupon->id)
+            ->where('used_at', '>=', now()->subDays(30)->startOfDay())
+            ->selectRaw('DATE(used_at) as day, COUNT(*) as total')
+            ->groupBy('day')
+            ->orderBy('day')
+            ->pluck('total', 'day');
+
+        $recentUsages = CouponUsage::query()
+            ->where('coupon_id', $coupon->id)
+            ->with(['customer:id,name', 'order:id,order_number'])
+            ->orderByDesc('used_at')
+            ->limit(25)
+            ->get();
+
+        $isAdminManaged = in_array($coupon->scope->value, CouponService::ADMIN_MANAGEABLE_SCOPES, true);
+
+        return view('admin.coupons.show', [
+            'coupon' => CouponResource::make($coupon)->resolve(),
+            'couponModel' => $coupon,
+            'isAdminManaged' => $isAdminManaged,
+            'usageCount' => CouponUsage::query()->where('coupon_id', $coupon->id)->count(),
+            'categories' => $isAdminManaged
+                ? Category::query()->where('is_active', true)->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en'])
+                : collect(),
+            'totalDiscountGranted' => (float) $totalDiscountGranted,
+            'dailyRedemptions' => $dailyRedemptions,
+            'recentUsages' => CouponUsageResource::collection($recentUsages)->resolve(),
+            'breadcrumbs' => [
+                ['label' => __('admin.nav.dashboard'), 'url' => route('admin.dashboard')],
+                ['label' => __('admin.nav.coupons'), 'url' => route('admin.coupons.index')],
+                ['label' => e($coupon->code)],
+            ],
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Edit / Update
     // ─────────────────────────────────────────────────────────────────────────
 
     public function edit(string $coupon): View
     {
         $model = Coupon::findOrFail($coupon);
+
+        Gate::forUser(Auth::guard('admin')->user())->authorize('update', $model);
 
         $usageCount = CouponUsage::query()->where('coupon_id', $model->id)->count();
 
@@ -175,7 +236,6 @@ class CouponController extends Controller
                 ['label' => __('admin.nav.coupons'), 'url' => route('admin.coupons.index')],
                 ['label' => e($model->code)],
             ],
-            'vendors' => Vendor::query()->orderBy('store_name')->get(['id', 'store_name']),
             'categories' => Category::query()->where('is_active', true)->whereNull('deleted_at')->orderBy('name_en')->get(['id', 'name_en']),
         ]);
     }
@@ -184,29 +244,27 @@ class CouponController extends Controller
     {
         $model = Coupon::findOrFail($coupon);
 
-        $data = $request->validated();
-        $data['code'] = strtoupper(trim($data['code']));
-        $data['is_active'] = (bool) ($data['is_active'] ?? false);
-        $data['is_stackable'] = (bool) ($data['is_stackable'] ?? false);
+        Gate::forUser(Auth::guard('admin')->user())->authorize('update', $model);
 
-        if ($data['scope'] !== 'vendor') {
-            $data['vendor_id'] = null;
-        }
-        if ($data['scope'] !== 'category') {
-            $data['category_id'] = null;
-        }
-
-        DB::beginTransaction();
         try {
-            $model->update($data);
-            DB::commit();
+            $this->coupons->update($model, $request->validated());
+        } catch (ValidationException $e) {
+            return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 422);
         } catch (\Throwable $e) {
-            DB::rollBack();
             Log::error('CouponController@update failed', ['coupon' => $coupon, 'error' => $e->getMessage()]);
             return response()->json(['message' => __('admin.coupons_section.update_failed')], 500);
         }
 
         return response()->json(['success' => true]);
+    }
+
+    public function toggleActive(Coupon $coupon): JsonResponse
+    {
+        Gate::forUser(Auth::guard('admin')->user())->authorize('toggleActive', $coupon);
+
+        $coupon->update(['is_active' => !$coupon->is_active]);
+
+        return response()->json(['success' => true, 'is_active' => $coupon->is_active]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -217,16 +275,19 @@ class CouponController extends Controller
     {
         $model = Coupon::findOrFail($coupon);
 
-        $usageCount = CouponUsage::query()->where('coupon_id', $model->id)->count();
-        if ($usageCount > 0) {
+        Gate::forUser(Auth::guard('admin')->user())->authorize('delete', $model);
+
+        $result = $this->coupons->deleteOrDeactivate($model);
+
+        if ($result['deactivated']) {
             return response()->json([
-                'message' => __('admin.coupons_section.delete_blocked_used', ['count' => $usageCount]),
-            ], 422);
+                'success' => true,
+                'deactivated' => true,
+                'message' => __('admin.coupons_section.delete_blocked_used', ['count' => $model->times_used]),
+            ]);
         }
 
-        $model->delete();
-
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'deactivated' => false]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -235,6 +296,8 @@ class CouponController extends Controller
 
     public function bulkAction(Request $request): JsonResponse
     {
+        Gate::forUser(Auth::guard('admin')->user())->authorize('viewAny', Coupon::class);
+
         $action = $request->input('action');
         $ids = $request->input('ids', []);
 
@@ -247,21 +310,24 @@ class CouponController extends Controller
             return response()->json(['message' => __('admin.coupons_section.invalid_action')], 422);
         }
 
+        // Bulk actions never touch vendor/product-scoped coupons — those are
+        // read-only from the admin panel.
+        $manageableIds = Coupon::query()
+            ->whereIn('id', $ids)
+            ->whereIn('scope', CouponService::ADMIN_MANAGEABLE_SCOPES)
+            ->pluck('id');
+
         match ($action) {
-            'activate' => Coupon::query()->whereIn('id', $ids)->update(['is_active' => true]),
-            'deactivate' => Coupon::query()->whereIn('id', $ids)->update(['is_active' => false]),
+            'activate' => Coupon::query()->whereIn('id', $manageableIds)->update(['is_active' => true]),
+            'deactivate' => Coupon::query()->whereIn('id', $manageableIds)->update(['is_active' => false]),
             'delete' => Coupon::query()
-                ->whereIn('id', $ids)
+                ->whereIn('id', $manageableIds)
                 ->whereNotIn('id', CouponUsage::query()->pluck('coupon_id'))
                 ->delete(),
         };
 
         return response()->json(['success' => true]);
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Private
-    // ─────────────────────────────────────────────────────────────────────────
 
     // ─────────────────────────────────────────────────────────────────────────
     // Generate Code
@@ -282,8 +348,7 @@ class CouponController extends Controller
 
     public function usages(Coupon $coupon): JsonResponse
     {
-        $admin = auth('admin')->user();
-        abort_unless($admin->hasPermissionTo('coupons.view'), 403);
+        Gate::forUser(Auth::guard('admin')->user())->authorize('view', $coupon);
 
         $usages = CouponUsage::where('coupon_id', $coupon->id)
             ->with(['customer:id,name,email', 'order:id,order_number,status'])

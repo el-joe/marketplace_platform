@@ -29,6 +29,8 @@ class ShippingMethod extends Model
         'is_express_type',
         'show_estimated_price',
         'display_priority',
+        'order_cutoff_time',
+        'handling_time_hours',
     ];
 
     protected $casts = [
@@ -38,6 +40,8 @@ class ShippingMethod extends Model
         'min_delivery_days'    => 'integer',
         'max_delivery_days'    => 'integer',
         'display_priority'     => 'integer',
+        'handling_time_hours'  => 'integer',
+        'order_cutoff_time'    => 'string',
     ];
 
     public function rates(): HasMany

@@ -13,6 +13,7 @@ use App\Jobs\TransitionFlashSaleStatusJob;
 use App\Jobs\GenerateFbnStorageFeesJob;
 use App\Jobs\FbnInboundReminderJob;
 use App\Jobs\PublishScheduledBlogPostsJob;
+use App\Jobs\RecalculateBestSellerRankingsJob;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -56,3 +57,9 @@ Schedule::job(new GenerateCodSettlementsJob)->dailyAt('23:30')->name('generate-c
 
 // Expire pending vendor campaign invitations past their deadline
 Schedule::job(new ExpireVendorCampaignInvitationsJob)->dailyAt('00:15')->name('expire-vendor-campaign-invitations');
+
+// Recalculate best-seller rankings per category/country
+Schedule::job(new RecalculateBestSellerRankingsJob, 'rankings')
+    ->everySixHours()
+    ->withoutOverlapping(30)
+    ->name('recalculate-bestseller-rankings');

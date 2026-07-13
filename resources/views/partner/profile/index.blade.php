@@ -19,9 +19,10 @@
 @section('content')
 @php
 $businessTypeLabels = [
-    'individual'  => __('partner.profile.business_type_individual'),
-    'company'     => __('partner.profile.business_type_company'),
-    'sole'        => __('partner.profile.business_type_sole'),
+    'individual' => __('partner.profile.business_type_individual'),
+    'sole_prop'  => __('partner.profile.business_type_sole_prop'),
+    'llc'        => __('partner.profile.business_type_llc'),
+    'corp'       => __('partner.profile.business_type_corp'),
 ];
 @endphp
 <div class="px-4 py-6 sm:px-6 lg:px-8"
@@ -164,7 +165,7 @@ $businessTypeLabels = [
                     <div>
                         <dt class="text-gray-500 mb-0.5">{{ __('partner.profile.business_type') }}</dt>
                         <dd class="font-medium text-gray-900">
-                            {{ $businessTypeLabels[$vendor->business_type] ?? ($vendor->business_type ?? '—') }}
+                            {{ $businessTypeLabels[$vendor->business_type?->value] ?? ($vendor->business_type?->value ?? '—') }}
                         </dd>
                     </div>
                     <div>

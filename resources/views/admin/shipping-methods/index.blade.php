@@ -57,7 +57,15 @@
                     <x-card>
                         <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-semibold text-gray-900">{{ $method->name }}</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm font-semibold text-gray-900">{{ $method->name }}</p>
+                                    @if($method->badge_label_en)
+                                        <span class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                                              style="background-color: {{ $method->badge_color_hex ?? '#e5e7eb' }}; color: {{ $method->badge_text_color_hex ?? '#111827' }};">
+                                            {{ $method->badge_label_en }}
+                                        </span>
+                                    @endif
+                                </div>
                                 <p class="text-xs text-gray-500 mt-0.5">
                                     {{ __('admin.shipping_section.delivery_days', ['min' => $method->min_delivery_days, 'max' => $method->max_delivery_days]) }}
                                 </p>
@@ -75,6 +83,10 @@
                         <div class="p-4 flex items-center justify-between">
                             <span class="text-xs text-gray-500">{{ $method->country_settings_count === 1 ? __('admin.shipping_section.country_count', ['count' => $method->country_settings_count]) : __('admin.shipping_section.countries_count', ['count' => $method->country_settings_count]) }}</span>
                             <div class="flex gap-1">
+                                <a href="{{ route('admin.shipping-methods.methods.show', $method->id) }}"
+                                   class="p-1 rounded text-gray-400 hover:text-primary-600">
+                                    <x-heroicon name="eye" class="w-4 h-4" />
+                                </a>
                                 <button type="button"
                                         class="btn-edit-method p-1 rounded text-gray-400 hover:text-primary-600"
                                         data-id="{{ $method->id }}"
@@ -282,8 +294,13 @@
          ════════════════════════════════════════════════════════════════════════ --}}
 
     {{-- Shipping Method Modal --}}
-    <x-modal id="method-modal" title="{{ __('admin.shipping_section.method_modal_title') }}" size="md">
-        <form id="method-form" novalidate>
+    <x-modal id="method-modal" title="{{ __('admin.shipping_section.method_modal_title') }}" size="lg">
+        <form id="method-form" novalidate
+              x-data="{
+                  badgeLabel: '',
+                  badgeColor: '#e5e7eb',
+                  badgeTextColor: '#111827',
+              }">
             @csrf
             <input type="hidden" id="method-id">
             <input type="hidden" id="method-http" value="POST">
@@ -294,6 +311,9 @@
                 </div>
                 <div>
                     <x-form-input name="code" label="{{ __('admin.shipping_section.code_label') }}" placeholder="{{ __('admin.shipping_section.code_placeholder_method') }}" required />
+                    <p class="text-xs text-gray-400 mt-1" data-code-locked-note style="display:none">
+                        {{ __('admin.shipping_section.code_immutable_note') ?? 'Code cannot be changed after creation.' }}
+                    </p>
                 </div>
                 <div>
                     <x-form-input name="description" label="{{ __('admin.shipping_section.description_label') }}" placeholder="{{ __('admin.shipping_section.description_optional') }}" />
@@ -304,6 +324,61 @@
                 <div>
                     <x-form-input name="max_delivery_days" label="{{ __('admin.shipping_section.max_days') }}" type="number" placeholder="5" required />
                 </div>
+                <div>
+                    <x-form-input name="order_cutoff_time" type="time" label="Order cutoff time"
+                                  help-text="Orders placed before this time qualify for this method's minimum delivery window." />
+                </div>
+                <div>
+                    <x-form-input name="handling_time_hours" type="number" min="0" label="Handling time (hours)" placeholder="24" />
+                </div>
+                <div>
+                    <x-form-input name="display_priority" type="number" min="0" label="Display priority" placeholder="0"
+                                  help-text="Lower numbers appear first." />
+                </div>
+                <div class="flex items-center gap-6">
+                    <x-form-toggle name="is_express_type" label="Express type" />
+                    <x-form-toggle name="show_estimated_price" label="Show estimated price" />
+                </div>
+
+                <div class="sm:col-span-2 border-t border-gray-100 pt-4">
+                    <p class="text-sm font-semibold text-gray-700 mb-3">Badge</p>
+                </div>
+                <div>
+                    <x-form-input name="badge_label_en" x-model="badgeLabel" label="Badge label (EN)" placeholder="Express" />
+                </div>
+                <div>
+                    <x-form-input name="badge_label_ar" label="Badge label (AR)" placeholder="سريع" dir="rtl" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Badge color</label>
+                    <input type="color" name="badge_color_hex" x-model="badgeColor"
+                           class="h-9 w-16 rounded border border-gray-300 p-0.5 cursor-pointer" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Badge text color</label>
+                    <input type="color" name="badge_text_color_hex" x-model="badgeTextColor"
+                           class="h-9 w-16 rounded border border-gray-300 p-0.5 cursor-pointer" />
+                </div>
+
+                {{-- Live badge preview — reflects exactly how the badge appears on a product listing card --}}
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Preview</label>
+                    <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 flex items-center">
+                        <span x-show="badgeLabel"
+                              x-text="badgeLabel"
+                              :style="`background-color: ${badgeColor}; color: ${badgeTextColor};`"
+                              class="rounded-full px-2 py-0.5 text-xs font-semibold"></span>
+                        <span x-show="!badgeLabel" class="text-xs text-gray-400">No badge configured</span>
+                    </div>
+                </div>
+
+                <div>
+                    <x-form-input name="delivery_label_en" label="Delivery panel label (EN)" placeholder="Delivered within 2-4 days" />
+                </div>
+                <div>
+                    <x-form-input name="delivery_label_ar" label="Delivery panel label (AR)" placeholder="يتم التوصيل خلال 2-4 أيام" dir="rtl" />
+                </div>
+
                 <div class="sm:col-span-2">
                     <x-form-toggle name="is_active" label="{{ __('common.active') }}" :checked="true" />
                 </div>

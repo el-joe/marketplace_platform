@@ -15,6 +15,11 @@ class Coupon extends Model
         'code',
         'name',
         'description',
+        'bank_name',
+        'title_ar',
+        'title_en',
+        'terms_ar',
+        'terms_en',
         'type',
         'value',
         'currency',
@@ -25,6 +30,7 @@ class Coupon extends Model
         'max_discount',
         'usage_limit_total',
         'usage_limit_per_customer',
+        'max_orders_per_customer_per_month',
         'times_used',
         'customer_eligibility',
         'valid_from',
@@ -38,11 +44,18 @@ class Coupon extends Model
         'type' => \App\Enums\CouponType::class,
         'scope' => \App\Enums\CouponScope::class,
         'customer_eligibility' => \App\Enums\CouponCustomerEligibility::class,
+        'terms_ar' => 'array',
+        'terms_en' => 'array',
         'valid_from' => 'datetime',
         'valid_until' => 'datetime',
         'is_active' => 'boolean',
         'is_stackable' => 'boolean',
     ];
+
+    public function isBankOffer(): bool
+    {
+        return filled($this->bank_name);
+    }
 
     public function vendor(): BelongsTo
     {

@@ -42,11 +42,21 @@
                 'name' => 'scope',
                 'searchable' => false,
                 'render' => 'Renderers.badge({
-                            platform: { label: "' . __('admin.coupons_section.platform') . '", color: "gray"   },
-                            vendor:   { label: "' . __('admin.coupons_section.vendor') . '",   color: "indigo" },
-                            category: { label: "' . __('admin.coupons_section.category') . '", color: "yellow" },
-                            product:  { label: "' . __('admin.coupons_section.product') . '",  color: "pink"   }
+                            platform: { label: "' . __('admin.coupons_section.platform') . '", color: "blue"   },
+                            vendor:   { label: "' . __('admin.coupons_section.vendor') . '",   color: "amber" },
+                            category: { label: "' . __('admin.coupons_section.category') . '", color: "green" },
+                            product:  { label: "' . __('admin.coupons_section.product') . '",  color: "purple"   }
                         })',
+            ],
+            [
+                'title' => __('admin.coupons_section.status'),
+                'data' => 'is_admin_managed',
+                'name' => 'is_admin_managed',
+                'orderable' => false,
+                'searchable' => false,
+                'render' => 'function(data){ return data
+                            ? ""
+                            : "<span class=\"text-xs text-gray-400\" title=\"' . __('admin.coupons_section.scope_not_admin_manageable') . '\">' . __('admin.coupons_section.vendor_owned') . '</span>"; }',
             ],
             [
                 'title' => __('admin.coupons_section.used'),
@@ -77,10 +87,14 @@
                 'orderable' => false,
                 'searchable' => false,
                 'className' => 'text-end',
-                'render' => 'Renderers.actions([
-                            { type: "link",   label: "' . __('admin.coupons_section.edit') . '",   url: ":edit_url" },
-                            { type: "button", label: "' . __('admin.coupons_section.delete') . '", id: "delete", class: "btn-danger" }
-                        ])',
+                'render' => 'function(data, type, row) {
+                            var actions = [{ type: "link", label: "' . __('admin.coupons_section.view') . '", url: row.show_url }];
+                            if (row.is_admin_managed) {
+                                actions.push({ type: "link",   label: "' . __('admin.coupons_section.edit') . '",   url: row.edit_url });
+                                actions.push({ type: "button", label: "' . __('admin.coupons_section.delete') . '", id: "delete", class: "btn-danger" });
+                            }
+                            return Renderers.actions(actions)(data, type, row);
+                        }',
             ],
         ];
 
@@ -149,8 +163,12 @@
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             })
-                .done(function () {
-                    window.Toast && window.Toast.success(window.TRANSLATIONS.couponDeleted);
+                .done(function (res) {
+                    if (res && res.deactivated) {
+                        window.Toast && window.Toast.info(res.message || window.TRANSLATIONS.couponDeleted);
+                    } else {
+                        window.Toast && window.Toast.success(window.TRANSLATIONS.couponDeleted);
+                    }
                     window.reloadDataTable('coupons-table');
                 })
                 .fail(function (xhr) {
