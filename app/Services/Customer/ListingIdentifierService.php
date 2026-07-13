@@ -16,6 +16,8 @@ class ListingIdentifierService
         'productVariant.product.images',
         'productVariant.product.category',
         'productVariant.product.brand',
+        'productVariant.product.highlights',
+        'productVariant.product.specifications',
         'productVariant.variantAttributes.attribute',
         'productVariant.variantAttributes.attributeValue',
         'vendor:id,store_name,store_rating_avg,store_rating_count',

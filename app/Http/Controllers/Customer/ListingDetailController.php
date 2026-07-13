@@ -119,6 +119,8 @@ class ListingDetailController extends Controller
                     'productVariant.product.images',
                     'productVariant.product.category',
                     'productVariant.product.brand',
+                    'productVariant.product.highlights',
+                    'productVariant.product.specifications',
                     'productVariant.variantAttributes.attribute',
                     'productVariant.variantAttributes.attributeValue',
                     'vendor:id,store_name,store_rating_avg,store_rating_count',
@@ -209,6 +211,17 @@ class ListingDetailController extends Controller
             'rating_avg' => (float) $listing->rating_avg,
             'rating_count' => (int) $listing->rating_count,
             'attributes_summary' => $this->attributesSummary($product),
+            'highlights' => $product->highlights->map(fn($h) => [
+                'id' => $h->id,
+                'text' => Bilingual::pair($h, 'text'),
+                'position' => $h->position,
+            ])->values()->all(),
+            'specifications' => $product->specifications->map(fn($s) => [
+                'id' => $s->id,
+                'key' => Bilingual::pair($s, 'key'),
+                'value' => Bilingual::pair($s, 'value'),
+                'position' => $s->position,
+            ])->values()->all(),
             'seo' => [
                 'title' => Bilingual::pairFromKeys($product, 'seo_title_ar', 'seo_title_en'),
                 'description' => Bilingual::pairFromKeys($product, 'seo_description_ar', 'seo_description_en'),
