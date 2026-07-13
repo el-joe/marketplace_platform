@@ -98,7 +98,7 @@ class SponsoredProductService
         dispatch(function () use ($listing, $country, $placement, $position, $query) {
             $campaign = \App\Models\AdCampaignProduct::where('vendor_listing_id', $listing->id)
                 ->where('is_active', true)
-                ->with('adCampaign')
+                ->with('campaign')
                 ->first();
 
             if (!$campaign) {
@@ -114,8 +114,8 @@ class SponsoredProductService
                 'placement_code'                => $placement,
                 'search_query'                  => $query,
                 'position_shown'                => $position,
-                'bid_at_impression_cents'       => $campaign->adCampaign->bid ?? 0,
-                'quality_score_at_impression'   => $campaign->adCampaign->quality_score ?? 0,
+                'bid_at_impression_cents'       => $campaign->campaign->bid ?? 0,
+                'quality_score_at_impression'   => $campaign->campaign->quality_score ?? 0,
                 'was_clicked'                   => false,
                 'was_converted'                 => false,
                 'cost_charged_cents'            => 0,

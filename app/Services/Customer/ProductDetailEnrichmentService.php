@@ -195,7 +195,7 @@ class ProductDetailEnrichmentService
                 ->where(function ($q) use ($product, $productCategory, $buyBoxListing) {
                     $q->where('scope', 'platform');
 
-                    if ($productCategory) {
+                    if ($productCategory && $productCategory->lft !== null && $productCategory->rgt !== null) {
                         $q->orWhere(function ($qq) use ($productCategory) {
                             $qq->where('scope', 'category')
                                 ->whereHas('category', fn ($cq) => $cq
