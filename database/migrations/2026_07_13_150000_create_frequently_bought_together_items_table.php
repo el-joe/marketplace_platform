@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
             $table->foreign('related_product_id')->references('id')->on('products')->cascadeOnDelete();
-            $table->unique(['product_id', 'related_product_id']);
+            $table->unique(['product_id', 'related_product_id'],'freq_b_t_unique');
         });
     }
 
