@@ -18,11 +18,14 @@
 
 <body class="bg-black text-white antialiased overflow-x-hidden" style="font-family: 'Cairo', 'Figtree', sans-serif;">
 
-    @include('portal.partials.nav')
+    @unless(View::hasSection('hide_nav'))
+        @include('portal.partials.nav')
+    @endunless
 
     <main>
         @yield('content')
     </main>
+
 
     {{-- Scroll-to-top --}}
     <button id="scroll-top" class="fixed bottom-6 end-6 z-50 p-3 bg-[#feee00] text-gray-950 rounded-full shadow-lg
