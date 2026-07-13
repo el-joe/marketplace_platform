@@ -43,6 +43,7 @@ class VendorApprovedJob implements ShouldQueue
             DB::table('warehouses')->insert([
                 'id' => $warehouseId,
                 'name' => $vendor->store_name . ' — Default Warehouse',
+                'code' => \Illuminate\Support\Str::uuid()->toString(),
                 'owner_vendor_id' => $vendor->id,
                 'country_id' => $vendor->country_id,
                 'is_active' => true,
