@@ -14,6 +14,17 @@ class UpdateCouponRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        foreach (['terms_ar', 'terms_en'] as $field) {
+            if (is_string($this->input($field))) {
+                $this->merge([
+                    $field => array_values(array_filter(array_map('trim', explode("\n", $this->input($field))))),
+                ]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         $couponId = $this->route('coupon');
@@ -22,6 +33,14 @@ class UpdateCouponRequest extends FormRequest
             'code' => ['required', 'string', 'max:50', Rule::unique('coupons', 'code')->ignore($couponId)],
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
+            'title_ar' => ['nullable', 'string', 'max:255'],
+            'title_en' => ['nullable', 'string', 'max:255'],
+            'terms_ar' => ['nullable', 'array'],
+            'terms_ar.*' => ['string', 'max:500'],
+            'terms_en' => ['nullable', 'array'],
+            'terms_en.*' => ['string', 'max:500'],
+            'max_orders_per_customer_per_month' => ['nullable', 'integer', 'min:1'],
             'type' => ['required', Rule::enum(CouponType::class)],
             'value' => [
                 'required',

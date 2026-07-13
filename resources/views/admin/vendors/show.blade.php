@@ -141,6 +141,11 @@
                             <x-form.input name="commission_rate" label="{{ __('admin.vendors.commission_rate') }} (%)" :value="$vendor->commission_rate" type="number" step="0.01"/>
                             <x-form.select name="payout_schedule" label="{{ __('admin.vendors.payout_schedule') }}" :value="$vendor->payout_schedule"
                                 :options="['weekly' => __('admin.vendors.weekly'), 'biweekly' => __('admin.vendors.biweekly'), 'monthly' => __('admin.vendors.monthly')]"/>
+                            <x-form.input name="warranty_months" label="{{ __('admin.vendors.warranty_months') }}" :value="$vendor->warranty_months" type="number" min="0" max="120"/>
+                            <div class="flex items-center gap-6">
+                                <x-form.toggle name="easy_returns_enabled" label="{{ __('admin.vendors.easy_returns_enabled') }}" :checked="(bool) $vendor->easy_returns_enabled"/>
+                                <x-form.toggle name="secure_payments_enabled" label="{{ __('admin.vendors.secure_payments_enabled') }}" :checked="(bool) $vendor->secure_payments_enabled"/>
+                            </div>
                             <div class="col-span-2">
                                 <x-form.textarea name="store_description" label="{{ __('admin.vendors.store_description') }}" :value="$vendor->store_description" rows="3"/>
                             </div>
@@ -505,6 +510,26 @@
                 <div class="flex justify-between">
                     <dt class="text-gray-500">{{ __('admin.vendors.rating') }}</dt>
                     <dd class="font-medium text-gray-900">{{ number_format($vendor->store_rating_avg, 1) }} ★ ({{ number_format($vendor->store_rating_count) }})</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">{{ __('admin.vendors.positive_rating_pct') }}</dt>
+                    <dd class="font-medium text-gray-900">{{ $vendor->positive_rating_pct !== null ? $vendor->positive_rating_pct . '%' : '—' }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">{{ __('admin.vendors.partner_since') }}</dt>
+                    <dd class="font-medium text-gray-900">{{ $vendor->partner_years }}+ Y</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">{{ __('admin.vendors.warranty_months') }}</dt>
+                    <dd class="font-medium text-gray-900">{{ $vendor->warranty_months ? $vendor->warranty_months . ' mo' : '—' }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">{{ __('admin.vendors.easy_returns_enabled') }}</dt>
+                    <dd><x-badge :color="$vendor->easy_returns_enabled ? 'success' : 'gray'">{{ $vendor->easy_returns_enabled ? __('admin.vendors.active_badge') : '—' }}</x-badge></dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">{{ __('admin.vendors.secure_payments_enabled') }}</dt>
+                    <dd><x-badge :color="$vendor->secure_payments_enabled ? 'success' : 'gray'">{{ $vendor->secure_payments_enabled ? __('admin.vendors.active_badge') : '—' }}</x-badge></dd>
                 </div>
                 <div class="flex justify-between">
                     <dt class="text-gray-500">{{ __('admin.vendors.total_gmv') }}</dt>

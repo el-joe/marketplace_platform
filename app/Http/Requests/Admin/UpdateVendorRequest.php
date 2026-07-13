@@ -33,6 +33,9 @@ class UpdateVendorRequest extends FormRequest
             'payout_schedule' => ['nullable', Rule::enum(PayoutSchedule::class)],
             'global_status' => ['nullable', Rule::enum(VendorGlobalStatus::class)],
             'account_manager_admin_id' => ['nullable', 'uuid', 'exists:admins,id'],
+            'warranty_months' => ['nullable', 'integer', 'min:0', 'max:120'],
+            'easy_returns_enabled' => ['nullable', 'boolean'],
+            'secure_payments_enabled' => ['nullable', 'boolean'],
         ];
     }
 }

@@ -67,6 +67,56 @@
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? $coupon['description'] : '' }}</textarea>
             </div>
 
+            {{-- Bank offer (optional) --}}
+            <div class="border border-gray-200 rounded-lg p-4 space-y-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-700">Bank offer</p>
+                    <p class="text-xs text-gray-400">Optional. Associate this coupon with a card-issuing bank to display it as a bank promotion on the product page.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank name</label>
+                    <input type="text" name="bank_name" maxlength="100" placeholder="e.g. RAKBANK"
+                           value="{{ $isEdit ? $coupon['bank_name'] : '' }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Promo title (English)</label>
+                        <input type="text" name="title_en" maxlength="255" placeholder="e.g. Extra 15% off with RAKBANK Credit Cards"
+                               value="{{ $isEdit ? $coupon['title_en'] : '' }}"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Promo title (Arabic)</label>
+                        <input type="text" name="title_ar" dir="rtl" maxlength="255"
+                               value="{{ $isEdit ? $coupon['title_ar'] : '' }}"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Terms (English) <span class="text-gray-400 font-normal">one per line</span></label>
+                        <textarea name="terms_en" rows="4"
+                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? implode("\n", $coupon['terms_en'] ?? []) : '' }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Terms (Arabic) <span class="text-gray-400 font-normal">one per line</span></label>
+                        <textarea name="terms_ar" dir="rtl" rows="4"
+                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? implode("\n", $coupon['terms_ar'] ?? []) : '' }}</textarea>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Max orders per customer / month <span class="text-gray-400 font-normal">blank = unlimited</span></label>
+                    <input type="number" min="1" name="max_orders_per_customer_per_month"
+                           value="{{ $isEdit ? $coupon['max_orders_per_customer_per_month'] : '' }}"
+                           class="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                </div>
+            </div>
+
             <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>

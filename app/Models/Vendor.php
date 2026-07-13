@@ -57,6 +57,9 @@ class Vendor extends Model
         'onboarding_completed_at',
         'rejection_reason',
         'account_manager_admin_id',
+        'warranty_months',
+        'easy_returns_enabled',
+        'secure_payments_enabled',
     ];
 
     protected function casts(): array
@@ -74,7 +77,20 @@ class Vendor extends Model
             'global_status' => VendorGlobalStatus::class,
             'business_type' => VendorBusinessType::class,
             'payout_schedule' => PayoutSchedule::class,
+            'warranty_months' => 'integer',
+            'easy_returns_enabled' => 'boolean',
+            'secure_payments_enabled' => 'boolean',
         ];
+    }
+
+    public function getPositiveRatingPctAttribute(): ?int
+    {
+        return $this->store_rating_avg > 0 ? (int) round(($this->store_rating_avg / 5) * 100) : null;
+    }
+
+    public function getPartnerYearsAttribute(): ?int
+    {
+        return $this->created_at?->diffInYears(now());
     }
 
     public function country(): BelongsTo

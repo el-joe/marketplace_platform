@@ -63,6 +63,7 @@ class ProductDetailResource extends JsonResource
                 'name' => Bilingual::pair($this->category, 'name'),
                 'slug' => $this->category->slug,
             ]),
+            'breadcrumbs'      => $this->whenLoaded('category', fn() => $this->buildBreadcrumbs()),
             'images'           => $this->whenLoaded('images', fn() =>
                 $this->images->map(fn($img) => [
                     'id'             => $img->id,
@@ -96,6 +97,14 @@ class ProductDetailResource extends JsonResource
             'sellers'          => $this->whenLoaded('activeListings', fn() =>
                 SellerListingResource::collection($this->activeListings)->resolve()
             ),
+            'offers_by_variant' => $this->whenLoaded('activeListings', fn() =>
+                $this->activeListings
+                    ->groupBy('product_variant_id')
+                    ->map(fn($listings) => [
+                        'offers_count' => $listings->count(),
+                        'offers'       => SellerListingResource::collection($listings->values())->resolve(),
+                    ])
+            ),
             'reviews'          => $this->whenLoaded('topReviews', fn() =>
                 ReviewResource::collection($this->topReviews)->resolve()
             ),
@@ -111,5 +120,26 @@ class ProductDetailResource extends JsonResource
                 'description' => Bilingual::pairFromKeys($this->resource, 'seo_description_ar', 'seo_description_en'),
             ],
         ] + $extras;
+    }
+
+    private function buildBreadcrumbs(): array
+    {
+        $crumbs = [];
+
+        foreach ($this->category->ancestors()->get() as $ancestor) {
+            $crumbs[] = [
+                'id'   => $ancestor->id,
+                'name' => Bilingual::pair($ancestor, 'name'),
+                'slug' => $ancestor->slug,
+            ];
+        }
+
+        $crumbs[] = [
+            'id'   => $this->category->id,
+            'name' => Bilingual::pair($this->category, 'name'),
+            'slug' => $this->category->slug,
+        ];
+
+        return $crumbs;
     }
 }

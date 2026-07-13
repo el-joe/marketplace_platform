@@ -132,6 +132,112 @@
                 </div>
             </div>
 
+            {{-- Bank Offer ─────────────────────────────────────────────── --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.coupons_section.bank_offer') }}</h2>
+                    <p class="text-xs text-gray-400 mt-1">{{ __('admin.coupons_section.bank_offer_hint') }}</p>
+                </div>
+                <div class="px-5 py-5 space-y-4">
+
+                    {{-- Bank name --}}
+                    <div>
+                        <label for="bank_name" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.bank_name') }}</label>
+                        <input
+                            type="text"
+                            id="bank_name"
+                            name="bank_name"
+                            value="{{ $val('bank_name') }}"
+                            class="input w-full @error('bank_name') border-red-400 @enderror"
+                            placeholder="{{ __('admin.coupons_section.bank_name_placeholder') }}"
+                            maxlength="100"
+                        />
+                        @error('bank_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    {{-- Promo titles --}}
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="title_en" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.title_en') }}</label>
+                            <input
+                                type="text"
+                                id="title_en"
+                                name="title_en"
+                                value="{{ $val('title_en') }}"
+                                class="input w-full @error('title_en') border-red-400 @enderror"
+                                placeholder="{{ __('admin.coupons_section.title_en_placeholder') }}"
+                                maxlength="255"
+                            />
+                            @error('title_en') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="title_ar" class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.coupons_section.title_ar') }}</label>
+                            <input
+                                type="text"
+                                id="title_ar"
+                                name="title_ar"
+                                dir="rtl"
+                                value="{{ $val('title_ar') }}"
+                                class="input w-full @error('title_ar') border-red-400 @enderror"
+                                maxlength="255"
+                            />
+                            @error('title_ar') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    {{-- Terms --}}
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="terms_en" class="block text-xs font-medium text-gray-700 mb-1">
+                                {{ __('admin.coupons_section.terms_en') }}
+                                <span class="text-gray-400 font-normal">{{ __('admin.coupons_section.terms_hint') }}</span>
+                            </label>
+                            <textarea
+                                id="terms_en"
+                                name="terms_en"
+                                rows="4"
+                                class="input w-full @error('terms_en') border-red-400 @enderror"
+                            >{{ $isEdit ? implode("\n", old('terms_en', $coupon->terms_en ?? [])) : old('terms_en', '') }}</textarea>
+                            @error('terms_en') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            @error('terms_en.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="terms_ar" class="block text-xs font-medium text-gray-700 mb-1">
+                                {{ __('admin.coupons_section.terms_ar') }}
+                                <span class="text-gray-400 font-normal">{{ __('admin.coupons_section.terms_hint') }}</span>
+                            </label>
+                            <textarea
+                                id="terms_ar"
+                                name="terms_ar"
+                                dir="rtl"
+                                rows="4"
+                                class="input w-full @error('terms_ar') border-red-400 @enderror"
+                            >{{ $isEdit ? implode("\n", old('terms_ar', $coupon->terms_ar ?? [])) : old('terms_ar', '') }}</textarea>
+                            @error('terms_ar') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            @error('terms_ar.*') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    {{-- Max orders per customer per month --}}
+                    <div>
+                        <label for="max_orders_per_customer_per_month" class="block text-xs font-medium text-gray-700 mb-1">
+                            {{ __('admin.coupons_section.max_orders_per_customer_per_month') }}
+                            <span class="text-gray-400 font-normal">{{ __('admin.coupons_section.unlimited_hint') }}</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="max_orders_per_customer_per_month"
+                            name="max_orders_per_customer_per_month"
+                            value="{{ $val('max_orders_per_customer_per_month') }}"
+                            class="input w-40 @error('max_orders_per_customer_per_month') border-red-400 @enderror"
+                            min="1"
+                        />
+                        @error('max_orders_per_customer_per_month') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                </div>
+            </div>
+
             {{-- Discount Type & Value ──────────────────────────────────── --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">

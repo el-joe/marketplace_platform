@@ -26,6 +26,11 @@ class VendorProfileResource extends JsonResource
             'onboarding_completed_at'     => $this->onboarding_completed_at?->toISOString(),
             'store_rating_avg'            => $this->store_rating_avg,
             'store_rating_count'          => $this->store_rating_count,
+            'positive_rating_pct'         => $this->positive_rating_pct,
+            'partner_since_years'         => $this->partner_years,
+            'warranty_months'             => $this->warranty_months,
+            'easy_returns_enabled'        => (bool) $this->easy_returns_enabled,
+            'secure_payments_enabled'     => (bool) $this->secure_payments_enabled,
             'country_id'                  => $this->country_id,
             'logo_url'                    => $this->avatar ? asset('storage/' . $this->avatar) : null,
         ];

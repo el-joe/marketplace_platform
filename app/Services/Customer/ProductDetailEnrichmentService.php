@@ -256,6 +256,17 @@ class ProductDetailEnrichmentService
                 'estimated_saving_cents' => $row['saving'],
                 'valid_until' => $coupon->valid_until->toIso8601String(),
                 'learn_more_url' => "/coupons/{$coupon->code}",
+                'is_bank_offer' => $coupon->isBankOffer(),
+                'bank_name' => $coupon->bank_name,
+                'title' => [
+                    'ar' => $coupon->title_ar,
+                    'en' => $coupon->title_en,
+                ],
+                'terms' => [
+                    'ar' => $coupon->terms_ar,
+                    'en' => $coupon->terms_en,
+                ],
+                'max_orders_per_customer_per_month' => $coupon->max_orders_per_customer_per_month,
             ];
         })->values()->all();
     }

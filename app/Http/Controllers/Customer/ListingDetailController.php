@@ -177,6 +177,7 @@ class ListingDetailController extends Controller
                 'name' => Bilingual::pair($product->category, 'name'),
                 'slug' => $product->category->slug,
             ] : null,
+            'breadcrumbs' => $product->category ? $this->breadcrumbs($product->category) : [],
             'images' => $product->images->map(fn($img) => [
                 'url' => $img->url,
                 'is_primary' => $img->is_primary,
@@ -189,6 +190,27 @@ class ListingDetailController extends Controller
                 'description' => Bilingual::pairFromKeys($product, 'seo_description_ar', 'seo_description_en'),
             ],
         ];
+    }
+
+    private function breadcrumbs($category): array
+    {
+        $crumbs = [];
+
+        foreach ($category->ancestors()->get() as $ancestor) {
+            $crumbs[] = [
+                'id' => $ancestor->id,
+                'name' => Bilingual::pair($ancestor, 'name'),
+                'slug' => $ancestor->slug,
+            ];
+        }
+
+        $crumbs[] = [
+            'id' => $category->id,
+            'name' => Bilingual::pair($category, 'name'),
+            'slug' => $category->slug,
+        ];
+
+        return $crumbs;
     }
 
     private function attributesSummary($product): ?array
