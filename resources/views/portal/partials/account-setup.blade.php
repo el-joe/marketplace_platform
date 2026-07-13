@@ -85,7 +85,7 @@
                 {{ $isAr ? 'إعداد حسابك' : 'Set up your account' }}
             </h2>
 
-            <div x-data="{ openStep: 0 }" class="flex flex-col gap-3">
+            <div x-data="{ openStep: 0 }" class="flex flex-col gap-3 min-h-[420px]">
                 @foreach($steps as $i => $step)
                     <div class="rounded-lg bg-black overflow-hidden">
                         <button type="button" @click="openStep = openStep === {{ $i }} ? null : {{ $i }}"
@@ -101,7 +101,10 @@
                             </div>
                         </button>
 
-                        <div x-show="openStep === {{ $i }}" x-cloak x-transition
+                        <div x-show="openStep === {{ $i }}" x-cloak
+                             x-transition:enter="transition ease-out duration-300"
+                             x-transition:enter-start="opacity-0 translate-y-4"
+                             x-transition:enter-end="opacity-100 translate-y-0"
                              class="px-4 pb-4">
                             @if(isset($step['items']))
                                 <ul class="space-y-3">
