@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ session('locale', 'ar') }}" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}" class="scroll-smooth scroll-pt-[72px]">
+<html lang="{{ session('locale', 'ar') }}" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}" class="scroll-smooth scroll-pt-[72px] overflow-x-hidden">
 
 <head>
     <meta charset="UTF-8">
@@ -16,7 +16,7 @@
     @vite(['resources/css/app.css', 'resources/js/portal/app.js'])
 </head>
 
-<body class="bg-black text-white antialiased" style="font-family: 'Cairo', 'Figtree', sans-serif;">
+<body class="bg-black text-white antialiased overflow-x-hidden" style="font-family: 'Cairo', 'Figtree', sans-serif;">
 
     @include('portal.partials.nav')
 
