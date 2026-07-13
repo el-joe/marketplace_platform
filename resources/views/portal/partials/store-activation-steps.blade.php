@@ -12,20 +12,19 @@
 </style>
 @endpush
 
-<section class="bg-[#1c1c1c] relative pt-8 pb-10 lg:pb-12 md:py-10 lg:py-12">
-    <div class="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black to-transparent pointer-events-none"></div>
+<section class="bg-black relative pt-8 pb-10 lg:pb-12 md:py-10 lg:py-12">
     <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <h2 class="text-[32px] sm:text-[40px] lg:text-[48px] font-black mb-6 lg:mb-8 text-white leading-tight">
             {{ $isAr ? 'خطوات لـ ' : 'Steps to ' }}<span class="text-[#feee00] animate-blink-4 inline-block">{{ $isAr ? 'البدء' : 'Go Live' }}</span>
         </h2>
 
-        <div class="md:grid md:grid-cols-[1.5fr_2fr] md:gap-10 lg:gap-14">
-            <div class="relative aspect-[4/3] sm:aspect-[2/1] md:aspect-auto rounded-2xl overflow-hidden mb-6 md:mb-0">
+        <div class="rounded-2xl overflow-hidden bg-[#1c1c1c] md:bg-transparent md:grid md:grid-cols-[1.5fr_2fr] md:gap-10 lg:gap-14">
+            <div class="relative aspect-[4/3] sm:aspect-[2/1] md:aspect-auto md:rounded-2xl md:overflow-hidden">
                 <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/02-steps-go-live.jpg"
                      alt="{{ $isAr ? 'موظفو نون يعبئون الصناديق' : 'noon Employees packing items into crates' }}"
                      class="absolute inset-0 w-full h-full object-cover">
             </div>
-            <div class="pt-7 pb-10 md:px-0 md:py-6">
+            <div class="pt-8 px-6 pb-10 md:px-0 md:py-6">
                 <h3 class="text-white font-black text-xl lg:text-2xl">
                     {{ $isAr ? 'ابدأ البيع على نون بثلاث خطوات سهلة' : 'Start selling on noon in three easy steps' }}
                 </h3>

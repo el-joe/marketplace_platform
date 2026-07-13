@@ -38,11 +38,12 @@
         x-effect="document.body.style.overflow = mobileOpen ? 'hidden' : ''"
         @resize.window="window.innerWidth >= 1024 ? mobileOpen = false : null"
         @scroll.window="scrolled = (window.pageYOffset > 20)"
-        :class="scrolled ? 'bg-black/60 backdrop-blur-md shadow-lg' : 'bg-transparent'">
+        :class="scrolled ? 'bg-black/80 backdrop-blur-lg shadow-lg' : 'bg-black/50 backdrop-blur-md'">
     <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-[72px] gap-6">
 
-            {{-- Logo --}}
+            <div class="flex items-center gap-[48px] h-full">
+                {{-- Logo --}}
             <a href="{{ route('portal.home') }}" class="flex items-center shrink-0" aria-label="{{ $isAr ? 'الصفحة الرئيسية' : 'Home' }}">
                 <svg width="94" height="29" viewBox="0 0 94 29" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-[76px] h-auto">
                     <g>
@@ -56,13 +57,12 @@
                 </svg>
             </a>
 
-            {{-- Desktop nav links --}}
-            <nav class="hidden lg:flex items-center gap-[32px] h-full">
+                {{-- Desktop nav links --}}
+                <nav class="hidden lg:flex items-center gap-[32px] h-full">
                 @foreach($navLinks as $link)
                     <div class="relative group h-full flex items-center" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
                         <a href="{{ route($link['route']) }}"
-                           class="relative flex items-center py-1.5 text-[16px] font-bold transition-all duration-300
-                                  {{ request()->routeIs($link['route']) ? 'text-white' : 'text-gray-200 hover:text-white' }}">
+                           class="relative flex items-center py-2 text-[15px] font-bold transition-all duration-300 text-white hover:opacity-80">
                             {{ $link['label'] }}
                             @if(request()->routeIs($link['route']))
                                 <span class="absolute bottom-0 inset-x-0 h-[2px] bg-white rounded-full"></span>
@@ -93,12 +93,15 @@
                         @endif
                     </div>
                 @endforeach
+                </nav>
+            </div>
 
+            <div class="hidden lg:flex items-center gap-[32px] h-full">
                 <div class="w-px h-[24px] bg-white/20 self-center"></div>
 
                 {{-- Country --}}
                 <div class="relative group h-full flex items-center" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                    <button type="button" class="flex items-center gap-[8px] text-[15px] font-bold text-gray-200 hover:text-white transition-colors h-full">
+                    <button type="button" class="flex items-center gap-[8px] text-[15px] font-bold text-white hover:opacity-80 transition-opacity h-full">
                         @if($currentCountry)
                             <img src="https://f.nooncdn.com/s/app/com/common/images/flags/{{ strtolower($currentCountry->iso_code_2) }}.svg"
                                  alt="{{ $isAr ? $currentCountry->name_ar : $currentCountry->name_en }}" width="20" height="20" class="rounded-sm">
@@ -135,7 +138,7 @@
 
                 {{-- Language --}}
                 <div class="relative group h-full flex items-center" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                    <button type="button" class="flex items-center gap-[8px] text-[15px] font-bold text-gray-200 hover:text-white transition-colors h-full">
+                    <button type="button" class="flex items-center gap-[8px] text-[15px] font-bold text-white hover:opacity-80 transition-opacity h-full">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
                         </svg>
@@ -164,7 +167,7 @@
                         </div>
                     </div>
                 </div>
-            </nav>
+            </div>
 
             {{-- Mobile controls --}}
             <div class="flex lg:hidden items-center gap-4">
@@ -190,7 +193,7 @@
                         @endforeach
                     </div>
                 </div>
-                <a href="{{ $langToggleUrl }}" class="text-gray-200 hover:text-white transition-colors">
+                <a href="{{ $langToggleUrl }}" class="text-white hover:opacity-80 transition-opacity">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
                     </svg>
@@ -217,17 +220,17 @@
         <div class="px-4 sm:px-6">
             <div class="flex items-center justify-end h-[72px] gap-6">
                 <button @click="mobileOpen = false" class="text-white p-1 focus:outline-none" aria-label="Close menu">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="24" height="24">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="28" height="28">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
         </div>
 
-        <div class="px-4 sm:px-6 mt-4 flex flex-col space-y-8">
+        <div class="px-8 mt-8 flex flex-col space-y-10">
             @foreach($navLinks as $link)
                 <a href="{{ route($link['route']) }}"
-                   class="block font-bold text-[16px] text-white">
+                   class="block font-bold text-[22px] tracking-wide transition-colors {{ request()->routeIs($link['route']) ? 'text-[#808080]' : 'text-white' }}">
                     {{ $link['label'] }}
                 </a>
             @endforeach
