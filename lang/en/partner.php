@@ -52,6 +52,7 @@ return [
         'subscription'         => 'My Subscription',
         'marketing'            => 'Marketing',
         'flash_sales'          => 'Flash Sales',
+        'coupons'              => 'Coupons',
         'ads'                  => 'Ads',
         'marketer_campaigns'   => "Marketer Campaigns",
         'sample_requests'      => 'Sample Requests',

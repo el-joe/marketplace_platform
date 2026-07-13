@@ -68,6 +68,7 @@
 
         <x-partner-nav-group label="{{ __('partner.nav.marketing') }}">
             <x-partner-nav-item route="partner.flash-sales.index" icon="bolt" label="{{ __('partner.nav.flash_sales') }}" />
+            <x-partner-nav-item route="partner.coupons.index" icon="ticket" label="{{ __('partner.nav.coupons') }}" />
             <x-partner-nav-item route="partner.ads.index" icon="megaphone" label="{{ __('partner.nav.ads') }}" />
             <x-partner-nav-item route="partner.marketer-campaigns.index" icon="user-group" label="{{ __('partner.nav.marketer_campaigns') }}" />
             <x-partner-nav-item route="partner.marketer-samples.index" icon="inbox-stack" label="{{ __('partner.nav.sample_requests') }}" />

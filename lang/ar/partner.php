@@ -52,6 +52,7 @@ return [
         'subscription' => 'اشتراكاتي',
         'marketing' => 'التسويق',
         'flash_sales' => 'التخفيضات السريعة',
+        'coupons' => 'كوبونات',
         'ads' => 'الإعلانات',
         'marketer_campaigns' => 'حملات المسوّقين',
         'sample_requests' => 'طلبات العينات',
