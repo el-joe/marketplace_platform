@@ -136,7 +136,7 @@ class ProductsController extends Controller
                     'vendor_name' => e($product->vendor_name ?? '—'),
                     'price' => $product->price,           // raw cents, rendered JS-side
                     'stock_quantity' => $product->stock_quantity ?? 0,
-                    'status' => $product->status,
+                    'status' => $product->status?->value,
                     'created_at' => $product->created_at?->toISOString(),
                     // Pre-built action URLs for JS renderer
                     'edit_url' => route('admin.products.edit', $product->id),

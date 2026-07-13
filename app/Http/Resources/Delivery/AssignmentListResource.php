@@ -16,7 +16,7 @@ class AssignmentListResource extends JsonResource
         return [
             'id'                     => $this->id,
             'sub_order_number'       => $this->subOrder?->sub_order_number,
-            'status'                 => $this->status,
+            'status'                 => $this->status?->value,
             'is_cod'                 => $isCod,
             'cod_amount_cents'       => $isCod ? $order->total : null,
             'currency'               => $order?->currency,

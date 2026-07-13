@@ -22,7 +22,7 @@ class SubOrderListResource extends JsonResource
             'gateway_fee_cents'         => (int) $this->gateway_fee,
             'vendor_payout_cents'       => (int) $this->vendor_payout,
             'currency'                  => $this->order?->currency,
-            'status'                    => $this->status,
+            'status'                    => $this->status?->value,
             'fulfillment_model'         => $this->fulfillment_model,
             'cod_remittance_confirmed'  => (bool) $this->cod_remittance_confirmed,
             'tracking_number'           => $this->tracking_number,

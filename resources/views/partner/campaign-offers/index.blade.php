@@ -97,7 +97,7 @@
                             <td class="px-4 py-3 text-gray-700">{{ $typeMap[$offer->campaign_type->value] ?? $offer->campaign_type->value }}</td>
                             <td class="px-4 py-3">
                                 <span class="font-semibold text-gray-900">{{ $offer->offered_commission_rate }}%</span>
-                                <span class="text-xs text-gray-400 mr-1">{{ __('partner.campaign_offers.commission_suffix.' . $offer->commission_type) }}</span>
+                                <span class="text-xs text-gray-400 mr-1">{{ __('partner.campaign_offers.commission_suffix.' . $offer->commission_type->value) }}</span>
                             </td>
                             <td class="px-4 py-3 text-gray-600 text-xs">
                                 {{ $offer->starts_at->format('d M') }} – {{ $offer->ends_at->format('d M Y') }}

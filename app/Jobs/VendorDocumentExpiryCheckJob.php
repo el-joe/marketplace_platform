@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\VendorGlobalStatus;
 use App\Models\Vendor;
 use App\Models\VendorDocument;
 use Illuminate\Bus\Queueable;
@@ -94,7 +95,7 @@ class VendorDocumentExpiryCheckJob implements ShouldQueue
 
                     if (in_array($doc->document_type, self::CRITICAL_TYPES)) {
                         $vendor = $doc->vendor;
-                        if ($vendor && $vendor->global_status === 'active') {
+                        if ($vendor && $vendor->global_status === VendorGlobalStatus::Active) {
                             $vendor->update(['global_status' => 'under_review']);
 
                             DB::table('activity_log')->insert([

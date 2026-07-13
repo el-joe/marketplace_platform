@@ -14,7 +14,7 @@ class SellerDocumentResource extends JsonResource
             'id'               => $this->id,
             'document_type'    => $this->documentType?->code,
             'document_type_name' => $this->documentType?->name_en,
-            'status'           => $this->status,
+            'status'           => $this->status?->value,
             'rejection_reason' => $this->rejection_reason,
             'expires_at'       => $this->expires_at?->toISOString(),
             'verified_at'      => $this->verified_at?->toISOString(),

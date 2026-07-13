@@ -15,7 +15,7 @@ class FlashSaleResource extends JsonResource
             'name_ar'                  => $this->name_ar,
             'description_en'           => $this->description_en,
             'description_ar'           => $this->description_ar,
-            'status'                   => $this->status,
+            'status'                   => $this->status?->value,
             'submission_opens_at'      => $this->submission_opens_at?->toISOString(),
             'submission_closes_at'     => $this->submission_closes_at?->toISOString(),
             'sale_starts_at'           => $this->sale_starts_at?->toISOString(),
@@ -30,7 +30,7 @@ class FlashSaleResource extends JsonResource
             'invitation'               => $this->when(
                 $this->relationLoaded('vendorInvitation') && $this->vendorInvitation !== null,
                 fn () => [
-                    'status'          => $this->vendorInvitation->status,
+                    'status'          => $this->vendorInvitation->status?->value,
                     'invitation_type' => $this->vendorInvitation->invitation_type,
                     'slots_allocated' => $this->vendorInvitation->slots_allocated,
                 ]

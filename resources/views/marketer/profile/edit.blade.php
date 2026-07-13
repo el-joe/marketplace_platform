@@ -61,11 +61,11 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                 <div>
                     <p class="text-xs text-gray-400 uppercase">{{ __('marketer.profile.status') }}</p>
-                    <p class="font-semibold mt-0.5 capitalize">{{ $marketer->status }}</p>
+                    <p class="font-semibold mt-0.5 capitalize">{{ $marketer->status?->value }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase">{{ __('marketer.profile.type') }}</p>
-                    <p class="font-semibold mt-0.5 capitalize">{{ str_replace('_', ' ', $marketer->type) }}</p>
+                    <p class="font-semibold mt-0.5 capitalize">{{ str_replace('_', ' ', $marketer->type?->value) }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase">{{ __('marketer.profile.referral_code') }}</p>

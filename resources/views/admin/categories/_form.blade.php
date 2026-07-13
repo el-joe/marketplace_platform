@@ -372,7 +372,7 @@
                             <label for="attr_{{ $attr->id }}" class="flex-1 cursor-pointer">
                                 <span class="text-sm font-medium text-gray-900">{{ $attr->name_en }}</span>
                                 <span class="ml-2 text-xs text-gray-400">{{ $attr->code }}</span>
-                                <span class="ml-1 text-xs px-1.5 py-0.5 bg-gray-100 rounded text-gray-500">{{ $attr->type }}</span>
+                                <span class="ml-1 text-xs px-1.5 py-0.5 bg-gray-100 rounded text-gray-500">{{ $attr->type?->value }}</span>
                             </label>
                             <label class="flex items-center gap-1 text-xs text-gray-600 cursor-pointer">
                                 <input type="checkbox"

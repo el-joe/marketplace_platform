@@ -51,6 +51,7 @@
                         ['id' => 'content',   'label' => __('admin.products.tab_content'),     'icon' => 'document-text'],
                         ['id' => 'variants',  'label' => __('admin.products.tab_variants'),    'icon' => 'cube'],
                         ['id' => 'images',    'label' => __('admin.products.tab_images'),      'icon' => 'photo'],
+                        ['id' => 'fbt',       'label' => __('admin.products.tab_fbt'),          'icon' => 'squares-plus'],
                         ['id' => 'countries', 'label' => __('admin.products.tab_countries'),   'icon' => 'globe-alt'],
                         ['id' => 'seo',       'label' => __('admin.products.tab_seo'),          'icon' => 'magnifying-glass'],
                     ] as $tab)
@@ -353,6 +354,64 @@
             </div>
 
             {{-- ─────────────────────────────────────────────── --}}
+            {{-- TAB: Frequently bought together                 --}}
+            {{-- ─────────────────────────────────────────────── --}}
+            <div
+                x-show="activeTab === 'fbt'"
+                x-data="fbtManager(
+                    {{ $isEdit ? "'{$product->id}'" : 'null' }},
+                    @js($isEdit ? route('admin.products.frequently-bought-together.index', $product->id) : null),
+                    @js($isEdit ? route('admin.products.frequently-bought-together.search', $product->id) : null),
+                    @js($isEdit ? route('admin.products.frequently-bought-together.add', $product->id) : null),
+                    @js($isEdit ? Str::beforeLast(route('admin.products.frequently-bought-together.remove', [$product->id, '__id__']), '/__id__') : null),
+                    @js($isEdit ? route('admin.products.frequently-bought-together.reorder', $product->id) : null),
+                )"
+                x-init="init()"
+                class="bg-white rounded-b-xl border border-t-0 border-gray-200 p-4 sm:p-6 shadow-sm space-y-4"
+            >
+                <template x-if="!productId">
+                    <p class="text-sm text-gray-500">{{ __('admin.products.fbt_save_first') }}</p>
+                </template>
+
+                <template x-if="productId">
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-500">{{ __('admin.products.fbt_hint') }}</p>
+
+                        <div class="relative">
+                            <input type="search"
+                                x-model="query"
+                                @input.debounce.300ms="search()"
+                                placeholder="{{ __('admin.products.fbt_search_placeholder') }}"
+                                class="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 pr-8 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+
+                            <div x-show="results.length > 0" @click.outside="results = []"
+                                class="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-sm text-sm divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                                <template x-for="r in results" :key="r.id">
+                                    <button type="button" @click="add(r)" class="w-full text-left px-3 py-2 hover:bg-gray-50" x-text="r.text"></button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <template x-if="items.length === 0">
+                                <p class="text-xs text-gray-400 px-2 py-3 text-center">{{ __('admin.products.fbt_empty') }}</p>
+                            </template>
+                            <template x-for="(item, idx) in items" :key="item.id">
+                                <div class="flex items-center justify-between border border-gray-200 rounded-lg px-3 py-2">
+                                    <span class="text-sm text-gray-700" x-text="item.text"></span>
+                                    <div class="flex items-center gap-1">
+                                        <button type="button" @click="move(idx, -1)" :disabled="idx === 0" class="text-gray-400 hover:text-gray-600 disabled:opacity-30 px-1">&uarr;</button>
+                                        <button type="button" @click="move(idx, 1)" :disabled="idx === items.length - 1" class="text-gray-400 hover:text-gray-600 disabled:opacity-30 px-1">&darr;</button>
+                                        <button type="button" @click="remove(item)" class="text-red-400 hover:text-red-600 px-1">&times;</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            {{-- ─────────────────────────────────────────────── --}}
             {{-- TAB: Countries                                  --}}
             {{-- ─────────────────────────────────────────────── --}}
             <div
@@ -630,6 +689,98 @@
             saveFailedRetry: @json(__('admin.products.save_failed_retry')),
             saveChangesBtn: @json(__('admin.product_form.save_changes')),
         });
+    </script>
+
+    <script>
+        function fbtManager(productId, indexUrl, searchUrl, addUrl, removeUrlBase, reorderUrl) {
+            return {
+                productId, indexUrl, searchUrl, addUrl, removeUrlBase, reorderUrl,
+                query: '',
+                results: [],
+                items: [],
+
+                init() {
+                    if (this.productId) {
+                        this.load();
+                    }
+                },
+
+                async load() {
+                    try {
+                        const res = await fetch(this.indexUrl, { headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
+                        const data = await res.json();
+                        this.items = data.results ?? [];
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+
+                async search() {
+                    if (!this.query) { this.results = []; return; }
+                    try {
+                        const res = await fetch(`${this.searchUrl}?q=${encodeURIComponent(this.query)}`, {
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        });
+                        const data = await res.json();
+                        this.results = data.results ?? [];
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+
+                async add(result) {
+                    try {
+                        const res = await fetch(this.addUrl, {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ related_product_id: result.id }),
+                        });
+                        const data = await res.json();
+                        if (data.item) {
+                            this.items.push(data.item);
+                        }
+                        this.query = '';
+                        this.results = [];
+                    } catch (e) {
+                        window.Toast?.error?.(window.TRANSLATIONS?.networkError ?? 'Network error');
+                    }
+                },
+
+                async remove(item) {
+                    try {
+                        await fetch(`${this.removeUrlBase}/${item.id}`, {
+                            method: 'DELETE',
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        });
+                        this.items = this.items.filter((i) => i.id !== item.id);
+                    } catch (e) {
+                        window.Toast?.error?.(window.TRANSLATIONS?.networkError ?? 'Network error');
+                    }
+                },
+
+                move(idx, direction) {
+                    const newIdx = idx + direction;
+                    if (newIdx < 0 || newIdx >= this.items.length) { return; }
+                    const items = [...this.items];
+                    [items[idx], items[newIdx]] = [items[newIdx], items[idx]];
+                    this.items = items;
+                    this.persistOrder();
+                },
+
+                async persistOrder() {
+                    const payload = this.items.map((item, position) => ({ id: item.id, position }));
+                    try {
+                        await fetch(this.reorderUrl, {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ items: payload }),
+                        });
+                    } catch (e) {
+                        window.Toast?.error?.(window.TRANSLATIONS?.networkError ?? 'Network error');
+                    }
+                },
+            };
+        }
     </script>
 
     {{-- ─────────────────────────────────────────────────────────────── --}}

@@ -28,7 +28,7 @@ class InventoryTransferResource extends JsonResource
             'destination_warehouse'    => $this->whenLoaded('destinationWarehouse', fn () => [
                 'id'   => $this->destinationWarehouse->id,
                 'name' => $this->destinationWarehouse->name,
-                'type' => $this->destinationWarehouse->type,
+                'type' => $this->destinationWarehouse->type?->value,
             ]),
             'items'                    => $this->whenLoaded('items', fn () => $this->items->map(fn ($item) => [
                 'id'                 => $item->id,

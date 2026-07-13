@@ -23,7 +23,7 @@ class OrderDetailResource extends JsonResource
             'total'                    => $this->total / 100,
             'coupon_code_used'         => $this->coupon_code_used,
             'payment_method'           => $this->payment_method,
-            'payment_status'           => $this->payment_status,
+            'payment_status'           => $this->payment_status?->value,
             'shipping_address'         => $this->shipping_address_snapshot,
             'customer_notes'           => $this->customer_notes,
             'placed_at'                => $this->placed_at?->toIso8601String(),
@@ -76,7 +76,7 @@ class OrderDetailResource extends JsonResource
             ),
             'payment_summary'          => $this->whenLoaded('transactions', fn () =>
                 $this->transactions->map(fn ($t) => [
-                    'type'       => $t->type,
+                    'type'       => $t->type?->value,
                     'amount'     => $t->amount / 100,
                     'currency'   => $t->currency,
                     'status'     => $t->status->value,

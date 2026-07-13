@@ -113,7 +113,7 @@ class ProductController extends Controller
                 'name_ar' => e($row->name_ar ?? ''),
                 'category' => e($row->category_name ?? '—'),
                 'brand' => e($row->brand_name ?? '—'),
-                'status' => $row->status,
+                'status' => $row->status?->value,
                 'is_featured' => (bool) $row->is_featured,
                 'seller_count' => (int) $row->seller_count,
                 'rating_avg' => $row->rating_avg ? number_format((float) $row->rating_avg, 1) : '—',
@@ -536,7 +536,7 @@ class ProductController extends Controller
                 'product' => [
                     'id' => $product->id,
                     'name_en' => $product->name_en,
-                    'status' => $product->status,
+                    'status' => $product->status?->value,
                     'url' => route('admin.products.edit', $product->id),
                 ],
             ],
@@ -613,6 +613,93 @@ class ProductController extends Controller
         $row->update([$validated['field'] => $validated['value']]);
 
         return response()->json(['success' => true, 'data' => $row->fresh()]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Frequently bought together
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function frequentlyBoughtTogetherIndex(string $product): JsonResponse
+    {
+        $items = Product::findOrFail($product)
+            ->frequentlyBoughtTogether()
+            ->get(['products.id', 'products.name_en']);
+
+        return response()->json([
+            'results' => $items->map(fn($item) => [
+                'id'   => $item->id,
+                'text' => $item->name_en,
+                'position' => $item->pivot->position,
+            ])->values(),
+        ]);
+    }
+
+    public function frequentlyBoughtTogetherSearch(Request $request, string $product): JsonResponse
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $existingIds = Product::findOrFail($product)->frequentlyBoughtTogether()->pluck('products.id');
+
+        $rows = Product::query()
+            ->where('id', '!=', $product)
+            ->whereNotIn('id', $existingIds)
+            ->whereNull('deleted_at')
+            ->when($q !== '', fn($query) => $query->where('name_en', 'like', "%{$q}%"))
+            ->limit(20)
+            ->get(['id', 'name_en']);
+
+        return response()->json([
+            'results' => $rows->map(fn($p) => ['id' => $p->id, 'text' => $p->name_en])->values(),
+        ]);
+    }
+
+    public function frequentlyBoughtTogetherAdd(Request $request, string $product): JsonResponse
+    {
+        $data = $request->validate([
+            'related_product_id' => ['required', 'uuid', 'exists:products,id'],
+        ]);
+
+        if ($data['related_product_id'] === $product) {
+            return response()->json(['message' => 'A product cannot be paired with itself.'], 422);
+        }
+
+        $productModel = Product::findOrFail($product);
+
+        $nextPosition = (int) $productModel->frequentlyBoughtTogether()->max('position') + 1;
+
+        $productModel->frequentlyBoughtTogether()->syncWithoutDetaching([
+            $data['related_product_id'] => ['position' => $nextPosition],
+        ]);
+
+        $related = Product::findOrFail($data['related_product_id']);
+
+        return response()->json([
+            'item' => ['id' => $related->id, 'text' => $related->name_en, 'position' => $nextPosition],
+        ]);
+    }
+
+    public function frequentlyBoughtTogetherRemove(string $product, string $relatedProduct): JsonResponse
+    {
+        Product::findOrFail($product)->frequentlyBoughtTogether()->detach($relatedProduct);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function frequentlyBoughtTogetherReorder(Request $request, string $product): JsonResponse
+    {
+        $data = $request->validate([
+            'items' => ['required', 'array'],
+            'items.*.id' => ['required', 'uuid'],
+            'items.*.position' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $productModel = Product::findOrFail($product);
+
+        foreach ($data['items'] as $row) {
+            $productModel->frequentlyBoughtTogether()->updateExistingPivot($row['id'], ['position' => $row['position']]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     // ──────────────────────────────────────────────────────────────────────────

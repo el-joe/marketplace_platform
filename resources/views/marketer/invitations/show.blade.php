@@ -155,7 +155,7 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
     $offer      = $invitation->offer;
     $vendor     = $offer?->vendor;
     $isPending  = $invitation->status === \App\Enums\VendorCampaignInvitationStatus::Pending && !$invitation->isExpired();
-    $typeLabel  = ucwords(str_replace('_', ' ', $offer?->campaign_type ?? ''));
+    $typeLabel  = ucwords(str_replace('_', ' ', $offer?->campaign_type?->value ?? ''));
 @endphp
 
 {{-- Status banner for non-pending invitations --}}
@@ -214,7 +214,7 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
     <div class="big-rate">{{ $offer?->offered_commission_rate }}%</div>
     <div class="sub">
         {{ __('marketer.invitations.you_will_earn', ['rate' => $offer?->offered_commission_rate]) }}
-        @if($offer?->commission_type === 'revenue_share') {{ __('marketer.invitations.revenue_share') }} @endif
+        @if($offer?->commission_type?->value === 'revenue_share') {{ __('marketer.invitations.revenue_share') }} @endif
     </div>
 </div>
 

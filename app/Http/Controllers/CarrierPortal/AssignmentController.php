@@ -74,7 +74,7 @@ class AssignmentController extends Controller
             ->whereHas('agent', fn ($q) => $q->where('shipping_company_id', $supervisor->shipping_company_id))
             ->findOrFail($assignmentId);
 
-        if (!in_array($assignment->status, ['assigned', 'accepted'])) {
+        if (!in_array($assignment->status?->value, ['assigned', 'accepted'])) {
             return response()->json(['success' => false, 'message' => 'لا يمكن إعادة تعيين هذا الطلب في حالته الحالية.'], 422);
         }
 

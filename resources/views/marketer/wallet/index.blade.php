@@ -84,8 +84,8 @@
                     <p class="text-sm font-medium text-gray-900">{{ $tx->description }}</p>
                     <p class="text-xs text-gray-400">{{ str_replace('_',' ', $tx->source_type) }} · {{ $tx->created_at->format('d M Y H:i') }}</p>
                 </div>
-                <p class="text-sm font-bold {{ $tx->type === 'credit' ? 'text-green-600' : 'text-red-500' }}">
-                    {{ $tx->type === 'credit' ? '+' : '−' }}{{ number_format($tx->amount_cents / 100, 2) }}
+                <p class="text-sm font-bold {{ $tx->type === \App\Enums\WalletTransactionType::Credit ? 'text-green-600' : 'text-red-500' }}">
+                    {{ $tx->type === \App\Enums\WalletTransactionType::Credit ? '+' : '−' }}{{ number_format($tx->amount_cents / 100, 2) }}
                 </p>
             </div>
         @empty

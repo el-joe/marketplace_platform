@@ -76,7 +76,7 @@
             @endif
         </div>
 
-        @if($claim->isResolved() && $claim->status !== 'rejected')
+        @if($claim->isResolved() && $claim->status !== \App\Enums\CarrierClaimStatus::Rejected)
             <div class="card p-5 border-l-4 border-green-400">
                 <h2 class="text-sm font-semibold text-gray-700 mb-2">{{ __('partner.claims.resolution_title') }}</h2>
                 <p class="text-sm text-gray-700">

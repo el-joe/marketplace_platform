@@ -125,8 +125,8 @@ class SecretPromotionController extends Controller
                     'marketer_earnings_per_sale' => $p->marketer_earnings_format,
                     'admin_earnings_per_sale' => $p->admin_earnings_format,
                     'marketer_name' => $p->marketer?->name ?? 'Open to all',
-                    'marketer_type' => $p->marketer?->type ?? '',
-                    'status' => $p->status,
+                    'marketer_type' => $p->marketer?->type?->value ?? '',
+                    'status' => $p->status?->value,
                     'status_color' => $p->status_color,
                     'valid_until_formatted' => $p->valid_until?->format('M d, Y'),
                     'is_expiring_soon' => $isExpiringSoon,
@@ -283,7 +283,7 @@ class SecretPromotionController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Status updated.',
-                'data' => ['status' => $secretPromotion->fresh()->status],
+                'data' => ['status' => $secretPromotion->fresh()->status?->value],
             ]);
         } catch (ValidationException $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);

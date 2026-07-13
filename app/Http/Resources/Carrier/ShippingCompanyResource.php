@@ -23,7 +23,7 @@ class ShippingCompanyResource extends JsonResource
             'logo_url'      => $this->logo_path
                 ? asset('storage/' . $this->logo_path)
                 : null,
-            'status'        => $this->status,
+            'status'        => $this->status?->value,
             'can_supervisors_receive_all_notifications' => $this->can_supervisors_receive_all_notifications,
             'approved_at'   => $this->approved_at?->toIso8601String(),
         ];

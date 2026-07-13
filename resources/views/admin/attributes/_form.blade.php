@@ -16,7 +16,7 @@
         return (bool) $raw;
     };
 
-    $typeRequiresValues = $isEdit && in_array($attribute->type, ['select', 'multi_select', 'color']);
+    $typeRequiresValues = $isEdit && in_array($attribute->type?->value, ['select', 'multi_select', 'color']);
 @endphp
 
 <div
@@ -186,7 +186,7 @@
                         <div class="flex items-center gap-3 px-4 py-2.5 bg-white value-item" data-id="{{ $val->id }}">
                             <span class="flex-1 text-sm text-gray-800">{{ $val->value_en }}</span>
                             <span class="text-sm text-gray-400" dir="rtl">{{ $val->value_ar }}</span>
-                            @if($attribute->type === 'color' && $val->color_hex)
+                            @if($attribute->type === \App\Enums\AttributeType::Color && $val->color_hex)
                             <span class="w-5 h-5 rounded-full border border-gray-200 flex-shrink-0"
                                 style="background:{{ $val->color_hex }}"></span>
                             @endif
@@ -217,7 +217,7 @@
                             <input type="text" id="new-value-en" class="input w-full" placeholder="{{ __('admin.attributes_section.new_value_en_placeholder') }}" dir="ltr" />
                             <input type="text" id="new-value-ar" class="input w-full" placeholder="{{ __('admin.attributes_section.new_value_ar_placeholder') }}" dir="rtl" />
                         </div>
-                        @if($attribute->type === 'color')
+                        @if($attribute->type === \App\Enums\AttributeType::Color)
                         <div class="flex items-center gap-3">
                             <label class="text-xs font-medium text-gray-600">{{ __('admin.attributes_section.hex_color') }}</label>
                             <input type="color" id="new-color-hex" class="w-10 h-8 rounded border border-gray-300 cursor-pointer" value="#000000" />

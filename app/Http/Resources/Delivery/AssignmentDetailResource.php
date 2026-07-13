@@ -16,7 +16,7 @@ class AssignmentDetailResource extends JsonResource
         return [
             'id'                => $this->id,
             'sub_order_number'  => $this->subOrder?->sub_order_number,
-            'status'            => $this->status,
+            'status'            => $this->status?->value,
             'is_cod'            => $isCod,
             'currency'          => $order?->currency,
             'failure_reason' => $this->failure_reason,
@@ -75,7 +75,7 @@ class AssignmentDetailResource extends JsonResource
             'shipment' => $this->whenLoaded('shipment', fn () => [
                 'id'              => $this->shipment->id,
                 'tracking_number' => $this->shipment->tracking_number,
-                'status'          => $this->shipment->status,
+                'status'          => $this->shipment->status?->value,
                 'carrier'         => $this->shipment->carrier?->name,
             ]),
         ];

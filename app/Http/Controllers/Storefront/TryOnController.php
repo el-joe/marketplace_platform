@@ -63,7 +63,7 @@ class TryOnController extends Controller
         $session = VirtualTryonSession::findOrFail($sessionId);
 
         return response()->json([
-            'status'     => $session->status,
+            'status'     => $session->status?->value,
             'result_url' => $session->result_image_path
                 ? asset('storage/' . $session->result_image_path)
                 : null,

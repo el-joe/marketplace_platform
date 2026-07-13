@@ -210,6 +210,7 @@ Route::prefix('v1/{country}')
             Route::prefix('cart')->name('customer.cart.')->group(function (): void {
                 Route::get('/', [CartController::class, 'show'])->name('show');
                 Route::post('items', [CartController::class, 'addItem'])->name('items.add');
+                Route::post('items/bulk', [CartController::class, 'addItems'])->name('items.add-bulk');
                 Route::put('items/{id}', [CartController::class, 'updateItem'])->name('items.update');
                 Route::delete('items/{id}', [CartController::class, 'removeItem'])->name('items.remove');
                 Route::delete('/', [CartController::class, 'clear'])->name('clear');

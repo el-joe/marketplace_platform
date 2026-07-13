@@ -53,14 +53,14 @@
                     <dt class="text-xs text-gray-500">{{ __('admin.warehouses_section.type_column') }}</dt>
                     <dd class="mt-0.5 font-medium">
                         @php
-                            $typeBadge = match ($warehouse->type) {
+                            $typeBadge = match ($warehouse->type?->value) {
                                 'platform_fbn' => 'bg-indigo-100 text-indigo-700',
                                 'seller_owned' => 'bg-orange-100 text-orange-700',
                                 default        => 'bg-gray-100 text-gray-600',
                             };
                         @endphp
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $typeBadge }}">
-                            {{ str_replace('_', ' ', $warehouse->type) }}
+                            {{ str_replace('_', ' ', $warehouse->type?->value) }}
                         </span>
                     </dd>
                 </div>
@@ -223,10 +223,10 @@
                                     </td>
                                     <td class="py-2.5 pr-4">
                                         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono
-                                            {{ str_starts_with($mv->movement_type, 'transfer') ? 'bg-blue-50 text-blue-700' :
-                                               ($mv->movement_type === 'damaged' ? 'bg-red-50 text-red-700' :
+                                            {{ str_starts_with($mv->movement_type?->value ?? '', 'transfer') ? 'bg-blue-50 text-blue-700' :
+                                               ($mv->movement_type?->value === 'damaged' ? 'bg-red-50 text-red-700' :
                                                ($mv->quantity_delta > 0 ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700')) }}">
-                                            {{ $mv->movement_type }}
+                                            {{ $mv->movement_type?->value }}
                                         </span>
                                     </td>
                                     <td class="py-2.5 pr-4 text-xs text-gray-700">

@@ -25,7 +25,7 @@
                                 <option value="{{ $s->id }}" @selected(old('shipment_id') === $s->id)>
                                     {{ $s->subOrder?->order?->order_number ?? $s->id }}
                                     @if($s->tracking_number) · {{ $s->tracking_number }} @endif
-                                    · {{ Str::title(str_replace('_',' ',$s->status)) }}
+                                    · {{ Str::title(str_replace('_',' ',$s->status?->value)) }}
                                 </option>
                             @endforeach
                         </select>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Enums\GlobalSystemType;
+use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiResponse;
 use App\Models\Country;
@@ -75,6 +76,7 @@ class ListingDetailController extends Controller
                 'rating_count' => (int) $listing->rating_count,
                 'items' => $reviews->map(fn($review) => $this->reviewShape($review))->values()->all(),
             ],
+            'frequently_bought_together' => $this->frequentlyBoughtTogetherShape($product, $listing, $country),
         ]);
     }
 
@@ -124,7 +126,7 @@ class ListingDetailController extends Controller
             'is_express_fbn' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
             'fulfillment_model' => $listing->fulfillment_model,
             'global_system_type' => $listing->global_system_type?->value,
-            'status' => $listing->status,
+            'status' => $listing->status?->value,
             'max_order_quantity' => $listing->max_order_quantity,
             'total_sold' => $listing->total_sold,
             'rating_avg' => $listing->rating_avg,
@@ -303,6 +305,55 @@ class ListingDetailController extends Controller
                 'delivery_days_min' => $listing->primaryShippingMethod->min_delivery_days,
                 'delivery_days_max' => $listing->primaryShippingMethod->max_delivery_days,
             ] : null,
+        ];
+    }
+
+    private function frequentlyBoughtTogetherShape($product, VendorListing $listing, $country): array
+    {
+        $relatedProducts = $product->frequentlyBoughtTogether()
+            ->with(['images', 'variants'])
+            ->limit(4)
+            ->get();
+
+        $items = collect([$this->fbtItemShape($listing, $product, $country)]);
+
+        foreach ($relatedProducts as $relatedProduct) {
+            $relatedListing = VendorListing::query()
+                ->whereHas('productVariant', fn($q) => $q->where('product_id', $relatedProduct->id))
+                ->where('country_id', $country->id)
+                ->where('status', VendorListingStatus::Active)
+                ->orderBy('price')
+                ->with('productVariant')
+                ->first();
+
+            if (!$relatedListing) {
+                continue;
+            }
+
+            $items->push($this->fbtItemShape($relatedListing, $relatedProduct, $country));
+        }
+
+        return [
+            'items' => $items->values()->all(),
+            'total_price_cents' => $items->sum('price_cents'),
+            'total_price_formatted' => number_format($items->sum('price_cents') / 100, 2),
+            'currency' => $country->currency_code,
+        ];
+    }
+
+    private function fbtItemShape(VendorListing $listing, $product, $country): array
+    {
+        $primaryImage = $product->images->firstWhere('is_primary', true) ?? $product->images->first();
+
+        return [
+            'product_id' => $product->id,
+            'listing_id' => $listing->id,
+            'listing_ref' => $this->identifiers->buildListingRef($listing),
+            'name' => Bilingual::pair($product, 'name'),
+            'image_url' => $primaryImage?->url,
+            'price_cents' => $listing->price,
+            'price_formatted' => number_format($listing->price / 100, 2),
+            'currency' => $country->currency_code,
         ];
     }
 

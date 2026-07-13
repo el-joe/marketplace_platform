@@ -14,7 +14,7 @@
             </div>
             <h1 class="text-2xl font-bold text-gray-900">{{ $offer->name }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">
-                {{ \Illuminate\Support\Str::before(__('admin.vendor_campaign_offers.by_vendor_type_commission'), ':vendor') }}<strong>{{ $offer->vendor?->store_name ?? '—' }}</strong>{{ str_replace([':type', ':rate'], [ucwords(str_replace('_', ' ', $offer->campaign_type)), number_format($offer->offered_commission_rate, 1)], \Illuminate\Support\Str::after(__('admin.vendor_campaign_offers.by_vendor_type_commission'), ':vendor')) }}
+                {{ \Illuminate\Support\Str::before(__('admin.vendor_campaign_offers.by_vendor_type_commission'), ':vendor') }}<strong>{{ $offer->vendor?->store_name ?? '—' }}</strong>{{ str_replace([':type', ':rate'], [ucwords(str_replace('_', ' ', $offer->campaign_type?->value)), number_format($offer->offered_commission_rate, 1)], \Illuminate\Support\Str::after(__('admin.vendor_campaign_offers.by_vendor_type_commission'), ':vendor')) }}
             </p>
         </div>
 

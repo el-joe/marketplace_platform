@@ -13,7 +13,7 @@ class WarehouseResource extends JsonResource
             'id'                => $this->id,
             'name'              => $this->name,
             'code'              => $this->code,
-            'type'              => $this->type,
+            'type'              => $this->type?->value,
             'is_active'         => (bool) $this->is_active,
             'total_capacity_m3' => $this->total_capacity_m3 ? (float) $this->total_capacity_m3 : null,
             'used_capacity_m3'  => $this->used_capacity_m3 ? (float) $this->used_capacity_m3 : null,

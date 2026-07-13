@@ -65,7 +65,7 @@ class ListingController extends Controller
         return ApiResponse::success([
             'id'         => $inquiry->id,
             'listing_slug' => $slug,
-            'status'     => $inquiry->status,
+            'status'     => $inquiry->status?->value,
             'created_at' => $inquiry->created_at->toIso8601String(),
         ], 'Inquiry submitted.', 201);
     }
@@ -89,7 +89,7 @@ class ListingController extends Controller
         return ApiResponse::success([
             'id'                => $booking->id,
             'booking_number'    => $booking->booking_number,
-            'status'            => $booking->status,
+            'status'            => $booking->status?->value,
             'travelers_count'   => $booking->travelers_count,
             'total_price_cents' => $booking->total_price_cents,
             'currency'          => $package->currency,
@@ -117,7 +117,7 @@ class ListingController extends Controller
             'id'                  => $booking->id,
             'booking_number'      => $booking->booking_number,
             'contract_signed_at'  => $booking->contract_signed_at?->toIso8601String(),
-            'status'              => $booking->status,
+            'status'              => $booking->status?->value,
         ], 'Contract signed successfully.');
     }
 

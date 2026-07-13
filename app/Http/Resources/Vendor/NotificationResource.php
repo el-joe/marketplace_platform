@@ -20,7 +20,7 @@ class NotificationResource extends JsonResource
             'type'       => $this->type,
             'type_short' => class_basename($this->type),
             'data'       => $data,
-            'channel'    => $this->channel,
+            'channel'    => $this->channel?->value,
             'read_at'    => $this->read_at ? Carbon::parse($this->read_at)->toIso8601String() : null,
             'created_at' => $this->created_at ? Carbon::parse($this->created_at)->toIso8601String() : null,
         ];

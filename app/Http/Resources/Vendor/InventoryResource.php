@@ -25,7 +25,7 @@ class InventoryResource extends JsonResource
             'warehouse'          => $this->whenLoaded('warehouse', fn () => [
                 'id'   => $this->warehouse->id,
                 'name' => $this->warehouse->name,
-                'type' => $this->warehouse->type,
+                'type' => $this->warehouse->type?->value,
             ]),
             'listing'            => $this->whenLoaded('vendorListing', fn () => [
                 'id'           => $this->vendorListing->id,

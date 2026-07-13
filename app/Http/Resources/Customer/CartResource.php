@@ -22,7 +22,7 @@ class CartResource extends JsonResource
             ],
             'coupon' => $this->coupon ? [
                 'code'        => $this->coupon->code,
-                'type'        => $this->coupon->type,
+                'type'        => $this->coupon->type?->value,
                 'description' => $this->coupon->description,
             ] : null,
             'items'      => CartItemResource::collection($this->items),

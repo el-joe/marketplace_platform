@@ -24,7 +24,7 @@ class NotifyAdminNewMarketerJob implements ShouldQueue
             'marketer_id' => $this->marketer->id,
             'name'        => $this->marketer->name,
             'email'       => $this->marketer->email,
-            'type'        => $this->marketer->type,
+            'type'        => $this->marketer->type?->value,
         ]);
     }
 }

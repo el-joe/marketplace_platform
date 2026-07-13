@@ -14,7 +14,7 @@ class OrderResource extends JsonResource
             'id'               => $this->id,
             'order_number'     => $this->order_number,
             'status'           => $this->status->value,
-            'payment_status'   => $this->payment_status,
+            'payment_status'   => $this->payment_status?->value,
             'payment_method'   => $this->payment_method,
             'currency'         => $this->currency,
             'subtotal'         => round($this->subtotal / 100, 2),

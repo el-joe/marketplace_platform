@@ -85,7 +85,7 @@
                     <option value="">{{ __('admin.secret_promotions.all_marketers') }}</option>
                     <option value="open_to_all">{{ __('admin.secret_promotions.open_to_all') }}</option>
                     @foreach($marketers as $m)
-                        <option value="{{ $m->id }}">{{ $m->name }} ({{ $m->type }})</option>
+                        <option value="{{ $m->id }}">{{ $m->name }} ({{ $m->type?->value }})</option>
                     @endforeach
                 </select>
             </div>
@@ -193,7 +193,7 @@
                             <select id="marketer-select" class="form-input w-full">
                                 <option value="">{{ __('admin.secret_promotions.open_to_all_eligible_marketers') }}</option>
                                 @foreach($marketers as $m)
-                                    <option value="{{ $m->id }}">{{ $m->name }} ({{ $m->type }})</option>
+                                    <option value="{{ $m->id }}">{{ $m->name }} ({{ $m->type?->value }})</option>
                                 @endforeach
                             </select>
                         </div>

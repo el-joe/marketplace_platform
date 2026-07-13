@@ -90,7 +90,7 @@ class TeamController extends Controller
                 'id' => $member->id,
                 'name' => $member->name,
                 'email' => $member->email,
-                'role' => $member->role,
+                'role' => $member->role->value,
                 'is_active' => $member->is_active,
                 'last_login_at' => null,
             ],

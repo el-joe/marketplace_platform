@@ -16,9 +16,9 @@ class AdCampaignListResource extends JsonResource
         return [
             'id'                  => $this->id,
             'name'                => $this->name,
-            'type'                => $this->type,
+            'type'                => $this->type?->value,
             'status'              => $this->status?->value,
-            'targeting_type'      => $this->targeting_type,
+            'targeting_type'      => $this->targeting_type?->value,
             'budget_total'        => (float) $this->budget_total,
             'budget_daily'        => $this->budget_daily !== null ? (float) $this->budget_daily : null,
             'budget_spent_total'  => (float) $this->budget_spent_total,

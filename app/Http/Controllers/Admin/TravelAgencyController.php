@@ -50,7 +50,7 @@ class TravelAgencyController extends Controller
                 'name'         => $a->name,
                 'email'        => $a->email,
                 'country'      => $a->country?->name_en,
-                'status'       => $a->status,
+                'status'       => $a->status?->value,
                 'packages'     => $a->packages()->count(),
                 'approved_at'  => $a->approved_at?->format('d M Y'),
                 'created_at'   => $a->created_at->format('d M Y'),

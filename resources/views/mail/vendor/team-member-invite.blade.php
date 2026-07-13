@@ -111,7 +111,7 @@
             <p>مرحباً <strong>{{ $member->name }}</strong>،</p>
             <p>
                 تمت دعوتك للانضمام إلى لوحة تحكم البائع كـ
-                <strong>{{ $member->role === 'manager' ? 'مدير' : 'موظف' }}</strong>.
+                <strong>{{ $member->role === \App\Enums\VendorAdminRole::Manager ? 'مدير' : 'موظف' }}</strong>.
                 يمكنك تسجيل الدخول باستخدام البيانات التالية:
             </p>
 

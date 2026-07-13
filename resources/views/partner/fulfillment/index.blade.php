@@ -109,7 +109,7 @@
                         <span class="badge badge-indigo text-xs">FBN</span>
                     </div>
                     @foreach($listing->warehouseInventories as $inv)
-                        @if($inv->warehouse?->type === 'platform_fbn')
+                        @if($inv->warehouse?->type === \App\Enums\WarehouseType::PlatformFbn)
                         <div class="grid grid-cols-3 gap-1 text-center text-xs mt-2 bg-gray-50 rounded-lg p-2">
                             <div><p class="text-gray-400">{{ __('partner.fulfillment.in_warehouse') }}</p><p class="font-bold text-gray-800">{{ $inv->quantity_on_hand }}</p></div>
                             <div><p class="text-gray-400">{{ __('partner.fulfillment.in_transit') }}</p><p class="font-bold text-blue-600">{{ $inv->quantity_inbound }}</p></div>
@@ -291,7 +291,7 @@
                         <dl class="grid grid-cols-2 gap-1 text-xs">
                             <dt class="text-gray-400">{{ __('partner.fulfillment.commission_type') }}</dt>
                             <dd class="font-medium text-gray-700">
-                                {{ __('partner.fulfillment.commission_types.' . $rule->commission_type) }}
+                                {{ __('partner.fulfillment.commission_types.' . $rule->commission_type->value) }}
                             </dd>
                             <dt class="text-gray-400">{{ __('partner.fulfillment.commission_value') }}</dt>
                             <dd class="font-semibold text-gray-900">{{ $rule->commissionLabel() }}</dd>

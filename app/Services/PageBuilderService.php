@@ -52,7 +52,7 @@ class PageBuilderService
                 'country_id' => $page->country_id,
                 'country_code' => optional($page->country)->site_code,
                 'country_name' => optional($page->country)->name_en,
-                'status' => $page->status,
+                'status' => $page->status?->value,
                 'version' => $page->version,
                 'published_at' => optional($page->published_at)->toIso8601String(),
             ],

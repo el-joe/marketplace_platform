@@ -86,13 +86,13 @@ class VendorController extends Controller
                 'gmv' => '$' . number_format($vendor->total_sales, 2),
                 'orders' => number_format($vendor->total_orders),
                 'rating' => number_format($vendor->store_rating_avg, 1),
-                'global_status' => $vendor->global_status,
+                'global_status' => $vendor->global_status?->value,
                 'manager' => $vendor->accountManagerAdmin?->name ?? '—',
                 'created_at' => $vendor->created_at->format('d M Y'),
                 'actions' => [
                     'id'            => $vendor->id,
                     'store_name'    => $vendor->store_name,
-                    'global_status' => $vendor->global_status,
+                    'global_status' => $vendor->global_status?->value,
                 ],
             ];
         });
@@ -262,7 +262,7 @@ class VendorController extends Controller
             'data' => $vendor->documents->map(fn($d) => [
                 'id' => $d->id,
                 'document_type' => $d->document_type,
-                'status' => $d->status,
+                'status' => $d->status?->value,
                 'expires_at' => $d->expires_at?->toDateString(),
                 'file_path' => $d->file_path,
             ]),

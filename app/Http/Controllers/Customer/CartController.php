@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\AddCartItemRequest;
+use App\Http\Requests\Customer\AddCartItemsRequest;
 use App\Http\Requests\Customer\ApplyCouponRequest;
 use App\Http\Requests\Customer\UpdateCartItemRequest;
 use App\Http\Resources\Customer\CartItemResource;
@@ -55,6 +56,23 @@ class CartController extends Controller
             'item'        => new CartItemResource($item),
             'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
         ], 'Item added to cart', 201);
+    }
+
+    public function addItems(AddCartItemsRequest $request): JsonResponse
+    {
+        $customer = auth('customer')->user();
+        $country  = $request->attributes->get('country');
+        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+
+        try {
+            $this->cartService->addItems($cart, $request->items);
+        } catch (\DomainException $e) {
+            return ApiResponse::error($e->getMessage(), [], 422);
+        }
+
+        return ApiResponse::success([
+            'cart' => new CartResource($cart),
+        ], 'Items added to cart', 201);
     }
 
     public function updateItem(UpdateCartItemRequest $request,$country, string $id): JsonResponse

@@ -64,7 +64,7 @@ class AttributeController extends Controller
                 'name_en' => e($row->name_en),
                 'name_ar' => e($row->name_ar ?? ''),
                 'code' => e($row->code),
-                'type' => $row->type,
+                'type' => $row->type?->value,
                 'unit' => e($row->unit ?? '—'),
                 'is_variant_attribute' => (bool) $row->is_variant_attribute,
                 'is_filterable' => (bool) $row->is_filterable,

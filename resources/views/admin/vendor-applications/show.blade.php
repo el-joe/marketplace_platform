@@ -20,10 +20,10 @@
             <div class="flex items-center gap-3 mt-1">
                 @php
                     $statusColors = ['pending' => 'warning', 'under_review' => 'primary', 'active' => 'success', 'rejected' => 'danger'];
-                    $sc = $statusColors[$vendor->global_status] ?? 'gray';
+                    $sc = $statusColors[$vendor->global_status?->value] ?? 'gray';
                 @endphp
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">
-                    {{ __('admin.vendor_applications.global_status_' . $vendor->global_status) }}
+                    {{ __('admin.vendor_applications.global_status_' . $vendor->global_status?->value) }}
                 </span>
                 @php
                     $urgencyClass = $daysWaiting > 5 ? 'text-red-600 font-semibold' : ($daysWaiting >= 2 ? 'text-yellow-600' : 'text-green-600');
@@ -31,7 +31,7 @@
                 <span class="text-sm {{ $urgencyClass }}">{{ __('admin.vendor_applications.waiting_days_text', ['days' => $daysWaiting]) }}</span>
                 <button type="button"
                     id="start-review-btn"
-                    class="btn btn-secondary btn-xs {{ $vendor->global_status === 'under_review' ? 'hidden' : '' }}"
+                    class="btn btn-secondary btn-xs {{ $vendor->global_status === \App\Enums\VendorGlobalStatus::UnderReview ? 'hidden' : '' }}"
                     data-url="{{ route('admin.vendor-applications.start-review', $vendor->id) }}">
                     {{ __('admin.vendor_applications.start_review') }}
                 </button>
@@ -62,7 +62,7 @@
                     </div>
                     <div>
                         <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.business_type_label') }}</dt>
-                        <dd>{{ $vendor->business_type ? __('admin.vendor_applications.business_type_' . $vendor->business_type) : '—' }}</dd>
+                        <dd>{{ $vendor->business_type ? __('admin.vendor_applications.business_type_' . $vendor->business_type->value) : '—' }}</dd>
                     </div>
                     <div>
                         <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.registration_no_label') }}</dt>
@@ -190,7 +190,7 @@
                                                         {{ __('admin.vendors.view') }}
                                                     </button>
                                                 @endif
-                                                @if(!in_array($doc->status, ['verified','approved']))
+                                                @if(!in_array($doc->status?->value, ['verified','approved']))
                                                     <button type="button"
                                                         class="btn btn-xs btn-success js-verify-doc-btn"
                                                         data-url="{{ route('admin.vendor-applications.documents.verify', $doc->id) }}"
@@ -198,7 +198,7 @@
                                                         {{ __('admin.vendors.verify') }}
                                                     </button>
                                                 @endif
-                                                @if($doc->status !== 'rejected')
+                                                @if($doc->status?->value !== 'rejected')
                                                     <button type="button"
                                                         class="btn btn-xs btn-danger js-reject-doc-btn"
                                                         data-url="{{ route('admin.vendor-applications.documents.reject', $doc->id) }}"
@@ -257,7 +257,7 @@
                             <dd>
                                 @php $bsc = $bankStatusColors[$primaryBank->verification_status->value] ?? 'gray'; @endphp
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $bsc }}-100 text-{{ $bsc }}-700">
-                                    {{ __('admin.vendor_applications.bank_status_' . ($primaryBank->verification_status ?? 'unverified')) }}
+                                    {{ __('admin.vendor_applications.bank_status_' . ($primaryBank->verification_status?->value ?? 'unverified')) }}
                                 </span>
                             </dd>
                         </div>
@@ -348,7 +348,7 @@
             {{-- ─── Decision ─────────────────────────────────────────────────────────── --}}
             <x-card title="{{ __('admin.vendors.decision') }}">
                 <div class="space-y-2">
-                    @if(in_array($vendor->global_status, ['pending', 'under_review']))
+                    @if(in_array($vendor->global_status, [\App\Enums\VendorGlobalStatus::Pending, \App\Enums\VendorGlobalStatus::UnderReview]))
                         <button
                             type="button"
                             id="open-approve-modal-btn"
@@ -376,11 +376,11 @@
                             data-reject-url="{{ route('admin.vendor-applications.reject', $vendor->id) }}">
                             {{ __('admin.vendor_applications.reject_application') }}
                         </button>
-                    @elseif($vendor->global_status === 'active')
+                    @elseif($vendor->global_status === \App\Enums\VendorGlobalStatus::Active)
                         <div class="rounded-lg bg-green-50 border border-green-100 px-4 py-3 text-sm text-green-800">
                             {{ __('admin.vendor_applications.approved_notice') }}
                         </div>
-                    @elseif($vendor->global_status === 'rejected')
+                    @elseif($vendor->global_status === \App\Enums\VendorGlobalStatus::Rejected)
                         <div class="rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-800">
                             {{ __('admin.vendor_applications.rejected_notice') }}
                             @if($vendor->rejection_reason)

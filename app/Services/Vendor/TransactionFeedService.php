@@ -74,7 +74,7 @@ class TransactionFeedService
         return $subOrders->map(function ($so) use ($payoutItems) {
             $pi            = $payoutItems->get($so->id);
             $payoutStatus  = $pi
-                ? $pi->payout->payout_number . ' (' . $pi->payout->status . ')'
+                ? $pi->payout->payout_number . ' (' . $pi->payout->status?->value . ')'
                 : 'unsettled';
 
             return [
@@ -108,7 +108,7 @@ class TransactionFeedService
             'type'         => 'refund',
             'date'         => $r->updated_at?->toISOString(),
             'reference'    => $r->subOrder?->sub_order_number,
-            'description'  => 'Refund — ' . str_replace('_', ' ', $r->reason),
+            'description'  => 'Refund — ' . str_replace('_', ' ', $r->reason?->value ?? ''),
             'amount_cents' => -(int) $r->amount,
         ]);
     }

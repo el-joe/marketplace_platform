@@ -83,7 +83,7 @@ class AiToolsController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'status'        => $job->status,
+            'status'        => $job->status->value,
             'enhanced_path' => $job->enhanced_path ? asset('storage/' . $job->enhanced_path) : null,
             'original_path' => asset('storage/' . $job->original_path),
             'applied'       => $job->applied,
@@ -159,7 +159,7 @@ class AiToolsController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'status'     => $job->status,
+            'status'     => $job->status->value,
             'video_url'  => $job->result_video_path ? asset('storage/' . $job->result_video_path) : null,
             'error'      => $job->error_message,
         ]);

@@ -18,7 +18,7 @@ class StrikeIssued extends BaseDatabaseBroadcastNotification
     {
         return [
             'title'     => 'Policy Strike Issued',
-            'message'   => 'A ' . $this->strike->severity . ' strike has been issued on your account. Reason: ' . $this->strike->reason,
+            'message'   => 'A ' . $this->strike->severity?->value . ' strike has been issued on your account. Reason: ' . $this->strike->reason?->value,
             'url'       => route('partner.dashboard'),
             'strike_id' => $this->strike->id,
         ];

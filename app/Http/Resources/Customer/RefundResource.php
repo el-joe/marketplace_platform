@@ -14,9 +14,9 @@ class RefundResource extends JsonResource
             'order_number' => $this->order?->order_number,
             'amount'      => $this->amount / 100,
             'currency'    => $this->currency,
-            'reason'      => $this->reason,
-            'refund_type' => $this->refund_type,
-            'status'      => $this->status,
+            'reason'      => $this->reason?->value,
+            'refund_type' => $this->refund_type?->value,
+            'status'      => $this->status?->value,
             'created_at'  => $this->created_at?->toIso8601String(),
         ];
     }

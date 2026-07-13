@@ -81,7 +81,7 @@ class FulfillmentController extends Controller
                     'warehouse' => $r->warehouse?->name ?? '—',
                     'qty_requested' => $r->quantity_requested,
                     'qty_received' => $r->quantity_received,
-                    'status' => $r->status,
+                    'status' => $r->status->value,
                     'status_color' => $r->statusColor(),
                     'status_label' => $r->statusLabel(),
                     'expected_arrival' => $r->expected_arrival?->format('d M Y'),
@@ -205,7 +205,7 @@ class FulfillmentController extends Controller
                 'month' => $f->monthLabel(),
                 'units' => $f->units_stored,
                 'total' => $f->totalFormatted(),
-                'status' => $f->status,
+                'status' => $f->status->value,
                 'status_color' => $f->statusColor(),
             ]);
 

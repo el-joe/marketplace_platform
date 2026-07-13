@@ -154,7 +154,7 @@
                 \App\Enums\VendorCampaignInvitationStatus::Revoked  => '↩',
                 default    => '',
             };
-            $typeLabel = ucwords(str_replace('_', ' ', $offer?->campaign_type ?? ''));
+            $typeLabel = ucwords(str_replace('_', ' ', $offer?->campaign_type?->value ?? ''));
         @endphp
         <div class="inv-card">
             <div class="inv-avatar">
@@ -174,7 +174,7 @@
                     @endif
                     <span class="commission-val">
                         {{ $offer?->offered_commission_rate }}%
-                        {{ $offer?->commission_type === 'revenue_share' ? __('marketer.invitations.rev_share') : __('marketer.invitations.commission') }}
+                        {{ $offer?->commission_type?->value === 'revenue_share' ? __('marketer.invitations.rev_share') : __('marketer.invitations.commission') }}
                     </span>
                     @if($offer?->starts_at && $offer?->ends_at)
                         <span class="date-range">

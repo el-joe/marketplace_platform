@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\DeliveryAgentPayoutStatus;
 use App\Enums\MarketerPayoutStatus;
+use App\Enums\PayoutStatus;
 use App\Models\Marketer;
 use App\Models\MarketerConversion;
 use App\Models\MarketerPayout;
@@ -111,7 +112,7 @@ class AuditPayoutCurrencyBug extends Command
                             $currency,
                             $grossDiff,
                             $netDiff,
-                            $payout->status,
+                            $payout->status?->value,
                             $note,
                         ));
 
@@ -123,7 +124,7 @@ class AuditPayoutCurrencyBug extends Command
                             'expected_currency'=> $currency,
                             'gross_diff_cents' => $grossDiff,
                             'net_diff_cents'   => $netDiff,
-                            'status'           => $payout->status,
+                            'status'           => $payout->status?->value,
                             'already_disbursed'=> $isPaid ? 'YES' : 'no',
                         ];
                     }
@@ -169,7 +170,7 @@ class AuditPayoutCurrencyBug extends Command
                 if ($currencyWrong || $netDiff !== 0) {
                     $affected++;
                     // Vendor payout statuses: pending, approved, processing, completed, failed, on_hold
-                    $isDisbursed = in_array($payout->status, ['processing', 'completed']);
+                    $isDisbursed = in_array($payout->status, [PayoutStatus::Processing, PayoutStatus::Completed], true);
                     if ($isDisbursed) {
                         $alreadyPaid++;
                     }
@@ -185,7 +186,7 @@ class AuditPayoutCurrencyBug extends Command
                         $payout->currency,
                         $currenciesInData ?: 'none',
                         $netDiff,
-                        $payout->status,
+                        $payout->status?->value,
                         $note,
                     ));
 
@@ -197,7 +198,7 @@ class AuditPayoutCurrencyBug extends Command
                         'expected_currency'=> $currenciesInData,
                         'gross_diff_cents' => 'n/a',
                         'net_diff_cents'   => $netDiff,
-                        'status'           => $payout->status,
+                        'status'           => $payout->status?->value,
                         'already_disbursed'=> $isDisbursed ? 'YES' : 'no',
                     ];
                 }

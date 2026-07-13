@@ -85,6 +85,21 @@ class CartService
         return $item->fresh();
     }
 
+    /**
+     * @param array<int, array{vendor_listing_id: string, quantity: int}> $items
+     * @return array<int, CartItem>
+     */
+    public function addItems(Cart $cart, array $items): array
+    {
+        $added = [];
+
+        foreach ($items as $item) {
+            $added[] = $this->addItem($cart, $item['vendor_listing_id'], $item['quantity']);
+        }
+
+        return $added;
+    }
+
     public function updateItem(Cart $cart, string $itemId, int $quantity): CartItem
     {
         $item = $cart->items()->findOrFail($itemId);

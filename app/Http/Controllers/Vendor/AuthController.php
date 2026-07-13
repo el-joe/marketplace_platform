@@ -38,7 +38,7 @@ class AuthController extends Controller
 
         $vendor = $admin->vendor;
 
-        if ($vendor && in_array($vendor->global_status, ['suspended', 'blacklisted'], true)) {
+        if ($vendor && in_array($vendor->global_status, [\App\Enums\VendorGlobalStatus::Suspended, \App\Enums\VendorGlobalStatus::Blacklisted], true)) {
             return ApiResponse::error('Your store account has been suspended.', [], 403);
         }
 

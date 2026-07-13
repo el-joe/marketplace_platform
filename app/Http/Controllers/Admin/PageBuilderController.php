@@ -614,7 +614,7 @@ class PageBuilderController extends Controller
                 'text' => $fs->name_en,
                 'name_ar' => $fs->name_ar,
                 'sale_starts_at' => optional($fs->sale_starts_at)->format('M d, Y'),
-                'status' => $fs->status,
+                'status' => $fs->status?->value,
             ])->values(),
         ]);
     }

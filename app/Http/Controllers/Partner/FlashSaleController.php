@@ -243,7 +243,7 @@ class FlashSaleController extends Controller
         ]);
 
         // Update invitation status if pending/accepted
-        if (in_array($invitation->status, ['pending', 'accepted'])) {
+        if (in_array($invitation->status?->value, ['pending', 'accepted'])) {
             $invitation->update([
                 'status' => 'submitted',
                 'responded_at' => $invitation->responded_at ?? now(),
@@ -254,7 +254,7 @@ class FlashSaleController extends Controller
             'message' => 'تم تقديم المنتج بنجاح.',
             'submission' => [
                 'id' => $submission->id,
-                'status' => $submission->status,
+                'status' => $submission->status->value,
             ],
         ], 201);
     }
@@ -292,7 +292,7 @@ class FlashSaleController extends Controller
             return [
                 'submission_id' => $sub->id,
                 'vendor_listing_id' => $sub->vendor_listing_id,
-                'status' => $sub->status,
+                'status' => $sub->status->value,
                 'quantity_sold' => (int) $sub->quantity_sold,
                 'quantity_remaining' => (int) $sub->quantity_remaining,
                 'max_quantity_total' => (int) $sub->max_quantity_total,

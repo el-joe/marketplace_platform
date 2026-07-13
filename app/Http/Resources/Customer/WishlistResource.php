@@ -25,7 +25,7 @@ class WishlistResource extends JsonResource
             'price_cents'     => $listing?->price,
             'price_formatted' => $listing ? number_format($listing->price / 100, 2) : null,
             'currency'        => $listing?->currency,
-            'status'          => $listing?->status,
+            'status'          => $listing?->status?->value,
             'is_admin_listing' => $listing?->global_system_type === GlobalSystemType::ExpressFbn,
             'product'         => $product ? [
                 'id'        => $product->id,

@@ -88,7 +88,7 @@ class OnboardingController extends Controller
             'bank_name'       => $account->bank_name,
             'currency'        => $account->currency,
             'is_primary'      => $account->is_primary,
-            'status'          => $account->verification_status,
+            'status'          => $account->verification_status?->value,
         ], 'Bank account saved.', 201);
     }
 

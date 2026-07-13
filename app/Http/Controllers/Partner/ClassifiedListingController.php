@@ -88,7 +88,7 @@ class ClassifiedListingController extends Controller
             'listing_number'   => $l->listing_number,
             'title_ar'         => $l->title_ar,
             'title_en'         => $l->title_en,
-            'status'           => $l->status,
+            'status'           => $l->status->value,
             'price_cents'      => $l->price_cents,
             'currency'         => $l->currency,
             'price_negotiable' => $l->price_negotiable,

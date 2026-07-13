@@ -362,7 +362,7 @@
                                 <div class="space-y-1">
                                     <div class="flex items-center gap-2">
                                         <span class="font-semibold text-gray-800">
-                                            {{ strtoupper($pm->card_brand ?? $pm->type ?? 'Card') }}
+                                            {{ strtoupper($pm->card_brand ?? $pm->type?->value ?? 'Card') }}
                                         </span>
                                         @if($pm->is_default)
                                             <x-badge color="primary">{{ __('admin.customers_section.default_badge') }}</x-badge>
@@ -374,7 +374,7 @@
                                     @if($pm->card_exp_month && $pm->card_exp_year)
                                         <p class="text-gray-500 text-xs">{{ __('admin.customers_section.expires_label') }} {{ str_pad($pm->card_exp_month, 2, '0', STR_PAD_LEFT) }}/{{ $pm->card_exp_year }}</p>
                                     @endif
-                                    <p class="text-gray-400 text-xs">{{ ucfirst($pm->gateway ?? $pm->type ?? '') }}</p>
+                                    <p class="text-gray-400 text-xs">{{ ucfirst($pm->gateway ?? $pm->type?->value ?? '') }}</p>
                                 </div>
                                 @if(auth('admin')->user()->can('customers.edit'))
                                 <button type="button"

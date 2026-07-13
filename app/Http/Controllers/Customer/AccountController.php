@@ -103,7 +103,7 @@ class AccountController extends Controller
         $country = $request->attributes->get("country");
         $listing = $this->findOwnedListing($listingNumber);
 
-        if (! in_array($listing->status, ['draft', 'rejected', 'expired'], true)) {
+        if (! in_array($listing->status?->value, ['draft', 'rejected', 'expired'], true)) {
             return ApiResponse::error('Only draft, rejected, or expired listings can be deleted.', [], 422);
         }
 
@@ -164,7 +164,7 @@ class AccountController extends Controller
         $booking = $this->travelService->cancel($customer, $id, $request->reason);
 
         return ApiResponse::success(
-            ['status' => $booking->status],
+            ['status' => $booking->status?->value],
             'Booking cancelled. Refund eligibility is subject to agency review.'
         );
     }

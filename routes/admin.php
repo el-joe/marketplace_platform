@@ -121,6 +121,15 @@ Route::middleware('auth.admin')->group(function () {
         Route::put('/{product}', [ProductController::class, 'update'])->name('update');
         Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
 
+        // ── Frequently bought together ─────────────────────────────────────────
+        Route::prefix('/{product}/frequently-bought-together')->name('frequently-bought-together.')->group(function () {
+            Route::get('/', [ProductController::class, 'frequentlyBoughtTogetherIndex'])->name('index');
+            Route::get('/search', [ProductController::class, 'frequentlyBoughtTogetherSearch'])->name('search');
+            Route::post('/', [ProductController::class, 'frequentlyBoughtTogetherAdd'])->name('add');
+            Route::delete('/{relatedProduct}', [ProductController::class, 'frequentlyBoughtTogetherRemove'])->name('remove');
+            Route::post('/reorder', [ProductController::class, 'frequentlyBoughtTogetherReorder'])->name('reorder');
+        });
+
         // ── Cost Reference (requires elevated permission) ─────────────────────
         Route::prefix('/{product}/cost')->name('cost.')->group(function () {
             Route::get('/', [ProductCostController::class, 'show'])->name('show');

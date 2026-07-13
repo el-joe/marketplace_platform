@@ -57,7 +57,7 @@
             <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold {{ $st['cls'] }}">
                 {{ $st['label'] }}
             </span>
-            @if ($campaign->type === 'cpc')
+            @if ($campaign->type === \App\Enums\AdCampaignType::Cpc)
                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-indigo-100 text-indigo-700">CPC</span>
             @else
                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-purple-100 text-purple-700">CPM</span>
@@ -126,7 +126,7 @@
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs text-gray-500 mb-1">{{ __('partner.ads.bidding') }}</p>
             <p class="text-xl font-bold text-gray-900">{{ number_format($campaign->bid, 2) }} <span class="text-sm font-normal text-gray-400">{{ $adCurrency }}</span></p>
-            <p class="text-xs text-gray-400 mt-2">{{ strtoupper($campaign->type) }}</p>
+            <p class="text-xs text-gray-400 mt-2">{{ strtoupper($campaign->type->value) }}</p>
         </div>
         <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs text-gray-500 mb-1">{{ __('partner.ads.ad_quality') }}</p>
@@ -222,7 +222,7 @@
                 <h2 class="text-base font-semibold text-gray-800">{{ __('partner.ads.targeting') }}</h2>
             </div>
             <div class="p-5">
-                @if ($campaign->targeting_type === 'auto')
+                @if ($campaign->targeting_type === \App\Enums\AdCampaignTargetingType::Auto)
                     <div class="flex items-center gap-3 text-sm text-gray-600">
                         <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-500 shrink-0">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -233,7 +233,7 @@
                     </div>
                 @endif
 
-                @if (in_array($campaign->targeting_type, ['keyword', 'mixed']))
+                @if (in_array($campaign->targeting_type, [\App\Enums\AdCampaignTargetingType::Keyword, \App\Enums\AdCampaignTargetingType::Mixed]))
                     @php $keywords = $campaign->keywords()->where('is_active', true)->where('is_negative', false)->get(); @endphp
                     <div class="mb-4">
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ __('partner.ads.keywords_count', ['count' => $keywords->count()]) }}</p>
@@ -242,10 +242,10 @@
                                 <div class="flex items-center gap-2 text-sm">
                                     <span class="font-medium text-gray-800">{{ $kw->keyword }}</span>
                                     <span class="rounded-full px-2 py-0.5 text-xs font-medium
-                                        @if ($kw->match_type === 'exact') bg-indigo-100 text-indigo-700
-                                        @elseif ($kw->match_type === 'phrase') bg-blue-100 text-blue-700
+                                        @if ($kw->match_type === \App\Enums\AdCampaignKeywordMatchType::Exact) bg-indigo-100 text-indigo-700
+                                        @elseif ($kw->match_type === \App\Enums\AdCampaignKeywordMatchType::Phrase) bg-blue-100 text-blue-700
                                         @else bg-gray-100 text-gray-600 @endif">
-                                        {{ __('partner.ads.match_types.' . $kw->match_type) }}
+                                        {{ __('partner.ads.match_types.' . $kw->match_type->value) }}
                                     </span>
                                     @if ($kw->bid_override)
                                         <span class="text-xs text-amber-600">{{ number_format($kw->bid_override / 100, 2) }} {{ $adCurrency }}</span>
@@ -258,7 +258,7 @@
                     </div>
                 @endif
 
-                @if (in_array($campaign->targeting_type, ['category', 'mixed']))
+                @if (in_array($campaign->targeting_type, [\App\Enums\AdCampaignTargetingType::Category, \App\Enums\AdCampaignTargetingType::Mixed]))
                     @php $cats = $campaign->categoryTargets()->where('is_active', true)->with('category')->get(); @endphp
                     <div>
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ __('partner.ads.target_categories_count', ['count' => $cats->count()]) }}</p>
@@ -338,7 +338,7 @@
         <div>
             <span class="text-gray-500">{{ __('partner.ads.targeting_type') }}:</span>
             <span class="font-medium text-gray-800 ms-1">
-                {{ __('partner.ads.targeting_types.' . $campaign->targeting_type) }}
+                {{ __('partner.ads.targeting_types.' . $campaign->targeting_type->value) }}
             </span>
         </div>
     </div>

@@ -13,7 +13,7 @@ class FlashSaleSubmissionResource extends JsonResource
             'id'                      => $this->id,
             'flash_sale_id'           => $this->flash_sale_id,
             'vendor_listing_id'       => $this->vendor_listing_id,
-            'status'                  => $this->status,
+            'status'                  => $this->status?->value,
             'flash_price'             => $this->flash_price,
             'original_price'          => $this->original_price,
             'calculated_discount_pct' => (float) $this->calculated_discount_pct,

@@ -93,7 +93,7 @@ class AdminController extends Controller
                 'phone' => e($row->phone ?? ''),
                 'country_name' => e($row->country?->name_en ?? '—'),
                 'roles' => $row->getRoleNames()->toArray(),
-                'status' => $row->status,
+                'status' => $row->status?->value,
                 'last_login_at' => $row->last_login_at,
                 'created_at' => $row->created_at,
                 'is_self' => $isSelf,

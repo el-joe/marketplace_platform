@@ -45,9 +45,9 @@
                             class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                             <option value="">{{ __('partner.warehouses.select_destination') }}</option>
                             @foreach($destinationOptions as $wh)
-                                <option value="{{ $wh->id }}" data-type="{{ $wh->type }}">
+                                <option value="{{ $wh->id }}" data-type="{{ $wh->type?->value }}">
                                     {{ $wh->name }}
-                                    @if($wh->type === 'platform_fbn') {{ __('partner.warehouses.platform_fbn_suffix') }} @endif
+                                    @if($wh->type === \App\Enums\WarehouseType::PlatformFbn) {{ __('partner.warehouses.platform_fbn_suffix') }} @endif
                                 </option>
                             @endforeach
                         </select>

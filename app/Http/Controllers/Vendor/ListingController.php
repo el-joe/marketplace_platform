@@ -86,7 +86,7 @@ class ListingController extends Controller
 
         Gate::authorize('updateStatus', $listing);
 
-        if (!in_array($listing->status, ['active', 'paused'])) {
+        if (!in_array($listing->status?->value, ['active', 'paused'])) {
             return ApiResponse::error('Only active or paused listings can have their status changed by the vendor.', [], 422);
         }
 

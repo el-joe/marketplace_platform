@@ -39,7 +39,7 @@ class AuthController extends Controller
                 ? 'Your account has been suspended. Please contact support.'
                 : 'Your account is not active.';
 
-            return ApiResponse::error($message, ['status' => $agent->status], 403);
+            return ApiResponse::error($message, ['status' => $agent->status?->value], 403);
         }
 
         $agent->update([

@@ -89,6 +89,6 @@ class ClassifiedListingController extends Controller
             'verified_by_admin_id'  => auth('admin')->id(),
         ]);
 
-        return response()->json(['success' => true, 'status' => $attachment->status]);
+        return response()->json(['success' => true, 'status' => $attachment->status?->value]);
     }
 }

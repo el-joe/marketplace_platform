@@ -23,7 +23,7 @@ class PublicProfileService
             return [
                 // Explicit allow-list — internal fields are safe-by-default excluded
                 'name'              => $marketer->name,
-                'type'              => $marketer->type,
+                'type'              => $marketer->type?->value,
                 'niche'             => $marketer->niche,
                 'bio'               => $marketer->bio,
                 'profile_photo_url' => $marketer->profile_photo_path

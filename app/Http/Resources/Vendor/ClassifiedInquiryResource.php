@@ -14,7 +14,7 @@ class ClassifiedInquiryResource extends JsonResource
             'buyer_name'    => $this->whenLoaded('customer', fn () => $this->maskName($this->customer->name ?? '')),
             'message'       => $this->message,
             'contact_phone' => $this->contact_phone,
-            'status'        => $this->status,
+            'status'        => $this->status?->value,
             'created_at'    => $this->created_at?->toIso8601String(),
         ];
     }

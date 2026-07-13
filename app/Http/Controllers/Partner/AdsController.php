@@ -54,7 +54,7 @@ class AdsController extends Controller
         return $this->dataTableResponse($request, $query, $columns, fn(AdCampaign $c) => [
             'name'    => '<a href="' . route('partner.ads.show', $c->id) . '" class="font-medium text-primary-600 hover:underline">' . e($c->name) . '</a>',
             'type'    => strtoupper($c->type),
-            'status'  => $this->statusBadge($c->status),
+            'status'  => $this->statusBadge($c->status->value),
             'budget'  => number_format($c->budget_total / 100, 2) . ' / ' . number_format(($c->budget_daily ?? 0) / 100, 2) . ' ' . ($c->country?->currency_code ?? ''),
             'bid'     => number_format($c->bid / 100, 2) . ' ' . ($c->country?->currency_code ?? ''),
             'date'    => $c->created_at->format('d M Y'),

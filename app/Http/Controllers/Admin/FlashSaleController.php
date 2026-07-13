@@ -95,7 +95,7 @@ class FlashSaleController extends Controller
                 'id' => $row->id,
                 'name_en' => e($row->name_en),
                 'country_name' => e($row->country_name ?? 'All'),
-                'status' => $row->status,
+                'status' => $row->status?->value,
                 'submission_period' => $submissionPeriod,
                 'sale_period' => $salePeriod,
                 'slots' => ($row->approved_slots_count ?? 0) . '/' . ($row->max_total_slots ?? '∞'),
@@ -271,7 +271,7 @@ class FlashSaleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => __('admin.flash_sales.status_updated_to', ['status' => $statusLabels[$newStatus] ?? $newStatus]),
-                'new_status' => $flashSale->fresh()->status,
+                'new_status' => $flashSale->fresh()->status?->value,
             ]);
         } catch (\LogicException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -352,7 +352,7 @@ class FlashSaleController extends Controller
                 'vendor_id' => $row->vendor_id,
                 'store_name' => e($row->store_name ?? '(unknown vendor)'),
                 'invitation_type' => $row->invitation_type,
-                'status' => $row->status,
+                'status' => $row->status?->value,
                 'slots_allocated' => $row->slots_allocated,
                 'invited_at' => $row->invited_at?->toDateTimeString(),
                 'notified_at' => $row->notified_at?->toDateTimeString(),
@@ -432,7 +432,7 @@ class FlashSaleController extends Controller
                 'quantity_sold' => $row->quantity_sold,
                 'max_quantity_total' => $row->max_quantity_total,
                 'quantity_remaining' => $row->quantity_remaining,  // READ virtual column
-                'status' => $row->status,
+                'status' => $row->status?->value,
                 'submitted_at_human' => $row->submitted_at?->diffForHumans(),
                 'admin_notes' => $row->admin_notes,
             ];
@@ -539,7 +539,7 @@ class FlashSaleController extends Controller
         return response()->json([
             'data' => [
                 'id' => $submission->id,
-                'status' => $submission->status,
+                'status' => $submission->status?->value,
                 'product_name' => e($product?->name_en ?? 'Unknown'),
                 'product_image_url' => $image?->url ?? null,
                 'vendor_listing_id' => $submission->vendor_listing_id,

@@ -34,7 +34,7 @@ class NewAssignmentNotification extends Notification implements ShouldQueue
     {
         return [
             'assignment_id' => $this->assignment->id,
-            'status'        => $this->assignment->status,
+            'status'        => $this->assignment->status?->value,
             'assigned_at'   => $this->assignment->assigned_at?->toIso8601String(),
         ];
     }

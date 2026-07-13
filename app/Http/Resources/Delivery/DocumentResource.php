@@ -12,8 +12,8 @@ class DocumentResource extends JsonResource
     {
         return [
             'id'               => $this->id,
-            'document_type'    => $this->document_type,
-            'status'           => $this->status,
+            'document_type'    => $this->document_type?->value,
+            'status'           => $this->status?->value,
             'expires_at'       => $this->expires_at?->toDateString(),
             'rejection_reason' => $this->when(
                 $this->status === DeliveryAgentDocumentStatus::Rejected,

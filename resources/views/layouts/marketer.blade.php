@@ -338,7 +338,7 @@
                     <x-notification-bell guard="marketer" />
                     <div class="text-right hidden sm:block">
                         <p class="text-sm font-semibold text-gray-800">{{ $m->name }}</p>
-                        <span class="type-badge">{{ ucfirst(str_replace('_', ' ', $m->type)) }}</span>
+                        <span class="type-badge">{{ ucfirst(str_replace('_', ' ', $m->type?->value)) }}</span>
                     </div>
                     <div
                         class="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm">

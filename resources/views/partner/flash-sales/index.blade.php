@@ -142,10 +142,10 @@
                             <p class="text-sm font-semibold text-gray-800">
                                 @php
                                     $statusLabel = match($sale->status) {
-                                        'approved' => __('partner.flash_sales_extra.sale_status.approved'),
-                                        'under_review' => __('partner.flash_sales_extra.sale_status.under_review'),
-                                        'submission_closed' => __('partner.flash_sales_extra.sale_status.submission_closed'),
-                                        default => $sale->status,
+                                        \App\Enums\FlashSaleStatus::Approved => __('partner.flash_sales_extra.sale_status.approved'),
+                                        \App\Enums\FlashSaleStatus::UnderReview => __('partner.flash_sales_extra.sale_status.under_review'),
+                                        \App\Enums\FlashSaleStatus::SubmissionClosed => __('partner.flash_sales_extra.sale_status.submission_closed'),
+                                        default => $sale->status->value,
                                     };
                                 @endphp
                                 {{ $statusLabel }}
@@ -219,7 +219,7 @@
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2 flex-wrap mb-1">
                                 <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-500">
-                                    {{ $sale->status === 'cancelled' ? __('partner.flash_sales_extra.cancelled') : __('partner.flash_sales_extra.ended') }}
+                                    {{ $sale->status === \App\Enums\FlashSaleStatus::Cancelled ? __('partner.flash_sales_extra.cancelled') : __('partner.flash_sales_extra.ended') }}
                                 </span>
                             </div>
                             <h3 class="text-base font-semibold text-gray-700 truncate">{{ $sale->name_ar }}</h3>

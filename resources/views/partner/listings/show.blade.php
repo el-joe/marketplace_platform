@@ -50,7 +50,7 @@
     <script>
         window.LISTING_DETAIL = {
             listingId: '{{ $listing->id }}',
-            currentStatus: '{{ $listing->status }}',
+            currentStatus: '{{ $listing->status?->value }}',
             currentPrice: '{{ $listing->price / 100 }}',
             updatePriceUrl: '{{ route('partner.listings.update-price', $listing->id) }}',
             updateShippingUrl: '{{ route('partner.listings.update-shipping', $listing->id) }}',

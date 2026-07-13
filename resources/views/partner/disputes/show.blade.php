@@ -114,11 +114,11 @@
                 {{-- Thread --}}
                 <div class="space-y-3 mb-4" id="dispute-thread">
                     @foreach ($messages as $msg)
-                                @php $isMine = $msg->sender_role === 'seller'; @endphp
+                                @php $isMine = $msg->sender_role === \App\Enums\DisputeMessageSenderRole::Seller; @endphp
                                 <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }} msg-row">
                                     <div class="max-w-[80%] sm:max-w-[75%]">
                                         <p class="mb-1 text-xs {{ $isMine ? 'text-end' : 'text-start' }} text-gray-400">
-                                            {{ $isMine ? __('partner.disputes.you') : ($msg->sender_role === 'admin' ? __('partner.disputes.platform') : __('partner.disputes.buyer')) }}
+                                            {{ $isMine ? __('partner.disputes.you') : ($msg->sender_role === \App\Enums\DisputeMessageSenderRole::Admin ? __('partner.disputes.platform') : __('partner.disputes.buyer')) }}
                                             · {{ $msg->created_at->format('d/m H:i') }}
                                         </p>
                                         <div class="rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm

@@ -64,7 +64,7 @@
             <div id="message-thread" class="space-y-3">
                 @foreach($dispute->messages as $msg)
                     @php
-                        $role = $msg->sender_role;
+                        $role = $msg->sender_role?->value;
                         $isAdmin = $role === 'admin';
                         $isInternal = (bool) $msg->is_internal_note;
 

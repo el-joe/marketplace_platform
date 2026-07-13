@@ -13,10 +13,10 @@ class DisputeResource extends JsonResource
             'id'               => $this->id,
             'dispute_number'   => $this->dispute_number,
             'order_number'     => $this->order?->order_number,
-            'reason'           => $this->reason,
+            'reason'           => $this->reason?->value,
             'description'      => $this->description,
-            'status'           => $this->status,
-            'resolution'       => $this->resolution,
+            'status'           => $this->status?->value,
+            'resolution'       => $this->resolution?->value,
             'resolution_notes' => $this->resolution_notes,
             'compensation'     => $this->compensation_cents !== null ? $this->compensation_cents / 100 : null,
             'resolved_at'      => $this->resolved_at?->toIso8601String(),
@@ -27,7 +27,7 @@ class DisputeResource extends JsonResource
                     ->values()
                     ->map(fn ($m) => [
                         'id'          => $m->id,
-                        'sender_role' => $m->sender_role,
+                        'sender_role' => $m->sender_role?->value,
                         'message'     => $m->message,
                         'created_at'  => $m->created_at?->toIso8601String(),
                         'attachments' => $m->files->map(fn ($f) => [

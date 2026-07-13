@@ -272,7 +272,7 @@ class ListingController extends Controller
             'id' => $w->id,
             'name' => $w->name,
             'code' => $w->code,
-            'type' => $w->type,
+            'type' => $w->type->value,
         ]));
     }
 

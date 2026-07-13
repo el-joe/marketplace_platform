@@ -79,7 +79,7 @@ class PayoutController extends Controller
                 'net_formatted'   => strtoupper($row->currency) . ' ' . number_format($row->net_amount / 100, 2),
                 'gross_formatted' => strtoupper($row->currency) . ' ' . number_format($row->gross_sales / 100, 2),
                 'payout_method'   => $row->payout_method,
-                'status'          => $row->status,
+                'status'          => $row->status?->value,
                 'period'          => $row->period_start . ' → ' . $row->period_end,
                 'processed_at'    => $row->processed_at,
                 'show_url'        => route('admin.payouts.show', $row->id),

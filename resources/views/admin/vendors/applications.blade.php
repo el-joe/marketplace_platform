@@ -22,7 +22,7 @@
                     $daysWaiting = $vendor->created_at->diffInDays(now());
                     $waitColor = $daysWaiting < 3 ? 'gray' : ($daysWaiting < 7 ? 'warning' : 'danger');
                     $docsTotal = $vendor->documents->count();
-                    $docsVerified = $vendor->documents->filter(fn($d) => in_array($d->status, ['approved', 'verified']))->count();
+                    $docsVerified = $vendor->documents->filter(fn($d) => in_array($d->status?->value, ['approved', 'verified']))->count();
                     $docProgress = $docsTotal > 0 ? round(($docsVerified / $docsTotal) * 100) : 0;
                 @endphp
 
@@ -64,7 +64,7 @@
                         </div>
                         <div>
                             <span class="text-gray-400">{{ __('admin.vendors.business_type_label') }}</span>
-                            <div class="text-gray-800">{{ $vendor->business_type ? __('admin.vendor_applications.business_type_' . $vendor->business_type) : '—' }}</div>
+                            <div class="text-gray-800">{{ $vendor->business_type ? __('admin.vendor_applications.business_type_' . $vendor->business_type->value) : '—' }}</div>
                         </div>
                     </div>
 

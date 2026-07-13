@@ -305,15 +305,15 @@ class SubscriptionController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
             $sc = match ($row->status) {
-                VendorSubscriptionInvoiceStatus::Paid->value => 'success',
-                VendorSubscriptionInvoiceStatus::Open->value => 'warning',
-                VendorSubscriptionInvoiceStatus::Void->value => 'secondary',
-                VendorSubscriptionInvoiceStatus::Uncollectible->value => 'danger',
+                VendorSubscriptionInvoiceStatus::Paid => 'success',
+                VendorSubscriptionInvoiceStatus::Open => 'warning',
+                VendorSubscriptionInvoiceStatus::Void => 'secondary',
+                VendorSubscriptionInvoiceStatus::Uncollectible => 'danger',
                 default => 'secondary',
             };
 
             $actions = '';
-            if ($row->status === VendorSubscriptionInvoiceStatus::Open->value) {
+            if ($row->status === VendorSubscriptionInvoiceStatus::Open) {
                 $actions = '<button class="btn btn-xs btn-success btn-mark-paid" data-id="' . $row->id . '">Mark Paid</button>';
             }
 
@@ -322,7 +322,7 @@ class SubscriptionController extends Controller
                 e($row->store_name),
                 e($row->plan_name_en),
                 number_format($row->amount_cents / 100, 2) . ' ' . $row->currency,
-                '<span class="badge badge-' . $sc . '">' . ucfirst($row->status) . '</span>',
+                '<span class="badge badge-' . $sc . '">' . ucfirst($row->status->value) . '</span>',
                 $row->period_start,
                 $row->paid_at ?? '—',
                 $actions,

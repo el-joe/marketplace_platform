@@ -16,7 +16,7 @@ class TravelAgencyProfileResource extends JsonResource
             'phone' => $this->phone,
             'license_number' => $this->license_number,
             'logo_url' => $this->logoUrl(),
-            'status' => $this->status,
+            'status' => $this->status?->value,
             'country' => $this->whenLoaded('country', fn () => [
                 'id' => $this->country->id,
                 'name' => $this->country->name_en,

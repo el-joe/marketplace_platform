@@ -131,7 +131,7 @@ class BannerController extends Controller
                 'ctr' => $ctr . '%',
                 'priority' => $row->priority,
                 'actions' => $this->buildRowActions($row, $canEdit, $canDelete),
-                'DT_RowData' => ['id' => $row->id, 'status' => $row->status],
+                'DT_RowData' => ['id' => $row->id, 'status' => $row->status?->value],
             ];
         });
     }

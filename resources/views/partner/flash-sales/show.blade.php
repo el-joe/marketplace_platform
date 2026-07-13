@@ -13,7 +13,7 @@
             liveStatsUrl:        '{{ route('partner.flash-sales.live-stats', $flashSale->id) }}',
             @endif
             isLive:                  {{ $flashSale->isLive() ? 'true' : 'false' }},
-            isAcceptingSubmissions:  {{ $flashSale->status === 'submission_open' ? 'true' : 'false' }},
+            isAcceptingSubmissions:  {{ $flashSale->status === \App\Enums\FlashSaleStatus::SubmissionOpen ? 'true' : 'false' }},
             minDiscountPct:          {{ (float) $flashSale->min_discount_pct }},
             csrf:                    '{{ csrf_token() }}',
         };
@@ -38,14 +38,14 @@
                     {{-- Status badge --}}
                     @php
                         $statusConfig = match($flashSale->status) {
-                            'submission_open'   => ['label' => __('partner.flash_sales_extra.open_for_submission'), 'class' => 'bg-blue-100 text-blue-700'],
-                            'live'              => ['label' => __('partner.flash_sales_extra.live_now'),     'class' => 'bg-emerald-100 text-emerald-700'],
-                            'ended'             => ['label' => __('partner.flash_sales_extra.ended'),          'class' => 'bg-gray-100 text-gray-500'],
-                            'cancelled'         => ['label' => __('partner.flash_sales_extra.cancelled'),           'class' => 'bg-red-100 text-red-600'],
-                            'under_review'      => ['label' => __('partner.flash_sales_extra.sale_status.under_review'),  'class' => 'bg-amber-100 text-amber-700'],
-                            'approved'          => ['label' => __('partner.flash_sales_extra.sale_status.approved'),          'class' => 'bg-purple-100 text-purple-700'],
-                            'submission_closed' => ['label' => __('partner.flash_sales_extra.sale_status.submission_closed'),  'class' => 'bg-gray-100 text-gray-600'],
-                            default             => ['label' => $flashSale->status, 'class' => 'bg-gray-100 text-gray-600'],
+                            \App\Enums\FlashSaleStatus::SubmissionOpen   => ['label' => __('partner.flash_sales_extra.open_for_submission'), 'class' => 'bg-blue-100 text-blue-700'],
+                            \App\Enums\FlashSaleStatus::Live              => ['label' => __('partner.flash_sales_extra.live_now'),     'class' => 'bg-emerald-100 text-emerald-700'],
+                            \App\Enums\FlashSaleStatus::Ended             => ['label' => __('partner.flash_sales_extra.ended'),          'class' => 'bg-gray-100 text-gray-500'],
+                            \App\Enums\FlashSaleStatus::Cancelled         => ['label' => __('partner.flash_sales_extra.cancelled'),           'class' => 'bg-red-100 text-red-600'],
+                            \App\Enums\FlashSaleStatus::UnderReview      => ['label' => __('partner.flash_sales_extra.sale_status.under_review'),  'class' => 'bg-amber-100 text-amber-700'],
+                            \App\Enums\FlashSaleStatus::Approved          => ['label' => __('partner.flash_sales_extra.sale_status.approved'),          'class' => 'bg-purple-100 text-purple-700'],
+                            \App\Enums\FlashSaleStatus::SubmissionClosed => ['label' => __('partner.flash_sales_extra.sale_status.submission_closed'),  'class' => 'bg-gray-100 text-gray-600'],
+                            default             => ['label' => $flashSale->status->value, 'class' => 'bg-gray-100 text-gray-600'],
                         };
                     @endphp
                     <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $statusConfig['class'] }} mb-2">
@@ -128,11 +128,11 @@
     {{-- Invitation status --}}
     @php
         $invBadge = match($invitation->status) {
-            'pending'   => ['label' => __('partner.flash_sales_extra.invitation_status.pending'), 'class' => 'bg-amber-100 text-amber-700'],
-            'accepted'  => ['label' => __('partner.flash_sales_extra.invitation_status.accepted'),  'class' => 'bg-blue-100 text-blue-700'],
-            'declined'  => ['label' => __('partner.flash_sales_extra.invitation_status.declined'),  'class' => 'bg-red-100 text-red-600'],
-            'submitted' => ['label' => __('partner.flash_sales_extra.invitation_status.submitted'), 'class' => 'bg-green-100 text-green-700'],
-            default     => ['label' => $invitation->status, 'class' => 'bg-gray-100 text-gray-600'],
+            \App\Enums\FlashSaleVendorInvitationStatus::Pending   => ['label' => __('partner.flash_sales_extra.invitation_status.pending'), 'class' => 'bg-amber-100 text-amber-700'],
+            \App\Enums\FlashSaleVendorInvitationStatus::Accepted  => ['label' => __('partner.flash_sales_extra.invitation_status.accepted'),  'class' => 'bg-blue-100 text-blue-700'],
+            \App\Enums\FlashSaleVendorInvitationStatus::Declined  => ['label' => __('partner.flash_sales_extra.invitation_status.declined'),  'class' => 'bg-red-100 text-red-600'],
+            \App\Enums\FlashSaleVendorInvitationStatus::Submitted => ['label' => __('partner.flash_sales_extra.invitation_status.submitted'), 'class' => 'bg-green-100 text-green-700'],
+            default     => ['label' => $invitation->status->value, 'class' => 'bg-gray-100 text-gray-600'],
         };
     @endphp
     <div class="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
@@ -150,7 +150,7 @@
     </div>
 
     {{-- Submit section (only when submission_open and not declined) --}}
-    @if ($flashSale->status === 'submission_open' && $invitation->status !== 'declined')
+    @if ($flashSale->status === \App\Enums\FlashSaleStatus::SubmissionOpen && $invitation->status !== \App\Enums\FlashSaleVendorInvitationStatus::Declined)
     <div class="rounded-xl border border-blue-200 bg-blue-50 p-5">
         <div class="flex items-center justify-between flex-wrap gap-3">
             <div>
@@ -192,16 +192,16 @@
                             $product  = $sub->vendorListing?->productVariant?->product;
                             $currency = $sub->flash_price_currency ?? '';
                             $subBadge = match($sub->status) {
-                                'draft'        => ['label' => __('partner.flash_sales_extra.submission_status.draft'),         'class' => 'bg-gray-100 text-gray-500'],
-                                'submitted'    => ['label' => __('partner.flash_sales_extra.submission_status.submitted'),        'class' => 'bg-blue-100 text-blue-700'],
-                                'under_review' => ['label' => __('partner.flash_sales_extra.submission_status.under_review'), 'class' => 'bg-amber-100 text-amber-700'],
-                                'approved'     => ['label' => __('partner.flash_sales_extra.submission_status.approved'),         'class' => 'bg-green-100 text-green-700'],
-                                'live'         => ['label' => __('partner.flash_sales_extra.submission_status.live'),          'class' => 'bg-emerald-100 text-emerald-700'],
-                                'sold_out'     => ['label' => __('partner.flash_sales_extra.submission_status.sold_out'),   'class' => 'bg-orange-100 text-orange-700'],
-                                'rejected'     => ['label' => __('partner.flash_sales_extra.submission_status.rejected'),         'class' => 'bg-red-100 text-red-600'],
-                                'withdrawn'    => ['label' => __('partner.flash_sales_extra.submission_status.withdrawn'),         'class' => 'bg-gray-100 text-gray-500'],
-                                'ended'        => ['label' => __('partner.flash_sales_extra.submission_status.ended'),         'class' => 'bg-gray-100 text-gray-500'],
-                                default        => ['label' => $sub->status,    'class' => 'bg-gray-100 text-gray-500'],
+                                \App\Enums\FlashSaleSubmissionStatus::Draft        => ['label' => __('partner.flash_sales_extra.submission_status.draft'),         'class' => 'bg-gray-100 text-gray-500'],
+                                \App\Enums\FlashSaleSubmissionStatus::Submitted    => ['label' => __('partner.flash_sales_extra.submission_status.submitted'),        'class' => 'bg-blue-100 text-blue-700'],
+                                \App\Enums\FlashSaleSubmissionStatus::UnderReview => ['label' => __('partner.flash_sales_extra.submission_status.under_review'), 'class' => 'bg-amber-100 text-amber-700'],
+                                \App\Enums\FlashSaleSubmissionStatus::Approved     => ['label' => __('partner.flash_sales_extra.submission_status.approved'),         'class' => 'bg-green-100 text-green-700'],
+                                \App\Enums\FlashSaleSubmissionStatus::Live         => ['label' => __('partner.flash_sales_extra.submission_status.live'),          'class' => 'bg-emerald-100 text-emerald-700'],
+                                \App\Enums\FlashSaleSubmissionStatus::SoldOut     => ['label' => __('partner.flash_sales_extra.submission_status.sold_out'),   'class' => 'bg-orange-100 text-orange-700'],
+                                \App\Enums\FlashSaleSubmissionStatus::Rejected     => ['label' => __('partner.flash_sales_extra.submission_status.rejected'),         'class' => 'bg-red-100 text-red-600'],
+                                \App\Enums\FlashSaleSubmissionStatus::Withdrawn    => ['label' => __('partner.flash_sales_extra.submission_status.withdrawn'),         'class' => 'bg-gray-100 text-gray-500'],
+                                \App\Enums\FlashSaleSubmissionStatus::Ended        => ['label' => __('partner.flash_sales_extra.submission_status.ended'),         'class' => 'bg-gray-100 text-gray-500'],
+                                default        => ['label' => $sub->status->value,    'class' => 'bg-gray-100 text-gray-500'],
                             };
                         @endphp
                         <tr class="hover:bg-gray-50">
@@ -246,7 +246,7 @@
 
     {{-- Live stats section (only when sale is live) --}}
     @if ($flashSale->isLive())
-        @php $liveSubmissions = $submissions->whereIn('status', ['approved', 'live', 'sold_out']); @endphp
+        @php $liveSubmissions = $submissions->whereIn('status', [\App\Enums\FlashSaleSubmissionStatus::Approved, \App\Enums\FlashSaleSubmissionStatus::Live, \App\Enums\FlashSaleSubmissionStatus::SoldOut]); @endphp
         @if ($liveSubmissions->isNotEmpty())
         <div id="live-stats-container" class="rounded-xl border border-emerald-200 bg-white shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-emerald-100 bg-emerald-50 flex items-center justify-between">
@@ -287,7 +287,7 @@
                                     {{ $sub->flash_price_currency }}
                                 </td>
                                 <td class="px-4 py-3">
-                                    @if ($sub->status === 'sold_out')
+                                    @if ($sub->status === \App\Enums\FlashSaleSubmissionStatus::SoldOut)
                                         <span class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700">{{ __('partner.flash_sales_extra.submission_status.sold_out') }}</span>
                                     @else
                                         <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
@@ -310,7 +310,7 @@
 {{-- ═══════════════════════════════════════════════════════════════════════════
      Submit Product Modal
      ═══════════════════════════════════════════════════════════════════════════ --}}
-@if ($flashSale->status === 'submission_open' && $invitation->status !== 'declined')
+@if ($flashSale->status === \App\Enums\FlashSaleStatus::SubmissionOpen && $invitation->status !== \App\Enums\FlashSaleVendorInvitationStatus::Declined)
 <div id="submit-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
     <div class="relative flex min-h-screen items-center justify-center p-4">

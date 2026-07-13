@@ -207,7 +207,7 @@ class SupportTicketController extends Controller
             return response()->json(['message' => __('admin.support_tickets.failed_send_reply')], 500);
         }
 
-        return response()->json(['message' => __('admin.support_tickets.reply_sent'), 'status' => $ticket->fresh()->status]);
+        return response()->json(['message' => __('admin.support_tickets.reply_sent'), 'status' => $ticket->fresh()->status?->value]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

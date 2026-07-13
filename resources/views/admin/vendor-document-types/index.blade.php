@@ -72,7 +72,7 @@
                         @foreach($countries as $country)
                                 @php
                                     $req = $type->countryRequirements->firstWhere('country_id', $country->id);
-                                    $level = $req?->requirement_level ?? 'optional';
+                                    $level = $req?->requirement_level?->value ?? 'optional';
                                 @endphp
                                 <td class="px-2 py-3 text-center">
                                     <div class="relative inline-block">

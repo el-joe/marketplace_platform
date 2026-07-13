@@ -273,8 +273,8 @@ class MarketerController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, fn($row) => [
             e($row->name),
-            ucfirst(str_replace('_', ' ', $row->campaign_type)),
-            '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status) . '</span>',
+            ucfirst(str_replace('_', ' ', $row->campaign_type?->value)),
+            '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
             number_format($row->total_clicks),
             number_format($row->total_conversions),
             number_format($row->total_revenue_cents / 100, 2),
@@ -721,7 +721,7 @@ class MarketerController extends Controller
 
         return $this->dataTableResponse($request, $query, $columns, fn($row) => [
             e($row->vendor_name),
-            '<span class="badge badge-' . (new MarketerSampleRequest(['status' => $row->status]))->status_color . '">' . ucfirst($row->status) . '</span>',
+            '<span class="badge badge-' . (new MarketerSampleRequest(['status' => $row->status]))->status_color . '">' . ucfirst($row->status?->value) . '</span>',
             $row->created_at->format('d M Y'),
             $this->sampleActions($row),
         ]);
@@ -750,7 +750,7 @@ class MarketerController extends Controller
         return $this->dataTableResponse($request, $query, $columns, fn($row) => [
             e($row->vendor_name) . '<br><span class="text-xs text-gray-400">' . e($row->product_name ?? '') . '</span>',
             $row->total_commission_pct . '%',
-            '<span class="badge badge-' . ($row->status === SecretPromotionStatus::Active->value ? 'success' : ($row->status === SecretPromotionStatus::Paused->value ? 'warning' : 'secondary')) . '">' . ucfirst($row->status) . '</span>',
+            '<span class="badge badge-' . ($row->status === SecretPromotionStatus::Active ? 'success' : ($row->status === SecretPromotionStatus::Paused ? 'warning' : 'secondary')) . '">' . ucfirst($row->status->value) . '</span>',
             $row->valid_until ? \Carbon\Carbon::parse($row->valid_until)->format('d M Y') : '—',
         ]);
     }
@@ -1048,7 +1048,7 @@ class MarketerController extends Controller
         return $this->dataTableResponse($request, $query, $columns, fn($row) => [
             e($row->marketer_name),
             e($row->vendor_name),
-            '<span class="badge badge-' . (new MarketerSampleRequest(['status' => $row->status]))->status_color . '">' . ucfirst($row->status) . '</span>',
+            '<span class="badge badge-' . (new MarketerSampleRequest(['status' => $row->status]))->status_color . '">' . ucfirst($row->status?->value) . '</span>',
             $row->created_at->format('d M Y'),
             $this->sampleActions($row),
         ]);
@@ -1148,7 +1148,7 @@ class MarketerController extends Controller
             'marketer' => $req->marketer->name,
             'vendor' => $req->vendor->store_name,
             'campaign' => $req->campaign?->name,
-            'status' => $req->status,
+            'status' => $req->status?->value,
             'notes' => $req->notes,
             'rejection_reason' => $req->rejection_reason,
             'created_at' => $req->created_at->format('d M Y H:i'),

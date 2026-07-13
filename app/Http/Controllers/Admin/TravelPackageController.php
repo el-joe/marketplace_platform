@@ -135,7 +135,7 @@ class TravelPackageController extends Controller
                 'seats' => $seatDisplay,
                 'status' => $statusBadge,
                 'actions' => $actions,
-                'DT_RowData' => ['id' => $row->id, 'status' => $row->status],
+                'DT_RowData' => ['id' => $row->id, 'status' => $row->status?->value],
             ];
         });
     }

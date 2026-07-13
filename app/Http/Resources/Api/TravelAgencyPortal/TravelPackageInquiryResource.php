@@ -16,7 +16,7 @@ class TravelPackageInquiryResource extends JsonResource
             'email' => $this->email,
             'travelers_count' => $this->travelers_count,
             'message' => $this->message,
-            'status' => $this->status,
+            'status' => $this->status?->value,
             'close_reason' => $this->close_reason,
             'converted_to_booking_id' => $this->converted_to_booking_id,
             'contacted_at' => $this->contacted_at?->toIso8601String(),

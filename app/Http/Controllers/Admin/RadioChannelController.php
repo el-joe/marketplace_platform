@@ -104,7 +104,7 @@ class RadioChannelController extends Controller
             'end'   => $occ['ends_at']->toIso8601String(),
             'color' => $occ['slot']->recurrence === RadioScheduleSlotRecurrence::Once ? '#6366f1' : '#0ea5e9',
             'extendedProps' => [
-                'recurrence'      => $occ['slot']->recurrence,
+                'recurrence'      => $occ['slot']->recurrence?->value,
                 'recurrence_days' => $occ['slot']->recurrence_days,
                 'is_active'       => $occ['slot']->is_active,
             ],

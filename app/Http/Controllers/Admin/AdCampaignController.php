@@ -133,7 +133,7 @@ class AdCampaignController extends Controller
                 'quality' => $qualityBadge,
                 'date_range' => $dateRange,
                 'actions' => $this->buildCampaignRowActions($row, $canEdit),
-                'DT_RowData' => ['id' => $row->id, 'status' => $row->status],
+                'DT_RowData' => ['id' => $row->id, 'status' => $row->status?->value],
             ];
         });
     }

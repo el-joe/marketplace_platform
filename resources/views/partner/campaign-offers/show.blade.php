@@ -161,7 +161,7 @@
                     @endif
                     <div>
                         <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">{{ __('partner.campaign_offers.attribution_model_label') }}</p>
-                        <p class="font-medium text-gray-900">{{ ucfirst(str_replace('_', ' ', $offer->attribution_model)) }}</p>
+                        <p class="font-medium text-gray-900">{{ ucfirst(str_replace('_', ' ', $offer->attribution_model?->value ?? '')) }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">{{ __('partner.campaign_offers.whatsapp_sharing') }}</p>
@@ -193,7 +193,7 @@
                     ] as $i => $step)
                         @php
                             $statuses = ['draft', 'pending_admin', 'active', 'paused', 'ended'];
-                            $currentIndex = array_search($offer->status, $statuses);
+                            $currentIndex = array_search($offer->status?->value, $statuses);
                             $stepIndex = array_search($step['status'], $statuses);
                             $isDone = $currentIndex !== false && $stepIndex <= $currentIndex;
                         @endphp

@@ -76,7 +76,7 @@ class AuthController extends Controller
                 MarketerStatus::Rejected  => 'Your account application was not approved.',
                 default     => 'Your account is not active.',
             };
-            return ApiResponse::error($message, ['status' => $marketer->status], 403);
+            return ApiResponse::error($message, ['status' => $marketer->status->value], 403);
         }
 
         $marketer->update(['last_login_at' => now()]);

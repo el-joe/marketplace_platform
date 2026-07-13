@@ -15,7 +15,7 @@ class EarningsResource extends JsonResource
             'amount_cents'    => $this->amount_cents,
             'amount'          => $this->amount_cents / 100,
             'currency'        => $this->currency,
-            'status'          => $this->status,
+            'status'          => $this->status?->value,
             'earned_at'       => $this->created_at?->toIso8601String(),
             'assignment_id'   => $this->delivery_assignment_id,
         ];

@@ -99,8 +99,8 @@
                             {{-- Role --}}
                             <td class="px-6 py-4">
                                 <span
-                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $roleColors[$member->role] ?? 'bg-gray-100 text-gray-600' }}">
-                                    {{ $roleLabels[$member->role] ?? $member->role }}
+                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $roleColors[$member->role?->value] ?? 'bg-gray-100 text-gray-600' }}">
+                                    {{ $roleLabels[$member->role?->value] ?? $member->role?->value }}
                                 </span>
                             </td>
 

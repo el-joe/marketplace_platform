@@ -42,7 +42,7 @@ class FlashSaleService
     public function update(FlashSale $sale, array $data, Admin $admin): FlashSale
     {
         if (in_array($sale->status?->value, [FlashSaleStatus::Live->value, FlashSaleStatus::Ended->value, FlashSaleStatus::Cancelled->value], true)) {
-            throw new \LogicException(__('admin.flash_sales.cannot_update_status', ['status' => $sale->status]));
+            throw new \LogicException(__('admin.flash_sales.cannot_update_status', ['status' => $sale->status?->value]));
         }
 
         $sale->update([
@@ -60,7 +60,7 @@ class FlashSaleService
     public function transition(FlashSale $sale, string $newStatus, Admin $admin, string $reason = ''): FlashSale
     {
         if (!$sale->canTransitionTo($newStatus)) {
-            throw new \LogicException(__('admin.flash_sales.cannot_transition', ['from' => $sale->status, 'to' => $newStatus]));
+            throw new \LogicException(__('admin.flash_sales.cannot_transition', ['from' => $sale->status?->value, 'to' => $newStatus]));
         }
 
         $updates = [

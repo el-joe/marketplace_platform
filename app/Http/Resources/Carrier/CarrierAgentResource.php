@@ -14,9 +14,9 @@ class CarrierAgentResource extends JsonResource
             'name'          => $this->name,
             'email'         => $this->email,
             'phone'         => $this->phone,
-            'vehicle_type'  => $this->vehicle_type,
+            'vehicle_type'  => $this->vehicle_type?->value,
             'license_plate' => $this->vehicle_plate,
-            'status'        => $this->status,
+            'status'        => $this->status?->value,
             'is_available'  => $this->is_available,
             'rating_avg'    => $this->rating_avg,
             'total_deliveries' => $this->total_deliveries,
@@ -28,8 +28,8 @@ class CarrierAgentResource extends JsonResource
             'documents'     => $this->whenLoaded('documents', fn () =>
                 $this->documents->map(fn ($doc) => [
                     'id'            => $doc->id,
-                    'document_type' => $doc->document_type,
-                    'status'        => $doc->status,
+                    'document_type' => $doc->document_type?->value,
+                    'status'        => $doc->status?->value,
                     'expires_at'    => $doc->expires_at?->toDateString(),
                     'verified_at'   => $doc->verified_at?->toIso8601String(),
                 ])

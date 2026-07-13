@@ -136,7 +136,7 @@ class DeliveryZoneController extends Controller
             ->map(fn($a) => [
                 'id' => $a->id,
                 'name' => $a->name,
-                'status' => $a->status,
+                'status' => $a->status?->value,
                 'is_available' => (bool) $a->is_available,
                 'lat' => (float) $a->current_latitude,
                 'lng' => (float) $a->current_longitude,

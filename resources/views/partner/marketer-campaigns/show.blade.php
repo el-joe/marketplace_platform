@@ -33,7 +33,7 @@
         <div class="space-y-2 text-sm">
             @foreach([
                 __('partner.marketer_campaigns.marketer_label') => $campaign->marketer?->name ?? '—',
-                __('partner.marketer_campaigns.type') => ucfirst(str_replace('_', ' ', $campaign->campaign_type)),
+                __('partner.marketer_campaigns.type') => ucfirst(str_replace('_', ' ', $campaign->campaign_type?->value)),
                 __('partner.marketer_campaigns.commission_rate') => $campaign->commission_rate . '%',
                 __('partner.marketer_campaigns.start_date') => $campaign->starts_at?->format('d M Y') ?? '—',
                 __('partner.marketer_campaigns.end_date') => $campaign->ends_at?->format('d M Y') ?? __('partner.marketer_campaigns.open_ended'),

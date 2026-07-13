@@ -79,8 +79,8 @@
                     <tbody class="divide-y divide-gray-50">
                         @foreach($movements as $mov)
                             @php
-                                [$movCls, $movLabel] = $movementTypeLabels[$mov->movement_type]
-                                    ?? ['text-gray-600', $mov->movement_type];
+                                [$movCls, $movLabel] = $movementTypeLabels[$mov->movement_type?->value]
+                                    ?? ['text-gray-600', $mov->movement_type?->value];
                                 $deltaSign = $mov->quantity_delta > 0 ? '+' : '';
                             @endphp
                             <tr class="hover:bg-gray-50 transition-colors">

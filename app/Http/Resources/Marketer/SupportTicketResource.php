@@ -14,7 +14,7 @@ class SupportTicketResource extends JsonResource
             'ticket_number'        => $this->ticket_number,
             'category'             => $this->category,
             'priority'             => $this->priority,
-            'status'               => $this->status,
+            'status'               => $this->status?->value,
             'subject'              => $this->subject,
             'related_campaign_id'  => $this->related_campaign_id,
             'created_at'           => $this->created_at?->toIso8601String(),

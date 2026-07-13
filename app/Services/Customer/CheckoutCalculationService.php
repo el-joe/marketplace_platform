@@ -205,10 +205,10 @@ class CheckoutCalculationService
         }
 
         $discount = match ($coupon->type) {
-            'percentage' => (int) round($applicableSubtotal * ((float) $coupon->value / 100)),
-            'fixed_amount' => (int) round((float) $coupon->value * 100),
-            'free_shipping' => 0,
-            'bogo' => $this->cheapestQualifyingItemPrice($coupon, $cartItems),
+            \App\Enums\CouponType::Percentage => (int) round($applicableSubtotal * ((float) $coupon->value / 100)),
+            \App\Enums\CouponType::FixedAmount => (int) round((float) $coupon->value * 100),
+            \App\Enums\CouponType::FreeShipping => 0,
+            \App\Enums\CouponType::Bogo => $this->cheapestQualifyingItemPrice($coupon, $cartItems),
             default => 0,
         };
 
@@ -221,7 +221,7 @@ class CheckoutCalculationService
         return [
             'discount' => $discount,
             'error' => null,
-            'type' => $coupon->type,
+            'type' => $coupon->type?->value,
         ];
     }
 
@@ -231,13 +231,13 @@ class CheckoutCalculationService
     private function resolveApplicableSubtotal(Coupon $coupon, int $subtotalCents, array $cartItems): int
     {
         return match ($coupon->scope) {
-            'vendor' => $this->sumItems($cartItems, fn ($item) => $item->vendorListing?->vendor_id === $coupon->vendor_id),
-            'category' => $this->sumItems($cartItems, function ($item) use ($coupon) {
+            \App\Enums\CouponScope::Vendor => $this->sumItems($cartItems, fn ($item) => $item->vendorListing?->vendor_id === $coupon->vendor_id),
+            \App\Enums\CouponScope::Category => $this->sumItems($cartItems, function ($item) use ($coupon) {
                 $categoryId = $item->vendorListing?->productVariant?->product?->category_id;
 
                 return $categoryId !== null && $this->categoryMatches($categoryId, $coupon->category_id);
             }),
-            'product' => $this->sumItems($cartItems, function ($item) use ($coupon) {
+            \App\Enums\CouponScope::Product => $this->sumItems($cartItems, function ($item) use ($coupon) {
                 $productId = $item->vendorListing?->productVariant?->product_id;
 
                 return $productId !== null && $coupon->products()->where('products.id', $productId)->exists();
@@ -284,10 +284,10 @@ class CheckoutCalculationService
     {
         $applicableItems = array_filter($cartItems, function ($item) use ($coupon) {
             return match ($coupon->scope) {
-                'vendor' => $item->vendorListing?->vendor_id === $coupon->vendor_id,
-                'category' => ($categoryId = $item->vendorListing?->productVariant?->product?->category_id) !== null
+                \App\Enums\CouponScope::Vendor => $item->vendorListing?->vendor_id === $coupon->vendor_id,
+                \App\Enums\CouponScope::Category => ($categoryId = $item->vendorListing?->productVariant?->product?->category_id) !== null
                     && $this->categoryMatches($categoryId, $coupon->category_id),
-                'product' => ($productId = $item->vendorListing?->productVariant?->product_id) !== null
+                \App\Enums\CouponScope::Product => ($productId = $item->vendorListing?->productVariant?->product_id) !== null
                     && $coupon->products()->where('products.id', $productId)->exists(),
                 default => true,
             };

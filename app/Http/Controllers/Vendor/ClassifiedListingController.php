@@ -117,7 +117,7 @@ class ClassifiedListingController extends Controller
             $request->signature_data,
         );
 
-        return ApiResponse::success(['status' => $listing->status], 'Contract accepted. Listing submitted for review.');
+        return ApiResponse::success(['status' => $listing->status?->value], 'Contract accepted. Listing submitted for review.');
     }
 
     public function pause(string $id): JsonResponse
@@ -128,7 +128,7 @@ class ClassifiedListingController extends Controller
 
         $listing = $this->listingService->pause($listing);
 
-        return ApiResponse::success(['status' => $listing->status], 'Listing paused.');
+        return ApiResponse::success(['status' => $listing->status?->value], 'Listing paused.');
     }
 
     public function resume(string $id): JsonResponse
@@ -139,7 +139,7 @@ class ClassifiedListingController extends Controller
 
         $listing = $this->listingService->resume($listing);
 
-        return ApiResponse::success(['status' => $listing->status], 'Listing resumed.');
+        return ApiResponse::success(['status' => $listing->status?->value], 'Listing resumed.');
     }
 
     public function markSold(string $id): JsonResponse
@@ -150,7 +150,7 @@ class ClassifiedListingController extends Controller
 
         $listing = $this->listingService->markSold($listing);
 
-        return ApiResponse::success(['status' => $listing->status], 'Listing marked as sold.');
+        return ApiResponse::success(['status' => $listing->status?->value], 'Listing marked as sold.');
     }
 
     public function destroy(string $id): JsonResponse

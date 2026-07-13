@@ -110,9 +110,9 @@
                         — {{ \Carbon\Carbon::parse($occ['ends_at'])->format('H:i') }}
                     </div>
                 </div>
-                @if($occ['slot']->recurrence !== 'once')
+                @if($occ['slot']->recurrence !== \App\Enums\RadioScheduleSlotRecurrence::Once)
                 <span class="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full">
-                    {{ $occ['slot']->recurrence === 'daily' ? 'يومي' : 'أسبوعي' }}
+                    {{ $occ['slot']->recurrence === \App\Enums\RadioScheduleSlotRecurrence::Daily ? 'يومي' : 'أسبوعي' }}
                 </span>
                 @endif
             </div>

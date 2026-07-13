@@ -104,7 +104,7 @@ class DeliveryAgentController extends Controller
                 'phone' => e($agent->phone),
                 'country' => e($agent->country_name ?? '—'),
                 'zone' => e($agent->zone_name ?? '—'),
-                'agent_type' => $agent->agent_type,
+                'agent_type' => $agent->agent_type?->value,
                 'status' => $agent->status->value,
                 'rating_avg' => $agent->rating_avg ? number_format((float) $agent->rating_avg, 1) : '—',
                 'total_deliveries' => (int) $agent->total_deliveries,

@@ -16,7 +16,7 @@ class PublicMarketerProfileResource extends JsonResource
     {
         return [
             'name'              => $this->name,
-            'type'              => $this->type,
+            'type'              => $this->type?->value,
             'niche'             => $this->niche,
             'bio'               => $this->bio,
             'profile_photo_url' => $this->profile_photo_path

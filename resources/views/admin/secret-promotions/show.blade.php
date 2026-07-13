@@ -332,7 +332,7 @@
                                 class="text-sm font-medium text-primary-600 hover:underline">
                                 {{ $promotion->marketer->name }}
                             </a>
-                            <p class="text-xs text-gray-400 capitalize">{{ $promotion->marketer->type }}</p>
+                            <p class="text-xs text-gray-400 capitalize">{{ $promotion->marketer->type?->value }}</p>
                         </div>
                     </div>
                 @else
@@ -432,7 +432,7 @@
                                 <option value="">{{ __('admin.secret_promotions.open_to_all_eligible_marketers') }}</option>
                                 @foreach($marketers as $m)
                                     <option value="{{ $m->id }}" @selected($promotion->marketer_id === $m->id)>{{ $m->name }}
-                                        ({{ $m->type }})</option>
+                                        ({{ $m->type?->value }})</option>
                                 @endforeach
                             </select>
                         </div>

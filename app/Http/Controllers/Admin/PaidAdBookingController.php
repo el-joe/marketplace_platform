@@ -115,7 +115,7 @@ class PaidAdBookingController extends Controller
                 'status' => $statusBadge,
                 'payment_status' => $payBadge,
                 'actions' => $actions,
-                'DT_RowData' => ['id' => $row->id, 'status' => $row->status],
+                'DT_RowData' => ['id' => $row->id, 'status' => $row->status?->value],
             ];
         });
     }

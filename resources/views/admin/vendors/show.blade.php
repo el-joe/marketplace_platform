@@ -139,7 +139,7 @@
                             <x-form.input name="contact_email"   label="{{ __('admin.vendors.contact_email') }}" :value="$vendor->contact_email"   type="email"/>
                             <x-form.input name="contact_phone"   label="{{ __('admin.vendors.contact_phone') }}" :value="$vendor->contact_phone" />
                             <x-form.input name="commission_rate" label="{{ __('admin.vendors.commission_rate') }} (%)" :value="$vendor->commission_rate" type="number" step="0.01"/>
-                            <x-form.select name="payout_schedule" label="{{ __('admin.vendors.payout_schedule') }}" :value="$vendor->payout_schedule"
+                            <x-form.select name="payout_schedule" label="{{ __('admin.vendors.payout_schedule') }}" :value="$vendor->payout_schedule?->value"
                                 :options="['weekly' => __('admin.vendors.weekly'), 'biweekly' => __('admin.vendors.biweekly'), 'monthly' => __('admin.vendors.monthly')]"/>
                             <x-form.input name="warranty_months" label="{{ __('admin.vendors.warranty_months') }}" :value="$vendor->warranty_months" type="number" min="0" max="120"/>
                             <div class="flex items-center gap-6">

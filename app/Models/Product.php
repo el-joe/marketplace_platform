@@ -109,6 +109,16 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function frequentlyBoughtTogether(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'frequently_bought_together_items',
+            'product_id',
+            'related_product_id'
+        )->withPivot('position')->orderBy('frequently_bought_together_items.position');
+    }
+
     /**
      * Order products by their vendor listings' rating, since rating is no longer
      * stored on products. Used by list/carousel queries that sort products directly

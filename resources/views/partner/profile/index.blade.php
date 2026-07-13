@@ -42,12 +42,12 @@ $businessTypeLabels = [
                     &nbsp;·&nbsp;
                 @endif
                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-                    {{ $vendor->global_status === 'active' ? 'bg-green-100 text-green-700' :
-                       ($vendor->global_status === 'suspended' ? 'bg-red-100 text-red-700' :
+                    {{ $vendor->global_status === \App\Enums\VendorGlobalStatus::Active ? 'bg-green-100 text-green-700' :
+                       ($vendor->global_status === \App\Enums\VendorGlobalStatus::Suspended ? 'bg-red-100 text-red-700' :
                        'bg-yellow-100 text-yellow-700') }}">
-                    {{ $vendor->global_status === 'active' ? __('partner.nav.status_active') :
-                       ($vendor->global_status === 'suspended' ? __('partner.nav.status_suspended') :
-                       ($vendor->global_status === 'rejected' ? __('partner.nav.status_rejected') : __('partner.nav.status_under_review'))) }}
+                    {{ $vendor->global_status === \App\Enums\VendorGlobalStatus::Active ? __('partner.nav.status_active') :
+                       ($vendor->global_status === \App\Enums\VendorGlobalStatus::Suspended ? __('partner.nav.status_suspended') :
+                       ($vendor->global_status === \App\Enums\VendorGlobalStatus::Rejected ? __('partner.nav.status_rejected') : __('partner.nav.status_under_review'))) }}
                 </span>
             </p>
         </div>
@@ -217,7 +217,7 @@ $businessTypeLabels = [
                     if ($entry['requirement_level'] !== 'mandatory') return false;
                     $doc = $latestDocByType->get($entry['type']->id);
                     if (! $doc) return true; // never uploaded
-                    return in_array($doc->isExpired() ? 'expired' : $doc->status, ['rejected', 'expired']);
+                    return in_array($doc->isExpired() ? 'expired' : $doc->status?->value, ['rejected', 'expired']);
                 });
             @endphp
 
@@ -250,7 +250,7 @@ $businessTypeLabels = [
                         $docType        = $entry['type'];
                         $reqLevel       = $entry['requirement_level'];
                         $doc            = $latestDocByType->get($docType->id);
-                        $effectiveStatus = $doc ? ($doc->isExpired() ? 'expired' : $doc->status) : null;
+                        $effectiveStatus = $doc ? ($doc->isExpired() ? 'expired' : $doc->status?->value) : null;
                         $needsAttention = $reqLevel === 'mandatory'
                             && (! $doc || in_array($effectiveStatus, ['rejected', 'expired']));
                     @endphp
