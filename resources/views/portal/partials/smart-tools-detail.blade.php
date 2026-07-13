@@ -75,35 +75,42 @@
 
     {{-- Transparent fees cards --}}
     <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <h3 class="text-2xl sm:text-[26px] font-bold leading-tight mb-6 lg:mb-8">{{ $isAr ? 'الرسوم الشفافة' : 'Transparent fees' }}</h3>
+        <h3 class="text-2xl sm:text-[26px] font-bold leading-tight mb-6 lg:mb-8">{{ $isAr ? 'الرسوم الشفافة' : 'Transparent Fees' }}</h3>
 
-        <div class="grid gap-4 md:grid-cols-3 md:gap-4 lg:gap-6">
+        <div class="grid gap-4 md:grid-cols-3 md:gap-4 lg:gap-6"
+             x-data="{ shown: false }"
+             x-init="
+                 const observer = new IntersectionObserver((entries) => {
+                     shown = entries[0].isIntersecting;
+                 }, { threshold: 0.1 });
+                 observer.observe($el);
+             ">
             @php
                 $feeCards = [
                     [
                         'image' => 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-transparent-fees-01.jpg',
-                        'title_ar' => 'رسوم الاحالة', 'title_en' => 'Referral fees',
-                        'sub_ar' => 'نحن نربح فقط عندما تحقق انت ربحا', 'sub_en' => 'We only earn when you earn',
-                        'desc_ar' => 'تطبق رسوم الاحالة علي كل عملية بيع - وفقا لفئة منتجك', 'desc_en' => 'Referral fees apply to every sale - based on your product category',
+                        'title_ar' => 'رسوم الاحالة', 'title_en' => 'Referral Fees',
+                        'sub_ar' => 'نحن نربح فقط عندما تحقق انت ربحا', 'sub_en' => 'We only earn when you do.',
+                        'desc_ar' => 'تطبق رسوم الاحالة علي كل عملية بيع - وفقا لفئة منتجك', 'desc_en' => 'A referral fee applies per sale — based on your product category.',
                         'links' => [
                             ['label_ar' => 'اعرف أكثر', 'label_en' => 'Learn more', 'url' => 'https://support.noon.partners/portal/' . ($isAr ? 'ar' : 'en') . '/kb/articles/referral-fees-in-noon-mena'],
                         ],
                     ],
                     [
                         'image' => 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-transparent-fees-02.jpg',
-                        'title_ar' => 'رسوم التنفيذ', 'title_en' => 'Fulfilment fees',
-                        'sub_ar' => 'شحنك، خيارك', 'sub_en' => 'Your shipping, your choice',
-                        'desc_ar' => 'تدفع مقابل ما تستخدمه فقط، بدون أي رسوم خفية – الرسوم تختلف حسب طريقة التنفيذ التي تختارها.', 'desc_en' => "You only pay for what you use, with no hidden fees - rates vary by the fulfilment method you choose.",
+                        'title_ar' => 'رسوم التنفيذ', 'title_en' => 'Fulfilment Fees',
+                        'sub_ar' => 'شحنك، خيارك', 'sub_en' => 'Your shipping, your call.',
+                        'desc_ar' => 'تدفع مقابل ما تستخدمه فقط، بدون أي رسوم خفية – الرسوم تختلف حسب طريقة التنفيذ التي تختارها.', 'desc_en' => "You pay for what you use, no hidden charges - fee varies based on how you choose to fulfil.",
                         'links' => [
-                            ['label_ar' => 'تعرف على رسوم FBN', 'label_en' => 'Learn about FBN fees', 'url' => 'https://support.noon.partners/portal/' . ($isAr ? 'ar' : 'en') . '/kb/articles/fbn-fees'],
-                            ['label_ar' => 'تعرف على رسوم FBP', 'label_en' => 'Learn about FBP fees', 'url' => 'https://support.noon.partners/portal/' . ($isAr ? 'ar' : 'en') . '/kb/articles/fbp-fees'],
+                            ['label_ar' => 'تعرف على رسوم FBN', 'label_en' => 'Learn About FBN Fees', 'url' => 'https://support.noon.partners/portal/' . ($isAr ? 'ar' : 'en') . '/kb/articles/fbn-fees'],
+                            ['label_ar' => 'تعرف على رسوم FBP', 'label_en' => 'Learn About FBP Fees', 'url' => 'https://support.noon.partners/portal/' . ($isAr ? 'ar' : 'en') . '/kb/articles/fbp-fees'],
                         ],
                     ],
                     [
                         'image' => 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-transparent-fees-03.jpg',
-                        'title_ar' => 'مصاريف اخري', 'title_en' => 'Other charges',
-                        'sub_ar' => 'تطبق فقط اذا اخترت الاستفادة منها', 'sub_en' => 'Only applied if you choose to use them',
-                        'desc_ar' => 'تُضاف رسوم إضافية لأمور مثل التخزين طويل الأمد وغيرها – وتُطبق عند اختيارك استخدام هذه الخدمات.', 'desc_en' => 'Extra charges apply for things like long-term storage and more - only when you opt in to use these services.',
+                        'title_ar' => 'مصاريف اخري', 'title_en' => 'Other Costs',
+                        'sub_ar' => 'تطبق فقط اذا اخترت الاستفادة منها', 'sub_en' => 'Only if you opt in.',
+                        'desc_ar' => 'تُضاف رسوم إضافية لأمور مثل التخزين طويل الأمد وغيرها – وتُطبق عند اختيارك استخدام هذه الخدمات.', 'desc_en' => 'Extra fees apply for things like long-term storage etc. — which are applied when you choose to avail these services.',
                         'links' => [
                             ['label_ar' => 'اعرف أكثر', 'label_en' => 'Learn more', 'url' => 'https://advertise.noon.com/' . ($isAr ? 'ar' : 'en') . '/'],
                         ],
@@ -112,14 +119,16 @@
             @endphp
 
             @foreach($feeCards as $card)
-                <div class="relative rounded-2xl overflow-hidden h-full min-h-[320px] md:min-h-[380px]">
+                <div class="relative rounded-2xl overflow-hidden h-full min-h-[280px] md:min-h-[300px] transition-all duration-700 ease-out"
+                     :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+                     style="transition-delay: {{ $loop->index * 200 }}ms;">
                     <img src="{{ $card['image'] }}" alt="{{ $isAr ? $card['title_ar'] : $card['title_en'] }}"
                          class="absolute inset-0 w-full h-full object-cover object-bottom">
                     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10"></div>
-                    <div class="relative h-full flex flex-col justify-end px-5 pb-6 pt-10 lg:px-6 lg:pb-8">
+                    <div class="relative h-full flex flex-col justify-end px-5 pb-5 pt-8 lg:px-6 lg:pb-6">
                         <h4 class="text-white font-black text-lg lg:text-xl text-pretty">{{ $isAr ? $card['title_ar'] : $card['title_en'] }}</h4>
-                        <p class="mt-2 text-white font-semibold text-[15px] whitespace-nowrap">{{ $isAr ? $card['sub_ar'] : $card['sub_en'] }}</p>
-                        <p class="mt-2 text-gray-300 text-sm font-medium text-pretty">{{ $isAr ? $card['desc_ar'] : $card['desc_en'] }}</p>
+                        <p class="mt-1 text-white font-semibold text-[15px] whitespace-nowrap">{{ $isAr ? $card['sub_ar'] : $card['sub_en'] }}</p>
+                        <p class="mt-1.5 text-gray-300 text-sm font-medium text-pretty">{{ $isAr ? $card['desc_ar'] : $card['desc_en'] }}</p>
                         <div class="flex flex-col gap-1 mt-3">
                             @foreach($card['links'] as $link)
                                 <a href="{{ $link['url'] }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-[#feee00] font-bold text-sm">

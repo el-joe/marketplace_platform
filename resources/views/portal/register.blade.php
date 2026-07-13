@@ -3,6 +3,7 @@
 @php $isAr = session('locale', 'ar') === 'ar'; @endphp
 
 @section('title', $isAr ? 'سجّل كبائع — نون' : 'Register as a Seller — noon')
+@section('hide_nav', true)
 
 @push('head')
     @vite(['resources/js/portal/registration.js'])

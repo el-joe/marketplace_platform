@@ -97,6 +97,10 @@ export default {
                     '0%': { opacity: '0' },
                     '100%': { opacity: '1' },
                 },
+                'fade-in-up': {
+                    '0%': { transform: 'translateY(1rem)', opacity: '0' },
+                    '100%': { transform: 'translateY(0)', opacity: '1' },
+                },
                 'bounce-x': {
                     '0%, 100%': {
                         transform: 'translateX(25%)',
@@ -111,6 +115,7 @@ export default {
             animation: {
                 'slide-in-right': 'slide-in-right 250ms ease-out',
                 'fade-in': 'fade-in 200ms ease-out',
+                'fade-in-up': 'fade-in-up 250ms ease-out',
                 'bounce-x': 'bounce-x 1s infinite',
             },
         },

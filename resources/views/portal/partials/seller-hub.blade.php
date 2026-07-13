@@ -1,14 +1,14 @@
 @php $isAr = session('locale', 'ar') === 'ar'; @endphp
 
 <section class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="rounded-2xl border-2 border-[#1c1c1c] px-5 py-8 md:p-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16">
-        <div class="relative aspect-[4/3] lg:aspect-auto lg:h-full min-h-[280px] rounded-2xl overflow-hidden">
+    <div class="rounded-2xl border-2 border-[#1c1c1c] overflow-hidden md:overflow-visible md:p-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16">
+        <div class="relative aspect-[4/3] lg:aspect-auto lg:h-full min-h-[280px] md:rounded-2xl md:overflow-hidden">
             <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-transparent-fees-01.jpg"
                  alt="{{ $isAr ? 'مركز البائعين' : 'Seller Hub' }}"
                  class="absolute inset-0 w-full h-full object-cover">
         </div>
 
-        <div class="mt-8 lg:mt-0 max-w-[60ch]">
+        <div class="pt-8 px-5 pb-8 md:p-0 md:mt-8 lg:mt-0 max-w-[60ch]">
             <p class="text-[#feee00] font-black text-xs uppercase tracking-wider">{{ $isAr ? 'مركز البائعين' : 'Seller Hub' }}</p>
             <h2 class="text-white font-black text-xl lg:text-2xl mt-1 mb-6">
                 {{ $isAr ? 'مركز قيادتك للبيع على نون' : 'Your command centre for selling on noon' }}

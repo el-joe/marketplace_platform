@@ -1,8 +1,20 @@
 @php $isAr = session('locale', 'ar') === 'ar'; @endphp
 
+@push('head')
+<style>
+    @keyframes blink-four-times {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+    .animate-blink-4 {
+        animation: blink-four-times 0.6s ease-in-out 4 forwards;
+    }
+</style>
+@endpush
+
 <section id="listings" class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
     <h2 class="text-2xl sm:text-3xl font-black text-white mb-6 lg:mb-8">
-        {{ $isAr ? 'جهز قوائم منتجاتك' : 'Prepare your product listings' }}
+        {!! $isAr ? 'جهز قوائم منتجاتك' : 'Get Your <span class="text-[#feee00] animate-blink-4 inline-block">Listings Ready</span>' !!}
     </h2>
 
     <div class="rounded-2xl overflow-hidden bg-[#1c1c1c] lg:grid lg:grid-cols-[1.5fr_2fr]">
@@ -12,22 +24,22 @@
                  class="absolute inset-0 w-full h-full object-cover">
         </div>
         <div class="pt-8 px-6 pb-8 md:pt-10 md:px-10 md:pb-10">
-            <h3 class="text-white font-black text-lg lg:text-xl text-pretty">
+            <h3 class="text-white font-black text-xl lg:text-2xl text-pretty leading-tight">
                 {{ $isAr
-                    ? 'إذا كانت الموافقات لا تزال قيد الانتظار، يفضل الانتظار — المتابعة ممكن تسبب أخطاء.'
-                    : "If approvals are still pending, it's best to wait — proceeding early can cause errors." }}
+                    ? 'إدراج منتجاتك على نون سهل جداً مع أداة "كتالوجي" القوية.'
+                    : "Listing your products on noon is easy with our powerful 'My catalog' tool." }}
             </h3>
             <p class="mt-4 text-gray-300 text-[14px] font-medium">
                 {{ $isAr
-                    ? 'قبل البدء، تحقق من حصولك على الموافقات الخاصة بفئة المنتج أو العلامة التجارية أو إعفاء GTIN.'
-                    : 'Before you start, check that you have your category, brand or GTIN exemption approvals in place.' }}
+                    ? 'إثراء الكتالوج الخاص بك يعزز اكتشاف منتجاتك ويزيد من نسبة التحويل.'
+                    : 'Enriching your catalog boosts discovery and conversion of your products.' }}
             </p>
 
             <h4 class="text-[#feee00] font-black text-sm mt-6 mb-3">{{ $isAr ? 'خيارات التحميل:' : 'Upload options:' }}</h4>
             <ul class="space-y-3 mb-6">
                 @foreach([
-                    $isAr ? 'التحميل الجماعي — للمجموعات الكبيرة من المنتجات' : 'Bulk upload — for large product batches',
-                    $isAr ? 'يدوي — للمجموعات الصغيرة' : 'Manual — for small batches',
+                    $isAr ? 'منتج واحد — للكتالوجات المنسقة' : 'Single SKU — for curated catalogues',
+                    $isAr ? 'التحميل الجماعي — للكتالوجات الكبيرة' : 'Bulk upload — for larger catalogues',
                     $isAr ? 'API — للأنظمة المؤتمتة' : 'API — for automated systems',
                 ] as $item)
                     <li class="flex items-start gap-3 text-gray-200 text-[15px] font-bold">
@@ -40,14 +52,14 @@
             </ul>
             <p class="text-gray-400 text-[14px] font-medium mb-8">
                 {{ $isAr
-                    ? 'يمكنك أيضًا تحديد الأسعار وتحديث المخزون مباشرة من كتالوجي، كل ذلك في مكان واحد.'
-                    : 'You can also set prices and update inventory directly from your catalogue, all in one place.' }}
+                    ? 'يمكنك أيضًا تحديد الأسعار وتحديث المخزون مباشرة من كتالوجي — كل ذلك في مكان واحد'
+                    : 'You can also set pricing and update stock directly from My Catalogue — all in one place' }}
             </p>
 
             <a target="_blank" rel="noopener" title="{{ $isAr ? 'يفتح في نافذة جديدة' : 'Opens in a new window' }}"
                href="https://www.youtube.com/@noonsellerlab7442/videos"
-               class="inline-block border border-gray-600 hover:border-[#feee00] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors">
-                {{ $isAr ? 'شاهد فيديوهات الشرح' : 'Watch explainer videos' }}
+               class="inline-block border border-[#feee00] text-[#feee00] hover:bg-[#feee00] hover:text-black text-sm font-bold px-6 py-2 rounded-full transition-colors">
+                {{ $isAr ? 'شاهد فيديوهات الشرح' : 'Watch The Tutorials' }}
             </a>
         </div>
     </div>
@@ -104,8 +116,8 @@
                 </p>
 
                 <a href="{{ route('portal.faq') }}"
-                   class="inline-block bg-[#feee00] hover:bg-[#e5d600] text-black font-black text-sm px-6 py-2.5 rounded-full transition-colors">
-                    {{ $isAr ? 'اقرأ المزيد عن تسجيل العلامة التجارية' : 'Read more about brand registration' }}
+                   class="inline-block w-full sm:w-auto text-center bg-[#feee00] hover:bg-[#e5d600] text-black font-bold text-[15px] px-8 py-2 rounded-full transition-colors">
+                    {{ $isAr ? 'اقرأ المزيد عن سجل العلامات التجارية' : 'Read More On Brand Registry' }}
                 </a>
             </div>
         </div>
@@ -131,8 +143,8 @@
                         : "Some categories require approval first, including document checks and seller performance review." }}
                 </p>
                 <a href="{{ route('portal.faq') }}"
-                   class="inline-block mt-8 bg-[#feee00] hover:bg-[#e5d600] text-black font-black text-sm px-6 py-2.5 rounded-full transition-colors">
-                    {{ $isAr ? 'اقرأ الدليل' : 'Read the guide' }}
+                   class="inline-block mt-8 w-full sm:w-auto text-center bg-[#feee00] hover:bg-[#e5d600] text-black font-bold text-[15px] px-8 py-2 rounded-full transition-colors">
+                    {{ $isAr ? 'اقرأ الدليل' : 'Read The Guide' }}
                 </a>
             </div>
         </div>
