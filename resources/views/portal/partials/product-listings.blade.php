@@ -116,8 +116,8 @@
                 </p>
 
                 <a href="{{ route('portal.faq') }}"
-                   class="inline-block bg-[#feee00] hover:bg-[#e5d600] text-black font-black text-sm px-6 py-2.5 rounded-full transition-colors">
-                    {{ $isAr ? 'اقرأ المزيد عن تسجيل العلامة التجارية' : 'Read more about brand registration' }}
+                   class="inline-block w-full sm:w-auto text-center bg-[#feee00] hover:bg-[#e5d600] text-black font-bold text-[15px] px-8 py-2 rounded-full transition-colors">
+                    {{ $isAr ? 'اقرأ المزيد عن سجل العلامات التجارية' : 'Read More On Brand Registry' }}
                 </a>
             </div>
         </div>
@@ -143,8 +143,8 @@
                         : "Some categories require approval first, including document checks and seller performance review." }}
                 </p>
                 <a href="{{ route('portal.faq') }}"
-                   class="inline-block mt-8 bg-[#feee00] hover:bg-[#e5d600] text-black font-black text-sm px-6 py-2.5 rounded-full transition-colors">
-                    {{ $isAr ? 'اقرأ الدليل' : 'Read the guide' }}
+                   class="inline-block mt-8 w-full sm:w-auto text-center bg-[#feee00] hover:bg-[#e5d600] text-black font-bold text-[15px] px-8 py-2 rounded-full transition-colors">
+                    {{ $isAr ? 'اقرأ الدليل' : 'Read The Guide' }}
                 </a>
             </div>
         </div>
