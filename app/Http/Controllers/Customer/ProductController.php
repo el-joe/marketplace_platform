@@ -14,6 +14,7 @@ use App\Services\Customer\BuyBoxService;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\ProductQueryService;
 use App\Services\Customer\ProductViewService;
+use App\Services\Customer\ReviewService;
 use App\Services\Customer\SponsoredProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class ProductController extends Controller
         private readonly BuyBoxService $buyBox,
         private readonly ProductViewService $viewService,
         private readonly SponsoredProductService $sponsored,
+        private readonly ReviewService $reviewService,
     ) {
     }
 
@@ -114,7 +116,14 @@ class ProductController extends Controller
 
         $reviews = $product->reviews()
             ->where('status', 'published')
-            ->with('vendorReply', 'customer:id,name')
+            ->with([
+                'vendorReply',
+                'customer:id,name',
+                'files',
+                'vendorListing.vendor:id,store_name',
+                'vendorListing.productVariant.variantAttributes.attribute',
+                'vendorListing.productVariant.variantAttributes.attributeValue',
+            ])
             ->orderByDesc('helpful_count')
             ->limit(5)
             ->get();
@@ -141,6 +150,7 @@ class ProductController extends Controller
 
         $resource = new ProductDetailResource($product);
         $resource->isWishlisted = $isWishlisted;
+        $resource->ratingBreakdown = $this->reviewService->ratingBreakdown($product);
 
         return ApiResponse::success($resource->toArray($request));
     }

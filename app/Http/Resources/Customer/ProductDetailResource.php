@@ -13,6 +13,9 @@ class ProductDetailResource extends JsonResource
     /** @var array<string, mixed> */
     public array $enrichment = [];
 
+    /** @var array<int, array{stars: int, count: int, percentage: int}> */
+    public array $ratingBreakdown = [];
+
     public function toArray(Request $request): array
     {
         $countrySetting = $this->whenLoaded('countrySettings', function () {
@@ -52,6 +55,7 @@ class ProductDetailResource extends JsonResource
             'has_variants'     => $this->has_variants,
             'rating_avg'       => (float) ($this->relationLoaded('activeListings') ? ($this->activeListings->first()->rating_avg ?? 0) : 0),
             'rating_count'     => (int) ($this->relationLoaded('activeListings') ? ($this->activeListings->first()->rating_count ?? 0) : 0),
+            'rating_breakdown' => $this->ratingBreakdown,
             'total_sold'       => (int) $this->total_sold,
             'brand'            => $this->whenLoaded('brand', fn() => [
                 'id'   => $this->brand->id,
@@ -64,6 +68,21 @@ class ProductDetailResource extends JsonResource
                 'slug' => $this->category->slug,
             ]),
             'breadcrumbs'      => $this->whenLoaded('category', fn() => $this->buildBreadcrumbs()),
+            'highlights'       => $this->whenLoaded('highlights', fn() =>
+                $this->highlights->map(fn($h) => [
+                    'id'       => $h->id,
+                    'text'     => Bilingual::pair($h, 'text'),
+                    'position' => $h->position,
+                ])
+            ),
+            'specifications'   => $this->whenLoaded('specifications', fn() =>
+                $this->specifications->map(fn($s) => [
+                    'id'       => $s->id,
+                    'key'      => Bilingual::pair($s, 'key'),
+                    'value'    => Bilingual::pair($s, 'value'),
+                    'position' => $s->position,
+                ])
+            ),
             'images'           => $this->whenLoaded('images', fn() =>
                 $this->images->map(fn($img) => [
                     'id'             => $img->id,

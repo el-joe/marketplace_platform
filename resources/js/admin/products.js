@@ -78,6 +78,8 @@ document.addEventListener('DOMContentLoaded', function () {
     initSeoPreview();
     initFilePond();
     initFormSubmit();
+    initHighlightRows();
+    initSpecificationRows();
 });
 
 // ─── Character counters ───────────────────────────────────────────────────────
@@ -280,6 +282,68 @@ function reindexVariantRows() {
             this.name = this.name.replace(/variants\[\d+\]/, 'variants[' + i + ']');
         });
         $(this).find('[name="variants_default"]').val(i);
+    });
+}
+
+// ─── Highlights repeater ──────────────────────────────────────────────────────
+
+function initHighlightRows() {
+    $(document).on('click', '#add-highlight-row', function () {
+        const i = $('#highlights-rows .highlight-row').length;
+        const removeLabel = esc((window.TRANSLATIONS || {}).removeLabel || 'Remove');
+        const row = `
+<div class="highlight-row flex items-start gap-2">
+  <input type="hidden" name="highlights[${i}][id]" value="">
+  <input type="text" name="highlights[${i}][text_en]" dir="ltr" maxlength="500" class="form-input text-sm py-1.5 w-1/2" />
+  <input type="text" name="highlights[${i}][text_ar]" dir="rtl" maxlength="500" class="form-input text-sm py-1.5 w-1/2" />
+  <button type="button" class="remove-highlight-row shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="${removeLabel}">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+    </svg>
+  </button>
+</div>`;
+        $('#highlights-rows').append(row);
+    });
+
+    $(document).on('click', '.remove-highlight-row', function () {
+        $(this).closest('.highlight-row').remove();
+        reindexRows('#highlights-rows', '.highlight-row', 'highlights');
+    });
+}
+
+// ─── Specifications repeater ─────────────────────────────────────────────────
+
+function initSpecificationRows() {
+    $(document).on('click', '#add-specification-row', function () {
+        const i = $('#specifications-rows .specification-row').length;
+        const removeLabel = esc((window.TRANSLATIONS || {}).removeLabel || 'Remove');
+        const row = `
+<div class="specification-row flex items-start gap-2">
+  <input type="hidden" name="specifications[${i}][id]" value="">
+  <input type="text" name="specifications[${i}][key_en]" dir="ltr" maxlength="255" class="form-input text-sm py-1.5 w-1/4" />
+  <input type="text" name="specifications[${i}][key_ar]" dir="rtl" maxlength="255" class="form-input text-sm py-1.5 w-1/4" />
+  <input type="text" name="specifications[${i}][value_en]" dir="ltr" maxlength="500" class="form-input text-sm py-1.5 w-1/4" />
+  <input type="text" name="specifications[${i}][value_ar]" dir="rtl" maxlength="500" class="form-input text-sm py-1.5 w-1/4" />
+  <button type="button" class="remove-specification-row shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="${removeLabel}">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+    </svg>
+  </button>
+</div>`;
+        $('#specifications-rows').append(row);
+    });
+
+    $(document).on('click', '.remove-specification-row', function () {
+        $(this).closest('.specification-row').remove();
+        reindexRows('#specifications-rows', '.specification-row', 'specifications');
+    });
+}
+
+function reindexRows(containerSelector, rowSelector, fieldPrefix) {
+    $(containerSelector).find(rowSelector).each(function (i) {
+        $(this).find('input[name^="' + fieldPrefix + '["]').each(function () {
+            this.name = this.name.replace(new RegExp(fieldPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\[\\d+\\]'), fieldPrefix + '[' + i + ']');
+        });
     });
 }
 

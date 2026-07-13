@@ -99,6 +99,16 @@ class Product extends Model
         return $this->hasMany(ProductCountrySetting::class);
     }
 
+    public function highlights(): HasMany
+    {
+        return $this->hasMany(ProductHighlight::class)->orderBy('position');
+    }
+
+    public function specifications(): HasMany
+    {
+        return $this->hasMany(ProductSpecification::class)->orderBy('position');
+    }
+
     public function coupons(): BelongsToMany
     {
         return $this->belongsToMany(Coupon::class, 'coupon_products');

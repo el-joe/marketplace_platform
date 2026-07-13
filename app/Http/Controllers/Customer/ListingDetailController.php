@@ -11,6 +11,7 @@ use App\Models\VendorListing;
 use App\Models\Wishlist;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\ProductViewService;
+use App\Services\Customer\ReviewService;
 use App\Services\ListingShippingResolver;
 use App\Support\Bilingual;
 use Illuminate\Http\JsonResponse;
@@ -22,6 +23,7 @@ class ListingDetailController extends Controller
         private readonly ListingIdentifierService $identifiers,
         private readonly ListingShippingResolver $shipping,
         private readonly ProductViewService $viewService,
+        private readonly ReviewService $reviewService,
     ) {
     }
 
@@ -58,7 +60,14 @@ class ListingDetailController extends Controller
 
         $reviews = $product->reviews()
             ->where('status', 'published')
-            ->with(['vendorReply', 'customer:id,name'])
+            ->with([
+                'vendorReply',
+                'customer:id,name',
+                'files',
+                'vendorListing.vendor:id,store_name',
+                'vendorListing.productVariant.variantAttributes.attribute',
+                'vendorListing.productVariant.variantAttributes.attributeValue',
+            ])
             ->orderByDesc('helpful_count')
             ->limit(5)
             ->get();
@@ -74,6 +83,7 @@ class ListingDetailController extends Controller
             'reviews' => [
                 'rating_avg' => (float) $listing->rating_avg,
                 'rating_count' => (int) $listing->rating_count,
+                'rating_breakdown' => $this->reviewService->ratingBreakdown($product),
                 'items' => $reviews->map(fn($review) => $this->reviewShape($review))->values()->all(),
             ],
             'frequently_bought_together' => $this->frequentlyBoughtTogetherShape($product, $listing, $country),
@@ -367,6 +377,26 @@ class ListingDetailController extends Controller
             'reviewer_name' => $review->customer?->name,
             'helpful_count' => $review->helpful_count,
             'created_at' => $review->created_at?->toIso8601String(),
+            'images' => $review->files->map(fn($f) => $f->full_path)->values()->all(),
+            'listing_id' => $review->vendor_listing_id,
+            'seller' => $review->vendorListing?->vendor ? [
+                'id' => $review->vendorListing->vendor->id,
+                'store_name' => $review->vendorListing->vendor->store_name,
+            ] : null,
+            'variant' => $review->vendorListing?->productVariant ? [
+                'id' => $review->vendorListing->productVariant->id,
+                'variant_name' => $review->vendorListing->productVariant->variant_name,
+                'attributes' => $review->vendorListing->productVariant->variantAttributes->map(fn($va) => [
+                    'name' => [
+                        'ar' => $va->attribute?->name_ar,
+                        'en' => $va->attribute?->name_en,
+                    ],
+                    'value' => [
+                        'ar' => $va->attributeValue?->value_ar ?? $va->value_text_ar,
+                        'en' => $va->attributeValue?->value_en ?? $va->value_text_en,
+                    ],
+                ])->values()->all(),
+            ] : null,
             'vendor_reply' => $review->vendorReply ? [
                 'body' => $review->vendorReply->body,
                 'created_at' => $review->vendorReply->created_at?->toIso8601String(),

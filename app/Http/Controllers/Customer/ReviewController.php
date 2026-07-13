@@ -43,7 +43,9 @@ class ReviewController extends Controller
 
         $paginator = $this->reviewService->listForProduct($product, $countryModel->id);
 
-        return ApiResponse::paginated($paginator, ReviewResource::class);
+        return ApiResponse::paginated($paginator, ReviewResource::class, [
+            'rating_breakdown' => $this->reviewService->ratingBreakdown($product),
+        ]);
     }
 
     public function update(ReviewUpdateRequest $request, string $country, string $reviewId): JsonResponse

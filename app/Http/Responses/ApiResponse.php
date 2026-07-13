@@ -30,7 +30,7 @@ class ApiResponse
         return response()->json($payload, $code);
     }
 
-    public static function paginated(LengthAwarePaginator $paginator, string $resourceClass): JsonResponse
+    public static function paginated(LengthAwarePaginator $paginator, string $resourceClass, array $extraData = []): JsonResponse
     {
         return response()->json([
             'success' => true,
@@ -42,7 +42,7 @@ class ApiResponse
                     'per_page' => $paginator->perPage(),
                     'total' => $paginator->total(),
                 ],
-            ],
+            ] + $extraData,
         ]);
     }
 }

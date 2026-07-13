@@ -200,6 +200,68 @@
                         @error('short_desc_ar') <p class="form-error">{{ $message }}</p> @enderror
                     </div>
                 </div>
+
+                {{-- Highlights --}}
+                <div class="pt-2 border-t border-gray-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="form-label">{{ __('admin.products.highlights_label') }}</label>
+                        <button type="button" id="add-highlight-row" class="text-sm font-medium text-primary-600 hover:text-primary-700">
+                            + {{ __('admin.products.add_highlight') }}
+                        </button>
+                    </div>
+                    <div id="highlights-rows" class="space-y-2">
+                        @foreach(($highlights ?? []) as $i => $highlight)
+                        <div class="highlight-row flex items-start gap-2">
+                            <input type="hidden" name="highlights[{{ $i }}][id]" value="{{ $highlight->id }}">
+                            <input type="text" name="highlights[{{ $i }}][text_en]" value="{{ old("highlights.$i.text_en", $highlight->text_en) }}"
+                                dir="ltr" maxlength="500" placeholder="{{ __('admin.products.highlight_en_placeholder') }}"
+                                class="form-input text-sm py-1.5 w-1/2" />
+                            <input type="text" name="highlights[{{ $i }}][text_ar]" value="{{ old("highlights.$i.text_ar", $highlight->text_ar) }}"
+                                dir="rtl" maxlength="500" placeholder="{{ __('admin.products.highlight_ar_placeholder') }}"
+                                class="form-input text-sm py-1.5 w-1/2" />
+                            <button type="button" class="remove-highlight-row shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="{{ __('admin.remove') }}">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Specifications --}}
+                <div class="pt-2 border-t border-gray-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="form-label">{{ __('admin.products.specifications_label') }}</label>
+                        <button type="button" id="add-specification-row" class="text-sm font-medium text-primary-600 hover:text-primary-700">
+                            + {{ __('admin.products.add_specification') }}
+                        </button>
+                    </div>
+                    <div id="specifications-rows" class="space-y-2">
+                        @foreach(($specifications ?? []) as $i => $spec)
+                        <div class="specification-row flex items-start gap-2">
+                            <input type="hidden" name="specifications[{{ $i }}][id]" value="{{ $spec->id }}">
+                            <input type="text" name="specifications[{{ $i }}][key_en]" value="{{ old("specifications.$i.key_en", $spec->key_en) }}"
+                                dir="ltr" maxlength="255" placeholder="{{ __('admin.products.spec_key_en_placeholder') }}"
+                                class="form-input text-sm py-1.5 w-1/4" />
+                            <input type="text" name="specifications[{{ $i }}][key_ar]" value="{{ old("specifications.$i.key_ar", $spec->key_ar) }}"
+                                dir="rtl" maxlength="255" placeholder="{{ __('admin.products.spec_key_ar_placeholder') }}"
+                                class="form-input text-sm py-1.5 w-1/4" />
+                            <input type="text" name="specifications[{{ $i }}][value_en]" value="{{ old("specifications.$i.value_en", $spec->value_en) }}"
+                                dir="ltr" maxlength="500" placeholder="{{ __('admin.products.spec_value_en_placeholder') }}"
+                                class="form-input text-sm py-1.5 w-1/4" />
+                            <input type="text" name="specifications[{{ $i }}][value_ar]" value="{{ old("specifications.$i.value_ar", $spec->value_ar) }}"
+                                dir="rtl" maxlength="500" placeholder="{{ __('admin.products.spec_value_ar_placeholder') }}"
+                                class="form-input text-sm py-1.5 w-1/4" />
+                            <button type="button" class="remove-specification-row shrink-0 text-gray-400 hover:text-red-600 transition-colors p-2" title="{{ __('admin.remove') }}">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
             {{-- ─────────────────────────────────────────────── --}}

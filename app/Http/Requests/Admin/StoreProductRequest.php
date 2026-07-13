@@ -50,6 +50,18 @@ class StoreProductRequest extends FormRequest
             'countries.*.is_available' => ['nullable', 'boolean'],
             'countries.*.name_override' => ['nullable', 'string', 'max:255'],
             'countries.*.requires_cert' => ['nullable', 'boolean'],
+
+            // Highlights
+            'highlights' => ['nullable', 'array'],
+            'highlights.*.text_en' => ['required_with:highlights.*.text_ar', 'nullable', 'string', 'max:500'],
+            'highlights.*.text_ar' => ['required_with:highlights.*.text_en', 'nullable', 'string', 'max:500'],
+
+            // Specifications
+            'specifications' => ['nullable', 'array'],
+            'specifications.*.key_en' => ['required_with:specifications.*.value_en', 'nullable', 'string', 'max:255'],
+            'specifications.*.key_ar' => ['required_with:specifications.*.value_ar', 'nullable', 'string', 'max:255'],
+            'specifications.*.value_en' => ['required_with:specifications.*.key_en', 'nullable', 'string', 'max:500'],
+            'specifications.*.value_ar' => ['required_with:specifications.*.key_ar', 'nullable', 'string', 'max:500'],
         ];
     }
 

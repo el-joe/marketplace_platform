@@ -17,6 +17,7 @@ use App\Services\Customer\TravelPackageDetailService;
 use App\Services\Customer\BuyBoxService;
 use App\Services\Customer\ProductViewService;
 use App\Services\Customer\ProductDetailEnrichmentService;
+use App\Services\Customer\ReviewService;
 use App\Models\Product;
 use App\Models\Wishlist;
 use App\Http\Resources\Customer\ProductDetailResource;
@@ -34,6 +35,7 @@ class ListingController extends Controller
         private readonly BuyBoxService $buyBox,
         private readonly ProductViewService $viewService,
         private readonly ProductDetailEnrichmentService $enrichment,
+        private readonly ReviewService $reviewService,
     ) {}
 
     public function show(Request $request,$country, string $type, string $slug): JsonResponse
@@ -137,6 +139,8 @@ class ListingController extends Controller
                 'brand',
                 'category',
                 'images',
+                'highlights',
+                'specifications',
                 'variants.variantAttributes.attribute',
                 'variants.variantAttributes.attributeValue',
                 'countrySettings' => fn ($q) => $q->where('country_id', $country->id),
@@ -148,7 +152,14 @@ class ListingController extends Controller
 
         $reviews = $product->reviews()
             ->where('status', 'published')
-            ->with('vendorReply', 'customer:id,name')
+            ->with([
+                'vendorReply',
+                'customer:id,name',
+                'files',
+                'vendorListing.vendor:id,store_name',
+                'vendorListing.productVariant.variantAttributes.attribute',
+                'vendorListing.productVariant.variantAttributes.attributeValue',
+            ])
             ->orderByDesc('helpful_count')
             ->limit(5)
             ->get();
@@ -192,9 +203,10 @@ class ListingController extends Controller
         $buyBoxListing = $listings->first();
         $customer      = auth('customer')->user();
 
-        $resource               = new ProductDetailResource($product);
-        $resource->isWishlisted = $isWishlisted;
-        $resource->enrichment   = [
+        $resource                  = new ProductDetailResource($product);
+        $resource->isWishlisted    = $isWishlisted;
+        $resource->ratingBreakdown = $this->reviewService->ratingBreakdown($product);
+        $resource->enrichment      = [
             'best_seller_badge' => $this->enrichment->getBestSellerBadge($product, $country),
             'delivery_options'  => $this->enrichment->getDeliveryOptions(
                 $product,

@@ -12,7 +12,9 @@ use App\Models\CategoryAttribute;
 use App\Models\Country;
 use App\Models\Product;
 use App\Models\ProductCountrySetting;
+use App\Models\ProductHighlight;
 use App\Models\ProductImage;
+use App\Models\ProductSpecification;
 use App\Models\ProductVariant;
 use App\Models\ProductVariantAttribute;
 use App\Models\VendorListing;
@@ -190,6 +192,9 @@ class ProductController extends Controller
         // Attach uploaded images to this product
         $this->syncImages($id, $request->input('images', []));
 
+        $this->syncHighlights($id, $request->input('highlights', []));
+        $this->syncSpecifications($id, $request->input('specifications', []));
+
         DB::commit();
 
         if ($request->expectsJson()) {
@@ -261,6 +266,16 @@ class ProductController extends Controller
             ->values()
             ->toArray();
 
+        $highlights = ProductHighlight::query()
+            ->where('product_id', $product)
+            ->orderBy('position')
+            ->get();
+
+        $specifications = ProductSpecification::query()
+            ->where('product_id', $product)
+            ->orderBy('position')
+            ->get();
+
         return view('admin.products.edit', array_merge($this->formData(), [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
@@ -273,6 +288,8 @@ class ProductController extends Controller
             'countrySettings' => $countrySettings,
             'categoryAttributes' => $categoryAttributes,
             'existingAttrValues' => $existingAttrValueIds,
+            'highlights' => $highlights,
+            'specifications' => $specifications,
         ]));
     }
 
@@ -320,6 +337,9 @@ class ProductController extends Controller
         }
 
         $this->syncImages($product, $request->input('images', []));
+
+        $this->syncHighlights($product, $request->input('highlights', []), update: true);
+        $this->syncSpecifications($product, $request->input('specifications', []), update: true);
 
         DB::commit();
 
@@ -878,6 +898,96 @@ class ProductController extends Controller
                     'is_primary' => $i === 0,
                     'updated_at' => now(),
                 ]);
+        }
+    }
+
+    private function syncHighlights(string $productId, array $highlights, bool $update = false): void
+    {
+        $rows = collect($highlights)
+            ->filter(fn($h) => filled($h['text_en'] ?? null) && filled($h['text_ar'] ?? null))
+            ->values();
+
+        $incomingIds = $rows->pluck('id')->filter(fn($id) => filled($id))->values()->all();
+
+        if ($update) {
+            ProductHighlight::query()
+                ->where('product_id', $productId)
+                ->when(!empty($incomingIds), fn($q) => $q->whereNotIn('id', $incomingIds))
+                ->delete();
+        }
+
+        foreach ($rows as $i => $h) {
+            $highlightId = isset($h['id']) && $h['id'] !== '' ? (string) $h['id'] : null;
+
+            $payload = [
+                'text_en' => $h['text_en'],
+                'text_ar' => $h['text_ar'],
+                'position' => $i,
+                'updated_at' => now(),
+            ];
+
+            if ($update && $highlightId) {
+                $updated = ProductHighlight::query()
+                    ->where('id', $highlightId)
+                    ->where('product_id', $productId)
+                    ->update($payload);
+
+                if ($updated) {
+                    continue;
+                }
+            }
+
+            ProductHighlight::query()->insert(array_merge($payload, [
+                'id' => (string) Str::uuid(),
+                'product_id' => $productId,
+                'created_at' => now(),
+            ]));
+        }
+    }
+
+    private function syncSpecifications(string $productId, array $specifications, bool $update = false): void
+    {
+        $rows = collect($specifications)
+            ->filter(fn($s) => filled($s['key_en'] ?? null) && filled($s['key_ar'] ?? null) && filled($s['value_en'] ?? null) && filled($s['value_ar'] ?? null))
+            ->values();
+
+        $incomingIds = $rows->pluck('id')->filter(fn($id) => filled($id))->values()->all();
+
+        if ($update) {
+            ProductSpecification::query()
+                ->where('product_id', $productId)
+                ->when(!empty($incomingIds), fn($q) => $q->whereNotIn('id', $incomingIds))
+                ->delete();
+        }
+
+        foreach ($rows as $i => $s) {
+            $specificationId = isset($s['id']) && $s['id'] !== '' ? (string) $s['id'] : null;
+
+            $payload = [
+                'key_en' => $s['key_en'],
+                'key_ar' => $s['key_ar'],
+                'value_en' => $s['value_en'],
+                'value_ar' => $s['value_ar'],
+                'position' => $i,
+                'updated_at' => now(),
+            ];
+
+            if ($update && $specificationId) {
+                $updated = ProductSpecification::query()
+                    ->where('id', $specificationId)
+                    ->where('product_id', $productId)
+                    ->update($payload);
+
+                if ($updated) {
+                    continue;
+                }
+            }
+
+            ProductSpecification::query()->insert(array_merge($payload, [
+                'id' => (string) Str::uuid(),
+                'product_id' => $productId,
+                'created_at' => now(),
+            ]));
         }
     }
 

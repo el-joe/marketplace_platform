@@ -133,8 +133,32 @@ class ReviewService
         return Review::where('product_id', $product->id)
             ->where('country_id', $countryId)
             ->where('status', ReviewStatus::Published)
-            ->with(['customer', 'vendorReply', 'files'])
+            ->with([
+                'customer',
+                'vendorReply',
+                'files',
+                'vendorListing.vendor:id,store_name',
+                'vendorListing.productVariant.variantAttributes.attribute',
+                'vendorListing.productVariant.variantAttributes.attributeValue',
+            ])
             ->orderByDesc('helpful_count')
             ->paginate(20);
+    }
+
+    public function ratingBreakdown(Product $product): array
+    {
+        $counts = Review::where('product_id', $product->id)
+            ->where('status', ReviewStatus::Published)
+            ->selectRaw('rating, COUNT(*) as count')
+            ->groupBy('rating')
+            ->pluck('count', 'rating');
+
+        $total = $counts->sum();
+
+        return collect(range(5, 1))->map(fn ($star) => [
+            'stars'      => $star,
+            'count'      => (int) ($counts[$star] ?? 0),
+            'percentage' => $total > 0 ? round((($counts[$star] ?? 0) / $total) * 100) : 0,
+        ])->values()->all();
     }
 }
