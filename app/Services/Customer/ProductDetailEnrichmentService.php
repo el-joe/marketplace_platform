@@ -228,8 +228,10 @@ class ProductDetailEnrichmentService
                 });
             }
 
-            return $query->limit(20)->get();
+            return $query->limit(20)->pluck('id')->toArray();
         });
+
+        $coupons = Coupon::whereIn('id', $coupons)->get();
 
         $price = $buyBoxListing->price ?? 0;
         $cheapestShippingFee = $this->cheapestShippingFeeEstimate($buyBoxListing);
@@ -311,10 +313,11 @@ class ProductDetailEnrichmentService
                 ->where('is_active', true)
                 ->whereIn('method_type', ['bnpl', 'wallet'])
                 ->orderBy('sort_order')
-                ->get(),
+                ->pluck('id')->toArray(),
         );
 
         $options = [];
+        $methods = CountryPaymentMethod::whereIn('id', $methods)->get();
 
         foreach ($methods as $method) {
             if ($method->min_order_cents > 0 && $method->min_order_cents > $productPriceCents) {

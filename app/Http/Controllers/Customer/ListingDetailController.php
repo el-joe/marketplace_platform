@@ -10,6 +10,7 @@ use App\Models\Country;
 use App\Models\VendorListing;
 use App\Models\Wishlist;
 use App\Services\Customer\ListingIdentifierService;
+use App\Services\Customer\ProductDetailEnrichmentService;
 use App\Services\Customer\ProductViewService;
 use App\Services\Customer\ReviewService;
 use App\Services\ListingShippingResolver;
@@ -24,6 +25,7 @@ class ListingDetailController extends Controller
         private readonly ListingShippingResolver $shipping,
         private readonly ProductViewService $viewService,
         private readonly ReviewService $reviewService,
+        private readonly ProductDetailEnrichmentService $enrichment,
     ) {
     }
 
@@ -58,6 +60,12 @@ class ListingDetailController extends Controller
             referrerUrl: $request->header('Referer'),
         );
 
+        $customer = auth('customer')->user();
+
+        $bestSellerBadge = $this->enrichment->getBestSellerBadge($product, $country);
+        $coupons = $this->enrichment->getApplicableCoupons($product, $country, $customer, $listing);
+        $paymentOptions = $this->enrichment->getPaymentOptions($country, $listing->price, $customer);
+
         $reviews = $product->reviews()
             ->where('status', 'published')
             ->with([
@@ -76,6 +84,9 @@ class ListingDetailController extends Controller
             'listing' => $this->listingShape($listing, $country, $isWishlisted),
             'seller' => $this->sellerShape($listing),
             'delivery_options' => $deliveryOptions->map(fn($method) => $this->deliveryOptionShape($method))->values()->all(),
+            'best_seller_badge' => $bestSellerBadge,
+            'coupons' => $coupons,
+            'payment_options' => $paymentOptions,
             'product' => $this->productShape($product, $listing),
             'variant' => $this->variantShape($listing->productVariant),
             'other_sellers' => $siblings['same_variant']->map(fn(VendorListing $l) => $this->otherSellerShape($l, $country))->values()->all(),
