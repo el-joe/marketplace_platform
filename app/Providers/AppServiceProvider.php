@@ -24,6 +24,7 @@ use App\Services\Carrier\CarrierFCMService;
 use App\Services\Delivery\DeliveryFCMService;
 use App\Notifications\Channels\VendorPushChannel;
 use App\Models\Address;
+use App\Models\PaymentMethod;
 use App\Models\Country;
 use App\Models\FlashSaleSubmission;
 use App\Models\MarketerCampaign;
@@ -40,6 +41,7 @@ use App\Models\MarketerWhatsappLink;
 use App\Models\DeliveryAgent;
 use App\Models\ShippingCompanySupervisor;
 use App\Policies\AddressPolicy;
+use App\Policies\PaymentMethodPolicy;
 use App\Policies\CarrierAgentPolicy;
 use App\Policies\SupervisorPolicy;
 use App\Policies\DeliveryAssignmentPolicy;
@@ -101,6 +103,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Address::class, AddressPolicy::class);
+        Gate::policy(PaymentMethod::class, PaymentMethodPolicy::class);
         Gate::policy(MarketerCampaign::class, CampaignPolicy::class);
         Gate::policy(MarketerQrCode::class, QrCodePolicy::class);
         Gate::policy(MarketerWhatsappLink::class, WhatsappLinkPolicy::class);

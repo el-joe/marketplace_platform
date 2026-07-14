@@ -8,6 +8,7 @@ use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Customer\CouponController;
 use App\Http\Controllers\Customer\DisputeController;
 use App\Http\Controllers\Customer\OrderController;
+use App\Http\Controllers\Customer\PaymentMethodController;
 use App\Http\Controllers\Customer\ProductController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\RefundController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Customer\PageController;
 use App\Http\Controllers\Customer\AccountController;
 use App\Http\Controllers\Customer\VendorPageController;
 use App\Http\Controllers\Customer\BrandPageController;
+use App\Http\Controllers\Customer\WalletController;
 use App\Models\Country;
 use Illuminate\Support\Facades\Route;
 
@@ -206,6 +208,14 @@ Route::prefix('v1/{country}')
                 Route::put('{address}/set-default', [AddressController::class, 'setDefault'])->name('set-default');
             });
 
+            // Payment methods
+            Route::prefix('payment-methods')->name('customer.payment-methods.')->group(function (): void {
+                Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
+                Route::post('/', [PaymentMethodController::class, 'store'])->name('store');
+                Route::patch('{paymentMethod}/default', [PaymentMethodController::class, 'setDefault'])->name('set-default');
+                Route::delete('{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');
+            });
+
             // Cart
             Route::prefix('cart')->name('customer.cart.')->group(function (): void {
                 Route::get('/', [CartController::class, 'show'])->name('show');
@@ -216,6 +226,13 @@ Route::prefix('v1/{country}')
                 Route::delete('/', [CartController::class, 'clear'])->name('clear');
                 Route::post('coupon', [CartController::class, 'applyCoupon'])->name('coupon.apply');
                 Route::delete('coupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
+            });
+
+            // Wallet
+            Route::prefix('wallet')->name('customer.wallet.')->group(function (): void {
+                Route::get('/', [WalletController::class, 'show'])->name('show');
+                Route::get('transactions', [WalletController::class, 'transactions'])->name('transactions');
+                Route::post('withdrawal', [WalletController::class, 'requestWithdrawal'])->name('withdrawal');
             });
 
             // Checkout

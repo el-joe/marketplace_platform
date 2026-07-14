@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use App\Enums\PaymentMethodType;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PaymentMethod extends Model
 {
+    use HasUuids, SoftDeletes;
+
     protected $fillable = [
         'customer_id',
         'type',
@@ -26,6 +30,7 @@ class PaymentMethod extends Model
     {
         return [
             'type' => PaymentMethodType::class,
+            'is_default' => 'boolean',
         ];
     }
 
@@ -42,5 +47,14 @@ class PaymentMethod extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(PaymentTransaction::class);
+    }
+
+    public function getCardDisplayAttribute(): ?string
+    {
+        if (!$this->card_brand || !$this->card_last4) {
+            return null;
+        }
+
+        return "{$this->card_brand} \u{2022}\u{2022}\u{2022}\u{2022} {$this->card_last4}";
     }
 }
