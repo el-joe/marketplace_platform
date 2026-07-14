@@ -102,6 +102,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::before(function ($user, $ability) {
+            if (method_exists($user, 'hasRole') && $user->hasRole('super_admin')) {
+                return true;
+            }
+            return null;
+        });
+
         Gate::policy(Address::class, AddressPolicy::class);
         Gate::policy(PaymentMethod::class, PaymentMethodPolicy::class);
         Gate::policy(MarketerCampaign::class, CampaignPolicy::class);

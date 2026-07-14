@@ -60,6 +60,8 @@ class PermissionSeeder extends Seeder
             'commissions.create',
             'commissions.edit',
             'ledger.view',
+            'analytics.view',
+            'transactions.view',
             // Marketing
             'banners.view',
             'banners.create',
@@ -81,6 +83,7 @@ class PermissionSeeder extends Seeder
             'ad_campaigns.edit',
             'ad_campaigns.delete',
             'ad_campaigns.manage',
+            'campaign_offers.view',
             'pages.view',
             'pages.manage',
             // Customers
