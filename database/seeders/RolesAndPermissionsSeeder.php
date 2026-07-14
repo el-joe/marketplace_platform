@@ -24,27 +24,7 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $adminPermissions = [
-            'dashboard.view',
-            'vendors.view', 'vendors.approve', 'vendors.suspend', 'vendors.edit',
-            'products.view', 'products.edit', 'products.delete',
-            'products.cost_data.view', 'products.cost_data.edit',
-            'orders.view', 'orders.edit', 'orders.cancel', 'orders.refund',
-            'flash_sales.view', 'flash_sales.create', 'flash_sales.edit',
-            'flash_sales.review_submissions',
-            'marketers.view', 'marketers.approve', 'marketers.campaigns',
-            'marketers.secret_promotions',
-            'warehouses.view', 'warehouses.edit',
-            'delivery.view', 'delivery.edit',
-            'shipping_companies.view', 'shipping_companies.approve',
-            'settings.view', 'settings.edit', 'settings.payment_gateways',
-            'portal_content.view', 'portal_content.edit',
-            'faqs.view', 'faqs.create', 'faqs.edit', 'faqs.delete',
-            'classifieds.view', 'classifieds.approve',
-            'travel.view', 'travel.approve', 'travel.reject', 'travel.suspend', 'travel.geography.manage',
-            'admins.view', 'admins.create', 'admins.edit', 'admins.delete',
-            'roles.manage',
-        ];
+        $adminPermissions = Permission::where('guard_name', 'admin')->pluck('name')->toArray();
 
         $vendorPermissions = [
             'listings.manage',
