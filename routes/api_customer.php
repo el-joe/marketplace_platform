@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Customer\NotificationController;
+use App\Http\Controllers\Api\Customer\QrCodeController;
 use App\Http\Controllers\Api\Customer\SecurityController;
 use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Customer\AuthController;
@@ -199,6 +200,9 @@ Route::prefix('v1/{country}')
                 Route::put('/', [ProfileController::class, 'update'])->name('update');
                 Route::put('password', [ProfileController::class, 'updatePassword'])->name('password');
                 Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
+
+                Route::get('qr-code', [QrCodeController::class, 'show'])->name('qr-code.show');
+                Route::post('qr-code/regenerate', [QrCodeController::class, 'regenerate'])->name('qr-code.regenerate');
             });
 
             // Security settings

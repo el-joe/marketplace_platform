@@ -528,6 +528,24 @@
             </div>
         </x-card>
 
+        {{-- QR Code card --}}
+        <x-card title="{{ __('admin.customers_section.qr_code') }}">
+            <div class="flex flex-col items-center gap-3 text-sm">
+                @if($customer->qr_code_path)
+                    <img src="{{ \Illuminate\Support\Facades\Storage::url($customer->qr_code_path) }}" class="w-40 h-40 rounded-lg border border-gray-200" alt="QR code">
+                @else
+                    <div class="w-40 h-40 rounded-lg border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400 text-center px-2">
+                        {{ __('admin.customers_section.qr_code_not_generated') }}
+                    </div>
+                @endif
+                <button type="button" id="regenerate-qr-btn"
+                    data-url="{{ route('admin.customers.regenerate-qr', $customer->id) }}"
+                    class="text-xs font-medium text-primary-600 hover:text-primary-700 border border-primary-200 rounded-lg px-3 py-1.5 hover:bg-primary-50 transition-colors">
+                    {{ __('admin.customers_section.regenerate_qr_code') }}
+                </button>
+            </div>
+        </x-card>
+
         {{-- Stats card --}}
         <x-card title="{{ __('admin.customers_section.stats') }}">
             <div class="space-y-2.5 text-sm">

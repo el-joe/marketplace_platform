@@ -455,4 +455,16 @@ class CustomerController extends Controller
 
         return response()->json(['message' => 'Notification sent.']);
     }
+
+    // ─── QR Code ──────────────────────────────────────────────────────────────
+
+    public function regenerateQrCode(Customer $customer, \App\Services\CustomerQrCodeService $service): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('customers.edit'), 403);
+
+        $qrUrl = $service->generate($customer);
+
+        return response()->json(['qr_url' => $qrUrl]);
+    }
 }

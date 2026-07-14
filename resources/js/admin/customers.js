@@ -463,6 +463,30 @@ document.addEventListener('DOMContentLoaded', () => {
      * COPYABLE FIELDS
      * ─────────────────────────────────────────────────────────────────────── */
 
+    /* ─────────────────────────────────────────────────────────────────────────
+     * REGENERATE QR CODE
+     * ─────────────────────────────────────────────────────────────────────── */
+
+    document.getElementById('regenerate-qr-btn')?.addEventListener('click', async function () {
+        const url = this.dataset.url;
+        if (!url) return;
+
+        setLoading(this, true, window.TRANSLATIONS?.regenerateQrCode || 'Regenerate QR Code');
+
+        try {
+            const data = await postJson(url);
+            const img = this.parentElement.querySelector('img');
+            if (img && data.qr_url) {
+                img.src = data.qr_url + '?t=' + Date.now();
+            }
+            window.Toast?.success(window.TRANSLATIONS?.qrCodeRegenerated || 'QR code regenerated.');
+        } catch (err) {
+            window.Toast?.error(err?.message || window.TRANSLATIONS?.actionFailed || 'Action failed.');
+        } finally {
+            setLoading(this, false, window.TRANSLATIONS?.regenerateQrCode || 'Regenerate QR Code');
+        }
+    });
+
     document.querySelectorAll('.js-copy').forEach(btn => {
         btn.addEventListener('click', () => {
             const value = btn.dataset.value;

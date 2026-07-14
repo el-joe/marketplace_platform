@@ -573,6 +573,7 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{customer}/adjust-loyalty', [CustomerController::class, 'adjustLoyaltyPoints'])->name('adjust-loyalty');
         Route::post('/{customer}/orders/datatable', [CustomerController::class, 'orders'])->name('orders.datatable');
         Route::post('/{customer}/send-notification', [CustomerController::class, 'sendNotification'])->name('send-notification');
+        Route::post('/{customer}/regenerate-qr', [CustomerController::class, 'regenerateQrCode'])->name('regenerate-qr');
         Route::get('/{customer}/notifications', [AdminNotificationController::class, 'customerNotifications'])->name('notifications')
             ->middleware('admin.permission:notifications.view');
     });
