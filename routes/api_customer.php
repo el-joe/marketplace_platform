@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Customer\NotificationController;
+use App\Http\Controllers\Api\Customer\SecurityController;
 use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Customer\AuthController;
 use App\Http\Controllers\Customer\CartController;
@@ -198,6 +199,29 @@ Route::prefix('v1/{country}')
                 Route::put('/', [ProfileController::class, 'update'])->name('update');
                 Route::put('password', [ProfileController::class, 'updatePassword'])->name('password');
                 Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
+            });
+
+            // Security settings
+            Route::prefix('security')->name('customer.security.')->group(function (): void {
+                Route::post('change-password', [SecurityController::class, 'changePassword'])->name('change-password');
+
+                Route::post('verify-email/send-otp', [SecurityController::class, 'sendEmailVerificationOtp'])
+                    ->middleware('throttle:5,1')
+                    ->name('verify-email.send-otp');
+                Route::post('verify-email/verify', [SecurityController::class, 'verifyEmailOtp'])
+                    ->middleware('throttle:10,1')
+                    ->name('verify-email.verify');
+
+                Route::post('verify-phone/send-otp', [SecurityController::class, 'sendPhoneVerificationOtp'])
+                    ->middleware('throttle:5,1')
+                    ->name('verify-phone.send-otp');
+                Route::post('verify-phone/verify', [SecurityController::class, 'verifyPhoneOtp'])
+                    ->middleware('throttle:10,1')
+                    ->name('verify-phone.verify');
+
+                Route::get('active-sessions', [SecurityController::class, 'activeSessions'])->name('active-sessions');
+                Route::delete('sessions/all', [SecurityController::class, 'revokeAllDevices'])->name('sessions.revoke-all');
+                Route::delete('sessions/{device_token_id}', [SecurityController::class, 'revokeDevice'])->name('sessions.revoke');
             });
 
             // Wishlist
