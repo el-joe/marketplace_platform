@@ -263,6 +263,15 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/{claim}', [\App\Http\Controllers\Partner\ClaimController::class, 'show'])->name('show');
     });
 
+    // ─── Warranty Claims ──────────────────────────────────────────────────────
+    Route::prefix('warranty-claims')->name('warranty-claims.')
+        ->controller(\App\Http\Controllers\Partner\WarrantyClaimController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{claim}', 'show')->name('show');
+            Route::post('/{claim}/respond', 'respond')->name('respond');
+        });
+
     // ─── Warehouses (My Warehouse module) ────────────────────────────────────────
     Route::prefix('warehouses')->name('warehouses.')->group(function () {
         Route::get('/', [WarehouseController::class, 'index'])->name('index');

@@ -158,6 +158,8 @@ class PermissionRoleSeeder extends Seeder
             'orders.refund',
             'disputes.view',
             'disputes.resolve',
+            'warranty_claims.view',
+            'warranty_claims.manage',
             'coupons.view',
             'flash_sales.view',
             'support.view',

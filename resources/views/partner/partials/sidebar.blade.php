@@ -47,6 +47,7 @@
         <x-partner-nav-group label="{{ __('partner.nav.orders') }}">
             <x-partner-nav-item route="partner.orders.index" icon="shopping-bag" label="{{ __('partner.nav.my_orders') }}" />
             <x-partner-nav-item route="partner.returns.index" icon="arrow-uturn-left" label="{{ __('partner.nav.returns') }}" />
+            <x-partner-nav-item route="partner.warranty-claims.index" icon="shield-check" label="{{ __('partner.nav.warranty_claims') }}" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.catalog') }}">

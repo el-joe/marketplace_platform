@@ -27,6 +27,7 @@ use App\Http\Controllers\Customer\AccountController;
 use App\Http\Controllers\Customer\VendorPageController;
 use App\Http\Controllers\Customer\BrandPageController;
 use App\Http\Controllers\Customer\WalletController;
+use App\Http\Controllers\Customer\WarrantyClaimController;
 use App\Models\Country;
 use Illuminate\Support\Facades\Route;
 
@@ -282,6 +283,14 @@ Route::prefix('v1/{country}')
             Route::prefix('refunds')->name('customer.refunds.')->group(function (): void {
                 Route::get('/', [RefundController::class, 'index'])->name('index');
                 Route::get('{id}', [RefundController::class, 'show'])->name('show');
+            });
+
+            // Warranty claims
+            Route::prefix('warranty-claims')->name('customer.warranty-claims.')->group(function (): void {
+                Route::get('/', [WarrantyClaimController::class, 'index'])->name('index');
+                Route::post('/', [WarrantyClaimController::class, 'store'])->name('store');
+                Route::get('{id}', [WarrantyClaimController::class, 'show'])->name('show');
+                Route::post('{id}/messages', [WarrantyClaimController::class, 'addMessage'])->name('messages.store');
             });
 
             // Support tickets

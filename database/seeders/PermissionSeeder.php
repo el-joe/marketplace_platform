@@ -93,6 +93,9 @@ class PermissionSeeder extends Seeder
             // Disputes
             'disputes.view',
             'disputes.resolve',
+            // Warranty Claims
+            'warranty_claims.view',
+            'warranty_claims.manage',
             // Support
             'support.view',
             'support.reply',

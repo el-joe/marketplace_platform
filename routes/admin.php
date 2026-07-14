@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\DisputeController;
+use App\Http\Controllers\Admin\WarrantyClaimController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\CustomerController;
@@ -500,6 +501,16 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{dispute}/assign-me', [DisputeController::class, 'assignMe'])->name('assign-me');
         Route::post('/{dispute}/update-status', [DisputeController::class, 'updateStatus'])->name('update-status');
         Route::post('/{dispute}/resolve', [DisputeController::class, 'resolve'])->name('resolve');
+    });
+
+    // ─── Warranty Claims ─────────────────────────────────────────────────────────
+    Route::prefix('warranty-claims')->name('warranty-claims.')->middleware('admin.permission:warranty_claims.view')->group(function () {
+        Route::post('/datatable', [WarrantyClaimController::class, 'datatable'])->name('datatable');
+        Route::get('/', [WarrantyClaimController::class, 'index'])->name('index');
+        Route::get('/{claim}', [WarrantyClaimController::class, 'show'])->name('show');
+        Route::post('/{claim}/status', [WarrantyClaimController::class, 'updateStatus'])->name('status');
+        Route::post('/{claim}/resolve', [WarrantyClaimController::class, 'resolve'])->name('resolve');
+        Route::post('/{claim}/messages', [WarrantyClaimController::class, 'addMessage'])->name('messages');
     });
 
     // ─── Stop Impersonating (no extra permission required, just auth) ─────────────

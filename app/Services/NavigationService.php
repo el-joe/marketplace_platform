@@ -100,6 +100,13 @@ class NavigationService
                         'badge' => $this->cachedBadge('open_disputes', fn() => $this->countOpenDisputes()),
                     ],
                     [
+                        'label' => __('admin.nav.warranty_claims'),
+                        'route' => 'admin.warranty-claims.index',
+                        'icon' => 'shield-check',
+                        'permission' => 'warranty_claims.view',
+                        'badge' => $this->cachedBadge('unresolved_warranty_claims', fn() => $this->countUnresolvedWarrantyClaims()),
+                    ],
+                    [
                         'label' => __('admin.nav.coupons'),
                         'route' => 'admin.coupons.index',
                         'icon' => 'ticket',
@@ -592,6 +599,20 @@ class NavigationService
         }
         try {
             return (int) \App\Models\Dispute::query()->where('status', DisputeStatus::Open->value)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countUnresolvedWarrantyClaims(): int
+    {
+        if (!class_exists(\App\Models\WarrantyClaim::class)) {
+            return 0;
+        }
+        try {
+            return (int) \App\Models\WarrantyClaim::query()
+                ->whereNotIn('status', [\App\Models\WarrantyClaim::STATUS_RESOLVED, \App\Models\WarrantyClaim::STATUS_REJECTED])
+                ->count();
         } catch (\Throwable) {
             return 0;
         }
