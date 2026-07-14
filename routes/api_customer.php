@@ -6,6 +6,7 @@ use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CategoryController;
 use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Customer\CouponController;
+use App\Http\Controllers\Customer\GiftCardController;
 use App\Http\Controllers\Customer\DisputeController;
 use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\PaymentMethodController;
@@ -146,6 +147,11 @@ Route::prefix('v1/{country}')
             Route::get('suggestions', [SearchController::class, 'suggestions'])->name('suggestions');
         });
 
+        // ── Gift cards (public balance check) ───────────────────────────────────
+        Route::prefix('gift-cards')->name('customer.gift-cards.')->group(function (): void {
+            Route::post('check-balance', [GiftCardController::class, 'checkBalance'])->name('check-balance');
+        });
+
         // ── Public auth endpoints ─────────────────────────────────────────────
         Route::prefix('auth')->name('customer.auth.')->group(function (): void {
             Route::post('register', [AuthController::class, 'register'])
@@ -234,6 +240,12 @@ Route::prefix('v1/{country}')
                 Route::get('/', [WalletController::class, 'show'])->name('show');
                 Route::get('transactions', [WalletController::class, 'transactions'])->name('transactions');
                 Route::post('withdrawal', [WalletController::class, 'requestWithdrawal'])->name('withdrawal');
+            });
+
+            // Gift cards
+            Route::prefix('gift-cards')->name('customer.gift-cards.')->group(function (): void {
+                Route::get('/', [GiftCardController::class, 'myCodes'])->name('index');
+                Route::post('purchase', [GiftCardController::class, 'purchase'])->name('purchase');
             });
 
             // Checkout

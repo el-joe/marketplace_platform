@@ -9,6 +9,7 @@ use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Country;
 use App\Models\Customer;
+use App\Models\GiftCard;
 use App\Models\Order;
 use App\Models\ShippingRate;
 use App\Models\VendorListing;
@@ -308,6 +309,7 @@ class CheckoutCalculationService
         int $codFeeCents,
         int $discountCents,
         Country $country,
+        int $giftCardAppliedCents = 0,
     ): array {
         $subtotal = 0;
         foreach ($cartItems as $item) {
@@ -316,7 +318,7 @@ class CheckoutCalculationService
 
         $taxable = max(0, $subtotal - $discountCents);
         $tax = $this->calculateTax($taxable, $country);
-        $total = $subtotal - $discountCents + $shippingFeeCents + $codFeeCents + $tax;
+        $total = max(0, $subtotal - $discountCents + $shippingFeeCents + $codFeeCents + $tax - $giftCardAppliedCents);
 
         return [
             'subtotal_cents' => $subtotal,
@@ -324,8 +326,31 @@ class CheckoutCalculationService
             'shipping_cents' => $shippingFeeCents,
             'cod_fee_cents' => $codFeeCents,
             'tax_cents' => $tax,
+            'gift_card_applied_cents' => $giftCardAppliedCents,
             'total_cents' => $total,
             'currency' => $country->currency_code,
         ];
+    }
+
+    /**
+     * Validate a gift card code and compute the amount that can be applied
+     * against the given order total. Does not mutate the gift card balance —
+     * actual redemption happens at order-placing time via GiftCardService::redeem().
+     */
+    public function applyGiftCard(string $code, string $currency, int $orderTotalCents): array
+    {
+        $giftCard = GiftCard::active()->where('code', $code)->first();
+
+        if (! $giftCard) {
+            return ['gift_card' => null, 'applied_cents' => 0, 'error' => 'Gift card not found or inactive.'];
+        }
+
+        if ($giftCard->currency !== $currency) {
+            return ['gift_card' => null, 'applied_cents' => 0, 'error' => 'Gift card currency does not match order currency.'];
+        }
+
+        $appliedCents = min($giftCard->balance_cents, $orderTotalCents);
+
+        return ['gift_card' => $giftCard, 'applied_cents' => $appliedCents, 'error' => null];
     }
 }

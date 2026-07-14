@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\GiftCardController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\DisputeController;
 use App\Http\Controllers\Admin\WarrantyClaimController;
@@ -477,6 +478,18 @@ Route::middleware('auth.admin')->group(function () {
         Route::put('/{coupon}', [CouponController::class, 'update'])->name('update');
         Route::put('/{coupon}/toggle-active', [CouponController::class, 'toggleActive'])->name('toggle-active');
         Route::delete('/{coupon}', [CouponController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Gift Cards ──────────────────────────────────────────────────────────────
+    Route::prefix('gift-cards')->name('gift-cards.')->middleware('admin.permission:gift_cards.view')->group(function () {
+        Route::get('/create', [GiftCardController::class, 'create'])->name('create');
+        Route::post('/datatable', [GiftCardController::class, 'datatable'])->name('datatable');
+        Route::get('/', [GiftCardController::class, 'index'])->name('index');
+        Route::post('/', [GiftCardController::class, 'store'])->name('store');
+        Route::get('/{giftCard}', [GiftCardController::class, 'show'])->name('show');
+        Route::post('/{giftCard}/cancel', [GiftCardController::class, 'cancel'])->name('cancel');
+        Route::post('/{giftCard}/extend', [GiftCardController::class, 'extend'])->name('extend');
+        Route::post('/{giftCard}/adjust', [GiftCardController::class, 'adjust'])->name('adjust');
     });
 
     // ─── Support Tickets ──────────────────────────────────────────────────────────

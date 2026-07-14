@@ -30,6 +30,7 @@ use App\Models\WarehouseInventory;
 use App\Services\Customer\CartService;
 use App\Services\Customer\CheckoutCalculationService;
 use App\Services\Customer\ListingIdentifierService;
+use App\Services\GiftCardService;
 use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,6 +44,7 @@ class CheckoutController extends Controller
         private readonly CheckoutCalculationService $calculationService,
         private readonly ListingIdentifierService $listingIdentifierService,
         private readonly PaymentService $paymentService,
+        private readonly GiftCardService $giftCardService,
     ) {}
 
     public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
@@ -185,12 +187,41 @@ class CheckoutController extends Controller
             ];
         }
 
-        $summary = $this->calculationService->buildOrderSummary(
+        $preGiftCardSummary = $this->calculationService->buildOrderSummary(
             $cartItems,
             $shippingResult['fee'],
             $codFeeCents,
             $discountCents,
             $country
+        );
+
+        $giftCardResponse = null;
+        $giftCardAppliedCents = 0;
+        if (! empty($validated['gift_card_code'])) {
+            $giftCardResult = $this->calculationService->applyGiftCard(
+                $validated['gift_card_code'],
+                $cart->currency,
+                $preGiftCardSummary['total_cents']
+            );
+
+            if ($giftCardResult['error']) {
+                return ApiResponse::error($giftCardResult['error'], [], 422);
+            }
+
+            $giftCardAppliedCents = $giftCardResult['applied_cents'];
+            $giftCardResponse = [
+                'code' => $validated['gift_card_code'],
+                'applied_cents' => $giftCardAppliedCents,
+            ];
+        }
+
+        $summary = $this->calculationService->buildOrderSummary(
+            $cartItems,
+            $shippingResult['fee'],
+            $codFeeCents,
+            $discountCents,
+            $country,
+            $giftCardAppliedCents
         );
 
         $availablePaymentMethods = CountryPaymentMethod::where('country_id', $country->id)
@@ -241,6 +272,7 @@ class CheckoutController extends Controller
             'payment_method' => $validated['payment_method'],
             'available_payment_methods' => $availablePaymentMethods,
             'coupon' => $couponResponse,
+            'gift_card' => $giftCardResponse,
             'items' => $items,
         ], 'Checkout preview ready');
     }
@@ -323,7 +355,7 @@ class CheckoutController extends Controller
             $discountCents = $couponResult['discount'];
         }
 
-        $summary = $this->calculationService->buildOrderSummary(
+        $preGiftCardSummary = $this->calculationService->buildOrderSummary(
             $cartItems,
             $shippingFeeCents,
             $codFeeCents,
@@ -331,12 +363,39 @@ class CheckoutController extends Controller
             $country
         );
 
+        $giftCard = null;
+        $giftCardAppliedCents = 0;
+        if (! empty($validated['gift_card_code'])) {
+            $giftCardResult = $this->calculationService->applyGiftCard(
+                $validated['gift_card_code'],
+                $cart->currency,
+                $preGiftCardSummary['total_cents']
+            );
+
+            if ($giftCardResult['error']) {
+                return ApiResponse::error($giftCardResult['error'], [], 422);
+            }
+
+            $giftCard = $giftCardResult['gift_card'];
+            $giftCardAppliedCents = $giftCardResult['applied_cents'];
+        }
+
+        $summary = $this->calculationService->buildOrderSummary(
+            $cartItems,
+            $shippingFeeCents,
+            $codFeeCents,
+            $discountCents,
+            $country,
+            $giftCardAppliedCents
+        );
+
         $attribution = session('marketer_attribution', []);
 
         try {
             $result = DB::transaction(function () use (
                 $customer, $country, $address, $validated, $coupon,
-                $cartItems, $summary, $shippingFeeCents, $attribution
+                $cartItems, $summary, $shippingFeeCents, $attribution,
+                $giftCard, $giftCardAppliedCents
             ) {
                 $order = Order::create([
                     'order_number' => $this->generateOrderNumber(),
@@ -471,6 +530,10 @@ class CheckoutController extends Controller
                     }
 
                     $subOrders[] = $subOrder;
+                }
+
+                if ($giftCard && $giftCardAppliedCents > 0) {
+                    $this->giftCardService->redeem($giftCard, $giftCardAppliedCents, $order, $customer);
                 }
 
                 if ($coupon) {

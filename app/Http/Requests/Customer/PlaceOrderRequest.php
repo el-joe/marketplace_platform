@@ -19,6 +19,7 @@ class PlaceOrderRequest extends FormRequest
             'shipping_method_id' => ['required', 'uuid', 'exists:shipping_methods,id'],
             'payment_method'     => ['required', Rule::in(['card', 'wallet', 'cod', 'bnpl', 'bank_transfer'])],
             'coupon_code'        => ['nullable', 'string', 'max:50'],
+            'gift_card_code'     => ['nullable', 'string', 'max:20'],
             'customer_notes'     => ['nullable', 'string', 'max:500'],
             'idempotency_key'    => ['required', 'string', 'max:100'],
             'gateway_token'      => ['required_if:payment_method,card', 'nullable', 'string'],
