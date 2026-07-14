@@ -28,6 +28,9 @@ class Notification extends Model
         // notification class name (e.g. App\Notifications\Vendor\...), which
         // is not a closed set of values.
         'channel' => NotificationChannel::class,
+        'data' => 'array',
+        'read_at' => 'datetime',
+        'sent_at' => 'datetime',
     ];
 
     /** The notifiable entity (Admin, Customer, Vendor). */

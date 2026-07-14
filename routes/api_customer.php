@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Customer\NotificationController;
 use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Customer\AuthController;
 use App\Http\Controllers\Customer\CartController;
@@ -312,6 +313,16 @@ Route::prefix('v1/{country}')
                 Route::get('{ticket_number}', [SupportTicketController::class, 'show'])->name('show');
                 Route::post('{ticket_number}/messages', [SupportTicketController::class, 'addMessage'])->name('messages.store');
                 Route::put('{ticket_number}/rate', [SupportTicketController::class, 'rate'])->name('rate');
+            });
+
+            // Notifications
+            Route::prefix('notifications')->name('customer.notifications.')->group(function (): void {
+                Route::get('/', [NotificationController::class, 'index'])->name('index');
+                Route::get('unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
+                Route::patch('read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
+                Route::patch('{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
+                Route::post('device-token', [NotificationController::class, 'registerDevice'])->name('device-token.store');
+                Route::delete('device-token', [NotificationController::class, 'removeDevice'])->name('device-token.destroy');
             });
 
             // Account dashboard

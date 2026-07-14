@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\WarrantyClaimController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\AdCampaignController;
 use App\Http\Controllers\Admin\VendorCampaignOfferController;
@@ -572,7 +573,24 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{customer}/adjust-loyalty', [CustomerController::class, 'adjustLoyaltyPoints'])->name('adjust-loyalty');
         Route::post('/{customer}/orders/datatable', [CustomerController::class, 'orders'])->name('orders.datatable');
         Route::post('/{customer}/send-notification', [CustomerController::class, 'sendNotification'])->name('send-notification');
+        Route::get('/{customer}/notifications', [AdminNotificationController::class, 'customerNotifications'])->name('notifications')
+            ->middleware('admin.permission:notifications.view');
     });
+
+    // ─── Notification Management (platform-wide) ─────────────────────────────
+    // NOTE: prefixed "notification-management" rather than "notifications" to avoid
+    // colliding with the shared per-admin bell-dropdown routes registered above
+    // (admin.notifications.index/recent/unread/...).
+    Route::prefix('notification-management')->name('notification-management.')
+        ->middleware('admin.permission:notifications.view')
+        ->group(function () {
+            Route::get('/', [AdminNotificationController::class, 'index'])->name('index');
+            Route::get('/datatable', [AdminNotificationController::class, 'datatable'])->name('datatable');
+            Route::get('/send', [AdminNotificationController::class, 'create'])->name('send')
+                ->middleware('admin.permission:notifications.send');
+            Route::post('/send', [AdminNotificationController::class, 'sendManual'])->name('send.store')
+                ->middleware('admin.permission:notifications.send');
+        });
 
     // ─── Banners ──────────────────────────────────────────────────────────────────
     Route::prefix('banners')->name('banners.')->middleware('admin.permission:banners.view')->group(function () {

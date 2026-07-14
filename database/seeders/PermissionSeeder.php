@@ -90,6 +90,9 @@ class PermissionSeeder extends Seeder
             'customers.view',
             'customers.edit',
             'customers.suspend',
+            // Notifications
+            'notifications.view',
+            'notifications.send',
             // Reviews
             'reviews.view',
             'reviews.approve',

@@ -168,6 +168,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.notifications'),
+                        'route' => 'admin.notification-management.index',
+                        'icon' => 'bell',
+                        'permission' => 'notifications.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.vendors'),
                         'route' => 'admin.vendors.index',
                         'icon' => 'building-storefront',
