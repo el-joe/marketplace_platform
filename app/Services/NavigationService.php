@@ -121,6 +121,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.gift_cards'),
+                        'route' => 'admin.gift-cards.index',
+                        'icon' => 'gift',
+                        'permission' => 'gift_cards.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.support_tickets'),
                         'route' => 'admin.support-tickets.index',
                         'icon' => 'chat-bubble-left-right',

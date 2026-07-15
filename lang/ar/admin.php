@@ -284,6 +284,7 @@ return [
         'disputes'              => 'النزاعات',
         'coupons'               => 'القسائم',
         'flash_sales'           => 'العروض السريعة',
+        'gift_cards'            => 'بطاقات الهدايا',
         'support_tickets'       => 'تذاكر الدعم',
         'marketing'             => 'التسويق',
         'banners'               => 'البانرات',

@@ -285,6 +285,7 @@ return [
         'warranty_claims'       => 'Warranty Claims',
         'coupons'               => 'Coupons',
         'flash_sales'           => 'Flash Sales',
+        'gift_cards'            => 'Gift Cards',
         'support_tickets'       => 'Support Tickets',
         'marketing'             => 'Marketing',
         'banners'               => 'Banners',
