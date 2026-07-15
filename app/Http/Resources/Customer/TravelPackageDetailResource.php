@@ -21,6 +21,12 @@ class TravelPackageDetailResource extends JsonResource
             'destination_city'    => $this->destination_city,
             'price_cents'         => $this->price_cents,
             'currency'            => $this->currency,
+            'price_tiers'         => ($this->pricing_tiers_enabled && $this->show_pricing_tiers_to_customer && $this->relationLoaded('pricingTiers'))
+                ? $this->pricingTiers->map(fn ($tier) => [
+                    'travelers_count' => $tier->travelers_count,
+                    'price_cents'     => $tier->price_cents,
+                ])->values()
+                : null,
             'duration_days'       => $this->duration_days,
             'duration_nights'     => $this->duration_nights,
             'departure_date'      => $this->departure_date?->toDateString(),

@@ -59,7 +59,7 @@ class TravelBookingService
     public function book(TravelPackage $package, Customer $customer, array $data): TravelBooking
     {
         $travelersCount = (int) $data['travelers_count'];
-        $totalCents     = $package->price_cents * $travelersCount;
+        $totalCents     = $package->priceForTravelersCount($travelersCount);
 
         $passportPath = null;
         if (isset($data['passport_file']) && $data['passport_file'] instanceof UploadedFile) {

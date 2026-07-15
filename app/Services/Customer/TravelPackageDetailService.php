@@ -17,6 +17,7 @@ class TravelPackageDetailService
                 'media'       => fn ($q) => $q->orderBy('position'),
                 'categories:id,name_en,name_ar,slug',
                 'agency:id,name,logo_path,license_number',
+                'pricingTiers' => fn ($q) => $q->orderBy('travelers_count'),
             ])
             ->first();
     }

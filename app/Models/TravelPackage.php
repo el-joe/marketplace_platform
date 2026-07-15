@@ -27,6 +27,8 @@ class TravelPackage extends Model
         'destination_travel_city_id',
         'price_cents',
         'currency',
+        'pricing_tiers_enabled',
+        'show_pricing_tiers_to_customer',
         'duration_days',
         'duration_nights',
         'departure_date',
@@ -63,6 +65,8 @@ class TravelPackage extends Model
             'approved_at' => 'datetime',
             'contract_uploaded_at' => 'datetime',
             'status' => TravelPackageStatus::class,
+            'pricing_tiers_enabled' => 'boolean',
+            'show_pricing_tiers_to_customer' => 'boolean',
         ];
     }
 
@@ -81,6 +85,11 @@ class TravelPackage extends Model
     public function media(): HasMany
     {
         return $this->hasMany(TravelPackageMedia::class)->orderBy('position');
+    }
+
+    public function pricingTiers(): HasMany
+    {
+        return $this->hasMany(TravelPackagePricingTier::class)->orderBy('travelers_count');
     }
 
     public function bookings(): HasMany
@@ -113,6 +122,41 @@ class TravelPackage extends Model
     public function priceFormatted(): string
     {
         return \App\Helpers\CurrencyFormatter::formatPrice($this->price_cents, $this->currency);
+    }
+
+    /**
+     * Total price for a given number of travelers: uses an exact-match
+     * pricing tier when tiers are enabled and one exists for that count,
+     * otherwise falls back to the flat price multiplied by the count.
+     */
+    public function priceForTravelersCount(int $travelersCount): int
+    {
+        if ($this->pricing_tiers_enabled) {
+            $tier = $this->pricingTiers->firstWhere('travelers_count', $travelersCount);
+
+            if ($tier) {
+                return $tier->price_cents;
+            }
+        }
+
+        return $this->price_cents * $travelersCount;
+    }
+
+    /**
+     * Replaces this package's pricing tiers with the given set. Each item
+     * must contain travelers_count and price_cents.
+     */
+    public function syncPricingTiers(array $tiers): void
+    {
+        $this->pricingTiers()->delete();
+
+        foreach (array_values($tiers) as $position => $tier) {
+            $this->pricingTiers()->create([
+                'travelers_count' => $tier['travelers_count'],
+                'price_cents' => $tier['price_cents'],
+                'position' => $position,
+            ]);
+        }
     }
 
     /**

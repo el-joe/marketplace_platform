@@ -36,7 +36,7 @@ class PackageController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = TravelPackage::where('travel_agency_id', $this->agencyId())
-            ->with(['media', 'destinationCountry', 'destinationCity'])
+            ->with(['media', 'destinationCountry', 'destinationCity', 'pricingTiers'])
             ->latest();
 
         if ($status = $request->query('status')) {
@@ -52,16 +52,21 @@ class PackageController extends Controller
 
     public function store(StorePackageRequest $request): JsonResponse
     {
+        $data = $request->validated();
+        $priceTiers = $data['price_tiers'] ?? [];
+        unset($data['price_tiers']);
+
         $package = TravelPackage::create([
-            ...$request->validated(),
+            ...$data,
             'travel_agency_id' => $this->agencyId(),
             'status' => TravelPackageStatus::Draft,
         ]);
 
+        $package->syncPricingTiers($priceTiers);
         $this->storeContractFile($request, $package);
         $this->handleMediaUploads($request, $package);
 
-        $package->load(['media', 'destinationCountry', 'destinationCity']);
+        $package->load(['media', 'destinationCountry', 'destinationCity', 'pricingTiers']);
 
         return ApiResponse::success(new TravelPackageResource($package), 'Package saved as draft.', 201);
     }
@@ -71,7 +76,7 @@ class PackageController extends Controller
     public function show(TravelPackage $package): JsonResponse
     {
         $this->authorise($package);
-        $package->load(['media', 'destinationCountry', 'destinationCity']);
+        $package->load(['media', 'destinationCountry', 'destinationCity', 'pricingTiers']);
 
         return ApiResponse::success(new TravelPackageResource($package));
     }
@@ -86,7 +91,12 @@ class PackageController extends Controller
             return ApiResponse::error('Active packages cannot be edited. Contact support.', [], 422);
         }
 
-        $package->update($request->validated());
+        $data = $request->validated();
+        $priceTiers = $data['price_tiers'] ?? [];
+        unset($data['price_tiers']);
+
+        $package->update($data);
+        $package->syncPricingTiers($priceTiers);
 
         if ($request->hasFile('contract_file')) {
             if ($package->contract_file_path) {
@@ -97,7 +107,7 @@ class PackageController extends Controller
 
         $this->handleMediaUploads($request, $package);
 
-        $package->load(['media', 'destinationCountry', 'destinationCity']);
+        $package->load(['media', 'destinationCountry', 'destinationCity', 'pricingTiers']);
 
         return ApiResponse::success(new TravelPackageResource($package), 'Package updated.');
     }

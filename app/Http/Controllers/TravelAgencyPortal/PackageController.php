@@ -68,6 +68,11 @@ class PackageController extends Controller
             'destination_travel_city_id'    => ['nullable', 'uuid', 'exists:travel_cities,id'],
             'price_cents'                   => ['required', 'integer', 'min:1'],
             'currency'                      => ['required', 'string', 'size:3', 'exists:currencies,code'],
+            'pricing_tiers_enabled'         => ['nullable', 'boolean'],
+            'show_pricing_tiers_to_customer' => ['nullable', 'boolean'],
+            'price_tiers'                   => ['nullable', 'array'],
+            'price_tiers.*.travelers_count' => ['required_with:price_tiers', 'integer', 'min:1'],
+            'price_tiers.*.price_cents'     => ['required_with:price_tiers', 'integer', 'min:1'],
             'duration_days'                 => ['required', 'integer', 'min:1'],
             'duration_nights'               => ['required', 'integer', 'min:0'],
             'departure_date'                => ['required', 'date', 'after:today'],
@@ -80,12 +85,16 @@ class PackageController extends Controller
             'contract_file'                 => ['required', 'file', 'mimes:pdf', 'max:10240'],
         ]);
 
+        $priceTiers = $data['price_tiers'] ?? [];
+        unset($data['price_tiers']);
+
         $package = TravelPackage::create([
             ...$data,
             'travel_agency_id' => $this->agencyId(),
             'status' => TravelPackageStatus::Draft,
         ]);
 
+        $package->syncPricingTiers($priceTiers);
         $this->storeContractFile($request, $package);
         $this->handleMediaUploads($request, $package);
 
@@ -108,7 +117,7 @@ class PackageController extends Controller
     public function edit(TravelPackage $package): View
     {
         $this->authorise($package);
-        $package->load('media');
+        $package->load(['media', 'pricingTiers']);
 
         return view('travel-agency.packages.edit', ['package' => $package, ...$this->formData()]);
     }
@@ -130,6 +139,11 @@ class PackageController extends Controller
             'destination_travel_city_id'    => ['nullable', 'uuid', 'exists:travel_cities,id'],
             'price_cents'                   => ['required', 'integer', 'min:1'],
             'currency'                      => ['required', 'string', 'size:3', 'exists:currencies,code'],
+            'pricing_tiers_enabled'         => ['nullable', 'boolean'],
+            'show_pricing_tiers_to_customer' => ['nullable', 'boolean'],
+            'price_tiers'                   => ['nullable', 'array'],
+            'price_tiers.*.travelers_count' => ['required_with:price_tiers', 'integer', 'min:1'],
+            'price_tiers.*.price_cents'     => ['required_with:price_tiers', 'integer', 'min:1'],
             'duration_days'                 => ['required', 'integer', 'min:1'],
             'duration_nights'               => ['required', 'integer', 'min:0'],
             'departure_date'                => ['required', 'date'],
@@ -142,7 +156,11 @@ class PackageController extends Controller
             'contract_file'                 => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
         ]);
 
+        $priceTiers = $data['price_tiers'] ?? [];
+        unset($data['price_tiers']);
+
         $package->update($data);
+        $package->syncPricingTiers($priceTiers);
 
         if ($request->hasFile('contract_file')) {
             if ($package->contract_file_path) {

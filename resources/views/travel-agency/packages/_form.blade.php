@@ -146,6 +146,43 @@
     </div>
 </div>
 
+{{-- Pricing Tiers --}}
+<div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+    <div class="flex items-center justify-between">
+        <h3 class="font-bold text-gray-800">{{ __('travel.packages.pricing_tiers') }}</h3>
+        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+            <input type="hidden" name="pricing_tiers_enabled" value="0">
+            <input type="checkbox" id="pricing_tiers_enabled" name="pricing_tiers_enabled" value="1"
+                   {{ old('pricing_tiers_enabled', $pkg?->pricing_tiers_enabled) ? 'checked' : '' }}>
+            {{ __('travel.packages.pricing_tiers_enabled') }}
+        </label>
+    </div>
+    <p class="text-xs text-gray-500">{{ __('travel.packages.pricing_tiers_description') }}</p>
+
+    <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+        <input type="hidden" name="show_pricing_tiers_to_customer" value="0">
+        <input type="checkbox" name="show_pricing_tiers_to_customer" value="1"
+               {{ old('show_pricing_tiers_to_customer', $pkg?->show_pricing_tiers_to_customer ?? true) ? 'checked' : '' }}>
+        {{ __('travel.packages.show_pricing_tiers_to_customer') }}
+    </label>
+
+    <div id="pricing-tiers-rows" class="space-y-2">
+        @php $existingTiers = old('price_tiers', $pkg?->pricingTiers?->map(fn ($t) => ['travelers_count' => $t->travelers_count, 'price_cents' => $t->price_cents])->all() ?? []); @endphp
+        @foreach($existingTiers as $tier)
+        <div class="pricing-tier-row grid grid-cols-[1fr_1fr_auto] gap-3 items-center">
+            <input type="number" name="price_tiers[][travelers_count]" value="{{ $tier['travelers_count'] }}" min="1"
+                   placeholder="{{ __('travel.packages.travelers_count') }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
+            <input type="number" name="price_tiers[][price_cents]" value="{{ $tier['price_cents'] }}" min="1"
+                   placeholder="{{ __('travel.packages.price_cents') }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
+            <button type="button" class="remove-tier-row text-red-500 text-sm px-2">&times;</button>
+        </div>
+        @endforeach
+    </div>
+    <button type="button" id="add-tier-row" class="text-sm text-blue-600 font-medium">+ {{ __('travel.packages.add_pricing_tier') }}</button>
+</div>
+
 {{-- Inclusions --}}
 <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
     <h3 class="font-bold text-gray-800">{{ __('travel.packages.inclusions') }}</h3>
@@ -252,5 +289,30 @@
     if (initialCountry) {
         loadCities(initialCountry, preselectedCity);
     }
+})();
+
+(function () {
+    const rowsContainer = document.getElementById('pricing-tiers-rows');
+    const addButton     = document.getElementById('add-tier-row');
+
+    function makeRow() {
+        const row = document.createElement('div');
+        row.className = 'pricing-tier-row grid grid-cols-[1fr_1fr_auto] gap-3 items-center';
+        row.innerHTML =
+            '<input type="number" name="price_tiers[][travelers_count]" min="1" placeholder="{{ __('travel.packages.travelers_count') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">' +
+            '<input type="number" name="price_tiers[][price_cents]" min="1" placeholder="{{ __('travel.packages.price_cents') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">' +
+            '<button type="button" class="remove-tier-row text-red-500 text-sm px-2">&times;</button>';
+        return row;
+    }
+
+    addButton.addEventListener('click', function () {
+        rowsContainer.appendChild(makeRow());
+    });
+
+    rowsContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('remove-tier-row')) {
+            e.target.closest('.pricing-tier-row').remove();
+        }
+    });
 })();
 </script>
