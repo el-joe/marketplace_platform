@@ -179,7 +179,6 @@ class ProductDetailEnrichmentService
             ? $product->activeListings->first()
             : null;
 
-        // dd($buyBoxListing);
 
         $couponsCacheVersion = Cache::get('product_coupons:version', 1);
         $cacheKey = "product_coupons:v{$couponsCacheVersion}:{$product->id}:{$country->id}:" . ($customer?->id ?? 'guest');
@@ -188,7 +187,7 @@ class ProductDetailEnrichmentService
             $productCategory = $product->category;
 
             $query = Coupon::query()
-                ->where('is_active', true)
+                ->where('is_active', 1)
                 ->where('valid_from', '<=', now())
                 ->where('valid_until', '>=', now())
                 ->where(function ($q) {
@@ -203,8 +202,9 @@ class ProductDetailEnrichmentService
                             $qq->where('scope', 'category')
                                 ->whereHas('category', fn($cq) => $cq
                                     ->where('id', $productCategory->id)
-                                    ->orWhere(fn($qq) => $qq->where('lft', '<=', $productCategory->lft)
-                                        ->where('rgt', '>=', $productCategory->rgt)
+                                    ->orWhere(
+                                        fn($qq) => $qq->where('lft', '<=', $productCategory->lft)
+                                            ->where('rgt', '>=', $productCategory->rgt)
                                     ));
                         });
                     }
