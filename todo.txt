@@ -1,2 +1,5 @@
 php artisan db:seed --class=PaymentInstallmentConfigSeeder
 php artisan db:seed --class=VendorDocumentTypeSeeder
+
+
+/api/customer/v1/uae/products/17A9A4EFA1--2e8d6620-6c1a-4c3d-b2d6-35cf7503a7ea
