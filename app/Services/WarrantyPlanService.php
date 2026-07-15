@@ -27,13 +27,17 @@ class WarrantyPlanService
                 return [];
             }
 
-            $ancestorIds = DB::table('categories')
-                ->where('lft', '<=', $category->lft)
-                ->where('rgt', '>=', $category->rgt)
-                ->where('is_active', 1)
-                ->orderBy('lft', 'asc')
-                ->pluck('id')
-                ->all();
+            if ($category->lft === null || $category->rgt === null) {
+                $ancestorIds = [];
+            } else {
+                $ancestorIds = DB::table('categories')
+                    ->where('lft', '<=', $category->lft)
+                    ->where('rgt', '>=', $category->rgt)
+                    ->where('is_active', 1)
+                    ->orderBy('lft', 'asc')
+                    ->pluck('id')
+                    ->all();
+            }
 
             if (!in_array($categoryId, $ancestorIds, true)) {
                 $ancestorIds[] = $categoryId;
