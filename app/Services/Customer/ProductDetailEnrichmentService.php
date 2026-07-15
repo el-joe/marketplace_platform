@@ -233,7 +233,6 @@ class ProductDetailEnrichmentService
                 });
             }
 
-            dd($query->toRawSql());
             return $query->limit(20)->pluck('id')->toArray();
         });
 
