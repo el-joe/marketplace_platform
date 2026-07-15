@@ -264,6 +264,8 @@ class CouponController extends Controller
 
         $coupon->update(['is_active' => !$coupon->is_active]);
 
+        $this->coupons->bustProductCouponsCache();
+
         return response()->json(['success' => true, 'is_active' => $coupon->is_active]);
     }
 
@@ -325,6 +327,8 @@ class CouponController extends Controller
                 ->whereNotIn('id', CouponUsage::query()->pluck('coupon_id'))
                 ->delete(),
         };
+
+        $this->coupons->bustProductCouponsCache();
 
         return response()->json(['success' => true]);
     }

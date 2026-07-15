@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\Admin;
 use App\Models\Coupon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -33,10 +34,14 @@ class CouponService
         $data['vendor_id'] = null;
         $data['category_id'] = $data['scope'] === 'category' ? ($data['category_id'] ?? null) : null;
 
-        return DB::transaction(fn () => Coupon::query()->create(array_merge(
+        $coupon = DB::transaction(fn () => Coupon::query()->create(array_merge(
             ['id' => Str::uuid()->toString()],
             $data
         )));
+
+        $this->bustProductCouponsCache();
+
+        return $coupon;
     }
 
     public function update(Coupon $coupon, array $data): Coupon
@@ -57,6 +62,8 @@ class CouponService
 
         DB::transaction(fn () => $coupon->update($data));
 
+        $this->bustProductCouponsCache();
+
         return $coupon->refresh();
     }
 
@@ -70,12 +77,26 @@ class CouponService
         if ($coupon->times_used > 0) {
             $coupon->update(['is_active' => false, 'valid_until' => now()]);
 
+            $this->bustProductCouponsCache();
+
             return ['deleted' => false, 'deactivated' => true];
         }
 
         $coupon->delete();
 
+        $this->bustProductCouponsCache();
+
         return ['deleted' => true, 'deactivated' => false];
+    }
+
+    /**
+     * Invalidate the "product_coupons:*" cache used by ProductDetailEnrichmentService
+     * by bumping its version segment, since those keys are per product/country/customer
+     * and can't be targeted individually without cache tag support.
+     */
+    public function bustProductCouponsCache(): void
+    {
+        Cache::increment('product_coupons:version');
     }
 
     public function validateCodeUnique(string $code, ?string $excludeId = null): void

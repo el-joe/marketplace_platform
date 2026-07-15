@@ -42,7 +42,7 @@ class ProductDetailEnrichmentService
                     ])
                     ->first();
 
-                if (! $ranking) {
+                if (!$ranking) {
                     return null;
                 }
 
@@ -71,13 +71,13 @@ class ProductDetailEnrichmentService
             ? $product->activeListings->first()
             : null;
 
-        if (! $buyBoxListing) {
+        if (!$buyBoxListing) {
             return [];
         }
 
         $zoneId = $this->resolveDestinationZoneId($country, $customerAddressId);
 
-        if (! $zoneId) {
+        if (!$zoneId) {
             return [];
         }
 
@@ -90,10 +90,10 @@ class ProductDetailEnrichmentService
             $rates = ShippingRate::query()
                 ->where('destination_zone_id', $zoneId)
                 ->where('is_active', true)
-                ->with(['shippingMethod' => fn ($q) => $q->where('is_active', true)])
+                ->with(['shippingMethod' => fn($q) => $q->where('is_active', true)])
                 ->get()
-                ->filter(fn (ShippingRate $rate) => $rate->shippingMethod !== null)
-                ->sortBy(fn (ShippingRate $rate) => $rate->shippingMethod->display_priority);
+                ->filter(fn(ShippingRate $rate) => $rate->shippingMethod !== null)
+                ->sortBy(fn(ShippingRate $rate) => $rate->shippingMethod->display_priority);
 
             $options = [];
 
@@ -154,7 +154,7 @@ class ProductDetailEnrichmentService
 
     private function orderBeforeSeconds(\App\Models\ShippingMethod $method): ?int
     {
-        if (! $method->order_cutoff_time) {
+        if (!$method->order_cutoff_time) {
             return null;
         }
 
@@ -179,7 +179,10 @@ class ProductDetailEnrichmentService
             ? $product->activeListings->first()
             : null;
 
-        $cacheKey = "product_coupons:{$product->id}:{$country->id}:" . ($customer?->id ?? 'guest');
+        // dd($buyBoxListing);
+
+        $couponsCacheVersion = Cache::get('product_coupons:version', 1);
+        $cacheKey = "product_coupons:v{$couponsCacheVersion}:{$product->id}:{$country->id}:" . ($customer?->id ?? 'guest');
 
         $coupons = Cache::remember($cacheKey, 120, function () use ($product, $customer, $buyBoxListing) {
             $productCategory = $product->category;
@@ -198,7 +201,7 @@ class ProductDetailEnrichmentService
                     if ($productCategory && $productCategory->lft !== null && $productCategory->rgt !== null) {
                         $q->orWhere(function ($qq) use ($productCategory) {
                             $qq->where('scope', 'category')
-                                ->whereHas('category', fn ($cq) => $cq
+                                ->whereHas('category', fn($cq) => $cq
                                     ->where('lft', '<=', $productCategory->lft)
                                     ->where('rgt', '>=', $productCategory->rgt));
                         });
@@ -213,7 +216,7 @@ class ProductDetailEnrichmentService
 
                     $q->orWhere(function ($qq) use ($product) {
                         $qq->where('scope', 'product')
-                            ->whereHas('products', fn ($pq) => $pq->where('products.id', $product->id));
+                            ->whereHas('products', fn($pq) => $pq->where('products.id', $product->id));
                     });
                 });
 
@@ -244,7 +247,7 @@ class ProductDetailEnrichmentService
                 'saving' => $saving,
             ];
         })
-            ->sortBy(fn ($row) => [-$row['saving'], $row['coupon']->valid_until->timestamp])
+            ->sortBy(fn($row) => [-$row['saving'], $row['coupon']->valid_until->timestamp])
             ->take(3);
 
         return $withSavings->map(function ($row) {
@@ -289,12 +292,12 @@ class ProductDetailEnrichmentService
 
     private function cheapestShippingFeeEstimate(?VendorListing $buyBoxListing): int
     {
-        if (! $buyBoxListing || ! $buyBoxListing->country_id) {
+        if (!$buyBoxListing || !$buyBoxListing->country_id) {
             return 0;
         }
 
         $rate = ShippingRate::where('is_active', true)
-            ->whereHas('destinationZone', fn ($q) => $q->where('country_id', $buyBoxListing->country_id))
+            ->whereHas('destinationZone', fn($q) => $q->where('country_id', $buyBoxListing->country_id))
             ->orderBy('base_fee')
             ->first();
 
@@ -309,7 +312,7 @@ class ProductDetailEnrichmentService
             "country_payment_methods_pdp:{$country->id}",
             600,
             ['payment_methods'],
-            fn () => CountryPaymentMethod::where('country_id', $country->id)
+            fn() => CountryPaymentMethod::where('country_id', $country->id)
                 ->where('is_active', true)
                 ->whereIn('method_type', ['bnpl', 'wallet'])
                 ->orderBy('sort_order')
@@ -349,7 +352,7 @@ class ProductDetailEnrichmentService
                     'learn_more_url' => $method->learn_more_url,
                 ];
             } elseif ($method->method_type === 'wallet') {
-                if (! $customer) {
+                if (!$customer) {
                     continue;
                 }
 
