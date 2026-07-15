@@ -15,11 +15,13 @@ class CustomerQrCodeService
     {
         $referralLink = rtrim(config('app.url'), '/') . '/r/' . $customer->referral_code;
 
-        $qr = QrCode::create($referralLink)
-            ->setSize(400)
-            ->setMargin(20)
-            ->setErrorCorrectionLevel(ErrorCorrectionLevel::High)
-            ->setEncoding(new Encoding('UTF-8'));
+        $qr = new QrCode(
+            data: $referralLink,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: 400,
+            margin: 20,
+        );
 
         $result = (new PngWriter())->write($qr);
 

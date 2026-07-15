@@ -167,6 +167,9 @@ class PermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $name, 'guard_name' => $guard]);
         }
 
+        $countPermissions = Permission::where('guard_name', $guard)->count();
+        $this->command->info('Permissions seeded: ' . $countPermissions . ' permissions (guard: ' . $guard . ').');
+
         $this->command->info('Permissions seeded: ' . count($permissions) . ' permissions (guard: ' . $guard . ').');
     }
 }

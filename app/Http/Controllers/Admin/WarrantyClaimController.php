@@ -56,7 +56,7 @@ class WarrantyClaimController extends Controller
             ->select(
                 'warranty_claims.*',
                 'customers.name as customer_name',
-                'products.name as product_name',
+                'products.name_en as product_name',
                 'vendors.store_name as vendor_store_name'
             );
 
@@ -71,7 +71,7 @@ class WarrantyClaimController extends Controller
         $columns = [
             0 => ['searchable_columns' => ['warranty_claims.claim_number'], 'orderable_column' => 'warranty_claims.claim_number'],
             1 => ['searchable_columns' => ['customers.name']],
-            2 => ['searchable_columns' => ['products.name']],
+            2 => ['searchable_columns' => ['products.name_en']],
             3 => ['searchable_columns' => ['vendors.store_name']],
             4 => ['orderable_column' => 'warranty_claims.status'],
             5 => ['orderable_column' => 'warranty_claims.created_at'],
