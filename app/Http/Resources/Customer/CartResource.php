@@ -11,6 +11,10 @@ class CartResource extends JsonResource
     {
         return [
             'cart_id'  => $this->id,
+            'session_token' => $this->when(
+                $this->session_token !== null,
+                $this->session_token
+            ),
             'currency' => $this->currency,
             'summary'  => [
                 'subtotal_cents'           => $this->subtotal,

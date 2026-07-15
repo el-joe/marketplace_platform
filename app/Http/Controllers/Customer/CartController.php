@@ -10,10 +10,12 @@ use App\Http\Requests\Customer\UpdateCartItemRequest;
 use App\Http\Resources\Customer\CartItemResource;
 use App\Http\Resources\Customer\CartResource;
 use App\Http\Responses\ApiResponse;
+use App\Models\Cart;
 use App\Services\Customer\CartService;
 use App\Services\Customer\ListingIdentifierService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
@@ -22,21 +24,53 @@ class CartController extends Controller
         private readonly ListingIdentifierService $listingIdentifierService,
     ) {}
 
-    public function show(Request $request): JsonResponse
+    private function resolveCart(Request $request): Cart
     {
         $customer = auth('customer')->user();
         $country  = $request->attributes->get('country');
 
-        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+        if ($customer) {
+            return $this->cartService->getOrCreateCart(
+                $customer,
+                $country->id,
+                $country->currency_code
+            );
+        }
 
-        return ApiResponse::success(new CartResource($cart));
+        $token = $request->attributes->get('guest_cart_token');
+        if (!$token) {
+            $token = (string) Str::uuid();
+            $request->attributes->set('guest_cart_token', $token);
+        }
+
+        return $this->cartService->getOrCreateGuestCart(
+            $token,
+            $country->id,
+            $country->currency_code
+        );
+    }
+
+    private function cartResponse(Cart $cart, array $extra = [], string $message = 'Success', int $code = 200): JsonResponse
+    {
+        $data = array_merge(['cart' => new CartResource($cart)], $extra);
+
+        if ($cart->session_token) {
+            $data['guest_cart_token'] = $cart->session_token;
+        }
+
+        return ApiResponse::success($data, $message, $code);
+    }
+
+    public function show(Request $request): JsonResponse
+    {
+        $cart = $this->resolveCart($request);
+
+        return $this->cartResponse($cart);
     }
 
     public function addItem(AddCartItemRequest $request): JsonResponse
     {
-        $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
-        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+        $cart = $this->resolveCart($request);
 
         try {
             $item = $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity);
@@ -51,8 +85,7 @@ class CartController extends Controller
             'vendorListing.warehouseInventories',
         ]);
 
-        return ApiResponse::success([
-            'cart'        => new CartResource($cart),
+        return $this->cartResponse($cart, [
             'item'        => new CartItemResource($item),
             'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
         ], 'Item added to cart', 201);
@@ -60,9 +93,7 @@ class CartController extends Controller
 
     public function addItems(AddCartItemsRequest $request): JsonResponse
     {
-        $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
-        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+        $cart = $this->resolveCart($request);
 
         try {
             $this->cartService->addItems($cart, $request->items);
@@ -70,24 +101,20 @@ class CartController extends Controller
             return ApiResponse::error($e->getMessage(), [], 422);
         }
 
-        return ApiResponse::success([
-            'cart' => new CartResource($cart),
-        ], 'Items added to cart', 201);
+        return $this->cartResponse($cart, [], 'Items added to cart', 201);
     }
 
-    public function updateItem(UpdateCartItemRequest $request,$country, string $id): JsonResponse
+    public function updateItem(UpdateCartItemRequest $request, string $id): JsonResponse
     {
-        $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
-        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+        $cart = $this->resolveCart($request);
 
-        // try {
+        try {
             $item = $this->cartService->updateItem($cart, $id, $request->quantity);
-        // } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
-        //     return ApiResponse::error('Cart item not found.', [], 404);
-        // } catch (\DomainException $e) {
-        //     return ApiResponse::error($e->getMessage(), [], 422);
-        // }
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return ApiResponse::error('Cart item not found.', [], 404);
+        } catch (\DomainException $e) {
+            return ApiResponse::error($e->getMessage(), [], 422);
+        }
 
         $item->load([
             'vendorListing.vendor',
@@ -103,11 +130,9 @@ class CartController extends Controller
         ], 'Cart item updated');
     }
 
-    public function removeItem(Request $request,$country, string $id): JsonResponse
+    public function removeItem(Request $request, string $id): JsonResponse
     {
-        $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
-        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+        $cart = $this->resolveCart($request);
 
         try {
             $this->cartService->removeItem($cart, $id);
@@ -120,9 +145,7 @@ class CartController extends Controller
 
     public function clear(Request $request): JsonResponse
     {
-        $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
-        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+        $cart = $this->resolveCart($request);
 
         $this->cartService->clearCart($cart);
 
@@ -132,8 +155,7 @@ class CartController extends Controller
     public function applyCoupon(ApplyCouponRequest $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
-        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+        $cart = $this->resolveCart($request);
 
         try {
             $coupon = $this->cartService->applyCoupon($cart, $customer, $request->code);
@@ -148,12 +170,30 @@ class CartController extends Controller
 
     public function removeCoupon(Request $request): JsonResponse
     {
-        $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
-        $cart = $this->cartService->getOrCreateCart($customer, $country->id, $country->currency_code);
+        $cart = $this->resolveCart($request);
 
         $this->cartService->removeCoupon($cart);
 
         return ApiResponse::success(new CartResource($cart), 'Coupon removed');
+    }
+
+    public function mergeCart(Request $request): JsonResponse
+    {
+        $customer = auth('customer')->user();
+        $country  = $request->attributes->get('country');
+        $token    = $request->input('guest_cart_token');
+
+        if (!$token) {
+            return ApiResponse::error('guest_cart_token is required.', [], 422);
+        }
+
+        $cart = $this->cartService->mergeGuestCart(
+            $token,
+            $customer,
+            $country->id,
+            $country->currency_code
+        );
+
+        return ApiResponse::success(new CartResource($cart), 'Cart merged successfully');
     }
 }

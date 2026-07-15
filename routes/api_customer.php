@@ -183,6 +183,18 @@ Route::prefix('v1/{country}')
                 ->name('verify-email');
         });
 
+        // Cart — guest + auth (session resolved via X-Cart-Token header)
+        Route::prefix('cart')->name('customer.cart.')->middleware('guest.cart.token')->group(function (): void {
+            Route::get('/', [CartController::class, 'show'])->name('show');
+            Route::post('items', [CartController::class, 'addItem'])->name('items.add');
+            Route::post('items/bulk', [CartController::class, 'addItems'])->name('items.add-bulk');
+            Route::put('items/{id}', [CartController::class, 'updateItem'])->name('items.update');
+            Route::delete('items/{id}', [CartController::class, 'removeItem'])->name('items.remove');
+            Route::delete('/', [CartController::class, 'clear'])->name('clear');
+            Route::post('coupon', [CartController::class, 'applyCoupon'])->name('coupon.apply');
+            Route::delete('coupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
+        });
+
         // ── Authenticated endpoints ───────────────────────────────────────────
         Route::middleware('auth:customer')->group(function (): void {
 
@@ -253,17 +265,8 @@ Route::prefix('v1/{country}')
                 Route::delete('{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');
             });
 
-            // Cart
-            Route::prefix('cart')->name('customer.cart.')->group(function (): void {
-                Route::get('/', [CartController::class, 'show'])->name('show');
-                Route::post('items', [CartController::class, 'addItem'])->name('items.add');
-                Route::post('items/bulk', [CartController::class, 'addItems'])->name('items.add-bulk');
-                Route::put('items/{id}', [CartController::class, 'updateItem'])->name('items.update');
-                Route::delete('items/{id}', [CartController::class, 'removeItem'])->name('items.remove');
-                Route::delete('/', [CartController::class, 'clear'])->name('clear');
-                Route::post('coupon', [CartController::class, 'applyCoupon'])->name('coupon.apply');
-                Route::delete('coupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
-            });
+            // Cart merge (auth only)
+            Route::post('cart/merge', [CartController::class, 'mergeCart'])->name('customer.cart.merge');
 
             // Wallet
             Route::prefix('wallet')->name('customer.wallet.')->group(function (): void {

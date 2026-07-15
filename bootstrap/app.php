@@ -79,6 +79,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'carrier.api.active' => \App\Http\Middleware\CarrierApiActive::class,
             'carrier.permission' => \App\Http\Middleware\CarrierPermission::class,
             'detect.country' => \App\Http\Middleware\DetectCountry::class,
+            'guest.cart.token' => \App\Http\Middleware\GuestCartToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

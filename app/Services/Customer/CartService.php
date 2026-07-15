@@ -4,6 +4,7 @@ namespace App\Services\Customer;
 
 use App\Enums\VendorListingStatus;
 use App\Models\Cart;
+use App\Models\CartInventoryLock;
 use App\Models\CartItem;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
@@ -43,6 +44,68 @@ class CartService
         $this->recalculateCart($cart);
 
         return $cart;
+    }
+
+    public function getOrCreateGuestCart(string $sessionToken, string $countryId, string $currency): Cart
+    {
+        $cart = Cart::where('session_token', $sessionToken)
+            ->whereNull('user_id')
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->with(['items.vendorListing', 'coupon'])
+            ->first();
+
+        if (!$cart) {
+            $cart = Cart::create([
+                'session_token'      => $sessionToken,
+                'user_id'            => null,
+                'country_id'         => $countryId,
+                'currency'           => $currency,
+                'subtotal'           => 0,
+                'discount'           => 0,
+                'estimated_shipping' => 0,
+                'estimated_tax'      => 0,
+                'estimated_total'    => 0,
+                'expires_at'         => now()->addDays(30),
+            ]);
+        }
+
+        return $cart;
+    }
+
+    public function mergeGuestCart(string $sessionToken, Customer $customer, string $countryId, string $currency): Cart
+    {
+        $guestCart = Cart::where('session_token', $sessionToken)
+            ->whereNull('user_id')
+            ->with('items')
+            ->first();
+
+        $customerCart = $this->getOrCreateCart($customer, $countryId, $currency);
+
+        if (!$guestCart || $guestCart->items->isEmpty()) {
+            return $customerCart;
+        }
+
+        foreach ($guestCart->items as $guestItem) {
+            $existing = $customerCart->items
+                ->firstWhere('vendor_listing_id', $guestItem->vendor_listing_id);
+
+            if ($existing) {
+                $existing->update([
+                    'quantity' => max($existing->quantity, $guestItem->quantity),
+                ]);
+            } else {
+                $guestItem->update(['cart_id' => $customerCart->id]);
+            }
+        }
+
+        CartInventoryLock::where('cart_id', $guestCart->id)->delete();
+        $guestCart->items()->whereNot('cart_id', $customerCart->id)->delete();
+        $guestCart->delete();
+
+        $customerCart->load(['items.vendorListing', 'coupon']);
+        $this->recalculateCart($customerCart);
+
+        return $customerCart->fresh(['items.vendorListing.productVariant.product.images', 'coupon']);
     }
 
     public function addItem(Cart $cart, string $vendorListingId, int $quantity): CartItem
