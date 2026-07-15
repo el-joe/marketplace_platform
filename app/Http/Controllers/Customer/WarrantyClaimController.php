@@ -37,7 +37,7 @@ class WarrantyClaimController extends Controller
         /** @var Customer $customer */
         $customer = auth('customer')->user();
 
-        $orderItem = OrderItem::with(['order', 'subOrder', 'productVariant'])
+        $orderItem = OrderItem::with(['order', 'subOrder', 'productVariant', 'warrantyPurchase'])
             ->findOrFail($request->validated('order_item_id'));
 
         $productId = $orderItem->productVariant?->product_id
@@ -49,6 +49,13 @@ class WarrantyClaimController extends Controller
             ?? $orderItem->order->completed_at
             ?? $orderItem->order->created_at;
 
+        $warrantyPurchase = $orderItem->warrantyPurchase;
+        $coveredByPlatformWarranty = $warrantyPurchase !== null && $warrantyPurchase->status === 'active';
+
+        $warrantyExpiresAt = $coveredByPlatformWarranty
+            ? $warrantyPurchase->coverage_ends_at
+            : $request->date('warranty_expires_at');
+
         $claim = WarrantyClaim::create([
             'claim_number' => 'WC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5)),
             'customer_id' => $customer->id,
@@ -59,7 +66,8 @@ class WarrantyClaimController extends Controller
             'issue_type' => $request->validated('issue_type'),
             'issue_description' => $request->validated('issue_description'),
             'purchase_date' => $purchaseDate,
-            'warranty_expires_at' => $purchaseDate->copy()->addDays(365),
+            'warranty_expires_at' => $warrantyExpiresAt,
+            'covered_by_platform_warranty' => $coveredByPlatformWarranty,
             'status' => WarrantyClaim::STATUS_SUBMITTED,
         ]);
 

@@ -18,6 +18,7 @@ class WarrantyClaimResource extends JsonResource
             'issue_description' => $this->issue_description,
             'purchase_date' => $this->purchase_date?->toDateString(),
             'warranty_expires_at' => $this->warranty_expires_at?->toDateString(),
+            'covered_by_platform_warranty' => (bool) $this->covered_by_platform_warranty,
             'evidence_files' => $this->evidence_files,
             'resolved_at' => $this->resolved_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),

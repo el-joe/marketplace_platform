@@ -13,7 +13,10 @@ use App\Models\GiftCard;
 use App\Models\Order;
 use App\Models\ShippingRate;
 use App\Models\VendorListing;
+use App\Models\WarrantyPlan;
+use App\Services\WarrantyPlanService;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class CheckoutCalculationService
 {
@@ -310,6 +313,7 @@ class CheckoutCalculationService
         int $discountCents,
         Country $country,
         int $giftCardAppliedCents = 0,
+        int $warrantyTotalCents = 0,
     ): array {
         $subtotal = 0;
         foreach ($cartItems as $item) {
@@ -318,7 +322,7 @@ class CheckoutCalculationService
 
         $taxable = max(0, $subtotal - $discountCents);
         $tax = $this->calculateTax($taxable, $country);
-        $total = max(0, $subtotal - $discountCents + $shippingFeeCents + $codFeeCents + $tax - $giftCardAppliedCents);
+        $total = max(0, $subtotal - $discountCents + $shippingFeeCents + $codFeeCents + $tax + $warrantyTotalCents - $giftCardAppliedCents);
 
         return [
             'subtotal_cents' => $subtotal,
@@ -326,10 +330,80 @@ class CheckoutCalculationService
             'shipping_cents' => $shippingFeeCents,
             'cod_fee_cents' => $codFeeCents,
             'tax_cents' => $tax,
+            'warranty_total_cents' => $warrantyTotalCents,
             'gift_card_applied_cents' => $giftCardAppliedCents,
             'total_cents' => $total,
             'currency' => $country->currency_code,
         ];
+    }
+
+    /**
+     * Validate and price the customer's per-item warranty plan selections.
+     *
+     * @param  array<\App\Models\CartItem>  $cartItems
+     * @param  array<int, array{listing_id: string, warranty_plan_id: string}>  $warrantySelections
+     * @return array{selections: array<string, array{plan: WarrantyPlan, price_cents: int}>, total: int}
+     */
+    public function resolveWarrantySelections(
+        array $cartItems,
+        array $warrantySelections,
+        Country $country,
+        string $currency,
+        WarrantyPlanService $warrantyPlanService,
+    ): array {
+        $selections = [];
+        $total = 0;
+
+        foreach ($warrantySelections as $selection) {
+            $listingId = $selection['listing_id'];
+            $warrantyPlanId = $selection['warranty_plan_id'];
+
+            $cartItem = collect($cartItems)->first(fn ($item) => $item->vendor_listing_id === $listingId);
+            if (! $cartItem) {
+                throw ValidationException::withMessages([
+                    'warranty_selections' => "No cart item found for listing {$listingId}.",
+                ]);
+            }
+
+            $plan = WarrantyPlan::active()->find($warrantyPlanId);
+            if (! $plan) {
+                throw ValidationException::withMessages([
+                    'warranty_selections' => "Warranty plan {$warrantyPlanId} is not available.",
+                ]);
+            }
+
+            $product = $cartItem->vendorListing->productVariant->product;
+            $applicablePlanIds = collect($warrantyPlanService->getPlansForProduct($product, $country->id, $currency))
+                ->pluck('id')
+                ->all();
+
+            if (! in_array($plan->id, $applicablePlanIds, true)) {
+                throw ValidationException::withMessages([
+                    'warranty_selections' => "Warranty plan {$warrantyPlanId} is not applicable to this product.",
+                ]);
+            }
+
+            if ($plan->country_ids !== null && ! in_array($country->id, $plan->country_ids, true)) {
+                throw ValidationException::withMessages([
+                    'warranty_selections' => "Warranty plan {$warrantyPlanId} is not available in your country.",
+                ]);
+            }
+
+            if ($plan->currency !== $currency) {
+                throw ValidationException::withMessages([
+                    'warranty_selections' => "Warranty plan {$warrantyPlanId} currency does not match order currency.",
+                ]);
+            }
+
+            $selections[$cartItem->id] = [
+                'plan' => $plan,
+                'price_cents' => $plan->price_cents,
+            ];
+
+            $total += $plan->price_cents;
+        }
+
+        return ['selections' => $selections, 'total' => $total];
     }
 
     /**

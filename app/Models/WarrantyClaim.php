@@ -38,6 +38,7 @@ class WarrantyClaim extends Model
             'evidence_files' => 'array',
             'purchase_date' => 'date',
             'warranty_expires_at' => 'date',
+            'covered_by_platform_warranty' => 'boolean',
             'resolved_at' => 'datetime',
         ];
     }
@@ -54,6 +55,7 @@ class WarrantyClaim extends Model
         'issue_description',
         'purchase_date',
         'warranty_expires_at',
+        'covered_by_platform_warranty',
         'evidence_files',
         'status',
         'resolution',

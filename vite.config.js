@@ -40,6 +40,7 @@ export default defineConfig({
                 'resources/js/admin/customers.js',
                 'resources/js/admin/disputes.js',
                 'resources/js/admin/warranty-claims.js',
+                'resources/js/admin/warranty-purchases.js',
                 'resources/js/admin/banners.js',
                 'resources/js/admin/ad-campaigns.js',
                 'resources/js/admin/vendor-applications.js',

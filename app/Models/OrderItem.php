@@ -44,6 +44,7 @@ class OrderItem extends Model
         'commission_category_id',
         'fulfillment_status',
         'return_eligible_until',
+        'warranty_purchase_id',
     ];
 
     public function order(): BelongsTo
@@ -84,5 +85,10 @@ class OrderItem extends Model
     public function returnRequestItems(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ReturnRequestItem::class);
+    }
+
+    public function warrantyPurchase(): BelongsTo
+    {
+        return $this->belongsTo(WarrantyPurchase::class);
     }
 }

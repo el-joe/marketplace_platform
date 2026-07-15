@@ -63,6 +63,8 @@ use App\Policies\AdSlotPolicy;
 use App\Policies\ClassifiedListingPolicy;
 use App\Policies\ClassifiedInquiryPolicy;
 use App\Observers\VendorListingObserver;
+use App\Observers\WarrantyPurchaseObserver;
+use App\Models\WarrantyPurchase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -130,6 +132,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(PaidAdSlot::class, AdSlotPolicy::class);
 
         VendorListing::observe(VendorListingObserver::class);
+        WarrantyPurchase::observe(WarrantyPurchaseObserver::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);

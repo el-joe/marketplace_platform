@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ProductCostController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\WarrantyPlanController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\FlashSaleController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Admin\GiftCardController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\DisputeController;
 use App\Http\Controllers\Admin\WarrantyClaimController;
+use App\Http\Controllers\Admin\WarrantyPurchaseController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\CustomerController;
@@ -152,6 +154,18 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/{brand}/edit', [BrandController::class, 'edit'])->name('edit');
         Route::put('/{brand}', [BrandController::class, 'update'])->name('update');
         Route::delete('/{brand}', [BrandController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Warranty Plans ─────────────────────────────────────────────────────────────
+    Route::prefix('warranty-plans')->name('warranty-plans.')->middleware('admin.permission:warranty_plans.view')->group(function () {
+        Route::get('/create', [WarrantyPlanController::class, 'create'])->name('create');
+        Route::post('/datatable', [WarrantyPlanController::class, 'datatableData'])->name('datatable');
+        Route::get('/', [WarrantyPlanController::class, 'index'])->name('index');
+        Route::post('/', [WarrantyPlanController::class, 'store'])->name('store');
+        Route::get('/{warrantyPlan}/edit', [WarrantyPlanController::class, 'edit'])->name('edit');
+        Route::patch('/{warrantyPlan}', [WarrantyPlanController::class, 'update'])->name('update');
+        Route::post('/{warrantyPlan}/toggle', [WarrantyPlanController::class, 'toggleActive'])->name('toggle');
+        Route::delete('/{warrantyPlan}', [WarrantyPlanController::class, 'destroy'])->name('destroy');
     });
 
     // ─── Notifications ────────────────────────────────────────────────────────────
@@ -525,6 +539,14 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{claim}/status', [WarrantyClaimController::class, 'updateStatus'])->name('status');
         Route::post('/{claim}/resolve', [WarrantyClaimController::class, 'resolve'])->name('resolve');
         Route::post('/{claim}/messages', [WarrantyClaimController::class, 'addMessage'])->name('messages');
+    });
+
+    // ─── Warranty Purchases ─────────────────────────────────────────────────────
+    Route::prefix('warranty-purchases')->name('warranty-purchases.')->middleware('admin.permission:warranty_plans.view')->group(function () {
+        Route::post('/datatable', [WarrantyPurchaseController::class, 'datatableData'])->name('datatable');
+        Route::get('/summary', [WarrantyPurchaseController::class, 'summary'])->name('summary');
+        Route::get('/', [WarrantyPurchaseController::class, 'index'])->name('index');
+        Route::get('/{warrantyPurchase}', [WarrantyPurchaseController::class, 'show'])->name('show');
     });
 
     // ─── Stop Impersonating (no extra permission required, just auth) ─────────────

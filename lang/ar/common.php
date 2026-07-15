@@ -12,6 +12,7 @@ return [
     'cancel'          => 'إلغاء',
     'delete'          => 'حذف',
     'edit'            => 'تعديل',
+    'toggle'          => 'تبديل',
     'view'            => 'عرض',
     'create'          => 'إنشاء',
     'update'          => 'تحديث',

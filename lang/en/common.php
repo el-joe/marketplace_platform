@@ -16,6 +16,7 @@ return [
     'profile_image'   => 'Profile Image',
     'saved_successfully' => 'Saved Successfully',
     'edit'            => 'Edit',
+    'toggle'          => 'Toggle',
     'view'            => 'View',
     'create'          => 'Create',
     'update'          => 'Update',

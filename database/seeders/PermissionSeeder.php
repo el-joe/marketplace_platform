@@ -33,6 +33,11 @@ class PermissionSeeder extends Seeder
             'brands.create',
             'brands.edit',
             'brands.delete',
+            // Catalog – Warranty Plans
+            'warranty_plans.view',
+            'warranty_plans.create',
+            'warranty_plans.edit',
+            'warranty_plans.delete',
             // Catalog – Attributes
             'attributes.view',
             'attributes.create',

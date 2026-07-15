@@ -24,6 +24,9 @@ class PlaceOrderRequest extends FormRequest
             'idempotency_key'    => ['required', 'string', 'max:100'],
             'gateway_token'      => ['required_if:payment_method,card', 'nullable', 'string'],
             'gateway'            => ['required_if:payment_method,card', 'nullable', 'string', Rule::in(['thawani', 'stripe', 'tap'])],
+            'warranty_selections' => ['nullable', 'array'],
+            'warranty_selections.*.listing_id' => ['required_with:warranty_selections', 'uuid'],
+            'warranty_selections.*.warranty_plan_id' => ['required_with:warranty_selections', 'uuid'],
         ];
     }
 }

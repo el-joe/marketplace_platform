@@ -14,6 +14,7 @@ use App\Services\Customer\ProductDetailEnrichmentService;
 use App\Services\Customer\ProductViewService;
 use App\Services\Customer\ReviewService;
 use App\Services\ListingShippingResolver;
+use App\Services\WarrantyPlanService;
 use App\Support\Bilingual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class ListingDetailController extends Controller
         private readonly ProductViewService $viewService,
         private readonly ReviewService $reviewService,
         private readonly ProductDetailEnrichmentService $enrichment,
+        private readonly WarrantyPlanService $warrantyPlanService,
     ) {
     }
 
@@ -65,6 +67,7 @@ class ListingDetailController extends Controller
         $bestSellerBadge = $this->enrichment->getBestSellerBadge($product, $country);
         $coupons = $this->enrichment->getApplicableCoupons($product, $country, $customer, $listing);
         $paymentOptions = $this->enrichment->getPaymentOptions($country, $listing->price, $customer);
+        $warrantyPlans = $this->warrantyPlanService->getPlansForProduct($product, $country->id, $country->currency_code);
 
         $reviews = $product->reviews()
             ->where('status', 'published')
@@ -99,6 +102,7 @@ class ListingDetailController extends Controller
                 'items' => $reviews->map(fn($review) => $this->reviewShape($review))->values()->all(),
             ],
             'frequently_bought_together' => $this->frequentlyBoughtTogetherShape($product, $listing, $country),
+            'warranty_plans' => $warrantyPlans,
         ]);
     }
 

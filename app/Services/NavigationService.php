@@ -79,6 +79,13 @@ class NavigationService
                         'permission' => 'attributes.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => __('admin.nav.warranty_plans'),
+                        'route' => 'admin.warranty-plans.index',
+                        'icon' => 'shield-check',
+                        'permission' => 'warranty_plans.view',
+                        'badge' => $this->cachedBadge('active_warranty_plans', fn() => $this->countActiveWarrantyPlans(), 300),
+                    ],
                 ],
             ],
             [
@@ -367,6 +374,13 @@ class NavigationService
                         'permission' => 'analytics.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => __('admin.nav.warranty_purchases'),
+                        'route' => 'admin.warranty-purchases.index',
+                        'icon' => 'shield-check',
+                        'permission' => 'warranty_plans.view',
+                        'badge' => $this->cachedBadge('pending_warranty_purchases', fn() => $this->countPendingWarrantyPurchases(), 300),
+                    ],
                 ],
             ],
             [
@@ -588,10 +602,34 @@ class NavigationService
     /**
      * Cache a badge count value for 60 seconds.
      */
-    protected function cachedBadge(string $key, \Closure $resolver): ?int
+    protected function cachedBadge(string $key, \Closure $resolver, ?int $ttl = null): ?int
     {
-        $count = Cache::remember("nav.badge.{$key}", self::BADGE_CACHE_TTL, $resolver);
+        $count = Cache::remember("nav.badge.{$key}", $ttl ?? self::BADGE_CACHE_TTL, $resolver);
         return $count > 0 ? (int) $count : null;
+    }
+
+    protected function countActiveWarrantyPlans(): int
+    {
+        if (!class_exists(\App\Models\WarrantyPlan::class)) {
+            return 0;
+        }
+        try {
+            return (int) \App\Models\WarrantyPlan::query()->where('is_active', true)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingWarrantyPurchases(): int
+    {
+        if (!class_exists(\App\Models\WarrantyPurchase::class)) {
+            return 0;
+        }
+        try {
+            return (int) \App\Models\WarrantyPurchase::query()->where('status', 'pending')->count();
+        } catch (\Throwable) {
+            return 0;
+        }
     }
 
     protected function countPendingOrders(): int

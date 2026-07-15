@@ -32,6 +32,7 @@ use App\Http\Controllers\Customer\VendorPageController;
 use App\Http\Controllers\Customer\BrandPageController;
 use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\Customer\WarrantyClaimController;
+use App\Http\Controllers\Customer\WarrantyPurchaseController;
 use App\Models\Country;
 use Illuminate\Support\Facades\Route;
 
@@ -332,6 +333,12 @@ Route::prefix('v1/{country}')
                 Route::post('/', [WarrantyClaimController::class, 'store'])->name('store');
                 Route::get('{id}', [WarrantyClaimController::class, 'show'])->name('show');
                 Route::post('{id}/messages', [WarrantyClaimController::class, 'addMessage'])->name('messages.store');
+            });
+
+            // Warranty purchases
+            Route::prefix('warranties')->name('customer.warranties.')->group(function (): void {
+                Route::get('/', [WarrantyPurchaseController::class, 'index'])->name('index');
+                Route::get('{id}', [WarrantyPurchaseController::class, 'show'])->name('show');
             });
 
             // Support tickets

@@ -40,6 +40,7 @@ class Order extends Model
         'shipping',
         'tax',
         'cod_fee',
+        'warranty_total',
         'total',
         'coupon_id',
         'coupon_code_used',

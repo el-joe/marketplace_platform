@@ -47,7 +47,7 @@
                         {{ $statusLabel }}
                     </span>
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                        {{ str_replace('_', ' ', ucfirst($claim->issue_type)) }}
+                        {{ \Illuminate\Support\Facades\Lang::has('admin.warranty_claims_section.issue_types.' . $claim->issue_type) ? __('admin.warranty_claims_section.issue_types.' . $claim->issue_type) : str_replace('_', ' ', ucfirst($claim->issue_type)) }}
                     </span>
                 </div>
                 <h1 class="text-lg font-semibold text-gray-900">{{ __('admin.warranty_claims_section.claim_case') }}</h1>
@@ -207,7 +207,7 @@
 
                     <div>
                         <dt class="text-xs text-gray-500 mb-0.5">{{ __('admin.warranty_claims_section.issue_type') }}</dt>
-                        <dd class="text-sm text-gray-700">{{ str_replace('_', ' ', ucfirst($claim->issue_type)) }}</dd>
+                        <dd class="text-sm text-gray-700">{{ \Illuminate\Support\Facades\Lang::has('admin.warranty_claims_section.issue_types.' . $claim->issue_type) ? __('admin.warranty_claims_section.issue_types.' . $claim->issue_type) : str_replace('_', ' ', ucfirst($claim->issue_type)) }}</dd>
                     </div>
 
                     @if($claim->resolution)

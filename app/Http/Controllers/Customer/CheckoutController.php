@@ -27,11 +27,13 @@ use App\Models\ShippingMethod;
 use App\Models\SubOrder;
 use App\Models\VendorListing;
 use App\Models\WarehouseInventory;
+use App\Models\WarrantyPurchase;
 use App\Services\Customer\CartService;
 use App\Services\Customer\CheckoutCalculationService;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\GiftCardService;
 use App\Services\PaymentService;
+use App\Services\WarrantyPlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +47,7 @@ class CheckoutController extends Controller
         private readonly ListingIdentifierService $listingIdentifierService,
         private readonly PaymentService $paymentService,
         private readonly GiftCardService $giftCardService,
+        private readonly WarrantyPlanService $warrantyPlanService,
     ) {}
 
     public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
@@ -164,6 +167,15 @@ class CheckoutController extends Controller
 
         $codFeeCents = $isCod ? $shippingResult['cod_extra_fee'] : 0;
 
+        $warrantyResult = $this->calculationService->resolveWarrantySelections(
+            $cartItems,
+            $validated['warranty_selections'] ?? [],
+            $country,
+            $cart->currency,
+            $this->warrantyPlanService,
+        );
+        $warrantyTotalCents = $warrantyResult['total'];
+
         $couponResponse = null;
         $discountCents = 0;
         if (! empty($validated['coupon_code'])) {
@@ -192,7 +204,9 @@ class CheckoutController extends Controller
             $shippingResult['fee'],
             $codFeeCents,
             $discountCents,
-            $country
+            $country,
+            0,
+            $warrantyTotalCents
         );
 
         $giftCardResponse = null;
@@ -221,7 +235,8 @@ class CheckoutController extends Controller
             $codFeeCents,
             $discountCents,
             $country,
-            $giftCardAppliedCents
+            $giftCardAppliedCents,
+            $warrantyTotalCents
         );
 
         $availablePaymentMethods = CountryPaymentMethod::where('country_id', $country->id)
@@ -337,6 +352,16 @@ class CheckoutController extends Controller
         $shippingFeeCents = $shippingResult['fee'];
         $codFeeCents = $isCod ? $shippingResult['cod_extra_fee'] : 0;
 
+        $warrantyResult = $this->calculationService->resolveWarrantySelections(
+            $cartItems,
+            $validated['warranty_selections'] ?? [],
+            $country,
+            $cart->currency,
+            $this->warrantyPlanService,
+        );
+        $warrantyTotalCents = $warrantyResult['total'];
+        $warrantySelections = $warrantyResult['selections'];
+
         $coupon = null;
         $discountCents = 0;
         if (! empty($validated['coupon_code'])) {
@@ -360,7 +385,9 @@ class CheckoutController extends Controller
             $shippingFeeCents,
             $codFeeCents,
             $discountCents,
-            $country
+            $country,
+            0,
+            $warrantyTotalCents
         );
 
         $giftCard = null;
@@ -386,7 +413,8 @@ class CheckoutController extends Controller
             $codFeeCents,
             $discountCents,
             $country,
-            $giftCardAppliedCents
+            $giftCardAppliedCents,
+            $warrantyTotalCents
         );
 
         $attribution = session('marketer_attribution', []);
@@ -395,7 +423,7 @@ class CheckoutController extends Controller
             $result = DB::transaction(function () use (
                 $customer, $country, $address, $validated, $coupon,
                 $cartItems, $summary, $shippingFeeCents, $attribution,
-                $giftCard, $giftCardAppliedCents
+                $giftCard, $giftCardAppliedCents, $warrantySelections
             ) {
                 $order = Order::create([
                     'order_number' => $this->generateOrderNumber(),
@@ -408,6 +436,7 @@ class CheckoutController extends Controller
                     'shipping' => $summary['shipping_cents'],
                     'tax' => $summary['tax_cents'],
                     'cod_fee' => $summary['cod_fee_cents'],
+                    'warranty_total' => $summary['warranty_total_cents'],
                     'total' => $summary['total_cents'],
                     'coupon_id' => $coupon?->id,
                     'coupon_code_used' => $coupon?->code,
@@ -505,7 +534,7 @@ class CheckoutController extends Controller
                         $lineSubtotal = $cartItem->unit_price * $cartItem->quantity;
                         $lineTax = (int) round($cartItem->unit_price * $cartItem->quantity * ((float) $country->vat_rate / 100));
 
-                        OrderItem::create([
+                        $orderItem = OrderItem::create([
                             'order_id' => $order->id,
                             'sub_order_id' => $subOrder->id,
                             'product_variant_id' => $listing->product_variant_id,
@@ -527,6 +556,31 @@ class CheckoutController extends Controller
                             'fulfillment_status' => 'pending',
                             'return_eligible_until' => null,
                         ]);
+
+                        if (isset($warrantySelections[$cartItem->id])) {
+                            $plan = $warrantySelections[$cartItem->id]['plan'];
+
+                            WarrantyPurchase::create([
+                                'customer_id' => $customer->id,
+                                'order_id' => $order->id,
+                                'order_item_id' => $orderItem->id,
+                                'warranty_plan_id' => $plan->id,
+                                'plan_snapshot' => [
+                                    'name_en' => $plan->name_en,
+                                    'name_ar' => $plan->name_ar,
+                                    'duration_months' => $plan->duration_months,
+                                    'features_en' => $plan->features_en,
+                                    'features_ar' => $plan->features_ar,
+                                    'price_cents' => $plan->price_cents,
+                                    'currency' => $plan->currency,
+                                ],
+                                'price_paid_cents' => $warrantySelections[$cartItem->id]['price_cents'],
+                                'currency' => $order->currency,
+                                'status' => 'pending',
+                                'coverage_starts_at' => null,
+                                'coverage_ends_at' => null,
+                            ]);
+                        }
                     }
 
                     $subOrders[] = $subOrder;
@@ -614,6 +668,7 @@ class CheckoutController extends Controller
             'status' => $order->status->value,
             'payment_status' => $order->payment_status->value,
             'total_cents' => $order->total,
+            'warranty_total_cents' => $order->warranty_total,
             'currency' => $order->currency,
             'placed_at' => $order->placed_at?->toIso8601String(),
             'sub_orders' => $order->subOrders->map(fn (SubOrder $so) => [
