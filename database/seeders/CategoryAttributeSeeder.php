@@ -337,6 +337,8 @@ class CategoryAttributeSeeder extends Seeder
             $insertCategory($node, null, 0);
         }
 
+        \App\Models\Category::fixTree();
+
         cache()->put('seeder_cat_ids', $catIds, 600);
 
         // ── Category ↔ Attribute links ──────────────────────────────────────

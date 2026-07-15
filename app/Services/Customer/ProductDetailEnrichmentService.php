@@ -202,9 +202,12 @@ class ProductDetailEnrichmentService
                             $qq->where('scope', 'category')
                                 ->whereHas('category', fn($cq) => $cq
                                     ->where('id', $productCategory->id)
-                                    ->orWhere(
-                                        fn($qq) => $qq->where('lft', '<=', $productCategory->lft)
-                                            ->where('rgt', '>=', $productCategory->rgt)
+                                    ->when(
+                                        $productCategory->lft !== null && $productCategory->rgt !== null,
+                                        fn($cq) => $cq->orWhere(
+                                            fn($qq) => $qq->where('lft', '<=', $productCategory->lft)
+                                                ->where('rgt', '>=', $productCategory->rgt)
+                                        )
                                     ));
                         });
                     }
