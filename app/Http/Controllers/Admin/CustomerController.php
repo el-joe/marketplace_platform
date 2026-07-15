@@ -162,6 +162,29 @@ class CustomerController extends Controller
             ->take(50)
             ->get();
 
+        $wallets = $customer->wallets()->get();
+
+        $warrantyClaims = $customer->warrantyClaims()
+            ->with('product')
+            ->latest()
+            ->take(20)
+            ->get();
+
+        $giftCards = $customer->purchasedGiftCards()
+            ->latest()
+            ->take(20)
+            ->get();
+
+        $notifications = $customer->notifications()
+            ->latest('sent_at')
+            ->take(20)
+            ->get();
+
+        $deviceTokens = $customer->deviceTokens()
+            ->where('is_active', true)
+            ->latest('last_used_at')
+            ->get();
+
         return view('admin.customers.show', compact(
             'customer',
             'orders',
@@ -170,8 +193,37 @@ class CustomerController extends Controller
             'returnRequests',
             'disputes',
             'tickets',
-            'activityLog'
+            'activityLog',
+            'wallets',
+            'warrantyClaims',
+            'giftCards',
+            'notifications',
+            'deviceTokens'
         ));
+    }
+
+    // ─── Revoke All Devices ─────────────────────────────────────────────────────
+
+    public function revokeAllDevices(Customer $customer): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('customers.edit'), 403);
+
+        $count = $customer->deviceTokens()->where('is_active', true)->update(['is_active' => false]);
+
+        Activity::create([
+            'log_name' => 'customers',
+            'description' => 'All devices logged out',
+            'subject_type' => Customer::class,
+            'subject_id' => $customer->id,
+            'causer_type' => get_class($admin),
+            'causer_id' => $admin->id,
+            'event' => 'devices_revoked',
+            'properties' => json_encode(['revoked_count' => $count]),
+            'ip_address' => request()->ip(),
+        ]);
+
+        return response()->json(['message' => 'All devices logged out.', 'revoked_count' => $count]);
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────

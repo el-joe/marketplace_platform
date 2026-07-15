@@ -487,6 +487,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    /* ─────────────────────────────────────────────────────────────────────────
+     * REVOKE ALL DEVICES
+     * ─────────────────────────────────────────────────────────────────────── */
+
+    document.getElementById('revoke-devices-btn')?.addEventListener('click', async function () {
+        const url = this.dataset.url;
+        if (!url) return;
+        if (!confirm(window.TRANSLATIONS?.revokeDevicesConfirm || 'Log out all devices for this customer?')) return;
+
+        setLoading(this, true, window.TRANSLATIONS?.revokeAllDevices || 'Log Out All Devices');
+
+        try {
+            await postJson(url);
+            document.querySelectorAll('.js-device-row').forEach(row => row.remove());
+            const empty = document.getElementById('devices-empty-state');
+            if (empty) empty.classList.remove('hidden');
+            window.Toast?.success(window.TRANSLATIONS?.devicesRevoked || 'All devices logged out.');
+        } catch (err) {
+            window.Toast?.error(err?.message || window.TRANSLATIONS?.actionFailed || 'Action failed.');
+        } finally {
+            setLoading(this, false, window.TRANSLATIONS?.revokeAllDevices || 'Log Out All Devices');
+        }
+    });
+
     document.querySelectorAll('.js-copy').forEach(btn => {
         btn.addEventListener('click', () => {
             const value = btn.dataset.value;

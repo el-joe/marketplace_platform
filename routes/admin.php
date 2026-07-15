@@ -576,6 +576,8 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{customer}/regenerate-qr', [CustomerController::class, 'regenerateQrCode'])->name('regenerate-qr');
         Route::get('/{customer}/notifications', [AdminNotificationController::class, 'customerNotifications'])->name('notifications')
             ->middleware('admin.permission:notifications.view');
+        Route::post('/{customer}/devices/revoke-all', [CustomerController::class, 'revokeAllDevices'])->name('devices.revoke-all')
+            ->middleware('admin.permission:customers.edit');
     });
 
     // ─── Notification Management (platform-wide) ─────────────────────────────

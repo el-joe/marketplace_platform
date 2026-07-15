@@ -61,6 +61,11 @@
                     'disputes'        => __('admin.customers_section.tab_disputes'),
                     'tickets'         => __('admin.customers_section.tab_tickets'),
                     'payment_methods' => __('admin.customers_section.tab_payment_methods'),
+                    'wallet'          => __('admin.customers_section.tab_wallet'),
+                    'warranty'        => __('admin.customers_section.tab_warranty_claims'),
+                    'gift_cards'      => __('admin.customers_section.tab_gift_cards'),
+                    'notifications'   => __('admin.customers_section.tab_notifications'),
+                    'security'        => __('admin.customers_section.tab_security'),
                     'activity'        => __('admin.customers_section.tab_activity'),
                 ] as $key => $label)
                     <button type="button"
@@ -386,6 +391,230 @@
                                 @endif
                             </div>
                             @endforeach
+                        </div>
+                    @endif
+                </x-card>
+            </div>
+
+            {{-- ── Wallet ──────────────────────────────────────────────────── --}}
+            <div x-show="tab === 'wallet'">
+                <x-card title="{{ __('admin.customers_section.wallet_balances') }}">
+                    @if($wallets->isEmpty())
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_wallets') }}</p>
+                    @else
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            @foreach($wallets as $wallet)
+                            <div class="rounded-lg border border-gray-200 p-4 text-sm space-y-2">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="font-semibold text-gray-800">{{ strtoupper($wallet->currency) }}</span>
+                                    @if($wallet->is_frozen)
+                                        <x-badge color="danger">{{ __('admin.customers_section.frozen_badge') }}</x-badge>
+                                    @endif
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-gray-500">{{ __('admin.customers_section.available_balance') }}</span>
+                                    <span class="font-semibold text-gray-900">{{ number_format($wallet->balance, 2) }}</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-gray-500">{{ __('admin.customers_section.pending_balance') }}</span>
+                                    <span class="text-gray-700">{{ number_format($wallet->pending_balance, 2) }}</span>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </x-card>
+            </div>
+
+            {{-- ── Warranty Claims ─────────────────────────────────────────── --}}
+            <div x-show="tab === 'warranty'">
+                <x-card title="{{ __('admin.customers_section.warranty_claims_title') }}" subtitle="{{ __('admin.customers_section.latest_20') }}">
+                    @if($warrantyClaims->isEmpty())
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_warranty_claims') }}</p>
+                    @else
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.claim_number_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.product_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.issue_type_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.status_col') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.created_column') }}</th>
+                                        <th class="py-2 pr-4"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    @php
+                                        $claimStatusColors = [
+                                            'submitted'    => 'gray',
+                                            'under_review' => 'warning',
+                                            'approved'     => 'primary',
+                                            'rejected'     => 'danger',
+                                            'resolved'     => 'success',
+                                        ];
+                                    @endphp
+                                    @foreach($warrantyClaims as $claim)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-2 pr-4 font-mono text-xs">{{ $claim->claim_number }}</td>
+                                        <td class="py-2 pr-4 max-w-[180px] truncate">{{ $claim->product?->name ?? '—' }}</td>
+                                        <td class="py-2 pr-4 text-gray-500">{{ ucfirst(str_replace('_', ' ', $claim->issue_type)) }}</td>
+                                        <td class="py-2 pr-4">
+                                            <x-badge :color="$claimStatusColors[$claim->status] ?? 'gray'">{{ ucfirst(str_replace('_', ' ', $claim->status)) }}</x-badge>
+                                        </td>
+                                        <td class="py-2 pr-4 text-gray-500">{{ $claim->created_at->format('d M Y') }}</td>
+                                        <td class="py-2 pr-4">
+                                            <a href="{{ route('admin.warranty-claims.show', $claim->id) }}" class="text-primary-600 hover:underline text-xs">
+                                                {{ __('admin.customers_section.view_claim') }}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </x-card>
+            </div>
+
+            {{-- ── Gift Cards ──────────────────────────────────────────────── --}}
+            <div x-show="tab === 'gift_cards'">
+                <x-card title="{{ __('admin.customers_section.gift_cards_title') }}" subtitle="{{ __('admin.customers_section.latest_20') }}">
+                    @if($giftCards->isEmpty())
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_gift_cards') }}</p>
+                    @else
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.gift_card_code_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.denomination_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.balance_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.status_col') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.expires_column') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    @php
+                                        $giftCardStatusColors = [
+                                            'active'             => 'success',
+                                            'redeemed'           => 'gray',
+                                            'expired'            => 'danger',
+                                            'cancelled'          => 'danger',
+                                            'pending_activation' => 'warning',
+                                        ];
+                                    @endphp
+                                    @foreach($giftCards as $giftCard)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-2 pr-4 font-mono text-xs">{{ $giftCard->code }}</td>
+                                        <td class="py-2 pr-4">{{ number_format($giftCard->denomination_cents / 100, 2) }} {{ strtoupper($giftCard->currency) }}</td>
+                                        <td class="py-2 pr-4">{{ number_format($giftCard->balance_cents / 100, 2) }} {{ strtoupper($giftCard->currency) }}</td>
+                                        <td class="py-2 pr-4">
+                                            <x-badge :color="$giftCardStatusColors[$giftCard->status] ?? 'gray'">{{ ucfirst(str_replace('_', ' ', $giftCard->status)) }}</x-badge>
+                                        </td>
+                                        <td class="py-2 pr-4 text-gray-500">{{ $giftCard->expires_at?->format('d M Y') ?? '—' }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </x-card>
+            </div>
+
+            {{-- ── Notifications ───────────────────────────────────────────── --}}
+            <div x-show="tab === 'notifications'">
+                <x-card title="{{ __('admin.customers_section.notifications_title') }}" subtitle="{{ __('admin.customers_section.latest_20_notifications') }}">
+                    @if($notifications->isEmpty())
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_notifications_yet') }}</p>
+                    @else
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.title_label') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.channel_label') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.status_col') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.created_column') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    @foreach($notifications as $notif)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-2 pr-4 max-w-[220px] truncate">{{ $notif->data['title'] ?? $notif->type }}</td>
+                                        <td class="py-2 pr-4 text-gray-500">{{ ucfirst($notif->channel?->value ?? '—') }}</td>
+                                        <td class="py-2 pr-4">
+                                            @if($notif->read_at)
+                                                <x-badge color="gray">{{ __('admin.customers_section.read_badge') }}</x-badge>
+                                            @else
+                                                <x-badge color="primary">{{ __('admin.customers_section.unread_badge') }}</x-badge>
+                                            @endif
+                                        </td>
+                                        <td class="py-2 pr-4 text-gray-500">{{ ($notif->sent_at ?? $notif->created_at)->format('d M Y, H:i') }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </x-card>
+            </div>
+
+            {{-- ── Security ─────────────────────────────────────────────────── --}}
+            <div x-show="tab === 'security'">
+                <x-card title="{{ __('admin.customers_section.security_title') }}">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-5">
+                        <div class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 p-3">
+                            <span class="text-gray-500">{{ __('admin.customers_section.email_verified_at_label') }}</span>
+                            <span class="text-gray-900">{{ $customer->email_verified_at?->format('d M Y, H:i') ?? __('admin.customers_section.not_verified') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 p-3">
+                            <span class="text-gray-500">{{ __('admin.customers_section.phone_verified_at_label') }}</span>
+                            <span class="text-gray-900">{{ $customer->phone_verified_at?->format('d M Y, H:i') ?? __('admin.customers_section.not_verified') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 p-3">
+                            <span class="text-gray-500">{{ __('admin.customers_section.last_login') }}</span>
+                            <span class="text-gray-900">{{ $customer->last_login_at?->format('d M Y, H:i') ?? '—' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 p-3">
+                            <span class="text-gray-500">{{ __('admin.customers_section.active_devices') }}</span>
+                            <span class="text-gray-900 font-semibold">{{ $deviceTokens->count() }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                        <h4 class="text-sm font-semibold text-gray-700">{{ __('admin.customers_section.active_devices') }}</h4>
+                        @if(auth('admin')->user()->can('customers.edit') && $deviceTokens->isNotEmpty())
+                        <button type="button" id="revoke-devices-btn"
+                            class="btn btn-danger btn-xs"
+                            data-url="{{ route('admin.customers.devices.revoke-all', $customer->id) }}">
+                            {{ __('admin.customers_section.log_out_all_devices') }}
+                        </button>
+                        @endif
+                    </div>
+
+                    <div id="devices-empty-state" class="{{ $deviceTokens->isNotEmpty() ? 'hidden' : '' }}">
+                        <p class="text-sm text-gray-500 py-4 text-center">{{ __('admin.customers_section.no_active_devices') }}</p>
+                    </div>
+
+                    @if($deviceTokens->isNotEmpty())
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-100 text-start text-xs text-gray-500 uppercase">
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.device_platform_column') }}</th>
+                                        <th class="py-2 pr-4">{{ __('admin.customers_section.last_used_column') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    @foreach($deviceTokens as $token)
+                                    <tr class="hover:bg-gray-50 js-device-row">
+                                        <td class="py-2 pr-4">{{ ucfirst($token->platform?->value ?? '—') }}</td>
+                                        <td class="py-2 pr-4 text-gray-500">{{ $token->last_used_at?->format('d M Y, H:i') ?? '—' }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     @endif
                 </x-card>
@@ -812,6 +1041,9 @@
             hideDatatable: @json(__('admin.customers_section.hide_datatable')),
             copied: @json(__('admin.customers_section.copied')),
             copyFailed: @json(__('admin.customers_section.copy_failed')),
+            revokeAllDevices: @json(__('admin.customers_section.log_out_all_devices')),
+            revokeDevicesConfirm: @json(__('admin.customers_section.log_out_all_devices_confirm')),
+            devicesRevoked: @json(__('admin.customers_section.devices_revoked_success')),
         });
     </script>
     @vite(['resources/js/admin/customers.js'])
