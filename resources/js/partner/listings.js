@@ -356,6 +356,9 @@ function selectVariant(data) {
     // Show form, hide placeholder
     document.getElementById('listing-form-placeholder')?.classList.add('hidden');
     document.getElementById('listing-form-container')?.classList.remove('hidden');
+
+    // New listings default to global_system_type = merchant_fbp (FBP)
+    document.getElementById('vendor-covers-delivery-field')?.classList.remove('hidden');
 }
 
 function initChangeProduct() {
@@ -548,6 +551,20 @@ function initDetailPage() {
             toast(data.message ?? 'حدث خطأ.', 'error');
             btn.disabled = false;
         }
+    });
+
+    // ── Vendor Covers Delivery Toggle ────────────────────────────────────────
+    document.getElementById('vendor-covers-delivery-toggle')?.addEventListener('change', async (e) => {
+        const checkbox = e.target;
+        checkbox.disabled = true;
+        const { ok, data } = await postJson(cfg.toggleCoversDeliveryUrl, { vendor_covers_delivery: checkbox.checked });
+        if (ok) {
+            toast(data.message ?? 'تم التحديث.');
+        } else {
+            checkbox.checked = !checkbox.checked;
+            toast(data.message ?? 'حدث خطأ.', 'error');
+        }
+        checkbox.disabled = false;
     });
 
     // ── Adjust Stock Buttons ──────────────────────────────────────────────────

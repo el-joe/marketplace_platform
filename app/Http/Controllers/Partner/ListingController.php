@@ -369,6 +369,7 @@ class ListingController extends Controller
             'low_stock_threshold' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'warehouse_id' => ['required', 'exists:warehouses,id'],
             'initial_quantity' => ['required', 'integer', 'min:0', 'max:99999'],
+            'vendor_covers_delivery' => ['nullable', 'boolean'],
         ]);
 
         // Resolve product_variant_id — either sent directly (has_variants=1) or resolved
@@ -436,6 +437,7 @@ class ListingController extends Controller
                 'status' => $status,
                 'max_order_quantity' => $request->max_order_quantity,
                 'low_stock_threshold' => $request->low_stock_threshold ?? 5,
+                'vendor_covers_delivery' => $request->boolean('vendor_covers_delivery'),
             ]);
 
             // Create warehouse inventory record
@@ -569,6 +571,34 @@ class ListingController extends Controller
             'new_status' => $newStatus->value,
             'label' => $statusLabels[$newStatus->value] ?? $newStatus->value,
             'message' => $newStatus === VendorListingStatus::Active ? 'تم تفعيل القائمة.' : 'تم إيقاف القائمة مؤقتاً.',
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Toggle Vendor Covers Delivery (FBP only)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function toggleCoversDelivery(Request $request, VendorListing $listing): JsonResponse
+    {
+        $this->authoriseListing($listing);
+
+        if ($listing->global_system_type !== \App\Enums\GlobalSystemType::MerchantFbp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'هذا الخيار متاح فقط لقوائم FBP.',
+            ], 422);
+        }
+
+        $request->validate([
+            'vendor_covers_delivery' => ['required', 'boolean'],
+        ]);
+
+        $listing->update(['vendor_covers_delivery' => $request->boolean('vendor_covers_delivery')]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث إعداد تغطية الشحن.',
+            'vendor_covers_delivery' => $listing->vendor_covers_delivery,
         ]);
     }
 

@@ -26,6 +26,7 @@ class FailRequest extends FormRequest
                 ]),
             ],
             'failure_notes' => ['nullable', 'string', 'max:1000'],
+            'customer_rejection_reason' => ['nullable', 'string', 'max:1000'],
             'latitude'      => ['required', 'numeric', 'between:-90,90'],
             'longitude'     => ['required', 'numeric', 'between:-180,180'],
         ];

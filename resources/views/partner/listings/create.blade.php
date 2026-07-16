@@ -171,6 +171,16 @@
                                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40 resize-none"
                                 placeholder="{{ __('partner.listings.internal_notes_placeholder') }}"></textarea>
                         </div>
+
+                        <div id="vendor-covers-delivery-field" class="hidden">
+                            <label class="flex items-start gap-2 cursor-pointer">
+                                <input type="checkbox" name="vendor_covers_delivery" value="1"
+                                    class="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400/40">
+                                <span class="text-sm text-gray-700">
+                                    Cover remaining delivery cost (optional) — amount will be deducted from your earnings per order
+                                </span>
+                            </label>
+                        </div>
                     </div>
 
                     {{-- Warehouse & Initial Stock --}}

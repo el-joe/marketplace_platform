@@ -25,9 +25,11 @@ use App\Http\Controllers\Customer\BrowseController;
 use App\Http\Controllers\Customer\ListingController;
 use App\Http\Controllers\Customer\ListingDetailController;
 use App\Http\Controllers\Customer\NavigationController;
+use App\Http\Controllers\Customer\NawyController;
 use App\Http\Controllers\Customer\HomeController;
 use App\Http\Controllers\Customer\PageController;
 use App\Http\Controllers\Customer\AccountController;
+use App\Http\Controllers\Customer\AppConfigController;
 use App\Http\Controllers\Customer\VendorPageController;
 use App\Http\Controllers\Customer\BrandPageController;
 use App\Http\Controllers\Customer\WalletController;
@@ -395,3 +397,16 @@ Route::prefix('v1/{country}')
         Route::get('products/{slug}/reviews', [ReviewController::class, 'indexByProduct'])
             ->name('customer.products.reviews');
     });
+
+// ── Nawy Now curated feed (public, country-agnostic path — country_id is a query param) ──
+Route::prefix('v1/nawy')->name('customer.nawy.')->group(function (): void {
+    Route::get('feed', [NawyController::class, 'feed'])->name('feed');
+    Route::get('categories', [NawyController::class, 'categories'])->name('categories');
+    Route::get('{id}', [NawyController::class, 'show'])->name('show');
+});
+
+// ── App config (public, country-agnostic path — country_id is a query param) ──
+Route::prefix('v1/app')->name('customer.app.')->group(function (): void {
+    Route::get('config', [AppConfigController::class, 'config'])->name('config');
+    Route::get('home', [AppConfigController::class, 'homePage'])->name('home');
+});

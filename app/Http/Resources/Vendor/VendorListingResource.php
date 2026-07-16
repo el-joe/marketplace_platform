@@ -22,6 +22,8 @@ class VendorListingResource extends JsonResource
             'condition'            => $this->condition,
             'fulfillment_model'    => $this->fulfillment_model,
             'global_system_type'   => $this->global_system_type?->value,
+            'vendor_covers_delivery' => (bool) $this->vendor_covers_delivery,
+            'vendor_covers_delivery_editable' => $this->global_system_type?->value === 'merchant_fbp',
             'price'                => (int) $this->price,
             'compare_at_price'     => $this->compare_at_price ? (int) $this->compare_at_price : null,
             'cost_price'           => $this->cost_price !== null ? (int) $this->cost_price : null,

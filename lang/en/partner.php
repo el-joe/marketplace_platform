@@ -1382,6 +1382,15 @@ return [
         'submitted' => 'Submitted',
         'delivered_message' => 'Your packaging supplies have been delivered. Enjoy!',
         'rejected_message' => 'This request was not approved. Please contact support if you have questions.',
+        'confirm_order' => 'Confirm Your Order',
+        'item' => 'Item',
+        'unit_price' => 'Unit Price',
+        'line_total' => 'Line Total',
+        'items_subtotal' => 'Items Subtotal',
+        'delivery_fee' => 'Delivery Fee',
+        'grand_total' => 'Grand Total',
+        'delivery_fee_payout_note' => 'Delivery fee will be deducted from your next payout.',
+        'confirm_and_submit' => 'Confirm & Submit',
     ],
 
     'marketer_samples' => [

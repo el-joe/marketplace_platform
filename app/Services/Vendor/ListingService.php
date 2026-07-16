@@ -2,6 +2,7 @@
 
 namespace App\Services\Vendor;
 
+use App\Enums\GlobalSystemType;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
 use App\Models\SubOrder;
@@ -64,6 +65,19 @@ class ListingService
         }
 
         $listing->update(['primary_shipping_method_id' => $shippingMethodId]);
+
+        return $listing->fresh();
+    }
+
+    public function updateDeliveryCoverage(VendorListing $listing, bool $vendorCoversDelivery): VendorListing
+    {
+        if ($listing->global_system_type !== GlobalSystemType::MerchantFbp) {
+            throw ValidationException::withMessages([
+                'vendor_covers_delivery' => ['This option is only available for merchant fulfillment (FBP) listings.'],
+            ]);
+        }
+
+        $listing->update(['vendor_covers_delivery' => $vendorCoversDelivery]);
 
         return $listing->fresh();
     }

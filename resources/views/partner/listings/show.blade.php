@@ -57,6 +57,7 @@
             currentShippingMethodId: '{{ $listing->primary_shipping_method_id }}',
             toggleStatusUrl: '{{ route('partner.listings.toggle-status', $listing->id) }}',
             adjustStockUrl: '{{ route('partner.listings.adjust-stock', $listing->id) }}',
+            toggleCoversDeliveryUrl: '{{ route('partner.listings.toggle-covers-delivery', $listing->id) }}',
             csrf: '{{ csrf_token() }}',
         };
     </script>
@@ -172,6 +173,18 @@
                         <span id="display-shipping-method" class="font-medium">{{ $listing->primaryShippingMethod?->name ?? __('partner.listings.show.not_set') }}</span>
                     </div>
                 </div>
+
+                @if($listing->global_system_type === \App\Enums\GlobalSystemType::MerchantFbp)
+                    <div class="mt-4 pt-4 border-t border-gray-50">
+                        <label class="flex items-start gap-2 cursor-pointer">
+                            <input type="checkbox" id="vendor-covers-delivery-toggle" @checked($listing->vendor_covers_delivery)
+                                class="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400/40">
+                            <span class="text-sm text-gray-700">
+                                Cover remaining delivery cost (optional) — amount will be deducted from your earnings per order
+                            </span>
+                        </label>
+                    </div>
+                @endif
 
                 @if($listing->vendor_notes)
                     <div class="mt-4 pt-4 border-t border-gray-50">

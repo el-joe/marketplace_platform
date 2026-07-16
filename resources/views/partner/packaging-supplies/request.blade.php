@@ -54,6 +54,8 @@
                                            name="items[{{ $loop->index }}][quantity]"
                                            value="{{ old('items.'.$loop->index.'.quantity', 0) }}"
                                            min="0" max="1000"
+                                           data-name="{{ $supply->name_en }}"
+                                           data-unit-cost-cents="{{ $supply->unit_cost_cents }}"
                                            class="w-14 text-center input text-sm py-1"
                                            onchange="syncItem(this, '{{ $supply->id }}')">
                                     <button type="button" onclick="adjustQty('qty_{{ $supply->id }}', 1)"
@@ -91,8 +93,7 @@
                                   placeholder="{{ __('partner.packaging_supplies.notes_placeholder') }}">{{ old('notes') }}</textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-full"
-                            onclick="return validateForm()">{{ __('partner.packaging_supplies.submit_request_btn') }}</button>
+                    <button type="button" class="btn btn-primary w-full" onclick="openConfirmModal()">{{ __('partner.packaging_supplies.submit_request_btn') }}</button>
 
                     <a href="{{ route('partner.packaging-supplies.index') }}"
                        class="btn btn-secondary w-full text-center block">{{ __('common.cancel') }}</a>
@@ -102,21 +103,108 @@
         </div>
     </form>
 
+    {{-- ─── Confirmation Modal ─────────────────────────────────────────────── --}}
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+            <div class="px-5 py-3 border-b font-medium text-gray-900">{{ __('partner.packaging_supplies.confirm_order') }}</div>
+            <div class="p-5 space-y-4">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-gray-500 text-xs">
+                            <th class="text-start font-normal pb-2">{{ __('partner.packaging_supplies.item') }}</th>
+                            <th class="text-center font-normal pb-2">{{ __('partner.packaging_supplies.qty') }}</th>
+                            <th class="text-end font-normal pb-2">{{ __('partner.packaging_supplies.unit_price') }}</th>
+                            <th class="text-end font-normal pb-2">{{ __('partner.packaging_supplies.line_total') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="confirmItemsBody"></tbody>
+                </table>
+                <div class="border-t pt-3 space-y-1 text-sm">
+                    <div class="flex justify-between text-gray-600">
+                        <span>{{ __('partner.packaging_supplies.items_subtotal') }}</span>
+                        <span id="confirmSubtotal">0.00</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                        <span>{{ __('partner.packaging_supplies.delivery_fee') }}</span>
+                        <span id="confirmDeliveryFee">…</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-gray-900 text-base pt-1">
+                        <span>{{ __('partner.packaging_supplies.grand_total') }}</span>
+                        <span id="confirmGrandTotal">0.00</span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400">{{ __('partner.packaging_supplies.delivery_fee_payout_note') }}</p>
+            </div>
+            <div class="px-5 py-3 border-t flex justify-end gap-2">
+                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">{{ __('common.cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('requestForm').submit()">{{ __('partner.packaging_supplies.confirm_and_submit') }}</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function adjustQty(id, delta) {
             const input = document.getElementById(id);
             const newVal = Math.max(0, Math.min(1000, (parseInt(input.value) || 0) + delta));
             input.value = newVal;
+            input.dispatchEvent(new Event('change'));
         }
 
-        function validateForm() {
-            const quantities = document.querySelectorAll('input[type="number"][id^="qty_"]');
-            const hasAny = Array.from(quantities).some(q => parseInt(q.value) > 0);
-            if (!hasAny) {
+        function selectedItems() {
+            return Array.from(document.querySelectorAll('input[type="number"][id^="qty_"]'))
+                .filter(q => parseInt(q.value) > 0)
+                .map(q => ({
+                    name: q.dataset.name,
+                    qty: parseInt(q.value),
+                    unitCostCents: parseInt(q.dataset.unitCostCents),
+                }));
+        }
+
+        function money(cents) {
+            return (cents / 100).toFixed(2);
+        }
+
+        function openConfirmModal() {
+            const items = selectedItems();
+            if (items.length === 0) {
                 alert(@json(__('partner.packaging_supplies.select_item_alert')));
-                return false;
+                return;
             }
-            return true;
+
+            const tbody = document.getElementById('confirmItemsBody');
+            tbody.innerHTML = '';
+            let subtotalCents = 0;
+            items.forEach(item => {
+                const lineCents = item.unitCostCents * item.qty;
+                subtotalCents += lineCents;
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="py-1">${item.name}</td>
+                    <td class="text-center py-1">${item.qty}</td>
+                    <td class="text-end py-1">${money(item.unitCostCents)}</td>
+                    <td class="text-end py-1">${money(lineCents)}</td>`;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('confirmSubtotal').textContent = money(subtotalCents);
+            document.getElementById('confirmDeliveryFee').textContent = '…';
+            document.getElementById('confirmGrandTotal').textContent = money(subtotalCents);
+            document.getElementById('confirmModal').classList.remove('hidden');
+            document.getElementById('confirmModal').classList.add('flex');
+
+            fetch(@json(route('partner.packaging-supplies.delivery-fee')))
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('confirmDeliveryFee').textContent = money(data.fee_cents);
+                    document.getElementById('confirmGrandTotal').textContent = money(subtotalCents + data.fee_cents);
+                })
+                .catch(() => {
+                    document.getElementById('confirmDeliveryFee').textContent = money(0);
+                });
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            document.getElementById('confirmModal').classList.remove('flex');
         }
     </script>
 

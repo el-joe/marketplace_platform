@@ -18,6 +18,7 @@ class PackagingSupplyRequest extends Model
         'warehouse_id',
         'status',
         'total_cost_cents',
+        'delivery_fee_cents',
         'notes',
         'approved_by_admin_id',
         'approved_at',
@@ -26,8 +27,9 @@ class PackagingSupplyRequest extends Model
     protected function casts(): array
     {
         return [
-            'total_cost_cents' => 'integer',
-            'approved_at'      => 'datetime',
+            'total_cost_cents'   => 'integer',
+            'delivery_fee_cents' => 'integer',
+            'approved_at'        => 'datetime',
             'status'           => PackagingSupplyRequestStatus::class,
         ];
     }
@@ -61,6 +63,23 @@ class PackagingSupplyRequest extends Model
         return $this->total_cost_cents === 0
             ? 'Free'
             : number_format($this->total_cost_cents / 100, 2);
+    }
+
+    public function getDeliveryFeeFormattedAttribute(): string
+    {
+        return $this->delivery_fee_cents === 0
+            ? 'Free'
+            : number_format($this->delivery_fee_cents / 100, 2);
+    }
+
+    public function getGrandTotalCentsAttribute(): int
+    {
+        return $this->total_cost_cents + $this->delivery_fee_cents;
+    }
+
+    public function getGrandTotalFormattedAttribute(): string
+    {
+        return number_format($this->grand_total_cents / 100, 2);
     }
 
     public function isPending(): bool

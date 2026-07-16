@@ -47,6 +47,9 @@ class Category extends Model
         'commission_fbn_pct',
         'commission_fbn_fixed_cents',
         'sort_order',
+        'nawy_sort_order',
+        'nawy_icon_path',
+        'nawy_is_featured',
         'product_count',
         'is_active',
         'is_visible',
@@ -66,6 +69,8 @@ class Category extends Model
         'commission_fbn_pct' => 'decimal:2',
         'commission_fbn_fixed_cents' => 'integer',
         'sort_order' => 'integer',
+        'nawy_sort_order' => 'integer',
+        'nawy_is_featured' => 'boolean',
         'product_count' => 'integer',
         'is_active' => 'boolean',
         'is_visible' => 'boolean',
@@ -131,6 +136,11 @@ class Category extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function adminProductListings(): HasMany
+    {
+        return $this->hasMany(AdminProductListing::class, 'nawy_category_id');
     }
 
     public function files(): MorphMany

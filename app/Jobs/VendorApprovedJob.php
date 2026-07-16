@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class VendorApprovedJob implements ShouldQueue
 {
@@ -40,10 +41,14 @@ class VendorApprovedJob implements ShouldQueue
         if (!$vendor->default_warehouse_id) {
             $warehouseId = \Illuminate\Support\Str::uuid();
 
+            do {
+                $warehouseCode = 'WH-' . strtoupper(Str::random(8));
+            } while (DB::table('warehouses')->where('code', $warehouseCode)->exists());
+
             DB::table('warehouses')->insert([
                 'id' => $warehouseId,
                 'name' => $vendor->store_name . ' — Default Warehouse',
-                'code' => \Illuminate\Support\Str::uuid()->toString(),
+                'code' => $warehouseCode,
                 'owner_vendor_id' => $vendor->id,
                 'country_id' => $vendor->country_id,
                 'is_active' => true,

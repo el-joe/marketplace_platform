@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Vendor;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Vendor\CreateListingRequest;
 use App\Http\Requests\Vendor\ListingIndexRequest;
+use App\Http\Requests\Vendor\UpdateListingDeliveryCoverageRequest;
 use App\Http\Requests\Vendor\UpdateListingPriceRequest;
 use App\Http\Requests\Vendor\UpdateListingShippingRequest;
 use App\Http\Requests\Vendor\UpdateListingStatusRequest;
@@ -117,6 +118,17 @@ class ListingController extends Controller
         $updated = $this->listingService->updateShippingMethod($listing, $request->primary_shipping_method_id);
 
         return ApiResponse::success(new VendorListingResource($updated), 'Shipping method updated.');
+    }
+
+    public function updateDeliveryCoverage(UpdateListingDeliveryCoverageRequest $request, string $id): \Illuminate\Http\JsonResponse
+    {
+        $listing = VendorListing::findOrFail($id);
+
+        Gate::authorize('updateDeliveryCoverage', $listing);
+
+        $updated = $this->listingService->updateDeliveryCoverage($listing, $request->boolean('vendor_covers_delivery'));
+
+        return ApiResponse::success(new VendorListingResource($updated), 'Delivery coverage setting updated.');
     }
 
     public function destroy(string $id): \Illuminate\Http\JsonResponse

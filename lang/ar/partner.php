@@ -1379,6 +1379,15 @@ return [
         'submitted' => 'تاريخ الإرسال',
         'delivered_message' => 'تم تسليم مستلزمات التغليف الخاصة بك. نتمنى لك تجربة رائعة!',
         'rejected_message' => 'لم تتم الموافقة على هذا الطلب. يرجى التواصل مع الدعم إذا كان لديك أي استفسار.',
+        'confirm_order' => 'تأكيد طلبك',
+        'item' => 'الصنف',
+        'unit_price' => 'سعر الوحدة',
+        'line_total' => 'إجمالي السطر',
+        'items_subtotal' => 'إجمالي الأصناف',
+        'delivery_fee' => 'رسوم التوصيل',
+        'grand_total' => 'الإجمالي الكلي',
+        'delivery_fee_payout_note' => 'سيتم خصم رسوم التوصيل من دفعتك القادمة.',
+        'confirm_and_submit' => 'تأكيد وإرسال',
     ],
 
     'marketer_samples' => [

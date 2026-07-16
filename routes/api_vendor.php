@@ -125,6 +125,7 @@ Route::prefix('v1')->group(function (): void {
                 Route::put('{id}/status',  [ListingController::class, 'updateStatus'])->name('status');
                 Route::get('{id}/shipping-methods', [ListingController::class, 'availableShippingMethods'])->name('shipping-methods');
                 Route::put('{id}/shipping', [ListingController::class, 'updateShipping'])->name('shipping');
+                Route::put('{id}/delivery-coverage', [ListingController::class, 'updateDeliveryCoverage'])->name('delivery-coverage');
                 Route::delete('{id}',      [ListingController::class, 'destroy'])->name('destroy');
             });
 

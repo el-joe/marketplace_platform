@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@push('styles')
+    @vite(['resources/js/admin/packaging-supplies.js'])
+@endpush
+
 @section('title', __('admin.packaging_supplies.add_packaging_supply'))
 
 @section('content')
@@ -64,8 +68,11 @@
 
             <div>
                 <label class="label">{{ __('admin.packaging_supplies.image_path_optional') }}</label>
-                <input type="text" name="image_path" value="{{ old('image_path') }}"
-                       class="input @error('image_path') border-red-400 @enderror" placeholder="{{ __('admin.packaging_supplies.image_path_placeholder') }}">
+                <input type="hidden" name="image_path" id="image_path" value="{{ old('image_path') }}">
+                <input type="file"
+                       id="supply-image-filepond"
+                       data-upload-url="{{ route('admin.packaging-supplies.upload-image') }}"
+                       data-delete-url="{{ route('admin.packaging-supplies.delete-image') }}">
                 @error('image_path') <p class="form-error">{{ $message }}</p> @enderror
             </div>
 

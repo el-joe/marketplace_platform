@@ -151,6 +151,8 @@ function loadPage(pageId) {
         $('#block-canvas').empty().addClass('hidden');
         $('#canvas-empty').removeClass('hidden');
         $('#publish-btn, #version-history-btn, #preview-btn').addClass('hidden');
+        $('#page-context-badge').empty();
+        $('#home-page-banner').addClass('hidden').empty();
         return;
     }
 
@@ -162,6 +164,8 @@ function loadPage(pageId) {
     }).done((res) => {
         state.currentPageMeta = res.page;
         renderCanvas(res.blocks || []);
+        renderContextBadge(res.page);
+        renderHomeBanner(res.page);
         $('#publish-btn, #version-history-btn').removeClass('hidden');
         $('#preview-btn').attr('href', `/preview/page/${res.page.id}`).removeClass('hidden');
         setSaveStatus('');
@@ -169,6 +173,29 @@ function loadPage(pageId) {
         setSaveStatus(window.TRANSLATIONS?.loadFailed || 'Load failed', 'error');
         Toast.error(window.TRANSLATIONS?.couldNotLoadPage || 'Could not load page.');
     });
+}
+
+function renderContextBadge(page) {
+    const $badge = $('#page-context-badge');
+    if (!page.app_context_key) {
+        $badge.html('<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">—</span>');
+        return;
+    }
+    const color = page.app_context_color || '#6b7280';
+    $badge.html(`<span class="text-xs font-medium px-2 py-0.5 rounded-full text-white" style="background-color: ${escapeHtml(color)}">${escapeHtml(page.app_context_name || page.app_context_key)}</span>`);
+}
+
+function renderHomeBanner(page) {
+    const $banner = $('#home-page-banner');
+    const assignments = page.home_for || [];
+    if (!assignments.length) {
+        $banner.addClass('hidden').empty();
+        return;
+    }
+    const list = assignments.map((a) => `${escapeHtml(a.context_name || '')} ${window.TRANSLATIONS.inCountry} ${escapeHtml(a.country_name || '')}`).join(', ');
+    $banner.removeClass('hidden').text(
+        `${window.TRANSLATIONS.homePageBannerPrefix} ${list}. ${window.TRANSLATIONS.homePageBannerSuffix}`
+    );
 }
 
 function renderCanvas(blocks) {
@@ -874,8 +901,24 @@ function toggleReferenceField() {
     $(`[data-reference-field="${type}"]`).removeClass('hidden');
 }
 
+function toggleSetAsHome() {
+    const hasContext = !!$('[name="app_context_key"]').val();
+    const hasCountry = !!$('[name="country_id"]').val();
+    $('#set-as-home-wrap').toggleClass('hidden', !(hasContext && hasCountry));
+}
+
 $('#page_type').on('change', toggleReferenceField);
 $('#create-page-modal').on('modal:opened', toggleReferenceField);
+$(document).on('change', '[name="app_context_key"], [name="country_id"]', toggleSetAsHome);
+
+/* ─── Context filter ────────────────────────────────────────────────────── */
+$('#context-filter').on('change', function () {
+    const value = $(this).val();
+    $('#page-select option[data-context]').each(function () {
+        const matches = !value || $(this).data('context') === value;
+        $(this).toggle(matches);
+    });
+});
 
 $('#create-page-form').on('submit', function (e) {
     e.preventDefault();
@@ -894,6 +937,7 @@ $('#create-page-form').on('submit', function (e) {
 
             const p = res.page;
             const option = new Option(`${p.name} (${p.page_type})`, p.id, true, true);
+            $(option).attr('data-context', p.app_context_key || '__none');
             $('#page-select').append(option).val(p.id).trigger('change');
         })
         .fail((xhr) => {

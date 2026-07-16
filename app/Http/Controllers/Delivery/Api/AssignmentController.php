@@ -210,14 +210,20 @@ class AssignmentController extends Controller
 
         try {
             $this->assignmentService->fail(
-                assignment:     $assignment,
-                failureReason:  $request->failure_reason,
-                failureNotes:   $request->failure_notes,
-                latitude:       (float) $request->latitude,
-                longitude:      (float) $request->longitude,
+                assignment:               $assignment,
+                failureReason:            $request->failure_reason,
+                failureNotes:             $request->failure_notes,
+                latitude:                 (float) $request->latitude,
+                longitude:                (float) $request->longitude,
+                customerRejectionReason:  $request->customer_rejection_reason,
             );
         } catch (\DomainException $e) {
-            return ApiResponse::error($e->getMessage(), [], 422);
+            $message = match ($e->getMessage()) {
+                'customer_rejection_reason_required' => 'A rejection reason is required when the customer refuses delivery on an electronically paid order.',
+                default => $e->getMessage(),
+            };
+
+            return ApiResponse::error($message, [], 422);
         }
 
         return $this->respondWithAssignment($assignment, 'Delivery marked as failed.');

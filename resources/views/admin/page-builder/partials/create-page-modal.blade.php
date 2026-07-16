@@ -15,6 +15,14 @@
         <x-form.select name="country_id" label="{{ __('common.country') }}" required placeholder="{{ __('admin.page_builder.create_page_modal.select_placeholder') }}"
             :options="$countries->mapWithKeys(fn($c) => [$c->id => $c->name_en . ' (' . ($c->site_code ?? '—') . ')'])" />
 
+        <x-form.select name="app_context_key" label="{{ __('admin.page_builder.create_page_modal.app_context') }}" placeholder="{{ __('admin.page_builder.create_page_modal.select_placeholder') }}"
+            :options="$appContexts->mapWithKeys(fn($c) => [$c->key => $c->name_en])" />
+
+        <label id="set-as-home-wrap" class="hidden flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" name="set_as_home" value="1" class="rounded border-gray-300">
+            {{ __('admin.page_builder.create_page_modal.set_as_home') }}
+        </label>
+
         <div data-reference-field="category" class="hidden">
             <x-form.async-select name="reference_category_id" label="{{ __('admin.page_builder.create_page_modal.types.category') }}"
                 search-url="{{ route('admin.page-builder.search.categories') }}" :min-length="0" />

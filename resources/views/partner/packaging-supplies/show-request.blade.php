@@ -41,8 +41,16 @@
                             </tr>
                         @endforeach
                         <tr class="bg-gray-50">
-                            <td colspan="4" class="td text-right font-semibold text-gray-700">{{ __('partner.packaging_supplies.total') }}</td>
-                            <td class="td text-right font-bold text-gray-900">{{ $req->total_cost_formatted }}</td>
+                            <td colspan="4" class="td text-right text-gray-700">{{ __('partner.packaging_supplies.items_subtotal') }}</td>
+                            <td class="td text-right font-medium text-gray-900">{{ $req->total_cost_formatted }}</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <td colspan="4" class="td text-right text-gray-700">{{ __('partner.packaging_supplies.delivery_fee') }}</td>
+                            <td class="td text-right font-medium text-gray-900">{{ $req->delivery_fee_formatted }}</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <td colspan="4" class="td text-right font-semibold text-gray-700">{{ __('partner.packaging_supplies.grand_total') }}</td>
+                            <td class="td text-right font-bold text-gray-900">{{ $req->grand_total_formatted }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -51,6 +59,31 @@
 
         {{-- ─── Details ────────────────────────────────────────────────────── --}}
         <div class="space-y-4">
+            @php
+                $isRejected = $req->status === \App\Enums\PackagingSupplyRequestStatus::Rejected;
+                $timelineSteps = ['pending', 'approved', 'shipped', 'delivered'];
+                $currentIndex = array_search($req->status->value, $timelineSteps, true);
+            @endphp
+
+            @if(!$isRejected)
+                <div class="card p-5">
+                    <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">{{ __('partner.packaging_supplies.request_status') }}</p>
+                    <ol class="space-y-3">
+                        @foreach($timelineSteps as $i => $step)
+                            <li class="flex items-center gap-3">
+                                <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold
+                                    {{ $i <= $currentIndex ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400' }}">
+                                    {{ $i <= $currentIndex ? '✓' : '' }}
+                                </span>
+                                <span class="text-sm {{ $i <= $currentIndex ? 'text-gray-900 font-medium' : 'text-gray-400' }}">
+                                    {{ ucfirst($step) }}
+                                </span>
+                            </li>
+                        @endforeach
+                    </ol>
+                </div>
+            @endif
+
             <div class="card p-5 text-sm space-y-3">
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{{ __('common.status') }}</p>

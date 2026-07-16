@@ -265,6 +265,7 @@ class AssignmentService
         ?string            $failureNotes,
         float              $latitude,
         float              $longitude,
+        ?string            $customerRejectionReason = null,
     ): void {
         if (! in_array($assignment->status, [
             DeliveryAssignment::STATUS_ACCEPTED,
@@ -273,11 +274,25 @@ class AssignmentService
             throw new \DomainException('Assignment cannot be failed in its current state.');
         }
 
+        if ($failureReason === 'customer_refused') {
+            $assignment->load('subOrder.order');
+            $isElectronicPayment = $assignment->subOrder->order->payment_method !== 'cod';
+
+            if ($isElectronicPayment && ! $customerRejectionReason) {
+                throw new \DomainException('customer_rejection_reason_required');
+            }
+        }
+
         $isCodRefused = false;
 
         DB::transaction(function () use (
-            $assignment, $failureReason, $failureNotes, $latitude, $longitude, &$isCodRefused
+            $assignment, $failureReason, $failureNotes, $latitude, $longitude, $customerRejectionReason, &$isCodRefused
         ) {
+            $assignment->load('subOrder.order');
+            $order        = $assignment->subOrder->order;
+            $isCustomerRefused = $failureReason === 'customer_refused';
+            $isElectronicPayment = $order->payment_method !== 'cod';
+
             $assignment->update([
                 'status'             => DeliveryAssignment::STATUS_FAILED,
                 'failed_at'          => now(),
@@ -285,15 +300,16 @@ class AssignmentService
                 'failure_notes'      => $failureNotes,
                 'delivery_latitude'  => $latitude,
                 'delivery_longitude' => $longitude,
+                'customer_rejection_reason' => $isCustomerRefused ? $customerRejectionReason : $assignment->customer_rejection_reason,
+                'rejected_by_customer_at' => $isCustomerRefused ? now() : $assignment->rejected_by_customer_at,
+                'rejection_reason_mandatory' => $isCustomerRefused ? $isElectronicPayment : $assignment->rejection_reason_mandatory,
             ]);
 
             $cumulativeFails = DeliveryAssignment::where('shipment_id', $assignment->shipment_id)
                 ->where('status', DeliveryAssignment::STATUS_FAILED)
                 ->count();
 
-            $assignment->load('subOrder.order');
-            $order        = $assignment->subOrder->order;
-            $isCodRefused = $failureReason === 'customer_refused'
+            $isCodRefused = $isCustomerRefused
                 && $order->payment_method === 'cod';
 
             $triggerRto = $isCodRefused || $cumulativeFails >= self::CUMULATIVE_FAIL_LIMIT;

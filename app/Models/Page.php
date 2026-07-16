@@ -16,6 +16,7 @@ class Page extends Model
     protected $fillable = [
         'country_id',
         'page_type',
+        'app_context_key',
         'reference_id',
         'name',
         'slug',
@@ -44,6 +45,16 @@ class Page extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function appContext(): BelongsTo
+    {
+        return $this->belongsTo(AppContext::class, 'app_context_key', 'key');
+    }
+
+    public function homeFor(): HasMany
+    {
+        return $this->hasMany(AppContextCountry::class, 'home_page_id');
     }
 
     public function publishedByAdmin(): BelongsTo

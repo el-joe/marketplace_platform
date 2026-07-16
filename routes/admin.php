@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductCostController;
+use App\Http\Controllers\Admin\ProductHighlightController;
+use App\Http\Controllers\Admin\BestsellerController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\BrandController;
@@ -13,6 +15,7 @@ use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\FlashSaleController;
 use App\Http\Controllers\Admin\PageBuilderController;
 use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Admin\VendorSubsidySettingController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\AdminController;
@@ -45,6 +48,7 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\FinancialReportController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ShippingMethodController;
+use App\Http\Controllers\Admin\ShippingWeightSlabController;
 use App\Http\Controllers\Admin\DeliveryAgentController;
 use App\Http\Controllers\Admin\DeliveryZoneController;
 use App\Http\Controllers\Admin\DeliveryAssignmentController;
@@ -142,6 +146,24 @@ Route::middleware('auth.admin')->group(function () {
             Route::post('/calculate', [ProductCostController::class, 'calculateMargin'])->name('calculate');
             Route::post('/check-competitors', [ProductCostController::class, 'checkCompetitorPrices'])->name('check-competitors');
         });
+    });
+
+    // ─── Product Highlights ──────────────────────────────────────────────────────
+    Route::prefix('product-highlights')->name('product-highlights.')->middleware('admin.permission:products.view')->group(function () {
+        Route::get('/create', [ProductHighlightController::class, 'create'])->name('create');
+        Route::post('/datatable', [ProductHighlightController::class, 'datatable'])->name('datatable');
+        Route::get('/search/products', [ProductHighlightController::class, 'searchProducts'])->name('search.products');
+        Route::get('/', [ProductHighlightController::class, 'index'])->name('index');
+        Route::post('/', [ProductHighlightController::class, 'store'])->name('store');
+        Route::get('/{productHighlight}/edit', [ProductHighlightController::class, 'edit'])->name('edit');
+        Route::patch('/{productHighlight}', [ProductHighlightController::class, 'update'])->name('update');
+        Route::delete('/{productHighlight}', [ProductHighlightController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Bestseller Rankings (read-only) ────────────────────────────────────────
+    Route::prefix('bestsellers')->name('bestsellers.')->middleware('admin.permission:products.view')->group(function () {
+        Route::post('/datatable', [BestsellerController::class, 'datatable'])->name('datatable');
+        Route::get('/', [BestsellerController::class, 'index'])->name('index');
     });
 
     // ─── Brands ──────────────────────────────────────────────────────────────────
@@ -430,6 +452,15 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{vendor}/bank-accounts/{accountId}/verify', [VendorController::class, 'verifyBankAccount'])->name('bank-accounts.verify');
         Route::get('/{vendor}/performance-data', [VendorController::class, 'performanceData'])->name('performance-data');
         Route::post('/{vendor}/notify', [VendorController::class, 'sendNotification'])->name('notify');
+
+        // ── FBP subsidy settings ────────────────────────────────────────────
+        // GET serves both the page (no ?draw) and the DataTable's ajax fetch (?draw=..., ajaxMethod: 'GET')
+        // so it doesn't collide with the POST store route below.
+        Route::get('/{vendor}/subsidy-settings', [VendorSubsidySettingController::class, 'index'])->name('subsidy-settings.index');
+        Route::post('/{vendor}/subsidy-settings', [VendorSubsidySettingController::class, 'store'])->name('subsidy-settings.store');
+        Route::put('/{vendor}/subsidy-settings/{setting}', [VendorSubsidySettingController::class, 'update'])->name('subsidy-settings.update');
+        Route::post('/{vendor}/subsidy-settings/{setting}/deactivate', [VendorSubsidySettingController::class, 'deactivate'])->name('subsidy-settings.deactivate');
+        Route::get('/{vendor}/exceptional-zones', [VendorSubsidySettingController::class, 'exceptionalZones'])->name('exceptional-zones.index');
     });
 
     // ─── Geography ───────────────────────────────────────────────────────────────
@@ -918,6 +949,15 @@ Route::middleware('auth.admin')->group(function () {
         Route::get('/country-settings', [ShippingMethodController::class, 'countrySettings'])->name('country-settings.index');
     });
 
+    // ─── Shipping Weight Slabs ────────────────────────────────────────────────
+    Route::prefix('shipping')->name('shipping.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/weight-slabs', [ShippingWeightSlabController::class, 'index'])->name('weight-slabs.index');
+        Route::post('/weight-slabs/datatable', [ShippingWeightSlabController::class, 'datatable'])->name('weight-slabs.datatable');
+        Route::post('/weight-slabs', [ShippingWeightSlabController::class, 'store'])->name('weight-slabs.store')->middleware('admin.permission:settings.edit');
+        Route::put('/weight-slabs/{slab}', [ShippingWeightSlabController::class, 'update'])->name('weight-slabs.update')->middleware('admin.permission:settings.edit');
+        Route::delete('/weight-slabs/{slab}', [ShippingWeightSlabController::class, 'destroy'])->name('weight-slabs.destroy')->middleware('admin.permission:settings.edit');
+    });
+
     // ─── Delivery ────────────────────────────────────────────────────────────
     Route::prefix('delivery')->name('delivery.')->group(function () {
         // Agents
@@ -1134,12 +1174,21 @@ Route::middleware('auth.admin')->group(function () {
     // ─── Admin Product Listings (Now Nawy) ───────────────────────────────────
     Route::prefix('admin-product-listings')->name('admin-product-listings.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'index'])->name('index');
+        Route::post('/datatable', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'datatable'])->name('datatable');
         Route::get('/create', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'create'])->name('create');
+        Route::get('/search/variants', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'searchVariants'])->name('search-variants');
+        Route::get('/categories', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'categories'])->name('categories');
+        Route::post('/categories/reorder', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'reorderCategories'])->name('categories.reorder');
+        Route::post('/categories/{category}/icon', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'saveCategoryIcon'])->name('categories.icon');
+        Route::post('/categories/{category}/toggle-featured', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'toggleCategoryFeatured'])->name('categories.toggle-featured');
         Route::post('/', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'store'])->name('store');
         Route::get('/{adminProductListing}/edit', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'edit'])->name('edit');
         Route::put('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'update'])->name('update');
         Route::delete('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'destroy'])->name('destroy');
         Route::get('/{adminProductListing}/nawy-preview', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'nawyPreview'])->name('nawy-preview');
+        Route::post('/{adminProductListing}/toggle-featured', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'toggleFeatured'])->name('toggle-featured');
+        Route::post('/{adminProductListing}/reference', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'saveReference'])->name('save-reference');
+        Route::get('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'show'])->name('show');
     });
 
     // ─── Travel Agencies & Packages ───────────────────────────────────────────
@@ -1260,17 +1309,23 @@ Route::middleware('auth.admin')->group(function () {
     Route::prefix('packaging-supplies')->name('packaging-supplies.')->group(function () {
         // Catalog CRUD
         Route::get('/', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'index'])->name('index');
+        Route::post('/datatable', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'datatable'])->name('datatable');
         Route::get('/create', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'create'])->name('create');
         Route::post('/', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'store'])->name('store');
+        Route::post('/upload-image', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'uploadImage'])->name('upload-image');
+        Route::delete('/delete-image', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'deleteImage'])->name('delete-image');
         Route::get('/{packagingSupply}/edit', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'edit'])->name('edit');
         Route::put('/{packagingSupply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'update'])->name('update');
         Route::delete('/{packagingSupply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'destroy'])->name('destroy');
 
         // Requests queue
         Route::get('/requests', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'requests'])->name('requests');
+        Route::post('/requests/datatable', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'requestsDatatable'])->name('requests.datatable');
         Route::get('/requests/{packagingSupplyRequest}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'showRequest'])->name('show-request');
         Route::patch('/requests/{packagingSupplyRequest}/approve', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'approveRequest'])->name('approve-request');
         Route::patch('/requests/{packagingSupplyRequest}/reject', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'rejectRequest'])->name('reject-request');
+        Route::patch('/requests/{packagingSupplyRequest}/ship', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'markShipped'])->name('mark-shipped');
+        Route::patch('/requests/{packagingSupplyRequest}/deliver', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'markDelivered'])->name('mark-delivered');
         Route::patch('/requests/{packagingSupplyRequest}/status', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'updateRequestStatus'])->name('update-request-status');
     });
 
@@ -1340,6 +1395,16 @@ Route::middleware('auth.admin')->group(function () {
         Route::put('/{article:id}', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'update'])->name('update');
         Route::delete('/{article:id}', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'destroy'])->name('destroy');
         Route::post('/{article:id}/feature', [\App\Http\Controllers\Admin\HelpCenterArticleController::class, 'feature'])->name('feature');
+    });
+
+    // ─── App Contexts (Platform Navigation) ──────────────────────────────────
+    Route::prefix('app-contexts')->name('app-contexts.')->middleware('admin.permission:app_contexts.view')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\AppContextController::class, 'index'])->name('index');
+        Route::get('/{context}', [\App\Http\Controllers\Admin\AppContextController::class, 'show'])->name('show');
+        Route::put('/{context}', [\App\Http\Controllers\Admin\AppContextController::class, 'update'])->name('update');
+        Route::post('/{context}/countries', [\App\Http\Controllers\Admin\AppContextController::class, 'saveCountryAssignment'])->name('countries.save');
+        Route::post('/{context}/nav', [\App\Http\Controllers\Admin\AppContextController::class, 'saveNavItem'])->name('nav.save');
+        Route::put('/{context}/nav/{item}', [\App\Http\Controllers\Admin\AppContextController::class, 'updateNavItem'])->name('nav.update');
     });
 
 }); // end auth.admin middleware group

@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Notifications\Customer;
+
+use App\Models\Refund;
+use Illuminate\Broadcasting\PrivateChannel;
+
+class OrderRefundProcessed extends BaseCustomerNotification
+{
+    public function __construct(private readonly Refund $refund) {}
+
+    public function notificationType(): string
+    {
+        return 'order_refund_processed';
+    }
+
+    public function notificationData(object $notifiable): array
+    {
+        $order = $this->refund->order;
+        $currency = $this->refund->currency;
+        $netAmount = number_format($this->refund->net_refund_cents / 100, 2);
+
+        $message = "Refund of {$currency} {$netAmount} processed";
+        if ($this->refund->gateway_fee_deducted_cents > 0) {
+            $feeAmount = number_format(
+                ($this->refund->gateway_fee_deducted_cents + $this->refund->tax_deducted_cents) / 100,
+                2
+            );
+            $message .= " (gateway fee of {$currency} {$feeAmount} deducted)";
+        }
+        $message .= '.';
+
+        return [
+            'title' => 'Refund Processed',
+            'message' => $message,
+            'url' => route('customer.orders.show', $order->order_number),
+            'refund_id' => $this->refund->id,
+            'order_id' => $order->id,
+        ];
+    }
+
+    public function broadcastOn(): array
+    {
+        return [new PrivateChannel('customer.' . $this->refund->order->customer_id)];
+    }
+}

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\SubOrderStatus;
 use App\Models\OrderStatusHistory;
 use App\Models\SubOrder;
+use App\Services\LedgerService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -22,7 +23,7 @@ class AutoCompleteOrdersJob implements ShouldQueue
      */
     private const AUTO_COMPLETE_DAYS = 14;
 
-    public function handle(): void
+    public function handle(LedgerService $ledgerService): void
     {
         $cutoff = now()->subDays(self::AUTO_COMPLETE_DAYS);
 
@@ -40,9 +41,11 @@ class AutoCompleteOrdersJob implements ShouldQueue
 
         $affectedOrderIds = $subOrders->pluck('order_id')->unique()->values();
 
-        DB::transaction(function () use ($subOrders, $affectedOrderIds) {
+        DB::transaction(function () use ($subOrders, $affectedOrderIds, $ledgerService) {
             foreach ($subOrders as $subOrder) {
                 $subOrder->update(['status' => 'completed']);
+
+                $this->ledgerDeliverySubsidy($subOrder, $ledgerService);
 
                 OrderStatusHistory::create([
                     'order_id' => $subOrder->order_id,
@@ -83,5 +86,84 @@ class AutoCompleteOrdersJob implements ShouldQueue
         });
 
         Log::info('AutoCompleteOrdersJob: completed ' . $subOrders->count() . ' sub-order(s) across ' . $affectedOrderIds->count() . ' order(s).');
+    }
+
+    /**
+     * Post the delivery admin_subsidy_cents / vendor_deduction_cents split for a
+     * completed sub-order to the double-entry ledger. Guarded by
+     * delivery_subsidy_ledgered so a sub-order is never posted twice.
+     */
+    private function ledgerDeliverySubsidy(SubOrder $subOrder, LedgerService $ledgerService): void
+    {
+        if ($subOrder->delivery_subsidy_ledgered) {
+            return;
+        }
+
+        $adminSubsidyCents = (int) $subOrder->admin_subsidy_cents;
+        $vendorDeductionCents = (int) $subOrder->vendor_deduction_cents;
+
+        if ($adminSubsidyCents <= 0 && $vendorDeductionCents <= 0) {
+            $subOrder->update(['delivery_subsidy_ledgered' => true]);
+
+            return;
+        }
+
+        $entries = [];
+        $groupId = $ledgerService->newGroupId();
+        $currency = $subOrder->order->currency;
+
+        if ($adminSubsidyCents > 0) {
+            $entries[] = [
+                'account_type' => 'shipping_revenue',
+                'account_holder_type' => null,
+                'account_holder_id' => null,
+                'debit' => $adminSubsidyCents,
+                'credit' => 0,
+                'currency' => $currency,
+                'reference_type' => 'sub_order',
+                'reference_id' => $subOrder->id,
+                'description' => "Platform delivery subsidy for sub-order {$subOrder->sub_order_number}",
+            ];
+            $entries[] = [
+                'account_type' => 'platform_revenue',
+                'account_holder_type' => null,
+                'account_holder_id' => null,
+                'debit' => 0,
+                'credit' => $adminSubsidyCents,
+                'currency' => $currency,
+                'reference_type' => 'sub_order',
+                'reference_id' => $subOrder->id,
+                'description' => "Platform delivery subsidy for sub-order {$subOrder->sub_order_number}",
+            ];
+        }
+
+        if ($vendorDeductionCents > 0) {
+            $entries[] = [
+                'account_type' => 'shipping_revenue',
+                'account_holder_type' => null,
+                'account_holder_id' => null,
+                'debit' => $vendorDeductionCents,
+                'credit' => 0,
+                'currency' => $currency,
+                'reference_type' => 'sub_order',
+                'reference_id' => $subOrder->id,
+                'description' => "Vendor-covered delivery deduction for sub-order {$subOrder->sub_order_number}",
+            ];
+            $entries[] = [
+                'account_type' => 'seller_payable',
+                'account_holder_type' => 'vendors',
+                'account_holder_id' => $subOrder->vendor_id,
+                'debit' => 0,
+                'credit' => $vendorDeductionCents,
+                'currency' => $currency,
+                'reference_type' => 'sub_order',
+                'reference_id' => $subOrder->id,
+                'description' => "Vendor-covered delivery deduction for sub-order {$subOrder->sub_order_number}",
+            ];
+        }
+
+        $ledgerService->record($groupId, $entries);
+
+        $subOrder->update(['delivery_subsidy_ledgered' => true]);
     }
 }

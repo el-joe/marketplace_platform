@@ -91,6 +91,8 @@ class PermissionSeeder extends Seeder
             'campaign_offers.view',
             'pages.view',
             'pages.manage',
+            'app_contexts.view',
+            'app_contexts.manage',
             // Customers
             'customers.view',
             'customers.edit',

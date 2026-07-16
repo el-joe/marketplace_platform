@@ -6,6 +6,7 @@
 @php
     $listing = $listing ?? null;
     $isEdit  = $listing !== null;
+    $selectedVariant = $selectedVariant ?? null;
     $val = fn(string $f, $d = '') => old($f, $isEdit ? ($listing->{$f} ?? $d) : $d);
     $bool = fn(string $f, bool $d = false): bool => (bool) old($f, $isEdit ? ($listing->{$f} ?? $d) : $d);
 @endphp
@@ -19,22 +20,21 @@
         <div class="grid grid-cols-2 gap-4">
             <div class="col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.product_variant_required') }} <span class="text-red-500">*</span></label>
-                <select name="product_variant_id" required
+                <select name="product_variant_id" required data-async-select
+                        data-config='{{ json_encode(["url" => route("admin.admin-product-listings.search-variants"), "param" => "q", "minLength" => 2, "delay" => 300]) }}'
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option value="">{{ __('admin.admin_product_listings.select_variant') }}</option>
-                    @foreach($productVariants as $variant)
-                        <option value="{{ $variant->id }}"
-                                {{ $val('product_variant_id') === $variant->id ? 'selected' : '' }}>
-                            {{ $variant->product?->name_en }} — {{ $variant->sku }}
+                    @if($selectedVariant)
+                        <option value="{{ $selectedVariant->id }}" selected>
+                            {{ $selectedVariant->product?->name_en }} — {{ $selectedVariant->sku }}
                         </option>
-                    @endforeach
+                    @endif
                 </select>
                 @error('product_variant_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.country_required') }} <span class="text-red-500">*</span></label>
-                <select name="country_id" required
+                <select name="country_id" required data-select2-init
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                     <option value="">{{ __('admin.admin_product_listings.select_country') }}</option>
                     @foreach($countries as $country)
@@ -126,30 +126,38 @@
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.fulfillment_type_required') }} <span class="text-red-500">*</span></label>
-                <select name="fulfillment_type" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('admin.admin_product_listings.fulfillment_type_required') }} <span class="text-red-500">*</span></label>
+                <div class="flex flex-wrap gap-4">
                     @foreach(['express' => __('admin.admin_product_listings.express'), 'global' => __('admin.admin_product_listings.global'), 'mixed' => __('admin.admin_product_listings.mixed')] as $v => $l)
-                        <option value="{{ $v }}" {{ $val('fulfillment_type', 'mixed') === $v ? 'selected' : '' }}>{{ $l }}</option>
+                        <label class="flex items-center gap-1.5 cursor-pointer select-none text-sm text-gray-700">
+                            <input type="radio" name="fulfillment_type" value="{{ $v }}"
+                                   {{ $val('fulfillment_type', 'mixed') === $v ? 'checked' : '' }}
+                                   class="text-primary-600 focus:ring-primary-500">
+                            {{ $l }}
+                        </label>
                     @endforeach
-                </select>
+                </div>
                 @error('fulfillment_type')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.payment_options_required') }} <span class="text-red-500">*</span></label>
-                <select name="payment_options" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('admin.admin_product_listings.payment_options_required') }} <span class="text-red-500">*</span></label>
+                <div class="flex flex-wrap gap-4">
                     @foreach(['both' => __('admin.admin_product_listings.both_cod_electronic'), 'cod_only' => __('admin.admin_product_listings.cod_only'), 'electronic_only' => __('admin.admin_product_listings.electronic_only')] as $v => $l)
-                        <option value="{{ $v }}" {{ $val('payment_options', 'both') === $v ? 'selected' : '' }}>{{ $l }}</option>
+                        <label class="flex items-center gap-1.5 cursor-pointer select-none text-sm text-gray-700">
+                            <input type="radio" name="payment_options" value="{{ $v }}"
+                                   {{ $val('payment_options', 'both') === $v ? 'checked' : '' }}
+                                   class="text-primary-600 focus:ring-primary-500">
+                            {{ $l }}
+                        </label>
                     @endforeach
-                </select>
+                </div>
                 @error('payment_options')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
 
             <div class="col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.nawy_category') }}</label>
-                <select name="nawy_category_id"
+                <select name="nawy_category_id" data-select2-init
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
                     <option value="">{{ __('admin.admin_product_listings.no_category') }}</option>
                     @foreach($nawyCategories as $cat)

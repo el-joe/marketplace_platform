@@ -34,7 +34,7 @@ class PageBuilderService
      */
     public function getPageWithBlocks(string $pageId): array
     {
-        $page = Page::with('country')->findOrFail($pageId);
+        $page = Page::with(['country', 'appContext', 'homeFor.appContext', 'homeFor.country'])->findOrFail($pageId);
 
         $blocks = PageBlock::with('blockType')
             ->where('page_id', $pageId)
@@ -55,6 +55,13 @@ class PageBuilderService
                 'status' => $page->status?->value,
                 'version' => $page->version,
                 'published_at' => optional($page->published_at)->toIso8601String(),
+                'app_context_key' => $page->app_context_key,
+                'app_context_name' => optional($page->appContext)->name_en,
+                'app_context_color' => optional($page->appContext)->color_hex,
+                'home_for' => $page->homeFor->map(fn($assignment) => [
+                    'context_name' => optional($assignment->appContext)->name_en,
+                    'country_name' => optional($assignment->country)->name_en,
+                ])->values(),
             ],
             'blocks' => $blocks,
         ];
@@ -65,6 +72,7 @@ class PageBuilderService
         return Page::create([
             'country_id' => $data['country_id'] ?? null,
             'page_type' => $data['page_type'],
+            'app_context_key' => $data['app_context_key'] ?? null,
             'reference_id' => $data['reference_id'] ?? null,
             'name' => $data['name'],
             'slug' => $this->generatePageSlug($data['page_type'], $data['reference_id'] ?? null, $data['country_id']),

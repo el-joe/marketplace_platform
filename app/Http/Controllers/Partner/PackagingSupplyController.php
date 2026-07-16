@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\PackagingSupply;
 use App\Models\PackagingSupplyRequest;
 use App\Models\PackagingSupplyRequestItem;
+use App\Models\Setting;
 use App\Models\Warehouse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -80,12 +82,13 @@ class PackagingSupplyController extends Controller
         }
 
         $supplyRequest = PackagingSupplyRequest::create([
-            'request_number'   => PackagingSupplyRequest::generateRequestNumber(),
-            'vendor_id'        => $vendor->id,
-            'warehouse_id'     => $data['warehouse_id'] ?? null,
-            'status'           => PackagingSupplyRequestStatus::Pending,
-            'total_cost_cents' => $totalCents,
-            'notes'            => $data['notes'] ?? null,
+            'request_number'     => PackagingSupplyRequest::generateRequestNumber(),
+            'vendor_id'          => $vendor->vendor_id,
+            'warehouse_id'       => $data['warehouse_id'] ?? null,
+            'status'             => PackagingSupplyRequestStatus::Pending,
+            'total_cost_cents'   => $totalCents,
+            'delivery_fee_cents' => $this->resolveDeliveryFeeCents($vendor->vendor),
+            'notes'              => $data['notes'] ?? null,
         ]);
 
         foreach ($lineItems as $line) {
@@ -101,7 +104,7 @@ class PackagingSupplyController extends Controller
     {
         $vendor = auth('vendor')->user();
 
-        $supplyRequests = PackagingSupplyRequest::where('vendor_id', $vendor->id)
+        $supplyRequests = PackagingSupplyRequest::where('vendor_id', $vendor->vendor_id)
             ->with('items.supply')
             ->latest()
             ->paginate(20);
@@ -113,10 +116,32 @@ class PackagingSupplyController extends Controller
     {
         $vendor = auth('vendor')->user();
 
-        abort_unless($packagingSupplyRequest->vendor_id === $vendor->id, 403);
+        abort_unless($packagingSupplyRequest->vendor_id === $vendor->vendor_id, 403);
 
         $packagingSupplyRequest->load(['items.supply', 'warehouse']);
 
         return view('partner.packaging-supplies.show-request', ['req' => $packagingSupplyRequest]);
+    }
+
+    public function deliveryFee(): JsonResponse
+    {
+        $vendor = auth('vendor')->user();
+        $feeCents = $this->resolveDeliveryFeeCents($vendor->vendor);
+
+        return response()->json([
+            'fee_cents' => $feeCents,
+            'currency'  => 'USD',
+        ]);
+    }
+
+    private function resolveDeliveryFeeCents(?\App\Models\Vendor $vendor): int
+    {
+        $feesByCountry = Setting::get('packaging_delivery_fee_cents', []);
+
+        if (!is_array($feesByCountry) || !$vendor || !$vendor->country_id) {
+            return 0;
+        }
+
+        return (int) ($feesByCountry[$vendor->country_id] ?? 0);
     }
 }

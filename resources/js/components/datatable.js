@@ -246,7 +246,7 @@ window.initDataTable = function (tableId, options) {
         dom: 'rt<"dt-footer flex items-center justify-between px-4 py-3 border-t border-gray-100"<"text-sm text-gray-500"i><"flex items-center gap-1"p>>',
         ajax: {
             url: options.url,
-            type: 'POST',
+            type: options.ajaxMethod || 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'X-Requested-With': 'XMLHttpRequest',

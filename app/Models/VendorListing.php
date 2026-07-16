@@ -21,6 +21,7 @@ class VendorListing extends Model
         return [
             'status' => VendorListingStatus::class,
             'global_system_type' => GlobalSystemType::class,
+            'vendor_covers_delivery' => 'boolean',
         ];
     }
 
@@ -58,6 +59,7 @@ class VendorListing extends Model
         'availability_score',
         'calculated_at',
         'next_recalculate_at',
+        'vendor_covers_delivery',
     ];
 
     public function vendor(): BelongsTo

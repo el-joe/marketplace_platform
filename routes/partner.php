@@ -112,6 +112,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/{listing}/update-shipping', 'updateShipping')->name('update-shipping');
         Route::post('/{listing}/toggle-status', 'toggleStatus')->name('toggle-status');
         Route::post('/{listing}/adjust-stock', 'adjustStock')->name('adjust-stock');
+        Route::post('/{listing}/toggle-covers-delivery', 'toggleCoversDelivery')->name('toggle-covers-delivery');
     });
 
     // ── Inventory module ─────────────────────────────────────────────────────
@@ -165,6 +166,14 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/stats', 'stats')->name('stats');
     });
+
+    // ── Shipping preferences (exceptional zones) ─────────────────────────────
+    Route::prefix('shipping/preferences')->name('shipping.preferences.')
+        ->controller(\App\Http\Controllers\Partner\ShippingPreferencesController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/toggle-zone', 'toggleZone')->name('toggle-zone');
+        });
 
     // ── Profile & store settings ─────────────────────────────────────────────
     Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->group(function () {
@@ -240,6 +249,12 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/withdraw', 'requestWithdrawal')->name('withdraw');
     });
 
+    // ── Tools ─────────────────────────────────────────────────────────────
+    Route::prefix('tools')->name('tools.')->controller(\App\Http\Controllers\Partner\ToolsController::class)->group(function () {
+        Route::get('/weight-calculator', 'weightCalculator')->name('weight-calculator');
+        Route::post('/weight-calculator/calculate', 'calculate')->name('weight-calculator.calculate');
+    });
+
     // ── AI Tools ──────────────────────────────────────────────────────────
     Route::prefix('ai')->name('ai.')->controller(\App\Http\Controllers\Partner\AiToolsController::class)->group(function () {
         Route::get('/credits', 'credits')->name('credits');
@@ -308,6 +323,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'index'])->name('index');
         Route::get('/request', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'request'])->name('request');
         Route::post('/request', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'submitRequest'])->name('submit');
+        Route::get('/delivery-fee', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'deliveryFee'])->name('delivery-fee');
         Route::get('/my-requests', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'myRequests'])->name('my-requests');
         Route::get('/my-requests/{packagingSupplyRequest}', [\App\Http\Controllers\Partner\PackagingSupplyController::class, 'showRequest'])->name('show-request');
     });

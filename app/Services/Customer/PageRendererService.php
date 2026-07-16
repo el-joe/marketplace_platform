@@ -81,6 +81,15 @@ class PageRendererService
             return [];
         }
 
+        return $this->renderPage($page, $country, $customer, $sessionId);
+    }
+
+    /**
+     * Renders an already-resolved Page (e.g. one looked up by id rather than
+     * by page_type/slug, as with app-context home pages).
+     */
+    public function renderPage(Page $page, Country $country, ?Customer $customer, string $sessionId): array
+    {
         $identityKey = $customer ? 'c:' . $customer->id : 's:' . $sessionId;
 
         // Resolve A/B variants for all running tests on this page, ASYNC log the

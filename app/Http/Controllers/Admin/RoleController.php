@@ -243,6 +243,7 @@ class RoleController extends Controller
             'coupons' => 'Marketing — Coupons',
             'ad_campaigns' => 'Marketing — Ad Campaigns',
             'page_builder' => 'Marketing — Page Builder',
+            'app_contexts' => 'Marketing — App Contexts',
             'customers' => 'Customers',
             'tickets' => 'Support — Tickets',
             'reviews' => 'Support — Reviews',

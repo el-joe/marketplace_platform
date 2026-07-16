@@ -18,11 +18,13 @@ class RecomputeListingShippingMethodsJob implements ShouldQueue
 
     public function handle(ListingShippingResolver $resolver): void
     {
-        VendorListing::where('product_variant_id', function ($q) {
+        $categoryIds = $this->categoryIds;
+
+        VendorListing::whereIn('product_variant_id', function ($q) use ($categoryIds) {
             $q->select('product_variants.id')
                 ->from('product_variants')
                 ->join('products', 'products.id', '=', 'product_variants.product_id')
-                ->whereIn('products.category_id', $this->categoryIds);
+                ->whereIn('products.category_id', $categoryIds);
         })
             ->with('productVariant.product.category.parent')
             ->chunk(200, function ($listings) use ($resolver) {

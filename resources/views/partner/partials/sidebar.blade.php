@@ -59,6 +59,7 @@
             <x-partner-nav-item route="partner.fulfillment.index" icon="truck" label="{{ __('partner.nav.fulfillment') }}" />
             <x-partner-nav-item route="partner.warehouses.index" icon="building-storefront" label="{{ __('partner.nav.warehouses') }}" />
             <x-partner-nav-item route="partner.warehouses.transfers.index" icon="arrows-right-left" label="{{ __('partner.nav.transfers') }}" />
+            <x-partner-nav-item route="partner.shipping.preferences.index" icon="globe-alt" label="Shipping Preferences" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.finance') }}">

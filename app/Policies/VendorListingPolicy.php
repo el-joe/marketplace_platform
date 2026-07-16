@@ -27,6 +27,11 @@ class VendorListingPolicy
         return $listing->vendor_id === $admin->vendor_id;
     }
 
+    public function updateDeliveryCoverage(VendorAdmin $admin, VendorListing $listing): bool
+    {
+        return $listing->vendor_id === $admin->vendor_id;
+    }
+
     public function delete(VendorAdmin $admin, VendorListing $listing): bool
     {
         return $listing->vendor_id === $admin->vendor_id;

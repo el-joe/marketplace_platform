@@ -1,10 +1,15 @@
 @extends('layouts.admin')
 
+@push('styles')
+    @vite(['resources/js/components/datatable.js', 'resources/js/components/select2.js', 'resources/js/components/flatpickr.js'])
+@endpush
+
 @section('title', __('admin.packaging_supplies.requests_title'))
 
 @section('content')
+<div class="p-6 space-y-5">
 
-    <div class="mb-6 flex items-center justify-between gap-4">
+    <div class="mb-2 flex items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.packaging_supplies.requests_title') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.packaging_supplies.requests_subtitle') }}</p>
@@ -12,12 +17,8 @@
         <a href="{{ route('admin.packaging-supplies.index') }}" class="btn btn-secondary">{{ __('admin.packaging_supplies.catalog') }}</a>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success mb-4">{{ session('success') }}</div>
-    @endif
-
-    {{-- ─── Stats ───────────────────────────────────────────────────────────── --}}
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+    {{-- Stats --}}
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <x-stat-card title="{{ __('admin.packaging_supplies.pending') }}"   :value="number_format($stats['pending'])"   iconBg="bg-yellow-100 text-yellow-600" />
         <x-stat-card title="{{ __('admin.packaging_supplies.approved') }}"  :value="number_format($stats['approved'])"  iconBg="bg-blue-100 text-blue-600" />
         <x-stat-card title="{{ __('admin.packaging_supplies.shipped') }}"   :value="number_format($stats['shipped'])"   iconBg="bg-indigo-100 text-indigo-600" />
@@ -25,59 +26,136 @@
         <x-stat-card title="{{ __('admin.packaging_supplies.rejected') }}"  :value="number_format($stats['rejected'])"  iconBg="bg-red-100 text-red-600" />
     </div>
 
-    {{-- ─── Filter ──────────────────────────────────────────────────────────── --}}
-    <form method="GET" class="flex flex-wrap gap-3 mb-5">
-        <select name="status" class="input-sm">
-            <option value="">{{ __('admin.packaging_supplies.all_statuses') }}</option>
-            @foreach(\App\Enums\PackagingSupplyRequestStatus::cases() as $s)
-                <option value="{{ $s->value }}" @selected(request('status') === $s->value)>{{ $s->label() }}</option>
-            @endforeach
-        </select>
-        <button type="submit" class="btn-sm btn-primary">{{ __('admin.packaging_supplies.filter') }}</button>
-        <a href="{{ route('admin.packaging-supplies.requests') }}" class="btn-sm btn-secondary">{{ __('admin.packaging_supplies.reset') }}</a>
-    </form>
+    {{-- Filter bar --}}
+    <x-card>
+        <form id="requests-filter-form" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:items-end">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.status') }}</label>
+                <select id="filter-status" class="form-input w-full text-sm">
+                    <option value="">{{ __('admin.packaging_supplies.all_statuses') }}</option>
+                    @foreach(\App\Enums\PackagingSupplyRequestStatus::cases() as $s)
+                        <option value="{{ $s->value }}">{{ $s->label() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.packaging_supplies.vendor') }}</label>
+                <select id="filter-vendor" class="form-input w-full text-sm" data-select2-init>
+                    <option value="">{{ __('common.all') }}</option>
+                    @foreach($vendors as $vendor)
+                        <option value="{{ $vendor->id }}">{{ $vendor->store_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.packaging_supplies.date_from') }}</label>
+                <input type="text" id="filter-date-from" data-flatpickr class="form-input w-full text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.packaging_supplies.date_to') }}</label>
+                <input type="text" id="filter-date-to" data-flatpickr class="form-input w-full text-sm">
+            </div>
+            <div class="flex items-end">
+                <button type="button" id="clear-filters" class="btn btn-ghost btn-sm w-full sm:w-auto">{{ __('common.reset') }}</button>
+            </div>
+        </form>
+    </x-card>
 
-    {{-- ─── Table ───────────────────────────────────────────────────────────── --}}
-    <div class="card overflow-hidden">
+    <x-card>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="th">{{ __('admin.packaging_supplies.request_number') }}</th>
-                        <th class="th">{{ __('admin.packaging_supplies.vendor') }}</th>
-                        <th class="th">{{ __('admin.packaging_supplies.warehouse') }}</th>
-                        <th class="th">{{ __('admin.packaging_supplies.total') }}</th>
-                        <th class="th">{{ __('admin.packaging_supplies.status') }}</th>
-                        <th class="th">{{ __('admin.packaging_supplies.date') }}</th>
-                        <th class="th"></th>
+            <table id="requests-table" class="w-full text-sm" style="width:100%">
+                <thead>
+                    <tr class="border-b border-gray-100 text-start">
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.packaging_supplies.request_number') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.packaging_supplies.vendor') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('common.status') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.packaging_supplies.total') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.packaging_supplies.delivery_fee') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.packaging_supplies.currency') }}</th>
+                        <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.packaging_supplies.date') }}</th>
+                        <th class="py-2 text-xs font-medium text-gray-500 uppercase text-end">{{ __('common.actions') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 bg-white">
-                    @forelse($supplyRequests as $req)
-                        <tr class="hover:bg-gray-50">
-                            <td class="td font-mono text-xs">{{ $req->request_number }}</td>
-                            <td class="td font-medium text-gray-900">{{ $req->vendor->store_name }}</td>
-                            <td class="td text-gray-500">{{ $req->warehouse?->name ?? '—' }}</td>
-                            <td class="td">{{ $req->total_cost_formatted }}</td>
-                            <td class="td">
-                                <span class="badge {{ $req->statusBadgeClass() }}">{{ $req->status->label() }}</span>
-                            </td>
-                            <td class="td text-gray-500 text-xs">{{ $req->created_at->format('d M Y') }}</td>
-                            <td class="td text-end">
-                                <a href="{{ route('admin.packaging-supplies.show-request', $req) }}"
-                                   class="text-primary-600 hover:underline text-xs font-medium">{{ __('admin.packaging_supplies.view') }}</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="td text-center text-gray-400 py-10">{{ __('admin.packaging_supplies.no_requests_found') }}</td>
-                        </tr>
-                    @endforelse
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
-    </div>
+    </x-card>
 
-    <div class="mt-4">{{ $supplyRequests->links() }}</div>
+</div>
 
+@push('scripts')
+<script>
+(function () {
+    function getFilters() {
+        return {
+            status: document.getElementById('filter-status').value,
+            vendor_id: document.getElementById('filter-vendor').value,
+            date_from: document.getElementById('filter-date-from').value,
+            date_to: document.getElementById('filter-date-to').value,
+        };
+    }
+
+    let dtInstance = null;
+
+    function initTable() {
+        dtInstance = window.initDataTable
+            ? window.initDataTable('requests-table', {
+                url: '{{ route("admin.packaging-supplies.requests.datatable") }}',
+                columns: [
+                    { data: 'request_number', orderable: true, responsivePriority: 1 },
+                    { data: 'vendor', orderable: false, responsivePriority: 2 },
+                    { data: 'status', orderable: true, responsivePriority: 3 },
+                    { data: 'total_cost', orderable: true, responsivePriority: 4 },
+                    { data: 'delivery_fee', orderable: false, responsivePriority: 6 },
+                    { data: 'currency', orderable: false, responsivePriority: 7 },
+                    { data: 'date', orderable: true, responsivePriority: 5 },
+                    { data: 'actions', orderable: false, responsivePriority: 1 },
+                ],
+                order: [[6, 'desc']],
+                pageLength: 25,
+                extraData: getFilters,
+            })
+            : window.$('#requests-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route("admin.packaging-supplies.requests.datatable") }}',
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' },
+                    data: function (d) { Object.assign(d, getFilters()); },
+                },
+                columns: [
+                    { data: 'request_number' }, { data: 'vendor' }, { data: 'status' },
+                    { data: 'total_cost' }, { data: 'delivery_fee' }, { data: 'currency' },
+                    { data: 'date' }, { data: 'actions', className: 'text-end' },
+                ],
+                order: [[6, 'desc']],
+                pageLength: 25,
+                responsive: true,
+            });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTable);
+    } else {
+        initTable();
+    }
+
+    ['filter-status', 'filter-vendor', 'filter-date-from', 'filter-date-to'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', () => dtInstance?.ajax?.reload?.() ?? dtInstance?.draw?.());
+    });
+    document.getElementById('clear-filters')?.addEventListener('click', () => {
+        ['filter-status', 'filter-vendor', 'filter-date-from', 'filter-date-to'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (el._flatpickr) el._flatpickr.clear();
+                el.value = '';
+                if (window.$ && window.$(el).data('select2')) window.$(el).val('').trigger('change');
+            }
+        });
+        dtInstance?.ajax?.reload?.() ?? dtInstance?.draw?.();
+    });
+})();
+</script>
+@endpush
 @endsection

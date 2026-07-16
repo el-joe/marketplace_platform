@@ -42,6 +42,9 @@ class DeliveryAssignment extends Model
         'cod_amount_collected_cents',
         'discrepancy_note',
         'cod_settlement_id',
+        'customer_rejection_reason',
+        'rejected_by_customer_at',
+        'rejection_reason_mandatory',
     ];
 
     protected function casts(): array
@@ -52,6 +55,8 @@ class DeliveryAssignment extends Model
             'picked_up_at' => 'datetime',
             'delivered_at' => 'datetime',
             'failed_at' => 'datetime',
+            'rejected_by_customer_at' => 'datetime',
+            'rejection_reason_mandatory' => 'boolean',
             'otp_verified' => 'boolean',
             'otp_attempts' => 'integer',
             'customer_rating' => 'integer',
