@@ -238,12 +238,12 @@
                         {{-- Budgets --}}
                         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5" for="budget_per_marketer_cents_display">
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5" for="budget_per_marketer_display">
                                     {{ __('partner.campaign_offers.budget_per_marketer') }}
                                 </label>
                                 <div class="relative">
-                                    <input type="number" id="budget_per_marketer_cents_display" name="budget_per_marketer_cents_display"
-                                           value="{{ old('budget_per_marketer_cents_display') }}"
+                                    <input type="number" id="budget_per_marketer_display" name="budget_per_marketer_display"
+                                           value="{{ old('budget_per_marketer_display') }}"
                                            min="0" step="0.01"
                                            class="w-full rounded-lg border border-gray-300 ps-3 pe-14 py-2.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                            placeholder="0.00">
@@ -251,12 +251,12 @@
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5" for="total_budget_cents_display">
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5" for="total_budget_display">
                                     {{ __('partner.campaign_offers.total_budget') }}
                                 </label>
                                 <div class="relative">
-                                    <input type="number" id="total_budget_cents_display" name="total_budget_cents_display"
-                                           value="{{ old('total_budget_cents_display') }}"
+                                    <input type="number" id="total_budget_display" name="total_budget_display"
+                                           value="{{ old('total_budget_display') }}"
                                            min="0" step="0.01"
                                            class="w-full rounded-lg border border-gray-300 ps-3 pe-14 py-2.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                            placeholder="0.00">

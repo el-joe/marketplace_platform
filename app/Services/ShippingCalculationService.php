@@ -27,7 +27,7 @@ class ShippingCalculationService
 
     public function getWeightSlabFee(string $shippingMethodId, string $countryId, int $effectiveWeightGrams): int
     {
-        $extraFeeCents = ShippingWeightSlab::where('shipping_method_id', $shippingMethodId)
+        $extraFee = ShippingWeightSlab::where('shipping_method_id', $shippingMethodId)
             ->where('country_id', $countryId)
             ->where('is_active', true)
             ->where('min_weight_grams', '<=', $effectiveWeightGrams)
@@ -37,7 +37,7 @@ class ShippingCalculationService
             })
             ->value('extra_fee');
 
-        return (int) ($extraFeeCents ?? 0);
+        return (int) ($extraFee ?? 0);
     }
 
     /**
@@ -67,17 +67,17 @@ class ShippingCalculationService
             ->where('is_active', true)
             ->first();
 
-        $baseFeeCents = $rate->base_fee ?? 0;
-        $weightSlabExtraCents = $this->getWeightSlabFee($shippingMethodId, $listing->country_id, $effectiveWeightGrams);
-        $totalShippingCents = $baseFeeCents + $weightSlabExtraCents;
+        $baseFee = $rate->base_fee ?? 0;
+        $weightSlabExtra = $this->getWeightSlabFee($shippingMethodId, $listing->country_id, $effectiveWeightGrams);
+        $totalShipping = $baseFee + $weightSlabExtra;
 
-        $display = $this->calculate($totalShippingCents, $listing, $params['destination_zone_id'], $listing->currency);
+        $display = $this->calculate($totalShipping, $listing, $params['destination_zone_id'], $listing->currency);
 
         return [
-            'base_fee_cents' => $baseFeeCents,
-            'weight_slab_extra_cents' => $weightSlabExtraCents,
-            'total_shipping_cents' => $totalShippingCents,
-            'customer_pays_cents' => $display['customer_display_cents'],
+            'base_fee' => $baseFee,
+            'weight_slab_extra' => $weightSlabExtra,
+            'total_shipping' => $totalShipping,
+            'customer_pays' => $display['customer_display'],
             'vendor_deduction' => $display['vendor_deduction'],
             'admin_subsidy' => $display['admin_subsidy'],
             'display_mode' => $display['display_mode'],
@@ -105,7 +105,7 @@ class ShippingCalculationService
      * Split a total delivery cost between the admin subsidy and the vendor's
      * optional coverage of whatever remains after the subsidy is applied.
      *
-     * @return array{admin_subsidy: int, vendor_deduction: int, remainder_cents: int}
+     * @return array{admin_subsidy: int, vendor_deduction: int, remainder: int}
      */
     public function resolveSubsidySplit(
         int $totalShippingCents,
@@ -122,7 +122,7 @@ class ShippingCalculationService
         return [
             'admin_subsidy' => $adminSubsidyCents,
             'vendor_deduction' => $vendorDeductionCents,
-            'remainder_cents' => $remainderCents,
+            'remainder' => $remainderCents,
         ];
     }
 
@@ -130,12 +130,12 @@ class ShippingCalculationService
      * Resolve delivery cost + display info for a listing's shipping fee.
      *
      * @return array{
-     *   total_shipping_cents: int,
+     *   total_shipping: int,
      *   vendor_covers_delivery: bool,
      *   is_exceptional_zone: bool,
      *   admin_subsidy: int,
      *   display_mode: string,
-     *   customer_display_cents: int,
+     *   customer_display: int,
      *   subsidy_label_en: string,
      *   subsidy_label_ar: string,
      * }
@@ -190,9 +190,9 @@ class ShippingCalculationService
                 $split['admin_subsidy'],
                 $split['vendor_deduction'],
                 'subsidized',
-                $split['remainder_cents'],
-                $this->subsidizedLabelEn($split['admin_subsidy'] + $split['vendor_deduction'], $split['remainder_cents'], $currencyCode),
-                $this->subsidizedLabelAr($split['admin_subsidy'] + $split['vendor_deduction'], $split['remainder_cents'], $currencyCode),
+                $split['remainder'],
+                $this->subsidizedLabelEn($split['admin_subsidy'] + $split['vendor_deduction'], $split['remainder'], $currencyCode),
+                $this->subsidizedLabelAr($split['admin_subsidy'] + $split['vendor_deduction'], $split['remainder'], $currencyCode),
             );
         }
 
@@ -255,13 +255,13 @@ class ShippingCalculationService
         string $labelAr,
     ): array {
         return [
-            'total_shipping_cents' => $totalShippingCents,
+            'total_shipping' => $totalShippingCents,
             'vendor_covers_delivery' => $vendorCoversDelivery,
             'is_exceptional_zone' => $isExceptionalZone,
             'admin_subsidy' => $adminSubsidyCents,
             'vendor_deduction' => $vendorDeductionCents,
             'display_mode' => $displayMode,
-            'customer_display_cents' => $customerDisplayCents,
+            'customer_display' => $customerDisplayCents,
             'subsidy_label_en' => $labelEn,
             'subsidy_label_ar' => $labelAr,
         ];

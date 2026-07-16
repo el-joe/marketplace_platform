@@ -170,8 +170,8 @@ class AssignmentController extends Controller
                     return response()->json([
                         'message' => "المبلغ المُدخل ({$collectedFormatted}) لا يتطابق مع المبلغ المتوقع ({$expectedFormatted}). يرجى التأكد.",
                         'requires_discrepancy_note' => true,
-                        'expected_cents' => $expectedCents,
-                        'collected_cents' => $collectedCents,
+                        'expected' => $expectedCents,
+                        'collected' => $collectedCents,
                     ], 422);
                 }
             }

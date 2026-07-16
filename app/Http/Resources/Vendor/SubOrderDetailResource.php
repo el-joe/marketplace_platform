@@ -41,12 +41,12 @@ class SubOrderDetailResource extends JsonResource
             'cancellation_reason'      => $this->cancellation_reason,
 
             'financials' => [
-                'subtotal_cents'             => (int) $this->subtotal,
-                'shipping_cents'             => (int) $this->shipping,
-                'tax_cents'                  => (int) $this->tax,
-                'platform_commission_cents'  => (int) $this->platform_commission,
-                'gateway_fee_cents'          => (int) $this->gateway_fee,
-                'vendor_payout_cents'        => (int) $this->vendor_payout,
+                'subtotal'             => (int) $this->subtotal,
+                'shipping'             => (int) $this->shipping,
+                'tax'                  => (int) $this->tax,
+                'platform_commission'  => (int) $this->platform_commission,
+                'gateway_fee'          => (int) $this->gateway_fee,
+                'vendor_payout'        => (int) $this->vendor_payout,
             ],
 
             // Customer contact — PII masked until status >= processing
@@ -112,8 +112,8 @@ class SubOrderDetailResource extends JsonResource
             'name_ar'               => $snapshot['name_ar']     ?? null,
             'thumbnail'             => $snapshot['thumbnail_url'] ?? null,
             'quantity'              => $item->quantity,
-            'unit_price_cents'      => (int) $item->unit_price,
-            'line_total_cents'      => (int) $item->line_total,
+            'unit_price'      => (int) $item->unit_price,
+            'line_total'      => (int) $item->line_total,
             'fulfillment_status'    => $item->fulfillment_status->value,
             'return_eligible_until' => $item->return_eligible_until?->toIso8601String(),
         ];

@@ -534,7 +534,7 @@ function initCountrySettings() {
                 await sendJson('/shipping-methods/country-settings', 'POST', {
                     country_id: countryId,
                     shipping_method_id: methodId,
-                    free_shipping_threshold_cents: cents || null,
+                    free_shipping_threshold: cents || null,
                 });
                 $input.addClass('border-success-400');
                 setTimeout(() => $input.removeClass('border-success-400'), 1500);

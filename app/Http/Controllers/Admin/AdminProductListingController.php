@@ -50,9 +50,9 @@ class AdminProductListingController extends Controller
         $revenueByCurrency = DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->whereNotNull('order_items.admin_product_listing_id')
-            ->select('orders.currency', DB::raw('SUM(order_items.line_total) as total_cents'))
+            ->select('orders.currency', DB::raw('SUM(order_items.line_total) as total'))
             ->groupBy('orders.currency')
-            ->orderByDesc('total_cents')
+            ->orderByDesc('total')
             ->get();
 
         $topSelling = DB::table('order_items')

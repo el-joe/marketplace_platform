@@ -99,8 +99,8 @@
                             </td>
                             <td class="px-4 py-3 text-center text-xs text-gray-600">
                                 {{ $method->fee_pct }}%
-                                @if($method->fee_fixed_cents)
-                                    + {{ number_format($method->fee_fixed_cents / 100, 2) }}
+                                @if($method->fee_fixed)
+                                    + {{ number_format($method->fee_fixed, 2) }}
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center text-xs">
@@ -140,9 +140,9 @@
                                             'settlement_currency' => $method->settlement_currency,
                                             'environment'         => $method->environment,
                                             'fee_pct'             => $method->fee_pct,
-                                            'fee_fixed_cents'     => $method->fee_fixed_cents,
-                                            'min_order_cents'     => $method->min_order_cents,
-                                            'max_order_cents'     => $method->max_order_cents,
+                                            'fee_fixed'     => $method->fee_fixed,
+                                            'min_order'     => $method->min_order,
+                                            'max_order'     => $method->max_order,
                                             'sort_order'          => $method->sort_order,
                                             'is_configured'       => $method->is_configured,
                                         ]) }}">
@@ -258,17 +258,17 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.payment_section.fixed_fee_subunits') }}</label>
-                        <input type="number" min="0" name="fee_fixed_cents" id="field-fee_fixed_cents"
+                        <input type="number" min="0" name="fee_fixed" id="field-fee_fixed"
                             class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" value="0">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.payment_section.min_order') }}</label>
-                        <input type="number" min="0" name="min_order_cents" id="field-min_order_cents"
+                        <input type="number" min="0" name="min_order" id="field-min_order"
                             class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" value="0">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.payment_section.max_order_optional') }}</label>
-                        <input type="number" min="0" name="max_order_cents" id="field-max_order_cents"
+                        <input type="number" min="0" name="max_order" id="field-max_order"
                             class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                     </div>
                 </div>
@@ -370,8 +370,8 @@ Object.assign(window.TRANSLATIONS, {
             title.textContent = window.TRANSLATIONS.editPaymentMethod;
             methodId.value = data.id;
             ['country_id','method_type','gateway_code','display_name_en','display_name_ar',
-             'settlement_currency','environment','fee_pct','fee_fixed_cents',
-             'min_order_cents','max_order_cents','sort_order'].forEach(k => {
+             'settlement_currency','environment','fee_pct','fee_fixed',
+             'min_order','max_order','sort_order'].forEach(k => {
                 const el = document.getElementById('field-' + k);
                 if (el && data[k] != null) el.value = data[k];
             });

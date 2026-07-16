@@ -116,8 +116,8 @@ function initSettingModal() {
         $('#setting-http').val('PUT');
 
         $form.find('[name="country_id"]').val(data.country_id).trigger('change');
-        $('#setting-admin-support-display').val((data.admin_support_cents / 100).toFixed(2));
-        $('#setting-vendor-share-display').val((data.vendor_share_cents / 100).toFixed(2));
+        $('#setting-admin-support-display').val((data.admin_support / 100).toFixed(2));
+        $('#setting-vendor-share-display').val((data.vendor_share / 100).toFixed(2));
         $form.find('[name="currency"]').val(data.currency);
         $form.find('[name="effective_from"]')[0]?._flatpickr?.setDate(data.effective_from);
         $form.find('[name="effective_until"]')[0]?._flatpickr?.setDate(data.effective_until);
@@ -148,8 +148,8 @@ function initSettingModal() {
 
         const payload = {
             country_id: $form.find('[name="country_id"]').val(),
-            admin_support_cents: toCents($('#setting-admin-support-display').val()),
-            vendor_share_cents: toCents($('#setting-vendor-share-display').val()),
+            admin_support: toCents($('#setting-admin-support-display').val()),
+            vendor_share: toCents($('#setting-vendor-share-display').val()),
             currency: $form.find('[name="currency"]').val(),
             effective_from: $form.find('[name="effective_from"]').val(),
             effective_until: $form.find('[name="effective_until"]').val() || null,

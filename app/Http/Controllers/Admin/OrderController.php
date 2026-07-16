@@ -410,8 +410,8 @@ class OrderController extends Controller
                 'rates' => $method->shippingRates->map(fn($rate) => [
                     'carrier_id' => $rate->carrier_id,
                     'carrier_name' => $rate->carrier?->name,
-                    'base_fee_cents' => $rate->base_fee,
-                    'cod_extra_fee_cents' => $rate->cod_extra_fee,
+                    'base_fee' => $rate->base_fee,
+                    'cod_extra_fee' => $rate->cod_extra_fee,
                     'free_shipping_threshold' => $rate->free_shipping_threshold,
                 ]),
             ]);

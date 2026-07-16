@@ -113,13 +113,13 @@ class DeliveryPayoutController extends Controller
             ->selectRaw('
                 currency,
                 COUNT(DISTINCT delivery_assignment_id) as total_deliveries,
-                SUM(CASE WHEN earning_type != ? THEN amount ELSE 0 END) as gross_cents,
+                SUM(CASE WHEN earning_type != ? THEN amount ELSE 0 END) as gross,
                 SUM(CASE WHEN earning_type = ? THEN ABS(amount) ELSE 0 END) as deductions
             ', ['deduction', 'deduction'])
             ->groupBy('currency')
             ->get();
 
-        $rows = $rows->filter(fn($r) => $r->gross_cents > 0);
+        $rows = $rows->filter(fn($r) => $r->gross > 0);
 
         if ($rows->isEmpty()) {
             return response()->json(['success' => false, 'message' => 'No approved earnings found for the selected period.'], 422);
@@ -128,7 +128,7 @@ class DeliveryPayoutController extends Controller
         $payouts = [];
 
         foreach ($rows as $row) {
-            $gross      = (int) $row->gross_cents;
+            $gross      = (int) $row->gross;
             $deductions = (int) $row->deductions;
             $net        = $gross - $deductions;
 

@@ -55,7 +55,7 @@
                                            value="{{ old('items.'.$loop->index.'.quantity', 0) }}"
                                            min="0" max="1000"
                                            data-name="{{ $supply->name_en }}"
-                                           data-unit-cost-cents="{{ $supply->unit_cost_cents }}"
+                                           data-unit-cost-cents="{{ $supply->unit_cost }}"
                                            class="w-14 text-center input text-sm py-1"
                                            onchange="syncItem(this, '{{ $supply->id }}')">
                                     <button type="button" onclick="adjustQty('qty_{{ $supply->id }}', 1)"
@@ -194,8 +194,8 @@
             fetch(@json(route('partner.packaging-supplies.delivery-fee')))
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('confirmDeliveryFee').textContent = money(data.fee_cents);
-                    document.getElementById('confirmGrandTotal').textContent = money(subtotalCents + data.fee_cents);
+                    document.getElementById('confirmDeliveryFee').textContent = money(data.fee);
+                    document.getElementById('confirmGrandTotal').textContent = money(subtotalCents + data.fee);
                 })
                 .catch(() => {
                     document.getElementById('confirmDeliveryFee').textContent = money(0);

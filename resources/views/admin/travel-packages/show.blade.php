@@ -148,7 +148,7 @@
             </div>
             <div class="text-center">
                 <p class="text-2xl font-bold text-gray-900">
-                    {{ $travelPackage->currency }} {{ number_format($bookingStats['revenue_cents'] / 100, 2) }}
+                    {{ $travelPackage->currency }} {{ number_format($bookingStats['revenue'], 2) }}
                 </p>
                 <p class="text-xs text-gray-500 mt-0.5">{{ __('admin.travel.confirmed_revenue') }}</p>
             </div>

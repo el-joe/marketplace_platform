@@ -47,7 +47,7 @@ class AccountDashboardService
             'recent_orders' => $recentOrders->map(fn ($o) => [
                 'order_number' => $o->order_number,
                 'status'       => $o->status->value,
-                'total'        => $o->total_cents,
+                'total'        => $o->total,
                 'currency'     => $o->currency,
                 'created_at'   => $o->created_at?->toIso8601String(),
             ]),

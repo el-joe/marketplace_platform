@@ -214,8 +214,8 @@ class FbnController extends Controller
             'pending' => FbnStorageFee::where('status', FbnStorageFeeStatus::Pending)->count(),
             'invoiced' => FbnStorageFee::where('status', FbnStorageFeeStatus::Invoiced)->count(),
             'paid' => FbnStorageFee::where('status', FbnStorageFeeStatus::Paid)->count(),
-            'pending_cents' => FbnStorageFee::where('status', FbnStorageFeeStatus::Pending)->sum('total_fee'),
-            'paid_cents' => FbnStorageFee::where('status', FbnStorageFeeStatus::Paid)->sum('total_fee'),
+            'pending_revenue' => FbnStorageFee::where('status', FbnStorageFeeStatus::Pending)->sum('total_fee'),
+            'paid_revenue' => FbnStorageFee::where('status', FbnStorageFeeStatus::Paid)->sum('total_fee'),
             'currency' => FbnStorageFee::query()->value('currency') ?? '',
         ];
 

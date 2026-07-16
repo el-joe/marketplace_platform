@@ -610,7 +610,7 @@ class PageRendererService
                 'name' => Bilingual::pair($product, 'name'),
                 'image' => $image?->url,
                 'price' => (int) $listing->price,
-                'compare_at_price_cents' => $listing->compare_at_price !== null ? (int) $listing->compare_at_price : null,
+                'compare_at_price' => $listing->compare_at_price !== null ? (int) $listing->compare_at_price : null,
                 'discount_pct' => $discountPct,
                 'slug' => $product->slug,
             ],

@@ -22,7 +22,7 @@ class CountryShippingSetting extends Model
         'free_shipping_threshold',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'is_active' => 'boolean',
         'free_shipping_threshold' => 'integer',

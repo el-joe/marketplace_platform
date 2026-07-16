@@ -72,14 +72,14 @@ class PackagingSupplyRequest extends Model
             : number_format($this->delivery_fee / 100, 2);
     }
 
-    public function getGrandTotalCentsAttribute(): int
+    public function getGrandTotalAttribute(): int
     {
         return $this->total_cost + $this->delivery_fee;
     }
 
     public function getGrandTotalFormattedAttribute(): string
     {
-        return number_format($this->grand_total_cents / 100, 2);
+        return number_format($this->grand_total / 100, 2);
     }
 
     public function isPending(): bool

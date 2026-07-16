@@ -41,7 +41,7 @@ class SettingsSeeder extends Seeder
                 'description' => 'How COD collection shortfalls are resolved: deducted_from_earnings (agent bears risk), written_off (platform absorbs), vendor_chargeback (deducted from vendor payout)',
                 'is_public'   => 0,
             ],
-            ['key' => 'min_order_amount_cents', 'value' => 0, 'category' => 'orders', 'description' => 'Minimum order value in cents (0 = no minimum)'],
+            ['key' => 'min_order_amount', 'value' => 0, 'category' => 'orders', 'description' => 'Minimum order value in cents (0 = no minimum)'],
             ['key' => 'auto_complete_order_days', 'value' => 7, 'category' => 'orders', 'description' => 'Days after delivery before order auto-completes'],
             ['key' => 'max_order_quantity_per_item', 'value' => 10, 'category' => 'orders', 'description' => 'Maximum quantity of single item per order'],
 

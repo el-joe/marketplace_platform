@@ -17,8 +17,8 @@ class GiftCardResource extends JsonResource
         return [
             'id' => $this->id,
             'code' => $this->maskCode(),
-            'denomination_cents' => $this->denomination,
-            'balance_cents' => $this->balance,
+            'denomination' => $this->denomination,
+            'balance' => $this->balance,
             'currency' => $this->currency,
             'status' => $this->status,
             'recipient_name' => $this->recipient_name,

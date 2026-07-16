@@ -63,11 +63,11 @@ class FinancialReportService
                 countries.id              AS country_id,
                 countries.name_en         AS country_name,
                 countries.currency_code   AS currency_code,
-                SUM(orders.total)         AS total_cents,
-                SUM(orders.subtotal)      AS subtotal_cents,
-                SUM(orders.discount)      AS discount_cents,
-                SUM(orders.shipping)      AS shipping_cents,
-                SUM(orders.tax)           AS tax_cents,
+                SUM(orders.total)         AS total,
+                SUM(orders.subtotal)      AS subtotal,
+                SUM(orders.discount)      AS discount,
+                SUM(orders.shipping)      AS shipping,
+                SUM(orders.tax)           AS tax,
                 COUNT(*)                  AS order_count
             ')
             ->get();
@@ -94,7 +94,7 @@ class FinancialReportService
             if (! $rate || $rate == 0) {
                 return 0; // skip unknown currencies rather than dividing by zero
             }
-            return ($row->total_cents / 100) / $rate;
+            return $row->total / $rate;
         });
 
         return [
@@ -124,7 +124,7 @@ class FinancialReportService
                 countries.id                              AS country_id,
                 countries.name_en                         AS country_name,
                 countries.currency_code                   AS currency_code,
-                SUM(sub_orders.platform_commission)       AS commission_cents,
+                SUM(sub_orders.platform_commission)       AS commission,
                 COUNT(DISTINCT sub_orders.id)             AS sub_order_count
             ')
             ->get();
@@ -150,7 +150,7 @@ class FinancialReportService
                 countries.id                              AS country_id,
                 countries.name_en                         AS country_name,
                 countries.currency_code                   AS currency_code,
-                SUM(sub_orders.gateway_fee)               AS gateway_fee_cents,
+                SUM(sub_orders.gateway_fee)               AS gateway_fee,
                 COUNT(DISTINCT sub_orders.id)              AS sub_order_count
             ')
             ->get();
@@ -174,9 +174,9 @@ class FinancialReportService
                 countries.id                              AS country_id,
                 countries.name_en                         AS country_name,
                 marketer_payouts.currency                 AS currency_code,
-                SUM(marketer_payouts.gross_commission) AS gross_cents,
+                SUM(marketer_payouts.gross_commission) AS gross,
                 SUM(marketer_payouts.tax_deduction)    AS tax_deducted,
-                SUM(marketer_payouts.net_amount)       AS net_cents,
+                SUM(marketer_payouts.net_amount)       AS net,
                 COUNT(*)                                   AS payout_count
             ')
             ->get();
@@ -213,7 +213,7 @@ class FinancialReportService
      * that would be expected given the country's current vat_rate applied to
      * the taxable base (subtotal + shipping).
      *
-     * Discrepancies between collected_vat_cents and expected_vat_cents indicate
+     * Discrepancies between collected_vat and expected_vat indicate
      * either historical miscalculation or a vat_rate change since the order was
      * placed.  These rows should be reviewed by the finance team.
      *
@@ -238,10 +238,10 @@ class FinancialReportService
                 countries.name_en                       AS country_name,
                 countries.currency_code                 AS currency_code,
                 countries.vat_rate                      AS vat_rate_pct,
-                SUM(orders.tax)                         AS collected_vat_cents,
+                SUM(orders.tax)                         AS collected_vat,
                 ROUND(
                     SUM((orders.subtotal - orders.discount + orders.shipping) * (countries.vat_rate / 100))
-                )                                       AS expected_vat_cents,
+                )                                       AS expected_vat,
                 COUNT(*)                                AS order_count
             ')
             ->get()
@@ -249,7 +249,7 @@ class FinancialReportService
                 // Flag rows where collected VAT deviates from expected by more
                 // than 1 cent (rounding) per order.
                 $tolerance = $row->order_count;
-                $row->has_vat_discrepancy = abs($row->collected_vat_cents - $row->expected_vat_cents) > $tolerance;
+                $row->has_vat_discrepancy = abs($row->collected_vat - $row->expected_vat) > $tolerance;
             });
     }
 }

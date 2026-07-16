@@ -72,10 +72,10 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3 font-medium text-gray-900">{{ $s->agent?->name }}</td>
                             <td class="px-4 py-3 text-gray-600 text-xs">{{ $s->period_start->format('d M') }} – {{ $s->period_end->format('d M Y') }}</td>
-                            <td class="px-4 py-3 text-end text-gray-700">{{ number_format($s->total_cod_collected_cents / 100, 2) }}</td>
-                            <td class="px-4 py-3 text-end text-gray-700">{{ number_format($s->total_earnings_owed_cents / 100, 2) }}</td>
-                            <td class="px-4 py-3 text-end font-semibold {{ $s->net_to_remit_cents >= 0 ? 'text-red-600' : 'text-green-700' }}">
-                                {{ $s->net_to_remit_cents >= 0 ? '+' : '' }}{{ number_format($s->net_to_remit_cents / 100, 2) }}
+                            <td class="px-4 py-3 text-end text-gray-700">{{ number_format($s->total_cod_collected, 2) }}</td>
+                            <td class="px-4 py-3 text-end text-gray-700">{{ number_format($s->total_earnings_owed, 2) }}</td>
+                            <td class="px-4 py-3 text-end font-semibold {{ $s->net_to_remit >= 0 ? 'text-red-600' : 'text-green-700' }}">
+                                {{ $s->net_to_remit >= 0 ? '+' : '' }}{{ number_format($s->net_to_remit, 2) }}
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','settled'=>'bg-green-100 text-green-700','disputed'=>'bg-red-100 text-red-700']; @endphp

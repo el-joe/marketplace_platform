@@ -311,8 +311,8 @@ Object.assign(window.TRANSLATIONS, {
     }
 
     // ── Render ─────────────────────────────────────────────────────────────
-    function fmt(cents, decimals = 2) {
-        return (cents / 100).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    function fmt(amount, decimals = 2) {
+        return Number(amount).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
 
     function fmtUsd(val) {
@@ -350,12 +350,12 @@ Object.assign(window.TRANSLATIONS, {
                     ${launched}
                 </td>
                 <td class="px-4 py-3 text-end tabular-nums text-gray-700">${row.order_count.toLocaleString()}</td>
-                <td class="px-4 py-3 text-end tabular-nums text-gray-900 font-medium">${fmt(row.revenue_cents)} ${ccy}</td>
-                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.commission_cents)} ${ccy}</td>
-                <td class="px-4 py-3 text-end tabular-nums text-gray-500">${fmt(row.gateway_fee_cents)} ${ccy}</td>
-                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.vat_cents)} ${ccy}${vatWarn}</td>
-                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.marketer_cents)} ${ccy}</td>
-                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.ad_revenue_cents)} ${ccy}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-900 font-medium">${fmt(row.revenue)} ${ccy}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.commission)} ${ccy}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-500">${fmt(row.gateway_fee)} ${ccy}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.vat)} ${ccy}${vatWarn}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.marketer)} ${ccy}</td>
+                <td class="px-4 py-3 text-end tabular-nums text-gray-700">${fmt(row.ad_revenue)} ${ccy}</td>
                 ${showUsd ? `<td class="px-4 py-3 text-end tabular-nums font-medium text-blue-700 bg-blue-50">${fmtUsd(row.revenue_usd)}</td>` : ''}
             </tr>`;
         }).join('');

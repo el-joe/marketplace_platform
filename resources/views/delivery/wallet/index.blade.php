@@ -11,10 +11,10 @@
     {{-- Balance Card --}}
     <div class="mx-4 mb-5 bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl p-5 border border-slate-600">
         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{{ __('delivery.wallet.available_balance') }}</p>
-        <p class="text-4xl font-extrabold text-white tracking-tight">{{ number_format($wallet->balance_cents / 100, 2) }}</p>
+        <p class="text-4xl font-extrabold text-white tracking-tight">{{ number_format($wallet->balance, 2) }}</p>
         <p class="text-sm text-slate-400 mt-0.5">{{ $wallet->currency }}</p>
-        @if($wallet->pending_balance_cents > 0)
-            <p class="text-xs text-yellow-400 mt-2">{{ number_format($wallet->pending_balance_cents / 100, 2) }} {{ $wallet->currency }} {{ __('delivery.wallet.pending_withdrawal') }}</p>
+        @if($wallet->pending_balance > 0)
+            <p class="text-xs text-yellow-400 mt-2">{{ number_format($wallet->pending_balance, 2) }} {{ $wallet->currency }} {{ __('delivery.wallet.pending_withdrawal') }}</p>
         @endif
         @if($wallet->is_frozen)
             <div class="mt-3 inline-flex items-center gap-1.5 bg-red-500/20 text-red-400 text-xs font-medium px-3 py-1 rounded-full border border-red-500/30">{{ __('delivery.wallet.wallet_frozen') }}</div>
@@ -29,7 +29,7 @@
             @csrf
             <div>
                 <label class="block text-xs text-slate-400 mb-1">{{ __('delivery.wallet.amount') }} ({{ $wallet->currency }})</label>
-                <input type="number" name="amount" min="1" step="0.01" required max="{{ $wallet->balance_cents / 100 }}"
+                <input type="number" name="amount" min="1" step="0.01" required max="{{ $wallet->balance }}"
                        class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="0.00">
             </div>
             <div>
@@ -57,7 +57,7 @@
             @php $colors = ['pending'=>'text-yellow-400','approved'=>'text-blue-400','processed'=>'text-green-400','rejected'=>'text-red-400']; @endphp
             <div class="d-card flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-white">{{ number_format($wr->amount_cents / 100, 2) }} {{ $wr->currency }}</p>
+                    <p class="text-sm font-semibold text-white">{{ number_format($wr->amount, 2) }} {{ $wr->currency }}</p>
                     <p class="text-xs text-slate-400">{{ $wr->bank_name }} · {{ $wr->created_at->format('d M Y') }}</p>
                 </div>
                 <span class="text-xs font-bold {{ $colors[$wr->status->value] ?? 'text-slate-400' }}">{{ ucfirst($wr->status->value) }}</span>
@@ -76,7 +76,7 @@
                     <p class="text-xs text-slate-400">{{ str_replace('_',' ', $tx->source_type) }} · {{ $tx->created_at->format('d M H:i') }}</p>
                 </div>
                 <p class="text-sm font-bold {{ $tx->type === \App\Enums\WalletTransactionType::Credit ? 'text-green-400' : 'text-red-400' }}">
-                    {{ $tx->type === \App\Enums\WalletTransactionType::Credit ? '+' : '−' }}{{ number_format($tx->amount_cents / 100, 2) }}
+                    {{ $tx->type === \App\Enums\WalletTransactionType::Credit ? '+' : '−' }}{{ number_format($tx->amount, 2) }}
                 </p>
             </div>
         @empty

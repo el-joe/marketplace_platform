@@ -82,9 +82,9 @@ class TransactionFeedService
                 'date'             => $so->delivered_at?->toISOString(),
                 'reference'        => $so->sub_order_number,
                 'description'      => "Order {$so->sub_order_number} commission",
-                'gross_cents'      => $so->subtotal,
-                'commission_cents' => $so->platform_commission,
-                'net_cents'        => $so->vendor_payout,
+                'gross'      => $so->subtotal,
+                'commission' => $so->platform_commission,
+                'net'        => $so->vendor_payout,
                 'payout_status'    => $payoutStatus,
             ];
         });
@@ -134,9 +134,9 @@ class TransactionFeedService
     private function computeSummary(Collection $items): array
     {
         return [
-            'total_sales_cents'    => (int) $items->where('type', 'sale')->sum('net_cents'),
-            'total_refunds_cents'  => (int) $items->where('type', 'refund')->sum('amount'),
-            'total_paid_out_cents' => (int) $items->where('type', 'payout')->sum('amount'),
+            'total_sales'    => (int) $items->where('type', 'sale')->sum('net'),
+            'total_refunds'  => (int) $items->where('type', 'refund')->sum('amount'),
+            'total_paid_out' => (int) $items->where('type', 'payout')->sum('amount'),
         ];
     }
 }

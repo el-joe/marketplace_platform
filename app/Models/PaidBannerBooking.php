@@ -32,7 +32,7 @@ class PaidBannerBooking extends Model
         'notes',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'rate' => 'integer',
         'total_charged' => 'integer',

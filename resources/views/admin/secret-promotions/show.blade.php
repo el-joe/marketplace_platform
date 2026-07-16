@@ -177,7 +177,7 @@
                     <div>
                         <p class="text-xs text-green-500">{{ __('admin.secret_promotions.lifetime_marketer_earned') }}</p>
                         <p class="text-lg font-bold text-green-700 mt-0.5">
-                            {{ number_format($promotion->conversions->sum('commission_amount_cents') / 100, 2) }}
+                            {{ number_format($promotion->conversions->sum('commission_amount'), 2) }}
                         </p>
                     </div>
                 </div>
@@ -227,18 +227,18 @@
                                     </td>
                                     <td class="text-gray-700">{{ $c->order?->customer?->name ?? '—' }}</td>
                                     <td class="text-gray-700">{{ $c->marketer?->name ?? '—' }}</td>
-                                    <td class="font-mono font-medium">{{ number_format($c->order_value_cents / 100, 2) }}</td>
+                                    <td class="font-mono font-medium">{{ number_format($c->order_value, 2) }}</td>
                                     <td class="font-mono text-green-700 font-medium bg-green-50">
-                                        {{ number_format($c->commission_amount_cents / 100, 2) }}
+                                        {{ number_format($c->commission_amount, 2) }}
                                     </td>
                                     <td class="font-mono text-amber-700 font-medium bg-amber-50">
                                         @php
                                             $totalRate = $c->total_commission_pct ?? ($promotion->total_commission_pct ?? 0);
                                             $marketerRate = $c->commission_rate ?? ($promotion->marketer_share_pct ?? 0);
                                             $adminRate = max(0, $totalRate - $marketerRate);
-                                            $adminEarned = $c->order_value_cents * $adminRate / 100;
+                                            $adminEarned = $c->order_value * $adminRate / 100;
                                         @endphp
-                                        {{ number_format($adminEarned / 100, 2) }}
+                                        {{ number_format($adminEarned, 2) }}
                                     </td>
                                     <td>
                                         @if($c->completed_at)
@@ -455,7 +455,7 @@
                         <div>
                             <label class="form-label">🔒 {{ __('admin.secret_promotions.product_value') }}</label>
                             <input type="number" name="product_value" step="0.01" min="0.01"
-                                class="form-input w-full text-sm" value="{{ $promotion->product_value_cents / 100 }}">
+                                class="form-input w-full text-sm" value="{{ $promotion->product_value }}">
                         </div>
                     </div>
                     <div class="flex justify-end gap-3 pt-2 border-t border-gray-100">

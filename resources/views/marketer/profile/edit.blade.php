@@ -85,7 +85,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase">{{ __('marketer.profile.total_earnings') }}</p>
-                    <p class="font-semibold mt-0.5">{{ number_format($marketer->total_earnings_cents / 100, 2) }} {{ $marketer->country?->currency_code ?? '' }}</p>
+                    <p class="font-semibold mt-0.5">{{ number_format($marketer->total_earnings, 2) }} {{ $marketer->country?->currency_code ?? '' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase">{{ __('marketer.profile.samples_used') }}</p>

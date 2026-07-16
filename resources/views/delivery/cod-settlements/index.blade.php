@@ -14,8 +14,8 @@
         'disputed' => ['class' => 'chip-cod-disputed', 'label' => __('delivery.cod.status_disputed')],
     ];
 
-    function codCents(int $cents, string $currency = 'SAR'): string {
-        return number_format($cents / 100, 2) . ' ' . $currency;
+    function codAmount(int $amount, string $currency = 'SAR'): string {
+        return number_format($amount, 2) . ' ' . $currency;
     }
 @endphp
 
@@ -51,16 +51,16 @@
 
         <div class="grid grid-cols-3 gap-2 text-center">
             <div class="bg-slate-800 rounded-xl p-3">
-                <p class="text-base font-bold text-slate-100">{{ codCents($currentCodTotal, $currency) }}</p>
+                <p class="text-base font-bold text-slate-100">{{ codAmount($currentCodTotal, $currency) }}</p>
                 <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.cod.total_collected') }}</p>
             </div>
             <div class="bg-slate-800 rounded-xl p-3">
-                <p class="text-base font-bold text-green-400">{{ codCents($currentEarningsTotal, $currency) }}</p>
+                <p class="text-base font-bold text-green-400">{{ codAmount($currentEarningsTotal, $currency) }}</p>
                 <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.cod.earned_fees') }}</p>
             </div>
             <div class="bg-slate-800 rounded-xl p-3">
                 <p class="text-base font-bold {{ $currentNetOwed > 0 ? 'text-yellow-400' : 'text-slate-400' }}">
-                    {{ codCents($currentNetOwed, $currency) }}
+                    {{ codAmount($currentNetOwed, $currency) }}
                 </p>
                 <p class="text-xs text-slate-400 mt-0.5">{{ __('delivery.cod.net_owed') }}</p>
             </div>
@@ -76,7 +76,7 @@
                                 <p class="font-semibold">#{{ $a->subOrder?->sub_order_number ?? $a->id }}</p>
                                 <p class="text-xs text-slate-400">{{ $a->delivered_at?->format('H:i') }}</p>
                             </div>
-                            <p class="font-bold text-yellow-300">{{ codCents($a->cod_amount_collected_cents, $currency) }}</p>
+                            <p class="font-bold text-yellow-300">{{ codAmount($a->cod_amount_collected, $currency) }}</p>
                         </div>
                     @endforeach
                 </div>
@@ -113,16 +113,16 @@
 
                         <div class="grid grid-cols-3 gap-2 text-center mt-3">
                             <div>
-                                <p class="text-sm font-bold text-slate-100">{{ codCents($settlement->total_cod_collected_cents, $currency) }}</p>
+                                <p class="text-sm font-bold text-slate-100">{{ codAmount($settlement->total_cod_collected, $currency) }}</p>
                                 <p class="text-xs text-slate-500">{{ __('delivery.cod.total_collected') }}</p>
                             </div>
                             <div>
-                                <p class="text-sm font-bold text-green-400">{{ codCents($settlement->total_earnings_owed_cents, $currency) }}</p>
+                                <p class="text-sm font-bold text-green-400">{{ codAmount($settlement->total_earnings_owed, $currency) }}</p>
                                 <p class="text-xs text-slate-500">{{ __('delivery.cod.earned_fees') }}</p>
                             </div>
                             <div>
-                                <p class="text-sm font-bold {{ $settlement->net_to_remit_cents > 0 ? 'text-yellow-400' : 'text-slate-400' }}">
-                                    {{ codCents($settlement->net_to_remit_cents, $currency) }}
+                                <p class="text-sm font-bold {{ $settlement->net_to_remit > 0 ? 'text-yellow-400' : 'text-slate-400' }}">
+                                    {{ codAmount($settlement->net_to_remit, $currency) }}
                                 </p>
                                 <p class="text-xs text-slate-500">{{ __('delivery.cod.net_owed') }}</p>
                             </div>
@@ -149,17 +149,17 @@
                                 </p>
                             </div>
                             <p class="font-bold text-yellow-300">
-                                {{ codCents($a->cod_amount_collected_cents ?? 0, $currency) }}
+                                {{ codAmount($a->cod_amount_collected ?? 0, $currency) }}
                             </p>
                         </div>
                     @empty
                         <p class="text-xs text-slate-500 text-center py-2">{{ __('delivery.cod.no_linked_deliveries') }}</p>
                     @endforelse
 
-                    @if($settlement->status === \App\Enums\DeliveryAgentCodSettlementStatus::Pending && $settlement->net_to_remit_cents > 0)
+                    @if($settlement->status === \App\Enums\DeliveryAgentCodSettlementStatus::Pending && $settlement->net_to_remit > 0)
                         <div class="mt-3 p-3 rounded-xl bg-yellow-900/30 border border-yellow-700/40 text-yellow-300 text-xs leading-relaxed">
                             {{ __('delivery.cod.please_remit') }}
-                            <span class="font-bold">{{ codCents($settlement->net_to_remit_cents, $currency) }}</span>
+                            <span class="font-bold">{{ codAmount($settlement->net_to_remit, $currency) }}</span>
                             {{ __('delivery.cod.to_supervisor') }}
                         </div>
                     @endif

@@ -15,16 +15,16 @@
             'manufacturer_name' => $costReference->manufacturer_name,
             'manufacturer_url' => $costReference->manufacturer_url,
             'manufacturer_sku' => $costReference->manufacturer_sku,
-            'manufacturer_cost_cents' => $costReference->manufacturer_cost_cents,
-            'shipping_cost_cents' => $costReference->shipping_cost_cents,
-            'landed_cost_cents' => $costReference->landed_cost_cents,
+            'manufacturer_cost' => $costReference->manufacturer_cost,
+            'shipping_cost' => $costReference->shipping_cost,
+            'landed_cost' => $costReference->landed_cost,
             'platform_margin_pct' => $costReference->platform_margin_pct,
             'competitor_links' => $costReference->competitorLinksNormalized(),
             'notes' => $costReference->notes,
             'created_by' => $costReference->createdByAdmin?->name,
             'updated_by' => $costReference->updatedByAdmin?->name,
             'updated_at' => $costReference->updated_at?->toISOString(),
-        ] : null), '{{ $listing->currency }}', {{ $listing->price_cents }})"
+        ] : null), '{{ $listing->currency }}', {{ $listing->price }})"
         class="p-6 space-y-5">
 
         <div class="flex items-center justify-between">
@@ -81,12 +81,12 @@
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-gray-400 text-xs uppercase tracking-wide">{{ __('admin.admin_product_listings.price_cents_required') }}</dt>
-                    <dd class="mt-1 font-semibold text-gray-900">{{ number_format($listing->price_cents / 100, 2) }} {{ $listing->currency }}</dd>
+                    <dt class="text-gray-400 text-xs uppercase tracking-wide">{{ __('admin.admin_product_listings.price_required') }}</dt>
+                    <dd class="mt-1 font-semibold text-gray-900">{{ number_format($listing->price, 2) }} {{ $listing->currency }}</dd>
                 </div>
                 <div>
-                    <dt class="text-gray-400 text-xs uppercase tracking-wide">{{ __('admin.admin_product_listings.shipping_cost_cents') }}</dt>
-                    <dd class="mt-1 text-gray-800">{{ number_format($listing->shipping_cost_cents / 100, 2) }} {{ $listing->currency }}</dd>
+                    <dt class="text-gray-400 text-xs uppercase tracking-wide">{{ __('admin.admin_product_listings.shipping_cost') }}</dt>
+                    <dd class="mt-1 text-gray-800">{{ number_format($listing->shipping_cost, 2) }} {{ $listing->currency }}</dd>
                 </div>
                 <div>
                     <dt class="text-gray-400 text-xs uppercase tracking-wide">{{ __('admin.admin_product_listings.commission_type_required') }}</dt>
@@ -168,27 +168,27 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="label-sm">{{ __('admin.admin_product_listings.factory_cost_label') }}</label>
-                        <input type="number" x-model.number="form.manufacturer_cost_cents" min="0" class="form-input w-full text-sm font-mono" @input="syncLanded()">
-                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.manufacturer_cost_cents)"></p>
+                        <input type="number" x-model.number="form.manufacturer_cost" min="0" class="form-input w-full text-sm font-mono" @input="syncLanded()">
+                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.manufacturer_cost)"></p>
                     </div>
                     <div>
                         <label class="label-sm">{{ __('admin.admin_product_listings.shipping_cost_label') }}</label>
-                        <input type="number" x-model.number="form.shipping_cost_cents" min="0" class="form-input w-full text-sm font-mono" @input="syncLanded()">
-                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.shipping_cost_cents)"></p>
+                        <input type="number" x-model.number="form.shipping_cost" min="0" class="form-input w-full text-sm font-mono" @input="syncLanded()">
+                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.shipping_cost)"></p>
                     </div>
                     <div>
                         <label class="label-sm">{{ __('admin.admin_product_listings.landed_cost_label') }}
                             <span class="text-gray-400 font-normal">({{ __('admin.admin_product_listings.landed_cost_override_note') }})</span>
                         </label>
-                        <input type="number" x-model.number="form.landed_cost_cents" min="0" class="form-input w-full text-sm font-mono">
-                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.landed_cost_cents)"></p>
+                        <input type="number" x-model.number="form.landed_cost" min="0" class="form-input w-full text-sm font-mono">
+                        <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.landed_cost)"></p>
                     </div>
                 </div>
 
                 <div class="bg-gray-50 rounded-xl p-3 grid grid-cols-2 gap-3 text-center text-sm">
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">{{ __('admin.admin_product_listings.landed_cost_label') }}</p>
-                        <p class="font-bold text-indigo-700" x-text="centsToCurrency(form.landed_cost_cents) || '—'"></p>
+                        <p class="font-bold text-indigo-700" x-text="centsToCurrency(form.landed_cost) || '—'"></p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-400 mb-0.5">{{ __('admin.admin_product_listings.platform_margin') }}</p>
@@ -214,7 +214,7 @@
                                 placeholder="{{ __('admin.admin_product_listings.competitor_platform') }}">
                             <input type="url" x-model="comp.url" dir="ltr" class="form-input text-xs w-full sm:flex-1 font-mono min-w-0"
                                 placeholder="{{ __('admin.admin_product_listings.competitor_url') }}">
-                            <input type="number" x-model.number="comp.price_cents" class="form-input text-xs w-full sm:w-28 font-mono flex-shrink-0"
+                            <input type="number" x-model.number="comp.price" class="form-input text-xs w-full sm:w-28 font-mono flex-shrink-0"
                                 placeholder="{{ __('admin.admin_product_listings.competitor_price') }}">
                             <input type="text" x-model="comp.last_checked" data-flatpickr class="form-input text-xs w-full sm:w-32 flex-shrink-0"
                                 placeholder="{{ __('admin.admin_product_listings.competitor_last_checked') }}">
@@ -250,38 +250,38 @@
 
 @push('scripts')
     <script>
-        function nawyListingShow(initialRef, currency, priceCents) {
+        function nawyListingShow(initialRef, currency, price) {
             return {
                 tab: 'details',
                 saving: false,
                 currency,
-                priceCents,
+                priceCents: price,
                 ref: initialRef,
                 form: {
                     manufacturer_name: initialRef?.manufacturer_name ?? '',
                     manufacturer_url: initialRef?.manufacturer_url ?? '',
                     manufacturer_sku: initialRef?.manufacturer_sku ?? '',
-                    manufacturer_cost_cents: initialRef?.manufacturer_cost_cents ?? null,
-                    shipping_cost_cents: initialRef?.shipping_cost_cents ?? null,
-                    landed_cost_cents: initialRef?.landed_cost_cents ?? null,
+                    manufacturer_cost: initialRef?.manufacturer_cost ?? null,
+                    shipping_cost: initialRef?.shipping_cost ?? null,
+                    landed_cost: initialRef?.landed_cost ?? null,
                     competitor_links: initialRef?.competitor_links ?? [],
                     notes: initialRef?.notes ?? '',
                 },
 
                 get marginPct() {
-                    const landed = this.form.landed_cost_cents;
+                    const landed = this.form.landed_cost;
                     if (!landed || !this.priceCents) return null;
                     return ((this.priceCents - landed) / this.priceCents) * 100;
                 },
 
                 syncLanded() {
-                    const mfr = parseInt(this.form.manufacturer_cost_cents) || 0;
-                    const ship = parseInt(this.form.shipping_cost_cents) || 0;
-                    if (mfr + ship > 0) this.form.landed_cost_cents = mfr + ship;
+                    const mfr = parseInt(this.form.manufacturer_cost) || 0;
+                    const ship = parseInt(this.form.shipping_cost) || 0;
+                    if (mfr + ship > 0) this.form.landed_cost = mfr + ship;
                 },
 
                 addCompetitor() {
-                    this.form.competitor_links.push({ name: '', url: '', price_cents: null, last_checked: null });
+                    this.form.competitor_links.push({ name: '', url: '', price: null, last_checked: null });
                 },
 
                 removeCompetitor(idx) {
@@ -290,7 +290,7 @@
 
                 centsToCurrency(cents) {
                     if (cents === null || cents === undefined || cents === '' || isNaN(cents)) return '';
-                    return (parseInt(cents) / 100).toLocaleString('en-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + this.currency;
+                    return (parseInt(cents)).toLocaleString('en-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + this.currency;
                 },
 
                 async saveRef() {

@@ -28,7 +28,7 @@
         'max_file_size_kb' => $p->max_file_size_kb,
         'allowed_formats'  => $p->allowed_formats,
         'device_restriction' => $p->device_restriction,
-        'base_rate_weekly_cents' => $p->base_rate_weekly_cents,
+        'base_rate_weekly' => $p->base_rate_weekly,
     ])->toJson();
 
     $currentStatus       = old('status',       $isEdit ? $banner->status?->value       : 'active');
@@ -50,7 +50,7 @@
         get dimensionHint() {
             const p = this.currentPlacement;
             if (!p) return '';
-            const rate = (p.base_rate_weekly_cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            const rate = (p.base_rate_weekly).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
             return `${p.width_px} × ${p.height_px}px · max ${p.max_file_size_kb}KB · ${rate}/week`;
         },
         get desktopAspect() {

@@ -51,11 +51,11 @@
                             <div class="flex justify-between">
                                 <span class="text-gray-500">{{ __('admin.delivery_section.delivery_fee_label') }}</span>
                                 <span
-                                    class="font-medium text-gray-800">{{ number_format($zone->base_delivery_fee_cents / 100, 2) }}</span>
+                                    class="font-medium text-gray-800">{{ number_format($zone->base_delivery_fee, 2) }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-500">{{ __('admin.delivery_section.cod_fee_label') }}</span>
-                                <span class="font-medium text-gray-800">{{ number_format($zone->cod_fee_cents / 100, 2) }}</span>
+                                <span class="font-medium text-gray-800">{{ number_format($zone->cod_fee, 2) }}</span>
                             </div>
                             @if($zone->max_active_agents)
                                 <div class="flex justify-between">
@@ -127,15 +127,15 @@
                             min="1">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.delivery_fee_cents_required') }} <span
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.delivery_fee_required') }} <span
                                 class="text-red-500">*</span></label>
-                        <input type="number" name="base_delivery_fee_cents" id="zone-delivery-fee" class="form-input w-full"
+                        <input type="number" name="base_delivery_fee" id="zone-delivery-fee" class="form-input w-full"
                             required min="0">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.cod_fee_cents_required') }} <span
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.cod_fee_required') }} <span
                                 class="text-red-500">*</span></label>
-                        <input type="number" name="cod_fee_cents" id="zone-cod-fee" class="form-input w-full" required
+                        <input type="number" name="cod_fee" id="zone-cod-fee" class="form-input w-full" required
                             min="0">
                     </div>
                     <div class="col-span-2 flex items-center gap-2">
@@ -195,8 +195,8 @@
                 $('#zone-name').val(zone.name);
                 $('#zone-code').val(zone.code);
                 $('#zone-max-agents').val(zone.max_active_agents || '');
-                $('#zone-delivery-fee').val(zone.base_delivery_fee_cents);
-                $('#zone-cod-fee').val(zone.cod_fee_cents);
+                $('#zone-delivery-fee').val(zone.base_delivery_fee);
+                $('#zone-cod-fee').val(zone.cod_fee);
                 $('#zone-active').prop('checked', !!zone.is_active);
                 document.getElementById('zone-modal').classList.remove('hidden');
             });

@@ -21,7 +21,7 @@
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         @foreach($revenueByCurrency as $row)
             <x-stat-card title="{{ __('admin.warranty_purchases_section.total_revenue') }} ({{ $row->currency }})"
-                :value="number_format($row->total_cents / 100, 2)"
+                :value="number_format($row->total, 2)"
                 iconBg="bg-primary-100 text-primary-600" />
         @endforeach
         <x-stat-card title="{{ __('admin.warranty_purchases_section.active') }}" :value="number_format($stats['active'])"
@@ -58,7 +58,7 @@
                         <tr>
                             <td class="px-5 py-2.5 text-gray-700">{{ $row->plan_name ?? '—' }}</td>
                             <td class="px-5 py-2.5 text-gray-700">{{ number_format($row->sales_count) }}</td>
-                            <td class="px-5 py-2.5 text-gray-700">{{ number_format($row->total_cents / 100, 2) }}</td>
+                            <td class="px-5 py-2.5 text-gray-700">{{ number_format($row->total, 2) }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -80,7 +80,7 @@
                 labels: monthlyRevenue.map(r => r.month),
                 datasets: [{
                     label: revenueLabel,
-                    data: monthlyRevenue.map(r => r.total_cents / 100),
+                    data: monthlyRevenue.map(r => r.total),
                     backgroundColor: 'rgba(99,102,241,0.6)',
                     borderColor: 'rgb(99,102,241)',
                     borderRadius: 4,

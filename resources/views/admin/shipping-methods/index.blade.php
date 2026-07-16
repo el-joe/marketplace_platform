@@ -274,7 +274,7 @@
                                                        class="input-free-threshold w-24 text-xs rounded border border-gray-200 px-1.5 py-0.5 text-center focus:outline-none focus:ring-1 focus:ring-primary-300"
                                                        data-country-id="{{ $country->id }}"
                                                        data-method-id="{{ $method->id }}"
-                                                       value="{{ $setting->free_shipping_threshold_cents ? number_format($setting->free_shipping_threshold_cents / 100, 2) : '' }}"
+                                                       value="{{ $setting->free_shipping_threshold ? number_format($setting->free_shipping_threshold, 2) : '' }}"
                                                        title="Free shipping threshold in currency units" />
                                             </div>
                                         @endif

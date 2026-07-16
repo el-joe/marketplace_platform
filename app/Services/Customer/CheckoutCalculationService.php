@@ -325,14 +325,14 @@ class CheckoutCalculationService
         $total = max(0, $subtotal - $discountCents + $shippingFeeCents + $codFeeCents + $tax + $warrantyTotalCents - $giftCardAppliedCents);
 
         return [
-            'subtotal_cents' => $subtotal,
-            'discount_cents' => $discountCents,
-            'shipping_cents' => $shippingFeeCents,
+            'subtotal' => $subtotal,
+            'discount' => $discountCents,
+            'shipping' => $shippingFeeCents,
             'cod_fee' => $codFeeCents,
-            'tax_cents' => $tax,
-            'warranty_total_cents' => $warrantyTotalCents,
-            'gift_card_applied_cents' => $giftCardAppliedCents,
-            'total_cents' => $total,
+            'tax' => $tax,
+            'warranty_total' => $warrantyTotalCents,
+            'gift_card_applied' => $giftCardAppliedCents,
+            'total' => $total,
             'currency' => $country->currency_code,
         ];
     }
@@ -416,15 +416,15 @@ class CheckoutCalculationService
         $giftCard = GiftCard::active()->where('code', $code)->first();
 
         if (! $giftCard) {
-            return ['gift_card' => null, 'applied_cents' => 0, 'error' => 'Gift card not found or inactive.'];
+            return ['gift_card' => null, 'applied' => 0, 'error' => 'Gift card not found or inactive.'];
         }
 
         if ($giftCard->currency !== $currency) {
-            return ['gift_card' => null, 'applied_cents' => 0, 'error' => 'Gift card currency does not match order currency.'];
+            return ['gift_card' => null, 'applied' => 0, 'error' => 'Gift card currency does not match order currency.'];
         }
 
         $appliedCents = min($giftCard->balance, $orderTotalCents);
 
-        return ['gift_card' => $giftCard, 'applied_cents' => $appliedCents, 'error' => null];
+        return ['gift_card' => $giftCard, 'applied' => $appliedCents, 'error' => null];
     }
 }

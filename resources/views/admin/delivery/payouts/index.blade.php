@@ -209,9 +209,9 @@ Object.assign(window.TRANSLATIONS, {
             { data: 'agent_name' },
             { data: 'period', render: (v, t, r) => `${r.period_start} – ${r.period_end}` },
             { data: 'total_deliveries' },
-            { data: 'gross_earnings_cents',  render: v => (v / 100).toFixed(2) },
-            { data: 'deductions_cents',      render: v => (v / 100).toFixed(2) },
-            { data: 'net_amount_cents',      render: v => `<strong>${(v / 100).toFixed(2)}</strong>` },
+            { data: 'gross_earnings',  render: v => (v).toFixed(2) },
+            { data: 'deductions',      render: v => (v).toFixed(2) },
+            { data: 'net_amount',      render: v => `<strong>${(v).toFixed(2)}</strong>` },
             {
                 data: 'status',
                 render: (v, t, r) => {

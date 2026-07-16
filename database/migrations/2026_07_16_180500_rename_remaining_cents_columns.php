@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -279,6 +280,8 @@ return new class extends Migration
                 ->comment('Actual amount returned to customer after deductions')
                 ->after('tax_deducted');
         });
+
+        DB::statement("UPDATE settings SET `key` = 'min_order_amount' WHERE `key` = 'min_order_amount_cents'");
     }
 
     /**
@@ -286,6 +289,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::statement("UPDATE settings SET `key` = 'min_order_amount_cents' WHERE `key` = 'min_order_amount'");
+
         // refunds: reverse in inverse order
         Schema::table('refunds', function (Blueprint $table) {
             $table->dropColumn('net_refund');

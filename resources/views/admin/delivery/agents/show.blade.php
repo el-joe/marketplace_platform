@@ -114,8 +114,8 @@
                             __('admin.delivery_section.field_vehicle_plate')           => $agent->vehicle_plate ?? '—',
                             __('admin.delivery_section.field_emergency_contact')       => $agent->emergency_contact_name ?? '—',
                             __('admin.delivery_section.field_emergency_phone')         => $agent->emergency_contact_phone ?? '—',
-                            __('admin.delivery_section.field_base_salary')             => $agent->base_salary_cents ? number_format($agent->base_salary_cents / 100, 2) : '—',
-                            __('admin.delivery_section.field_per_delivery_fee')        => number_format($agent->per_delivery_fee_cents / 100, 2),
+                            __('admin.delivery_section.field_base_salary')             => $agent->base_salary ? number_format($agent->base_salary, 2) : '—',
+                            __('admin.delivery_section.field_per_delivery_fee')        => number_format($agent->per_delivery_fee, 2),
                             __('admin.delivery_section.field_last_login')              => $agent->last_login_at?->format('d M Y H:i') ?? __('admin.delivery_section.never'),
                             __('admin.delivery_section.field_last_login_ip')           => $agent->last_login_ip ?? '—',
                             __('admin.delivery_section.field_joined')                  => $agent->created_at->format('d M Y'),
@@ -138,8 +138,8 @@
                                 ['name' => 'vehicle_plate',           'label' => __('admin.delivery_section.field_vehicle_plate'),     'type' => 'text',   'value' => $agent->vehicle_plate],
                                 ['name' => 'emergency_contact_name',  'label' => __('admin.delivery_section.emergency_name'),    'type' => 'text',   'value' => $agent->emergency_contact_name],
                                 ['name' => 'emergency_contact_phone', 'label' => __('admin.delivery_section.emergency_phone'),   'type' => 'text',   'value' => $agent->emergency_contact_phone],
-                                ['name' => 'base_salary_cents',       'label' => __('admin.delivery_section.base_salary_cents_label'),'type' => 'number','value' => $agent->base_salary_cents],
-                                ['name' => 'per_delivery_fee_cents',  'label' => __('admin.delivery_section.per_delivery_fee_cents_label'),'type' => 'number','value' => $agent->per_delivery_fee_cents],
+                                ['name' => 'base_salary',       'label' => __('admin.delivery_section.base_salary_label'),'type' => 'number','value' => $agent->base_salary],
+                                ['name' => 'per_delivery_fee',  'label' => __('admin.delivery_section.per_delivery_fee_label'),'type' => 'number','value' => $agent->per_delivery_fee],
                             ] as $f)
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">{{ $f['label'] }}</label>
@@ -342,7 +342,7 @@
                                 </x-badge>
                             </td>
                             <td class="py-2 text-end">{{ $shift->total_deliveries }}</td>
-                            <td class="py-2 text-end">{{ number_format($shift->total_earnings_cents / 100, 2) }}</td>
+                            <td class="py-2 text-end">{{ number_format($shift->total_earnings, 2) }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -435,12 +435,12 @@ Object.assign(window.TRANSLATIONS, {
         if (earningsChartInstance) return;
         $.getJSON(EARNINGS_URL, data => {
             const fmt = cents => (cents / 100).toFixed(2);
-            $('#earnings-this-month').text(fmt(data.summary.this_month_cents));
-            $('#earnings-last-month').text(fmt(data.summary.last_month_cents));
-            $('#earnings-ytd').text(fmt(data.summary.ytd_cents));
+            $('#earnings-this-month').text(fmt(data.summary.this_month));
+            $('#earnings-last-month').text(fmt(data.summary.last_month));
+            $('#earnings-ytd').text(fmt(data.summary.ytd));
 
             const labels = data.monthly.map(r => `${r.year}-${String(r.month).padStart(2,'0')}`);
-            const values = data.monthly.map(r => r.total_cents / 100);
+            const values = data.monthly.map(r => r.total / 100);
 
             earningsChartInstance = new Chart(document.getElementById('earnings-chart'), {
                 type: 'bar',

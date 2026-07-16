@@ -53,7 +53,7 @@
         <div class="p-3 space-y-1">
             <p class="text-xs text-gray-500 line-clamp-1">{{ $product?->name_ar ?? $product?->name_en }}</p>
             <p class="text-sm font-bold text-gray-900">
-                {{ number_format($listing->price_cents / 100, 2) }}
+                {{ number_format($listing->price, 2) }}
                 <span class="text-xs font-normal text-gray-500">{{ $listing->currency }}</span>
             </p>
         </div>

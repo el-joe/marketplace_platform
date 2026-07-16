@@ -153,7 +153,7 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
         return $this->ends_at !== null && now() > $this->ends_at;
     }
 
-    public function getBudgetRemainingCents(): ?int
+    public function getBudgetRemaining(): ?int
     {
         if ($this->budget === null) {
             return null;

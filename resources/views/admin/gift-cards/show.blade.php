@@ -40,7 +40,7 @@
                     <span class="badge {{ $statusClass }}">{{ __('admin.gift_cards_section.' . $giftCard->status) }}</span>
                 </div>
                 <h1 class="text-xl font-semibold text-gray-900 mt-1">
-                    {{ number_format($giftCard->denomination_cents / 100, 2) }} {{ $giftCard->currency }}
+                    {{ number_format($giftCard->denomination, 2) }} {{ $giftCard->currency }}
                 </h1>
             </div>
             <a href="{{ route('admin.gift-cards.index') }}" class="btn btn-secondary">{{ __('admin.gift_cards_section.back_to_list') }}</a>
@@ -49,7 +49,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
                 <p class="text-xs text-gray-500">{{ __('admin.gift_cards_section.balance') }}</p>
-                <p class="text-xl font-semibold text-gray-900 mt-1">{{ number_format($giftCard->balance_cents / 100, 2) }} {{ $giftCard->currency }}</p>
+                <p class="text-xl font-semibold text-gray-900 mt-1">{{ number_format($giftCard->balance, 2) }} {{ $giftCard->currency }}</p>
             </div>
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
                 <p class="text-xs text-gray-500">{{ __('admin.gift_cards_section.recipient') }}</p>
@@ -115,7 +115,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.adjustment_amount') }}</label>
-                        <input type="number" name="amount_cents" min="1" class="form-input w-full" placeholder="1000" required>
+                        <input type="number" name="amount" min="1" class="form-input w-full" placeholder="1000" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.gift_cards_section.adjustment_notes') }}</label>
@@ -148,10 +148,10 @@
                     @forelse ($giftCard->transactions as $transaction)
                         <tr>
                             <td class="px-5 py-2">{{ __('admin.gift_cards_section.' . $transaction->type) }}</td>
-                            <td class="px-5 py-2 text-end {{ $transaction->amount_cents < 0 ? 'text-red-600' : 'text-green-600' }}">
-                                {{ number_format($transaction->amount_cents / 100, 2) }}
+                            <td class="px-5 py-2 text-end {{ $transaction->amount < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                {{ number_format($transaction->amount, 2) }}
                             </td>
-                            <td class="px-5 py-2 text-end">{{ number_format($transaction->balance_after_cents / 100, 2) }}</td>
+                            <td class="px-5 py-2 text-end">{{ number_format($transaction->balance_after, 2) }}</td>
                             <td class="px-5 py-2">{{ $transaction->performedByAdmin?->name ?? $transaction->performedByCustomer?->name ?? '—' }}</td>
                             <td class="px-5 py-2 text-gray-500">{{ $transaction->notes ?? '—' }}</td>
                             <td class="px-5 py-2 text-end text-gray-500">{{ $transaction->created_at?->format('Y-m-d H:i') }}</td>

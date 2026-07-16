@@ -26,7 +26,7 @@ class AbTestResult extends Model
         'revenue_per_visitor',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'date' => 'date',
         'visitors' => 'integer',

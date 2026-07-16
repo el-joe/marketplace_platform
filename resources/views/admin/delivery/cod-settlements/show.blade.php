@@ -29,10 +29,10 @@
 <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6 flex items-center justify-between gap-4">
     <div>
         <p class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-0.5">{{ __('admin.cod.agent_must_remit') }}</p>
-        <p class="text-3xl font-bold text-blue-800">{{ number_format($settlement->net_to_remit_cents / 100, 2) }}</p>
+        <p class="text-3xl font-bold text-blue-800">{{ number_format($settlement->net_to_remit, 2) }}</p>
         <p class="text-xs text-blue-500 mt-1">
-            {{ __('admin.cod.collected_label') }} {{ number_format($settlement->total_cod_collected_cents / 100, 2) }}
-            &minus; {{ __('admin.cod.earnings_label') }} {{ number_format($settlement->total_earnings_owed_cents / 100, 2) }}
+            {{ __('admin.cod.collected_label') }} {{ number_format($settlement->total_cod_collected, 2) }}
+            &minus; {{ __('admin.cod.earnings_label') }} {{ number_format($settlement->total_earnings_owed, 2) }}
         </p>
     </div>
     @if($settlement->status === \App\Enums\DeliveryAgentCodSettlementStatus::Pending)
@@ -84,14 +84,14 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-2 text-xs text-gray-600">{{ $a->delivered_at?->format('M d, Y') ?? '—' }}</td>
-                                <td class="px-4 py-2 text-end font-medium">{{ number_format($a->cod_amount_collected_cents / 100, 2) }}</td>
+                                <td class="px-4 py-2 text-end font-medium">{{ number_format($a->cod_amount_collected, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                     <tfoot class="bg-gray-50">
                         <tr>
                             <td colspan="2" class="px-4 py-2 text-xs font-semibold text-gray-600 uppercase">{{ __('admin.cod.total_row') }}</td>
-                            <td class="px-4 py-2 text-end font-bold">{{ number_format($settlement->total_cod_collected_cents / 100, 2) }}</td>
+                            <td class="px-4 py-2 text-end font-bold">{{ number_format($settlement->total_cod_collected, 2) }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -124,14 +124,14 @@
                                 <td class="px-4 py-2">
                                     <span class="badge badge-gray text-xs capitalize">{{ $e->status->label() }}</span>
                                 </td>
-                                <td class="px-4 py-2 text-end">{{ number_format($e->amount_cents / 100, 2) }}</td>
+                                <td class="px-4 py-2 text-end">{{ number_format($e->amount, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                     <tfoot class="bg-gray-50">
                         <tr>
                             <td colspan="2" class="px-4 py-2 text-xs font-semibold text-gray-600 uppercase">{{ __('admin.cod.total_row') }}</td>
-                            <td class="px-4 py-2 text-end font-bold">{{ number_format($settlement->total_earnings_owed_cents / 100, 2) }}</td>
+                            <td class="px-4 py-2 text-end font-bold">{{ number_format($settlement->total_earnings_owed, 2) }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -165,7 +165,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-2 text-xs text-gray-600">{{ $a->delivered_at?->format('M d, Y') ?? '—' }}</td>
-                                <td class="px-4 py-2 text-end font-medium">{{ number_format($a->cod_amount_collected_cents / 100, 2) }}</td>
+                                <td class="px-4 py-2 text-end font-medium">{{ number_format($a->cod_amount_collected, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -194,12 +194,12 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">
                             {{ __('admin.cod.actual_amount_remitted') }} <span class="text-red-500">*</span>
-                            <span class="text-gray-400 font-normal">{{ __('admin.cod.in_cents_hint') }}</span>
+                            <span class="text-gray-400 font-normal">{{ __('admin.cod.amount_hint') }}</span>
                         </label>
                         <input type="number" name="actual_amount_remitted" required
-                            value="{{ $settlement->net_to_remit_cents }}"
+                            value="{{ $settlement->net_to_remit }}"
                             class="form-input w-full text-sm">
-                        <p class="text-xs text-gray-400 mt-0.5">{{ __('admin.cod.expected_label') }} {{ number_format($settlement->net_to_remit_cents / 100, 2) }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ __('admin.cod.expected_label') }} {{ number_format($settlement->net_to_remit, 2) }}</p>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.cod.notes_label') }}</label>
@@ -223,7 +223,7 @@
                                 <p class="text-xs font-medium text-gray-800">
                                     {{ $h->period_start->format('M d') }} – {{ $h->period_end->format('M d, Y') }}
                                 </p>
-                                <p class="text-xs text-gray-500">{{ __('admin.cod.net_label') }} {{ number_format($h->net_to_remit_cents / 100, 2) }}</p>
+                                <p class="text-xs text-gray-500">{{ __('admin.cod.net_label') }} {{ number_format($h->net_to_remit, 2) }}</p>
                                 @if($h->settled_at)
                                     <p class="text-xs text-gray-400">{{ $h->settled_at->format('M d, Y') }}</p>
                                 @endif

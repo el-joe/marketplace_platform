@@ -109,10 +109,10 @@ $(function () {
             $form.find('[name="display_name_en"]').val(pm.display_name_en);
             $form.find('[name="display_name_ar"]').val(pm.display_name_ar || '');
             $form.find('[name="fee_pct"]').val(pm.fee_pct);
-            $form.find('[name="fee_fixed_cents"]').val(pm.fee_fixed_cents);
+            $form.find('[name="fee_fixed"]').val(pm.fee_fixed);
             $form.find('[name="sort_order"]').val(pm.sort_order);
-            $form.find('[name="min_order_cents"]').val(pm.min_order_cents);
-            $form.find('[name="max_order_cents"]').val(pm.max_order_cents || '');
+            $form.find('[name="min_order"]').val(pm.min_order);
+            $form.find('[name="max_order"]').val(pm.max_order || '');
             $form.find('[name="is_active"][type="checkbox"]').prop('checked', !!pm.is_active).trigger('change');
         }
 

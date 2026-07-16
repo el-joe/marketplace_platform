@@ -83,9 +83,9 @@
                         @foreach($pending as $conv)
                             <tr class="border-t border-gray-50">
                                 <td class="px-4 py-3 font-medium text-gray-700">{{ $conv->campaign?->name ?? '—' }}</td>
-                                <td class="px-4 py-3 text-right text-gray-600">{{ number_format($conv->order_value_cents / 100, 2) }}</td>
+                                <td class="px-4 py-3 text-right text-gray-600">{{ number_format($conv->order_value, 2) }}</td>
                                 <td class="px-4 py-3 text-right font-semibold text-yellow-600">
-                                    {{ number_format($conv->commission_amount_cents / 100, 2) }}
+                                    {{ number_format($conv->commission_amount, 2) }}
                                 </td>
                                 <td class="px-4 py-3 text-right text-gray-400 text-xs">{{ $conv->created_at->format('d M Y') }}</td>
                             </tr>
@@ -121,9 +121,9 @@
                         @foreach($approved as $conv)
                             <tr class="border-t border-gray-50">
                                 <td class="px-4 py-3 font-medium text-gray-700">{{ $conv->campaign?->name ?? '—' }}</td>
-                                <td class="px-4 py-3 text-right text-gray-600">{{ number_format($conv->order_value_cents / 100, 2) }}</td>
+                                <td class="px-4 py-3 text-right text-gray-600">{{ number_format($conv->order_value, 2) }}</td>
                                 <td class="px-4 py-3 text-right font-semibold text-green-600">
-                                    {{ number_format($conv->commission_amount_cents / 100, 2) }}
+                                    {{ number_format($conv->commission_amount, 2) }}
                                 </td>
                                 <td class="px-4 py-3 text-right text-gray-400 text-xs">
                                     {{ $conv->approved_at?->format('d M Y') ?? '—' }}
@@ -174,7 +174,7 @@
                                 <td class="px-4 py-3 text-xs text-gray-600">{{ $payout->period_start }} – {{ $payout->period_end }}</td>
                                 <td class="px-4 py-3 text-right text-gray-600">{{ number_format($payout->total_conversions) }}</td>
                                 <td class="px-4 py-3 text-right font-bold text-gray-800">
-                                    {{ number_format($payout->net_amount_cents / 100, 2) }} {{ $payout->currency }}
+                                    {{ number_format($payout->net_amount, 2) }} {{ $payout->currency }}
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <span class="text-xs font-semibold rounded-full px-2.5 py-0.5 {{ $payoutColor }}">

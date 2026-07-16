@@ -76,10 +76,10 @@ class EarningsController extends Controller
             ->sum('amount');
 
         return response()->json([
-            'today_cents' => $todayEarnings,
-            'month_cents' => $thisMonth,
-            'pending_cents' => $pendingBalance,
-            'paid_cents' => $paidBalance,
+            'today' => $todayEarnings,
+            'month' => $thisMonth,
+            'pending' => $pendingBalance,
+            'paid' => $paidBalance,
         ]);
     }
 }

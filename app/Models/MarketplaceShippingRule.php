@@ -25,7 +25,7 @@ class MarketplaceShippingRule extends Model
         'extra_delivery_fee',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'commission_type' => MarketplaceShippingRuleCommissionType::class,
         'requires_special_vehicle' => 'boolean',

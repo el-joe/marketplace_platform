@@ -30,7 +30,7 @@
             <dl class="text-sm divide-y divide-gray-100">
                 <div class="flex justify-between py-2">
                     <dt class="text-gray-500">{{ __('admin.warranty_purchases_section.price_col') }}</dt>
-                    <dd class="font-medium">{{ number_format($warrantyPurchase->price_paid_cents / 100, 2) }} {{ $warrantyPurchase->currency }}</dd>
+                    <dd class="font-medium">{{ number_format($warrantyPurchase->price_paid, 2) }} {{ $warrantyPurchase->currency }}</dd>
                 </div>
                 <div class="flex justify-between py-2">
                     <dt class="text-gray-500">{{ __('admin.warranty_purchases_section.coverage_starts_col') }}</dt>

@@ -65,7 +65,7 @@ function initSlabsTable() {
                 data: 'extra_fee_formatted',
                 className: 'text-right',
                 render(value, type, row) {
-                    return `<span class="editable-fee cursor-pointer hover:underline" data-id="${row.id}" data-cents="${row.extra_fee_cents}" title="Click to edit">${value}</span>`;
+                    return `<span class="editable-fee cursor-pointer hover:underline" data-id="${row.id}" data-extra-fee="${row.extra_fee}" title="Click to edit">${value}</span>`;
                 },
             },
             {
@@ -111,7 +111,7 @@ function initInlineFeeEdit() {
         if ($span.data('editing')) return;
 
         const id = $span.data('id');
-        const cents = $span.data('cents');
+        const cents = $span.data('extra-fee');
         $span.data('editing', true);
 
         const $input = $(`<input type="number" step="0.01" min="0" class="w-24 text-sm rounded border border-primary-300 px-1.5 py-0.5" />`)
@@ -123,10 +123,10 @@ function initInlineFeeEdit() {
         const commit = async () => {
             const newCents = toCents($input.val());
             try {
-                await sendJson(updateUrl(window.SHIPPING_WEIGHT_SLABS_ROUTES.update, id), 'PUT', { extra_fee_cents: newCents });
+                await sendJson(updateUrl(window.SHIPPING_WEIGHT_SLABS_ROUTES.update, id), 'PUT', { extra_fee: newCents });
                 toast('Extra fee updated.');
             } catch (err) {
-                toast(err.message ?? err.errors?.extra_fee_cents?.[0] ?? 'Failed to update fee.', 'error');
+                toast(err.message ?? err.errors?.extra_fee?.[0] ?? 'Failed to update fee.', 'error');
             } finally {
                 window.reloadDataTable('weight-slabs-table');
             }
@@ -216,7 +216,7 @@ function initSlabModal() {
         $form[0].reset();
         $('#slab-id').val('');
         $('#slab-http').val('POST');
-        $('#slab-min-weight, #slab-max-weight, #slab-fee-cents').val('');
+        $('#slab-min-weight, #slab-max-weight, #slab-fee-input').val('');
         $('#slab-open-ended').prop('checked', false).trigger('change');
         $('#slab-currency-label').text('—');
         $form.find('[name="shipping_method_id"], [name="country_id"]').val('').trigger('change');
@@ -246,8 +246,8 @@ function initSlabModal() {
             $('#slab-max-weight').val('');
         }
 
-        $('#slab-fee-display').val((row.extra_fee_cents / 100).toFixed(2));
-        $('#slab-fee-cents').val(row.extra_fee_cents);
+        $('#slab-fee-display').val((row.extra_fee / 100).toFixed(2));
+        $('#slab-fee-input').val(row.extra_fee);
         $('#slab-currency-label').text(currencyForCountry(row.country_id));
 
         const $toggle = $form.find('[name="is_active"]');
@@ -279,7 +279,7 @@ function initSlabModal() {
         $('#slab-max-weight').val(toGrams($(this).val()));
     });
     $('#slab-fee-display').on('input', function () {
-        $('#slab-fee-cents').val(toCents($(this).val()));
+        $('#slab-fee-input').val(toCents($(this).val()));
     });
 
     $form.on('submit', async function (e) {
@@ -295,7 +295,7 @@ function initSlabModal() {
             country_id: $form.find('[name="country_id"]').val(),
             min_weight_grams: toGrams($('#slab-min-weight-kg').val()),
             max_weight_grams: $('#slab-open-ended').is(':checked') ? null : toGrams($('#slab-max-weight-kg').val()),
-            extra_fee_cents: toCents($('#slab-fee-display').val()),
+            extra_fee: toCents($('#slab-fee-display').val()),
             is_active: $form.find('[name="is_active"]').is(':checked') ? 1 : 0,
         };
 

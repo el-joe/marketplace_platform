@@ -85,7 +85,7 @@
                             <td class="td font-mono text-xs">{{ $claim->claim_number }}</td>
                             <td class="td">{{ $claimTypeLabels[$claim->claim_type->value] ?? Str::title(str_replace('_',' ',$claim->claim_type->value)) }}</td>
                             <td class="td text-gray-700">{{ $claim->shippingCompany?->name ?? '—' }}</td>
-                            <td class="td font-medium">{{ number_format($claim->claimed_amount_cents / 100, 2) }}</td>
+                            <td class="td font-medium">{{ number_format($claim->claimed_amount, 2) }}</td>
                             <td class="td">
                                 <span class="badge {{ $claim->statusBadgeClass() }}">
                                     {{ $statusLabels[$claim->status->value] ?? Str::title(str_replace('_',' ',$claim->status->value)) }}

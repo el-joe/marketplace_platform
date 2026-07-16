@@ -129,14 +129,14 @@ class PackagingSupplyController extends Controller
         $feeCents = $this->resolveDeliveryFeeCents($vendor->vendor);
 
         return response()->json([
-            'fee_cents' => $feeCents,
-            'currency'  => 'USD',
+            'fee'      => $feeCents,
+            'currency' => 'USD',
         ]);
     }
 
     private function resolveDeliveryFeeCents(?\App\Models\Vendor $vendor): int
     {
-        $feesByCountry = Setting::get('packaging_delivery_fee_cents', []);
+        $feesByCountry = Setting::get('packaging_delivery_fee', []);
 
         if (!is_array($feesByCountry) || !$vendor || !$vendor->country_id) {
             return 0;

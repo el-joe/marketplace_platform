@@ -226,7 +226,7 @@ function loadListingsForVendor(vendorId, preselect = null) {
             }
             let opts = `<option value="">${T.selectListing || 'Select listing…'}</option>`;
             listings.forEach(l => {
-                opts += `<option value="${l.id}" data-price="${l.price_cents}" data-name="${l.name}" data-img="${l.image ?? ''}" data-currency="${l.currency ?? ''}">${l.name} — ${fmtMoney(l.price_cents / 100)}</option>`;
+                opts += `<option value="${l.id}" data-price="${l.price}" data-name="${l.name}" data-img="${l.image ?? ''}" data-currency="${l.currency ?? ''}">${l.name} — ${fmtMoney(l.price / 100)}</option>`;
             });
             $select.html(opts).prop('disabled', false);
 

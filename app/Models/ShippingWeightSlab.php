@@ -22,7 +22,7 @@ class ShippingWeightSlab extends Model
         'is_active',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'min_weight_grams' => 'integer',
         'max_weight_grams' => 'integer',

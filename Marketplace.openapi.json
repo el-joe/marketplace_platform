@@ -100,7 +100,7 @@
                                         "brand": {
                                           "type": "string"
                                         },
-                                        "price_cents": {
+                                        "price": {
                                           "type": "integer"
                                         },
                                         "currency": {
@@ -228,7 +228,7 @@
                               "title_en": "La Roche-Posay Anthelios Sunscreen SPF50 50ml",
                               "title_ar": "لاروش بوزيه أنتيليوس واقي شمس",
                               "brand": "La Roche-Posay",
-                              "price_cents": 8900,
+                              "price": 8900,
                               "currency": "AED",
                               "original_price_cents": 12000,
                               "discount_percent": 26,
@@ -562,7 +562,7 @@
                               "brand": {
                                 "type": "string"
                               },
-                              "price_cents": {
+                              "price": {
                                 "type": "integer"
                               },
                               "currency": {
@@ -679,7 +679,7 @@
                         "title_en": "La Roche-Posay Anthelios Sunscreen SPF50 50ml",
                         "title_ar": "لاروش بوزيه أنتيليوس واقي شمس",
                         "brand": "La Roche-Posay",
-                        "price_cents": 8900,
+                        "price": 8900,
                         "currency": "AED",
                         "original_price_cents": 12000,
                         "discount_percent": 26,
@@ -845,7 +845,7 @@
                               "vendor_name": {
                                 "type": "string"
                               },
-                              "price_cents": {
+                              "price": {
                                 "type": "integer"
                               },
                               "currency": {
@@ -865,7 +865,7 @@
                               "id",
                               "vendor_id",
                               "vendor_name",
-                              "price_cents",
+                              "price",
                               "currency",
                               "stock",
                               "is_buy_box",
@@ -912,7 +912,7 @@
                         "id": "vl_1001",
                         "vendor_id": "vnd_44a1",
                         "vendor_name": "HealthPlus Pharmacy",
-                        "price_cents": 8900,
+                        "price": 8900,
                         "currency": "AED",
                         "stock": 24,
                         "is_buy_box": true,
@@ -922,7 +922,7 @@
                         "id": "vl_1002",
                         "vendor_id": "vnd_9931",
                         "vendor_name": "BeautyBox UAE",
-                        "price_cents": 9200,
+                        "price": 9200,
                         "currency": "AED",
                         "stock": 5,
                         "is_buy_box": false,
@@ -1118,7 +1118,7 @@
                               "brand": {
                                 "type": "string"
                               },
-                              "price_cents": {
+                              "price": {
                                 "type": "integer"
                               },
                               "currency": {
@@ -1219,7 +1219,7 @@
                         "title_en": "La Roche-Posay Anthelios Sunscreen SPF50 50ml",
                         "title_ar": "لاروش بوزيه أنتيليوس واقي شمس",
                         "brand": "La Roche-Posay",
-                        "price_cents": 8900,
+                        "price": 8900,
                         "currency": "AED",
                         "original_price_cents": 12000,
                         "discount_percent": 26,
@@ -1462,7 +1462,7 @@
                               "title_en": {
                                 "type": "string"
                               },
-                              "price_cents": {
+                              "price": {
                                 "type": "integer"
                               },
                               "currency": {
@@ -1522,7 +1522,7 @@
                       {
                         "id": "trv_501",
                         "title_en": "5D/4N Maldives Getaway",
-                        "price_cents": 350000,
+                        "price": 350000,
                         "currency": "AED",
                         "duration_days": 5,
                         "departure_city": "Dubai",
@@ -2035,7 +2035,7 @@
                                   "brand": {
                                     "type": "string"
                                   },
-                                  "price_cents": {
+                                  "price": {
                                     "type": "integer"
                                   },
                                   "currency": {
@@ -2133,7 +2133,7 @@
                           "title_en": "La Roche-Posay Anthelios Sunscreen SPF50 50ml",
                           "title_ar": "لاروش بوزيه أنتيليوس واقي شمس",
                           "brand": "La Roche-Posay",
-                          "price_cents": 8900,
+                          "price": 8900,
                           "currency": "AED",
                           "original_price_cents": 12000,
                           "discount_percent": 26,
@@ -2293,7 +2293,7 @@
                                   "title": {
                                     "type": "string"
                                   },
-                                  "price_cents": {
+                                  "price": {
                                     "type": "integer"
                                   },
                                   "currency": {
@@ -2366,7 +2366,7 @@
                         {
                           "listing_number": "CL-10432",
                           "title": "2021 Toyota Camry SE",
-                          "price_cents": 7500000,
+                          "price": 7500000,
                           "currency": "AED",
                           "city": "Dubai",
                           "image_url": "https://cdn.noon.com/classifieds/CL-10432/1.jpg"
@@ -2495,7 +2495,7 @@
                                   "title_en": {
                                     "type": "string"
                                   },
-                                  "price_cents": {
+                                  "price": {
                                     "type": "integer"
                                   },
                                   "currency": {
@@ -2565,7 +2565,7 @@
                         {
                           "id": "trv_501",
                           "title_en": "5D/4N Maldives Getaway",
-                          "price_cents": 350000,
+                          "price": 350000,
                           "currency": "AED",
                           "seats_available": 12
                         }
@@ -2727,7 +2727,7 @@
                                   "brand": {
                                     "type": "string"
                                   },
-                                  "price_cents": {
+                                  "price": {
                                     "type": "integer"
                                   },
                                   "currency": {
@@ -2827,7 +2827,7 @@
                           "title_en": "La Roche-Posay Anthelios Sunscreen SPF50 50ml",
                           "title_ar": "لاروش بوزيه أنتيليوس واقي شمس",
                           "brand": "La Roche-Posay",
-                          "price_cents": 8900,
+                          "price": 8900,
                           "currency": "AED",
                           "original_price_cents": 12000,
                           "discount_percent": 26,
@@ -3000,7 +3000,7 @@
                                   "brand": {
                                     "type": "string"
                                   },
-                                  "price_cents": {
+                                  "price": {
                                     "type": "integer"
                                   },
                                   "currency": {
@@ -3092,7 +3092,7 @@
                           "title_en": "La Roche-Posay Anthelios Sunscreen SPF50 50ml",
                           "title_ar": "لاروش بوزيه أنتيليوس واقي شمس",
                           "brand": "La Roche-Posay",
-                          "price_cents": 8900,
+                          "price": 8900,
                           "currency": "AED",
                           "original_price_cents": 12000,
                           "discount_percent": 26,
@@ -3427,7 +3427,7 @@
                             "description": {
                               "type": "string"
                             },
-                            "price_cents": {
+                            "price": {
                               "type": "integer"
                             },
                             "currency": {
@@ -3496,7 +3496,7 @@
                             "listing_number",
                             "title",
                             "description",
-                            "price_cents",
+                            "price",
                             "currency",
                             "city",
                             "condition",
@@ -3525,7 +3525,7 @@
                       "listing_number": "CL-10432",
                       "title": "2021 Toyota Camry SE",
                       "description": "Single owner, full service history.",
-                      "price_cents": 7500000,
+                      "price": 7500000,
                       "currency": "AED",
                       "city": "Dubai",
                       "condition": "used",
@@ -3637,7 +3637,7 @@
                             "description": {
                               "type": "string"
                             },
-                            "price_cents": {
+                            "price": {
                               "type": "integer"
                             },
                             "currency": {
@@ -3671,7 +3671,7 @@
                             "id",
                             "title_en",
                             "description",
-                            "price_cents",
+                            "price",
                             "currency",
                             "duration_days",
                             "departure_city",
@@ -3699,7 +3699,7 @@
                       "id": "b6f1e2d4-8a3c-4e9a-9f21-1a2b3c4d5e6f",
                       "title_en": "5D/4N Maldives Getaway",
                       "description": "All-inclusive overwater villa package with return flights.",
-                      "price_cents": 350000,
+                      "price": 350000,
                       "currency": "AED",
                       "duration_days": 5,
                       "departure_city": "Dubai",
@@ -4036,7 +4036,7 @@
                             "travelers_count": {
                               "type": "integer"
                             },
-                            "total_price_cents": {
+                            "total_price": {
                               "type": "integer"
                             },
                             "currency": {
@@ -4049,7 +4049,7 @@
                             "package_id",
                             "status",
                             "travelers_count",
-                            "total_price_cents",
+                            "total_price",
                             "currency"
                           ]
                         }
@@ -4073,7 +4073,7 @@
                       "package_id": "b6f1e2d4-8a3c-4e9a-9f21-1a2b3c4d5e6f",
                       "status": "pending_documents",
                       "travelers_count": 2,
-                      "total_price_cents": 700000,
+                      "total_price": 700000,
                       "currency": "AED"
                     }
                   }
@@ -6921,7 +6921,7 @@
                                   "brand": {
                                     "type": "string"
                                   },
-                                  "price_cents": {
+                                  "price": {
                                     "type": "integer"
                                   },
                                   "currency": {
@@ -6955,7 +6955,7 @@
                                   "title_en",
                                   "title_ar",
                                   "brand",
-                                  "price_cents",
+                                  "price",
                                   "currency",
                                   "original_price_cents",
                                   "discount_percent",
@@ -6994,7 +6994,7 @@
                           "title_en": "La Roche-Posay Anthelios Sunscreen SPF50 50ml",
                           "title_ar": "لاروش بوزيه أنتيليوس واقي شمس",
                           "brand": "La Roche-Posay",
-                          "price_cents": 8900,
+                          "price": 8900,
                           "currency": "AED",
                           "original_price_cents": 12000,
                           "discount_percent": 26,
@@ -8424,7 +8424,7 @@
                             "tax_cents": {
                               "type": "integer"
                             },
-                            "cod_fee_cents": {
+                            "cod_fee": {
                               "type": "integer"
                             },
                             "discount_cents": {
@@ -8441,7 +8441,7 @@
                             "subtotal_cents",
                             "shipping_cents",
                             "tax_cents",
-                            "cod_fee_cents",
+                            "cod_fee",
                             "discount_cents",
                             "total_cents",
                             "currency"
@@ -8458,14 +8458,14 @@
                               "name": {
                                 "type": "string"
                               },
-                              "price_cents": {
+                              "price": {
                                 "type": "integer"
                               }
                             },
                             "required": [
                               "id",
                               "name",
-                              "price_cents"
+                              "price"
                             ]
                           }
                         },
@@ -8507,7 +8507,7 @@
                       "subtotal_cents": 17800,
                       "shipping_cents": 1500,
                       "tax_cents": 890,
-                      "cod_fee_cents": 0,
+                      "cod_fee": 0,
                       "discount_cents": 0,
                       "total_cents": 20190,
                       "currency": "AED"
@@ -8516,12 +8516,12 @@
                       {
                         "id": "ship_std",
                         "name": "Standard (3-5 days)",
-                        "price_cents": 1500
+                        "price": 1500
                       },
                       {
                         "id": "ship_exp",
                         "name": "Express (1-2 days)",
-                        "price_cents": 3500
+                        "price": 3500
                       }
                     ],
                     "payment_methods": [
@@ -8577,7 +8577,7 @@
       "post": {
         "summary": "Place Order — COD",
         "deprecated": false,
-        "description": "Place an order paying by Cash on Delivery. Same endpoint as card payment; `payment_method` is `cod` and no `card_token` is required. A `cod_fee_cents` may be added to the total.",
+        "description": "Place an order paying by Cash on Delivery. Same endpoint as card payment; `payment_method` is `cod` and no `card_token` is required. A `cod_fee` may be added to the total.",
         "tags": [],
         "parameters": [
           {
@@ -10246,7 +10246,7 @@
                               "return_number": {
                                 "type": "string"
                               },
-                              "amount_cents": {
+                              "amount": {
                                 "type": "integer"
                               },
                               "currency": {
@@ -10279,7 +10279,7 @@
                       {
                         "id": "rfd_701",
                         "return_number": "RET-3001",
-                        "amount_cents": 8900,
+                        "amount": 8900,
                         "currency": "AED",
                         "status": "completed",
                         "created_at": "2026-07-13T09:00:00Z"
@@ -10349,7 +10349,7 @@
                             "return_number": {
                               "type": "string"
                             },
-                            "amount_cents": {
+                            "amount": {
                               "type": "integer"
                             },
                             "currency": {
@@ -10368,7 +10368,7 @@
                           "required": [
                             "id",
                             "return_number",
-                            "amount_cents",
+                            "amount",
                             "currency",
                             "method",
                             "status",
@@ -10392,7 +10392,7 @@
                     "refund": {
                       "id": "rfd_701",
                       "return_number": "RET-3001",
-                      "amount_cents": 8900,
+                      "amount": 8900,
                       "currency": "AED",
                       "method": "original_payment_method",
                       "status": "completed",
@@ -12059,7 +12059,7 @@
                               "title": {
                                 "type": "string"
                               },
-                              "price_cents": {
+                              "price": {
                                 "type": "integer"
                               },
                               "currency": {
@@ -12092,7 +12092,7 @@
                       {
                         "listing_number": "CL-10432",
                         "title": "2021 Toyota Camry SE",
-                        "price_cents": 7500000,
+                        "price": 7500000,
                         "currency": "AED",
                         "status": "active",
                         "created_at": "2026-06-01T09:00:00Z"
@@ -12152,7 +12152,7 @@
                   "category_id": {
                     "type": "string"
                   },
-                  "price_cents": {
+                  "price": {
                     "type": "integer"
                   },
                   "currency": {
@@ -12198,7 +12198,7 @@
                   "title",
                   "description",
                   "category_id",
-                  "price_cents",
+                  "price",
                   "currency",
                   "city",
                   "condition",
@@ -12210,7 +12210,7 @@
                 "title": "2021 Toyota Camry SE",
                 "description": "Single owner, full service history.",
                 "category_id": "cat_9",
-                "price_cents": 7500000,
+                "price": 7500000,
                 "currency": "AED",
                 "city": "Dubai",
                 "condition": "used",
@@ -12250,7 +12250,7 @@
                             "title": {
                               "type": "string"
                             },
-                            "price_cents": {
+                            "price": {
                               "type": "integer"
                             },
                             "currency": {
@@ -12266,7 +12266,7 @@
                           "required": [
                             "listing_number",
                             "title",
-                            "price_cents",
+                            "price",
                             "currency",
                             "status",
                             "created_at"
@@ -12289,7 +12289,7 @@
                     "listing": {
                       "listing_number": "CL-10432",
                       "title": "2021 Toyota Camry SE",
-                      "price_cents": 7500000,
+                      "price": 7500000,
                       "currency": "AED",
                       "status": "active",
                       "created_at": "2026-06-01T09:00:00Z"
@@ -12315,7 +12315,7 @@
                     "errors": {
                       "type": "object",
                       "properties": {
-                        "price_cents": {
+                        "price": {
                           "type": "array",
                           "items": {
                             "type": "string"
@@ -12323,7 +12323,7 @@
                         }
                       },
                       "required": [
-                        "price_cents"
+                        "price"
                       ]
                     }
                   },
@@ -12337,7 +12337,7 @@
                   "success": false,
                   "message": "The price cents field is required.",
                   "errors": {
-                    "price_cents": [
+                    "price": [
                       "The price cents field is required."
                     ]
                   }
@@ -12404,7 +12404,7 @@
                             "title": {
                               "type": "string"
                             },
-                            "price_cents": {
+                            "price": {
                               "type": "integer"
                             },
                             "currency": {
@@ -12420,7 +12420,7 @@
                           "required": [
                             "listing_number",
                             "title",
-                            "price_cents",
+                            "price",
                             "currency",
                             "status",
                             "created_at"
@@ -12443,7 +12443,7 @@
                     "listing": {
                       "listing_number": "CL-10432",
                       "title": "2021 Toyota Camry SE",
-                      "price_cents": 7500000,
+                      "price": 7500000,
                       "currency": "AED",
                       "status": "active",
                       "created_at": "2026-06-01T09:00:00Z"
@@ -12519,7 +12519,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "price_cents": {
+                  "price": {
                     "type": "integer"
                   },
                   "description": {
@@ -12527,12 +12527,12 @@
                   }
                 },
                 "required": [
-                  "price_cents",
+                  "price",
                   "description"
                 ]
               },
               "example": {
-                "price_cents": 7200000,
+                "price": 7200000,
                 "description": "Price reduced. Single owner, full service history."
               }
             }
@@ -12561,7 +12561,7 @@
                             "title": {
                               "type": "string"
                             },
-                            "price_cents": {
+                            "price": {
                               "type": "integer"
                             },
                             "currency": {
@@ -12577,7 +12577,7 @@
                           "required": [
                             "listing_number",
                             "title",
-                            "price_cents",
+                            "price",
                             "currency",
                             "status",
                             "created_at"
@@ -12600,7 +12600,7 @@
                     "listing": {
                       "listing_number": "CL-10432",
                       "title": "2021 Toyota Camry SE",
-                      "price_cents": 7200000,
+                      "price": 7200000,
                       "currency": "AED",
                       "status": "active",
                       "created_at": "2026-06-01T09:00:00Z"
@@ -12910,7 +12910,7 @@
                               "travelers_count": {
                                 "type": "integer"
                               },
-                              "total_price_cents": {
+                              "total_price": {
                                 "type": "integer"
                               },
                               "currency": {
@@ -12940,7 +12940,7 @@
                         "package_title": "5D/4N Maldives Getaway",
                         "status": "confirmed",
                         "travelers_count": 2,
-                        "total_price_cents": 700000,
+                        "total_price": 700000,
                         "currency": "AED"
                       }
                     ]
@@ -13017,7 +13017,7 @@
                             "travelers_count": {
                               "type": "integer"
                             },
-                            "total_price_cents": {
+                            "total_price": {
                               "type": "integer"
                             },
                             "currency": {
@@ -13030,7 +13030,7 @@
                             "package_title",
                             "status",
                             "travelers_count",
-                            "total_price_cents",
+                            "total_price",
                             "currency"
                           ]
                         }
@@ -13054,7 +13054,7 @@
                       "package_title": "5D/4N Maldives Getaway",
                       "status": "confirmed",
                       "travelers_count": 2,
-                      "total_price_cents": 700000,
+                      "total_price": 700000,
                       "currency": "AED"
                     }
                   }

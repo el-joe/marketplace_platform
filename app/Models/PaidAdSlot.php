@@ -12,7 +12,7 @@ class PaidAdSlot extends Model
 {
     use HasUuids;
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'pricing_model' => PaidAdSlotPricingModel::class,
     ];

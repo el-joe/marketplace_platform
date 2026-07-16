@@ -67,7 +67,7 @@
                                     {{ $lastSettlement->period_start->format('M d') }} – {{ $lastSettlement->period_end->format('M d, Y') }}
                                 </div>
                                 <div class="text-xs text-gray-400">
-                                    {{ __('admin.cod.net_label') }} {{ number_format($lastSettlement->net_to_remit_cents / 100, 2) }}
+                                    {{ __('admin.cod.net_label') }} {{ number_format($lastSettlement->net_to_remit, 2) }}
                                 </div>
                             @else
                                 <span class="text-gray-400 text-xs">{{ __('admin.cod.no_settlements_yet') }}</span>

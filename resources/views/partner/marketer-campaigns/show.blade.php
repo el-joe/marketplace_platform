@@ -17,7 +17,7 @@
         @foreach([
             [__('partner.marketer_campaigns.clicks'), number_format($campaign->total_clicks), 'text-blue-400'],
             [__('partner.marketer_campaigns.conversions'), number_format($campaign->total_conversions), 'text-purple-400'],
-            [__('partner.marketer_campaigns.revenue'), number_format($campaign->total_revenue_cents / 100, 2) . ' ' . ($campaign->vendor?->country?->currency_code ?? ''), 'text-green-400'],
+            [__('partner.marketer_campaigns.revenue'), number_format($campaign->total_revenue / 100, 2) . ' ' . ($campaign->vendor?->country?->currency_code ?? ''), 'text-green-400'],
             [__('partner.marketer_campaigns.conversion_rate'), $campaign->total_clicks > 0 ? round($campaign->total_conversions / $campaign->total_clicks * 100, 2) . '%' : '0%', 'text-yellow-400'],
         ] as [$label, $value, $color])
             <div class="bg-white/5 border border-white/10 rounded-xl p-4">

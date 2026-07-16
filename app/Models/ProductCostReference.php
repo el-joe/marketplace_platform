@@ -30,7 +30,7 @@ class ProductCostReference extends Model
         'updated_by_admin_id',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'manufacturer_cost' => 'integer',
         'shipping_cost' => 'integer',

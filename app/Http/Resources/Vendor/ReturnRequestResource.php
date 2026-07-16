@@ -16,7 +16,7 @@ class ReturnRequestResource extends JsonResource
             'reason_description' => $this->reason_description,
             'return_type'        => $this->return_type?->value,
             'status'             => $this->status?->value,
-            'refund_amount_cents' => $this->refund_amount,
+            'refund_amount' => $this->refund_amount,
             'rejection_reason'   => $this->rejection_reason,
             'inspection_result'  => $this->inspection_result?->value,
             'inspection_notes'   => $this->inspection_notes,

@@ -90,8 +90,8 @@
                         <input type="text" name="marketer_id" class="form-input" placeholder="{{ __('admin.marketers.marketer_optional_placeholder') }}">
                     </div>
                     <div>
-                        <label class="form-label">{{ __('admin.marketers.product_value_cents') }}</label>
-                        <input type="number" name="product_value_cents" class="form-input" required min="1">
+                        <label class="form-label">{{ __('admin.marketers.product_value') }}</label>
+                        <input type="number" name="product_value" class="form-input" required min="1">
                     </div>
                     <div>
                         <label class="form-label">{{ __('admin.marketers.total_commission_pct') }}</label>

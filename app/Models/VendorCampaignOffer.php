@@ -41,7 +41,7 @@ class VendorCampaignOffer extends Model
         'whatsapp_sharing_enabled',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'offered_commission_rate' => 'decimal:2',
         'budget_per_marketer' => 'integer',

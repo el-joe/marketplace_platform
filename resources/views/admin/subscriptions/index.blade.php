@@ -29,7 +29,7 @@
         </div>
         <div class="bg-white rounded-2xl border border-green-50 p-4 text-center bg-green-50">
             <p class="text-xs text-green-600 uppercase tracking-wide mb-1">{{ __('admin.subscriptions.mrr') }}</p>
-            <p class="text-2xl font-extrabold text-green-700">{{ number_format($stats['mrr_cents'] / 100) }} {{ $stats['mrr_currency'] ?? '' }}</p>
+            <p class="text-2xl font-extrabold text-green-700">{{ number_format($stats['mrr']) }} {{ $stats['mrr_currency'] ?? '' }}</p>
         </div>
     </div>
 
@@ -96,7 +96,7 @@
                     <select id="sv-plan-id" class="form-select w-full text-sm">
                         <option value="">{{ __('admin.subscriptions.select_plan') }}</option>
                         @foreach($plans as $plan)
-                            <option value="{{ $plan->id }}">{{ $plan->name_en }} — {{ number_format($plan->price_cents / 100) }}
+                            <option value="{{ $plan->id }}">{{ $plan->name_en }} — {{ number_format($plan->price) }}
                                 {{ $plan->currency }}/mo</option>
                         @endforeach
                     </select>

@@ -40,15 +40,15 @@
             <div>
                 <span class="text-blue-500 font-medium">FBP</span>
                 {{ number_format((float) $category->commission_fbp_pct, 2) }}%
-                @if($category->commission_fbp_fixed_cents > 0)
-                    + {{ number_format($category->commission_fbp_fixed_cents / 100, 2) }}
+                @if($category->commission_fbp_fixed > 0)
+                    + {{ number_format($category->commission_fbp_fixed, 2) }}
                 @endif
             </div>
             <div>
                 <span class="text-green-500 font-medium">FBN</span>
                 {{ number_format((float) $category->commission_fbn_pct, 2) }}%
-                @if($category->commission_fbn_fixed_cents > 0)
-                    + {{ number_format($category->commission_fbn_fixed_cents / 100, 2) }}
+                @if($category->commission_fbn_fixed > 0)
+                    + {{ number_format($category->commission_fbn_fixed, 2) }}
                 @endif
             </div>
         </div>

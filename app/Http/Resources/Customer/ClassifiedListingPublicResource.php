@@ -14,7 +14,7 @@ class ClassifiedListingPublicResource extends JsonResource
         return [
             'listing_number'   => $this->listing_number,
             'title'            => Bilingual::pair($this->resource, 'title'),
-            'price_cents'      => $this->price,
+            'price'      => $this->price,
             'price_negotiable' => $this->price_negotiable,
             'primary_image'    => $this->primary_image_url,
             'city'             => $this->relationLoaded('city') ? Bilingual::pair($this->city, 'name') : null,

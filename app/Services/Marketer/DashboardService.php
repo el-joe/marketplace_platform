@@ -88,7 +88,7 @@ class DashboardService
                 ->select(
                     DB::raw('DATE(created_at) as date'),
                     DB::raw('COUNT(*) as conversions'),
-                    DB::raw('SUM(commission_amount) as commission_cents'),
+                    DB::raw('SUM(commission_amount) as commission'),
                 )
                 ->groupBy(DB::raw('DATE(created_at)'))
                 ->get()
@@ -100,7 +100,7 @@ class DashboardService
                 $row  = $conversionsByDate->get($date);
                 $revenueLast7Days[] = [
                     'date'             => $date,
-                    'commission_cents' => (int) ($row->commission_cents ?? 0),
+                    'commission' => (int) ($row->commission ?? 0),
                     'conversions'      => (int) ($row->conversions ?? 0),
                 ];
             }
@@ -124,8 +124,8 @@ class DashboardService
                 'clicks_this_month'       => $clicksThisMonth,
                 'conversions_this_month'  => $conversionsThisMonth,
                 'conversion_rate_pct'     => $conversionRatePct,
-                'pending_earnings_cents'  => $pendingEarningsCents,
-                'approved_earnings_cents' => $approvedEarningsCents,
+                'pending_earnings'  => $pendingEarningsCents,
+                'approved_earnings' => $approvedEarningsCents,
                 'total_earnings'    => (int) $marketer->total_earnings,
                 'currency'                => $marketer->country?->currency_code ?? 'SAR',
                 'commission_rate'         => (float) $marketer->commission_rate,

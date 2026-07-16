@@ -122,8 +122,8 @@ class AuditPayoutCurrencyBug extends Command
                             'entity_id'        => $payout->marketer_id,
                             'stored_currency'  => $payout->currency,
                             'expected_currency'=> $currency,
-                            'gross_diff_cents' => $grossDiff,
-                            'net_diff_cents'   => $netDiff,
+                            'gross_diff' => $grossDiff,
+                            'net_diff'   => $netDiff,
                             'status'           => $payout->status?->value,
                             'already_disbursed'=> $isPaid ? 'YES' : 'no',
                         ];
@@ -196,8 +196,8 @@ class AuditPayoutCurrencyBug extends Command
                         'entity_id'        => $payout->vendor_id,
                         'stored_currency'  => $payout->currency,
                         'expected_currency'=> $currenciesInData,
-                        'gross_diff_cents' => 'n/a',
-                        'net_diff_cents'   => $netDiff,
+                        'gross_diff' => 'n/a',
+                        'net_diff'   => $netDiff,
                         'status'           => $payout->status?->value,
                         'already_disbursed'=> $isDisbursed ? 'YES' : 'no',
                     ];
@@ -227,7 +227,7 @@ class AuditPayoutCurrencyBug extends Command
                     ->whereBetween('created_at', [$payout->period_start . ' 00:00:00', $payout->period_end . ' 23:59:59'])
                     ->selectRaw('
                         currency,
-                        SUM(CASE WHEN earning_type != ? THEN amount ELSE 0 END) as gross_cents,
+                        SUM(CASE WHEN earning_type != ? THEN amount ELSE 0 END) as gross,
                         SUM(CASE WHEN earning_type = ? THEN ABS(amount) ELSE 0 END) as deductions
                     ', ['deduction', 'deduction'])
                     ->groupBy('currency')
@@ -241,7 +241,7 @@ class AuditPayoutCurrencyBug extends Command
                 $storedCurrencyRow = $rows->firstWhere('currency', $payout->currency);
 
                 foreach ($rows as $row) {
-                    $expectedNet = (int) $row->gross_cents - (int) $row->deductions;
+                    $expectedNet = (int) $row->gross - (int) $row->deductions;
                     $netDiff = ($row->currency === $payout->currency)
                         ? ($payout->net_amount - $expectedNet)
                         : null; // different currency group entirely — always a mismatch
@@ -274,8 +274,8 @@ class AuditPayoutCurrencyBug extends Command
                             'entity_id'        => $payout->agent_id,
                             'stored_currency'  => $payout->currency,
                             'expected_currency'=> $row->currency,
-                            'gross_diff_cents' => 'n/a',
-                            'net_diff_cents'   => $netDiff ?? 'wrong-currency-group',
+                            'gross_diff' => 'n/a',
+                            'net_diff'   => $netDiff ?? 'wrong-currency-group',
                             'status'           => $payout->status,
                             'already_disbursed'=> $isDisbursed ? 'YES' : 'no',
                         ];

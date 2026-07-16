@@ -507,8 +507,8 @@
                                     @foreach($giftCards as $giftCard)
                                     <tr class="hover:bg-gray-50">
                                         <td class="py-2 pr-4 font-mono text-xs">{{ $giftCard->code }}</td>
-                                        <td class="py-2 pr-4">{{ number_format($giftCard->denomination_cents / 100, 2) }} {{ strtoupper($giftCard->currency) }}</td>
-                                        <td class="py-2 pr-4">{{ number_format($giftCard->balance_cents / 100, 2) }} {{ strtoupper($giftCard->currency) }}</td>
+                                        <td class="py-2 pr-4">{{ number_format($giftCard->denomination, 2) }} {{ strtoupper($giftCard->currency) }}</td>
+                                        <td class="py-2 pr-4">{{ number_format($giftCard->balance, 2) }} {{ strtoupper($giftCard->currency) }}</td>
                                         <td class="py-2 pr-4">
                                             <x-badge :color="$giftCardStatusColors[$giftCard->status] ?? 'gray'">{{ ucfirst(str_replace('_', ' ', $giftCard->status)) }}</x-badge>
                                         </td>

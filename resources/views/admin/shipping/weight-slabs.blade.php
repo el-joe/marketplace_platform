@@ -144,7 +144,7 @@
                                class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
                         <span id="slab-currency-label" class="inline-flex items-center px-3 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-500">—</span>
                     </div>
-                    <input type="hidden" name="extra_fee_cents" id="slab-fee-cents" />
+                    <input type="hidden" name="extra_fee" id="slab-fee-input" />
                 </div>
 
                 <div>

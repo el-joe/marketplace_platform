@@ -27,7 +27,7 @@ class ClassifiedListing extends Model
         'is_vendor_listing', 'vendor_listing_reference',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'attributes'           => 'array',
         'price'          => 'integer',

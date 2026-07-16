@@ -118,7 +118,7 @@ class CampaignController extends Controller
             ->pluck('clicks', 'date');
 
         $conversions = $campaign->conversions()
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as conversions, SUM(commission_amount) as commission_cents')
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as conversions, SUM(commission_amount) as commission_amount')
             ->whereBetween('created_at', [$from, $to])
             ->groupByRaw('DATE(created_at)')
             ->get()
@@ -133,7 +133,7 @@ class CampaignController extends Controller
                 'date'             => $dateKey,
                 'clicks'           => (int) ($clicks->get($dateKey) ?? 0),
                 'conversions'      => (int) ($conv->conversions ?? 0),
-                'commission_cents' => (int) ($conv->commission_cents ?? 0),
+                'commission'       => (int) ($conv->commission_amount ?? 0),
             ];
             $cursor->addDay();
         }

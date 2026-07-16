@@ -465,7 +465,7 @@ class OrderLifecycleTestSeeder extends Seeder
                         ['from' => 'shipped',    'to' => 'delivered',  'at' => $deliveredAt],
                     ],
                     'subtotal'            => $o6SubtotalCents,
-                    'shipping_cents'      => $o6ShippingCents,
+                    'shipping'            => $o6ShippingCents,
                 ],
                 $customer, $vendor, $listing, $shippingMethod,
                 $productSnapshot, $addressSnapshot, $now
@@ -554,7 +554,7 @@ class OrderLifecycleTestSeeder extends Seeder
         }
 
         $subtotal  = $cfg['subtotal']       ?? 5000;
-        $shipping  = $cfg['shipping_cents'] ?? 500;
+        $shipping  = $cfg['shipping'] ?? 500;
         $tax       = (int) round($subtotal * 0.15);
         $codFee    = $cfg['payment_method'] === 'cod' ? 200 : 0;
         $total     = $subtotal + $shipping + $tax + $codFee;

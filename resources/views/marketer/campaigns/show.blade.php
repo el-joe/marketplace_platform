@@ -222,7 +222,7 @@ function copyTrackingUrl() {
         [__('marketer.campaigns.clicks'), number_format($campaign->total_clicks), 'text-blue-600'],
         [__('marketer.dashboard.conversions'), number_format($campaign->total_conversions), 'text-purple-600'],
         [__('marketer.campaigns.conv_rate'), $campaign->total_clicks > 0 ? round($campaign->total_conversions / $campaign->total_clicks * 100, 2) . '%' : '0%', 'text-yellow-600'],
-        [__('marketer.dashboard.revenue'), number_format($campaign->total_revenue_cents / 100, 2) . ' ' . ($campaign->vendor?->country?->currency_code ?? ''), 'text-green-600'],
+        [__('marketer.dashboard.revenue'), number_format($campaign->total_revenue, 2) . ' ' . ($campaign->vendor?->country?->currency_code ?? ''), 'text-green-600'],
     ] as [$label, $value, $color])
         <div class="bg-white rounded-xl border border-gray-100 p-4">
             <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">{{ $label }}</p>
@@ -295,7 +295,7 @@ function copyTrackingUrl() {
             <div class="flex-1 min-w-0">
                 <p class="font-semibold text-sm text-gray-800">{{ $listing->title_en }}</p>
                 <p class="text-xs text-gray-500 mt-0.5">
-                    {{ number_format($listing->price_cents / 100, 2) }} {{ $listing->currency }}
+                    {{ number_format($listing->price, 2) }} {{ $listing->currency }}
                     · {{ $listing->status->label() }}
                 </p>
                 <p class="text-xs text-gray-400 mt-1">#{{ $listing->listing_number }}</p>
@@ -316,7 +316,7 @@ function copyTrackingUrl() {
                 <p class="font-semibold text-sm text-gray-800">{{ $package->title_en }}</p>
                 <p class="text-xs text-gray-500 mt-0.5">
                     {{ $package->destination_city ? $package->destination_city . ', ' : '' }}{{ $package->destination_country }}
-                    · {{ number_format($package->price_cents / 100, 2) }} {{ $package->currency }}
+                    · {{ number_format($package->price, 2) }} {{ $package->currency }}
                 </p>
                 <p class="text-xs text-gray-400 mt-1">
                     {{ \Carbon\Carbon::parse($package->departure_date)->format('d M Y') }}
@@ -503,7 +503,7 @@ function copyTrackingUrl() {
                                     $productName = $item->vendorListing?->productVariant?->product?->name_en
                                         ?? $item->vendorListing?->productVariant?->sku
                                         ?? 'Product';
-                                    $unitPrice = $item->vendorListing?->price ?? $item->sample_cost_cents;
+                                    $unitPrice = $item->vendorListing?->price ?? $item->sample_cost;
                                 @endphp
                                 <tr>
                                     <td class="px-4 py-2 text-gray-700 font-medium">{{ $productName }}</td>
@@ -629,9 +629,9 @@ function copyTrackingUrl() {
     <div class="space-y-3 text-sm">
         @php
             $campaignCurrency = $campaign->vendor?->country?->currency_code ?? '';
-            $budgetDisplay = $campaign->budget_cents
-                ? __('marketer.campaigns.budget_spent', ['budget' => number_format($campaign->budget_cents / 100, 2), 'spent' => number_format($campaign->budget_spent_cents / 100, 2), 'currency' => $campaignCurrency])
-                : __('marketer.campaigns.budget_unlimited', ['spent' => number_format($campaign->budget_spent_cents / 100, 2), 'currency' => $campaignCurrency]);
+            $budgetDisplay = $campaign->budget
+                ? __('marketer.campaigns.budget_spent', ['budget' => number_format($campaign->budget, 2), 'spent' => number_format($campaign->budget_spent, 2), 'currency' => $campaignCurrency])
+                : __('marketer.campaigns.budget_unlimited', ['spent' => number_format($campaign->budget_spent, 2), 'currency' => $campaignCurrency]);
 
             $samplesDisplay = $campaign->samples_required > 0
                 ? __('marketer.campaigns.samples_admin_set', ['count' => $campaign->samples_required])

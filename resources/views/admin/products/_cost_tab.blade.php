@@ -110,26 +110,26 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                             <label class="label-sm">{{ __('admin.products.factory_cost_label') }}</label>
-                            <input type="number" x-model.number="form.manufacturer_cost_cents" min="0"
+                            <input type="number" x-model.number="form.manufacturer_cost" min="0"
                                 class="form-input w-full text-sm font-mono" :placeholder="'{{ __('admin.products.factory_cost_placeholder', ['currency' => '']) }}' + currencyCode"
                                 @input="syncLandedCost()">
-                            <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.manufacturer_cost_cents, currencyCode)"></p>
+                            <p class="text-xs text-gray-400 mt-0.5" x-text="formatAmount(form.manufacturer_cost, currencyCode)"></p>
                         </div>
                         <div>
                             <label class="label-sm">{{ __('admin.products.shipping_cost_label') }}</label>
-                            <input type="number" x-model.number="form.shipping_cost_cents" min="0"
+                            <input type="number" x-model.number="form.shipping_cost" min="0"
                                 class="form-input w-full text-sm font-mono" :placeholder="'{{ __('admin.products.shipping_cost_placeholder', ['currency' => '']) }}' + currencyCode"
                                 @input="syncLandedCost()">
-                            <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.shipping_cost_cents, currencyCode)"></p>
+                            <p class="text-xs text-gray-400 mt-0.5" x-text="formatAmount(form.shipping_cost, currencyCode)"></p>
                         </div>
                         <div>
                             <label class="label-sm">
                                 {{ __('admin.products.landed_cost_label') }}
                                 <span class="text-gray-400 font-normal">{{ __('admin.products.landed_cost_auto_override') }}</span>
                             </label>
-                            <input type="number" x-model.number="form.landed_cost_cents" min="0"
+                            <input type="number" x-model.number="form.landed_cost" min="0"
                                 class="form-input w-full text-sm font-mono" placeholder="{{ __('admin.products.landed_cost_placeholder') }}">
-                            <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(form.landed_cost_cents, currencyCode)"></p>
+                            <p class="text-xs text-gray-400 mt-0.5" x-text="formatAmount(form.landed_cost, currencyCode)"></p>
                         </div>
                     </div>
 
@@ -137,15 +137,15 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50 rounded-xl p-3 text-center text-sm">
                         <div>
                             <p class="text-xs text-gray-400 mb-0.5">{{ __('admin.products.factory_short') }}</p>
-                            <p class="font-semibold text-gray-800" x-text="centsToCurrency(form.manufacturer_cost_cents, currencyCode) || '—'"></p>
+                            <p class="font-semibold text-gray-800" x-text="formatAmount(form.manufacturer_cost, currencyCode) || '—'"></p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-400 mb-0.5">{{ __('admin.products.plus_shipping') }}</p>
-                            <p class="font-semibold text-gray-800" x-text="centsToCurrency(form.shipping_cost_cents, currencyCode) || '—'"></p>
+                            <p class="font-semibold text-gray-800" x-text="formatAmount(form.shipping_cost, currencyCode) || '—'"></p>
                         </div>
                         <div class="border-l border-gray-200">
                             <p class="text-xs text-gray-400 mb-0.5">{{ __('admin.products.equals_landed_cost') }}</p>
-                            <p class="font-bold text-indigo-700" x-text="centsToCurrency(form.landed_cost_cents, currencyCode) || '—'"></p>
+                            <p class="font-bold text-indigo-700" x-text="formatAmount(form.landed_cost, currencyCode) || '—'"></p>
                         </div>
                     </div>
                 @else
@@ -175,7 +175,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
 
                 <div class="flex flex-wrap items-end gap-3">
                     <div>
-                        <label class="label-sm">{{ __('admin.products.selling_price_cents_label') }}</label>
+                        <label class="label-sm">{{ __('admin.products.selling_price_label') }}</label>
                         <input type="number" x-model.number="calcPrice" min="1" class="form-input text-sm font-mono w-44"
                             :placeholder="'{{ __('admin.products.selling_price_placeholder', ['currency' => '']) }}' + currencyCode">
                         <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(calcPrice, currencyCode)"></p>
@@ -183,7 +183,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                     <div>
                         <label class="label-sm">{{ __('admin.products.landed_cost_override_label') }}</label>
                         <input type="number" x-model.number="calcLanded" min="0" class="form-input text-sm font-mono w-44"
-                            :placeholder="'{{ __('admin.products.landed_cost_override_placeholder', ['value' => '']) }}' + (form.landed_cost_cents || 'none')">
+                            :placeholder="'{{ __('admin.products.landed_cost_override_placeholder', ['value' => '']) }}' + (form.landed_cost || 'none')">
                         <p class="text-xs text-gray-400 mt-0.5" x-text="centsToCurrency(calcLanded, currencyCode)"></p>
                     </div>
                     <button type="button" @click="runCalculator()" class="btn btn-secondary btn-sm mb-0.5">
@@ -196,7 +196,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                     <div :class="calcResult?.below_cost ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'"
                         class="border rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-sm">
                         <div>
-                            <p class="text-xs text-gray-500 mb-0.5">{{ __('admin.products.selling_price_cents_label') }}</p>
+                            <p class="text-xs text-gray-500 mb-0.5">{{ __('admin.products.selling_price_label') }}</p>
                             <p class="font-bold text-gray-900" x-text="calcResult?.selling_formatted"></p>
                         </div>
                         <div>
@@ -205,7 +205,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 mb-0.5">{{ __('admin.products.gross_profit') }}</p>
-                            <p class="font-bold" :class="calcResult?.profit_cents >= 0 ? 'text-green-700' : 'text-red-700'"
+                            <p class="font-bold" :class="calcResult?.profit >= 0 ? 'text-green-700' : 'text-red-700'"
                                 x-text="calcResult?.profit_formatted"></p>
                         </div>
                         <div>
@@ -255,7 +255,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                                     placeholder="{{ __('admin.products.competitor_name_placeholder') }}">
                                 <input type="url" x-model="comp.url" class="form-input text-xs w-full sm:flex-1 font-mono sm:min-w-0" dir="ltr"
                                     placeholder="{{ __('admin.products.competitor_url_placeholder') }}">
-                                <input type="number" x-model.number="comp.price_cents"
+                                <input type="number" x-model.number="comp.price"
                                     class="form-input text-xs w-full sm:w-28 font-mono sm:flex-shrink-0" placeholder="{{ __('admin.products.competitor_price_placeholder') }}">
                             @else
                                 <span class="text-xs font-medium text-gray-700 w-28 flex-shrink-0 truncate"
@@ -264,7 +264,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                                     class="text-xs text-blue-600 hover:underline flex-1 truncate font-mono"
                                     x-text="comp.url"></a>
                                 <span class="text-xs font-semibold text-gray-800 w-28 flex-shrink-0 text-end"
-                                    x-text="comp.price_cents ? centsToCurrency(comp.price_cents, currencyCode) : '—'"></span>
+                                    x-text="comp.price ? centsToCurrency(comp.price, currencyCode) : '—'"></span>
                             @endif
                             <div class="text-[10px] text-gray-400 flex-shrink-0 w-28 text-end leading-tight">
                                 <span x-show="comp.last_checked">
@@ -357,9 +357,9 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                     manufacturer_name: '',
                     manufacturer_url: '',
                     manufacturer_sku: '',
-                    manufacturer_cost_cents: null,
-                    shipping_cost_cents: null,
-                    landed_cost_cents: null,
+                    manufacturer_cost: null,
+                    shipping_cost: null,
+                    landed_cost: null,
                     competitor_links: [],
                     notes: '',
                 },
@@ -377,17 +377,17 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                         const res = await fetch(this.showUrl, { headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
                         const data = await res.json();
                         this.belowCostWarning = data.below_cost_warning;
-                        this.lowestPriceFormatted = data.lowest_price_cents
-                            ? this.centsToCurrency(data.lowest_price_cents, this.currencyCode) : '';
+                        this.lowestPriceFormatted = data.lowest_price
+                            ? this.formatAmount(data.lowest_price, this.currencyCode) : '';
                         if (data.ref) {
                             this.ref = data.ref;
                             this.form = {
                                 manufacturer_name: data.ref.manufacturer_name ?? '',
                                 manufacturer_url: data.ref.manufacturer_url ?? '',
                                 manufacturer_sku: data.ref.manufacturer_sku ?? '',
-                                manufacturer_cost_cents: data.ref.manufacturer_cost_cents ?? null,
-                                shipping_cost_cents: data.ref.shipping_cost_cents ?? null,
-                                landed_cost_cents: data.ref.landed_cost_cents ?? null,
+                                manufacturer_cost: data.ref.manufacturer_cost ?? null,
+                                shipping_cost: data.ref.shipping_cost ?? null,
+                                landed_cost: data.ref.landed_cost ?? null,
                                 competitor_links: data.ref.competitor_links ?? [],
                                 notes: data.ref.notes ?? '',
                             };
@@ -400,10 +400,10 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                 },
 
                 syncLandedCost() {
-                    const mfr = parseInt(this.form.manufacturer_cost_cents) || 0;
-                    const ship = parseInt(this.form.shipping_cost_cents) || 0;
+                    const mfr = parseInt(this.form.manufacturer_cost) || 0;
+                    const ship = parseInt(this.form.shipping_cost) || 0;
                     if (mfr + ship > 0) {
-                        this.form.landed_cost_cents = mfr + ship;
+                        this.form.landed_cost = mfr + ship;
                     }
                 },
 
@@ -426,7 +426,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                 },
 
                 async runCalculator() {
-                    const landed = this.calcLanded || this.form.landed_cost_cents;
+                    const landed = this.calcLanded || this.form.landed_cost;
                     if (!this.calcPrice) { window.Toast.error(window.TRANSLATIONS.enterSellingPrice); return; }
                     if (!landed) { window.Toast.error(window.TRANSLATIONS.enterLandedCostFirst); return; }
                     try {
@@ -434,8 +434,8 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                             method: 'POST',
                             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                selling_price_cents: this.calcPrice,
-                                landed_cost_cents: landed,
+                                selling_price: this.calcPrice,
+                                landed_cost: landed,
                             }),
                         });
                         this.calcResult = await res.json();
@@ -470,7 +470,7 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                 },
 
                 addCompetitor() {
-                    this.form.competitor_links.push({ name: '', url: '', price_cents: null, last_checked: null });
+                    this.form.competitor_links.push({ name: '', url: '', price: null, last_checked: null });
                 },
 
                 removeCompetitor(idx) {
@@ -480,6 +480,11 @@ Only rendered when the logged-in admin has 'products.cost_data.view'.
                 centsToCurrency(cents, currencyCode) {
                     if (cents === null || cents === undefined || cents === '' || isNaN(cents)) return '';
                     return (parseInt(cents) / 100).toLocaleString('en-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (currencyCode || '');
+                },
+
+                formatAmount(amount, currencyCode) {
+                    if (amount === null || amount === undefined || amount === '' || isNaN(amount)) return '';
+                    return parseInt(amount).toLocaleString('en-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (currencyCode || '');
                 },
 
                 formatDate(iso) {

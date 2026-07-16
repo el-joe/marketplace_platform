@@ -393,11 +393,11 @@
                         />
 
                         <x-form.input
-                            name="settings[{{ $loop->index }}][free_shipping_threshold_cents]"
+                            name="settings[{{ $loop->index }}][free_shipping_threshold]"
                             label="{{ __('admin.geography.free_shipping_at', ['currency' => $country?->currency?->symbol ?? $country?->currency_code ?? 'cents']) }}"
                             type="number"
                             min="0"
-                            :value="$setting?->free_shipping_threshold_cents"
+                            :value="$setting?->free_shipping_threshold"
                             placeholder="{{ __('admin.geography.never_free') }}"
                             class="w-48"
                         />
@@ -474,12 +474,12 @@
                 </div>
                 <div class="grid grid-cols-3 gap-4">
                     <x-form.input name="fee_pct" label="{{ __('admin.geography.fee_pct') }}" id="pm-fee-pct" type="number" step="0.01" min="0" value="0" />
-                    <x-form.input name="fee_fixed_cents" label="{{ __('admin.geography.fixed_fee_cents') }}" id="pm-fee-fixed" type="number" min="0" value="0" />
+                    <x-form.input name="fee_fixed" label="{{ __('admin.geography.fixed_fee') }}" id="pm-fee-fixed" type="number" min="0" value="0" />
                     <x-form.input name="sort_order" label="{{ __('admin.geography.sort_order') }}" id="pm-sort-order" type="number" min="0" value="0" />
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <x-form.input name="min_order_cents" label="{{ __('admin.geography.min_order_cents') }}" id="pm-min-order" type="number" min="0" value="0" />
-                    <x-form.input name="max_order_cents" label="{{ __('admin.geography.max_order_cents') }}" id="pm-max-order" type="number" min="0" />
+                    <x-form.input name="min_order" label="{{ __('admin.geography.min_order') }}" id="pm-min-order" type="number" min="0" value="0" />
+                    <x-form.input name="max_order" label="{{ __('admin.geography.max_order') }}" id="pm-max-order" type="number" min="0" />
                 </div>
                 <x-form.toggle name="is_active" label="{{ __('common.active') }}" id="pm-is-active" :checked="true" />
             </div>

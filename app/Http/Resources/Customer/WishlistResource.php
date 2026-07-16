@@ -22,7 +22,7 @@ class WishlistResource extends JsonResource
             'listing_id'      => $listing?->id,
             'listing_ref'     => $listing ? app(ListingIdentifierService::class)->buildListingRef($listing) : null,
             'sku'             => $variant?->sku,
-            'price_cents'     => $listing?->price,
+            'price'     => $listing?->price,
             'price_formatted' => $listing ? number_format($listing->price / 100, 2) : null,
             'currency'        => $listing?->currency,
             'status'          => $listing?->status?->value,

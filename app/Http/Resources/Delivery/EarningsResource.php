@@ -12,7 +12,7 @@ class EarningsResource extends JsonResource
         return [
             'id'              => $this->id,
             'earning_type'    => $this->earning_type,
-            'amount_cents'    => $this->amount,
+            'amount'    => $this->amount,
             'amount'          => $this->amount / 100,
             'currency'        => $this->currency,
             'status'          => $this->status?->value,

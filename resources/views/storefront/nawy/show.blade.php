@@ -53,7 +53,7 @@
 
         <div class="mt-2 flex items-baseline gap-2">
             <span class="text-xl font-bold text-gray-900">
-                {{ \App\Helpers\CurrencyFormatter::formatPrice($listing->price_cents, $listing->currency, $locale) }}
+                {{ \App\Helpers\CurrencyFormatter::formatPrice($listing->price, $listing->currency, $locale) }}
             </span>
         </div>
     </div>

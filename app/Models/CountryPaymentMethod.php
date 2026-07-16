@@ -47,7 +47,7 @@ class CountryPaymentMethod extends Model
         'webhook_secret_encrypted',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'is_active'                 => 'boolean',
         'fee_pct'                   => 'decimal:2',

@@ -75,13 +75,13 @@
                     <div>
                         <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.budget_per_marketer') }}</dt>
                         <dd class="font-medium mt-0.5">
-                            {{ $offer->budget_per_marketer_cents ? '$' . number_format($offer->budget_per_marketer_cents / 100, 2) : '—' }}
+                            {{ $offer->budget_per_marketer ? '$' . number_format($offer->budget_per_marketer, 2) : '—' }}
                         </dd>
                     </div>
                     <div>
                         <dt class="text-gray-500">{{ __('admin.vendor_campaign_offers.total_budget') }}</dt>
                         <dd class="font-medium mt-0.5">
-                            {{ $offer->total_budget_cents ? '$' . number_format($offer->total_budget_cents / 100, 2) : '—' }}
+                            {{ $offer->total_budget ? '$' . number_format($offer->total_budget, 2) : '—' }}
                         </dd>
                     </div>
                     <div>

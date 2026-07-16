@@ -34,13 +34,13 @@ class TravelBookingController extends Controller
         $revenueByCurrency = TravelBooking::query()
             ->whereIn('travel_bookings.status', [TravelBookingStatus::Confirmed, TravelBookingStatus::Completed])
             ->join('travel_packages', 'travel_packages.id', '=', 'travel_bookings.travel_package_id')
-            ->selectRaw('travel_packages.currency, SUM(travel_bookings.total_price) as total_cents')
+            ->selectRaw('travel_packages.currency, SUM(travel_bookings.total_price) as total')
             ->groupBy('travel_packages.currency')
             ->orderBy('travel_packages.currency')
             ->get()
             ->map(fn($row) => [
                 'currency' => $row->currency,
-                'formatted' => $row->currency . ' ' . number_format($row->total_cents / 100, 2),
+                'formatted' => $row->currency . ' ' . number_format($row->total / 100, 2),
             ]);
 
         return view('admin.travel-bookings.index', compact('stats', 'revenueByCurrency'));

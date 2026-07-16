@@ -24,9 +24,9 @@ class TransactionFeedItemResource extends JsonResource
             'date'             => $this->resource['date'],
             'reference'        => $this->resource['reference'],
             'description'      => $this->resource['description'],
-            'gross_cents'      => $this->resource['gross_cents'],
-            'commission_cents' => $this->resource['commission_cents'],
-            'net_cents'        => $this->resource['net_cents'],
+            'gross'            => $this->resource['gross'],
+            'commission'       => $this->resource['commission'],
+            'net'              => $this->resource['net'],
             'payout_status'    => $this->resource['payout_status'],
         ];
     }
@@ -38,7 +38,7 @@ class TransactionFeedItemResource extends JsonResource
             'date'         => $this->resource['date'],
             'reference'    => $this->resource['reference'],
             'description'  => $this->resource['description'],
-            'amount_cents' => $this->resource['amount_cents'],
+            'amount' => $this->resource['amount'],
         ];
     }
 
@@ -49,7 +49,7 @@ class TransactionFeedItemResource extends JsonResource
             'date'         => $this->resource['date'],
             'reference'    => $this->resource['reference'],
             'description'  => $this->resource['description'],
-            'amount_cents' => $this->resource['amount_cents'],
+            'amount' => $this->resource['amount'],
             'currency'     => $this->resource['currency'],
             'receipt_url'  => $this->resource['receipt_url'],
         ];

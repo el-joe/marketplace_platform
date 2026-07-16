@@ -118,8 +118,8 @@
     <h3 class="font-bold text-gray-800">{{ __('travel.packages.pricing_seats') }}</h3>
     <div class="grid grid-cols-3 gap-4">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.price_cents') }} *</label>
-            <input type="number" name="price_cents" value="{{ old('price_cents', $pkg?->price_cents) }}" min="1" required
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.price') }} *</label>
+            <input type="number" name="price" value="{{ old('price', $pkg?->price) }}" min="1" required
                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"
                    placeholder="e.g. 250000 = 2500.00">
         </div>
@@ -167,14 +167,14 @@
     </label>
 
     <div id="pricing-tiers-rows" class="space-y-2">
-        @php $existingTiers = old('price_tiers', $pkg?->pricingTiers?->map(fn ($t) => ['travelers_count' => $t->travelers_count, 'price_cents' => $t->price_cents])->all() ?? []); @endphp
+        @php $existingTiers = old('price_tiers', $pkg?->pricingTiers?->map(fn ($t) => ['travelers_count' => $t->travelers_count, 'price' => $t->price])->all() ?? []); @endphp
         @foreach($existingTiers as $tier)
         <div class="pricing-tier-row grid grid-cols-[1fr_1fr_auto] gap-3 items-center">
             <input type="number" name="price_tiers[][travelers_count]" value="{{ $tier['travelers_count'] }}" min="1"
                    placeholder="{{ __('travel.packages.travelers_count') }}"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
-            <input type="number" name="price_tiers[][price_cents]" value="{{ $tier['price_cents'] }}" min="1"
-                   placeholder="{{ __('travel.packages.price_cents') }}"
+            <input type="number" name="price_tiers[][price]" value="{{ $tier['price'] }}" min="1"
+                   placeholder="{{ __('travel.packages.price') }}"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
             <button type="button" class="remove-tier-row text-red-500 text-sm px-2">&times;</button>
         </div>
@@ -300,7 +300,7 @@
         row.className = 'pricing-tier-row grid grid-cols-[1fr_1fr_auto] gap-3 items-center';
         row.innerHTML =
             '<input type="number" name="price_tiers[][travelers_count]" min="1" placeholder="{{ __('travel.packages.travelers_count') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">' +
-            '<input type="number" name="price_tiers[][price_cents]" min="1" placeholder="{{ __('travel.packages.price_cents') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">' +
+            '<input type="number" name="price_tiers[][price]" min="1" placeholder="{{ __('travel.packages.price') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">' +
             '<button type="button" class="remove-tier-row text-red-500 text-sm px-2">&times;</button>';
         return row;
     }

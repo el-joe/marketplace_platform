@@ -2,7 +2,7 @@
 # You've received a gift card!
 
 {{ $giftCard->recipient_name }}, someone sent you a noon gift card worth
-{{ number_format($giftCard->denomination_cents / 100, 2) }} {{ $giftCard->currency }}.
+{{ number_format($giftCard->denomination / 100, 2) }} {{ $giftCard->currency }}.
 
 @if($giftCard->personal_message)
 > {{ $giftCard->personal_message }}

@@ -140,7 +140,7 @@ class WarrantyPurchaseController extends Controller
         abort_unless($admin->hasPermissionTo('warranty_plans.view'), 403);
 
         $revenueByCurrency = WarrantyPurchase::query()
-            ->select('currency', DB::raw('SUM(price_paid) as total_cents'))
+            ->select('currency', DB::raw('SUM(price_paid) as total'))
             ->groupBy('currency')
             ->get();
 
@@ -153,7 +153,7 @@ class WarrantyPurchaseController extends Controller
         $monthlyRevenue = WarrantyPurchase::query()
             ->select(
                 DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
-                DB::raw('SUM(price_paid) as total_cents')
+                DB::raw('SUM(price_paid) as total')
             )
             ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
             ->groupBy('month')
@@ -166,10 +166,10 @@ class WarrantyPurchaseController extends Controller
                 'warranty_plans.id as plan_id',
                 'warranty_plans.name_en as plan_name',
                 DB::raw('COUNT(warranty_purchases.id) as sales_count'),
-                DB::raw('SUM(warranty_purchases.price_paid) as total_cents')
+                DB::raw('SUM(warranty_purchases.price_paid) as total')
             )
             ->groupBy('warranty_plans.id', 'warranty_plans.name_en')
-            ->orderByDesc('total_cents')
+            ->orderByDesc('total')
             ->get();
 
         return view('admin.warranty-purchases.summary', compact(

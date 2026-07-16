@@ -305,11 +305,11 @@ class DeliveryAgentController extends Controller
             ->whereBetween('created_at', [$from, $to]);
 
         $summary = [
-            'this_month_cents' => (int) (clone $base($thisMonth, $now->copy()->endOfMonth()))
+            'this_month' => (int) (clone $base($thisMonth, $now->copy()->endOfMonth()))
                 ->sum('amount'),
-            'last_month_cents' => (int) (clone $base($lastMonth, $lastMonth->copy()->endOfMonth()))
+            'last_month' => (int) (clone $base($lastMonth, $lastMonth->copy()->endOfMonth()))
                 ->sum('amount'),
-            'ytd_cents' => (int) DB::table('delivery_agent_earnings')
+            'ytd' => (int) DB::table('delivery_agent_earnings')
                 ->where('agent_id', $agent->id)
                 ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled->value)
                 ->whereYear('created_at', $now->year)
@@ -321,7 +321,7 @@ class DeliveryAgentController extends Controller
             ->where('agent_id', $agent->id)
             ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled->value)
             ->where('created_at', '>=', $now->copy()->subMonths(5)->startOfMonth())
-            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(amount) as total_cents')
+            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(amount) as total')
             ->groupByRaw('YEAR(created_at), MONTH(created_at)')
             ->orderByRaw('YEAR(created_at), MONTH(created_at)')
             ->get();

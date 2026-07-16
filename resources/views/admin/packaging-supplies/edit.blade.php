@@ -52,10 +52,10 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="label">{{ __('admin.packaging_supplies.unit_cost_cents') }}</label>
-                    <input type="number" name="unit_cost_cents" value="{{ old('unit_cost_cents', $supply->unit_cost_cents) }}"
-                           min="0" class="input @error('unit_cost_cents') border-red-400 @enderror" required>
-                    @error('unit_cost_cents') <p class="form-error">{{ $message }}</p> @enderror
+                    <label class="label">{{ __('admin.packaging_supplies.unit_cost') }}</label>
+                    <input type="number" name="unit_cost" value="{{ old('unit_cost', $supply->unit_cost) }}"
+                           min="0" class="input @error('unit_cost') border-red-400 @enderror" required>
+                    @error('unit_cost') <p class="form-error">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="label">{{ __('admin.packaging_supplies.stock_available') }}</label>

@@ -6,8 +6,8 @@
 
     @php
         /** @var \App\Models\DeliveryAgent $agent */
-        $pendingCents = $earnings->where('status', \App\Enums\DeliveryAgentEarningStatus::Pending)->sum('amount_cents');
-        $paidCents = $earnings->where('status', \App\Enums\DeliveryAgentEarningStatus::Paid)->sum('amount_cents');
+        $pendingCents = $earnings->where('status', \App\Enums\DeliveryAgentEarningStatus::Pending)->sum('amount');
+        $paidCents = $earnings->where('status', \App\Enums\DeliveryAgentEarningStatus::Paid)->sum('amount');
         $earningTypeColors = [
             'base_fee' => 'chip-accepted',
             'cod_handling' => 'chip-picked_up',
@@ -68,7 +68,7 @@
                     </div>
                     <div class="text-right ml-3 flex-shrink-0">
                         <p class="font-bold {{ $earning->earning_type === 'deduction' ? 'text-red-400' : 'text-green-400' }}">
-                            {{ $earning->earning_type === 'deduction' ? '-' : '+' }}{{ number_format($earning->amount_cents / 100, 2) }}
+                            {{ $earning->earning_type === 'deduction' ? '-' : '+' }}{{ number_format($earning->amount, 2) }}
                         </p>
                         <span
                             class="chip {{ $earning->status === \App\Enums\DeliveryAgentEarningStatus::Paid ? 'chip-delivered' : ($earning->status === \App\Enums\DeliveryAgentEarningStatus::Cancelled ? 'chip-failed' : 'chip-assigned') }} text-xs">
@@ -125,7 +125,7 @@
                         </p>
                     </div>
                     <div class="text-right ml-3 flex-shrink-0">
-                        <p class="font-bold text-white">{{ number_format($payout->net_amount_cents / 100, 2) }}</p>
+                        <p class="font-bold text-white">{{ number_format($payout->net_amount, 2) }}</p>
                         <span class="chip {{ $payoutChip }}">{{ $payout->status->label() }}</span>
                     </div>
                 </div>

@@ -103,7 +103,7 @@ class ToolsController extends Controller
             'actual_weight_kg' => round($actualWeightGrams / 1000, 2),
             'effective_weight_kg' => round($effectiveWeightGrams / 1000, 2),
             'is_volumetric_heavier' => $volumetricWeightGrams > $actualWeightGrams,
-            'slab_extra_fee_cents' => $slabFeeCents,
+            'slab_extra_fee' => $slabFeeCents,
             'currency' => $vendor->country?->currency_code,
             'slab_label' => $slabLabel,
         ]);

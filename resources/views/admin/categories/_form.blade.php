@@ -150,11 +150,11 @@
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.categories.fixed_fee_per_unit') }}</label>
                                     <div class="flex items-center gap-2">
-                                        <input type="number" name="commission_fbp_fixed_cents"
+                                        <input type="number" name="commission_fbp_fixed"
                                             step="1" min="0"
-                                            value="{{ old('commission_fbp_fixed_cents', $category->commission_fbp_fixed_cents ?? 0) }}"
+                                            value="{{ old('commission_fbp_fixed', $category->commission_fbp_fixed ?? 0) }}"
                                             class="input w-full text-sm commission-fbp-input">
-                                        <span class="text-xs text-gray-400 whitespace-nowrap">{{ __('admin.categories.cents') }}</span>
+                                        <span class="text-xs text-gray-400 whitespace-nowrap">{{ __('admin.categories.fixed_fee_unit') }}</span>
                                     </div>
                                     <p class="text-xs text-gray-400 mt-1">{{ __('admin.categories.fixed_fee_hint') }}</p>
                                 </div>
@@ -179,11 +179,11 @@
                                 <div>
                                     <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.categories.fixed_fee_per_unit') }}</label>
                                     <div class="flex items-center gap-2">
-                                        <input type="number" name="commission_fbn_fixed_cents"
+                                        <input type="number" name="commission_fbn_fixed"
                                             step="1" min="0"
-                                            value="{{ old('commission_fbn_fixed_cents', $category->commission_fbn_fixed_cents ?? 0) }}"
+                                            value="{{ old('commission_fbn_fixed', $category->commission_fbn_fixed ?? 0) }}"
                                             class="input w-full text-sm commission-fbn-input">
-                                        <span class="text-xs text-gray-400 whitespace-nowrap">{{ __('admin.categories.cents') }}</span>
+                                        <span class="text-xs text-gray-400 whitespace-nowrap">{{ __('admin.categories.fixed_fee_unit') }}</span>
                                     </div>
                                 </div>
                                 <div class="bg-green-50 rounded-lg p-2.5 text-xs text-green-700">
@@ -203,7 +203,7 @@
                     (function () {
                         function updatePreview(type) {
                             const pct = parseFloat(document.querySelector('[name="commission_' + type + '_pct"]').value) || 0;
-                            const fixed = parseInt(document.querySelector('[name="commission_' + type + '_fixed_cents"]').value) || 0;
+                            const fixed = parseInt(document.querySelector('[name="commission_' + type + '_fixed"]').value) || 0;
                             const examplePrice = 10000;
                             const exampleQty = 2;
                             const commissionPerUnit = Math.round(examplePrice * pct / 100) + fixed;

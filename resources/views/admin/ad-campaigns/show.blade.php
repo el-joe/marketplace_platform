@@ -256,7 +256,7 @@
                                 <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.conversions') }}</div>
                             </div>
                             <div class="text-center p-3 rounded-lg bg-gray-50">
-                                <div class="text-2xl font-bold text-primary-600">${{ number_format($perfSummary['spend_cents'] / 100, 2) }}</div>
+                                <div class="text-2xl font-bold text-primary-600">${{ number_format($perfSummary['spend'], 2) }}</div>
                                 <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.spend') }}</div>
                             </div>
                             <div class="text-center p-3 rounded-lg bg-gray-50">
@@ -268,7 +268,7 @@
                                 <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.acos') }}</div>
                             </div>
                             <div class="text-center p-3 rounded-lg bg-gray-50 sm:col-span-2">
-                                <div class="text-2xl font-bold text-success-600">${{ number_format($perfSummary['revenue_attributed_cents'] / 100, 2) }}</div>
+                                <div class="text-2xl font-bold text-success-600">${{ number_format($perfSummary['revenue_attributed'], 2) }}</div>
                                 <div class="text-xs text-gray-500 mt-1">{{ __('admin.ad_campaigns.revenue_attributed') }}</div>
                             </div>
                         </div>
@@ -487,7 +487,7 @@
                                     <td class="py-2 pr-4">{{ number_format($stat->clicks) }}</td>
                                     <td class="py-2 pr-4">{{ number_format((float)$stat->ctr * 100, 2) }}%</td>
                                     <td class="py-2 pr-4">{{ number_format($stat->conversions) }}</td>
-                                    <td class="py-2 pr-4 font-medium">${{ number_format($stat->spend_cents / 100, 2) }}</td>
+                                    <td class="py-2 pr-4 font-medium">${{ number_format($stat->spend, 2) }}</td>
                                     <td class="py-2">{{ number_format((float)$stat->acos * 100, 2) }}%</td>
                                 </tr>
                             @empty

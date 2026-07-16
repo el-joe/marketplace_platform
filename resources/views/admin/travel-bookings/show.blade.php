@@ -54,7 +54,7 @@
                 <div class="flex justify-between">
                     <dt class="text-gray-500">{{ __('admin.travel.total_amount') }}</dt>
                     <dd class="text-gray-900 font-semibold">
-                        {{ $package?->currency ?? '' }} {{ number_format($travelBooking->total_price_cents / 100, 2) }}
+                        {{ $package?->currency ?? '' }} {{ number_format($travelBooking->total_price, 2) }}
                     </dd>
                 </div>
                 <div class="flex justify-between">

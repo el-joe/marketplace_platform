@@ -18,7 +18,7 @@
             ['title' => __('common.name'), 'data' => 'name_en', 'name' => 'name_en'],
             ['title' => __('admin.warranty_plans.category'), 'data' => 'category_path', 'name' => 'category_path', 'orderable' => false],
             ['title' => __('admin.warranty_plans.duration_months'), 'data' => 'duration_months', 'name' => 'duration_months', 'searchable' => false],
-            ['title' => __('admin.warranty_plans.price_cents'), 'data' => 'price_display', 'name' => 'price_display', 'searchable' => false],
+            ['title' => __('admin.warranty_plans.price'), 'data' => 'price_display', 'name' => 'price_display', 'searchable' => false],
             [
                 'title' => __('common.active'),
                 'data' => 'is_active',

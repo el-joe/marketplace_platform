@@ -27,11 +27,11 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{{ __('admin.wallets.balance') }}</p>
-            <p class="text-3xl font-extrabold text-gray-900">{{ number_format($wallet->balance_cents / 100, 2) }} <span class="text-base font-normal text-gray-500">{{ $wallet->currency }}</span></p>
+            <p class="text-3xl font-extrabold text-gray-900">{{ number_format($wallet->balance, 2) }} <span class="text-base font-normal text-gray-500">{{ $wallet->currency }}</span></p>
         </div>
         <div class="bg-white rounded-xl border border-amber-200 p-5">
             <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">{{ __('admin.wallets.pending') }}</p>
-            <p class="text-3xl font-extrabold text-amber-700">{{ number_format($wallet->pending_balance_cents / 100, 2) }} <span class="text-base font-normal text-amber-500">{{ $wallet->currency }}</span></p>
+            <p class="text-3xl font-extrabold text-amber-700">{{ number_format($wallet->pending_balance, 2) }} <span class="text-base font-normal text-amber-500">{{ $wallet->currency }}</span></p>
         </div>
         <div class="bg-white rounded-xl border {{ $wallet->is_frozen ? 'border-red-300' : 'border-green-200' }} p-5 flex items-center justify-between">
             <div>
@@ -105,9 +105,9 @@
                         <td class="px-4 py-3 text-gray-600 text-xs">{{ str_replace('_',' ', $tx->source_type) }}</td>
                         <td class="px-4 py-3 text-gray-700">{{ $tx->description }}</td>
                         <td class="px-4 py-3 text-end font-semibold {{ $tx->type->value === 'credit' ? 'text-green-700' : 'text-red-600' }}">
-                            {{ $tx->type->value === 'credit' ? '+' : '−' }}{{ number_format($tx->amount_cents / 100, 2) }}
+                            {{ $tx->type->value === 'credit' ? '+' : '−' }}{{ number_format($tx->amount, 2) }}
                         </td>
-                        <td class="px-4 py-3 text-end text-gray-700">{{ number_format($tx->balance_after_cents / 100, 2) }}</td>
+                        <td class="px-4 py-3 text-end text-gray-700">{{ number_format($tx->balance_after, 2) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">{{ __('admin.wallets.no_transactions_yet') }}</td></tr>

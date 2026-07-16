@@ -113,7 +113,7 @@ return [
         'travel_city_placeholder' => '-- Select the country first --',
         'duration_days' => 'Duration Days',
         'duration_nights' => 'Duration Nights',
-        'price_cents' => 'Price (cents)',
+        'price' => 'Price (cents)',
         'pricing_seats' => 'Pricing & Seats',
         'currency' => 'Currency',
         'currency_placeholder' => '-- Select currency --',

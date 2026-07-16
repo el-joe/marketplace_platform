@@ -60,7 +60,7 @@
             <div class="p-2 space-y-0.5">
                 <p class="text-xs text-gray-700 line-clamp-2 leading-tight">{{ $name }}</p>
                 <p class="text-sm font-bold text-gray-900">
-                    {{ \App\Helpers\CurrencyFormatter::formatPrice($listing->price_cents, $listing->currency, $locale) }}
+                    {{ \App\Helpers\CurrencyFormatter::formatPrice($listing->price, $listing->currency, $locale) }}
                 </p>
                 @if($cardMethod && $cardMethod->is_express_type)
                     <div class="flex items-center gap-1 pt-0.5">

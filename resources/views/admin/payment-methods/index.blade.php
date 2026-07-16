@@ -97,8 +97,8 @@
                                     @if($method->fee_pct)
                                         {{ number_format($method->fee_pct, 2) }}%
                                     @endif
-                                    @if($method->fee_fixed_cents)
-                                        + {{ number_format($method->fee_fixed_cents / 100, 2) }}
+                                    @if($method->fee_fixed)
+                                        + {{ number_format($method->fee_fixed, 2) }}
                                     @endif
                                 </span>
                                 {{-- Toggle --}}
@@ -167,7 +167,7 @@
                     <input type="number" name="fee_fixed_display" id="fee_fixed_display" placeholder="0.00" min="0"
                         step="0.01"
                         class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
-                    <input type="hidden" name="fee_fixed_cents" id="fee_fixed_cents" />
+                    <input type="hidden" name="fee_fixed" id="fee_fixed" />
                     <p class="text-xs text-gray-400 mt-1">{{ __('admin.payment_section.fee_fixed_hint') }}</p>
                 </div>
                 <div>
@@ -175,14 +175,14 @@
                     <input type="number" name="min_order_display" id="min_order_display" placeholder="0.00" min="0"
                         step="0.01"
                         class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
-                    <input type="hidden" name="min_order_cents" id="min_order_cents" />
+                    <input type="hidden" name="min_order" id="min_order" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.payment_section.max_order_amount') }}</label>
                     <input type="number" name="max_order_display" id="max_order_display" placeholder="0.00" min="0"
                         step="0.01"
                         class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
-                    <input type="hidden" name="max_order_cents" id="max_order_cents" />
+                    <input type="hidden" name="max_order" id="max_order" />
                 </div>
                 <div class="sm:col-span-2 flex items-center gap-6">
                     <x-form-toggle name="is_active" label="{{ __('common.active') }}" :checked="true" />

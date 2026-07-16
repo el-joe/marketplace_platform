@@ -295,7 +295,7 @@
                             </dd>
                             <dt class="text-gray-400">{{ __('partner.fulfillment.commission_value') }}</dt>
                             <dd class="font-semibold text-gray-900">{{ $rule->commissionLabel() }}</dd>
-                            @if($rule->extra_delivery_fee_cents > 0)
+                            @if($rule->extra_delivery_fee > 0)
                                 <dt class="text-gray-400">{{ __('partner.fulfillment.extra_delivery_fee') }}</dt>
                                 <dd class="font-medium text-orange-600">{{ $rule->extraFeeFormatted() }}</dd>
                             @endif

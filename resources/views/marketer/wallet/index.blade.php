@@ -13,9 +13,9 @@
     {{-- Balance Card --}}
     <div class="bg-gradient-to-br from-purple-600 to-purple-900 rounded-2xl p-6 text-white shadow-lg">
         <p class="text-sm font-medium text-purple-200 mb-1">{{ __('marketer.wallet.available_balance') }}</p>
-        <p class="text-4xl font-extrabold tracking-tight">{{ number_format($wallet->balance_cents / 100, 2) }} <span class="text-xl font-semibold text-purple-300">{{ $wallet->currency }}</span></p>
-        @if($wallet->pending_balance_cents > 0)
-            <p class="text-sm text-purple-300 mt-2">+ {{ number_format($wallet->pending_balance_cents / 100, 2) }} {{ $wallet->currency }} {{ __('marketer.wallet.pending_balance') }}</p>
+        <p class="text-4xl font-extrabold tracking-tight">{{ number_format($wallet->balance, 2) }} <span class="text-xl font-semibold text-purple-300">{{ $wallet->currency }}</span></p>
+        @if($wallet->pending_balance > 0)
+            <p class="text-sm text-purple-300 mt-2">+ {{ number_format($wallet->pending_balance, 2) }} {{ $wallet->currency }} {{ __('marketer.wallet.pending_balance') }}</p>
         @endif
         @if($wallet->is_frozen)
             <div class="mt-3 inline-flex items-center gap-1.5 bg-red-500/30 text-red-100 text-xs font-medium px-3 py-1 rounded-full">{{ __('marketer.wallet.wallet_frozen') }}</div>
@@ -31,7 +31,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('marketer.wallet.amount', ['currency' => $wallet->currency]) }}</label>
-                    <input type="number" name="amount" min="1" step="0.01" required max="{{ $wallet->balance_cents / 100 }}"
+                    <input type="number" name="amount" min="1" step="0.01" required max="{{ $wallet->balance }}"
                            class="w-full form-input rounded-lg border-gray-300 text-sm" placeholder="0.00">
                 </div>
                 <div>
@@ -62,7 +62,7 @@
             @foreach($withdrawalRequests as $wr)
                 <div class="px-5 py-3 flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-900">{{ number_format($wr->amount_cents / 100, 2) }} {{ $wr->currency }}</p>
+                        <p class="text-sm font-medium text-gray-900">{{ number_format($wr->amount, 2) }} {{ $wr->currency }}</p>
                         <p class="text-xs text-gray-500">{{ $wr->bank_name }} · {{ $wr->created_at->format('d M Y') }}</p>
                     </div>
                     @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','approved'=>'bg-blue-100 text-blue-700','processed'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700']; @endphp
@@ -85,7 +85,7 @@
                     <p class="text-xs text-gray-400">{{ str_replace('_',' ', $tx->source_type) }} · {{ $tx->created_at->format('d M Y H:i') }}</p>
                 </div>
                 <p class="text-sm font-bold {{ $tx->type === \App\Enums\WalletTransactionType::Credit ? 'text-green-600' : 'text-red-500' }}">
-                    {{ $tx->type === \App\Enums\WalletTransactionType::Credit ? '+' : '−' }}{{ number_format($tx->amount_cents / 100, 2) }}
+                    {{ $tx->type === \App\Enums\WalletTransactionType::Credit ? '+' : '−' }}{{ number_format($tx->amount, 2) }}
                 </p>
             </div>
         @empty

@@ -25,7 +25,7 @@ class WalletTransaction extends Model
         'created_at',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'type'                 => WalletTransactionType::class,
         'amount'         => 'integer',

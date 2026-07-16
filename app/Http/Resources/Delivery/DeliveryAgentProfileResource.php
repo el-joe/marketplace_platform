@@ -23,7 +23,7 @@ class DeliveryAgentProfileResource extends JsonResource
             'is_on_shift'      => $this->status === DeliveryAgentStatus::OnShift,
             'rating_avg'       => $this->rating_avg,
             'total_deliveries' => $this->total_deliveries,
-            'per_delivery_fee_cents' => $this->per_delivery_fee,
+            'per_delivery_fee' => $this->per_delivery_fee,
             'shipping_company_id'   => $this->shipping_company_id,
             'shipping_company_name' => $this->whenLoaded('shippingCompany', fn () => $this->shippingCompany?->name),
             'current_location' => $this->current_latitude !== null ? [

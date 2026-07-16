@@ -108,7 +108,7 @@
 
 @push('scripts')
 <script>
-const priceCents = {{ $package->price_cents }};
+const priceCents = {{ $package->price }};
 const currency   = '{{ $package->currency }}';
 let count = 1;
 

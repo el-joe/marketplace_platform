@@ -239,11 +239,11 @@
             @endif
 
             {{-- COD --}}
-            @if($assignment->cod_amount_collected_cents)
+            @if($assignment->cod_amount_collected)
             <div class="mb-4 pb-4 border-b border-gray-100 text-sm space-y-1.5">
                 <div class="flex justify-between">
                     <span class="text-gray-500">{{ __('carrier.assignment_detail.cash_on_delivery') }}</span>
-                    <span class="font-semibold text-gray-900">{{ number_format($assignment->cod_amount_collected_cents / 100, 2) }}</span>
+                    <span class="font-semibold text-gray-900">{{ number_format($assignment->cod_amount_collected, 2) }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">{{ __('carrier.assignment_detail.otp') }}</span>

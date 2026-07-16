@@ -25,7 +25,7 @@ class BannerPlacementDefinition extends Model
         'sort_order',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'allowed_formats' => 'array',
         'supports_vendor_ads' => 'boolean',

@@ -54,7 +54,7 @@
 
                             <p class="text-xs text-gray-600">
                                 <template x-if="zone.has_subsidy_config">
-                                    <span>Your share per delivery: {{ $zone['currency'] }} <span x-text="(zone.vendor_share_cents / 100).toFixed(2)"></span></span>
+                                    <span>Your share per delivery: {{ $zone['currency'] }} <span x-text="(zone.vendor_share / 100).toFixed(2)"></span></span>
                                 </template>
                                 <template x-if="!zone.has_subsidy_config">
                                     <span class="text-yellow-700">Contact admin — split not configured</span>
@@ -105,7 +105,7 @@ function shippingPreferences() {
             })
             .then((data) => {
                 zone.is_exceptional = data.is_now_exceptional;
-                zone.vendor_share_cents = data.vendor_share_cents;
+                zone.vendor_share = data.vendor_share;
             })
             .catch((e) => {
                 alert(e.message);

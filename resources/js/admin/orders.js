@@ -137,7 +137,7 @@ $(function () {
         methods.forEach(function (method) {
             const rates = method.rates || [];
             const cheapest = rates.length
-                ? rates.reduce((a, b) => (a.base_fee_cents <= b.base_fee_cents ? a : b))
+                ? rates.reduce((a, b) => (a.base_fee <= b.base_fee ? a : b))
                 : null;
 
             const $card = $('<div>', {
@@ -155,13 +155,13 @@ $(function () {
             if (rates.length) {
                 const $carrierSelect = $('<select>', { class: 'form-select w-full text-sm shipping-carrier-select' });
                 rates.forEach(function (rate) {
-                    const label = (rate.carrier_name || (window.TRANSLATIONS && window.TRANSLATIONS.any_carrier) || 'Any carrier') + ' — ' + centsToAmount(rate.base_fee_cents)
-                        + (rate.cod_extra_fee_cents ? ' (+' + centsToAmount(rate.cod_extra_fee_cents) + ' COD)' : '');
+                    const label = (rate.carrier_name || (window.TRANSLATIONS && window.TRANSLATIONS.any_carrier) || 'Any carrier') + ' — ' + centsToAmount(rate.base_fee)
+                        + (rate.cod_extra_fee ? ' (+' + centsToAmount(rate.cod_extra_fee) + ' COD)' : '');
                     $carrierSelect.append($('<option>', {
                         value: rate.carrier_id || '',
                         text: label,
                         selected: cheapest && rate.carrier_id === cheapest.carrier_id,
-                        'data-base-fee': rate.base_fee_cents,
+                        'data-base-fee': rate.base_fee,
                     }));
                 });
                 $card.append($carrierSelect);

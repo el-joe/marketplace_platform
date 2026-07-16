@@ -36,7 +36,7 @@ class GiftCardTransaction extends Model
         'notes',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'amount' => 'integer',
         'balance_after' => 'integer',

@@ -228,7 +228,7 @@ class MarketerService
         $secret = $campaign->secretPromotion?->isActive() ? $campaign->secretPromotion : null;
         $rate = $this->resolveCommissionRate($marketer, $campaign, $secret);
 
-        $orderTotal = $order->total_cents ?? ($order->total * 100);
+        $orderTotal = $order->total;
         $commission = (int) round($orderTotal * $rate / 100);
 
         // Build click chain
@@ -250,7 +250,7 @@ class MarketerService
                 'order_id' => $order->id,
                 'customer_id' => $order->customer_id,
                 'vendor_id' => $order->vendor_id ?? null,
-                'order_value' => $order->total_cents ?? (int) round($order->total * 100),
+                'order_value' => $order->total,
                 'commission_rate' => $rate,
                 'commission_amount' => $commission,
                 'currency' => $order->currency ?? 'EGP',
@@ -262,7 +262,7 @@ class MarketerService
             ]);
 
             $campaign->increment('total_conversions');
-            $campaign->increment('total_revenue', $order->total_cents ?? (int) round($order->total * 100));
+            $campaign->increment('total_revenue', $order->total);
             if ($campaign->budget) {
                 $campaign->increment('budget_spent', $commission);
             }

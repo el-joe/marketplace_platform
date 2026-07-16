@@ -45,7 +45,7 @@ class ProductCostController extends Controller
             'product_id' => $productId,
             'product_name' => $product->name_en,
             'ref' => $ref ? $this->serializeRef($ref) : null,
-            'lowest_price_cents' => $lowestPriceCents ? (int) $lowestPriceCents : null,
+            'lowest_price' => $lowestPriceCents ? (int) $lowestPriceCents : null,
             'below_cost_warning' => $belowCost,
         ]);
     }
@@ -114,13 +114,13 @@ class ProductCostController extends Controller
         $this->requireViewPermission();
 
         $data = $request->validate([
-            'selling_price_cents' => ['required', 'integer', 'min:1'],
+            'selling_price' => ['required', 'integer', 'min:1'],
             'manufacturer_cost' => ['nullable', 'integer', 'min:0'],
             'shipping_cost' => ['nullable', 'integer', 'min:0'],
             'landed_cost' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $selling = (int) $data['selling_price_cents'];
+        $selling = (int) $data['selling_price'];
 
         // landed_cost takes precedence; otherwise sum components
         $landed = isset($data['landed_cost'])
@@ -132,18 +132,18 @@ class ProductCostController extends Controller
         }
 
         $marginPct = round(($selling - $landed) / $selling * 100, 2);
-        $profitCents = $selling - $landed;
+        $profit = $selling - $landed;
         $belowCost = $selling <= $landed;
 
         return response()->json([
-            'selling_price_cents' => $selling,
+            'selling_price' => $selling,
             'landed_cost' => $landed,
-            'profit_cents' => $profitCents,
+            'profit' => $profit,
             'margin_pct' => $marginPct,
             'below_cost' => $belowCost,
             'selling_formatted' => number_format($selling / 100, 2) . ' EGP',
             'landed_formatted' => number_format($landed / 100, 2) . ' EGP',
-            'profit_formatted' => number_format($profitCents / 100, 2) . ' EGP',
+            'profit_formatted' => number_format($profit / 100, 2) . ' EGP',
         ]);
     }
 

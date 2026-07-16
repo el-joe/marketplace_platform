@@ -26,7 +26,7 @@ class BlockAnalytic extends Model
         'ctr',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'date' => 'date',
         'impressions' => 'integer',

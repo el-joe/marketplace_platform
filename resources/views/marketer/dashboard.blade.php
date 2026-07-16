@@ -162,7 +162,7 @@
                                 <td class="py-2.5 text-right text-gray-600">{{ number_format($campaign->total_clicks) }}</td>
                                 <td class="py-2.5 text-right text-gray-600">{{ number_format($campaign->total_conversions) }}</td>
                                 <td class="py-2.5 text-right font-semibold text-green-600">
-                                    {{ number_format($campaign->total_revenue_cents / 100, 2) }}
+                                    {{ number_format($campaign->total_revenue, 2) }}
                                 </td>
                             </tr>
                         @endforeach

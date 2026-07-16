@@ -34,7 +34,7 @@ class AdminProductListing extends Model
         'rating_count',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'price'        => 'integer',
         'cost_price'   => 'integer',

@@ -121,14 +121,14 @@ class DashboardService
             $vendor = $admin->vendor;
 
             return [
-                'today_revenue_cents'       => (int) $todayRevenue,
+                'today_revenue'             => (int) $todayRevenue,
                 'pending_orders_count'      => $pendingCount,
                 'today_orders_count'        => $todayOrdersCount,
                 'active_listings_count'     => $activeListingsCount,
                 'low_stock_count'           => $lowStockCount,
                 'open_disputes_count'       => $openDisputesCount,
                 'open_returns_count'        => $openReturnsCount,
-                'pending_payout_cents'      => $pendingPayoutCents,
+                'pending_payout'            => $pendingPayoutCents,
                 'currency'                  => $currency,
                 'revenue_last_7_days'       => $revenueLast7Days,
                 'unread_notifications_count' => $unreadCount,

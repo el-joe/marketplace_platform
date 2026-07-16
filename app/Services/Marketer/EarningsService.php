@@ -50,7 +50,7 @@ class EarningsService
                 ->groupBy('currency')
                 ->pluck('total', 'currency');
             foreach ($rows as $currency => $total) {
-                $byCurrency[$currency][$status . '_cents'] = (int) $total;
+                $byCurrency[$currency][$status] = (int) $total;
             }
         }
 
@@ -62,12 +62,12 @@ class EarningsService
             ->pluck('total', 'currency');
 
         foreach ($thisMonth as $currency => $total) {
-            $byCurrency[$currency]['this_month_cents'] = (int) $total;
+            $byCurrency[$currency]['this_month'] = (int) $total;
         }
 
         // Ensure all statuses exist for every currency to avoid missing-key errors in views
         foreach ($byCurrency as $currency => &$data) {
-            $data += ['pending_cents' => 0, 'approved_cents' => 0, 'paid_cents' => 0, 'this_month_cents' => 0];
+            $data += ['pending' => 0, 'approved' => 0, 'paid' => 0, 'this_month' => 0];
         }
         unset($data);
 

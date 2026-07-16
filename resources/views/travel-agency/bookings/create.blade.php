@@ -58,7 +58,7 @@
                     @foreach($packages as $pkg)
                         <option value="{{ $pkg->id }}"
                             data-title="{{ $pkg->title_ar ?: $pkg->title_en }}"
-                            data-price-cents="{{ $pkg->price_cents }}"
+                            data-price="{{ $pkg->price }}"
                             data-currency="{{ $pkg->currency }}"
                             data-seats-remaining="{{ $pkg->seatsRemaining() === null ? '' : $pkg->seatsRemaining() }}"
                             data-departure="{{ $pkg->departure_date->format('d M Y') }}"

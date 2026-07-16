@@ -117,7 +117,7 @@ function initIndexPage() {
             {
                 data: null,
                 render(row) {
-                    const price = `<span class="font-semibold text-gray-900">${formatMoney(row.price_cents, row.currency)}</span>`;
+                    const price = `<span class="font-semibold text-gray-900">${formatMoney(row.price, row.currency)}</span>`;
                     const neg   = row.price_negotiable
                         ? `<span class="block text-[10px] text-emerald-600 font-medium mt-0.5">قابل للتفاوض</span>`
                         : '';
@@ -869,7 +869,7 @@ function renderShowHeader(listing) {
     set('sh-created-at', formatDate(listing.created_at));
 
     const priceEl = el('sh-price');
-    if (priceEl) priceEl.textContent = formatMoney(listing.price_cents, listing.currency);
+    if (priceEl) priceEl.textContent = formatMoney(listing.price, listing.currency);
 
     const negEl = el('sh-negotiable');
     if (negEl) {

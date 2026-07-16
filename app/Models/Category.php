@@ -62,7 +62,7 @@ class Category extends Model
         'seo_description_en',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'commission_rate' => 'decimal:2',
         'commission_fbp_pct' => 'decimal:2',

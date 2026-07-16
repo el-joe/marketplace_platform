@@ -24,7 +24,7 @@ class FbnStorageFee extends Model
         'status',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'status' => FbnStorageFeeStatus::class,
         'month' => 'date',

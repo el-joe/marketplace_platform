@@ -110,7 +110,7 @@ class DashboardController extends Controller
             'total_bookings' => $totalBookings,
             'booking_counts' => $bookingCounts,
             'bookings_this_month' => (int) ($bookingStats->total ?? 0),
-            'revenue_cents_this_month' => (int) ($bookingStats->revenue ?? 0),
+            'revenue_this_month' => (int) ($bookingStats->revenue ?? 0),
             'revenue_by_currency' => $revenueByCurrency,
             'open_inquiries_count' => $openInquiriesCount,
             'recent_packages' => TravelPackageResource::collection($recentPackages),

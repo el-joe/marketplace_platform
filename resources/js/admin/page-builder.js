@@ -386,7 +386,7 @@ function renderBlockAnalytics(res) {
     $('#analytics-stat-ctr').text(`${(Number(totals.ctr || 0) * 100).toFixed(2)}%`);
     $('#analytics-stat-add-to-cart').text(formatCompactNumber(totals.add_to_cart_count));
     $('#analytics-stat-orders').text(formatCompactNumber(totals.orders_attributed));
-    $('#analytics-stat-revenue').text(formatCents(totals.revenue_attributed_cents));
+    $('#analytics-stat-revenue').text(formatCents(totals.revenue_attributed));
 
     const targets = res.top_click_targets || [];
     const $list = $('#analytics-top-targets');

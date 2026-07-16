@@ -125,7 +125,7 @@
             <div class="bg-white rounded-xl border border-gray-200 p-4">
                 <p class="text-xs font-medium text-gray-500">Revenue from Admin Listings</p>
                 @forelse($stats['revenue_by_currency'] as $row)
-                    <p class="mt-1 text-lg font-bold text-gray-900">{{ number_format($row->total_cents / 100, 2) }} {{ $row->currency }}</p>
+                    <p class="mt-1 text-lg font-bold text-gray-900">{{ number_format($row->total, 2) }} {{ $row->currency }}</p>
                 @empty
                     <p class="mt-1 text-2xl font-bold text-gray-900">—</p>
                 @endforelse

@@ -74,13 +74,13 @@ class FinancialReportController extends Controller
                 'currency_code'   => $currency,
                 'is_launched'     => $country->is_launched,
                 'order_count'     => $rev ? (int) $rev->order_count : 0,
-                'revenue'   => $rev ? (int) $rev->total_cents : 0,
-                'commission_cents'=> $com ? (int) $com->commission_cents : 0,
-                'gateway_fee_cents'=> $gwf ? (int) $gwf->gateway_fee_cents : 0,
-                'vat_cents'       => $vatR ? (int) $vatR->collected_vat_cents : 0,
+                'revenue'   => $rev ? (int) $rev->total : 0,
+                'commission'      => $com ? (int) $com->commission : 0,
+                'gateway_fee'     => $gwf ? (int) $gwf->gateway_fee : 0,
+                'vat'             => $vatR ? (int) $vatR->collected_vat : 0,
                 'vat_discrepancy' => $vatR?->has_vat_discrepancy ?? false,
-                'marketer_cents'  => $mkt ? (int) $mkt->net_cents : 0,
-                'ad_revenue_cents'=> $ad ? (int) $ad->spend : 0,
+                'marketer'        => $mkt ? (int) $mkt->net : 0,
+                'ad_revenue'      => $ad ? (int) $ad->spend : 0,
             ];
         });
 
@@ -89,11 +89,11 @@ class FinancialReportController extends Controller
         $rowsWithUsd = $rows->map(function ($row) use ($rates) {
             $rate = $rates[$row['currency_code']] ?? null;
             $row['revenue_usd']    = ($rate && $rate > 0) ? round(($row['revenue'] / 100) / $rate, 2) : null;
-            $row['commission_usd'] = ($rate && $rate > 0) ? round(($row['commission_cents'] / 100) / $rate, 2) : null;
-            $row['gateway_fee_usd'] = ($rate && $rate > 0) ? round(($row['gateway_fee_cents'] / 100) / $rate, 2) : null;
-            $row['vat_usd']        = ($rate && $rate > 0) ? round(($row['vat_cents'] / 100) / $rate, 2) : null;
-            $row['marketer_usd']   = ($rate && $rate > 0) ? round(($row['marketer_cents'] / 100) / $rate, 2) : null;
-            $row['ad_revenue_usd'] = ($rate && $rate > 0) ? round(($row['ad_revenue_cents'] / 100) / $rate, 2) : null;
+            $row['commission_usd'] = ($rate && $rate > 0) ? round(($row['commission'] / 100) / $rate, 2) : null;
+            $row['gateway_fee_usd'] = ($rate && $rate > 0) ? round(($row['gateway_fee'] / 100) / $rate, 2) : null;
+            $row['vat_usd']        = ($rate && $rate > 0) ? round(($row['vat'] / 100) / $rate, 2) : null;
+            $row['marketer_usd']   = ($rate && $rate > 0) ? round(($row['marketer'] / 100) / $rate, 2) : null;
+            $row['ad_revenue_usd'] = ($rate && $rate > 0) ? round(($row['ad_revenue'] / 100) / $rate, 2) : null;
             return $row;
         });
 
@@ -169,11 +169,11 @@ class FinancialReportController extends Controller
 
             $fmt = fn($cents) => number_format($cents / 100, 2, '.', '');
 
-            $revCents = $rev ? (int) $rev->total_cents : 0;
-            $comCents = $com ? (int) $com->commission_cents : 0;
-            $gwfCents = $gwf ? (int) $gwf->gateway_fee_cents : 0;
-            $vatCents = $vatR ? (int) $vatR->collected_vat_cents : 0;
-            $mktCents = $mkt ? (int) $mkt->net_cents : 0;
+            $revCents = $rev ? (int) $rev->total : 0;
+            $comCents = $com ? (int) $com->commission : 0;
+            $gwfCents = $gwf ? (int) $gwf->gateway_fee : 0;
+            $vatCents = $vatR ? (int) $vatR->collected_vat : 0;
+            $mktCents = $mkt ? (int) $mkt->net : 0;
             $adCents  = $ad ? (int) $ad->spend : 0;
 
             fputcsv($handle, [

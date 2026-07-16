@@ -10,7 +10,7 @@
     @php
         $addr = is_array($order->shipping_address_snapshot) ? $order->shipping_address_snapshot : json_decode($order->shipping_address_snapshot ?? '{}', true);
         $currency = strtoupper($order->currency);
-        $fmt = fn($cents) => $currency . ' ' . number_format($cents / 100, 2);
+        $fmt = fn($amount) => $currency . ' ' . number_format($amount, 2);
 
         $statusColors = [
             'placed' => 'gray',
@@ -281,12 +281,12 @@
                                                     <td class="px-4 py-3 text-end font-medium">{{ $fmt($item->line_total) }}</td>
                                                     <td class="px-4 py-3 text-end text-xs text-gray-500">
                                                         @php
-                                                            $fixedCents = $item->commission_fixed_cents ?? 0;
+                                                            $fixed = $item->commission_fixed ?? 0;
                                                         @endphp
                                                         <span
                                                             class="font-mono">{{ number_format((float) $item->commission_rate_pct, 2) }}%</span>
-                                                        @if($fixedCents > 0)
-                                                            <span class="text-gray-400"> + {{ $fmt($fixedCents) }}</span>
+                                                        @if($fixed > 0)
+                                                            <span class="text-gray-400"> + {{ $fmt($fixed) }}</span>
                                                         @endif
                                                         <br>
                                                         <span class="text-danger-600 font-medium">=

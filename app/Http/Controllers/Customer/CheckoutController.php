@@ -81,9 +81,9 @@ class CheckoutController extends Controller
                     'badge_text_color_hex' => $method->badge_text_color_hex,
                     'delivery_days_min' => $method->min_delivery_days,
                     'delivery_days_max' => $method->max_delivery_days,
-                    'fee_cents' => 0,
+                    'fee' => 0,
                     'is_free' => true,
-                    'cod_extra_fee_cents' => 0,
+                    'cod_extra_fee' => 0,
                     'cod_available' => false,
                 ])->values(),
                 'destination_zone' => null,
@@ -118,9 +118,9 @@ class CheckoutController extends Controller
                 'badge_text_color_hex' => $method->badge_text_color_hex,
                 'delivery_days_min' => $method->min_delivery_days,
                 'delivery_days_max' => $method->max_delivery_days,
-                'fee_cents' => $calc['fee'],
+                'fee' => $calc['fee'],
                 'is_free' => $calc['is_free'],
-                'cod_extra_fee_cents' => $codCalc['cod_extra_fee'],
+                'cod_extra_fee' => $codCalc['cod_extra_fee'],
                 'cod_available' => $calc['cod_available'],
             ];
         })->values();
@@ -197,7 +197,7 @@ class CheckoutController extends Controller
             $couponResponse = [
                 'code' => $coupon->code,
                 'type' => $coupon->type,
-                'discount_cents' => $discountCents,
+                'discount' => $discountCents,
             ];
         }
 
@@ -217,17 +217,17 @@ class CheckoutController extends Controller
             $giftCardResult = $this->calculationService->applyGiftCard(
                 $validated['gift_card_code'],
                 $cart->currency,
-                $preGiftCardSummary['total_cents']
+                $preGiftCardSummary['total']
             );
 
             if ($giftCardResult['error']) {
                 return ApiResponse::error($giftCardResult['error'], [], 422);
             }
 
-            $giftCardAppliedCents = $giftCardResult['applied_cents'];
+            $giftCardAppliedCents = $giftCardResult['applied'];
             $giftCardResponse = [
                 'code' => $validated['gift_card_code'],
-                'applied_cents' => $giftCardAppliedCents,
+                'applied' => $giftCardAppliedCents,
             ];
         }
 
@@ -261,7 +261,7 @@ class CheckoutController extends Controller
                 'sku' => $listing->productVariant->sku,
                 'name_en' => $product->name_en,
                 'quantity' => $item->quantity,
-                'unit_price_cents' => $item->unit_price,
+                'unit_price' => $item->unit_price,
                 'line_total' => $item->unit_price * $item->quantity,
                 'thumbnail' => $product->images->firstWhere('is_primary', true)?->url ?? $product->images->first()?->url,
                 'vendor_name' => $isAdminListing ? 'noon' : $listing->vendor?->store_name,
@@ -276,7 +276,7 @@ class CheckoutController extends Controller
             'shipping' => [
                 'method_id' => $validated['shipping_method_id'],
                 'method_name' => $shippingMethod?->name,
-                'fee_cents' => $shippingResult['fee'],
+                'fee' => $shippingResult['fee'],
                 'is_free' => $shippingResult['is_free'],
                 'estimated_delivery_days_min' => $shippingMethod?->min_delivery_days,
                 'estimated_delivery_days_max' => $shippingMethod?->max_delivery_days,
@@ -405,7 +405,7 @@ class CheckoutController extends Controller
             $giftCardResult = $this->calculationService->applyGiftCard(
                 $validated['gift_card_code'],
                 $cart->currency,
-                $preGiftCardSummary['total_cents']
+                $preGiftCardSummary['total']
             );
 
             if ($giftCardResult['error']) {
@@ -413,7 +413,7 @@ class CheckoutController extends Controller
             }
 
             $giftCard = $giftCardResult['gift_card'];
-            $giftCardAppliedCents = $giftCardResult['applied_cents'];
+            $giftCardAppliedCents = $giftCardResult['applied'];
         }
 
         $summary = $this->calculationService->buildOrderSummary(
@@ -443,13 +443,13 @@ class CheckoutController extends Controller
                     'country_id' => $country->id,
                     'status' => 'placed',
                     'currency' => $country->currency_code,
-                    'subtotal' => $summary['subtotal_cents'],
-                    'discount' => $summary['discount_cents'],
-                    'shipping' => $summary['shipping_cents'],
-                    'tax' => $summary['tax_cents'],
+                    'subtotal' => $summary['subtotal'],
+                    'discount' => $summary['discount'],
+                    'shipping' => $summary['shipping'],
+                    'tax' => $summary['tax'],
                     'cod_fee' => $summary['cod_fee'],
-                    'warranty_total' => $summary['warranty_total_cents'],
-                    'total' => $summary['total_cents'],
+                    'warranty_total' => $summary['warranty_total'],
+                    'total' => $summary['total'],
                     'coupon_id' => $coupon?->id,
                     'coupon_code_used' => $coupon?->code,
                     'payment_method' => $validated['payment_method'],
@@ -464,7 +464,7 @@ class CheckoutController extends Controller
                 ]);
 
                 $grouped = collect($cartItems)->groupBy(fn ($item) => $item->vendorListing->vendor_id);
-                $subtotalAll = max(1, $summary['subtotal_cents']);
+                $subtotalAll = max(1, $summary['subtotal']);
                 $subOrders = [];
                 $subOrderDeliveryDisplay = [];
                 $idx = 0;
@@ -619,7 +619,7 @@ class CheckoutController extends Controller
                         'coupon_id' => $coupon->id,
                         'customer_id' => $customer->id,
                         'order_id' => $order->id,
-                        'discount_amount' => $summary['discount_cents'],
+                        'discount_amount' => $summary['discount'],
                         'used_at' => now(),
                     ]);
                     $coupon->increment('times_used');
@@ -692,8 +692,8 @@ class CheckoutController extends Controller
             'order_number' => $order->order_number,
             'status' => $order->status->value,
             'payment_status' => $order->payment_status->value,
-            'total_cents' => $order->total,
-            'warranty_total_cents' => $order->warranty_total,
+            'total' => $order->total,
+            'warranty_total' => $order->warranty_total,
             'currency' => $order->currency,
             'placed_at' => $order->placed_at?->toIso8601String(),
             'sub_orders' => $order->subOrders->map(function (SubOrder $so) use ($deliveryDisplayBySubOrder) {
@@ -704,10 +704,10 @@ class CheckoutController extends Controller
                 'vendor' => $so->vendor?->store_name,
                 'status' => $so->status->value,
                 'fulfillment_model' => $so->fulfillment_model,
-                'delivery_fee' => $display['customer_display_cents'] ?? $so->shipping,
+                'delivery_fee' => $display['customer_display'] ?? $so->shipping,
                 'delivery_label_en' => $display['subsidy_label_en'] ?? null,
                 'delivery_label_ar' => $display['subsidy_label_ar'] ?? null,
-                'is_free_delivery' => $display ? $display['customer_display_cents'] === 0 : false,
+                'is_free_delivery' => $display ? $display['customer_display'] === 0 : false,
                 'items' => $so->items->map(fn (OrderItem $item) => [
                     'listing_ref' => $item->vendorListing
                         ? $this->listingIdentifierService->buildListingRef($item->vendorListing)
@@ -715,7 +715,7 @@ class CheckoutController extends Controller
                     'sku' => $item->sku,
                     'name_en' => $item->product_snapshot['name_en'] ?? null,
                     'quantity' => $item->quantity,
-                    'unit_price_cents' => $item->unit_price,
+                    'unit_price' => $item->unit_price,
                     'line_total' => $item->line_total,
                 ]),
                 ];
@@ -776,17 +776,17 @@ class CheckoutController extends Controller
                 $country->currency_code
             );
 
-            $aggregateCustomerDisplayCents += $display['customer_display_cents'];
+            $aggregateCustomerDisplayCents += $display['customer_display'];
 
             // Customer-safe subset only — admin_subsidy / vendor_deduction
             // are internal ledger figures and must never reach the customer API response.
             $vendorDelivery[] = [
                 'vendor_id' => $vendorId,
                 'display_mode' => $display['display_mode'],
-                'delivery_fee' => $display['customer_display_cents'],
+                'delivery_fee' => $display['customer_display'],
                 'delivery_label_en' => $display['subsidy_label_en'],
                 'delivery_label_ar' => $display['subsidy_label_ar'],
-                'is_free_delivery' => $display['customer_display_cents'] === 0,
+                'is_free_delivery' => $display['customer_display'] === 0,
             ];
         }
 

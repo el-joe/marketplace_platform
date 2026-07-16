@@ -151,8 +151,8 @@
                 <div>
                     <dt class="text-gray-400">{{ __('admin.marketers.budget') }}</dt>
                     <dd class="font-medium text-gray-800">
-                        @if ($campaign->budget_cents)
-                            {{ number_format($campaign->budget_cents / 100, 2) }} {{ $campaign->vendor?->country?->currency_code ?? '' }}
+                        @if ($campaign->budget)
+                            {{ number_format($campaign->budget, 2) }} {{ $campaign->vendor?->country?->currency_code ?? '' }}
                         @else
                             {{ __('admin.marketers.unlimited') }}
                         @endif
@@ -196,7 +196,7 @@
                     <p class="text-xs text-gray-400 mt-1">{{ __('admin.marketers.conversions') }}</p>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-4">
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($campaign->total_revenue_cents / 100, 2) }}</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($campaign->total_revenue, 2) }}</p>
                     <p class="text-xs text-gray-400 mt-1">{{ __('admin.marketers.revenue') }} ({{ $campaign->vendor?->country?->currency_code ?? '' }})</p>
                 </div>
             </div>

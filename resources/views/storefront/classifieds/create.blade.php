@@ -99,7 +99,7 @@
                         <input type="number" name="price_display" min="0" step="0.01" required
                                placeholder="0.00"
                                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary-500">
-                        <input type="hidden" name="price_cents" id="price_cents_input">
+                        <input type="hidden" name="price" id="price_input">
                     </div>
                     <div class="w-24">
                         <label class="block text-sm font-medium text-gray-700 mb-1">العملة</label>
@@ -304,7 +304,7 @@ function validateStep(n) {
         const te = document.querySelector('[name=title_en]').value.trim();
         const pd = document.querySelector('[name=price_display]').value;
         if (!ta || !te || !pd) { alert('يرجى ملء الحقول المطلوبة'); return false; }
-        document.getElementById('price_cents_input').value = Math.round(parseFloat(pd) * 100);
+        document.getElementById('price_input').value = Math.round(parseFloat(pd) * 100);
     }
     return true;
 }

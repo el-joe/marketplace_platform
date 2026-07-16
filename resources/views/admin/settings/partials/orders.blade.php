@@ -11,7 +11,7 @@
                 'cart_expiry_days_guest',
                 'cart_expiry_days_customer',
                 'checkout_lock_minutes',
-                'min_order_amount_cents',
+                'min_order_amount',
                 'cod_fee_flat',
                 'max_order_quantity_per_item',
                 'order_cancellation_window_hours',

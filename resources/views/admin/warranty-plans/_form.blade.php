@@ -24,7 +24,7 @@
 @endphp
 
 <div class="space-y-6" x-data="{
-        priceCents: {{ (int) $val('price_cents', 0) }},
+        priceCents: {{ (int) $val('price', 0) }},
         currency: '{{ $val('currency', 'AED') }}',
         featuresEn: {{ json_encode(array_values($featuresEn) ?: ['']) }},
         featuresAr: {{ json_encode(array_values($featuresAr) ?: ['']) }},
@@ -189,15 +189,15 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="price_cents" class="block text-xs font-medium text-gray-700 mb-1">
-                                {{ __('admin.warranty_plans.price_cents') }} <span class="text-red-500">*</span>
+                            <label for="price" class="block text-xs font-medium text-gray-700 mb-1">
+                                {{ __('admin.warranty_plans.price') }} <span class="text-red-500">*</span>
                             </label>
-                            <input type="number" id="price_cents" name="price_cents" x-model.number="priceCents"
-                                min="1" class="input w-full @error('price_cents') border-red-400 @enderror" required>
+                            <input type="number" id="price" name="price" x-model.number="priceCents"
+                                min="1" class="input w-full @error('price') border-red-400 @enderror" required>
                             <p class="text-xs text-gray-500 mt-1">
-                                ≈ <span x-text="(priceCents / 100).toFixed(2)"></span> <span x-text="currency"></span>
+                                ≈ <span x-text="(priceCents).toFixed(2)"></span> <span x-text="currency"></span>
                             </p>
-                            @error('price_cents') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <div>

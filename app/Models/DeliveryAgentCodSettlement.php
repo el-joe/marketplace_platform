@@ -29,7 +29,7 @@ class DeliveryAgentCodSettlement extends Model
         'discrepancy_resolution',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'period_start'               => 'date',
         'period_end'                 => 'date',

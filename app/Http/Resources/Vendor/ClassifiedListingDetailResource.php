@@ -18,7 +18,7 @@ class ClassifiedListingDetailResource extends JsonResource
             'description_en'          => $this->description_en,
             'description_ar'          => $this->description_ar,
             'listing_purpose'         => $this->listing_purpose,
-            'price_cents'             => $this->price,
+            'price'             => $this->price,
             'currency'                => $this->currency,
             'price_negotiable'        => $this->price_negotiable,
             'attributes'              => $this->attributes,

@@ -24,7 +24,7 @@ class AssignmentDetailResource extends JsonResource
             'customer_rating' => $this->customer_rating,
             'agent_notes'    => $this->agent_notes,
             'proof_file_id'  => $this->proof_file_id,
-            'cod_amount_collected_cents' => $this->cod_amount_collected,
+            'cod_amount_collected' => $this->cod_amount_collected,
             'assigned_at'    => $this->assigned_at?->toIso8601String(),
             'accepted_at'    => $this->accepted_at?->toIso8601String(),
             'picked_up_at'   => $this->picked_up_at?->toIso8601String(),
@@ -37,7 +37,7 @@ class AssignmentDetailResource extends JsonResource
             'otp_attempts'   => $this->otp_attempts,
             'otp_locked'     => $this->otp_attempts >= 3 && ! $this->otp_verified,
 
-            'cod_amount_due_cents' => $isCod ? $order->total : null,
+            'cod_amount_due' => $isCod ? $order->total : null,
 
             'pickup_location' => [
                 'latitude'  => $this->pickup_latitude,

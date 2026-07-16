@@ -107,7 +107,7 @@ return [
         'travel_city_placeholder' => '-- اختر الدولة أولاً --',
         'duration_days' => 'عدد الأيام',
         'duration_nights' => 'عدد الليالي',
-        'price_cents' => 'السعر (فلس/هللة)',
+        'price' => 'السعر (فلس/هللة)',
         'pricing_seats' => 'السعر والمقاعد',
         'currency' => 'العملة',
         'currency_placeholder' => '-- اختر العملة --',

@@ -49,14 +49,14 @@
                             <td colspan="4" class="td text-end font-semibold text-gray-700">{{ __('admin.packaging_supplies.total') }}</td>
                             <td class="td text-end font-bold text-gray-900">{{ $req->total_cost_formatted }}</td>
                         </tr>
-                        @if(isset($req->delivery_fee_cents))
+                        @if(isset($req->delivery_fee))
                             <tr>
                                 <td colspan="4" class="td text-end font-medium text-gray-600">{{ __('admin.packaging_supplies.delivery_fee') }}</td>
-                                <td class="td text-end font-medium text-gray-900">{{ number_format($req->delivery_fee_cents / 100, 2) }}</td>
+                                <td class="td text-end font-medium text-gray-900">{{ number_format($req->delivery_fee, 2) }}</td>
                             </tr>
                             <tr>
                                 <td colspan="4" class="td text-end font-semibold text-gray-700">{{ __('admin.packaging_supplies.grand_total') }}</td>
-                                <td class="td text-end font-bold text-gray-900">{{ number_format(($req->total_cost_cents + $req->delivery_fee_cents) / 100, 2) }}</td>
+                                <td class="td text-end font-bold text-gray-900">{{ number_format($req->total_cost + $req->delivery_fee, 2) }}</td>
                             </tr>
                         @endif
                     </tbody>

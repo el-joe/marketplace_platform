@@ -59,7 +59,7 @@
                             {{-- Combined summary --}}
                             @php
                                 $totalQty   = $req->items->sum('quantity');
-                                $totalCost  = $req->items->sum('sample_cost_cents');
+                                $totalCost  = $req->items->sum('sample_cost');
                                 $itemCount  = $req->items->count();
                             @endphp
                             <p class="text-sm font-medium text-gray-800 mt-2">

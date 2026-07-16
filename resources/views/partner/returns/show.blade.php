@@ -161,7 +161,7 @@
         @endif
 
         {{-- Liability + refund (shown only when final) --}}
-        @if($isFinal && ($return->liability || $return->refund_amount_cents))
+        @if($isFinal && ($return->liability || $return->refund_amount))
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
                 <h2 class="text-sm font-semibold text-gray-700 mb-4">{{ __('partner.returns.final_decision') }}</h2>
                 <dl class="grid grid-cols-2 gap-4 text-sm">
@@ -171,10 +171,10 @@
                             <dd class="font-medium text-gray-800">{{ $liabilityMap[$return->liability->value] ?? $return->liability->value }}</dd>
                         </div>
                     @endif
-                    @if($return->refund_amount_cents)
+                    @if($return->refund_amount)
                         <div>
                             <dt class="text-xs text-gray-400 mb-0.5">{{ __('partner.returns.refund_amount') }}</dt>
-                            <dd class="font-bold text-green-700">{{ number_format($return->refund_amount_cents / 100, 2) }}</dd>
+                            <dd class="font-bold text-green-700">{{ number_format($return->refund_amount / 100, 2) }}</dd>
                         </div>
                     @endif
                 </dl>

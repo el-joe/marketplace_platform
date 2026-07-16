@@ -74,7 +74,7 @@
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.ad_slots.base_rate_usd') }} <span class="text-red-500">*</span></label>
             @php
-                $baseRateDisplay = $adSlot?->base_rate_cents ? number_format($adSlot->base_rate_cents / 100, 2) : old('base_rate_display');
+                $baseRateDisplay = $adSlot?->base_rate ? number_format($adSlot->base_rate, 2) : old('base_rate_display');
             @endphp
             <input
                 type="number"

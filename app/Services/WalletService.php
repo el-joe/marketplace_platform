@@ -181,7 +181,7 @@ class WalletService
             ->where('delivery_assignments.status', DeliveryAssignmentStatus::Delivered->value)
             ->where('orders.payment_method', 'cod')
             ->whereBetween('delivery_assignments.delivered_at', [$periodStart . ' 00:00:00', $periodEnd . ' 23:59:59'])
-            ->sum('orders.total_cents');
+            ->sum('orders.total');
 
         // Sum approved earnings owed to this agent in the period
         $earningsOwed = DeliveryAgentEarning::where('agent_id', $agent->id)

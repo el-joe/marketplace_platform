@@ -26,9 +26,9 @@ class CartItemResource extends JsonResource
             'name'               => $product ? Bilingual::pair($product, 'name') : ['ar' => null, 'en' => null],
             'thumbnail'          => $product?->images?->firstWhere('is_primary', true)?->url
                                         ?? $product?->images?->first()?->url,
-            'unit_price_cents'   => $this->unit_price,
+            'unit_price'   => $this->unit_price,
             'quantity'           => $this->quantity,
-            'line_total_cents'   => $this->unit_price * $this->quantity,
+            'line_total'   => $this->unit_price * $this->quantity,
             'max_order_quantity' => $listing?->max_order_quantity,
             'vendor'             => $listing?->vendor ? [
                 'id'         => $listing->vendor->id,

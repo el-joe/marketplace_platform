@@ -20,7 +20,7 @@ class WarrantyPurchaseResource extends JsonResource
             'status' => $this->status,
             'coverage_starts_at' => $this->coverage_starts_at?->toDateString(),
             'coverage_ends_at' => $this->coverage_ends_at?->toDateString(),
-            'price_paid_cents' => $this->price_paid,
+            'price_paid' => $this->price_paid,
             'currency' => $this->currency,
             'plan' => [
                 'name' => $locale === 'ar'

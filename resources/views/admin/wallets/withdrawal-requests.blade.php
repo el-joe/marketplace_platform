@@ -50,7 +50,7 @@
                         </td>
                         <td class="px-4 py-3 text-gray-700">{{ $wr->bank_name ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ $wr->bank_iban ?? '—' }}</td>
-                        <td class="px-4 py-3 text-end font-semibold text-gray-900">{{ number_format($wr->amount_cents / 100, 2) }} {{ $wr->currency }}</td>
+                        <td class="px-4 py-3 text-end font-semibold text-gray-900">{{ number_format($wr->amount, 2) }} {{ $wr->currency }}</td>
                         <td class="px-4 py-3 text-center">
                             @php $colors = ['pending'=>'bg-yellow-100 text-yellow-700','approved'=>'bg-blue-100 text-blue-700','processed'=>'bg-green-100 text-green-700','rejected'=>'bg-red-100 text-red-700']; $wrStatus = $wr->status->value; @endphp
                             <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$wrStatus] ?? '' }}">{{ __('admin.wallets.' . $wrStatus) }}</span>

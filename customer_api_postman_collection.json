@@ -812,7 +812,7 @@
             "description": "Places the order (creates order + sub-orders, charges payment if applicable). Rate limited (5 req/min).\n\nBody params:\n- `address_id` (integer, required, must exist in addresses).\n- `shipping_method_id` (uuid, required, must exist in shipping_methods).\n- `payment_method` (string, required) — Enum. Values: card, wallet, cod, bnpl, bank_transfer.\n- `coupon_code` (string, nullable, max:50).\n- `customer_notes` (string, nullable, max:500).\n- `idempotency_key` (string, required, max:100) — client-generated key to prevent duplicate order placement.\n- `gateway_token` (string, required only if `payment_method` = card) — tokenized payment method from the gateway SDK.\n- `gateway` (string, required only if `payment_method` = card) — Enum. Values: thawani, stripe, tap."
           },
           "response": [
-            { "name": "201 Created - Success", "code": 201, "status": "Created", "body": "{\n  \"success\": true,\n  \"message\": \"Order placed successfully\",\n  \"data\": {\n    \"order_number\": \"ORD-000123\",\n    \"status\": \"placed\",\n    \"payment_status\": \"paid\",\n    \"total_cents\": 9000,\n    \"currency\": \"SAR\",\n    \"placed_at\": \"2026-07-13T12:00:00Z\",\n    \"sub_orders\": [\n      {\n        \"sub_order_number\": \"SO-000123-1\",\n        \"vendor\": { \"id\": \"uuid\", \"name\": \"Acme Store\" },\n        \"status\": \"placed\",\n        \"fulfillment_model\": \"fbm\",\n        \"items\": [\n          { \"listing_ref\": \"LST-0001\", \"sku\": \"SKU-001\", \"name_en\": \"iPhone 15\", \"quantity\": 1, \"unit_price_cents\": 9000, \"line_total_cents\": 9000 }\n        ]\n      }\n    ]\n  }\n}" },
+            { "name": "201 Created - Success", "code": 201, "status": "Created", "body": "{\n  \"success\": true,\n  \"message\": \"Order placed successfully\",\n  \"data\": {\n    \"order_number\": \"ORD-000123\",\n    \"status\": \"placed\",\n    \"payment_status\": \"paid\",\n    \"total_cents\": 9000,\n    \"currency\": \"SAR\",\n    \"placed_at\": \"2026-07-13T12:00:00Z\",\n    \"sub_orders\": [\n      {\n        \"sub_order_number\": \"SO-000123-1\",\n        \"vendor\": { \"id\": \"uuid\", \"name\": \"Acme Store\" },\n        \"status\": \"placed\",\n        \"fulfillment_model\": \"fbm\",\n        \"items\": [\n          { \"listing_ref\": \"LST-0001\", \"sku\": \"SKU-001\", \"name_en\": \"iPhone 15\", \"quantity\": 1, \"unit_price_cents\": 9000, \"line_total\": 9000 }\n        ]\n      }\n    ]\n  }\n}" },
             { "name": "409 Conflict - Duplicate order for this idempotency_key", "code": 409, "status": "Conflict", "body": "{\n  \"success\": false,\n  \"message\": \"An order has already been placed with this idempotency key\"\n}" },
             { "name": "422 Unprocessable Entity - Cart/stock/address/coupon error or validation error", "code": 422, "status": "Unprocessable Entity", "body": "{\n  \"success\": false,\n  \"message\": \"One or more items are no longer in stock\"\n}" },
             { "name": "429 Too Many Requests", "code": 429, "status": "Too Many Requests", "body": "{\n  \"message\": \"Too Many Attempts.\"\n}" }
@@ -1041,7 +1041,7 @@
         },
         { "name": "Get Refund Detail", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/customer/v1/{{country}}/refunds/:id", "host": ["{{base_url}}"], "path": ["api","customer","v1","{{country}}","refunds",":id"], "variable": [ { "key": "id", "value": "refund-id" } ] }, "description": "Returns detail of a specific refund." },
           "response": [
-            { "name": "200 OK - Success", "code": 200, "status": "OK", "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"refund-id\", \"status\": \"processed\", \"amount_cents\": 9000, \"currency\": \"SAR\" }\n}" },
+            { "name": "200 OK - Success", "code": 200, "status": "OK", "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"refund-id\", \"status\": \"processed\", \"amount\": 9000, \"currency\": \"SAR\" }\n}" },
             { "name": "404 Not Found - Refund not found", "code": 404, "status": "Not Found", "body": "{\n  \"success\": false,\n  \"message\": \"Refund not found\"\n}" }
           ]
         }
@@ -1157,7 +1157,7 @@
                 { "key": "title_ar", "value": "تويوتا كامري 2020", "type": "text", "description": "string, required, max:255" },
                 { "key": "description_en", "value": "Well maintained, single owner.", "type": "text", "description": "string, nullable" },
                 { "key": "description_ar", "value": "بحالة جيدة جدا، مالك واحد.", "type": "text", "description": "string, nullable" },
-                { "key": "price_cents", "value": "5000000", "type": "text", "description": "integer, required, >= 0" },
+                { "key": "price", "value": "5000000", "type": "text", "description": "integer, required, >= 0" },
                 { "key": "currency", "value": "SAR", "type": "text", "description": "string, required, size:3 (ISO currency code)" },
                 { "key": "price_negotiable", "value": "true", "type": "text", "description": "boolean, optional" },
                 { "key": "attributes", "value": "{}", "type": "text", "description": "array/object, nullable — category-specific attribute key/values (send as JSON)" },
@@ -1168,7 +1168,7 @@
                 { "key": "attachments[]", "type": "file", "description": "file, nullable, max 20480KB each", "src": [] }
               ]
             },
-            "description": "Creates a new classified listing (customer acting as seller).\n\nBody params (multipart/form-data):\n- `classified_category_id` (integer, required, must exist).\n- `country_id` (integer, required, must exist).\n- `city_id` (integer, nullable, must exist).\n- `listing_purpose` (string, required) — Enum. Values: sale, rent.\n- `title_en` (string, required, max:255).\n- `title_ar` (string, required, max:255).\n- `description_en` (string, nullable).\n- `description_ar` (string, nullable).\n- `price_cents` (integer, required, >= 0).\n- `currency` (string, required, size:3).\n- `price_negotiable` (boolean, optional).\n- `attributes` (array, nullable) — category-specific attribute values.\n- `latitude` (numeric, nullable, -90..90).\n- `longitude` (numeric, nullable, -180..180).\n- `images` (array, required, min:1 file) — listing photos.\n- `sketch_file` (file, nullable, max:20480KB).\n- `attachments` (array of files, nullable, max:20480KB each)."
+            "description": "Creates a new classified listing (customer acting as seller).\n\nBody params (multipart/form-data):\n- `classified_category_id` (integer, required, must exist).\n- `country_id` (integer, required, must exist).\n- `city_id` (integer, nullable, must exist).\n- `listing_purpose` (string, required) — Enum. Values: sale, rent.\n- `title_en` (string, required, max:255).\n- `title_ar` (string, required, max:255).\n- `description_en` (string, nullable).\n- `description_ar` (string, nullable).\n- `price` (integer, required, >= 0).\n- `currency` (string, required, size:3).\n- `price_negotiable` (boolean, optional).\n- `attributes` (array, nullable) — category-specific attribute values.\n- `latitude` (numeric, nullable, -90..90).\n- `longitude` (numeric, nullable, -180..180).\n- `images` (array, required, min:1 file) — listing photos.\n- `sketch_file` (file, nullable, max:20480KB).\n- `attachments` (array of files, nullable, max:20480KB each)."
           },
           "response": [
             { "name": "201 Created - Success", "code": 201, "status": "Created", "body": "{\n  \"success\": true,\n  \"message\": \"Listing created\",\n  \"data\": { \"listing_number\": \"CL-1001\", \"status\": \"pending_review\" }\n}" },
@@ -1191,7 +1191,7 @@
               "mode": "formdata",
               "formdata": [
                 { "key": "title_en", "value": "2020 Toyota Camry - Price Reduced", "type": "text", "description": "string, optional (sometimes), max:255" },
-                { "key": "price_cents", "value": "4800000", "type": "text", "description": "integer, optional (sometimes), >= 0" }
+                { "key": "price", "value": "4800000", "type": "text", "description": "integer, optional (sometimes), >= 0" }
               ]
             },
             "description": "Updates one of the customer's own classified listings. Only editable while status is `draft` or `rejected`. Same fields as Create, but all are optional (`sometimes` rule)."
@@ -1303,7 +1303,7 @@
             "description": "Books a travel package for the given number of travelers.\n\nBody params (multipart/form-data):\n- `travelers_count` (integer, required, range 1-50).\n- `passport_file` (file, nullable, mimes: pdf, jpg, jpeg, png, max:10240KB)."
           },
           "response": [
-            { "name": "201 Created - Success", "code": 201, "status": "Created", "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"booking-uuid\", \"booking_number\": \"TB-000001\", \"status\": \"pending_documents\", \"travelers_count\": 2, \"total_price_cents\": 400000, \"currency\": \"SAR\", \"created_at\": \"2026-07-13T12:00:00Z\", \"message\": \"Booking created, please sign the contract to confirm\" }\n}" },
+            { "name": "201 Created - Success", "code": 201, "status": "Created", "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"booking-uuid\", \"booking_number\": \"TB-000001\", \"status\": \"pending_documents\", \"travelers_count\": 2, \"total_price\": 400000, \"currency\": \"SAR\", \"created_at\": \"2026-07-13T12:00:00Z\", \"message\": \"Booking created, please sign the contract to confirm\" }\n}" },
             { "name": "404 Not Found - Package not found or inactive", "code": 404, "status": "Not Found", "body": "{\n  \"success\": false,\n  \"message\": \"Travel package not found\"\n}" },
             { "name": "422 Unprocessable Entity - Validation error", "code": 422, "status": "Unprocessable Entity", "body": "{\n  \"message\": \"The travelers count field is required.\",\n  \"errors\": { \"travelers_count\": [\"The travelers count must be between 1 and 50.\"] }\n}" }
           ]

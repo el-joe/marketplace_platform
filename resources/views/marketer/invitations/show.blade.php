@@ -235,11 +235,11 @@ textarea.note-input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 
 @endif
 
 {{-- Budget info --}}
-@if($offer?->budget_per_marketer_cents)
+@if($offer?->budget_per_marketer)
     <div class="section-card">
         <h3>{{ __('marketer.invitations.budget') }}</h3>
         <p class="text-sm text-gray-700">
-            {{ __('marketer.invitations.your_campaign_budget', ['amount' => '']) }}<strong>{{ number_format($offer->budget_per_marketer_cents / 100, 2) }}</strong>
+            {{ __('marketer.invitations.your_campaign_budget', ['amount' => '']) }}<strong>{{ number_format($offer->budget_per_marketer, 2) }}</strong>
         </p>
     </div>
 @endif

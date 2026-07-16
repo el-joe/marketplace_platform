@@ -66,7 +66,7 @@
                         </div>
                         <div class="text-center">
                             <p class="text-base font-bold text-green-600">
-                                {{ number_format($campaign->total_revenue_cents / 100, 2) }}</p>
+                                {{ number_format($campaign->total_revenue, 2) }}</p>
                             <p class="text-xs text-gray-400">{{ $marketer->country?->currency_code ?? '' }}</p>
                         </div>
                     </div>

@@ -155,16 +155,16 @@ function initMethodModal() {
         $form.find('[name="fee_pct"]').val(row.fee_pct ?? '');
 
         // Cents → display
-        const feeFixed = row.fee_fixed_cents ? (row.fee_fixed_cents / 100).toFixed(2) : '';
-        const minOrder = row.min_order_cents ? (row.min_order_cents / 100).toFixed(2) : '';
-        const maxOrder = row.max_order_cents ? (row.max_order_cents / 100).toFixed(2) : '';
+        const feeFixed = row.fee_fixed ? (row.fee_fixed / 100).toFixed(2) : '';
+        const minOrder = row.min_order ? (row.min_order / 100).toFixed(2) : '';
+        const maxOrder = row.max_order ? (row.max_order / 100).toFixed(2) : '';
 
         $('#fee_fixed_display').val(feeFixed);
-        $('#fee_fixed_cents').val(row.fee_fixed_cents ?? '');
+        $('#fee_fixed').val(row.fee_fixed ?? '');
         $('#min_order_display').val(minOrder);
-        $('#min_order_cents').val(row.min_order_cents ?? '');
+        $('#min_order').val(row.min_order ?? '');
         $('#max_order_display').val(maxOrder);
-        $('#max_order_cents').val(row.max_order_cents ?? '');
+        $('#max_order').val(row.max_order ?? '');
 
         // Toggle (Alpine)
         const $toggle = $form.find('[name="is_active"]');
@@ -190,9 +190,9 @@ function initMethodModal() {
             display_name_en: $form.find('[name="display_name_en"]').val(),
             display_name_ar: $form.find('[name="display_name_ar"]').val() || null,
             fee_pct: $form.find('[name="fee_pct"]').val() || null,
-            fee_fixed_cents: parseInt($('#fee_fixed_cents').val()) || 0,
-            min_order_cents: parseInt($('#min_order_cents').val()) || null,
-            max_order_cents: parseInt($('#max_order_cents').val()) || null,
+            fee_fixed: parseInt($('#fee_fixed').val()) || 0,
+            min_order: parseInt($('#min_order').val()) || null,
+            max_order: parseInt($('#max_order').val()) || null,
             is_active: $form.find('[name="is_active"]').is(':checked') ? 1 : 0,
         };
 
@@ -242,9 +242,9 @@ function initDeleteMethod() {
 // ─── Cents sync ───────────────────────────────────────────────────────────────
 
 function initCentsSync() {
-    syncCentsField('fee_fixed_display', 'fee_fixed_cents');
-    syncCentsField('min_order_display', 'min_order_cents');
-    syncCentsField('max_order_display', 'max_order_cents');
+    syncCentsField('fee_fixed_display', 'fee_fixed');
+    syncCentsField('min_order_display', 'min_order');
+    syncCentsField('max_order_display', 'max_order');
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────

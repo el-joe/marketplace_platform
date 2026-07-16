@@ -100,7 +100,7 @@
                 <div class="flex justify-between border-t pt-2">
                     <dt class="text-gray-700 font-semibold">Extra Fee for this Weight</dt>
                     <dd class="font-bold text-gray-900"
-                        x-text="result?.slab_extra_fee_cents > 0 ? (result.currency + ' ' + formatCents(result.slab_extra_fee_cents)) : 'Included in base rate'"></dd>
+                        x-text="result?.slab_extra_fee > 0 ? (result.currency + ' ' + formatAmount(result.slab_extra_fee)) : 'Included in base rate'"></dd>
                 </div>
             </dl>
 
@@ -133,7 +133,7 @@
                                         &ndash;
                                         {{ $slab->max_weight_grams !== null ? rtrim(rtrim(number_format($slab->max_weight_grams / 1000, 2), '0'), '.') . ' kg' : '+' }}
                                     </td>
-                                    <td class="py-2 pr-4 text-gray-700">{{ $currency }} {{ number_format($slab->extra_fee_cents / 100, 2) }}</td>
+                                    <td class="py-2 pr-4 text-gray-700">{{ $currency }} {{ number_format($slab->extra_fee / 100, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -174,9 +174,9 @@ function weightCalculator() {
                 && f.actual_weight_kg > 0 && f.shipping_method_id;
         },
 
-        formatCents(cents) {
-            if (cents === undefined || cents === null) return '0.00';
-            return (cents / 100).toFixed(2);
+        formatAmount(amount) {
+            if (amount === undefined || amount === null) return '0.00';
+            return (amount / 100).toFixed(2);
         },
 
         calculate() {

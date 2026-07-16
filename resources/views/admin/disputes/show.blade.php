@@ -22,8 +22,8 @@
         $statusLabel = __('admin.disputes_section.' . $dispute->status->value);
         $isClosed = in_array($dispute->status->value, ['resolved', 'closed'], true);
         $currency = $dispute->order->currency ?? 'USD';
-        $compensation = $dispute->compensation_cents
-            ? number_format($dispute->compensation_cents / 100, 2)
+        $compensation = $dispute->compensation
+            ? number_format($dispute->compensation, 2)
             : null;
     @endphp
 

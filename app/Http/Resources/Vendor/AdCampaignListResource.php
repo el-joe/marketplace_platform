@@ -31,7 +31,7 @@ class AdCampaignListResource extends JsonResource
             // today at-a-glance
             'today_impressions'   => $today?->impressions ?? 0,
             'today_clicks'        => $today?->clicks ?? 0,
-            'today_spend_cents'   => $today?->spend ?? 0,
+            'today_spend'         => $today?->spend ?? 0,
             'today_ctr'           => $today ? (float) $today->ctr : null,
         ];
     }
