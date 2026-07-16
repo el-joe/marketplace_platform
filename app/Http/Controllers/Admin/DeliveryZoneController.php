@@ -49,8 +49,8 @@ class DeliveryZoneController extends Controller
             'code' => ['required', 'string', 'max:20', 'unique:delivery_zones,code', 'regex:/^[A-Z0-9_-]+$/'],
             'city_ids' => ['nullable', 'array'],
             'city_ids.*' => ['exists:cities,id'],
-            'base_delivery_fee_cents' => ['required', 'integer', 'min:0'],
-            'cod_fee_cents' => ['required', 'integer', 'min:0'],
+            'base_delivery_fee' => ['required', 'integer', 'min:0'],
+            'cod_fee' => ['required', 'integer', 'min:0'],
             'max_active_agents' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],
         ]);
@@ -83,8 +83,8 @@ class DeliveryZoneController extends Controller
             'code' => ['required', 'string', 'max:20', 'unique:delivery_zones,code,' . $zone->id, 'regex:/^[A-Z0-9_-]+$/'],
             'city_ids' => ['nullable', 'array'],
             'city_ids.*' => ['exists:cities,id'],
-            'base_delivery_fee_cents' => ['required', 'integer', 'min:0'],
-            'cod_fee_cents' => ['required', 'integer', 'min:0'],
+            'base_delivery_fee' => ['required', 'integer', 'min:0'],
+            'cod_fee' => ['required', 'integer', 'min:0'],
             'max_active_agents' => ['nullable', 'integer', 'min:1'],
             'is_active' => ['boolean'],
         ]);

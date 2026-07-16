@@ -15,8 +15,8 @@ class AdminProductListing extends Model
     protected $fillable = [
         'product_variant_id',
         'country_id',
-        'price_cents',
-        'cost_price_cents',
+        'price',
+        'cost_price',
         'commission_type',
         'commission_value',
         'currency',
@@ -24,7 +24,7 @@ class AdminProductListing extends Model
         'fulfillment_type',
         'featured_in_nawy',
         'nawy_category_id',
-        'shipping_cost_cents',
+        'shipping_cost',
         'is_exclusive',
         'status',
         'available_for_vendors',
@@ -34,10 +34,11 @@ class AdminProductListing extends Model
         'rating_count',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
-        'price_cents'        => 'integer',
-        'cost_price_cents'   => 'integer',
-        'shipping_cost_cents'=> 'integer',
+        'price'        => 'integer',
+        'cost_price'   => 'integer',
+        'shipping_cost'=> 'integer',
         'commission_value'   => 'decimal:2',
         'is_exclusive'       => 'boolean',
         'featured_in_nawy'   => 'boolean',
@@ -72,7 +73,7 @@ class AdminProductListing extends Model
     /** Price in major currency unit (for display). */
     public function getPriceAttribute(): float
     {
-        return $this->price_cents / 100;
+        return $this->price / 100;
     }
 
     /** Whether COD is an allowed payment method for this listing. */

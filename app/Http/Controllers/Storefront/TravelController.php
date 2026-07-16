@@ -27,7 +27,7 @@ class TravelController extends Controller
             ->when($request->input('city'), fn($q, $v) => $q->where('destination_city', 'like', "%{$v}%"))
             ->when($request->input('departure_from'), fn($q, $v) => $q->whereDate('departure_date', '>=', $v))
             ->when($request->input('departure_to'), fn($q, $v) => $q->whereDate('departure_date', '<=', $v))
-            ->when($request->input('max_price'), fn($q, $v) => $q->where('price_cents', '<=', (int) $v * 100))
+            ->when($request->input('max_price'), fn($q, $v) => $q->where('price', '<=', (int) $v * 100))
             ->when($request->input('min_days'), fn($q, $v) => $q->where('duration_days', '>=', (int) $v));
 
         $packages = $query->orderBy('departure_date')->paginate(16)->withQueryString();
@@ -104,7 +104,7 @@ class TravelController extends Controller
                 'travel_package_id'       => $pkg->id,
                 'customer_id'             => Auth::guard('web')->id(),
                 'travelers_count'         => $count,
-                'total_price_cents'       => $pkg->price_cents * $count,
+                'total_price'       => $pkg->price * $count,
                 'passport_file_path'      => $passportPath,
                 'contract_signed_at'      => now(),
                 'contract_signature_data' => $request->input('contract_signature_data'),

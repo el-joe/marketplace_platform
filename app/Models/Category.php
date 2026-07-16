@@ -43,9 +43,9 @@ class Category extends Model
         'description_en',
         'commission_rate',
         'commission_fbp_pct',
-        'commission_fbp_fixed_cents',
+        'commission_fbp_fixed',
         'commission_fbn_pct',
-        'commission_fbn_fixed_cents',
+        'commission_fbn_fixed',
         'sort_order',
         'nawy_sort_order',
         'nawy_icon_path',
@@ -62,12 +62,13 @@ class Category extends Model
         'seo_description_en',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'commission_rate' => 'decimal:2',
         'commission_fbp_pct' => 'decimal:2',
-        'commission_fbp_fixed_cents' => 'integer',
+        'commission_fbp_fixed' => 'integer',
         'commission_fbn_pct' => 'decimal:2',
-        'commission_fbn_fixed_cents' => 'integer',
+        'commission_fbn_fixed' => 'integer',
         'sort_order' => 'integer',
         'nawy_sort_order' => 'integer',
         'nawy_is_featured' => 'boolean',

@@ -18,7 +18,7 @@ class DisputeResource extends JsonResource
             'status'            => $this->status?->value,
             'resolution'        => $this->resolution?->value,
             'resolution_notes'  => $this->resolution_notes,
-            'compensation_cents' => $this->compensation_cents,
+            'compensation_cents' => $this->compensation,
             'resolved_at'       => $this->resolved_at?->toIso8601String(),
             'created_at'        => $this->created_at->toIso8601String(),
 

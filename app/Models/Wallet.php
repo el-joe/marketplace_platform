@@ -14,17 +14,18 @@ class Wallet extends Model
     protected $fillable = [
         'owner_type',
         'owner_id',
-        'balance_cents',
-        'pending_balance_cents',
+        'balance',
+        'pending_balance',
         'currency',
         'is_frozen',
         'frozen_reason',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'owner_type'            => WalletOwnerType::class,
-        'balance_cents'         => 'integer',
-        'pending_balance_cents' => 'integer',
+        'balance'         => 'integer',
+        'pending_balance' => 'integer',
         'is_frozen'             => 'boolean',
     ];
 
@@ -51,11 +52,11 @@ class Wallet extends Model
 
     public function getBalanceAttribute(): float
     {
-        return $this->balance_cents / 100;
+        return $this->balance / 100;
     }
 
     public function getPendingBalanceAttribute(): float
     {
-        return $this->pending_balance_cents / 100;
+        return $this->pending_balance / 100;
     }
 }

@@ -81,7 +81,7 @@ class ManualCarrier implements ShippingCarrierInterface
     public function calculateRate(array $from, array $to, int $weightGrams, array $dimensions = []): array
     {
         return [
-            'rate_cents' => 0,
+            'rate' => 0,
             'currency' => 'EGP',
             'estimated_days' => 5,
             'service_name' => 'Manual Fulfillment',

@@ -81,7 +81,7 @@ class ShippingPreferencesController extends Controller
                         'currency' => $zone->country->currency_code,
                         'is_exceptional' => in_array($zone->id, $exceptionalZoneIds, true),
                         'has_subsidy_config' => $setting !== null,
-                        'vendor_share_cents' => $setting?->vendor_share_cents ?? 0,
+                        'vendor_share' => $setting?->vendor_share ?? 0,
                     ];
                 });
             });
@@ -123,7 +123,7 @@ class ShippingPreferencesController extends Controller
         return response()->json([
             'success' => true,
             'is_now_exceptional' => $isNowExceptional,
-            'vendor_share_cents' => $setting?->vendor_share_cents ?? 0,
+            'vendor_share' => $setting?->vendor_share ?? 0,
             'currency' => $zone->country->currency_code,
         ]);
     }

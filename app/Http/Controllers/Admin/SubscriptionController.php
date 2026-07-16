@@ -50,7 +50,7 @@ class SubscriptionController extends Controller
             'name_ar' => 'required|string|max:150',
             'description_en' => 'nullable|string',
             'description_ar' => 'nullable|string',
-            'price_cents' => 'required|integer|min:0',
+            'price' => 'required|integer|min:0',
             'currency' => 'required|string|size:3',
             'billing_cycle' => ['required', Rule::in(['monthly', 'quarterly', 'annual'])],
             'max_listings' => 'nullable|integer|min:1',
@@ -77,7 +77,7 @@ class SubscriptionController extends Controller
             'name_ar' => 'required|string|max:150',
             'description_en' => 'nullable|string',
             'description_ar' => 'nullable|string',
-            'price_cents' => 'required|integer|min:0',
+            'price' => 'required|integer|min:0',
             'currency' => 'required|string|size:3',
             'billing_cycle' => ['required', Rule::in(['monthly', 'quarterly', 'annual'])],
             'max_listings' => 'nullable|integer|min:1',
@@ -132,11 +132,11 @@ class SubscriptionController extends Controller
             'mrr_cents' => VendorSubscription::with('plan')
                 ->where('status', VendorSubscriptionStatus::Active->value)
                 ->get()
-                ->sum(fn($s) => $s->plan?->price_cents ?? 0),
+                ->sum(fn($s) => $s->plan?->price ?? 0),
             'mrr_currency' => SubscriptionPlan::active()->value('currency') ?? '',
         ];
 
-        $plans = SubscriptionPlan::active()->ordered()->get(['id', 'name_en', 'name_ar', 'price_cents', 'currency']);
+        $plans = SubscriptionPlan::active()->ordered()->get(['id', 'name_en', 'name_ar', 'price', 'currency']);
 
         return view('admin.subscriptions.index', [
             'breadcrumbs' => [
@@ -262,8 +262,8 @@ class SubscriptionController extends Controller
             'total' => VendorSubscriptionInvoice::count(),
             'open' => VendorSubscriptionInvoice::where('status', 'open')->count(),
             'paid' => VendorSubscriptionInvoice::where('status', 'paid')->count(),
-            'paid_sum' => VendorSubscriptionInvoice::where('status', 'paid')->sum('amount_cents'),
-            'open_sum' => VendorSubscriptionInvoice::where('status', 'open')->sum('amount_cents'),
+            'paid_sum' => VendorSubscriptionInvoice::where('status', 'paid')->sum('amount'),
+            'open_sum' => VendorSubscriptionInvoice::where('status', 'open')->sum('amount'),
         ];
 
         return view('admin.subscriptions.invoices.index', [
@@ -282,7 +282,7 @@ class SubscriptionController extends Controller
             ['orderable_column' => 'vendor_subscription_invoices.invoice_number'],
             ['searchable_columns' => ['vendors.store_name']],
             ['orderable_column' => 'subscription_plans.name_en'],
-            ['orderable_column' => 'vendor_subscription_invoices.amount_cents'],
+            ['orderable_column' => 'vendor_subscription_invoices.amount'],
             ['orderable_column' => 'vendor_subscription_invoices.status'],
             ['orderable_column' => 'vendor_subscription_invoices.period_start'],
             ['orderable_column' => 'vendor_subscription_invoices.paid_at'],
@@ -321,7 +321,7 @@ class SubscriptionController extends Controller
                 '<span class="font-mono text-xs">' . e($row->invoice_number) . '</span>',
                 e($row->store_name),
                 e($row->plan_name_en),
-                number_format($row->amount_cents / 100, 2) . ' ' . $row->currency,
+                number_format($row->amount / 100, 2) . ' ' . $row->currency,
                 '<span class="badge badge-' . $sc . '">' . ucfirst($row->status->value) . '</span>',
                 $row->period_start,
                 $row->paid_at ?? '—',

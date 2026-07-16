@@ -145,7 +145,7 @@ class ListingDetailController extends Controller
             'listing_ref' => $this->identifiers->buildListingRef($listing),
             'vendor_sku' => $listing->vendor_sku,
             'sku' => $listing->productVariant->sku,
-            'price_cents' => $listing->price,
+            'price' => $listing->price,
             'price_formatted' => number_format($listing->price / 100, 2),
             'currency' => $country->currency_code,
             'condition' => $listing->condition,
@@ -300,7 +300,7 @@ class ListingDetailController extends Controller
             'listing_ref' => $this->identifiers->buildListingRef($listing),
             'seller_name' => $listing->vendor->store_name,
             'seller_rating' => $listing->vendor->store_rating_avg,
-            'price_cents' => $listing->price,
+            'price' => $listing->price,
             'price_formatted' => number_format($listing->price / 100, 2),
             'currency' => $country->currency_code,
             'condition' => $listing->condition,
@@ -323,7 +323,7 @@ class ListingDetailController extends Controller
             'listing_ref' => $this->identifiers->buildListingRef($listing),
             'sku' => $listing->productVariant->sku,
             'variant_name' => $listing->productVariant->variant_name,
-            'price_cents' => $listing->price,
+            'price' => $listing->price,
             'price_formatted' => number_format($listing->price / 100, 2),
             'currency' => $listing->currency,
             'is_admin_listing' => $listing->global_system_type === GlobalSystemType::ExpressFbn,
@@ -374,8 +374,8 @@ class ListingDetailController extends Controller
 
         return [
             'items' => $items->values()->all(),
-            'total_price_cents' => $items->sum('price_cents'),
-            'total_price_formatted' => number_format($items->sum('price_cents') / 100, 2),
+            'total_price' => $items->sum('price'),
+            'total_price_formatted' => number_format($items->sum('price') / 100, 2),
             'currency' => $country->currency_code,
         ];
     }
@@ -390,7 +390,7 @@ class ListingDetailController extends Controller
             'listing_ref' => $this->identifiers->buildListingRef($listing),
             'name' => Bilingual::pair($product, 'name'),
             'image_url' => $primaryImage?->url,
-            'price_cents' => $listing->price,
+            'price' => $listing->price,
             'price_formatted' => number_format($listing->price / 100, 2),
             'currency' => $country->currency_code,
         ];

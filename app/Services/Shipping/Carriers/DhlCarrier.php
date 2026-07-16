@@ -175,13 +175,13 @@ class DhlCarrier implements ShippingCarrierInterface
             $price = $body['products'][0]['totalPrice'][0] ?? null;
 
             return [
-                'rate_cents' => $price ? (int) ($price['price'] * 100) : 0,
+                'rate' => $price ? (int) ($price['price'] * 100) : 0,
                 'currency' => $price['priceCurrency'] ?? 'USD',
                 'estimated_days' => $body['products'][0]['deliveryCapabilities']['estimatedDeliveryDateAndTime'] ?? 3,
                 'service_name' => 'DHL Express',
             ];
         } catch (\Exception $e) {
-            return ['rate_cents' => 0, 'currency' => 'USD', 'estimated_days' => 0, 'service_name' => 'DHL'];
+            return ['rate' => 0, 'currency' => 'USD', 'estimated_days' => 0, 'service_name' => 'DHL'];
         }
     }
 

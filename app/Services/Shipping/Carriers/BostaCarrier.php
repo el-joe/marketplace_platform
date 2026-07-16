@@ -137,7 +137,7 @@ class BostaCarrier implements ShippingCarrierInterface
     {
         // Bosta does not expose a public rate-calculator endpoint
         return [
-            'rate_cents' => 0,
+            'rate' => 0,
             'currency' => 'EGP',
             'estimated_days' => 2,
             'service_name' => 'Bosta Standard',

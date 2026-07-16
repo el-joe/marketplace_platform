@@ -21,11 +21,12 @@ class AbTestResult extends Model
         'clicks',
         'add_to_cart_count',
         'orders',
-        'revenue_cents',
+        'revenue',
         'conversion_rate',
-        'revenue_per_visitor_cents',
+        'revenue_per_visitor',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'date' => 'date',
         'visitors' => 'integer',
@@ -33,9 +34,9 @@ class AbTestResult extends Model
         'clicks' => 'integer',
         'add_to_cart_count' => 'integer',
         'orders' => 'integer',
-        'revenue_cents' => 'integer',
+        'revenue' => 'integer',
         'conversion_rate' => 'decimal:4',
-        'revenue_per_visitor_cents' => 'integer',
+        'revenue_per_visitor' => 'integer',
     ];
 
     public function abTest(): BelongsTo

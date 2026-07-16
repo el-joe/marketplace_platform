@@ -41,7 +41,7 @@ class ReturnRequest extends Model
         'inspection_result',
         'inspection_notes',
         'liability',
-        'refund_amount_cents',
+        'refund_amount',
         'refund_id',
         'rejection_reason',
         'reviewed_by_admin_id',

@@ -44,7 +44,7 @@ class GenerateFbnStorageFeesJob implements ShouldQueue
                 'warehouse_inventories.id as inventory_id',
                 'warehouse_inventories.quantity_on_hand',
                 'vendor_listings.vendor_id',
-                'warehouses.storage_rate_per_m3_price as rate_per_unit_cents',
+                'warehouses.storage_rate_per_m3_price as rate_per_unit',
                 'warehouses.storage_currency as currency',
             ])
             ->join('vendor_listings', 'vendor_listings.id', '=', 'warehouse_inventories.vendor_listing_id')
@@ -58,7 +58,7 @@ class GenerateFbnStorageFeesJob implements ShouldQueue
         $skipped = 0;
 
         foreach ($inventories as $inv) {
-            $rateCents = (int) ($inv->rate_per_unit_cents ?? 0);
+            $rateCents = (int) ($inv->rate_per_unit ?? 0);
             if ($rateCents <= 0) {
                 $skipped++;
                 continue;
@@ -75,8 +75,8 @@ class GenerateFbnStorageFeesJob implements ShouldQueue
                     ],
                     [
                         'units_stored' => $inv->quantity_on_hand,
-                        'rate_per_unit_cents' => $rateCents,
-                        'total_fee_cents' => $totalCents,
+                        'rate_per_unit' => $rateCents,
+                        'total_fee' => $totalCents,
                         'currency' => $inv->currency ?? 'EGP',
                         'status' => 'pending',
                     ]

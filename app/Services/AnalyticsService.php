@@ -980,13 +980,13 @@ class AnalyticsService
                     COALESCE(SUM(ads.impressions), 0)                 AS impressions,
                     COALESCE(SUM(ads.clicks), 0)                      AS clicks,
                     COALESCE(SUM(ads.conversions), 0)                 AS conversions,
-                    COALESCE(SUM(ads.spend_cents), 0)                 AS spend_cents,
-                    COALESCE(SUM(ads.revenue_attributed_cents), 0)    AS revenue_cents
+                    COALESCE(SUM(ads.spend), 0)                 AS spend,
+                    COALESCE(SUM(ads.revenue_attributed), 0)    AS revenue
                 FROM ad_daily_stats ads
                 JOIN countries co ON co.id = ads.country_id
                 WHERE {$dateWhere}{$countryFilter}
                 GROUP BY ads.country_id, co.currency_code, co.name_en
-                ORDER BY spend_cents DESC
+                ORDER BY spend DESC
             ", $bindings);
 
             // Aggregate CTR/ACOS only after grouping.
@@ -998,8 +998,8 @@ class AnalyticsService
                 : 0;
 
             // Spend and revenue are per-currency; use consolidatedUsd() for a single display number.
-            $spendColl   = collect($totalRows)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->spend_cents]);
-            $revenueColl = collect($totalRows)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->revenue_cents]);
+            $spendColl   = collect($totalRows)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->spend]);
+            $revenueColl = collect($totalRows)->map(fn($r) => (object)['currency' => $r->currency, 'total' => $r->revenue]);
             $totalSpendUsd   = $this->consolidatedUsd($spendColl);
             $totalRevenueUsd = $this->consolidatedUsd($revenueColl);
             $avgAcos = $totalRevenueUsd > 0
@@ -1010,8 +1010,8 @@ class AnalyticsService
                 'country_id'   => $r->country_id,
                 'country_name' => $r->country_name,
                 'currency'     => $r->currency,
-                'spend'        => round($r->spend_cents / 100, 2),
-                'revenue'      => round($r->revenue_cents / 100, 2),
+                'spend'        => round($r->spend / 100, 2),
+                'revenue'      => round($r->revenue / 100, 2),
             ], $totalRows);
 
             // Top campaigns: GROUP BY (campaign, country) so spend is per-currency.
@@ -1021,16 +1021,16 @@ class AnalyticsService
                     co.currency_code                                 AS currency,
                     SUM(ads.impressions)                            AS impressions,
                     SUM(ads.clicks)                                 AS clicks,
-                    COALESCE(SUM(ads.spend_cents), 0)               AS spend_cents,
-                    COALESCE(SUM(ads.revenue_attributed_cents), 0)  AS revenue_cents,
+                    COALESCE(SUM(ads.spend), 0)               AS spend,
+                    COALESCE(SUM(ads.revenue_attributed), 0)  AS revenue,
                     ROUND(SUM(ads.clicks) * 100.0 / NULLIF(SUM(ads.impressions), 0), 4) AS ctr,
-                    ROUND(SUM(ads.spend_cents) * 100.0 / NULLIF(SUM(ads.revenue_attributed_cents), 0), 4) AS acos
+                    ROUND(SUM(ads.spend) * 100.0 / NULLIF(SUM(ads.revenue_attributed), 0), 4) AS acos
                 FROM ad_daily_stats ads
                 JOIN ad_campaigns ac ON ac.id = ads.ad_campaign_id
                 JOIN countries co    ON co.id = ads.country_id
                 WHERE {$dateWhere}{$countryFilter}
                 GROUP BY ac.id, ac.name, co.currency_code
-                ORDER BY spend_cents DESC
+                ORDER BY spend DESC
                 LIMIT 20
             ", $bindings);
 
@@ -1041,8 +1041,8 @@ class AnalyticsService
                     co.currency_code                                 AS currency,
                     SUM(ads.impressions)                            AS impressions,
                     SUM(ads.clicks)                                 AS clicks,
-                    COALESCE(SUM(ads.spend_cents), 0)               AS spend_cents,
-                    COALESCE(SUM(ads.revenue_attributed_cents), 0)  AS revenue_cents
+                    COALESCE(SUM(ads.spend), 0)               AS spend,
+                    COALESCE(SUM(ads.revenue_attributed), 0)  AS revenue
                 FROM ad_daily_stats ads
                 JOIN countries co ON co.id = ads.country_id
                 WHERE {$dateWhere}{$countryFilter}
@@ -1063,16 +1063,16 @@ class AnalyticsService
                     'currency'    => $currency,
                     'impressions' => array_map(fn($d) => (int) ($byDate[$d]->impressions ?? 0), $allPerfDates),
                     'clicks'      => array_map(fn($d) => (int) ($byDate[$d]->clicks ?? 0), $allPerfDates),
-                    'spend'       => array_map(fn($d) => round(($byDate[$d]->spend_cents ?? 0) / 100, 2), $allPerfDates),
-                    'revenue'     => array_map(fn($d) => round(($byDate[$d]->revenue_cents ?? 0) / 100, 2), $allPerfDates),
+                    'spend'       => array_map(fn($d) => round(($byDate[$d]->spend ?? 0) / 100, 2), $allPerfDates),
+                    'revenue'     => array_map(fn($d) => round(($byDate[$d]->revenue ?? 0) / 100, 2), $allPerfDates),
                 ];
             } else {
                 $datasets = [];
                 foreach ($perfCurrencies as $currency) {
                     $byDate = collect($perfByCurrency[$currency])->keyBy('date');
                     $datasets[$currency] = [
-                        'spend'   => array_map(fn($d) => round(($byDate[$d]->spend_cents ?? 0) / 100, 2), $allPerfDates),
-                        'revenue' => array_map(fn($d) => round(($byDate[$d]->revenue_cents ?? 0) / 100, 2), $allPerfDates),
+                        'spend'   => array_map(fn($d) => round(($byDate[$d]->spend ?? 0) / 100, 2), $allPerfDates),
+                        'revenue' => array_map(fn($d) => round(($byDate[$d]->revenue ?? 0) / 100, 2), $allPerfDates),
                     ];
                 }
                 $perfChart = [
@@ -1096,8 +1096,8 @@ class AnalyticsService
                     'currency'    => $row->currency,
                     'impressions' => (int) $row->impressions,
                     'clicks'      => (int) $row->clicks,
-                    'spend'       => round($row->spend_cents / 100, 2),
-                    'revenue'     => round($row->revenue_cents / 100, 2),
+                    'spend'       => round($row->spend / 100, 2),
+                    'revenue'     => round($row->revenue / 100, 2),
                     'ctr'         => (float) $row->ctr,
                     'acos'        => (float) $row->acos,
                 ], $topCampaigns),

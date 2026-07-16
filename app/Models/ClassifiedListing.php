@@ -19,7 +19,7 @@ class ClassifiedListing extends Model
         'listing_number', 'slug', 'seller_type', 'seller_id',
         'classified_category_id', 'country_id', 'city_id', 'listing_purpose',
         'title_en', 'title_ar', 'description_en', 'description_ar',
-        'price_cents', 'currency', 'price_negotiable', 'attributes',
+        'price', 'currency', 'price_negotiable', 'attributes',
         'latitude', 'longitude', 'sketch_file_path', 'status',
         'contract_template_id', 'contract_accepted_at', 'contract_signature_data',
         'rejection_reason', 'approved_by_admin_id', 'approved_at',
@@ -27,9 +27,10 @@ class ClassifiedListing extends Model
         'is_vendor_listing', 'vendor_listing_reference',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'attributes'           => 'array',
-        'price_cents'          => 'integer',
+        'price'          => 'integer',
         'latitude'             => 'decimal:7',
         'longitude'            => 'decimal:7',
         'contract_accepted_at' => 'datetime',
@@ -113,7 +114,7 @@ class ClassifiedListing extends Model
 
     public function getPriceFormattedAttribute(): string
     {
-        return \App\Helpers\CurrencyFormatter::formatPrice($this->price_cents, $this->currency);
+        return \App\Helpers\CurrencyFormatter::formatPrice($this->price, $this->currency);
     }
 
     public function getPrimaryImageUrlAttribute(): ?string

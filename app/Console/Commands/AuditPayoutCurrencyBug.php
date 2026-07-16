@@ -82,12 +82,12 @@ class AuditPayoutCurrencyBug extends Command
 
                 // Check the stored currency matches the dominant group.
                 foreach ($byCurrency as $currency => $group) {
-                    $expectedGross = $group->sum('commission_amount_cents');
+                    $expectedGross = $group->sum('commission_amount');
                     $expectedTax   = (int) round($expectedGross * ($taxRate / 100));
                     $expectedNet   = $expectedGross - $expectedTax;
 
-                    $storedGross = $payout->gross_commission_cents;
-                    $storedNet   = $payout->net_amount_cents;
+                    $storedGross = $payout->gross_commission;
+                    $storedNet   = $payout->net_amount;
 
                     $grossDiff = $storedGross - $expectedGross;
                     $netDiff   = $storedNet - $expectedNet;
@@ -227,8 +227,8 @@ class AuditPayoutCurrencyBug extends Command
                     ->whereBetween('created_at', [$payout->period_start . ' 00:00:00', $payout->period_end . ' 23:59:59'])
                     ->selectRaw('
                         currency,
-                        SUM(CASE WHEN earning_type != ? THEN amount_cents ELSE 0 END) as gross_cents,
-                        SUM(CASE WHEN earning_type = ? THEN ABS(amount_cents) ELSE 0 END) as deductions_cents
+                        SUM(CASE WHEN earning_type != ? THEN amount ELSE 0 END) as gross_cents,
+                        SUM(CASE WHEN earning_type = ? THEN ABS(amount) ELSE 0 END) as deductions
                     ', ['deduction', 'deduction'])
                     ->groupBy('currency')
                     ->get();
@@ -241,9 +241,9 @@ class AuditPayoutCurrencyBug extends Command
                 $storedCurrencyRow = $rows->firstWhere('currency', $payout->currency);
 
                 foreach ($rows as $row) {
-                    $expectedNet = (int) $row->gross_cents - (int) $row->deductions_cents;
+                    $expectedNet = (int) $row->gross_cents - (int) $row->deductions;
                     $netDiff = ($row->currency === $payout->currency)
-                        ? ($payout->net_amount_cents - $expectedNet)
+                        ? ($payout->net_amount - $expectedNet)
                         : null; // different currency group entirely — always a mismatch
 
                     if ($currencyMismatch || $payout->currency !== $row->currency || ($netDiff !== null && $netDiff !== 0)) {

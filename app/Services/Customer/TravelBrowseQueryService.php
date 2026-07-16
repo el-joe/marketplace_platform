@@ -38,10 +38,10 @@ class TravelBrowseQueryService
             });
 
         if (!empty($filters['price_min'])) {
-            $query->where('price_cents', '>=', (int) ($filters['price_min'] * 100));
+            $query->where('price', '>=', (int) ($filters['price_min'] * 100));
         }
         if (!empty($filters['price_max'])) {
-            $query->where('price_cents', '<=', (int) ($filters['price_max'] * 100));
+            $query->where('price', '<=', (int) ($filters['price_max'] * 100));
         }
         if (!empty($filters['duration_min'])) {
             $query->where('duration_days', '>=', (int) $filters['duration_min']);
@@ -61,8 +61,8 @@ class TravelBrowseQueryService
 
         $sort = $filters['sort'] ?? 'departure_date';
         $query = match ($sort) {
-            'price_asc'      => $query->orderBy('price_cents', 'asc'),
-            'price_desc'     => $query->orderBy('price_cents', 'desc'),
+            'price_asc'      => $query->orderBy('price', 'asc'),
+            'price_desc'     => $query->orderBy('price', 'desc'),
             'newest'         => $query->orderBy('created_at', 'desc'),
             default          => $query->orderBy('departure_date', 'asc'),
         };
@@ -87,7 +87,7 @@ class TravelBrowseQueryService
         }
 
         $range = (clone $base)
-            ->selectRaw('MIN(price_cents) as low, MAX(price_cents) as high, MIN(duration_days) as dur_min, MAX(duration_days) as dur_max')
+            ->selectRaw('MIN(price) as low, MAX(price) as high, MIN(duration_days) as dur_min, MAX(duration_days) as dur_max')
             ->first();
 
         $destinations = (clone $base)

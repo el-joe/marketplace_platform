@@ -124,7 +124,7 @@ class NawyController extends Controller
 
         return [
             'id' => $listing->id,
-            'price_cents' => $listing->price_cents,
+            'price' => $listing->price,
             'currency' => $listing->currency,
             'payment_options' => $listing->payment_options,
             'fulfillment_type' => $listing->fulfillment_type,

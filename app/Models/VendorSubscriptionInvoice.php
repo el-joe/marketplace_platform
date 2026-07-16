@@ -16,7 +16,7 @@ class VendorSubscriptionInvoice extends Model
         'vendor_id',
         'subscription_id',
         'invoice_number',
-        'amount_cents',
+        'amount',
         'currency',
         'status',
         'period_start',
@@ -28,7 +28,7 @@ class VendorSubscriptionInvoice extends Model
     protected function casts(): array
     {
         return [
-            'amount_cents' => 'integer',
+            'amount' => 'integer',
             'period_start' => 'date',
             'period_end' => 'date',
             'paid_at' => 'datetime',
@@ -87,6 +87,6 @@ class VendorSubscriptionInvoice extends Model
 
     public function amountFormatted(): string
     {
-        return number_format($this->amount_cents / 100, 2) . ' ' . $this->currency;
+        return number_format($this->amount / 100, 2) . ' ' . $this->currency;
     }
 }

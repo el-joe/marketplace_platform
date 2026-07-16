@@ -115,7 +115,7 @@ class ShippingRateService
         return [
             'available'               => true,
             'is_free'                 => $isFree,
-            'cost_cents'              => $costCents,
+            'cost'              => $costCents,
             'cost_formatted'          => number_format($costCents / 100, 2),
             'method_name'             => $rate->shippingMethod->name,
             'carrier_name'            => $rate->carrier?->name ?? 'Any',

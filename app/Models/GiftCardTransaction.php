@@ -28,17 +28,18 @@ class GiftCardTransaction extends Model
     protected $fillable = [
         'gift_card_id',
         'order_id',
-        'amount_cents',
-        'balance_after_cents',
+        'amount',
+        'balance_after',
         'type',
         'performed_by_customer_id',
         'performed_by_admin_id',
         'notes',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
-        'amount_cents' => 'integer',
-        'balance_after_cents' => 'integer',
+        'amount' => 'integer',
+        'balance_after' => 'integer',
     ];
 
     public function giftCard(): BelongsTo

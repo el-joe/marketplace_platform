@@ -192,7 +192,7 @@ class AuthController extends Controller
 
         return [
             'deliveries_today' => $todayShift?->total_deliveries ?? 0,
-            'earnings_today'   => ($todayShift?->total_earnings_cents ?? 0) / 100,
+            'earnings_today'   => ($todayShift?->total_earnings ?? 0) / 100,
             'shift_started_at' => $todayShift?->actual_start?->toIso8601String(),
         ];
     }

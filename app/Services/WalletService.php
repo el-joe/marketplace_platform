@@ -24,7 +24,7 @@ class WalletService
     {
         return Wallet::firstOrCreate(
             ['owner_type' => $ownerType, 'owner_id' => $ownerId, 'currency' => $currency],
-            ['balance_cents' => 0, 'pending_balance_cents' => 0]
+            ['balance' => 0, 'pending_balance' => 0]
         );
     }
 
@@ -42,14 +42,14 @@ class WalletService
 
         return DB::transaction(function () use ($wallet, $amountCents, $sourceType, $sourceId, $description, $performedByAdminId) {
             $wallet->lockForUpdate()->refresh();
-            $newBalance = $wallet->balance_cents + $amountCents;
-            $wallet->update(['balance_cents' => $newBalance]);
+            $newBalance = $wallet->balance + $amountCents;
+            $wallet->update(['balance' => $newBalance]);
 
             return WalletTransaction::create([
                 'wallet_id'              => $wallet->id,
                 'type'                   => WalletTransactionType::Credit,
-                'amount_cents'           => $amountCents,
-                'balance_after_cents'    => $newBalance,
+                'amount'           => $amountCents,
+                'balance_after'    => $newBalance,
                 'source_type'            => $sourceType,
                 'source_id'              => $sourceId,
                 'description'            => $description,
@@ -74,18 +74,18 @@ class WalletService
         return DB::transaction(function () use ($wallet, $amountCents, $sourceType, $sourceId, $description, $performedByAdminId) {
             $wallet->lockForUpdate()->refresh();
 
-            if ($wallet->balance_cents < $amountCents) {
-                throw new InsufficientBalanceException($amountCents, $wallet->balance_cents, $wallet->currency);
+            if ($wallet->balance < $amountCents) {
+                throw new InsufficientBalanceException($amountCents, $wallet->balance, $wallet->currency);
             }
 
-            $newBalance = $wallet->balance_cents - $amountCents;
-            $wallet->update(['balance_cents' => $newBalance]);
+            $newBalance = $wallet->balance - $amountCents;
+            $wallet->update(['balance' => $newBalance]);
 
             return WalletTransaction::create([
                 'wallet_id'              => $wallet->id,
                 'type'                   => WalletTransactionType::Debit,
-                'amount_cents'           => $amountCents,
-                'balance_after_cents'    => $newBalance,
+                'amount'           => $amountCents,
+                'balance_after'    => $newBalance,
                 'source_type'            => $sourceType,
                 'source_id'              => $sourceId,
                 'description'            => $description,
@@ -100,19 +100,19 @@ class WalletService
         return DB::transaction(function () use ($wallet, $amountCents, $bankDetails) {
             $wallet->lockForUpdate()->refresh();
 
-            if ($wallet->balance_cents < $amountCents) {
-                throw new InsufficientBalanceException($amountCents, $wallet->balance_cents, $wallet->currency);
+            if ($wallet->balance < $amountCents) {
+                throw new InsufficientBalanceException($amountCents, $wallet->balance, $wallet->currency);
             }
 
             // Reserve the amount: move from balance to pending
             $wallet->update([
-                'balance_cents'         => $wallet->balance_cents - $amountCents,
-                'pending_balance_cents' => $wallet->pending_balance_cents + $amountCents,
+                'balance'         => $wallet->balance - $amountCents,
+                'pending_balance' => $wallet->pending_balance + $amountCents,
             ]);
 
             return WalletWithdrawalRequest::create([
                 'wallet_id'    => $wallet->id,
-                'amount_cents' => $amountCents,
+                'amount' => $amountCents,
                 'currency'     => $wallet->currency,
                 'bank_name'    => $bankDetails['bank_name'] ?? null,
                 'bank_iban'    => $bankDetails['bank_iban'] ?? null,
@@ -128,14 +128,14 @@ class WalletService
 
             // Release from pending and finalize debit
             $wallet->update([
-                'pending_balance_cents' => max(0, $wallet->pending_balance_cents - $request->amount_cents),
+                'pending_balance' => max(0, $wallet->pending_balance - $request->amount),
             ]);
 
             WalletTransaction::create([
                 'wallet_id'             => $wallet->id,
                 'type'                  => WalletTransactionType::Debit,
-                'amount_cents'          => $request->amount_cents,
-                'balance_after_cents'   => $wallet->balance_cents,
+                'amount'          => $request->amount,
+                'balance_after'   => $wallet->balance,
                 'source_type'           => 'withdrawal',
                 'source_id'             => $request->id,
                 'description'           => 'Withdrawal approved',
@@ -159,8 +159,8 @@ class WalletService
 
             // Return reserved amount back to balance
             $wallet->update([
-                'balance_cents'         => $wallet->balance_cents + $request->amount_cents,
-                'pending_balance_cents' => max(0, $wallet->pending_balance_cents - $request->amount_cents),
+                'balance'         => $wallet->balance + $request->amount,
+                'pending_balance' => max(0, $wallet->pending_balance - $request->amount),
             ]);
 
             $request->update([
@@ -187,7 +187,7 @@ class WalletService
         $earningsOwed = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->where('status', DeliveryAgentEarningStatus::Approved)
             ->whereBetween('created_at', [$periodStart . ' 00:00:00', $periodEnd . ' 23:59:59'])
-            ->sum('amount_cents');
+            ->sum('amount');
 
         $net = (int) $codCollected - (int) $earningsOwed;
 
@@ -196,9 +196,9 @@ class WalletService
                 'agent_id'                   => $agent->id,
                 'period_start'               => $periodStart,
                 'period_end'                 => $periodEnd,
-                'total_cod_collected_cents'  => (int) $codCollected,
-                'total_earnings_owed_cents'  => (int) $earningsOwed,
-                'net_to_remit_cents'         => $net,
+                'total_cod_collected'  => (int) $codCollected,
+                'total_earnings_owed'  => (int) $earningsOwed,
+                'net_to_remit'         => $net,
                 'status'                     => DeliveryAgentCodSettlementStatus::Pending,
             ]);
 

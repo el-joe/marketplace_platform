@@ -65,7 +65,7 @@ class WarrantyPlanService
             'duration_months' => $plan->duration_months,
             'duration_label' => $this->formatDurationLabel($plan->duration_months),
             'features' => app()->getLocale() === 'ar' ? $plan->features_ar : $plan->features_en,
-            'price_cents' => $plan->price_cents,
+            'price' => $plan->price,
             'currency' => $plan->currency,
         ];
     }

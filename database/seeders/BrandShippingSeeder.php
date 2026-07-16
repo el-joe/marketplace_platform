@@ -243,7 +243,7 @@ class BrandShippingSeeder extends Seeder
                         'country_id' => $countryId,
                         'shipping_method_id' => $methodId,
                         'is_active' => true,
-                        'free_shipping_threshold_cents' => 20000,
+                        'free_shipping_threshold' => 20000,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);

@@ -20,9 +20,9 @@ class PaidBannerBooking extends Model
         'link_url',
         'alt_text',
         'pricing_model',
-        'rate_cents',
+        'rate',
         'currency',
-        'total_charged_cents',
+        'total_charged',
         'booked_from',
         'booked_until',
         'status',
@@ -32,9 +32,10 @@ class PaidBannerBooking extends Model
         'notes',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
-        'rate_cents' => 'integer',
-        'total_charged_cents' => 'integer',
+        'rate' => 'integer',
+        'total_charged' => 'integer',
         'impressions_delivered' => 'integer',
         'clicks_delivered' => 'integer',
         'booked_from' => 'date',

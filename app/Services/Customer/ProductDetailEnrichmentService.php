@@ -328,10 +328,10 @@ class ProductDetailEnrichmentService
         $methods = CountryPaymentMethod::whereIn('id', $methods)->get();
 
         foreach ($methods as $method) {
-            if ($method->min_order_cents > 0 && $method->min_order_cents > $productPriceCents) {
+            if ($method->min_order > 0 && $method->min_order > $productPriceCents) {
                 continue;
             }
-            if ($method->max_order_cents !== null && $method->max_order_cents < $productPriceCents) {
+            if ($method->max_order !== null && $method->max_order < $productPriceCents) {
                 continue;
             }
 
@@ -369,7 +369,7 @@ class ProductDetailEnrichmentService
                     'method_type' => 'wallet',
                     'provider' => $method->provider,
                     'display_name' => ['ar' => $method->display_name_ar, 'en' => $method->display_name_en],
-                    'balance_cents' => $wallet?->balance_cents,
+                    'balance' => $wallet?->balance,
                 ];
             }
         }

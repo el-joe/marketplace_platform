@@ -27,7 +27,7 @@ class GenerateCodSettlementsJob implements ShouldQueue
                 foreach ($agents as $agent) {
                     $uncoveredAssignments = DeliveryAssignment::with('subOrder.order')
                         ->where('agent_id', $agent->id)
-                        ->whereNotNull('cod_amount_collected_cents')
+                        ->whereNotNull('cod_amount_collected')
                         ->whereNull('cod_settlement_id')
                         ->where('delivered_at', '<', now()->startOfDay())
                         ->get();
@@ -39,12 +39,12 @@ class GenerateCodSettlementsJob implements ShouldQueue
                     $periodStart = $uncoveredAssignments->min('delivered_at')->toDateString();
                     $periodEnd   = $uncoveredAssignments->max('delivered_at')->toDateString();
 
-                    $totalCollected = $uncoveredAssignments->sum('cod_amount_collected_cents');
+                    $totalCollected = $uncoveredAssignments->sum('cod_amount_collected');
 
                     $totalEarnings = DeliveryAgentEarning::where('agent_id', $agent->id)
                         ->whereIn('delivery_assignment_id', $uncoveredAssignments->pluck('id'))
                         ->where('status', '!=', 'cancelled')
-                        ->sum('amount_cents');
+                        ->sum('amount');
 
                     // Aggregate per-assignment discrepancies into the settlement record.
                     $discrepancyAssignments = $uncoveredAssignments->filter(
@@ -57,20 +57,20 @@ class GenerateCodSettlementsJob implements ShouldQueue
                     $discrepancyAmountCents = $discrepancyAssignments->sum(function ($a) {
                         // Recalculate shortfall per assignment using the sub-order's order total.
                         $expected = (int) ($a->subOrder?->order?->total ?? 0);
-                        return max(0, $expected - (int) $a->cod_amount_collected_cents);
+                        return max(0, $expected - (int) $a->cod_amount_collected);
                     });
 
                     $settlement = DeliveryAgentCodSettlement::create([
                         'agent_id'                   => $agent->id,
                         'period_start'               => $periodStart,
                         'period_end'                 => $periodEnd,
-                        'total_cod_collected_cents'  => $totalCollected,
-                        'total_earnings_owed_cents'  => $totalEarnings,
-                        'net_to_remit_cents'         => max(0, $totalCollected - $totalEarnings),
+                        'total_cod_collected'  => $totalCollected,
+                        'total_earnings_owed'  => $totalEarnings,
+                        'net_to_remit'         => max(0, $totalCollected - $totalEarnings),
                         'status'                     => 'pending',
                         'has_collection_discrepancy' => $hasDiscrepancy,
                         'discrepancy_notes'          => $hasDiscrepancy ? $discrepancyNotes : null,
-                        'discrepancy_amount_cents'   => $discrepancyAmountCents,
+                        'discrepancy_amount'   => $discrepancyAmountCents,
                         'discrepancy_resolution'     => $hasDiscrepancy ? 'pending' : null,
                     ]);
 
@@ -82,7 +82,7 @@ class GenerateCodSettlementsJob implements ShouldQueue
                         'settlement_id' => $settlement->id,
                         'agent_id'      => $agent->id,
                         'assignments'   => $uncoveredAssignments->count(),
-                        'net_to_remit'  => $settlement->net_to_remit_cents,
+                        'net_to_remit'  => $settlement->net_to_remit,
                     ]);
                 }
             });

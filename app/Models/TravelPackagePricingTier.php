@@ -13,7 +13,7 @@ class TravelPackagePricingTier extends Model
     protected $fillable = [
         'travel_package_id',
         'travelers_count',
-        'price_cents',
+        'price',
         'position',
     ];
 
@@ -21,7 +21,7 @@ class TravelPackagePricingTier extends Model
     {
         return [
             'travelers_count' => 'integer',
-            'price_cents' => 'integer',
+            'price' => 'integer',
             'position' => 'integer',
         ];
     }

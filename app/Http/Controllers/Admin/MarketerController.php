@@ -63,7 +63,7 @@ class MarketerController extends Controller
             // Returned as a collection keyed by ISO currency code.
             'commissions_month_by_currency' => MarketerConversion::where('status', 'approved')
                 ->whereBetween('approved_at', [now()->startOfMonth(), now()])
-                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->selectRaw('currency, SUM(commission_amount) as total')
                 ->groupBy('currency')
                 ->pluck('total', 'currency'),
         ];
@@ -90,7 +90,7 @@ class MarketerController extends Controller
             ['orderable_column' => 'marketers.followers_count'],
             ['orderable_column' => 'marketers.total_clicks'],
             ['orderable_column' => 'marketers.total_conversions'],
-            ['orderable_column' => 'marketers.total_earnings_cents'],
+            ['orderable_column' => 'marketers.total_earnings'],
             ['orderable_column' => 'marketers.status'],
             [],
         ];
@@ -109,7 +109,7 @@ class MarketerController extends Controller
                 'marketers.followers_count',
                 'marketers.total_clicks',
                 'marketers.total_conversions',
-                'marketers.total_earnings_cents',
+                'marketers.total_earnings',
                 'marketers.created_at',
                 'countries.name_en as country_name',
             ]);
@@ -136,7 +136,7 @@ class MarketerController extends Controller
                 number_format($row->followers_count),
                 number_format($row->total_clicks),
                 number_format($row->total_conversions),
-                number_format($row->total_earnings_cents / 100, 2),
+                number_format($row->total_earnings / 100, 2),
                 '<span class="badge badge-' . $this->statusColor($row->status?->value) . '">' . ucfirst($row->status?->value) . '</span>',
                 $this->actions($row),
             ];
@@ -149,10 +149,10 @@ class MarketerController extends Controller
 
         // Earnings grouped by currency — never sum across currencies.
         $pendingByCurrency = $marketer->conversions()->where('status', 'pending')
-            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->selectRaw('currency, SUM(commission_amount) as total')
             ->groupBy('currency')->pluck('total', 'currency');
         $paidByCurrency = $marketer->conversions()->where('status', 'paid')
-            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->selectRaw('currency, SUM(commission_amount) as total')
             ->groupBy('currency')->pluck('total', 'currency');
 
         $stats = [
@@ -261,7 +261,7 @@ class MarketerController extends Controller
             ['orderable_column' => 'marketer_campaigns.status'],
             ['orderable_column' => 'marketer_campaigns.total_clicks'],
             ['orderable_column' => 'marketer_campaigns.total_conversions'],
-            ['orderable_column' => 'marketer_campaigns.total_revenue_cents'],
+            ['orderable_column' => 'marketer_campaigns.total_revenue'],
             ['orderable_column' => 'marketer_campaigns.created_at'],
             [],
         ];
@@ -277,7 +277,7 @@ class MarketerController extends Controller
             '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
             number_format($row->total_clicks),
             number_format($row->total_conversions),
-            number_format($row->total_revenue_cents / 100, 2),
+            number_format($row->total_revenue / 100, 2),
             $row->created_at->format('d M Y'),
             '<a href="' . route('admin.marketers.campaigns.show', $row->id) . '" class="btn btn-xs btn-ghost">View</a>',
         ]);
@@ -320,7 +320,7 @@ class MarketerController extends Controller
             ['orderable_column' => 'marketer_campaigns.status'],
             ['orderable_column' => 'marketer_campaigns.total_clicks'],
             ['orderable_column' => 'marketer_campaigns.total_conversions'],
-            ['orderable_column' => 'marketer_campaigns.total_revenue_cents'],
+            ['orderable_column' => 'marketer_campaigns.total_revenue'],
             ['orderable_column' => 'marketer_campaigns.starts_at'],
             [],
         ];
@@ -376,7 +376,7 @@ class MarketerController extends Controller
                 '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
                 number_format($row->total_clicks),
                 number_format($row->total_conversions),
-                number_format($row->total_revenue_cents / 100, 2),
+                number_format($row->total_revenue / 100, 2),
                 $row->starts_at?->format('d M Y') ?? '—',
                 $this->campaignActions($row),
             ];
@@ -423,7 +423,7 @@ class MarketerController extends Controller
                         'marketer_quantity' => $category?->marketer_sample_quota ?? 0,
                         'admin_quantity' => 0,
                         'is_mandatory' => false,
-                        'sample_cost_cents' => 0,
+                        'sample_cost' => 0,
                     ]);
                 }
 
@@ -544,8 +544,8 @@ class MarketerController extends Controller
         $stats = [
             'total' => MarketerPayout::count(),
             'pending' => MarketerPayout::where('status', 'pending')->count(),
-            'paid' => MarketerPayout::where('status', 'paid')->sum('net_amount_cents'),
-            'approved' => MarketerPayout::where('status', 'approved')->sum('net_amount_cents'),
+            'paid' => MarketerPayout::where('status', 'paid')->sum('net_amount'),
+            'approved' => MarketerPayout::where('status', 'approved')->sum('net_amount'),
         ];
 
         $marketers = Marketer::where('status', 'active')->orderBy('name')->get(['id', 'name']);
@@ -568,7 +568,7 @@ class MarketerController extends Controller
             ['searchable_columns' => ['marketers.name']],
             ['orderable_column' => 'marketer_payouts.period_start'],
             ['orderable_column' => 'marketer_payouts.total_conversions'],
-            ['orderable_column' => 'marketer_payouts.net_amount_cents'],
+            ['orderable_column' => 'marketer_payouts.net_amount'],
             ['orderable_column' => 'marketer_payouts.status'],
             ['orderable_column' => 'marketer_payouts.processed_at'],
             [],
@@ -593,7 +593,7 @@ class MarketerController extends Controller
             e($row->marketer_name),
             $row->period_start . ' – ' . $row->period_end,
             number_format($row->total_conversions),
-            number_format($row->net_amount_cents / 100, 2) . ' ' . $row->currency,
+            number_format($row->net_amount / 100, 2) . ' ' . $row->currency,
             '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
             $row->processed_at?->format('d M Y') ?? '—',
             $this->payoutActions($row),
@@ -628,7 +628,7 @@ class MarketerController extends Controller
         $payoutNumbers = [];
 
         foreach ($conversions->groupBy('currency') as $currency => $group) {
-            $gross = $group->sum('commission_amount_cents');
+            $gross = $group->sum('commission_amount');
             $tax = (int) round($gross * ($taxRate / 100));
             $net = $gross - $tax;
 
@@ -637,9 +637,9 @@ class MarketerController extends Controller
                 'period_start' => $request->period_start,
                 'period_end' => $request->period_end,
                 'total_conversions' => $group->count(),
-                'gross_commission_cents' => $gross,
-                'tax_deduction_cents' => $tax,
-                'net_amount_cents' => $net,
+                'gross_commission' => $gross,
+                'tax_deduction' => $tax,
+                'net_amount' => $net,
                 'currency' => $currency,
                 'status' => 'pending',
                 'bank_name' => $marketer->bank_name,
@@ -647,7 +647,7 @@ class MarketerController extends Controller
             ]);
 
             $payoutNumbers[] = $payout->payout_number;
-            $marketer->increment('total_earnings_cents', $net);
+            $marketer->increment('total_earnings', $net);
         }
 
         // Mark all conversions as paid only after all payout rows are committed.
@@ -764,8 +764,8 @@ class MarketerController extends Controller
         $columns = [
             ['searchable_columns' => ['marketers.name']],
             ['searchable_columns' => ['marketer_campaigns.name']],
-            ['orderable_column' => 'marketer_conversions.order_value_cents'],
-            ['orderable_column' => 'marketer_conversions.commission_amount_cents'],
+            ['orderable_column' => 'marketer_conversions.order_value'],
+            ['orderable_column' => 'marketer_conversions.commission_amount'],
             ['orderable_column' => 'marketer_conversions.status'],
             ['orderable_column' => 'marketer_conversions.created_at'],
             [],
@@ -793,8 +793,8 @@ class MarketerController extends Controller
         return $this->dataTableResponse($request, $query, $columns, fn($row) => [
             e($row->marketer_name),
             e($row->campaign_name),
-            number_format($row->order_value_cents / 100, 2),
-            number_format($row->commission_amount_cents / 100, 2),
+            number_format($row->order_value / 100, 2),
+            number_format($row->commission_amount / 100, 2),
             '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
             $row->created_at->format('d M Y'),
             $row->status === \App\Enums\MarketerTrackingStatus::Pending
@@ -956,7 +956,7 @@ class MarketerController extends Controller
             'vendor_id' => 'required|uuid|exists:vendors,id',
             'vendor_listing_id' => 'required|uuid|exists:vendor_listings,id',
             'marketer_id' => 'nullable|uuid|exists:marketers,id',
-            'product_value_cents' => 'required|integer|min:1',
+            'product_value' => 'required|integer|min:1',
             'total_commission_pct' => 'required|numeric|min:0|max:100',
             'marketer_share_pct' => 'required|numeric|min:0|max:100',
             'admin_share_pct' => 'required|numeric|min:0|max:100',
@@ -1167,7 +1167,7 @@ class MarketerController extends Controller
                     'marketer_quantity' => $item->marketer_quantity,
                     'admin_quantity' => $item->admin_quantity,
                     'is_mandatory' => $item->is_mandatory,
-                    'cost' => $item->sample_cost_cents ? number_format($item->sample_cost_cents / 100, 2) : null,
+                    'cost' => $item->sample_cost ? number_format($item->sample_cost / 100, 2) : null,
                 ];
             }),
         ]);

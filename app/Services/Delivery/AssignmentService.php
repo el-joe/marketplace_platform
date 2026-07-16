@@ -189,7 +189,7 @@ class AssignmentService
                 'proof_file_id'               => $proofFileId,
                 'delivery_latitude'           => $latitude,
                 'delivery_longitude'          => $longitude,
-                'cod_amount_collected_cents'  => $isCod ? $codAmountCollectedCents : null,
+                'cod_amount_collected'  => $isCod ? $codAmountCollectedCents : null,
                 'discrepancy_note'            => ($isCod && $hasDiscrepancy) ? $discrepancyNote : null,
             ]);
 
@@ -221,21 +221,21 @@ class AssignmentService
                 'delivery_assignment_id'  => $assignment->id,
                 'order_id'                => $order->id,
                 'earning_type'            => 'base_fee',
-                'amount_cents'            => $agent->per_delivery_fee_cents,
+                'amount'            => $agent->per_delivery_fee,
                 'currency'                => $currency,
                 'status'                  => DeliveryAgentEarningStatus::Pending,
             ]);
 
             // COD handling fee (separate from the cash physically collected).
             if ($isCod) {
-                $codFee = $agent->zone?->cod_fee_cents ?? 0;
+                $codFee = $agent->zone?->cod_fee ?? 0;
                 if ($codFee > 0) {
                     DeliveryAgentEarning::create([
                         'agent_id'                => $agent->id,
                         'delivery_assignment_id'  => $assignment->id,
                         'order_id'                => $order->id,
                         'earning_type'            => 'cod_handling',
-                        'amount_cents'            => $codFee,
+                        'amount'            => $codFee,
                         'currency'                => $currency,
                         'status'                  => DeliveryAgentEarningStatus::Pending,
                     ]);

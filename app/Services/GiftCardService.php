@@ -31,9 +31,9 @@ class GiftCardService
             for ($i = 0; $i < $quantity; $i++) {
                 $giftCard = GiftCard::create([
                     'code' => $this->generateCode(),
-                    'denomination_cents' => $data['denomination_cents'],
+                    'denomination' => $data['denomination'],
                     'currency' => $data['currency'],
-                    'balance_cents' => $data['denomination_cents'],
+                    'balance' => $data['denomination'],
                     'status' => 'active',
                     'recipient_email' => $data['recipient_email'] ?? null,
                     'recipient_phone' => $data['recipient_phone'] ?? null,
@@ -46,8 +46,8 @@ class GiftCardService
 
                 GiftCardTransaction::create([
                     'gift_card_id' => $giftCard->id,
-                    'amount_cents' => $giftCard->denomination_cents,
-                    'balance_after_cents' => $giftCard->balance_cents,
+                    'amount' => $giftCard->denomination,
+                    'balance_after' => $giftCard->balance,
                     'type' => 'issuance',
                     'performed_by_admin_id' => $admin->id,
                     'notes' => 'Issued by admin',
@@ -73,8 +73,8 @@ class GiftCardService
 
             GiftCardTransaction::create([
                 'gift_card_id' => $locked->id,
-                'amount_cents' => 0,
-                'balance_after_cents' => $locked->balance_cents,
+                'amount' => 0,
+                'balance_after' => $locked->balance,
                 'type' => 'admin_adjustment',
                 'performed_by_admin_id' => $admin->id,
                 'notes' => 'Cancelled by admin',
@@ -90,8 +90,8 @@ class GiftCardService
 
         GiftCardTransaction::create([
             'gift_card_id' => $giftCard->id,
-            'amount_cents' => 0,
-            'balance_after_cents' => $giftCard->balance_cents,
+            'amount' => 0,
+            'balance_after' => $giftCard->balance,
             'type' => 'admin_adjustment',
             'performed_by_admin_id' => $admin->id,
             'notes' => 'Expiry extended to ' . $expiresAt->format('Y-m-d'),
@@ -106,21 +106,21 @@ class GiftCardService
             $locked = GiftCard::where('id', $giftCard->id)->lockForUpdate()->first();
 
             $delta = $type === 'subtract' ? -$amountCents : $amountCents;
-            $newBalance = $locked->balance_cents + $delta;
+            $newBalance = $locked->balance + $delta;
 
             if ($newBalance < 0) {
                 throw new \DomainException('Adjustment would result in a negative balance.');
             }
 
             $locked->update([
-                'balance_cents' => $newBalance,
+                'balance' => $newBalance,
                 'status' => $newBalance === 0 && $locked->status === 'active' ? 'redeemed' : $locked->status,
             ]);
 
             return GiftCardTransaction::create([
                 'gift_card_id' => $locked->id,
-                'amount_cents' => $delta,
-                'balance_after_cents' => $newBalance,
+                'amount' => $delta,
+                'balance_after' => $newBalance,
                 'type' => 'admin_adjustment',
                 'performed_by_admin_id' => $admin->id,
                 'notes' => $notes,
@@ -146,22 +146,22 @@ class GiftCardService
                 throw new \DomainException('Gift card has expired.');
             }
 
-            if ($locked->balance_cents < $amountCents) {
+            if ($locked->balance < $amountCents) {
                 throw new \DomainException('Gift card has insufficient balance.');
             }
 
-            $newBalance = $locked->balance_cents - $amountCents;
+            $newBalance = $locked->balance - $amountCents;
 
             $locked->update([
-                'balance_cents' => $newBalance,
+                'balance' => $newBalance,
                 'status' => $newBalance === 0 ? 'redeemed' : $locked->status,
             ]);
 
             return GiftCardTransaction::create([
                 'gift_card_id' => $locked->id,
                 'order_id' => $order->id,
-                'amount_cents' => $amountCents,
-                'balance_after_cents' => $newBalance,
+                'amount' => $amountCents,
+                'balance_after' => $newBalance,
                 'type' => 'redemption',
                 'performed_by_customer_id' => $customer->id,
                 'notes' => "Redeemed against order {$order->order_number}",
@@ -185,9 +185,9 @@ class GiftCardService
     {
         $giftCard = GiftCard::create([
             'code' => $this->generateCode(),
-            'denomination_cents' => $data['denomination_cents'],
+            'denomination' => $data['denomination'],
             'currency' => $data['currency'],
-            'balance_cents' => $data['denomination_cents'],
+            'balance' => $data['denomination'],
             'status' => 'active',
             'purchased_by_customer_id' => $customer->id,
             'recipient_email' => $data['recipient_email'] ?? null,
@@ -200,8 +200,8 @@ class GiftCardService
 
         GiftCardTransaction::create([
             'gift_card_id' => $giftCard->id,
-            'amount_cents' => $giftCard->denomination_cents,
-            'balance_after_cents' => $giftCard->balance_cents,
+            'amount' => $giftCard->denomination,
+            'balance_after' => $giftCard->balance,
             'type' => 'issuance',
             'performed_by_customer_id' => $customer->id,
             'notes' => 'Gift card purchased',

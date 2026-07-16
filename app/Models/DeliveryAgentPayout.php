@@ -17,9 +17,9 @@ class DeliveryAgentPayout extends Model
         'period_start',
         'period_end',
         'total_deliveries',
-        'gross_earnings_cents',
-        'deductions_cents',
-        'net_amount_cents',
+        'gross_earnings',
+        'deductions',
+        'net_amount',
         'currency',
         'status',
         'payment_method',
@@ -33,9 +33,9 @@ class DeliveryAgentPayout extends Model
         return [
             'period_start' => 'date',
             'period_end' => 'date',
-            'gross_earnings_cents' => 'integer',
-            'deductions_cents' => 'integer',
-            'net_amount_cents' => 'integer',
+            'gross_earnings' => 'integer',
+            'deductions' => 'integer',
+            'net_amount' => 'integer',
             'processed_at' => 'datetime',
             'status' => DeliveryAgentPayoutStatus::class,
         ];
@@ -57,11 +57,11 @@ class DeliveryAgentPayout extends Model
 
     public function getNetAmountAttribute(): float
     {
-        return $this->net_amount_cents / 100;
+        return $this->net_amount / 100;
     }
 
     public function getGrossEarningsAttribute(): float
     {
-        return $this->gross_earnings_cents / 100;
+        return $this->gross_earnings / 100;
     }
 }

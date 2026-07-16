@@ -41,12 +41,12 @@ class RefundProcessingJob implements ShouldQueue
         }
 
         $this->refund->update([
-            'gateway_fee_deducted_cents' => $gatewayFeeDeductedCents,
-            'tax_deducted_cents' => $taxDeductedCents,
+            'gateway_fee_deducted' => $gatewayFeeDeductedCents,
+            'tax_deducted' => $taxDeductedCents,
         ]);
         $this->refund->refresh();
 
-        $netRefundCents = $this->refund->net_refund_cents;
+        $netRefundCents = $this->refund->net_refund;
 
         try {
             $result = $paymentService->refund(

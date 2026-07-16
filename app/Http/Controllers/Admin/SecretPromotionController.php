@@ -161,7 +161,7 @@ class SecretPromotionController extends Controller
         // GROUP BY (date, currency) to prevent blending revenue amounts across currencies.
         $chartRows = $promotion->conversions()
             ->where('created_at', '>=', now()->subDays(30))
-            ->selectRaw('DATE(created_at) as date, currency, COUNT(*) as count, SUM(COALESCE(commission_amount_cents,0) * (total_commission_pct - marketer_share_pct) / NULLIF(total_commission_pct,0)) as admin_revenue')
+            ->selectRaw('DATE(created_at) as date, currency, COUNT(*) as count, SUM(COALESCE(commission_amount,0) * (total_commission_pct - marketer_share_pct) / NULLIF(total_commission_pct,0)) as admin_revenue')
             ->groupBy('date', 'currency')
             ->orderBy('date')
             ->get();

@@ -175,7 +175,7 @@ class AssignmentController extends Controller
                 proofImage:                  $request->file('proof_image'),
                 latitude:                    (float) $request->latitude,
                 longitude:                   (float) $request->longitude,
-                codAmountCollectedCents:     $request->integer('cod_amount_collected_cents') ?: null,
+                codAmountCollectedCents:     $request->integer('cod_amount_collected') ?: null,
             );
         } catch (\RuntimeException $e) {
             return match ($e->getMessage()) {

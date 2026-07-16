@@ -21,7 +21,7 @@ class TravelPackagePublicResource extends JsonResource
             'title'               => Bilingual::pair($this->resource, 'title'),
             'destination_country' => $this->destination_country,
             'destination_city'    => $this->destination_city,
-            'price_cents'         => $this->price_cents,
+            'price_cents'         => $this->price,
             'duration_days'       => $this->duration_days,
             'duration_nights'     => $this->duration_nights,
             'departure_date'      => $this->departure_date?->toDateString(),

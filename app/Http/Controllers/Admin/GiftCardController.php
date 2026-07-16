@@ -54,8 +54,8 @@ class GiftCardController extends Controller
         $query = GiftCard::query()->select([
             'gift_cards.id',
             'gift_cards.code',
-            'gift_cards.denomination_cents',
-            'gift_cards.balance_cents',
+            'gift_cards.denomination',
+            'gift_cards.balance',
             'gift_cards.currency',
             'gift_cards.status',
             'gift_cards.recipient_name',
@@ -82,8 +82,8 @@ class GiftCardController extends Controller
             return [
                 'id' => $row->id,
                 'code' => e($row->code),
-                'denomination_cents' => (int) $row->denomination_cents,
-                'balance_cents' => (int) $row->balance_cents,
+                'denomination' => (int) $row->denomination,
+                'balance' => (int) $row->balance,
                 'currency' => $row->currency,
                 'status' => $row->status,
                 'recipient_name' => $row->recipient_name ? e($row->recipient_name) : null,
@@ -137,7 +137,7 @@ class GiftCardController extends Controller
         $admin = Auth::guard('admin')->user();
 
         $cards = $this->giftCards->issueByAdmin([
-            'denomination_cents' => $denominationCents,
+            'denomination' => $denominationCents,
             'currency' => strtoupper($validated['currency']),
             'quantity' => $validated['quantity'],
             'recipient_name' => $validated['recipient_name'] ?? null,
@@ -227,7 +227,7 @@ class GiftCardController extends Controller
         Gate::forUser(Auth::guard('admin')->user())->authorize('update', $giftCard);
 
         $validated = $request->validate([
-            'amount_cents' => ['required', 'integer', 'min:1'],
+            'amount' => ['required', 'integer', 'min:1'],
             'type' => ['required', Rule::in(['add', 'subtract'])],
             'notes' => ['required', 'string', 'max:255'],
         ]);
@@ -238,13 +238,13 @@ class GiftCardController extends Controller
         try {
             $this->giftCards->adjustBalance(
                 $giftCard,
-                $validated['amount_cents'],
+                $validated['amount'],
                 $validated['type'],
                 $validated['notes'],
                 $admin
             );
         } catch (\DomainException $e) {
-            return back()->withErrors(['amount_cents' => $e->getMessage()]);
+            return back()->withErrors(['amount' => $e->getMessage()]);
         }
 
         return back()->with('success', __('admin.gift_cards_section.balance_adjusted'));
@@ -258,8 +258,8 @@ class GiftCardController extends Controller
     {
         return [
             ['title' => 'Code', 'data' => 'code', 'name' => 'code', 'orderable_column' => 'gift_cards.code', 'searchable_columns' => ['gift_cards.code', 'gift_cards.recipient_name', 'gift_cards.recipient_email']],
-            ['title' => 'Denomination', 'data' => 'denomination_cents', 'name' => 'denomination_cents', 'orderable_column' => 'gift_cards.denomination_cents', 'searchable' => false],
-            ['title' => 'Balance', 'data' => 'balance_cents', 'name' => 'balance_cents', 'orderable_column' => 'gift_cards.balance_cents', 'searchable' => false],
+            ['title' => 'Denomination', 'data' => 'denomination', 'name' => 'denomination', 'orderable_column' => 'gift_cards.denomination', 'searchable' => false],
+            ['title' => 'Balance', 'data' => 'balance', 'name' => 'balance', 'orderable_column' => 'gift_cards.balance', 'searchable' => false],
             ['title' => 'Currency', 'data' => 'currency', 'name' => 'currency', 'orderable_column' => 'gift_cards.currency', 'searchable' => false],
             ['title' => 'Status', 'data' => 'status', 'name' => 'status', 'orderable_column' => 'gift_cards.status', 'searchable' => false],
             ['title' => 'Recipient', 'data' => 'recipient_name', 'name' => 'recipient_name', 'searchable' => false],

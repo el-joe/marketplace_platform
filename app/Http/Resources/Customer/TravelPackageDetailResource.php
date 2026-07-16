@@ -19,12 +19,12 @@ class TravelPackageDetailResource extends JsonResource
             'description'         => Bilingual::pair($this->resource, 'description'),
             'destination_country' => $this->destination_country,
             'destination_city'    => $this->destination_city,
-            'price_cents'         => $this->price_cents,
+            'price_cents'         => $this->price,
             'currency'            => $this->currency,
             'price_tiers'         => ($this->pricing_tiers_enabled && $this->show_pricing_tiers_to_customer && $this->relationLoaded('pricingTiers'))
                 ? $this->pricingTiers->map(fn ($tier) => [
                     'travelers_count' => $tier->travelers_count,
-                    'price_cents'     => $tier->price_cents,
+                    'price_cents'     => $tier->price,
                 ])->values()
                 : null,
             'duration_days'       => $this->duration_days,

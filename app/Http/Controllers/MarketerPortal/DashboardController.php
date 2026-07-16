@@ -22,13 +22,13 @@ class DashboardController extends Controller
         // Summing across currencies would produce a meaningless number.
         $pendingByCurrency = $marketer->conversions()
             ->whereIn('status', ['pending', 'approved'])
-            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->selectRaw('currency, SUM(commission_amount) as total')
             ->groupBy('currency')
             ->pluck('total', 'currency');
 
         $paidByCurrency = $marketer->conversions()
             ->where('status', 'paid')
-            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->selectRaw('currency, SUM(commission_amount) as total')
             ->groupBy('currency')
             ->pluck('total', 'currency');
 
@@ -48,11 +48,11 @@ class DashboardController extends Controller
             ->where('status', 'active')
             ->orderByDesc('total_conversions')
             ->limit(5)
-            ->get(['id', 'name', 'total_clicks', 'total_conversions', 'total_revenue_cents', 'status']);
+            ->get(['id', 'name', 'total_clicks', 'total_conversions', 'total_revenue', 'status']);
 
         // Revenue trend: last 30 days (conversions)
         $revenueTrend = $marketer->conversions()
-            ->selectRaw('DATE(created_at) as date, SUM(commission_amount_cents) as total, COUNT(*) as cnt')
+            ->selectRaw('DATE(created_at) as date, SUM(commission_amount) as total, COUNT(*) as cnt')
             ->where('created_at', '>=', now()->subDays(29)->startOfDay())
             ->groupBy('date')
             ->orderBy('date')

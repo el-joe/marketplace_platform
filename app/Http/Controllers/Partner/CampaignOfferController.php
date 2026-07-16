@@ -113,9 +113,9 @@ class CampaignOfferController extends Controller
                 'campaign_type'              => $validated['campaign_type'],
                 'offered_commission_rate'    => $validated['offered_commission_rate'],
                 'commission_type'            => $validated['commission_type'],
-                'budget_per_marketer_cents'  => isset($validated['budget_per_marketer_cents_display'])
+                'budget_per_marketer'  => isset($validated['budget_per_marketer_cents_display'])
                     ? (int) round($validated['budget_per_marketer_cents_display'] * 100) : null,
-                'total_budget_cents'         => isset($validated['total_budget_cents_display'])
+                'total_budget'         => isset($validated['total_budget_cents_display'])
                     ? (int) round($validated['total_budget_cents_display'] * 100) : null,
                 'starts_at'                  => $validated['starts_at'],
                 'ends_at'                    => $validated['ends_at'],

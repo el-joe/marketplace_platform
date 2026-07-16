@@ -262,7 +262,7 @@ class CheckoutController extends Controller
                 'name_en' => $product->name_en,
                 'quantity' => $item->quantity,
                 'unit_price_cents' => $item->unit_price,
-                'line_total_cents' => $item->unit_price * $item->quantity,
+                'line_total' => $item->unit_price * $item->quantity,
                 'thumbnail' => $product->images->firstWhere('is_primary', true)?->url ?? $product->images->first()?->url,
                 'vendor_name' => $isAdminListing ? 'noon' : $listing->vendor?->store_name,
                 'is_admin_listing' => $isAdminListing,
@@ -280,7 +280,7 @@ class CheckoutController extends Controller
                 'is_free' => $shippingResult['is_free'],
                 'estimated_delivery_days_min' => $shippingMethod?->min_delivery_days,
                 'estimated_delivery_days_max' => $shippingMethod?->max_delivery_days,
-                'delivery_fee_cents' => $deliveryDisplay['delivery_fee_cents'],
+                'delivery_fee' => $deliveryDisplay['delivery_fee'],
                 'delivery_label_en' => $deliveryDisplay['delivery_label_en'],
                 'delivery_label_ar' => $deliveryDisplay['delivery_label_ar'],
                 'is_free_delivery' => $deliveryDisplay['is_free_delivery'],
@@ -447,7 +447,7 @@ class CheckoutController extends Controller
                     'discount' => $summary['discount_cents'],
                     'shipping' => $summary['shipping_cents'],
                     'tax' => $summary['tax_cents'],
-                    'cod_fee' => $summary['cod_fee_cents'],
+                    'cod_fee' => $summary['cod_fee'],
                     'warranty_total' => $summary['warranty_total_cents'],
                     'total' => $summary['total_cents'],
                     'coupon_id' => $coupon?->id,
@@ -539,8 +539,8 @@ class CheckoutController extends Controller
                         'fulfillment_model' => $firstListing->fulfillment_model,
                         'subtotal' => $vendorSubtotal,
                         'shipping' => $vendorShipping,
-                        'admin_subsidy_cents' => $deliveryDisplay['admin_subsidy_cents'],
-                        'vendor_deduction_cents' => $deliveryDisplay['vendor_deduction_cents'],
+                        'admin_subsidy' => $deliveryDisplay['admin_subsidy'],
+                        'vendor_deduction' => $deliveryDisplay['vendor_deduction'],
                         'tax' => $vendorTax,
                         'platform_commission' => $totalCommission,
                         'gateway_fee' => 0,
@@ -574,7 +574,7 @@ class CheckoutController extends Controller
                             'line_tax' => $lineTax,
                             'line_total' => $lineSubtotal + $lineTax,
                             'commission_rate_pct' => $commission['commission_rate_pct'],
-                            'commission_fixed_cents' => $commission['commission_fixed_cents'],
+                            'commission_fixed' => $commission['commission_fixed'],
                             'commission_category_id' => $commission['commission_category_id'],
                             'commission_amount' => $commission['commission_amount'],
                             'fulfillment_status' => 'pending',
@@ -595,10 +595,10 @@ class CheckoutController extends Controller
                                     'duration_months' => $plan->duration_months,
                                     'features_en' => $plan->features_en,
                                     'features_ar' => $plan->features_ar,
-                                    'price_cents' => $plan->price_cents,
+                                    'price' => $plan->price,
                                     'currency' => $plan->currency,
                                 ],
-                                'price_paid_cents' => $warrantySelections[$cartItem->id]['price_cents'],
+                                'price_paid' => $warrantySelections[$cartItem->id]['price'],
                                 'currency' => $order->currency,
                                 'status' => 'pending',
                                 'coverage_starts_at' => null,
@@ -704,7 +704,7 @@ class CheckoutController extends Controller
                 'vendor' => $so->vendor?->store_name,
                 'status' => $so->status->value,
                 'fulfillment_model' => $so->fulfillment_model,
-                'delivery_fee_cents' => $display['customer_display_cents'] ?? $so->shipping,
+                'delivery_fee' => $display['customer_display_cents'] ?? $so->shipping,
                 'delivery_label_en' => $display['subsidy_label_en'] ?? null,
                 'delivery_label_ar' => $display['subsidy_label_ar'] ?? null,
                 'is_free_delivery' => $display ? $display['customer_display_cents'] === 0 : false,
@@ -716,7 +716,7 @@ class CheckoutController extends Controller
                     'name_en' => $item->product_snapshot['name_en'] ?? null,
                     'quantity' => $item->quantity,
                     'unit_price_cents' => $item->unit_price,
-                    'line_total_cents' => $item->line_total,
+                    'line_total' => $item->line_total,
                 ]),
                 ];
             }),
@@ -778,12 +778,12 @@ class CheckoutController extends Controller
 
             $aggregateCustomerDisplayCents += $display['customer_display_cents'];
 
-            // Customer-safe subset only — admin_subsidy_cents / vendor_deduction_cents
+            // Customer-safe subset only — admin_subsidy / vendor_deduction
             // are internal ledger figures and must never reach the customer API response.
             $vendorDelivery[] = [
                 'vendor_id' => $vendorId,
                 'display_mode' => $display['display_mode'],
-                'delivery_fee_cents' => $display['customer_display_cents'],
+                'delivery_fee' => $display['customer_display_cents'],
                 'delivery_label_en' => $display['subsidy_label_en'],
                 'delivery_label_ar' => $display['subsidy_label_ar'],
                 'is_free_delivery' => $display['customer_display_cents'] === 0,
@@ -804,7 +804,7 @@ class CheckoutController extends Controller
         }
 
         return [
-            'delivery_fee_cents' => $aggregateCustomerDisplayCents,
+            'delivery_fee' => $aggregateCustomerDisplayCents,
             'delivery_display_mode' => $displayMode,
             'delivery_label_en' => $labelEn,
             'delivery_label_ar' => $labelAr,
@@ -894,7 +894,7 @@ class CheckoutController extends Controller
             'vendor_sku' => $listing->vendor_sku,
             'name_en' => $product->name_en,
             'name_ar' => $product->name_ar,
-            'price_cents' => $listing->price,
+            'price' => $listing->price,
             'currency' => $listing->currency,
             'condition' => $listing->condition,
             'global_system_type' => $listing->global_system_type?->value,

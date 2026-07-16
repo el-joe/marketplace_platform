@@ -65,14 +65,14 @@ class ProductCostController extends Controller
             'manufacturer_name' => ['nullable', 'string', 'max:255'],
             'manufacturer_url' => ['nullable', 'url', 'max:500'],
             'manufacturer_sku' => ['nullable', 'string', 'max:100'],
-            'manufacturer_cost_cents' => ['nullable', 'integer', 'min:0'],
-            'shipping_cost_cents' => ['nullable', 'integer', 'min:0'],
-            'landed_cost_cents' => ['nullable', 'integer', 'min:0'],
+            'manufacturer_cost' => ['nullable', 'integer', 'min:0'],
+            'shipping_cost' => ['nullable', 'integer', 'min:0'],
+            'landed_cost' => ['nullable', 'integer', 'min:0'],
             'platform_margin_pct' => ['nullable', 'numeric', 'min:-999', 'max:999'],
             'competitor_links' => ['nullable', 'array'],
             'competitor_links.*.name' => ['required_with:competitor_links', 'string', 'max:255'],
             'competitor_links.*.url' => ['required_with:competitor_links', 'url', 'max:500'],
-            'competitor_links.*.price_cents' => ['nullable', 'integer', 'min:0'],
+            'competitor_links.*.price' => ['nullable', 'integer', 'min:0'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
@@ -115,17 +115,17 @@ class ProductCostController extends Controller
 
         $data = $request->validate([
             'selling_price_cents' => ['required', 'integer', 'min:1'],
-            'manufacturer_cost_cents' => ['nullable', 'integer', 'min:0'],
-            'shipping_cost_cents' => ['nullable', 'integer', 'min:0'],
-            'landed_cost_cents' => ['nullable', 'integer', 'min:0'],
+            'manufacturer_cost' => ['nullable', 'integer', 'min:0'],
+            'shipping_cost' => ['nullable', 'integer', 'min:0'],
+            'landed_cost' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $selling = (int) $data['selling_price_cents'];
 
-        // landed_cost_cents takes precedence; otherwise sum components
-        $landed = isset($data['landed_cost_cents'])
-            ? (int) $data['landed_cost_cents']
-            : ((int) ($data['manufacturer_cost_cents'] ?? 0)) + ((int) ($data['shipping_cost_cents'] ?? 0));
+        // landed_cost takes precedence; otherwise sum components
+        $landed = isset($data['landed_cost'])
+            ? (int) $data['landed_cost']
+            : ((int) ($data['manufacturer_cost'] ?? 0)) + ((int) ($data['shipping_cost'] ?? 0));
 
         if ($landed <= 0) {
             return response()->json(['error' => 'Landed cost must be > 0.'], 422);
@@ -137,7 +137,7 @@ class ProductCostController extends Controller
 
         return response()->json([
             'selling_price_cents' => $selling,
-            'landed_cost_cents' => $landed,
+            'landed_cost' => $landed,
             'profit_cents' => $profitCents,
             'margin_pct' => $marginPct,
             'below_cost' => $belowCost,
@@ -189,7 +189,7 @@ class ProductCostController extends Controller
                 $price = $this->extractPriceFromHtml($html);
 
                 if ($price !== null) {
-                    $link['price_cents'] = (int) round($price * 100);
+                    $link['price'] = (int) round($price * 100);
                     $updated++;
                 }
                 $link['last_checked'] = $checkedAt;
@@ -288,9 +288,9 @@ class ProductCostController extends Controller
             'manufacturer_name' => $ref->manufacturer_name,
             'manufacturer_url' => $ref->manufacturer_url,
             'manufacturer_sku' => $ref->manufacturer_sku,
-            'manufacturer_cost_cents' => $ref->manufacturer_cost_cents,
-            'shipping_cost_cents' => $ref->shipping_cost_cents,
-            'landed_cost_cents' => $ref->landed_cost_cents,
+            'manufacturer_cost' => $ref->manufacturer_cost,
+            'shipping_cost' => $ref->shipping_cost,
+            'landed_cost' => $ref->landed_cost,
             'platform_margin_pct' => $ref->platform_margin_pct,
             'competitor_links' => $ref->competitorLinksNormalized(),
             'competitor_last_checked' => $ref->competitor_last_checked?->toISOString(),

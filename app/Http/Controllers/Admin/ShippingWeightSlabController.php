@@ -66,7 +66,7 @@ class ShippingWeightSlabController extends Controller
             'country_id' => ['required', 'exists:countries,id'],
             'min_weight_grams' => ['required', 'integer', 'min:0'],
             'max_weight_grams' => ['nullable', 'integer', 'gt:min_weight_grams'],
-            'extra_fee_cents' => ['required', 'integer', 'min:0'],
+            'extra_fee' => ['required', 'integer', 'min:0'],
             'is_active' => ['boolean'],
         ]);
 
@@ -84,7 +84,7 @@ class ShippingWeightSlabController extends Controller
             'country_id' => ['sometimes', 'required', 'exists:countries,id'],
             'min_weight_grams' => ['sometimes', 'required', 'integer', 'min:0'],
             'max_weight_grams' => ['nullable', 'integer', 'gt:min_weight_grams'],
-            'extra_fee_cents' => ['sometimes', 'required', 'integer', 'min:0'],
+            'extra_fee' => ['sometimes', 'required', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
@@ -152,8 +152,8 @@ class ShippingWeightSlabController extends Controller
             'min_weight_grams' => $slab->min_weight_grams,
             'max_weight_grams' => $slab->max_weight_grams,
             'weight_range' => $range,
-            'extra_fee_cents' => $slab->extra_fee_cents,
-            'extra_fee_formatted' => number_format($slab->extra_fee_cents / 100, 2),
+            'extra_fee' => $slab->extra_fee,
+            'extra_fee_formatted' => number_format($slab->extra_fee / 100, 2),
             'is_active' => $slab->is_active,
             'active_badge' => $slab->is_active
                 ? '<span class="badge badge-success">Active</span>'

@@ -17,7 +17,7 @@ class CustomerClassifiedListingDetailResource extends JsonResource
             'title'                   => Bilingual::pair($this->resource, 'title'),
             'description'             => Bilingual::pair($this->resource, 'description'),
             'listing_purpose'         => $this->listing_purpose,
-            'price_cents'             => $this->price_cents,
+            'price_cents'             => $this->price,
             'currency'                => $this->currency,
             'price_negotiable'        => $this->price_negotiable,
             'attributes'              => $this->attributes,

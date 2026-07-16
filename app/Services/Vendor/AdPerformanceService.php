@@ -30,8 +30,8 @@ class AdPerformanceService
             'clicks'                   => $rows->sum('clicks'),
             'valid_clicks'             => $rows->sum('valid_clicks'),
             'conversions'              => $rows->sum('conversions'),
-            'spend_cents'              => $rows->sum('spend_cents'),
-            'revenue_attributed_cents' => $rows->sum('revenue_attributed_cents'),
+            'spend'              => $rows->sum('spend'),
+            'revenue_attributed' => $rows->sum('revenue_attributed'),
         ];
 
         return [

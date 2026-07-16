@@ -20,7 +20,7 @@ class FlashSaleSubmissionService
             ->firstOrFail();
 
         $flashPrice    = (int) $data['flash_price'];
-        $originalPrice = (int) $listing->price_cents;
+        $originalPrice = (int) $listing->price;
 
         if ($flashPrice >= $originalPrice) {
             abort(422, 'flash_price must be strictly less than the current listing price.');

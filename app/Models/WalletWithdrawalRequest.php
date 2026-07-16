@@ -13,7 +13,7 @@ class WalletWithdrawalRequest extends Model
 
     protected $fillable = [
         'wallet_id',
-        'amount_cents',
+        'amount',
         'currency',
         'bank_name',
         'bank_iban',
@@ -23,9 +23,10 @@ class WalletWithdrawalRequest extends Model
         'rejection_reason',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'status'       => WalletWithdrawalRequestStatus::class,
-        'amount_cents' => 'integer',
+        'amount' => 'integer',
         'processed_at' => 'datetime',
     ];
 
@@ -41,6 +42,6 @@ class WalletWithdrawalRequest extends Model
 
     public function getAmountAttribute(): float
     {
-        return $this->amount_cents / 100;
+        return $this->amount / 100;
     }
 }

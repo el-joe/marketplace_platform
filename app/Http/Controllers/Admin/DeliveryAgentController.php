@@ -180,8 +180,8 @@ class DeliveryAgentController extends Controller
             'vehicle_plate' => ['nullable', 'string', 'max:20'],
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_phone' => ['nullable', 'string', 'max:30'],
-            'base_salary_cents' => ['nullable', 'integer', 'min:0'],
-            'per_delivery_fee_cents' => ['nullable', 'integer', 'min:0'],
+            'base_salary' => ['nullable', 'integer', 'min:0'],
+            'per_delivery_fee' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $agent->update($validated);
@@ -306,14 +306,14 @@ class DeliveryAgentController extends Controller
 
         $summary = [
             'this_month_cents' => (int) (clone $base($thisMonth, $now->copy()->endOfMonth()))
-                ->sum('amount_cents'),
+                ->sum('amount'),
             'last_month_cents' => (int) (clone $base($lastMonth, $lastMonth->copy()->endOfMonth()))
-                ->sum('amount_cents'),
+                ->sum('amount'),
             'ytd_cents' => (int) DB::table('delivery_agent_earnings')
                 ->where('agent_id', $agent->id)
                 ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled->value)
                 ->whereYear('created_at', $now->year)
-                ->sum('amount_cents'),
+                ->sum('amount'),
         ];
 
         // Monthly breakdown for chart (last 6 months)
@@ -321,7 +321,7 @@ class DeliveryAgentController extends Controller
             ->where('agent_id', $agent->id)
             ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled->value)
             ->where('created_at', '>=', $now->copy()->subMonths(5)->startOfMonth())
-            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(amount_cents) as total_cents')
+            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(amount) as total_cents')
             ->groupByRaw('YEAR(created_at), MONTH(created_at)')
             ->orderByRaw('YEAR(created_at), MONTH(created_at)')
             ->get();

@@ -53,7 +53,7 @@ class WalletController extends Controller
     public function requestWithdrawal(Request $request, string $country): JsonResponse
     {
         $data = $request->validate([
-            'amount_cents' => ['required', 'integer', 'min:100'],
+            'amount' => ['required', 'integer', 'min:100'],
             'bank_name'    => ['required', 'string', 'max:150'],
             'bank_iban'    => ['required', 'string', 'max:50'],
         ]);
@@ -71,12 +71,12 @@ class WalletController extends Controller
             return ApiResponse::error('Your wallet is frozen and cannot request withdrawals.', [], 422);
         }
 
-        if ($wallet->balance_cents < $data['amount_cents']) {
+        if ($wallet->balance < $data['amount']) {
             return ApiResponse::error('Insufficient wallet balance.', [], 422);
         }
 
         try {
-            $withdrawalRequest = $this->walletService->requestWithdrawal($wallet, $data['amount_cents'], [
+            $withdrawalRequest = $this->walletService->requestWithdrawal($wallet, $data['amount'], [
                 'bank_name' => $data['bank_name'],
                 'bank_iban' => $data['bank_iban'],
             ]);

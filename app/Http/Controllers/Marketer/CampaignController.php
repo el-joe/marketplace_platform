@@ -118,7 +118,7 @@ class CampaignController extends Controller
             ->pluck('clicks', 'date');
 
         $conversions = $campaign->conversions()
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as conversions, SUM(commission_amount_cents) as commission_cents')
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as conversions, SUM(commission_amount) as commission_cents')
             ->whereBetween('created_at', [$from, $to])
             ->groupByRaw('DATE(created_at)')
             ->get()
@@ -152,7 +152,7 @@ class CampaignController extends Controller
         abort_if(! $this->policy()->viewConversions($this->marketer(), $campaign), 403);
 
         $paginator = $campaign->conversions()
-            ->select(['id', 'order_id', 'commission_amount_cents', 'status', 'is_whatsapp_conversion', 'approved_at', 'paid_at', 'created_at'])
+            ->select(['id', 'order_id', 'commission_amount', 'status', 'is_whatsapp_conversion', 'approved_at', 'paid_at', 'created_at'])
             ->orderByDesc('created_at')
             ->paginate(20);
 

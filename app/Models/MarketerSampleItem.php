@@ -19,7 +19,7 @@ class MarketerSampleItem extends Model
         'marketer_quantity',
         'admin_quantity',
         'is_mandatory',
-        'sample_cost_cents',
+        'sample_cost',
         'created_at',
     ];
 
@@ -30,7 +30,7 @@ class MarketerSampleItem extends Model
             'marketer_quantity' => 'integer',
             'admin_quantity'    => 'integer',
             'is_mandatory'      => 'boolean',
-            'sample_cost_cents' => 'integer',
+            'sample_cost' => 'integer',
             'created_at'        => 'datetime',
         ];
     }

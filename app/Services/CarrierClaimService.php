@@ -23,7 +23,7 @@ class CarrierClaimService
             'delivery_agent_id'    => $data['delivery_agent_id'] ?? null,
             'claim_type'           => $data['claim_type'],
             'description'          => $data['description'],
-            'claimed_amount_cents' => $data['claimed_amount_cents'],
+            'claimed_amount' => $data['claimed_amount'],
             'evidence_files'       => $data['evidence_files'] ?? null,
             'status'               => CarrierClaimStatus::Submitted,
         ]);
@@ -45,7 +45,7 @@ class CarrierClaimService
         if ($decision === 'approved') {
             $claim->update([
                 'status'                   => CarrierClaimStatus::Approved,
-                'compensated_amount_cents' => $compensatedAmount,
+                'compensated_amount' => $compensatedAmount,
                 'resolution_notes'         => $notes,
                 'resolved_by_admin_id'     => $admin->id,
                 'resolved_at'              => now(),
@@ -100,7 +100,7 @@ class CarrierClaimService
             'total_claims'         => $totalClaims,
             'claims_approved_pct'  => $totalClaims ? round($approvedClaims / $totalClaims * 100, 1) : null,
             'total_compensated'    => $claims->whereIn('status', [CarrierClaimStatus::Approved, CarrierClaimStatus::Compensated])
-                                             ->sum('compensated_amount_cents'),
+                                             ->sum('compensated_amount'),
         ];
     }
 

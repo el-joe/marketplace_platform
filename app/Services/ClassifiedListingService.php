@@ -34,7 +34,7 @@ class ClassifiedListingService
             'title_ar'                => $data['title_ar'],
             'description_en'          => $data['description_en'] ?? null,
             'description_ar'          => $data['description_ar'] ?? null,
-            'price_cents'             => $data['price_cents'],
+            'price'             => $data['price'],
             'currency'                => $data['currency'],
             'price_negotiable'        => $data['price_negotiable'] ?? false,
             'attributes'              => $data['attributes'] ?? null,

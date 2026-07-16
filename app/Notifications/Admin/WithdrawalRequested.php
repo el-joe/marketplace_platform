@@ -21,7 +21,7 @@ class WithdrawalRequested extends BaseDatabaseBroadcastNotification
     {
         return [
             'title'                 => 'New Withdrawal Request',
-            'message'               => "A withdrawal request for {$this->withdrawalRequest->amount_cents} {$this->withdrawalRequest->currency} cents has been submitted.",
+            'message'               => "A withdrawal request for {$this->withdrawalRequest->amount} {$this->withdrawalRequest->currency} cents has been submitted.",
             'withdrawal_request_id' => $this->withdrawalRequest->id,
             'link'                  => route('admin.wallets.show', $this->withdrawalRequest->wallet_id),
         ];

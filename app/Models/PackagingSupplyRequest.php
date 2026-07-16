@@ -17,8 +17,8 @@ class PackagingSupplyRequest extends Model
         'vendor_id',
         'warehouse_id',
         'status',
-        'total_cost_cents',
-        'delivery_fee_cents',
+        'total_cost',
+        'delivery_fee',
         'notes',
         'approved_by_admin_id',
         'approved_at',
@@ -27,8 +27,8 @@ class PackagingSupplyRequest extends Model
     protected function casts(): array
     {
         return [
-            'total_cost_cents'   => 'integer',
-            'delivery_fee_cents' => 'integer',
+            'total_cost'   => 'integer',
+            'delivery_fee' => 'integer',
             'approved_at'        => 'datetime',
             'status'           => PackagingSupplyRequestStatus::class,
         ];
@@ -60,21 +60,21 @@ class PackagingSupplyRequest extends Model
 
     public function getTotalCostFormattedAttribute(): string
     {
-        return $this->total_cost_cents === 0
+        return $this->total_cost === 0
             ? 'Free'
-            : number_format($this->total_cost_cents / 100, 2);
+            : number_format($this->total_cost / 100, 2);
     }
 
     public function getDeliveryFeeFormattedAttribute(): string
     {
-        return $this->delivery_fee_cents === 0
+        return $this->delivery_fee === 0
             ? 'Free'
-            : number_format($this->delivery_fee_cents / 100, 2);
+            : number_format($this->delivery_fee / 100, 2);
     }
 
     public function getGrandTotalCentsAttribute(): int
     {
-        return $this->total_cost_cents + $this->delivery_fee_cents;
+        return $this->total_cost + $this->delivery_fee;
     }
 
     public function getGrandTotalFormattedAttribute(): string

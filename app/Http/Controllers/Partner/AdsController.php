@@ -185,7 +185,7 @@ class AdsController extends Controller
         $stats = $campaign->dailyStats()
             ->whereBetween('date', [$request->from, $request->to])
             ->orderBy('date')
-            ->get(['date', 'impressions', 'clicks', 'conversions', 'spend_cents', 'revenue_attributed_cents']);
+            ->get(['date', 'impressions', 'clicks', 'conversions', 'spend', 'revenue_attributed']);
 
         return response()->json([
             'labels'      => $stats->pluck('date')->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M')),
@@ -195,8 +195,8 @@ class AdsController extends Controller
                 'impressions' => $stats->sum('impressions'),
                 'clicks'      => $stats->sum('clicks'),
                 'conversions' => $stats->sum('conversions'),
-                'spend'       => number_format($stats->sum('spend_cents') / 100, 2),
-                'revenue'     => number_format($stats->sum('revenue_attributed_cents') / 100, 2),
+                'spend'       => number_format($stats->sum('spend') / 100, 2),
+                'revenue'     => number_format($stats->sum('revenue_attributed') / 100, 2),
             ],
         ]);
     }

@@ -67,7 +67,7 @@ class ClassifiedController extends Controller
 
         $listings = ClassifiedListing::select([
                 'id', 'listing_number', 'title_en', 'title_ar',
-                'price_cents', 'currency', 'latitude', 'longitude',
+                'price', 'currency', 'latitude', 'longitude',
                 'listing_purpose',
             ])
             ->where('status', 'active')
@@ -85,7 +85,7 @@ class ClassifiedController extends Controller
                 'id'      => $l->id,
                 'number'  => $l->listing_number,
                 'title'   => app()->getLocale() === 'ar' ? $l->title_ar : $l->title_en,
-                'price'   => number_format($l->price_cents / 100, 0) . ' ' . $l->currency,
+                'price'   => number_format($l->price / 100, 0) . ' ' . $l->currency,
                 'purpose' => $l->listing_purpose,
                 'lat'     => (float) $l->latitude,
                 'lng'     => (float) $l->longitude,
@@ -147,7 +147,7 @@ class ClassifiedController extends Controller
             'title_ar'               => 'required|string|max:255',
             'description_en'         => 'nullable|string',
             'description_ar'         => 'nullable|string',
-            'price_cents'            => 'required|integer|min:0',
+            'price'            => 'required|integer|min:0',
             'currency'               => 'required|string|size:3',
             'price_negotiable'       => 'boolean',
             'attributes'             => 'nullable|array',

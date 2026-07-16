@@ -16,8 +16,8 @@ class WalletTransaction extends Model
     protected $fillable = [
         'wallet_id',
         'type',
-        'amount_cents',
-        'balance_after_cents',
+        'amount',
+        'balance_after',
         'source_type',
         'source_id',
         'description',
@@ -25,10 +25,11 @@ class WalletTransaction extends Model
         'created_at',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'type'                 => WalletTransactionType::class,
-        'amount_cents'         => 'integer',
-        'balance_after_cents'  => 'integer',
+        'amount'         => 'integer',
+        'balance_after'  => 'integer',
         'created_at'           => 'datetime',
     ];
 

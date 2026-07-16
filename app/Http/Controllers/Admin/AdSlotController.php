@@ -53,7 +53,7 @@ class AdSlotController extends Controller
             ['searchable_columns' => [], 'orderable_column' => null], // placement
             ['searchable_columns' => [], 'orderable_column' => null], // country
             ['searchable_columns' => [], 'orderable_column' => 'pricing_model'],
-            ['searchable_columns' => [], 'orderable_column' => 'base_rate_cents'],
+            ['searchable_columns' => [], 'orderable_column' => 'base_rate'],
             ['searchable_columns' => [], 'orderable_column' => null], // booking days
             ['searchable_columns' => [], 'orderable_column' => 'is_available'],
             ['searchable_columns' => [], 'orderable_column' => null], // actions
@@ -66,7 +66,7 @@ class AdSlotController extends Controller
                 ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">Available</span>'
                 : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Unavailable</span>';
 
-            $rate = '$' . number_format($row->base_rate_cents / 100, 2);
+            $rate = '$' . number_format($row->base_rate / 100, 2);
             $pricingModelLabel = ucwords(str_replace('_', '/', $row->pricing_model->value));
 
             $editUrl = route('admin.ad-slots.edit', $row->id);
@@ -137,7 +137,7 @@ class AdSlotController extends Controller
             'placement_definition_id' => $validated['banner_placement_definition_id'],
             'country_id' => $validated['country_id'] ?? null,
             'pricing_model' => $validated['pricing_model'],
-            'base_rate_cents' => (int) round($validated['base_rate_display'] * 100),
+            'base_rate' => (int) round($validated['base_rate_display'] * 100),
             'currency' => $validated['currency'],
             'min_booking_days' => $validated['min_booking_days'],
             'max_booking_days' => $validated['max_booking_days'] ?? null,
@@ -194,7 +194,7 @@ class AdSlotController extends Controller
             'placement_definition_id' => $validated['banner_placement_definition_id'],
             'country_id' => $validated['country_id'] ?? null,
             'pricing_model' => $validated['pricing_model'],
-            'base_rate_cents' => (int) round($validated['base_rate_display'] * 100),
+            'base_rate' => (int) round($validated['base_rate_display'] * 100),
             'currency' => $validated['currency'],
             'min_booking_days' => $validated['min_booking_days'],
             'max_booking_days' => $validated['max_booking_days'] ?? null,

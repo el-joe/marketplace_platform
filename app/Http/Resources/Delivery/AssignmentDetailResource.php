@@ -24,7 +24,7 @@ class AssignmentDetailResource extends JsonResource
             'customer_rating' => $this->customer_rating,
             'agent_notes'    => $this->agent_notes,
             'proof_file_id'  => $this->proof_file_id,
-            'cod_amount_collected_cents' => $this->cod_amount_collected_cents,
+            'cod_amount_collected_cents' => $this->cod_amount_collected,
             'assigned_at'    => $this->assigned_at?->toIso8601String(),
             'accepted_at'    => $this->accepted_at?->toIso8601String(),
             'picked_up_at'   => $this->picked_up_at?->toIso8601String(),

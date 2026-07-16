@@ -77,7 +77,7 @@ class SubscriptionService
             VendorSubscriptionInvoice::create([
                 'vendor_id' => $vendor->id,
                 'subscription_id' => $subscription->id,
-                'amount_cents' => $plan->price_cents,
+                'amount' => $plan->price,
                 'currency' => $plan->currency,
                 'status' => VendorSubscriptionInvoiceStatus::Open,
                 'period_start' => $periodStart,
@@ -124,7 +124,7 @@ class SubscriptionService
             VendorSubscriptionInvoice::create([
                 'vendor_id' => $subscription->vendor_id,
                 'subscription_id' => $subscription->id,
-                'amount_cents' => $subscription->plan->price_cents,
+                'amount' => $subscription->plan->price,
                 'currency' => $subscription->plan->currency,
                 'status' => VendorSubscriptionInvoiceStatus::Open,
                 'period_start' => $newStart->toDateString(),

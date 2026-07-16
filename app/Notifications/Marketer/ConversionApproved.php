@@ -17,7 +17,7 @@ class ConversionApproved extends BaseDatabaseBroadcastNotification
 
     public function notificationData(object $notifiable): array
     {
-        $commission = number_format($this->conversion->commission_amount_cents / 100, 2);
+        $commission = number_format($this->conversion->commission_amount / 100, 2);
         $currency   = $this->conversion->currency ?? '';
 
         return [

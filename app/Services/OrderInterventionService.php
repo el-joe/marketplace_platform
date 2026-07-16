@@ -324,7 +324,7 @@ class OrderInterventionService
                 'metadata'            => [
                     'action'       => 'refund_created',
                     'refund_id'    => $refund->id,
-                    'amount_cents' => $amountCents,
+                    'amount' => $amountCents,
                     'refund_type'  => $refundType,
                 ],
             ]);

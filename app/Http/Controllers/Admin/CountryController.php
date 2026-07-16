@@ -274,9 +274,9 @@ class CountryController extends Controller
             'display_name_ar' => ['nullable', 'string', 'max:100'],
             'is_active' => ['boolean'],
             'fee_pct' => ['required', 'numeric', 'min:0', 'max:100'],
-            'fee_fixed_cents' => ['required', 'integer', 'min:0'],
-            'min_order_cents' => ['required', 'integer', 'min:0'],
-            'max_order_cents' => ['nullable', 'integer', 'min:0'],
+            'fee_fixed' => ['required', 'integer', 'min:0'],
+            'min_order' => ['required', 'integer', 'min:0'],
+            'max_order' => ['nullable', 'integer', 'min:0'],
             'sort_order' => ['integer', 'min:0'],
         ]);
 
@@ -303,9 +303,9 @@ class CountryController extends Controller
             'display_name_ar' => ['nullable', 'string', 'max:100'],
             'is_active' => ['boolean'],
             'fee_pct' => ['required', 'numeric', 'min:0', 'max:100'],
-            'fee_fixed_cents' => ['required', 'integer', 'min:0'],
-            'min_order_cents' => ['required', 'integer', 'min:0'],
-            'max_order_cents' => ['nullable', 'integer', 'min:0'],
+            'fee_fixed' => ['required', 'integer', 'min:0'],
+            'min_order' => ['required', 'integer', 'min:0'],
+            'max_order' => ['nullable', 'integer', 'min:0'],
             'sort_order' => ['integer', 'min:0'],
         ]);
 
@@ -334,7 +334,7 @@ class CountryController extends Controller
             'settings' => ['required', 'array'],
             'settings.*.shipping_method_id' => ['required', 'exists:shipping_methods,id'],
             'settings.*.is_active' => ['boolean'],
-            'settings.*.free_shipping_threshold_cents' => ['nullable', 'integer', 'min:0'],
+            'settings.*.free_shipping_threshold' => ['nullable', 'integer', 'min:0'],
         ]);
 
         DB::transaction(function () use ($country, $data) {
@@ -346,7 +346,7 @@ class CountryController extends Controller
                     ],
                     [
                         'is_active' => (bool) ($row['is_active'] ?? false),
-                        'free_shipping_threshold_cents' => $row['free_shipping_threshold_cents'] ?? null,
+                        'free_shipping_threshold' => $row['free_shipping_threshold'] ?? null,
                     ]
                 );
             }

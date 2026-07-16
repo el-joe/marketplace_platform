@@ -35,7 +35,7 @@ class ShippingCalculationService
                 $query->whereNull('max_weight_grams')
                     ->orWhere('max_weight_grams', '>=', $effectiveWeightGrams);
             })
-            ->value('extra_fee_cents');
+            ->value('extra_fee');
 
         return (int) ($extraFeeCents ?? 0);
     }
@@ -78,8 +78,8 @@ class ShippingCalculationService
             'weight_slab_extra_cents' => $weightSlabExtraCents,
             'total_shipping_cents' => $totalShippingCents,
             'customer_pays_cents' => $display['customer_display_cents'],
-            'vendor_deduction_cents' => $display['vendor_deduction_cents'],
-            'admin_subsidy_cents' => $display['admin_subsidy_cents'],
+            'vendor_deduction' => $display['vendor_deduction'],
+            'admin_subsidy' => $display['admin_subsidy'],
             'display_mode' => $display['display_mode'],
             'is_exceptional_zone' => $display['is_exceptional_zone'],
             'vendor_covers_delivery' => $display['vendor_covers_delivery'],
@@ -105,14 +105,14 @@ class ShippingCalculationService
      * Split a total delivery cost between the admin subsidy and the vendor's
      * optional coverage of whatever remains after the subsidy is applied.
      *
-     * @return array{admin_subsidy_cents: int, vendor_deduction_cents: int, remainder_cents: int}
+     * @return array{admin_subsidy: int, vendor_deduction: int, remainder_cents: int}
      */
     public function resolveSubsidySplit(
         int $totalShippingCents,
         bool $vendorCoversDelivery,
         VendorFbpSubsidySetting $settings,
     ): array {
-        $adminSubsidyCents = min($settings->admin_subsidy_cents, $totalShippingCents);
+        $adminSubsidyCents = min($settings->admin_subsidy, $totalShippingCents);
 
         $afterSubsidy = max(0, $totalShippingCents - $adminSubsidyCents);
         $vendorDeductionCents = $vendorCoversDelivery ? $afterSubsidy : 0;
@@ -120,8 +120,8 @@ class ShippingCalculationService
         $remainderCents = max(0, $totalShippingCents - $adminSubsidyCents - $vendorDeductionCents);
 
         return [
-            'admin_subsidy_cents' => $adminSubsidyCents,
-            'vendor_deduction_cents' => $vendorDeductionCents,
+            'admin_subsidy' => $adminSubsidyCents,
+            'vendor_deduction' => $vendorDeductionCents,
             'remainder_cents' => $remainderCents,
         ];
     }
@@ -133,7 +133,7 @@ class ShippingCalculationService
      *   total_shipping_cents: int,
      *   vendor_covers_delivery: bool,
      *   is_exceptional_zone: bool,
-     *   admin_subsidy_cents: int,
+     *   admin_subsidy: int,
      *   display_mode: string,
      *   customer_display_cents: int,
      *   subsidy_label_en: string,
@@ -169,13 +169,13 @@ class ShippingCalculationService
         if ($isExceptionalZone) {
             $split = $this->resolveSubsidySplit($totalShippingCents, $vendorCoversDelivery, $settings);
 
-            if ($split['admin_subsidy_cents'] + $split['vendor_deduction_cents'] >= $totalShippingCents) {
+            if ($split['admin_subsidy'] + $split['vendor_deduction'] >= $totalShippingCents) {
                 return $this->buildResult(
                     $totalShippingCents,
                     $vendorCoversDelivery,
                     $isExceptionalZone,
-                    $split['admin_subsidy_cents'],
-                    $split['vendor_deduction_cents'],
+                    $split['admin_subsidy'],
+                    $split['vendor_deduction'],
                     'free',
                     0,
                     'Free Delivery — covered by seller and platform',
@@ -187,17 +187,17 @@ class ShippingCalculationService
                 $totalShippingCents,
                 $vendorCoversDelivery,
                 $isExceptionalZone,
-                $split['admin_subsidy_cents'],
-                $split['vendor_deduction_cents'],
+                $split['admin_subsidy'],
+                $split['vendor_deduction'],
                 'subsidized',
                 $split['remainder_cents'],
-                $this->subsidizedLabelEn($split['admin_subsidy_cents'] + $split['vendor_deduction_cents'], $split['remainder_cents'], $currencyCode),
-                $this->subsidizedLabelAr($split['admin_subsidy_cents'] + $split['vendor_deduction_cents'], $split['remainder_cents'], $currencyCode),
+                $this->subsidizedLabelEn($split['admin_subsidy'] + $split['vendor_deduction'], $split['remainder_cents'], $currencyCode),
+                $this->subsidizedLabelAr($split['admin_subsidy'] + $split['vendor_deduction'], $split['remainder_cents'], $currencyCode),
             );
         }
 
         // Rule 3: admin subsidy threshold covers the full cost.
-        if ($totalShippingCents <= $settings->full_coverage_threshold_cents) {
+        if ($totalShippingCents <= $settings->full_coverage_threshold) {
             return $this->buildResult(
                 $totalShippingCents,
                 $vendorCoversDelivery,
@@ -212,7 +212,7 @@ class ShippingCalculationService
         }
 
         // Rule 4: admin covers a partial amount, vendor doesn't cover the rest.
-        $adminSubsidyCents = min($settings->admin_subsidy_cents, $totalShippingCents);
+        $adminSubsidyCents = min($settings->admin_subsidy, $totalShippingCents);
         if ($adminSubsidyCents > 0) {
             $remainderCents = $totalShippingCents - $adminSubsidyCents;
 
@@ -258,8 +258,8 @@ class ShippingCalculationService
             'total_shipping_cents' => $totalShippingCents,
             'vendor_covers_delivery' => $vendorCoversDelivery,
             'is_exceptional_zone' => $isExceptionalZone,
-            'admin_subsidy_cents' => $adminSubsidyCents,
-            'vendor_deduction_cents' => $vendorDeductionCents,
+            'admin_subsidy' => $adminSubsidyCents,
+            'vendor_deduction' => $vendorDeductionCents,
             'display_mode' => $displayMode,
             'customer_display_cents' => $customerDisplayCents,
             'subsidy_label_en' => $labelEn,

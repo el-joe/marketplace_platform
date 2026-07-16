@@ -56,10 +56,10 @@ class DashboardController extends Controller
             ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
-            ->selectRaw('COUNT(*) as total, SUM(total_price_cents) as revenue')
+            ->selectRaw('COUNT(*) as total, SUM(total_price) as revenue')
             ->first();
 
-        // total_price_cents is an unsigned BIGINT with no currency column of its
+        // total_price is an unsigned BIGINT with no currency column of its
         // own — currency lives on the related travel_packages row. Revenue must
         // be grouped by currency rather than summed across the whole agency, or
         // packages priced in different currencies would be added together.
@@ -69,12 +69,12 @@ class DashboardController extends Controller
             ->join('travel_packages', 'travel_packages.id', '=', 'travel_bookings.travel_package_id')
             ->where('travel_packages.travel_agency_id', $agency->id)
             ->where('travel_bookings.status', '!=', TravelBookingStatus::Cancelled)
-            ->selectRaw('travel_packages.currency as currency, SUM(travel_bookings.total_price_cents) as revenue_cents')
+            ->selectRaw('travel_packages.currency as currency, SUM(travel_bookings.total_price) as revenue')
             ->groupBy('travel_packages.currency')
             ->get()
             ->map(fn ($row) => [
                 'currency' => $row->currency,
-                'revenue_cents' => (int) $row->revenue_cents,
+                'revenue' => (int) $row->revenue,
             ])
             ->values();
 

@@ -28,7 +28,7 @@ class GiftCardController extends Controller
         }
 
         return ApiResponse::success([
-            'balance_cents' => $giftCard->balance_cents,
+            'balance' => $giftCard->balance,
             'currency' => $giftCard->currency,
             'status' => $giftCard->status,
             'expires_at' => $giftCard->expires_at?->toIso8601String(),
@@ -56,7 +56,7 @@ class GiftCardController extends Controller
             : [];
 
         $validated = $request->validate([
-            'denomination_cents' => ['required', 'integer', Rule::in([5000, 10000, 25000, 50000, 100000])],
+            'denomination' => ['required', 'integer', Rule::in([5000, 10000, 25000, 50000, 100000])],
             'currency' => ['required', 'string', Rule::in($activeCurrencies)],
             'recipient_email' => ['required_without:recipient_phone', 'nullable', 'email'],
             'recipient_phone' => ['required_without:recipient_email', 'nullable', 'string', 'max:30'],

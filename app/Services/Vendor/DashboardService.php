@@ -74,7 +74,7 @@ class DashboardService
             $revenueByDay = SubOrder::where('vendor_id', $vendorId)
                 ->where('created_at', '>=', now()->subDays(6)->startOfDay())
                 ->whereNotIn('status', ['cancelled', 'refunded'])
-                ->selectRaw('DATE(created_at) as date, SUM(vendor_payout) as amount_cents, COUNT(*) as order_count')
+                ->selectRaw('DATE(created_at) as date, SUM(vendor_payout) as amount, COUNT(*) as order_count')
                 ->groupBy('date')
                 ->get()
                 ->keyBy('date');
@@ -85,7 +85,7 @@ class DashboardService
 
                 return [
                     'date'         => $date,
-                    'amount_cents' => (int) ($row->amount_cents ?? 0),
+                    'amount' => (int) ($row->amount ?? 0),
                     'order_count'  => (int) ($row->order_count ?? 0),
                 ];
             })->values()->all();

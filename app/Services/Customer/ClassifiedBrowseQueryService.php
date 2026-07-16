@@ -34,10 +34,10 @@ class ClassifiedBrowseQueryService
             ->where('status', ClassifiedListingStatus::Active->value);
 
         if (!empty($filters['price_min'])) {
-            $query->where('price_cents', '>=', (int) ($filters['price_min'] * 100));
+            $query->where('price', '>=', (int) ($filters['price_min'] * 100));
         }
         if (!empty($filters['price_max'])) {
-            $query->where('price_cents', '<=', (int) ($filters['price_max'] * 100));
+            $query->where('price', '<=', (int) ($filters['price_max'] * 100));
         }
         if (!empty($filters['listing_purpose'])) {
             $query->where('listing_purpose', $filters['listing_purpose']);
@@ -48,8 +48,8 @@ class ClassifiedBrowseQueryService
 
         $sort = $filters['sort'] ?? 'newest';
         $query = match ($sort) {
-            'price_asc'  => $query->orderBy('price_cents', 'asc'),
-            'price_desc' => $query->orderBy('price_cents', 'desc'),
+            'price_asc'  => $query->orderBy('price', 'asc'),
+            'price_desc' => $query->orderBy('price', 'desc'),
             default      => $query->orderBy('created_at', 'desc'),
         };
 
@@ -69,7 +69,7 @@ class ClassifiedBrowseQueryService
         }
 
         $range = (clone $base)
-            ->selectRaw('MIN(price_cents) as low, MAX(price_cents) as high')
+            ->selectRaw('MIN(price) as low, MAX(price) as high')
             ->first();
 
         return [

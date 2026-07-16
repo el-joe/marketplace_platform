@@ -200,7 +200,7 @@ class AssignmentController extends Controller
             ];
 
             if ($isCod && isset($validated['cod_amount_collected'])) {
-                $assignmentData['cod_amount_collected_cents'] = (int) $validated['cod_amount_collected'];
+                $assignmentData['cod_amount_collected'] = (int) $validated['cod_amount_collected'];
             }
 
             $assignment->update($assignmentData);
@@ -239,7 +239,7 @@ class AssignmentController extends Controller
                 'delivery_assignment_id'  => $assignment->id,
                 'order_id'                => $assignment->subOrder?->order_id,
                 'earning_type'            => 'base_fee',
-                'amount_cents'            => $agent->per_delivery_fee_cents,
+                'amount'            => $agent->per_delivery_fee,
                 'currency'                => $currency,
                 'status'                  => DeliveryAgentEarningStatus::Pending,
             ]);
@@ -251,7 +251,7 @@ class AssignmentController extends Controller
                     'delivery_assignment_id'  => $assignment->id,
                     'order_id'                => $assignment->subOrder?->order_id,
                     'earning_type'            => 'cod_handling',
-                    'amount_cents'            => (int) $order->cod_fee,
+                    'amount'            => (int) $order->cod_fee,
                     'currency'                => $currency,
                     'status'                  => DeliveryAgentEarningStatus::Pending,
                     'notes'                   => $validated['discrepancy_note'] ?? null,

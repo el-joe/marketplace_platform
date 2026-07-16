@@ -109,7 +109,7 @@ class TransactionFeedService
             'date'         => $r->updated_at?->toISOString(),
             'reference'    => $r->subOrder?->sub_order_number,
             'description'  => 'Refund — ' . str_replace('_', ' ', $r->reason?->value ?? ''),
-            'amount_cents' => -(int) $r->amount,
+            'amount' => -(int) $r->amount,
         ]);
     }
 
@@ -125,7 +125,7 @@ class TransactionFeedService
             'date'         => $p->processed_at?->toISOString(),
             'reference'    => $p->payout_number,
             'description'  => 'Payout — ' . $p->period_start->toDateString() . ' to ' . $p->period_end->toDateString(),
-            'amount_cents' => $p->net_amount,
+            'amount' => $p->net_amount,
             'currency'     => $p->currency,
             'receipt_url'  => $p->receipt_url,
         ]);
@@ -135,8 +135,8 @@ class TransactionFeedService
     {
         return [
             'total_sales_cents'    => (int) $items->where('type', 'sale')->sum('net_cents'),
-            'total_refunds_cents'  => (int) $items->where('type', 'refund')->sum('amount_cents'),
-            'total_paid_out_cents' => (int) $items->where('type', 'payout')->sum('amount_cents'),
+            'total_refunds_cents'  => (int) $items->where('type', 'refund')->sum('amount'),
+            'total_paid_out_cents' => (int) $items->where('type', 'payout')->sum('amount'),
         ];
     }
 }

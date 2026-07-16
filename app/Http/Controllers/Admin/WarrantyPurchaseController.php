@@ -72,7 +72,7 @@ class WarrantyPurchaseController extends Controller
             2 => [],
             3 => ['searchable_columns' => ['warranty_plans.name_en']],
             4 => [],
-            5 => ['orderable_column' => 'warranty_purchases.price_paid_cents'],
+            5 => ['orderable_column' => 'warranty_purchases.price_paid'],
             6 => ['orderable_column' => 'warranty_purchases.status'],
             7 => ['orderable_column' => 'warranty_purchases.coverage_starts_at'],
             8 => ['orderable_column' => 'warranty_purchases.coverage_ends_at'],
@@ -96,7 +96,7 @@ class WarrantyPurchaseController extends Controller
                 'product' => '<span class="text-sm text-gray-700">' . e($productName ?? '—') . '</span>',
                 'plan' => '<span class="text-sm text-gray-700">' . e($planName ?? '—') . '</span>',
                 'duration' => '<span class="text-sm text-gray-500">' . e($duration ?? '—') . '</span>',
-                'price' => '<span class="text-sm text-gray-700 whitespace-nowrap">' . number_format($w->price_paid_cents / 100, 2) . ' ' . e($w->currency) . '</span>',
+                'price' => '<span class="text-sm text-gray-700 whitespace-nowrap">' . number_format($w->price_paid / 100, 2) . ' ' . e($w->currency) . '</span>',
                 'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e(ucfirst($w->status)) . '</span>',
                 'coverage_starts_at' => '<span class="text-xs text-gray-500 whitespace-nowrap">' . ($w->coverage_starts_at ? $w->coverage_starts_at->format('M d, Y') : '—') . '</span>',
                 'coverage_ends_at' => '<span class="text-xs text-gray-500 whitespace-nowrap">' . ($w->coverage_ends_at ? $w->coverage_ends_at->format('M d, Y') : '—') . '</span>',
@@ -140,7 +140,7 @@ class WarrantyPurchaseController extends Controller
         abort_unless($admin->hasPermissionTo('warranty_plans.view'), 403);
 
         $revenueByCurrency = WarrantyPurchase::query()
-            ->select('currency', DB::raw('SUM(price_paid_cents) as total_cents'))
+            ->select('currency', DB::raw('SUM(price_paid) as total_cents'))
             ->groupBy('currency')
             ->get();
 
@@ -153,7 +153,7 @@ class WarrantyPurchaseController extends Controller
         $monthlyRevenue = WarrantyPurchase::query()
             ->select(
                 DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
-                DB::raw('SUM(price_paid_cents) as total_cents')
+                DB::raw('SUM(price_paid) as total_cents')
             )
             ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
             ->groupBy('month')
@@ -166,7 +166,7 @@ class WarrantyPurchaseController extends Controller
                 'warranty_plans.id as plan_id',
                 'warranty_plans.name_en as plan_name',
                 DB::raw('COUNT(warranty_purchases.id) as sales_count'),
-                DB::raw('SUM(warranty_purchases.price_paid_cents) as total_cents')
+                DB::raw('SUM(warranty_purchases.price_paid) as total_cents')
             )
             ->groupBy('warranty_plans.id', 'warranty_plans.name_en')
             ->orderByDesc('total_cents')

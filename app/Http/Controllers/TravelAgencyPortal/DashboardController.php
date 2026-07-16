@@ -23,7 +23,7 @@ class DashboardController extends Controller
         // Booking stats scoped to this agency's packages
         $bookingStats = TravelBooking::query()
             ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
-            ->selectRaw('COUNT(*) as total, SUM(total_price_cents) as revenue')
+            ->selectRaw('COUNT(*) as total, SUM(total_price) as revenue')
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->first();

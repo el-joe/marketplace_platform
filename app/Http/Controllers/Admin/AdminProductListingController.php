@@ -78,7 +78,7 @@ class AdminProductListingController extends Controller
         $columns = [
             ['searchable_columns' => ['p.name_en', 'p.name_ar', 'pv.sku'], 'orderable_column' => 'p.name_en'],
             ['orderable_column' => 'co.name_en'],
-            ['orderable_column' => 'admin_product_listings.price_cents'],
+            ['orderable_column' => 'admin_product_listings.price'],
             ['orderable_column' => 'admin_product_listings.fulfillment_type'],
             ['orderable_column' => 'admin_product_listings.payment_options'],
             ['orderable_column' => 'admin_product_listings.featured_in_nawy'],
@@ -93,7 +93,7 @@ class AdminProductListingController extends Controller
             ->whereNull('p.deleted_at')
             ->select([
                 'admin_product_listings.id',
-                'admin_product_listings.price_cents',
+                'admin_product_listings.price',
                 'admin_product_listings.currency',
                 'admin_product_listings.fulfillment_type',
                 'admin_product_listings.payment_options',
@@ -120,7 +120,7 @@ class AdminProductListingController extends Controller
                 'product_name' => e($row->product_name),
                 'variant_sku' => e($row->variant_sku),
                 'country' => e($row->country_name),
-                'price' => number_format($row->price_cents / 100, 2) . ' ' . $row->currency,
+                'price' => number_format($row->price / 100, 2) . ' ' . $row->currency,
                 'fulfillment_type' => $row->fulfillment_type,
                 'payment_options' => $paymentLabels[$row->payment_options] ?? $row->payment_options,
                 'featured_in_nawy' => (bool) $row->featured_in_nawy,
@@ -252,22 +252,22 @@ class AdminProductListingController extends Controller
             'manufacturer_name' => ['nullable', 'string', 'max:255'],
             'manufacturer_url' => ['nullable', 'url', 'max:500'],
             'manufacturer_sku' => ['nullable', 'string', 'max:100'],
-            'manufacturer_cost_cents' => ['nullable', 'integer', 'min:0'],
-            'shipping_cost_cents' => ['nullable', 'integer', 'min:0'],
-            'landed_cost_cents' => ['nullable', 'integer', 'min:0'],
+            'manufacturer_cost' => ['nullable', 'integer', 'min:0'],
+            'shipping_cost' => ['nullable', 'integer', 'min:0'],
+            'landed_cost' => ['nullable', 'integer', 'min:0'],
             'competitor_links' => ['nullable', 'array'],
             'competitor_links.*.name' => ['required_with:competitor_links', 'string', 'max:255'],
             'competitor_links.*.url' => ['required_with:competitor_links', 'url', 'max:500'],
-            'competitor_links.*.price_cents' => ['nullable', 'integer', 'min:0'],
+            'competitor_links.*.price' => ['nullable', 'integer', 'min:0'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
         $adminId = Auth::guard('admin')->id();
 
-        $landed = $data['landed_cost_cents']
-            ?? (($data['manufacturer_cost_cents'] ?? 0) + ($data['shipping_cost_cents'] ?? 0));
-        $marginPct = ($landed > 0 && $adminProductListing->price_cents > 0)
-            ? round(($adminProductListing->price_cents - $landed) / $adminProductListing->price_cents * 100, 2)
+        $landed = $data['landed_cost']
+            ?? (($data['manufacturer_cost'] ?? 0) + ($data['shipping_cost'] ?? 0));
+        $marginPct = ($landed > 0 && $adminProductListing->price > 0)
+            ? round(($adminProductListing->price - $landed) / $adminProductListing->price * 100, 2)
             : null;
 
         $ref = ProductCostReference::where('product_id', $productId)->first();
@@ -409,9 +409,9 @@ class AdminProductListingController extends Controller
             'manufacturer_name' => $ref->manufacturer_name,
             'manufacturer_url' => $ref->manufacturer_url,
             'manufacturer_sku' => $ref->manufacturer_sku,
-            'manufacturer_cost_cents' => $ref->manufacturer_cost_cents,
-            'shipping_cost_cents' => $ref->shipping_cost_cents,
-            'landed_cost_cents' => $ref->landed_cost_cents,
+            'manufacturer_cost' => $ref->manufacturer_cost,
+            'shipping_cost' => $ref->shipping_cost,
+            'landed_cost' => $ref->landed_cost,
             'platform_margin_pct' => $ref->platform_margin_pct,
             'competitor_links' => $ref->competitorLinksNormalized(),
             'competitor_last_checked' => $ref->competitor_last_checked?->toISOString(),
@@ -430,8 +430,8 @@ class AdminProductListingController extends Controller
         return [
             'product_variant_id'   => ['required', 'exists:product_variants,id'],
             'country_id'           => ['required', 'exists:countries,id'],
-            'price_cents'          => ['required', 'integer', 'min:0'],
-            'cost_price_cents'     => ['nullable', 'integer', 'min:0'],
+            'price'          => ['required', 'integer', 'min:0'],
+            'cost_price'     => ['nullable', 'integer', 'min:0'],
             'commission_type'      => ['required', Rule::enum(AdminProductListingCommissionType::class)],
             'commission_value'     => ['required', 'numeric', 'min:0'],
             'currency'             => ['required', 'string', 'size:3'],
@@ -439,7 +439,7 @@ class AdminProductListingController extends Controller
             'fulfillment_type'     => ['required', Rule::in(['express', 'global', 'mixed'])],
             'featured_in_nawy'     => ['boolean'],
             'nawy_category_id'     => ['nullable', 'exists:categories,id'],
-            'shipping_cost_cents'  => ['required', 'integer', 'min:0'],
+            'shipping_cost'  => ['required', 'integer', 'min:0'],
             'is_exclusive'         => ['boolean'],
             'status'               => ['required', Rule::enum(AdminProductListingStatus::class)],
             'available_for_vendors'    => ['boolean'],

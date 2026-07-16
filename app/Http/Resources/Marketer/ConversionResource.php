@@ -13,7 +13,7 @@ class ConversionResource extends JsonResource
             'id'                      => $this->id,
             'order_ref'               => $this->maskedOrderRef(),
             'commission_rate'         => (float) $this->commission_rate,
-            'commission_amount_cents' => (int) $this->commission_amount_cents,
+            'commission_amount_cents' => (int) $this->commission_amount,
             'currency'                => $this->currency,
             'status'                  => $this->status?->value,
             'attribution_model'       => $this->attribution_model?->value,

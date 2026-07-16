@@ -14,7 +14,7 @@ class TravelBookingResource extends JsonResource
             'booking_number' => $this->booking_number,
             'status' => $this->status?->value,
             'travelers_count' => $this->travelers_count,
-            'total_price_cents' => $this->total_price_cents,
+            'total_price_cents' => $this->total_price,
             'currency' => $this->whenLoaded('package', fn () => $this->package->currency),
             'total_price_formatted' => $this->whenLoaded('package', fn () => $this->totalFormatted()),
             'passport_uploaded' => (bool) $this->passport_file_path,

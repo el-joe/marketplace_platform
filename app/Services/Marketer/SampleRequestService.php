@@ -27,7 +27,7 @@ class SampleRequestService
                     'vendor_listing_id' => $listingId,
                     'quantity'          => 1,
                     'is_mandatory'      => true,
-                    'sample_cost_cents' => 0,
+                    'sample_cost' => 0,
                     'created_at'        => now(),
                 ]);
             }

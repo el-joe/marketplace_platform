@@ -17,7 +17,7 @@ class TravelBooking extends Model
         'travel_package_id',
         'customer_id',
         'travelers_count',
-        'total_price_cents',
+        'total_price',
         'passport_file_path',
         'contract_signed_at',
         'contract_signature_data',
@@ -59,7 +59,7 @@ class TravelBooking extends Model
     {
         $currency = $this->package?->currency ?? '';
 
-        return \App\Helpers\CurrencyFormatter::formatPrice($this->total_price_cents, $currency);
+        return \App\Helpers\CurrencyFormatter::formatPrice($this->total_price, $currency);
     }
 
     public function isContractSigned(): bool

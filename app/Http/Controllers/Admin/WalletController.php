@@ -128,7 +128,7 @@ class WalletController extends Controller
         $agent = DeliveryAgent::findOrFail($data['agent_id']);
         $settlement = $this->walletService->settleAgentCod($agent, $data['period_start'], $data['period_end']);
 
-        return back()->with('success', "Settlement created (net: {$settlement->net_to_remit_cents} cents).");
+        return back()->with('success', "Settlement created (net: {$settlement->net_to_remit} cents).");
     }
 
     public function markSettlementSettled(DeliveryAgentCodSettlement $settlement)

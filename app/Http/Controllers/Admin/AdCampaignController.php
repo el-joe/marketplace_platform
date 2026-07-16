@@ -34,7 +34,7 @@ class AdCampaignController extends Controller
             'pending' => AdCampaign::where('status', AdCampaignStatus::PendingReview->value)->count(),
             'active' => AdCampaign::where('status', AdCampaignStatus::Active->value)->count(),
             'paused' => AdCampaign::where('status', AdCampaignStatus::Paused->value)->count(),
-            'spend_today' => (int) AdDailyStat::whereDate('date', $today)->sum('spend_cents'),
+            'spend_today' => (int) AdDailyStat::whereDate('date', $today)->sum('spend'),
         ];
 
         $countries = Country::orderBy('name_en')->get(['id', 'name_en', 'flag_emoji']);
@@ -182,8 +182,8 @@ class AdCampaignController extends Controller
             'impressions' => $perf7->sum('impressions'),
             'clicks' => $perf7->sum('clicks'),
             'conversions' => $perf7->sum('conversions'),
-            'spend_cents' => $perf7->sum('spend_cents'),
-            'revenue_attributed_cents' => $perf7->sum('revenue_attributed_cents'),
+            'spend' => $perf7->sum('spend'),
+            'revenue_attributed' => $perf7->sum('revenue_attributed'),
             'ctr' => $perf7->avg('ctr'),
             'acos' => $perf7->avg('acos'),
         ];
@@ -195,7 +195,7 @@ class AdCampaignController extends Controller
         $chartStats = $campaign->dailyStats()
             ->orderBy('date')
             ->take(30)
-            ->get(['date', 'impressions', 'clicks', 'spend_cents']);
+            ->get(['date', 'impressions', 'clicks', 'spend']);
 
         $chartLabels = $chartStats->pluck('date')->map(fn($d) => Carbon::parse($d)->format('d M'))->values();
         $chartImpressions = $chartStats->pluck('impressions')->values();

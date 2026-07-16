@@ -39,11 +39,11 @@ class DashboardService
 
             $pendingEarningsCents = (int) MarketerConversion::where('marketer_id', $marketer->id)
                 ->where('status', MarketerTrackingStatus::Pending)
-                ->sum('commission_amount_cents');
+                ->sum('commission_amount');
 
             $approvedEarningsCents = (int) MarketerConversion::where('marketer_id', $marketer->id)
                 ->where('status', MarketerTrackingStatus::Approved)
-                ->sum('commission_amount_cents');
+                ->sum('commission_amount');
 
             // Tier progress
             $salesCount = MarketerConversion::where('marketer_id', $marketer->id)
@@ -88,7 +88,7 @@ class DashboardService
                 ->select(
                     DB::raw('DATE(created_at) as date'),
                     DB::raw('COUNT(*) as conversions'),
-                    DB::raw('SUM(commission_amount_cents) as commission_cents'),
+                    DB::raw('SUM(commission_amount) as commission_cents'),
                 )
                 ->groupBy(DB::raw('DATE(created_at)'))
                 ->get()
@@ -107,15 +107,15 @@ class DashboardService
 
             // Top campaigns by revenue
             $topCampaigns = $marketer->campaigns()
-                ->orderByDesc('total_revenue_cents')
+                ->orderByDesc('total_revenue')
                 ->limit(5)
-                ->get(['id', 'name', 'total_clicks', 'total_conversions', 'total_revenue_cents', 'status'])
+                ->get(['id', 'name', 'total_clicks', 'total_conversions', 'total_revenue', 'status'])
                 ->map(fn ($c) => [
                     'id'            => $c->id,
                     'name'          => $c->name,
                     'clicks'        => (int) $c->total_clicks,
                     'conversions'   => (int) $c->total_conversions,
-                    'revenue_cents' => (int) $c->total_revenue_cents,
+                    'revenue' => (int) $c->total_revenue,
                     'status'        => $c->status,
                 ]);
 
@@ -126,7 +126,7 @@ class DashboardService
                 'conversion_rate_pct'     => $conversionRatePct,
                 'pending_earnings_cents'  => $pendingEarningsCents,
                 'approved_earnings_cents' => $approvedEarningsCents,
-                'total_earnings_cents'    => (int) $marketer->total_earnings_cents,
+                'total_earnings'    => (int) $marketer->total_earnings,
                 'currency'                => $marketer->country?->currency_code ?? 'SAR',
                 'commission_rate'         => (float) $marketer->commission_rate,
                 'referral_code'           => $marketer->referral_code,

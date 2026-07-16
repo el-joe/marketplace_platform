@@ -69,14 +69,14 @@ class PackagingSupplyController extends Controller
 
         foreach ($data['items'] as $item) {
             $supply    = $supplies[$item['supply_id']];
-            $lineCents = $supply->unit_cost_cents * $item['quantity'];
+            $lineCents = $supply->unit_cost * $item['quantity'];
             $totalCents += $lineCents;
 
             $lineItems[] = [
                 'packaging_supply_id' => $supply->id,
                 'quantity'            => $item['quantity'],
-                'unit_cost_cents'     => $supply->unit_cost_cents,
-                'line_total_cents'    => $lineCents,
+                'unit_cost'     => $supply->unit_cost,
+                'line_total'    => $lineCents,
                 'created_at'          => now(),
             ];
         }
@@ -86,8 +86,8 @@ class PackagingSupplyController extends Controller
             'vendor_id'          => $vendor->vendor_id,
             'warehouse_id'       => $data['warehouse_id'] ?? null,
             'status'             => PackagingSupplyRequestStatus::Pending,
-            'total_cost_cents'   => $totalCents,
-            'delivery_fee_cents' => $this->resolveDeliveryFeeCents($vendor->vendor),
+            'total_cost'   => $totalCents,
+            'delivery_fee' => $this->resolveDeliveryFeeCents($vendor->vendor),
             'notes'              => $data['notes'] ?? null,
         ]);
 

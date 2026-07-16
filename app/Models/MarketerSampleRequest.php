@@ -66,7 +66,7 @@ class MarketerSampleRequest extends Model
 
     public function getTotalCostCentsAttribute(): int
     {
-        return (int) $this->items->sum('sample_cost_cents');
+        return (int) $this->items->sum('sample_cost');
     }
 
     public function getStatusColorAttribute(): string

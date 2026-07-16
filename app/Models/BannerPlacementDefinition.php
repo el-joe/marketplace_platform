@@ -20,11 +20,12 @@ class BannerPlacementDefinition extends Model
         'device_restriction',
         'max_simultaneous',
         'supports_vendor_ads',
-        'base_rate_weekly_cents',
+        'base_rate_weekly',
         'is_active',
         'sort_order',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'allowed_formats' => 'array',
         'supports_vendor_ads' => 'boolean',

@@ -21,14 +21,14 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
         'status',
         'commission_rate',
         'commission_type',
-        'budget_cents',
-        'budget_spent_cents',
+        'budget',
+        'budget_spent',
         'starts_at',
         'ends_at',
         'tracking_url_slug',
         'total_clicks',
         'total_conversions',
-        'total_revenue_cents',
+        'total_revenue',
         'auto_approve_at',
         'auto_approved',
         'attribution_model',
@@ -49,11 +49,11 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
             'approved_at' => 'datetime',
             'auto_approve_at' => 'datetime',
             'commission_rate' => 'decimal:2',
-            'budget_cents' => 'integer',
-            'budget_spent_cents' => 'integer',
+            'budget' => 'integer',
+            'budget_spent' => 'integer',
             'total_clicks' => 'integer',
             'total_conversions' => 'integer',
-            'total_revenue_cents' => 'integer',
+            'total_revenue' => 'integer',
             'auto_approved' => 'boolean',
             'whatsapp_sharing_enabled' => 'boolean',
             'samples_required' => 'integer',
@@ -155,10 +155,10 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
 
     public function getBudgetRemainingCents(): ?int
     {
-        if ($this->budget_cents === null) {
+        if ($this->budget === null) {
             return null;
         }
-        return max(0, $this->budget_cents - ($this->budget_spent_cents ?? 0));
+        return max(0, $this->budget - ($this->budget_spent ?? 0));
     }
 
     public function getConversionRate(): float

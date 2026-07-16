@@ -74,13 +74,13 @@ class FinancialReportController extends Controller
                 'currency_code'   => $currency,
                 'is_launched'     => $country->is_launched,
                 'order_count'     => $rev ? (int) $rev->order_count : 0,
-                'revenue_cents'   => $rev ? (int) $rev->total_cents : 0,
+                'revenue'   => $rev ? (int) $rev->total_cents : 0,
                 'commission_cents'=> $com ? (int) $com->commission_cents : 0,
                 'gateway_fee_cents'=> $gwf ? (int) $gwf->gateway_fee_cents : 0,
                 'vat_cents'       => $vatR ? (int) $vatR->collected_vat_cents : 0,
                 'vat_discrepancy' => $vatR?->has_vat_discrepancy ?? false,
                 'marketer_cents'  => $mkt ? (int) $mkt->net_cents : 0,
-                'ad_revenue_cents'=> $ad ? (int) $ad->spend_cents : 0,
+                'ad_revenue_cents'=> $ad ? (int) $ad->spend : 0,
             ];
         });
 
@@ -88,7 +88,7 @@ class FinancialReportController extends Controller
         $rates = Currency::pluck('exchange_rate_to_base', 'code');
         $rowsWithUsd = $rows->map(function ($row) use ($rates) {
             $rate = $rates[$row['currency_code']] ?? null;
-            $row['revenue_usd']    = ($rate && $rate > 0) ? round(($row['revenue_cents'] / 100) / $rate, 2) : null;
+            $row['revenue_usd']    = ($rate && $rate > 0) ? round(($row['revenue'] / 100) / $rate, 2) : null;
             $row['commission_usd'] = ($rate && $rate > 0) ? round(($row['commission_cents'] / 100) / $rate, 2) : null;
             $row['gateway_fee_usd'] = ($rate && $rate > 0) ? round(($row['gateway_fee_cents'] / 100) / $rate, 2) : null;
             $row['vat_usd']        = ($rate && $rate > 0) ? round(($row['vat_cents'] / 100) / $rate, 2) : null;
@@ -174,7 +174,7 @@ class FinancialReportController extends Controller
             $gwfCents = $gwf ? (int) $gwf->gateway_fee_cents : 0;
             $vatCents = $vatR ? (int) $vatR->collected_vat_cents : 0;
             $mktCents = $mkt ? (int) $mkt->net_cents : 0;
-            $adCents  = $ad ? (int) $ad->spend_cents : 0;
+            $adCents  = $ad ? (int) $ad->spend : 0;
 
             fputcsv($handle, [
                 $country->name_en,

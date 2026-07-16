@@ -91,7 +91,7 @@ class InvitationController extends Controller
                 'status'                  => 'active',
                 'commission_rate'         => $offer->offered_commission_rate,
                 'commission_type'         => $offer->commission_type,
-                'budget_cents'            => $offer->budget_per_marketer_cents,
+                'budget'            => $offer->budget_per_marketer,
                 'starts_at'               => $offer->starts_at,
                 'ends_at'                 => $offer->ends_at,
                 'tracking_url_slug'       => $slug,

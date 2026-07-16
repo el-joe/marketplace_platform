@@ -28,8 +28,8 @@ class Refund extends Model
         'approved_by_admin_id',
         'vendor_charged_back',
         'status',
-        'gateway_fee_deducted_cents',
-        'tax_deducted_cents',
+        'gateway_fee_deducted',
+        'tax_deducted',
     ];
 
     protected function casts(): array
@@ -38,9 +38,9 @@ class Refund extends Model
             'status' => RefundStatus::class,
             'reason' => RefundReason::class,
             'refund_type' => RefundType::class,
-            'gateway_fee_deducted_cents' => 'integer',
-            'tax_deducted_cents' => 'integer',
-            'net_refund_cents' => 'integer',
+            'gateway_fee_deducted' => 'integer',
+            'tax_deducted' => 'integer',
+            'net_refund' => 'integer',
         ];
     }
 

@@ -7,7 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Explicit allow-list — any column not listed here is safe-by-default excluded.
- * NEVER expose: commission_rate, total_earnings_cents, bank_*, referral_code,
+ * NEVER expose: commission_rate, total_earnings, bank_*, referral_code,
  * total_clicks, total_conversions, status, admin columns, or any internal field.
  */
 class PublicMarketerProfileResource extends JsonResource

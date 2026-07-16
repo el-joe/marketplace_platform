@@ -210,7 +210,7 @@ class CountrySeeder extends Seeder
             $methods = [
                 ['method_type' => 'card', 'provider' => 'paytabs', 'display_name_en' => 'Credit / Debit Card', 'display_name_ar' => 'بطاقة ائتمان / خصم', 'fee_pct' => 1.50, 'sort_order' => 1],
                 ['method_type' => 'wallet', 'provider' => 'noon_pay', 'display_name_en' => 'Noon Pay Wallet', 'display_name_ar' => 'محفظة نون باي', 'fee_pct' => 0.00, 'sort_order' => 2],
-                ['method_type' => 'cod', 'provider' => null, 'display_name_en' => 'Cash on Delivery', 'display_name_ar' => 'الدفع عند الاستلام', 'fee_pct' => 0.00, 'fee_fixed_cents' => 100, 'sort_order' => 3],
+                ['method_type' => 'cod', 'provider' => null, 'display_name_en' => 'Cash on Delivery', 'display_name_ar' => 'الدفع عند الاستلام', 'fee_pct' => 0.00, 'fee_fixed' => 100, 'sort_order' => 3],
                 ['method_type' => 'bank_transfer', 'provider' => null, 'display_name_en' => 'Bank Transfer', 'display_name_ar' => 'تحويل بنكي', 'fee_pct' => 0.00, 'sort_order' => 4],
             ];
 
@@ -230,8 +230,8 @@ class CountrySeeder extends Seeder
                         'id' => Str::uuid(),
                         'country_id' => $cid,
                         'fee_pct' => 0.00,
-                        'fee_fixed_cents' => 0,
-                        'min_order_cents' => 0,
+                        'fee_fixed' => 0,
+                        'min_order' => 0,
                         'is_active' => true,
                         'created_at' => now(),
                         'updated_at' => now(),

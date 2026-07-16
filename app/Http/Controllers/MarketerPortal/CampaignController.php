@@ -98,7 +98,7 @@ class CampaignController extends Controller
                 'starts_at' => $validated['starts_at'],
                 'ends_at' => $validated['ends_at'],
                 'auto_approve_at' => now()->addHours(36),
-                'budget_cents' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
+                'budget' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
                 'attribution_model' => $validated['attribution_model'] ?? AttributionModel::LastClick->value,
                 'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
             ]);
@@ -121,7 +121,7 @@ class CampaignController extends Controller
                 'starts_at' => $validated['starts_at'],
                 'ends_at' => $validated['ends_at'],
                 'auto_approve_at' => now()->addHours(36),
-                'budget_cents' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
+                'budget' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
                 'attribution_model' => $validated['attribution_model'] ?? AttributionModel::LastClick->value,
                 'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
             ]);
@@ -139,7 +139,7 @@ class CampaignController extends Controller
                 'starts_at' => $validated['starts_at'],
                 'ends_at' => $validated['ends_at'],
                 'auto_approve_at' => now()->addHours(36),
-                'budget_cents' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
+                'budget' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
                 'attribution_model' => $validated['attribution_model'] ?? AttributionModel::LastClick->value,
                 'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
             ]);
@@ -234,7 +234,7 @@ class CampaignController extends Controller
             'items' => 'required|array|min:1',
             'items.*.listing_id' => 'required|uuid|exists:vendor_listings,id',
             'items.*.quantity' => 'required|integer|min:1|max:10',
-            'items.*.cost_cents' => 'nullable|integer|min:0',
+            'items.*.cost' => 'nullable|integer|min:0',
         ]);
 
         $vendor = $campaign->campaignable;
@@ -324,13 +324,13 @@ class CampaignController extends Controller
             ->where('marketer_promotion_enabled', true)
             ->where('title_en', 'like', '%' . $q . '%')
             ->limit(20)
-            ->get(['id', 'title_en', 'price_cents', 'thumbnail_path', 'listing_number']);
+            ->get(['id', 'title_en', 'price', 'thumbnail_path', 'listing_number']);
 
         return response()->json(
             $listings->map(fn($l) => [
                 'id' => $l->id,
                 'title' => $l->title_en,
-                'price' => $l->price_cents ? number_format($l->price_cents / 100, 2) : null,
+                'price' => $l->price ? number_format($l->price / 100, 2) : null,
                 'thumbnail' => $l->thumbnail_path,
             ])
         );
@@ -346,13 +346,13 @@ class CampaignController extends Controller
             ->where('status', 'active')
             ->where('title_en', 'like', '%' . $q . '%')
             ->limit(20)
-            ->get(['id', 'title_en', 'price_cents', 'thumbnail_path']);
+            ->get(['id', 'title_en', 'price', 'thumbnail_path']);
 
         return response()->json(
             $packages->map(fn($p) => [
                 'id' => $p->id,
                 'title' => $p->title_en,
-                'price' => $p->price_cents ? number_format($p->price_cents / 100, 2) : null,
+                'price' => $p->price ? number_format($p->price / 100, 2) : null,
                 'thumbnail' => $p->thumbnail_path,
             ])
         );

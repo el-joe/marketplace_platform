@@ -56,7 +56,7 @@ class PaidAdBookingController extends Controller
             ['searchable_columns' => [], 'orderable_column' => null], // vendor
             ['searchable_columns' => [], 'orderable_column' => null], // slot
             ['searchable_columns' => [], 'orderable_column' => 'booked_from'], // dates
-            ['searchable_columns' => [], 'orderable_column' => 'agreed_rate_cents'],
+            ['searchable_columns' => [], 'orderable_column' => 'agreed_rate'],
             ['searchable_columns' => [], 'orderable_column' => 'status'],
             ['searchable_columns' => [], 'orderable_column' => 'payment_status'],
             ['searchable_columns' => [], 'orderable_column' => null], // actions
@@ -111,7 +111,7 @@ class PaidAdBookingController extends Controller
                 'vendor' => e($row->vendor?->store_name ?? '—'),
                 'slot' => e($row->slot?->name ?? '—'),
                 'dates' => Carbon::parse($row->booked_from)->format('d M') . ' – ' . Carbon::parse($row->booked_until)->format('d M Y'),
-                'rate' => '$' . number_format($row->agreed_rate_cents / 100, 2) . ' <span class="text-xs text-gray-400">' . strtoupper($row->currency ?? 'USD') . '</span>',
+                'rate' => '$' . number_format($row->agreed_rate / 100, 2) . ' <span class="text-xs text-gray-400">' . strtoupper($row->currency ?? 'USD') . '</span>',
                 'status' => $statusBadge,
                 'payment_status' => $payBadge,
                 'actions' => $actions,

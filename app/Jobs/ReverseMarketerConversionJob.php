@@ -34,7 +34,7 @@ class ReverseMarketerConversionJob implements ShouldQueue
             ]);
 
             // Deduct from marketer's accumulated earnings
-            $conversion->marketer?->decrement('total_earnings_cents', $conversion->commission_amount_cents);
+            $conversion->marketer?->decrement('total_earnings', $conversion->commission_amount);
         }
     }
 }

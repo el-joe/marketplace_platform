@@ -27,7 +27,7 @@ class DeliveryPayoutController extends Controller
             ['orderable_column' => 'delivery_agent_payouts.payout_number'],
             ['searchable_columns' => ['delivery_agents.name'], 'orderable_column' => 'delivery_agents.name'],
             ['orderable_column' => 'delivery_agent_payouts.period_start'],
-            ['orderable_column' => 'delivery_agent_payouts.net_amount_cents'],
+            ['orderable_column' => 'delivery_agent_payouts.net_amount'],
             ['orderable_column' => 'delivery_agent_payouts.status'],
             ['orderable_column' => 'delivery_agent_payouts.processed_at'],
             [],
@@ -58,7 +58,7 @@ class DeliveryPayoutController extends Controller
             ['orderable_column' => 'delivery_agent_payouts.payout_number'],
             ['searchable_columns' => ['delivery_agents.name'], 'orderable_column' => 'delivery_agents.name'],
             ['orderable_column' => 'delivery_agent_payouts.period_start'],
-            ['orderable_column' => 'delivery_agent_payouts.net_amount_cents'],
+            ['orderable_column' => 'delivery_agent_payouts.net_amount'],
             ['orderable_column' => 'delivery_agent_payouts.status'],
             ['orderable_column' => 'delivery_agent_payouts.processed_at'],
             [],
@@ -83,8 +83,8 @@ class DeliveryPayoutController extends Controller
                 'agent_name' => e($payout->agent_name),
                 'period' => $payout->period_start->format('d M') . ' – ' . $payout->period_end->format('d M Y'),
                 'total_deliveries' => $payout->total_deliveries,
-                'gross_earnings' => number_format($payout->gross_earnings_cents / 100, 2),
-                'net_amount' => number_format($payout->net_amount_cents / 100, 2),
+                'gross_earnings' => number_format($payout->gross_earnings / 100, 2),
+                'net_amount' => number_format($payout->net_amount / 100, 2),
                 'currency' => $payout->currency,
                 'status' => $payout->status->value,
                 'status_label' => $payout->status->label(),
@@ -113,8 +113,8 @@ class DeliveryPayoutController extends Controller
             ->selectRaw('
                 currency,
                 COUNT(DISTINCT delivery_assignment_id) as total_deliveries,
-                SUM(CASE WHEN earning_type != ? THEN amount_cents ELSE 0 END) as gross_cents,
-                SUM(CASE WHEN earning_type = ? THEN ABS(amount_cents) ELSE 0 END) as deductions_cents
+                SUM(CASE WHEN earning_type != ? THEN amount ELSE 0 END) as gross_cents,
+                SUM(CASE WHEN earning_type = ? THEN ABS(amount) ELSE 0 END) as deductions
             ', ['deduction', 'deduction'])
             ->groupBy('currency')
             ->get();
@@ -129,7 +129,7 @@ class DeliveryPayoutController extends Controller
 
         foreach ($rows as $row) {
             $gross      = (int) $row->gross_cents;
-            $deductions = (int) $row->deductions_cents;
+            $deductions = (int) $row->deductions;
             $net        = $gross - $deductions;
 
             $payout = DeliveryAgentPayout::create([
@@ -138,9 +138,9 @@ class DeliveryPayoutController extends Controller
                 'period_start'         => $request->period_start,
                 'period_end'           => $request->period_end,
                 'total_deliveries'     => (int) $row->total_deliveries,
-                'gross_earnings_cents' => $gross,
-                'deductions_cents'     => $deductions,
-                'net_amount_cents'     => $net,
+                'gross_earnings' => $gross,
+                'deductions'     => $deductions,
+                'net_amount'     => $net,
                 'currency'             => $row->currency,
                 'status'               => DeliveryAgentPayoutStatus::Pending,
             ]);

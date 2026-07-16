@@ -40,7 +40,7 @@ class DashboardController extends Controller
         // Today's earnings
         $earningsToday = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->whereDate('created_at', $today)
-            ->sum('amount_cents');
+            ->sum('amount');
 
         // Pending assignments (require agent action)
         $pendingAssignments = DeliveryAssignment::where('agent_id', $agent->id)

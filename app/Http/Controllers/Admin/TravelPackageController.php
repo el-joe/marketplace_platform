@@ -69,7 +69,7 @@ class TravelPackageController extends Controller
             ['searchable_columns' => ['travel_packages.title_en', 'travel_packages.title_ar'], 'orderable_column' => 'travel_packages.title_en'],
             ['searchable_columns' => ['travel_agencies.name'], 'orderable_column' => 'travel_agencies.name'],
             ['searchable_columns' => [], 'orderable_column' => null], // destination
-            ['searchable_columns' => [], 'orderable_column' => 'travel_packages.price_cents'],
+            ['searchable_columns' => [], 'orderable_column' => 'travel_packages.price'],
             ['searchable_columns' => [], 'orderable_column' => 'travel_packages.departure_date'],
             ['searchable_columns' => [], 'orderable_column' => null], // seats
             ['searchable_columns' => [], 'orderable_column' => 'travel_packages.status'],
@@ -102,7 +102,7 @@ class TravelPackageController extends Controller
                 $destination .= '<br><span class="text-xs text-gray-400">' . e($row->destination_city) . '</span>';
             }
 
-            $price = e($row->currency) . ' ' . number_format($row->price_cents / 100, 2);
+            $price = e($row->currency) . ' ' . number_format($row->price / 100, 2);
 
             $departure = Carbon::parse($row->departure_date)->format('d M Y');
 
@@ -160,9 +160,9 @@ class TravelPackageController extends Controller
             'total' => $travelPackage->bookings()->count(),
             'confirmed' => $travelPackage->bookings()->where('status', TravelBookingStatus::Confirmed)->count(),
             'cancelled' => $travelPackage->bookings()->where('status', TravelBookingStatus::Cancelled)->count(),
-            'revenue_cents' => $travelPackage->bookings()
+            'revenue' => $travelPackage->bookings()
                 ->whereIn('status', [TravelBookingStatus::Confirmed, TravelBookingStatus::Completed])
-                ->sum('total_price_cents'),
+                ->sum('total_price'),
         ];
 
         $fillPct = ($travelPackage->available_seats && $travelPackage->available_seats > 0)

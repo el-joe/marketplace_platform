@@ -31,7 +31,7 @@ class AccountDashboardService
             ->get();
 
         $recentTravelBookings = $customer->travelBookings()
-            ->with(['package:id,title,price_cents,currency'])
+            ->with(['package:id,title,price,currency'])
             ->latest()
             ->limit(3)
             ->get();
@@ -69,7 +69,7 @@ class AccountDashboardService
                 'booking_number' => $b->booking_number,
                 'package_title'  => $b->package?->title,
                 'status'         => $b->status?->value,
-                'total'          => $b->total_price_cents,
+                'total'          => $b->total_price,
                 'currency'       => $b->package?->currency,
                 'created_at'     => $b->created_at?->toIso8601String(),
             ]),

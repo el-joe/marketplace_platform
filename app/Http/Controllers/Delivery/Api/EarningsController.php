@@ -34,15 +34,15 @@ class EarningsController extends Controller
         // Today's total across all earning types.
         $todayTotal = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->whereDate('created_at', today())
-            ->sum('amount_cents');
+            ->sum('amount');
 
         // Group by calendar day for the daily breakdown.
         $byDay = $earnings->getCollection()
             ->groupBy(fn ($e) => $e->created_at->toDateString())
             ->map(fn ($group, $date) => [
                 'date'        => $date,
-                'total_cents' => $group->sum('amount_cents'),
-                'total'       => $group->sum('amount_cents') / 100,
+                'total_cents' => $group->sum('amount'),
+                'total'       => $group->sum('amount') / 100,
                 'earnings'    => EarningsResource::collection($group)->resolve(),
             ])
             ->values();

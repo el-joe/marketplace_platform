@@ -18,7 +18,7 @@ class MarketerSecretPromotion extends Model
         'vendor_id',
         'vendor_listing_id',
         'marketer_id',
-        'product_value_cents',
+        'product_value',
         'total_commission_pct',
         'marketer_share_pct',
         'admin_share_pct',
@@ -33,7 +33,7 @@ class MarketerSecretPromotion extends Model
     protected function casts(): array
     {
         return [
-            'product_value_cents' => 'integer',
+            'product_value' => 'integer',
             'total_commission_pct' => 'decimal:2',
             'marketer_share_pct' => 'decimal:2',
             'admin_share_pct' => 'decimal:2',
@@ -121,7 +121,7 @@ class MarketerSecretPromotion extends Model
 
     public function getProductValueFormattedAttribute(): string
     {
-        return number_format($this->product_value_cents / 100, 2)
+        return number_format($this->product_value / 100, 2)
             . ' ' . ($this->vendorListing?->currency ?? '');
     }
 
@@ -133,11 +133,11 @@ class MarketerSecretPromotion extends Model
 
     public function getMarginPctAttribute(): float
     {
-        if (!$this->product_value_cents || !$this->vendorListing) {
+        if (!$this->product_value || !$this->vendorListing) {
             return 0.0;
         }
         $listingPrice = $this->vendorListing->price;
-        $cost = $this->product_value_cents;
+        $cost = $this->product_value;
 
         return round((($listingPrice - $cost) / $listingPrice) * 100, 2);
     }
@@ -165,7 +165,7 @@ class MarketerSecretPromotion extends Model
     {
         return (int) $this->conversions()
             ->where('status', '!=', 'reversed')
-            ->sum('order_value_cents');
+            ->sum('order_value');
     }
 
     public function getTotalAdminEarnedAttribute(): int
@@ -173,7 +173,7 @@ class MarketerSecretPromotion extends Model
         return (int) $this->conversions()
             ->where('status', '!=', 'reversed')
             ->get()
-            ->sum(fn($c) => (int) round($c->order_value_cents * $this->admin_share_pct / 100));
+            ->sum(fn($c) => (int) round($c->order_value * $this->admin_share_pct / 100));
     }
 
     public function getStatusColorAttribute(): string

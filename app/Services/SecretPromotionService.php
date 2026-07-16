@@ -27,7 +27,7 @@ class SecretPromotionService
             'vendor_id' => $data['vendor_id'],
             'vendor_listing_id' => $data['vendor_listing_id'],
             'marketer_id' => $data['marketer_id'] ?: null,
-            'product_value_cents' => (int) round($data['product_value'] * 100),
+            'product_value' => (int) round($data['product_value'] * 100),
             'total_commission_pct' => $data['total_commission_pct'],
             'marketer_share_pct' => $data['marketer_share_pct'],
             'admin_share_pct' => round($data['total_commission_pct'] - $data['marketer_share_pct'], 2),
@@ -76,7 +76,7 @@ class SecretPromotionService
             'vendor_id' => $data['vendor_id'],
             'vendor_listing_id' => $data['vendor_listing_id'],
             'marketer_id' => $data['marketer_id'] ?: null,
-            'product_value_cents' => (int) round($data['product_value'] * 100),
+            'product_value' => (int) round($data['product_value'] * 100),
             'total_commission_pct' => $data['total_commission_pct'],
             'marketer_share_pct' => $data['marketer_share_pct'],
             'admin_share_pct' => round($data['total_commission_pct'] - $data['marketer_share_pct'], 2),
@@ -217,7 +217,7 @@ class SecretPromotionService
             'vendor_id' => $promo->vendor_id,
             'vendor_listing_id' => $promo->vendor_listing_id,
             'marketer_id' => $promo->marketer_id,
-            'product_value_cents' => $promo->product_value_cents,
+            'product_value' => $promo->product_value,
             'total_commission_pct' => $promo->total_commission_pct,
             'marketer_share_pct' => $promo->marketer_share_pct,
             'admin_share_pct' => $promo->admin_share_pct,
@@ -267,7 +267,7 @@ class SecretPromotionService
         $adminRevenueMonth = $conversionsThisMonth->sum(function ($c) {
             $adminPct = $c->campaign?->secretPromotion?->admin_share_pct ?? 0;
 
-            return (int) round($c->order_value_cents * $adminPct / 100);
+            return (int) round($c->order_value * $adminPct / 100);
         });
 
         $avgAdminShare = MarketerSecretPromotion::where('status', SecretPromotionStatus::Active->value)

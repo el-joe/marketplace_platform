@@ -46,7 +46,7 @@ class EarningsService
 
         foreach ($statuses as $status) {
             $rows = (clone $base)->where('status', $status)
-                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->selectRaw('currency, SUM(commission_amount) as total')
                 ->groupBy('currency')
                 ->pluck('total', 'currency');
             foreach ($rows as $currency => $total) {
@@ -57,7 +57,7 @@ class EarningsService
         $thisMonth = (clone $base)
             ->whereIn('status', ['approved', 'paid'])
             ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
-            ->selectRaw('currency, SUM(commission_amount_cents) as total')
+            ->selectRaw('currency, SUM(commission_amount) as total')
             ->groupBy('currency')
             ->pluck('total', 'currency');
 

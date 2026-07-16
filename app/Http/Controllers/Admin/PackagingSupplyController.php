@@ -41,7 +41,7 @@ class PackagingSupplyController extends Controller
             ['searchable_columns' => ['name_en', 'name_ar'], 'orderable_column' => 'name_en'],
             ['searchable_columns' => [], 'orderable_column' => 'type'],
             ['searchable_columns' => [], 'orderable_column' => 'size'],
-            ['searchable_columns' => [], 'orderable_column' => 'unit_cost_cents'],
+            ['searchable_columns' => [], 'orderable_column' => 'unit_cost'],
             ['searchable_columns' => [], 'orderable_column' => 'stock_available'],
             ['searchable_columns' => [], 'orderable_column' => 'is_active'],
             ['searchable_columns' => [], 'orderable_column' => null], // actions
@@ -105,7 +105,7 @@ class PackagingSupplyController extends Controller
             'name_ar'         => ['required', 'string', 'max:150'],
             'type'            => ['required', Rule::enum(PackagingSupplyType::class)],
             'size'            => ['nullable', 'string', 'max:50'],
-            'unit_cost_cents' => ['required', 'integer', 'min:0'],
+            'unit_cost' => ['required', 'integer', 'min:0'],
             'stock_available' => ['nullable', 'integer', 'min:0'],
             'is_active'       => ['boolean'],
             'image_path'      => ['nullable', 'string', 'max:255'],
@@ -132,7 +132,7 @@ class PackagingSupplyController extends Controller
             'name_ar'         => ['required', 'string', 'max:150'],
             'type'            => ['required', Rule::enum(PackagingSupplyType::class)],
             'size'            => ['nullable', 'string', 'max:50'],
-            'unit_cost_cents' => ['required', 'integer', 'min:0'],
+            'unit_cost' => ['required', 'integer', 'min:0'],
             'stock_available' => ['nullable', 'integer', 'min:0'],
             'is_active'       => ['boolean'],
             'image_path'      => ['nullable', 'string', 'max:255'],
@@ -219,7 +219,7 @@ class PackagingSupplyController extends Controller
             ['searchable_columns' => ['request_number'], 'orderable_column' => 'request_number'],
             ['searchable_columns' => [], 'orderable_column' => null], // vendor
             ['searchable_columns' => [], 'orderable_column' => 'status'],
-            ['searchable_columns' => [], 'orderable_column' => 'total_cost_cents'],
+            ['searchable_columns' => [], 'orderable_column' => 'total_cost'],
             ['searchable_columns' => [], 'orderable_column' => null], // delivery fee
             ['searchable_columns' => [], 'orderable_column' => null], // currency
             ['searchable_columns' => [], 'orderable_column' => 'created_at'],
@@ -242,7 +242,7 @@ class PackagingSupplyController extends Controller
                 'vendor' => e($row->vendor->store_name ?? '—'),
                 'status' => $statusBadge,
                 'total_cost' => $row->total_cost_formatted,
-                'delivery_fee' => isset($row->delivery_fee_cents) ? number_format($row->delivery_fee_cents / 100, 2) : '—',
+                'delivery_fee' => isset($row->delivery_fee) ? number_format($row->delivery_fee / 100, 2) : '—',
                 'currency' => $row->currency ?? config('app.currency', 'SAR'),
                 'date' => $row->created_at->format('d M Y'),
                 'actions' => $actionsHtml,

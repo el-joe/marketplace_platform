@@ -39,7 +39,7 @@ class DeliveryAssignment extends Model
         'delivery_latitude',
         'delivery_longitude',
         'customer_rating',
-        'cod_amount_collected_cents',
+        'cod_amount_collected',
         'discrepancy_note',
         'cod_settlement_id',
         'customer_rejection_reason',

@@ -34,7 +34,7 @@ class TravelBookingController extends Controller
         $revenueByCurrency = TravelBooking::query()
             ->whereIn('travel_bookings.status', [TravelBookingStatus::Confirmed, TravelBookingStatus::Completed])
             ->join('travel_packages', 'travel_packages.id', '=', 'travel_bookings.travel_package_id')
-            ->selectRaw('travel_packages.currency, SUM(travel_bookings.total_price_cents) as total_cents')
+            ->selectRaw('travel_packages.currency, SUM(travel_bookings.total_price) as total_cents')
             ->groupBy('travel_packages.currency')
             ->orderBy('travel_packages.currency')
             ->get()
@@ -71,7 +71,7 @@ class TravelBookingController extends Controller
             ['searchable_columns' => ['travel_packages.title_en'], 'orderable_column' => 'travel_packages.title_en'],
             ['searchable_columns' => ['customers.name', 'customers.email'], 'orderable_column' => 'customers.name'],
             ['searchable_columns' => [], 'orderable_column' => 'travel_packages.departure_date'], // travel dates
-            ['searchable_columns' => [], 'orderable_column' => 'travel_bookings.total_price_cents'],
+            ['searchable_columns' => [], 'orderable_column' => 'travel_bookings.total_price'],
             ['searchable_columns' => [], 'orderable_column' => 'travel_bookings.status'],
             ['searchable_columns' => [], 'orderable_column' => null], // actions
         ];
@@ -89,7 +89,7 @@ class TravelBookingController extends Controller
             $statusBadge = "<span class=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{$statusColor}-100 text-{$statusColor}-700\">{$statusLabel}</span>";
 
             $currency   = $row->package?->currency ?? '';
-            $amount     = $currency . ' ' . number_format($row->total_price_cents / 100, 2);
+            $amount     = $currency . ' ' . number_format($row->total_price / 100, 2);
 
             $departure  = $row->package?->departure_date ? Carbon::parse($row->package->departure_date)->format('d M Y') : '—';
             $returnDate = $row->package?->return_date ? Carbon::parse($row->package->return_date)->format('d M Y') : '—';

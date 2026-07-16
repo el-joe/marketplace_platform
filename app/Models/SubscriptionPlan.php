@@ -15,7 +15,7 @@ class SubscriptionPlan extends Model
         'name_ar',
         'description_en',
         'description_ar',
-        'price_cents',
+        'price',
         'currency',
         'billing_cycle',
         'max_listings',
@@ -29,7 +29,7 @@ class SubscriptionPlan extends Model
     protected function casts(): array
     {
         return [
-            'price_cents' => 'integer',
+            'price' => 'integer',
             'max_listings' => 'integer',
             'free_shipping_included' => 'boolean',
             'commission_discount_pct' => 'decimal:2',
@@ -50,7 +50,7 @@ class SubscriptionPlan extends Model
 
     public function priceFormatted(): string
     {
-        return number_format($this->price_cents / 100, 2) . ' ' . $this->currency;
+        return number_format($this->price / 100, 2) . ' ' . $this->currency;
     }
 
     public function hasUnlimitedListings(): bool
@@ -74,6 +74,6 @@ class SubscriptionPlan extends Model
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('sort_order')->orderBy('price_cents');
+        return $query->orderBy('sort_order')->orderBy('price');
     }
 }

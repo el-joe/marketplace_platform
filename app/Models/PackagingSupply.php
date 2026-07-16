@@ -16,7 +16,7 @@ class PackagingSupply extends Model
         'name_ar',
         'type',
         'size',
-        'unit_cost_cents',
+        'unit_cost',
         'stock_available',
         'is_active',
         'image_path',
@@ -25,7 +25,7 @@ class PackagingSupply extends Model
     protected function casts(): array
     {
         return [
-            'unit_cost_cents'  => 'integer',
+            'unit_cost'  => 'integer',
             'stock_available'  => 'integer',
             'is_active'        => 'boolean',
             'type'             => PackagingSupplyType::class,
@@ -39,14 +39,14 @@ class PackagingSupply extends Model
 
     public function getUnitCostFormattedAttribute(): string
     {
-        return $this->unit_cost_cents === 0
+        return $this->unit_cost === 0
             ? 'Free'
-            : number_format($this->unit_cost_cents / 100, 2);
+            : number_format($this->unit_cost / 100, 2);
     }
 
     public function isFree(): bool
     {
-        return $this->unit_cost_cents === 0;
+        return $this->unit_cost === 0;
     }
 
     public function typeBadgeClass(): string

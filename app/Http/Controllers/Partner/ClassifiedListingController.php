@@ -62,7 +62,7 @@ class ClassifiedListingController extends Controller
         $columns = [
             ['searchable_columns' => ['classified_listings.title_ar', 'classified_listings.title_en']],
             ['orderable_column'   => 'classified_listings.status'],
-            ['orderable_column'   => 'classified_listings.price_cents'],
+            ['orderable_column'   => 'classified_listings.price'],
             ['orderable_column'   => 'classified_listings.views_count'],
             ['orderable_column'   => 'classified_listings.created_at'],
             [],
@@ -89,7 +89,7 @@ class ClassifiedListingController extends Controller
             'title_ar'         => $l->title_ar,
             'title_en'         => $l->title_en,
             'status'           => $l->status->value,
-            'price_cents'      => $l->price_cents,
+            'price'      => $l->price,
             'currency'         => $l->currency,
             'price_negotiable' => $l->price_negotiable,
             'listing_purpose'  => $l->listing_purpose,
@@ -144,8 +144,8 @@ class ClassifiedListingController extends Controller
             'marketer_promotion_enabled'  => 'boolean',
         ]);
 
-        // Convert price → price_cents for the service
-        $data['price_cents'] = (int) round($data['price'] * 100);
+        // Convert price → price for the service
+        $data['price'] = (int) round($data['price'] * 100);
         unset($data['price']);
 
         // Include uploaded files in the data array for the shared service

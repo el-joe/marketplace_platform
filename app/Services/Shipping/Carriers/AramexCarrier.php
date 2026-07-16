@@ -175,13 +175,13 @@ class AramexCarrier implements ShippingCarrierInterface
             $rate = $body['TotalAmount'] ?? null;
 
             return [
-                'rate_cents' => $rate ? (int) ($rate['Value'] * 100) : 0,
+                'rate' => $rate ? (int) ($rate['Value'] * 100) : 0,
                 'currency' => $rate['CurrencyCode'] ?? 'USD',
                 'estimated_days' => 3,
                 'service_name' => 'Aramex Express',
             ];
         } catch (\Exception $e) {
-            return ['rate_cents' => 0, 'currency' => 'USD', 'estimated_days' => 0, 'service_name' => 'Aramex'];
+            return ['rate' => 0, 'currency' => 'USD', 'estimated_days' => 0, 'service_name' => 'Aramex'];
         }
     }
 

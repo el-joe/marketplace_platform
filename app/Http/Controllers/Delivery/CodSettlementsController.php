@@ -26,16 +26,16 @@ class CodSettlementsController extends Controller
 
         // Current period: deliveries collected today that are not yet in a settlement
         $currentPeriodAssignments = DeliveryAssignment::where('agent_id', $agent->id)
-            ->whereNotNull('cod_amount_collected_cents')
+            ->whereNotNull('cod_amount_collected')
             ->whereNull('cod_settlement_id')
             ->whereDate('delivered_at', today())
             ->get();
 
-        $currentCodTotal     = $currentPeriodAssignments->sum('cod_amount_collected_cents');
+        $currentCodTotal     = $currentPeriodAssignments->sum('cod_amount_collected');
         $currentEarningsTotal = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->whereIn('delivery_assignment_id', $currentPeriodAssignments->pluck('id'))
             ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled)
-            ->sum('amount_cents');
+            ->sum('amount');
         $currentNetOwed = max(0, $currentCodTotal - $currentEarningsTotal);
 
         return view('delivery.cod-settlements.index', compact(

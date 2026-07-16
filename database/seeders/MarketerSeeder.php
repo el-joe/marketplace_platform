@@ -121,7 +121,7 @@ class MarketerSeeder extends Seeder
                     'bio'                   => fake()->paragraph(),
                     'total_clicks'          => fake()->numberBetween(0, 10000),
                     'total_conversions'     => fake()->numberBetween(0, 300),
-                    'total_earnings_cents'  => fake()->numberBetween(0, 500000),
+                    'total_earnings'  => fake()->numberBetween(0, 500000),
                     'approved_at'           => $data['status'] === 'active' ? now() : null,
                 ]
             );

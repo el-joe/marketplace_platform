@@ -377,7 +377,7 @@ class PageRendererService
             'show_view_all' => (bool) ($cfg['show_view_all'] ?? true),
             'show_ratings' => (bool) ($cfg['show_ratings'] ?? true),
             'show_discount_badge' => (bool) ($cfg['show_discount_badge'] ?? true),
-            // CRITICAL: admin_share_pct / product_value_cents from
+            // CRITICAL: admin_share_pct / product_value from
             // marketer_secret_promotions must NEVER be surfaced here, even for the
             // flash_sale_products source — those columns are never selected below.
             'products' => $products,
@@ -468,7 +468,7 @@ class PageRendererService
                 $product = $s->vendorListing->productVariant->product;
                 // Only non-sensitive, already-public pricing fields are used here —
                 // flash_price/original_price on flash_sale_submissions, never the
-                // marketer_secret_promotions table's admin_share_pct/product_value_cents.
+                // marketer_secret_promotions table's admin_share_pct/product_value.
                 $product->setAttribute('min_price', $s->flash_price);
                 $product->setAttribute('max_price', $s->flash_price);
                 $product->setAttribute('active_seller_count', 1);
@@ -609,7 +609,7 @@ class PageRendererService
             'product' => [
                 'name' => Bilingual::pair($product, 'name'),
                 'image' => $image?->url,
-                'price_cents' => (int) $listing->price,
+                'price' => (int) $listing->price,
                 'compare_at_price_cents' => $listing->compare_at_price !== null ? (int) $listing->compare_at_price : null,
                 'discount_pct' => $discountPct,
                 'slug' => $product->slug,

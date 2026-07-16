@@ -45,7 +45,7 @@ class ReturnService
             // decision is final (completed/cancelled). Showing liability during
             // 'requested'/'approved' would expose an in-progress admin judgment.
             'liability'           => $isFinal ? $return->liability?->value     : null,
-            'refund_amount_cents' => $isFinal ? $return->refund_amount_cents  : null,
+            'refund_amount' => $isFinal ? $return->refund_amount  : null,
         ];
     }
 

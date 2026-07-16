@@ -93,7 +93,7 @@ class ListingController extends Controller
             'booking_number'    => $booking->booking_number,
             'status'            => $booking->status?->value,
             'travelers_count'   => $booking->travelers_count,
-            'total_price_cents' => $booking->total_price_cents,
+            'total_price' => $booking->total_price,
             'currency'          => $package->currency,
             'created_at'        => $booking->created_at->toIso8601String(),
             'message'           => 'Your booking is pending document review by the agency before confirmation.',

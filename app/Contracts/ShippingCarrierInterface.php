@@ -25,7 +25,7 @@ interface ShippingCarrierInterface
 
     /**
      * Calculate shipping cost.
-     * Returns: { rate_cents: int, currency: string, estimated_days: int, service_name: string }
+     * Returns: { rate: int, currency: string, estimated_days: int, service_name: string }
      */
     public function calculateRate(
         array $fromAddress,

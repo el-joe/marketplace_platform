@@ -214,8 +214,8 @@ class FbnController extends Controller
             'pending' => FbnStorageFee::where('status', FbnStorageFeeStatus::Pending)->count(),
             'invoiced' => FbnStorageFee::where('status', FbnStorageFeeStatus::Invoiced)->count(),
             'paid' => FbnStorageFee::where('status', FbnStorageFeeStatus::Paid)->count(),
-            'pending_cents' => FbnStorageFee::where('status', FbnStorageFeeStatus::Pending)->sum('total_fee_cents'),
-            'paid_cents' => FbnStorageFee::where('status', FbnStorageFeeStatus::Paid)->sum('total_fee_cents'),
+            'pending_cents' => FbnStorageFee::where('status', FbnStorageFeeStatus::Pending)->sum('total_fee'),
+            'paid_cents' => FbnStorageFee::where('status', FbnStorageFeeStatus::Paid)->sum('total_fee'),
             'currency' => FbnStorageFee::query()->value('currency') ?? '',
         ];
 
@@ -267,7 +267,7 @@ class FbnController extends Controller
                 'vendor' => e($row->vendor_name),
                 'month' => $row->monthLabel(),
                 'units_stored' => number_format($row->units_stored),
-                'rate' => number_format($row->rate_per_unit_cents / 100, 2) . ' ' . $row->currency,
+                'rate' => number_format($row->rate_per_unit / 100, 2) . ' ' . $row->currency,
                 'total_fee' => '<span class="font-semibold">' . $row->totalFormatted() . '</span>',
                 'status' => '<span class="badge badge-' . $row->statusColor() . '">' . $row->status->label() . '</span>',
                 'actions' => $actions,
@@ -375,7 +375,7 @@ class FbnController extends Controller
                 'flags' => $flags ?: '<span class="text-gray-300">—</span>',
                 'weight' => $row->max_weight_kg ? $row->max_weight_kg . ' kg' : '—',
                 'commission' => $row->commissionLabel(),
-                'extra_fee' => $row->extra_delivery_fee_cents > 0 ? $row->extraFeeFormatted() : '—',
+                'extra_fee' => $row->extra_delivery_fee > 0 ? $row->extraFeeFormatted() : '—',
                 'actions' => $actions,
             ];
         });
@@ -392,7 +392,7 @@ class FbnController extends Controller
             'special_handling_notes' => 'nullable|string',
             'commission_type' => ['required', Rule::enum(MarketplaceShippingRuleCommissionType::class)],
             'commission_value' => 'required|numeric|min:0',
-            'extra_delivery_fee_cents' => 'integer|min:0',
+            'extra_delivery_fee' => 'integer|min:0',
         ]);
 
         if (MarketplaceShippingRule::where('vendor_listing_id', $data['vendor_listing_id'])->exists()) {
@@ -414,7 +414,7 @@ class FbnController extends Controller
             'special_handling_notes' => 'nullable|string',
             'commission_type' => ['required', Rule::enum(MarketplaceShippingRuleCommissionType::class)],
             'commission_value' => 'required|numeric|min:0',
-            'extra_delivery_fee_cents' => 'integer|min:0',
+            'extra_delivery_fee' => 'integer|min:0',
         ]);
 
         $rule->update($data);

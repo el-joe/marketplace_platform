@@ -16,7 +16,7 @@ class DeliveryAgentEarning extends Model
         'delivery_assignment_id',
         'order_id',
         'earning_type',
-        'amount_cents',
+        'amount',
         'currency',
         'status',
         'paid_at',
@@ -26,7 +26,7 @@ class DeliveryAgentEarning extends Model
     protected function casts(): array
     {
         return [
-            'amount_cents' => 'integer',
+            'amount' => 'integer',
             'paid_at' => 'datetime',
             'status' => DeliveryAgentEarningStatus::class,
         ];
@@ -53,6 +53,6 @@ class DeliveryAgentEarning extends Model
 
     public function getAmountAttribute(): float
     {
-        return $this->amount_cents / 100;
+        return $this->amount / 100;
     }
 }

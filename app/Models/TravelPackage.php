@@ -25,7 +25,7 @@ class TravelPackage extends Model
         'destination_city',
         'destination_travel_country_id',
         'destination_travel_city_id',
-        'price_cents',
+        'price',
         'currency',
         'pricing_tiers_enabled',
         'show_pricing_tiers_to_customer',
@@ -121,7 +121,7 @@ class TravelPackage extends Model
 
     public function priceFormatted(): string
     {
-        return \App\Helpers\CurrencyFormatter::formatPrice($this->price_cents, $this->currency);
+        return \App\Helpers\CurrencyFormatter::formatPrice($this->price, $this->currency);
     }
 
     /**
@@ -135,16 +135,16 @@ class TravelPackage extends Model
             $tier = $this->pricingTiers->firstWhere('travelers_count', $travelersCount);
 
             if ($tier) {
-                return $tier->price_cents;
+                return $tier->price;
             }
         }
 
-        return $this->price_cents * $travelersCount;
+        return $this->price * $travelersCount;
     }
 
     /**
      * Replaces this package's pricing tiers with the given set. Each item
-     * must contain travelers_count and price_cents.
+     * must contain travelers_count and price.
      */
     public function syncPricingTiers(array $tiers): void
     {
@@ -153,7 +153,7 @@ class TravelPackage extends Model
         foreach (array_values($tiers) as $position => $tier) {
             $this->pricingTiers()->create([
                 'travelers_count' => $tier['travelers_count'],
-                'price_cents' => $tier['price_cents'],
+                'price' => $tier['price'],
                 'position' => $position,
             ]);
         }

@@ -23,12 +23,12 @@ class CodSettlementController extends Controller
     public function index(Request $request): View
     {
         $pendingCashCents = DeliveryAgentCodSettlement::where('status', DeliveryAgentCodSettlementStatus::Pending)
-            ->sum('net_to_remit_cents');
+            ->sum('net_to_remit');
 
         $settledThisMonthCents = DeliveryAgentCodSettlement::where('status', DeliveryAgentCodSettlementStatus::Settled)
             ->whereMonth('settled_at', now()->month)
             ->whereYear('settled_at', now()->year)
-            ->sum('net_to_remit_cents');
+            ->sum('net_to_remit');
 
         $disputedCount = DeliveryAgentCodSettlement::where('status', DeliveryAgentCodSettlementStatus::Disputed)->count();
 
@@ -40,15 +40,15 @@ class CodSettlementController extends Controller
         $agents = DeliveryAgent::query()
             ->withCount(['codSettlements as pending_count' => fn($q) => $q->where('status', DeliveryAgentCodSettlementStatus::Pending)])
             ->with(['codSettlements' => fn($q) => $q->orderByDesc('period_end')->limit(1)])
-            ->whereHas('assignments', fn($q) => $q->whereNotNull('cod_amount_collected_cents'))
+            ->whereHas('assignments', fn($q) => $q->whereNotNull('cod_amount_collected'))
             ->orWhereHas('codSettlements')
             ->get();
 
         // Pending COD in each agent's custody (assignments not yet in any settlement)
         $agentPendingCod = DeliveryAssignment::query()
-            ->whereNotNull('cod_amount_collected_cents')
+            ->whereNotNull('cod_amount_collected')
             ->whereNull('cod_settlement_id')
-            ->selectRaw('agent_id, SUM(cod_amount_collected_cents) as total')
+            ->selectRaw('agent_id, SUM(cod_amount_collected) as total')
             ->groupBy('agent_id')
             ->pluck('total', 'agent_id');
 
@@ -105,7 +105,7 @@ class CodSettlementController extends Controller
         $openAssignments = DeliveryAssignment::with('subOrder.order')
             ->where('agent_id', $settlement->agent_id)
             ->whereNull('cod_settlement_id')
-            ->whereNotNull('cod_amount_collected_cents')
+            ->whereNotNull('cod_amount_collected')
             ->get();
 
         return view('admin.delivery.cod-settlements.show', [
@@ -154,11 +154,11 @@ class CodSettlementController extends Controller
         $assignments = DeliveryAssignment::with('subOrder.order')
             ->where('agent_id', $agent->id)
             ->whereBetween('delivered_at', [$periodStart . ' 00:00:00', $periodEnd . ' 23:59:59'])
-            ->whereNotNull('cod_amount_collected_cents')
+            ->whereNotNull('cod_amount_collected')
             ->whereNull('cod_settlement_id')
             ->get();
 
-        $collected = $assignments->sum('cod_amount_collected_cents');
+        $collected = $assignments->sum('cod_amount_collected');
 
         if ($collected === 0) {
             return response()->json([
@@ -171,7 +171,7 @@ class CodSettlementController extends Controller
             ->whereIn('earning_type', ['base_fee', 'cod_handling'])
             ->whereBetween('created_at', [$periodStart . ' 00:00:00', $periodEnd . ' 23:59:59'])
             ->where('status', '!=', DeliveryAgentEarningStatus::Cancelled)
-            ->sum('amount_cents');
+            ->sum('amount');
 
         $netToRemit = $collected - $earningsOwed;
 
@@ -190,7 +190,7 @@ class CodSettlementController extends Controller
             ->implode("\n");
         $discrepancyAmountCents = $discrepancyAssignments->sum(function ($a) {
             $expected = (int) ($a->subOrder?->order?->total ?? 0);
-            return max(0, $expected - (int) $a->cod_amount_collected_cents);
+            return max(0, $expected - (int) $a->cod_amount_collected);
         });
 
         $settlement = DB::transaction(function () use (
@@ -201,13 +201,13 @@ class CodSettlementController extends Controller
                 'agent_id'                   => $agent->id,
                 'period_start'               => $periodStart,
                 'period_end'                 => $periodEnd,
-                'total_cod_collected_cents'  => $collected,
-                'total_earnings_owed_cents'  => $earningsOwed,
-                'net_to_remit_cents'         => $netToRemit,
+                'total_cod_collected'  => $collected,
+                'total_earnings_owed'  => $earningsOwed,
+                'net_to_remit'         => $netToRemit,
                 'status'                     => DeliveryAgentCodSettlementStatus::Pending,
                 'has_collection_discrepancy' => $hasDiscrepancy,
                 'discrepancy_notes'          => $hasDiscrepancy ? $discrepancyNotes : null,
-                'discrepancy_amount_cents'   => $discrepancyAmountCents,
+                'discrepancy_amount'   => $discrepancyAmountCents,
                 'discrepancy_resolution'     => $hasDiscrepancy ? CodSettlementDiscrepancyResolution::Pending : null,
             ]);
 
@@ -252,7 +252,7 @@ class CodSettlementController extends Controller
             'notes'                    => ['nullable', 'string', 'max:1000'],
         ];
 
-        $discrepancy = abs($request->input('actual_amount_remitted', 0) - $settlement->net_to_remit_cents);
+        $discrepancy = abs($request->input('actual_amount_remitted', 0) - $settlement->net_to_remit);
         if ($discrepancy > $toleranceCents) {
             $rules['notes'] = ['required', 'string', 'max:1000'];
         }
@@ -277,7 +277,7 @@ class CodSettlementController extends Controller
             // Unlock vendor payouts for all COD sub_orders covered by this settlement.
             $subOrderIds = DeliveryAssignment::where('agent_id', $settlement->agent_id)
                 ->whereBetween('delivered_at', [$settlement->period_start . ' 00:00:00', $settlement->period_end . ' 23:59:59'])
-                ->whereNotNull('cod_amount_collected_cents')
+                ->whereNotNull('cod_amount_collected')
                 ->pluck('sub_order_id');
 
             if ($subOrderIds->isNotEmpty()) {

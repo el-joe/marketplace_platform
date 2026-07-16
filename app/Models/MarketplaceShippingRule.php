@@ -22,16 +22,17 @@ class MarketplaceShippingRule extends Model
         'special_handling_notes',
         'commission_type',
         'commission_value',
-        'extra_delivery_fee_cents',
+        'extra_delivery_fee',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'commission_type' => MarketplaceShippingRuleCommissionType::class,
         'requires_special_vehicle' => 'boolean',
         'requires_refrigeration' => 'boolean',
         'max_weight_kg' => 'decimal:2',
         'commission_value' => 'decimal:2',
-        'extra_delivery_fee_cents' => 'integer',
+        'extra_delivery_fee' => 'integer',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────
@@ -55,7 +56,7 @@ class MarketplaceShippingRule extends Model
 
     public function extraFeeFormatted(): string
     {
-        return number_format($this->extra_delivery_fee_cents / 100, 2) . ' EGP';
+        return number_format($this->extra_delivery_fee / 100, 2) . ' EGP';
     }
 
     public function hasSpecialRequirements(): bool

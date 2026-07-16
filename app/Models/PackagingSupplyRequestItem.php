@@ -16,8 +16,8 @@ class PackagingSupplyRequestItem extends Model
         'request_id',
         'packaging_supply_id',
         'quantity',
-        'unit_cost_cents',
-        'line_total_cents',
+        'unit_cost',
+        'line_total',
         'created_at',
     ];
 
@@ -25,8 +25,8 @@ class PackagingSupplyRequestItem extends Model
     {
         return [
             'quantity'        => 'integer',
-            'unit_cost_cents' => 'integer',
-            'line_total_cents'=> 'integer',
+            'unit_cost' => 'integer',
+            'line_total'=> 'integer',
             'created_at'      => 'datetime',
         ];
     }
@@ -43,8 +43,8 @@ class PackagingSupplyRequestItem extends Model
 
     public function getLineTotalFormattedAttribute(): string
     {
-        return $this->line_total_cents === 0
+        return $this->line_total === 0
             ? 'Free'
-            : number_format($this->line_total_cents / 100, 2);
+            : number_format($this->line_total / 100, 2);
     }
 }

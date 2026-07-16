@@ -16,8 +16,8 @@ class VendorSubsidySetting extends Model
     protected $fillable = [
         'vendor_id',
         'country_id',
-        'admin_support_cents',
-        'vendor_share_cents',
+        'admin_support',
+        'vendor_share',
         'currency',
         'effective_from',
         'effective_until',

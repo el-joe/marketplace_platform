@@ -36,7 +36,7 @@ class Marketer extends Authenticatable implements JWTSubject
         'status',
         'referral_code',
         'commission_rate',
-        'total_earnings_cents',
+        'total_earnings',
         'total_clicks',
         'total_conversions',
         'bank_name',
@@ -64,7 +64,7 @@ class Marketer extends Authenticatable implements JWTSubject
             'last_login_at' => 'datetime',
             'engagement_rate' => 'decimal:2',
             'commission_rate' => 'decimal:2',
-            'total_earnings_cents' => 'integer',
+            'total_earnings' => 'integer',
             'total_clicks' => 'integer',
             'total_conversions' => 'integer',
             'followers_count' => 'integer',
@@ -184,7 +184,7 @@ class Marketer extends Authenticatable implements JWTSubject
     {
         return $this->conversions()
             ->whereIn('status', [MarketerTrackingStatus::Pending, MarketerTrackingStatus::Approved])
-            ->sum('commission_amount_cents');
+            ->sum('commission_amount');
     }
 
     public function getCurrentTierRate(int $salesCount): float
@@ -201,7 +201,7 @@ class Marketer extends Authenticatable implements JWTSubject
     {
         return (int) $this->conversions()
             ->where('status', MarketerTrackingStatus::Pending)
-            ->sum('commission_amount_cents');
+            ->sum('commission_amount');
     }
 
     public function getProfileUrl(): string

@@ -334,7 +334,7 @@ class ShippingMethodController extends Controller
             'country_id' => ['required', 'exists:countries,id'],
             'shipping_method_id' => ['required', 'exists:shipping_methods,id'],
             'is_active' => ['sometimes', 'boolean'],
-            'free_shipping_threshold_cents' => ['nullable', 'integer', 'min:0'],
+            'free_shipping_threshold' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $setting = CountryShippingSetting::updateOrCreate(
@@ -344,7 +344,7 @@ class ShippingMethodController extends Controller
             ],
             array_filter([
                 'is_active' => $data['is_active'] ?? null,
-                'free_shipping_threshold_cents' => $data['free_shipping_threshold_cents'] ?? null,
+                'free_shipping_threshold' => $data['free_shipping_threshold'] ?? null,
             ], fn($v) => $v !== null)
         );
 

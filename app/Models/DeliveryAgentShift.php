@@ -21,7 +21,7 @@ class DeliveryAgentShift extends Model
         'actual_end',
         'status',
         'total_deliveries',
-        'total_earnings_cents',
+        'total_earnings',
         'notes',
     ];
 
@@ -31,7 +31,7 @@ class DeliveryAgentShift extends Model
             'shift_date' => 'date',
             'actual_start' => 'datetime',
             'actual_end' => 'datetime',
-            'total_earnings_cents' => 'integer',
+            'total_earnings' => 'integer',
             'status' => DeliveryAgentShiftStatus::class,
         ];
     }
@@ -52,7 +52,7 @@ class DeliveryAgentShift extends Model
 
     public function getTotalEarningsAttribute(): float
     {
-        return $this->total_earnings_cents / 100;
+        return $this->total_earnings / 100;
     }
 
     public function getDurationMinutesAttribute(): ?int

@@ -22,10 +22,11 @@ class BlockAnalytic extends Model
         'unique_visitors',
         'add_to_cart_count',
         'orders_attributed',
-        'revenue_attributed_cents',
+        'revenue_attributed',
         'ctr',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'date' => 'date',
         'impressions' => 'integer',
@@ -33,7 +34,7 @@ class BlockAnalytic extends Model
         'unique_visitors' => 'integer',
         'add_to_cart_count' => 'integer',
         'orders_attributed' => 'integer',
-        'revenue_attributed_cents' => 'integer',
+        'revenue_attributed' => 'integer',
         'ctr' => 'decimal:4',
     ];
 

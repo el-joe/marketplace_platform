@@ -70,7 +70,7 @@ class TravelBookingService
             'travel_package_id'  => $package->id,
             'customer_id'        => $customer->id,
             'travelers_count'    => $travelersCount,
-            'total_price_cents'  => $totalCents,
+            'total_price'  => $totalCents,
             'passport_file_path' => $passportPath,
             'status'             => TravelBookingStatus::PendingDocuments,
         ]);

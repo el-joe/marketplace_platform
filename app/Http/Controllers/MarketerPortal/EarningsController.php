@@ -37,7 +37,7 @@ class EarningsController extends Controller
         foreach (['pending', 'approved', 'paid'] as $status) {
             $summary[$status] = $marketer->conversions()
                 ->where('status', $status)
-                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->selectRaw('currency, SUM(commission_amount) as total')
                 ->groupBy('currency')
                 ->pluck('total', 'currency');
         }
@@ -60,14 +60,14 @@ class EarningsController extends Controller
         foreach (['pending', 'approved', 'paid'] as $status) {
             $byCurrency[$status] = $marketer->conversions()
                 ->where('status', $status)
-                ->selectRaw('currency, SUM(commission_amount_cents) as total')
+                ->selectRaw('currency, SUM(commission_amount) as total')
                 ->groupBy('currency')
                 ->pluck('total', 'currency');
         }
 
         return response()->json([
             'by_currency' => $byCurrency,
-            'total_earnings_cents' => $marketer->total_earnings_cents,
+            'total_earnings' => $marketer->total_earnings,
         ]);
     }
 }

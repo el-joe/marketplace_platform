@@ -63,17 +63,17 @@ class RecordMarketerConversion implements ShouldQueue
             'order_id' => $order->id,
             'customer_id' => $order->customer_id,
             'vendor_id' => $subOrder->vendor_id,
-            'order_value_cents' => $orderValue,
+            'order_value' => $orderValue,
             'commission_rate' => $effectiveRate,
-            'commission_amount_cents' => $commissionAmount,
+            'commission_amount' => $commissionAmount,
             'currency' => $order->currency,
             'status' => 'pending',
         ]);
 
         // Update campaign totals
         $campaign->increment('total_conversions');
-        $campaign->increment('total_revenue_cents', $orderValue);
-        $campaign->increment('budget_spent_cents', $commissionAmount);
+        $campaign->increment('total_revenue', $orderValue);
+        $campaign->increment('budget_spent', $commissionAmount);
 
         // Update marketer totals
         $marketer->increment('total_conversions');

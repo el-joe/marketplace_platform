@@ -19,11 +19,11 @@ class CarrierClaim extends Model
         'delivery_agent_id',
         'claim_type',
         'description',
-        'claimed_amount_cents',
+        'claimed_amount',
         'evidence_files',
         'status',
         'resolution_notes',
-        'compensated_amount_cents',
+        'compensated_amount',
         'resolved_by_admin_id',
         'resolved_at',
     ];
@@ -32,8 +32,8 @@ class CarrierClaim extends Model
     {
         return [
             'evidence_files'           => 'array',
-            'claimed_amount_cents'     => 'integer',
-            'compensated_amount_cents' => 'integer',
+            'claimed_amount'     => 'integer',
+            'compensated_amount' => 'integer',
             'resolved_at'              => 'datetime',
             'status'                   => CarrierClaimStatus::class,
             'claim_type'               => CarrierClaimType::class,
@@ -66,15 +66,15 @@ class CarrierClaim extends Model
 
     public function getClaimedAmountFormattedAttribute(): string
     {
-        return number_format($this->claimed_amount_cents / 100, 2);
+        return number_format($this->claimed_amount / 100, 2);
     }
 
     public function getCompensatedAmountFormattedAttribute(): string
     {
-        if ($this->compensated_amount_cents === null) {
+        if ($this->compensated_amount === null) {
             return '—';
         }
-        return number_format($this->compensated_amount_cents / 100, 2);
+        return number_format($this->compensated_amount / 100, 2);
     }
 
     public function isResolved(): bool

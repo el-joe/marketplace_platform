@@ -12,8 +12,8 @@ class EarningsResource extends JsonResource
         return [
             'id'              => $this->id,
             'earning_type'    => $this->earning_type,
-            'amount_cents'    => $this->amount_cents,
-            'amount'          => $this->amount_cents / 100,
+            'amount_cents'    => $this->amount,
+            'amount'          => $this->amount / 100,
             'currency'        => $this->currency,
             'status'          => $this->status?->value,
             'earned_at'       => $this->created_at?->toIso8601String(),

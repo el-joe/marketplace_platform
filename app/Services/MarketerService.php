@@ -196,7 +196,7 @@ class MarketerService
                     'marketer_quantity' => $qty,
                     'admin_quantity'    => 0,
                     'is_mandatory'      => false,
-                    'sample_cost_cents' => $item['cost_cents'] ?? 0,
+                    'sample_cost' => $item['cost'] ?? 0,
                     'created_at'        => now(),
                 ]);
             }
@@ -250,9 +250,9 @@ class MarketerService
                 'order_id' => $order->id,
                 'customer_id' => $order->customer_id,
                 'vendor_id' => $order->vendor_id ?? null,
-                'order_value_cents' => $order->total_cents ?? (int) round($order->total * 100),
+                'order_value' => $order->total_cents ?? (int) round($order->total * 100),
                 'commission_rate' => $rate,
-                'commission_amount_cents' => $commission,
+                'commission_amount' => $commission,
                 'currency' => $order->currency ?? 'EGP',
                 'status' => MarketerTrackingStatus::Pending,
                 'attribution_model' => $campaign->attribution_model ?? \App\Enums\AttributionModel::LastClick,
@@ -262,13 +262,13 @@ class MarketerService
             ]);
 
             $campaign->increment('total_conversions');
-            $campaign->increment('total_revenue_cents', $order->total_cents ?? (int) round($order->total * 100));
-            if ($campaign->budget_cents) {
-                $campaign->increment('budget_spent_cents', $commission);
+            $campaign->increment('total_revenue', $order->total_cents ?? (int) round($order->total * 100));
+            if ($campaign->budget) {
+                $campaign->increment('budget_spent', $commission);
             }
 
             $marketer->increment('total_conversions');
-            $marketer->increment('total_earnings_cents', $commission);
+            $marketer->increment('total_earnings', $commission);
 
             if ($lastClick) {
                 $lastClick->update(['converted' => 1, 'conversion_order_id' => $order->id]);

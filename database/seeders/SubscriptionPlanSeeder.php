@@ -18,7 +18,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'name_ar' => 'برونز',
                 'description_en' => 'Starter plan — up to 10 active listings.',
                 'description_ar' => 'خطة مبتدئة — حتى 10 قوائم نشطة.',
-                'price_cents' => 5000,    // 50 EGP
+                'price' => 5000,    // 50 EGP
                 'currency' => 'EGP',
                 'billing_cycle' => 'monthly',
                 'max_listings' => 10,
@@ -36,7 +36,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'name_ar' => 'فضي',
                 'description_en' => 'Growing business — up to 50 listings, 5% commission discount.',
                 'description_ar' => 'للمتاجر المتنامية — حتى 50 قائمة، خصم 5% على العمولة.',
-                'price_cents' => 20000,   // 200 EGP
+                'price' => 20000,   // 200 EGP
                 'currency' => 'EGP',
                 'billing_cycle' => 'monthly',
                 'max_listings' => 50,
@@ -54,7 +54,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'name_ar' => 'ذهبي',
                 'description_en' => 'Unlimited listings, 10% commission discount, free shipping included.',
                 'description_ar' => 'قوائم غير محدودة، خصم 10% على العمولة، توصيل مجاني.',
-                'price_cents' => 50000,   // 500 EGP
+                'price' => 50000,   // 500 EGP
                 'currency' => 'EGP',
                 'billing_cycle' => 'monthly',
                 'max_listings' => null,
@@ -72,7 +72,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'name_ar' => 'بلاتيني',
                 'description_en' => 'Ultimate plan — unlimited listings, 15% commission discount, free shipping + VIP perks.',
                 'description_ar' => 'الخطة المتقدمة — قوائم غير محدودة، خصم 15% على العمولة، توصيل مجاني + مميزات VIP.',
-                'price_cents' => 120000,  // 1200 EGP
+                'price' => 120000,  // 1200 EGP
                 'currency' => 'EGP',
                 'billing_cycle' => 'monthly',
                 'max_listings' => null,

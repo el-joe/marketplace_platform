@@ -18,9 +18,9 @@ class ProductCostReference extends Model
         'manufacturer_name',
         'manufacturer_url',
         'manufacturer_sku',
-        'manufacturer_cost_cents',
-        'shipping_cost_cents',
-        'landed_cost_cents',
+        'manufacturer_cost',
+        'shipping_cost',
+        'landed_cost',
         'platform_margin_pct',
         'competitor_links',
         'competitor_last_checked',
@@ -30,10 +30,11 @@ class ProductCostReference extends Model
         'updated_by_admin_id',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
-        'manufacturer_cost_cents' => 'integer',
-        'shipping_cost_cents' => 'integer',
-        'landed_cost_cents' => 'integer',
+        'manufacturer_cost' => 'integer',
+        'shipping_cost' => 'integer',
+        'landed_cost' => 'integer',
         'platform_margin_pct' => 'decimal:2',
         'competitor_links' => 'array',
         'competitor_last_checked' => 'datetime',
@@ -71,24 +72,24 @@ class ProductCostReference extends Model
     /** Factory price formatted (EGP). */
     public function manufacturerCostFormatted(): string
     {
-        return $this->manufacturer_cost_cents !== null
-            ? number_format($this->manufacturer_cost_cents / 100, 2) . ' EGP'
+        return $this->manufacturer_cost !== null
+            ? number_format($this->manufacturer_cost / 100, 2) . ' EGP'
             : '—';
     }
 
     /** Shipping cost formatted. */
     public function shippingCostFormatted(): string
     {
-        return $this->shipping_cost_cents !== null
-            ? number_format($this->shipping_cost_cents / 100, 2) . ' EGP'
+        return $this->shipping_cost !== null
+            ? number_format($this->shipping_cost / 100, 2) . ' EGP'
             : '—';
     }
 
     /** Landed cost formatted. */
     public function landedCostFormatted(): string
     {
-        return $this->landed_cost_cents !== null
-            ? number_format($this->landed_cost_cents / 100, 2) . ' EGP'
+        return $this->landed_cost !== null
+            ? number_format($this->landed_cost / 100, 2) . ' EGP'
             : '—';
     }
 
@@ -98,19 +99,19 @@ class ProductCostReference extends Model
      */
     public function computedLandedCents(): ?int
     {
-        if ($this->manufacturer_cost_cents === null && $this->shipping_cost_cents === null) {
+        if ($this->manufacturer_cost === null && $this->shipping_cost === null) {
             return null;
         }
-        return (int) (($this->manufacturer_cost_cents ?? 0) + ($this->shipping_cost_cents ?? 0));
+        return (int) (($this->manufacturer_cost ?? 0) + ($this->shipping_cost ?? 0));
     }
 
     /**
      * Calculate margin percentage given a selling price in cents.
-     * Returns null if landed_cost_cents is not set.
+     * Returns null if landed_cost is not set.
      */
     public function calculateMargin(int $sellingPriceCents): ?float
     {
-        $landed = $this->landed_cost_cents ?? $this->computedLandedCents();
+        $landed = $this->landed_cost ?? $this->computedLandedCents();
         if (!$landed || $sellingPriceCents <= 0) {
             return null;
         }
@@ -122,7 +123,7 @@ class ProductCostReference extends Model
      */
     public function isBelowLandedCost(int $sellingPriceCents): bool
     {
-        $landed = $this->landed_cost_cents ?? $this->computedLandedCents();
+        $landed = $this->landed_cost ?? $this->computedLandedCents();
         return $landed !== null && $sellingPriceCents <= $landed;
     }
 
@@ -135,7 +136,7 @@ class ProductCostReference extends Model
         return array_map(fn($c) => [
             'name' => $c['name'] ?? '',
             'url' => $c['url'] ?? '',
-            'price_cents' => isset($c['price_cents']) ? (int) $c['price_cents'] : null,
+            'price' => isset($c['price']) ? (int) $c['price'] : null,
             'last_checked' => $c['last_checked'] ?? null,
         ], $links);
     }

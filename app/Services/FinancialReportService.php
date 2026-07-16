@@ -174,9 +174,9 @@ class FinancialReportService
                 countries.id                              AS country_id,
                 countries.name_en                         AS country_name,
                 marketer_payouts.currency                 AS currency_code,
-                SUM(marketer_payouts.gross_commission_cents) AS gross_cents,
-                SUM(marketer_payouts.tax_deduction_cents)    AS tax_deducted_cents,
-                SUM(marketer_payouts.net_amount_cents)       AS net_cents,
+                SUM(marketer_payouts.gross_commission) AS gross_cents,
+                SUM(marketer_payouts.tax_deduction)    AS tax_deducted,
+                SUM(marketer_payouts.net_amount)       AS net_cents,
                 COUNT(*)                                   AS payout_count
             ')
             ->get();
@@ -200,7 +200,7 @@ class FinancialReportService
                 countries.id                          AS country_id,
                 countries.name_en                     AS country_name,
                 paid_ad_bookings.currency             AS currency_code,
-                SUM(paid_ad_bookings.total_price_cents) AS spend_cents,
+                SUM(paid_ad_bookings.total_price) AS spend,
                 COUNT(*)                              AS booking_count
             ')
             ->get();

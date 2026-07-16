@@ -28,7 +28,7 @@ class CreditVendorCompensationJob implements ShouldQueue
             return;
         }
 
-        if (! $claim->compensated_amount_cents) {
+        if (! $claim->compensated_amount) {
             return;
         }
 
@@ -47,7 +47,7 @@ class CreditVendorCompensationJob implements ShouldQueue
 
         $walletService->credit(
             wallet:              $wallet,
-            amountCents:         $claim->compensated_amount_cents,
+            amountCents:         $claim->compensated_amount,
             sourceType:          'carrier_claim',
             sourceId:            $claim->id,
             description:         "Carrier claim compensation #{$claim->claim_number}",

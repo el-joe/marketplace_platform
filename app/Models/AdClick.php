@@ -20,7 +20,7 @@ class AdClick extends Model
         'user_agent',
         'is_fraud_suspect',
         'fraud_reason',
-        'cost_cents',
+        'cost',
         'country_id',
         'clicked_at',
     ];

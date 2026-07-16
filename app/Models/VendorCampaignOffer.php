@@ -26,9 +26,9 @@ class VendorCampaignOffer extends Model
         'campaign_type',
         'offered_commission_rate',
         'commission_type',
-        'budget_per_marketer_cents',
-        'total_budget_cents',
-        'total_spent_cents',
+        'budget_per_marketer',
+        'total_budget',
+        'total_spent',
         'starts_at',
         'ends_at',
         'invitation_deadline',
@@ -41,11 +41,12 @@ class VendorCampaignOffer extends Model
         'whatsapp_sharing_enabled',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'offered_commission_rate' => 'decimal:2',
-        'budget_per_marketer_cents' => 'integer',
-        'total_budget_cents' => 'integer',
-        'total_spent_cents' => 'integer',
+        'budget_per_marketer' => 'integer',
+        'total_budget' => 'integer',
+        'total_spent' => 'integer',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'invitation_deadline' => 'datetime',

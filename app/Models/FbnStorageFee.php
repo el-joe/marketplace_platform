@@ -18,18 +18,19 @@ class FbnStorageFee extends Model
         'warehouse_inventory_id',
         'month',
         'units_stored',
-        'rate_per_unit_cents',
-        'total_fee_cents',
+        'rate_per_unit',
+        'total_fee',
         'currency',
         'status',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'status' => FbnStorageFeeStatus::class,
         'month' => 'date',
         'units_stored' => 'integer',
-        'rate_per_unit_cents' => 'integer',
-        'total_fee_cents' => 'integer',
+        'rate_per_unit' => 'integer',
+        'total_fee' => 'integer',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────
@@ -78,7 +79,7 @@ class FbnStorageFee extends Model
 
     public function totalFormatted(): string
     {
-        return number_format($this->total_fee_cents / 100, 2) . ' ' . $this->currency;
+        return number_format($this->total_fee / 100, 2) . ' ' . $this->currency;
     }
 
     public function monthLabel(): string

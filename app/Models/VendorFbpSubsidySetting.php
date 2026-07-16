@@ -14,8 +14,8 @@ class VendorFbpSubsidySetting extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'admin_subsidy_cents',
-        'full_coverage_threshold_cents',
+        'admin_subsidy',
+        'full_coverage_threshold',
         'exceptional_zone_shipping_zone_ids',
         'is_active',
     ];
@@ -33,8 +33,8 @@ class VendorFbpSubsidySetting extends Model
         return Cache::remember('vendor_fbp_subsidy_settings:active', 3600, function () {
             return static::where('is_active', true)->latest('created_at')->first()
                 ?? new self([
-                    'admin_subsidy_cents' => 0,
-                    'full_coverage_threshold_cents' => 0,
+                    'admin_subsidy' => 0,
+                    'full_coverage_threshold' => 0,
                     'exceptional_zone_shipping_zone_ids' => [],
                     'is_active' => true,
                 ]);

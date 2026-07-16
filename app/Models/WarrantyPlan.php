@@ -21,7 +21,7 @@ class WarrantyPlan extends Model
             'features_ar' => 'array',
             'country_ids' => 'array',
             'is_active' => 'boolean',
-            'price_cents' => 'integer',
+            'price' => 'integer',
             'sort_order' => 'integer',
         ];
     }

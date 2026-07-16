@@ -35,8 +35,8 @@ class VendorSubsidySettingController extends Controller
 
         $columns = [
             ['orderable_column' => 'country_id'],
-            ['orderable_column' => 'admin_support_cents'],
-            ['orderable_column' => 'vendor_share_cents'],
+            ['orderable_column' => 'admin_support'],
+            ['orderable_column' => 'vendor_share'],
             ['orderable_column' => 'effective_from'],
             ['orderable_column' => 'effective_until'],
             [],
@@ -46,8 +46,8 @@ class VendorSubsidySettingController extends Controller
             return [
                 'id' => $setting->id,
                 'country' => $setting->country?->name_en,
-                'admin_support' => $this->formatCents($setting->admin_support_cents, $setting->currency),
-                'vendor_pays' => $this->formatCents($setting->vendor_share_cents, $setting->currency),
+                'admin_support' => $this->formatCents($setting->admin_support, $setting->currency),
+                'vendor_pays' => $this->formatCents($setting->vendor_share, $setting->currency),
                 'effective_from' => $setting->effective_from->format('d M Y'),
                 'effective_until' => $setting->effective_until?->format('d M Y') ?? '∞ No End',
                 'status' => $setting->status,
@@ -55,8 +55,8 @@ class VendorSubsidySettingController extends Controller
                 'actions' => [
                     'id' => $setting->id,
                     'country_id' => $setting->country_id,
-                    'admin_support_cents' => $setting->admin_support_cents,
-                    'vendor_share_cents' => $setting->vendor_share_cents,
+                    'admin_support' => $setting->admin_support,
+                    'vendor_share' => $setting->vendor_share,
                     'currency' => $setting->currency,
                     'effective_from' => $setting->effective_from->toDateString(),
                     'effective_until' => $setting->effective_until?->toDateString(),
@@ -69,8 +69,8 @@ class VendorSubsidySettingController extends Controller
     {
         $validated = $request->validate([
             'country_id' => ['required', 'uuid', 'exists:countries,id'],
-            'admin_support_cents' => ['required', 'integer', 'min:0'],
-            'vendor_share_cents' => ['required', 'integer', 'min:0'],
+            'admin_support' => ['required', 'integer', 'min:0'],
+            'vendor_share' => ['required', 'integer', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'effective_from' => ['required', 'date'],
             'effective_until' => ['nullable', 'date', 'after:effective_from'],
@@ -93,8 +93,8 @@ class VendorSubsidySettingController extends Controller
 
         $validated = $request->validate([
             'country_id' => ['required', 'uuid', 'exists:countries,id'],
-            'admin_support_cents' => ['required', 'integer', 'min:0'],
-            'vendor_share_cents' => ['required', 'integer', 'min:0'],
+            'admin_support' => ['required', 'integer', 'min:0'],
+            'vendor_share' => ['required', 'integer', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'effective_from' => ['required', 'date'],
             'effective_until' => ['nullable', 'date', 'after:effective_from'],

@@ -12,6 +12,7 @@ class PaidAdBooking extends Model
 {
     use HasUuids;
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'status' => PaidAdBookingStatus::class,
     ];
@@ -24,7 +25,7 @@ class PaidAdBooking extends Model
         'pricing_model',
         'booked_from',
         'booked_until',
-        'agreed_rate_cents',
+        'agreed_rate',
         'currency',
         'status',
         'rejection_reason',

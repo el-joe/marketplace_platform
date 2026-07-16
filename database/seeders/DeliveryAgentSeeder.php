@@ -73,7 +73,7 @@ class DeliveryAgentSeeder extends Seeder
                     'is_available'          => $data['status'] === 'on_shift',
                     'rating_avg'            => fake()->randomFloat(2, 3.8, 5.0),
                     'total_deliveries'      => fake()->numberBetween(0, 1000),
-                    'per_delivery_fee_cents' => 500,
+                    'per_delivery_fee' => 500,
                 ]
             );
         }
@@ -132,7 +132,7 @@ class DeliveryAgentSeeder extends Seeder
                     'is_available'           => $data['status'] === 'on_shift',
                     'rating_avg'             => fake()->randomFloat(2, 3.8, 5.0),
                     'total_deliveries'       => fake()->numberBetween(0, 1000),
-                    'per_delivery_fee_cents' => 500,
+                    'per_delivery_fee' => 500,
                 ]
             );
         }

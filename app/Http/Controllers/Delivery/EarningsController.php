@@ -39,7 +39,7 @@ class EarningsController extends Controller
         // Cash physically held by the agent and not yet remitted
         $cashInHandCents = DeliveryAssignment::where('agent_id', $agent->id)
             ->where('status', DeliveryAssignment::STATUS_DELIVERED)
-            ->whereNotNull('cod_amount_collected_cents')
+            ->whereNotNull('cod_amount_collected')
             ->where(function ($q) use ($settledPeriods) {
                 foreach ($settledPeriods as $period) {
                     $q->where(function ($inner) use ($period) {
@@ -48,7 +48,7 @@ class EarningsController extends Controller
                     });
                 }
             })
-            ->sum('cod_amount_collected_cents');
+            ->sum('cod_amount_collected');
 
         return view('delivery.earnings.index', compact('agent', 'earnings', 'payouts', 'cashInHandCents'));
     }
@@ -61,19 +61,19 @@ class EarningsController extends Controller
         $thisMonth = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
-            ->sum('amount_cents');
+            ->sum('amount');
 
         $pendingBalance = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->where('status', DeliveryAgentEarningStatus::Pending)
-            ->sum('amount_cents');
+            ->sum('amount');
 
         $paidBalance = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->where('status', DeliveryAgentEarningStatus::Paid)
-            ->sum('amount_cents');
+            ->sum('amount');
 
         $todayEarnings = DeliveryAgentEarning::where('agent_id', $agent->id)
             ->whereDate('created_at', today())
-            ->sum('amount_cents');
+            ->sum('amount');
 
         return response()->json([
             'today_cents' => $todayEarnings,

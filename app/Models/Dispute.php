@@ -38,7 +38,7 @@ class Dispute extends Model
         'status',
         'resolution',
         'resolution_notes',
-        'compensation_cents',
+        'compensation',
         'assigned_to_admin_id',
         'resolved_at',
     ];

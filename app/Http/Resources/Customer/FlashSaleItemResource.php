@@ -13,7 +13,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  *
  * SECURITY: never expose vendor-internal fields (admin_notes, vendor_notes,
  * rejection_reason/code, reviewed_by_admin_id) or anything from
- * marketer_secret_promotions (admin_share_pct, product_value_cents).
+ * marketer_secret_promotions (admin_share_pct, product_value).
  */
 class FlashSaleItemResource extends JsonResource
 {

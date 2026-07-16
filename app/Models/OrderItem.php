@@ -39,7 +39,7 @@ class OrderItem extends Model
         'line_tax',
         'line_total',
         'commission_rate_pct',
-        'commission_fixed_cents',
+        'commission_fixed',
         'commission_amount',
         'commission_category_id',
         'fulfillment_status',

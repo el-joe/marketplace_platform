@@ -30,9 +30,9 @@ class CountryPaymentMethod extends Model
         'display_name_ar',
         'is_active',
         'fee_pct',
-        'fee_fixed_cents',
-        'min_order_cents',
-        'max_order_cents',
+        'fee_fixed',
+        'min_order',
+        'max_order',
         'settlement_currency',
         'environment',
         'sort_order',
@@ -47,12 +47,13 @@ class CountryPaymentMethod extends Model
         'webhook_secret_encrypted',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'is_active'                 => 'boolean',
         'fee_pct'                   => 'decimal:2',
-        'fee_fixed_cents'           => 'integer',
-        'min_order_cents'           => 'integer',
-        'max_order_cents'           => 'integer',
+        'fee_fixed'           => 'integer',
+        'min_order'           => 'integer',
+        'max_order'           => 'integer',
         'sort_order'                => 'integer',
         'environment'               => CountryPaymentMethodEnvironment::class,
         'last_verified_at'          => 'datetime',
@@ -131,18 +132,18 @@ class CountryPaymentMethod extends Model
 
     public function getFeeFixedFormattedAttribute(): string
     {
-        return number_format($this->fee_fixed_cents / 100, 2);
+        return number_format($this->fee_fixed / 100, 2);
     }
 
     public function getMinOrderFormattedAttribute(): string
     {
-        return number_format($this->min_order_cents / 100, 2);
+        return number_format($this->min_order / 100, 2);
     }
 
     public function getMaxOrderFormattedAttribute(): ?string
     {
-        return $this->max_order_cents
-            ? number_format($this->max_order_cents / 100, 2)
+        return $this->max_order
+            ? number_format($this->max_order / 100, 2)
             : null;
     }
 

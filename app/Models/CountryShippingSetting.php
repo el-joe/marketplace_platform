@@ -19,12 +19,13 @@ class CountryShippingSetting extends Model
         'country_id',
         'shipping_method_id',
         'is_active',
-        'free_shipping_threshold_cents',
+        'free_shipping_threshold',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
         'is_active' => 'boolean',
-        'free_shipping_threshold_cents' => 'integer',
+        'free_shipping_threshold' => 'integer',
     ];
 
     public function country(): BelongsTo

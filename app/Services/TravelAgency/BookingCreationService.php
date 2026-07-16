@@ -60,7 +60,7 @@ class BookingCreationService
                 'travel_package_id' => $pkg->id,
                 'customer_id'       => $customer->id,
                 'travelers_count'   => $data['travelers_count'],
-                'total_price_cents' => $pkg->priceForTravelersCount((int) $data['travelers_count']),
+                'total_price' => $pkg->priceForTravelersCount((int) $data['travelers_count']),
                 'status'            => TravelBookingStatus::PendingDocuments,
             ]);
 

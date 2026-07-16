@@ -17,7 +17,7 @@ class ClassifiedListingListResource extends JsonResource
             'listing_number' => $this->listing_number,
             'title_en'       => $this->title_en,
             'title_ar'       => $this->title_ar,
-            'price_cents'    => $this->price_cents,
+            'price_cents'    => $this->price,
             'currency'       => $this->currency,
             'status'         => $this->status?->value,
             'views_count'    => $this->views_count,

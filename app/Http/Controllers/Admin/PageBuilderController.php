@@ -256,7 +256,7 @@ class PageBuilderController extends Controller
                 'unique_visitors' => (int) $rows->sum('unique_visitors'),
                 'add_to_cart_count' => (int) $rows->sum('add_to_cart_count'),
                 'orders_attributed' => (int) $rows->sum('orders_attributed'),
-                'revenue_attributed_cents' => (int) $rows->sum('revenue_attributed_cents'),
+                'revenue_attributed' => (int) $rows->sum('revenue_attributed'),
             ];
             $totals['ctr'] = $totals['impressions'] > 0
                 ? round($totals['clicks'] / $totals['impressions'], 4)

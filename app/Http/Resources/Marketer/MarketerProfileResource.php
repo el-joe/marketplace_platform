@@ -42,7 +42,7 @@ class MarketerProfileResource extends JsonResource
             'referral_code'         => $this->referral_code,
             'total_clicks'          => $this->total_clicks,
             'total_conversions'     => $this->total_conversions,
-            'total_earnings_cents'  => $this->total_earnings_cents,
+            'total_earnings_cents'  => $this->total_earnings,
             'country'               => $this->whenLoaded('country', fn () => [
                 'id'   => $this->country->id,
                 'name' => $this->country->name_en,

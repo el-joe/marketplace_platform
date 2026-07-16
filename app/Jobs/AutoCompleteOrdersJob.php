@@ -89,7 +89,7 @@ class AutoCompleteOrdersJob implements ShouldQueue
     }
 
     /**
-     * Post the delivery admin_subsidy_cents / vendor_deduction_cents split for a
+     * Post the delivery admin_subsidy / vendor_deduction split for a
      * completed sub-order to the double-entry ledger. Guarded by
      * delivery_subsidy_ledgered so a sub-order is never posted twice.
      */
@@ -99,8 +99,8 @@ class AutoCompleteOrdersJob implements ShouldQueue
             return;
         }
 
-        $adminSubsidyCents = (int) $subOrder->admin_subsidy_cents;
-        $vendorDeductionCents = (int) $subOrder->vendor_deduction_cents;
+        $adminSubsidyCents = (int) $subOrder->admin_subsidy;
+        $vendorDeductionCents = (int) $subOrder->vendor_deduction;
 
         if ($adminSubsidyCents <= 0 && $vendorDeductionCents <= 0) {
             $subOrder->update(['delivery_subsidy_ledgered' => true]);

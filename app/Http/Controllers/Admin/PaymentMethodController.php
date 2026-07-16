@@ -58,9 +58,9 @@ class PaymentMethodController extends Controller
             'display_name_ar'      => ['nullable', 'string', 'max:100'],
             'is_active'            => ['boolean'],
             'fee_pct'              => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'fee_fixed_cents'      => ['nullable', 'integer', 'min:0'],
-            'min_order_cents'      => ['nullable', 'integer', 'min:0'],
-            'max_order_cents'      => ['nullable', 'integer', 'min:0'],
+            'fee_fixed'      => ['nullable', 'integer', 'min:0'],
+            'min_order'      => ['nullable', 'integer', 'min:0'],
+            'max_order'      => ['nullable', 'integer', 'min:0'],
             'settlement_currency'  => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
             'environment'          => ['nullable', Rule::enum(CountryPaymentMethodEnvironment::class)],
             'sort_order'           => ['nullable', 'integer', 'min:0'],
@@ -70,7 +70,7 @@ class PaymentMethodController extends Controller
         ]);
 
         $insertData = array_filter($data, fn($k) => !in_array($k, ['credentials', 'webhook_secret']), ARRAY_FILTER_USE_KEY);
-        $insertData['min_order_cents'] = $insertData['min_order_cents'] ?? 0;
+        $insertData['min_order'] = $insertData['min_order'] ?? 0;
 
         $method = CountryPaymentMethod::create($insertData);
 
@@ -98,9 +98,9 @@ class PaymentMethodController extends Controller
             'display_name_ar'     => ['nullable', 'string', 'max:100'],
             'is_active'           => ['sometimes', 'boolean'],
             'fee_pct'             => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'fee_fixed_cents'     => ['nullable', 'integer', 'min:0'],
-            'min_order_cents'     => ['nullable', 'integer', 'min:0'],
-            'max_order_cents'     => ['nullable', 'integer', 'min:0'],
+            'fee_fixed'     => ['nullable', 'integer', 'min:0'],
+            'min_order'     => ['nullable', 'integer', 'min:0'],
+            'max_order'     => ['nullable', 'integer', 'min:0'],
             'settlement_currency' => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
             'environment'         => ['nullable', Rule::enum(CountryPaymentMethodEnvironment::class)],
             'sort_order'          => ['nullable', 'integer', 'min:0'],

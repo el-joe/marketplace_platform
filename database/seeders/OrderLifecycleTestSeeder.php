@@ -446,7 +446,7 @@ class OrderLifecycleTestSeeder extends Seeder
                     'da_otp'             => $o6Otp,
                     'otp_attempts'       => 1,
                     'otp_verified'       => true,
-                    'cod_amount_collected_cents' => $o6CodCollected,
+                    'cod_amount_collected' => $o6CodCollected,
                     'customer_rating'    => 5,
                     'agent_notes'        => 'Delivered to customer directly.',
                     // return_eligible_until = delivered_at + 14 days
@@ -702,7 +702,7 @@ class OrderLifecycleTestSeeder extends Seeder
                 'failure_reason'            => $cfg['failure_reason'] ?? null,
                 'failure_notes'             => $cfg['failure_notes'] ?? null,
                 'delivery_otp'              => $cfg['da_otp'] ?? $cfg['delivery_otp'] ?? null,
-                'cod_amount_collected_cents'=> $cfg['cod_amount_collected_cents'] ?? null,
+                'cod_amount_collected'=> $cfg['cod_amount_collected'] ?? null,
                 'otp_attempts'              => $cfg['otp_attempts'] ?? 0,
                 'otp_verified'              => $cfg['otp_verified'] ?? false,
                 'proof_file_id'             => null,

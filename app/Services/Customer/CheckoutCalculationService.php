@@ -119,7 +119,7 @@ class CheckoutCalculationService
         $resolvedCategory = $this->resolveCommissionCategory($category, $isFBN);
 
         $pct = (float) ($isFBN ? $resolvedCategory?->commission_fbn_pct : $resolvedCategory?->commission_fbp_pct) ?: 0.0;
-        $fixed = (int) ($isFBN ? $resolvedCategory?->commission_fbn_fixed_cents : $resolvedCategory?->commission_fbp_fixed_cents) ?: 0;
+        $fixed = (int) ($isFBN ? $resolvedCategory?->commission_fbn_fixed : $resolvedCategory?->commission_fbp_fixed) ?: 0;
 
         $lineSubtotal = $unitPriceCents * $quantity;
         $pctComponent = (int) round($lineSubtotal * ($pct / 100));
@@ -128,7 +128,7 @@ class CheckoutCalculationService
 
         return [
             'commission_rate_pct' => $pct,
-            'commission_fixed_cents' => $fixed,
+            'commission_fixed' => $fixed,
             'commission_amount' => $commissionAmount,
             'commission_category_id' => $resolvedCategory?->id,
             'vendor_payout_share' => $lineSubtotal - $commissionAmount,
@@ -147,7 +147,7 @@ class CheckoutCalculationService
 
         while ($current !== null && $levels < 5) {
             $pct = (float) ($isFBN ? $current->commission_fbn_pct : $current->commission_fbp_pct);
-            $fixed = (int) ($isFBN ? $current->commission_fbn_fixed_cents : $current->commission_fbp_fixed_cents);
+            $fixed = (int) ($isFBN ? $current->commission_fbn_fixed : $current->commission_fbp_fixed);
 
             if ($pct > 0 || $fixed > 0) {
                 return $current;
@@ -328,7 +328,7 @@ class CheckoutCalculationService
             'subtotal_cents' => $subtotal,
             'discount_cents' => $discountCents,
             'shipping_cents' => $shippingFeeCents,
-            'cod_fee_cents' => $codFeeCents,
+            'cod_fee' => $codFeeCents,
             'tax_cents' => $tax,
             'warranty_total_cents' => $warrantyTotalCents,
             'gift_card_applied_cents' => $giftCardAppliedCents,
@@ -342,7 +342,7 @@ class CheckoutCalculationService
      *
      * @param  array<\App\Models\CartItem>  $cartItems
      * @param  array<int, array{listing_id: string, warranty_plan_id: string}>  $warrantySelections
-     * @return array{selections: array<string, array{plan: WarrantyPlan, price_cents: int}>, total: int}
+     * @return array{selections: array<string, array{plan: WarrantyPlan, price: int}>, total: int}
      */
     public function resolveWarrantySelections(
         array $cartItems,
@@ -397,10 +397,10 @@ class CheckoutCalculationService
 
             $selections[$cartItem->id] = [
                 'plan' => $plan,
-                'price_cents' => $plan->price_cents,
+                'price' => $plan->price,
             ];
 
-            $total += $plan->price_cents;
+            $total += $plan->price;
         }
 
         return ['selections' => $selections, 'total' => $total];
@@ -423,7 +423,7 @@ class CheckoutCalculationService
             return ['gift_card' => null, 'applied_cents' => 0, 'error' => 'Gift card currency does not match order currency.'];
         }
 
-        $appliedCents = min($giftCard->balance_cents, $orderTotalCents);
+        $appliedCents = min($giftCard->balance, $orderTotalCents);
 
         return ['gift_card' => $giftCard, 'applied_cents' => $appliedCents, 'error' => null];
     }

@@ -14,9 +14,9 @@ class GiftCard extends Model
 
     protected $fillable = [
         'code',
-        'denomination_cents',
+        'denomination',
         'currency',
-        'balance_cents',
+        'balance',
         'status',
         'purchased_by_customer_id',
         'recipient_email',
@@ -28,9 +28,10 @@ class GiftCard extends Model
         'expires_at',
     ];
 
+    /** @var int Base currency unit (BIGINT) for money fields renamed in this model (dropped legacy _cents suffix) */
     protected $casts = [
-        'denomination_cents' => 'integer',
-        'balance_cents' => 'integer',
+        'denomination' => 'integer',
+        'balance' => 'integer',
         'activated_at' => 'datetime',
         'expires_at' => 'datetime',
     ];
@@ -39,7 +40,7 @@ class GiftCard extends Model
     {
         return $query->where('status', 'active')
             ->where('expires_at', '>', now())
-            ->where('balance_cents', '>', 0);
+            ->where('balance', '>', 0);
     }
 
     public function purchasedByCustomer(): BelongsTo
