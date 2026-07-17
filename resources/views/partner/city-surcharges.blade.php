@@ -10,33 +10,33 @@
 
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">City Shipping Surcharges</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Add an extra flat shipping amount for specific cities.</p>
+            <h1 class="text-2xl font-bold text-gray-900">Warehouse Shipping Surcharges</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Add an extra flat shipping amount for products shipped from specific warehouses.</p>
         </div>
         @if($hasFbpListings)
             <button type="button" id="btn-add-surcharge"
                     class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
                 <x-heroicon name="plus" class="w-4 h-4" />
-                Add City Surcharge
+                Add Warehouse Surcharge
             </button>
         @endif
     </div>
 
     @if(!$hasFbpListings)
         <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-            City shipping surcharges only apply to merchant-fulfilled (FBP) listings. You don't have any active FBP listings yet.
+            Warehouse shipping surcharges only apply to merchant-fulfilled (FBP) listings. You don't have any active FBP listings yet.
         </div>
     @else
         <div class="mb-4 rounded-lg border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
-            When a customer's shipping city matches one below, this extra amount is added on top of normal shipping for your FBP listings.
+            When a product ships from a warehouse below, this extra amount is added on top of normal shipping for your FBP listings.
         </div>
 
         <x-card padding="none">
             <table id="city-surcharges-table" class="table-base w-full">
                 <thead>
                     <tr>
-                        <th>City</th>
-                        <th>Country</th>
+                        <th>Warehouse</th>
+                        <th>Code</th>
                         <th class="text-end">Extra Shipping</th>
                         <th class="text-center">Active</th>
                         <th class="text-center w-20">Actions</th>
@@ -46,16 +46,16 @@
             </table>
         </x-card>
 
-        <x-modal id="city-surcharge-modal" title="City Shipping Surcharge" size="md">
+        <x-modal id="city-surcharge-modal" title="Warehouse Shipping Surcharge" size="md">
             <form id="city-surcharge-form" novalidate>
                 @csrf
                 <input type="hidden" id="surcharge-id">
 
                 <div class="grid grid-cols-1 gap-4">
-                    <x-form-select name="city_id" label="City" :select2="true" required>
-                        <option value="">Select city…</option>
-                        @foreach($cities as $city)
-                            <option value="{{ $city->id }}">{{ $city->name_en }} ({{ $city->country?->name_en }})</option>
+                    <x-form-select name="warehouse_id" label="Warehouse" :select2="true" required>
+                        <option value="">Select warehouse…</option>
+                        @foreach($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}">{{ $warehouse->name }} ({{ $warehouse->code }})</option>
                         @endforeach
                     </x-form-select>
 

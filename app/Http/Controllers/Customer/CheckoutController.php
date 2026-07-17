@@ -165,7 +165,7 @@ class CheckoutController extends Controller
             $isCod
         );
 
-        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee'], $address->city_id);
+        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee']);
 
         $shippingMethod = ShippingMethod::find($validated['shipping_method_id']);
 
@@ -362,7 +362,7 @@ class CheckoutController extends Controller
             $cartItems,
             $isCod
         );
-        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee'], $address->city_id);
+        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee']);
         $shippingFeeCents = $vendorShipping['total'];
         $codFeeCents = $isCod ? $shippingResult['cod_extra_fee'] : 0;
 
@@ -726,13 +726,13 @@ class CheckoutController extends Controller
 
     /**
      * Split the base cart-level shipping fee across vendors proportionally
-     * (FBN vendors ship free), then add each FBP vendor's flat city surcharge
-     * on top, if they've configured one for the destination city.
+     * (FBN vendors ship free), then add a flat warehouse surcharge on top for
+     * each FBP cart line whose fulfilling warehouse has one configured.
      *
      * @param  array<\App\Models\CartItem>  $cartItems
      * @return array{total: int, per_vendor: array<string, array{shipping: int, surcharge: int}>}
      */
-    private function resolveVendorShipping(array $cartItems, int $baseFeeCents, ?string $cityId): array
+    private function resolveVendorShipping(array $cartItems, int $baseFeeCents): array
     {
         $subtotalAll = max(1, (int) collect($cartItems)->sum(fn ($i) => $i->unit_price * $i->quantity));
         $grouped = collect($cartItems)->groupBy(fn ($item) => $item->vendorListing->vendor_id);
@@ -750,9 +750,13 @@ class CheckoutController extends Controller
                 ? 0
                 : (int) round($baseFeeCents * ($vendorSubtotal / $subtotalAll));
 
-            $surchargeCents = $isFbp
-                ? $this->cityShippingSurchargeService->resolveSurcharge($vendorId, $cityId)
-                : 0;
+            $surchargeCents = 0;
+            if ($isFbp) {
+                foreach ($items as $cartItem) {
+                    $warehouseId = $this->resolveCartItemWarehouseId($cartItem);
+                    $surchargeCents += $this->cityShippingSurchargeService->resolveSurcharge($vendorId, $warehouseId);
+                }
+            }
 
             $vendorShippingCents = $vendorBaseShippingCents + $surchargeCents;
             $totalCents += $vendorShippingCents;
@@ -764,6 +768,19 @@ class CheckoutController extends Controller
         }
 
         return ['total' => $totalCents, 'per_vendor' => $perVendor];
+    }
+
+    /**
+     * Deterministically resolve which warehouse would fulfill a cart item,
+     * mirroring the (unlocked) selection used during actual reservation in
+     * placeOrder(), so shipping previews match the warehouse that ends up
+     * reserved.
+     */
+    private function resolveCartItemWarehouseId($cartItem): ?string
+    {
+        return WarehouseInventory::where('vendor_listing_id', $cartItem->vendor_listing_id)
+            ->orderBy('id')
+            ->value('warehouse_id');
     }
 
     private function releaseReservedInventory(Order $order): void

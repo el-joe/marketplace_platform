@@ -50,8 +50,8 @@ function initSurchargesTable() {
         ajaxMethod: 'GET',
         order: [[0, 'asc']],
         columns: [
-            { data: 'city' },
-            { data: 'country' },
+            { data: 'warehouse' },
+            { data: 'warehouse_code' },
             { data: 'extra_amount', className: 'text-end' },
             {
                 data: 'is_active',
@@ -91,7 +91,7 @@ function initSurchargeModal() {
     $('#btn-add-surcharge').on('click', function () {
         $form[0].reset();
         $('#surcharge-id').val('');
-        $form.find('[name="city_id"]').val('').trigger('change');
+        $form.find('[name="warehouse_id"]').val('').trigger('change');
         $('#surcharge-amount-display').val('');
         $modal.modal('open');
     });
@@ -101,7 +101,7 @@ function initSurchargeModal() {
 
         $form[0].reset();
         $('#surcharge-id').val(data.id);
-        $form.find('[name="city_id"]').val(data.city_id).trigger('change');
+        $form.find('[name="warehouse_id"]').val(data.warehouse_id).trigger('change');
         $('#surcharge-amount-display').val((data.extra_amount_cents / 100).toFixed(2));
 
         $modal.modal('open');
@@ -128,7 +128,7 @@ function initSurchargeModal() {
         const url = id ? updateUrl(routes.update, id) : routes.store;
 
         const payload = {
-            city_id: $form.find('[name="city_id"]').val(),
+            warehouse_id: $form.find('[name="warehouse_id"]').val(),
             extra_amount_cents: toCents($('#surcharge-amount-display').val()),
         };
 

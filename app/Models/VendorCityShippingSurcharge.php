@@ -15,7 +15,7 @@ class VendorCityShippingSurcharge extends Model
 
     protected $fillable = [
         'vendor_id',
-        'city_id',
+        'warehouse_id',
         'extra_amount_cents',
         'is_active',
     ];
@@ -32,8 +32,8 @@ class VendorCityShippingSurcharge extends Model
         return $this->belongsTo(Vendor::class);
     }
 
-    public function city(): BelongsTo
+    public function warehouse(): BelongsTo
     {
-        return $this->belongsTo(City::class);
+        return $this->belongsTo(Warehouse::class);
     }
 }
