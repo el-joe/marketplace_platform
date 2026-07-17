@@ -22,6 +22,9 @@ class Warehouse extends Model
         'longitude',
         'total_capacity_m3',
         'used_capacity_m3',
+        'default_limit_type',
+        'default_max_quantity',
+        'default_max_capacity_m3',
         'storage_rate_per_m3_price',
         'storage_currency',
         'manager_admin_id',
@@ -34,6 +37,8 @@ class Warehouse extends Model
         'longitude' => 'decimal:7',
         'total_capacity_m3' => 'decimal:2',
         'used_capacity_m3' => 'decimal:2',
+        'default_max_quantity' => 'integer',
+        'default_max_capacity_m3' => 'decimal:2',
         'type' => WarehouseType::class,
     ];
 

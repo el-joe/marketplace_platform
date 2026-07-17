@@ -240,6 +240,47 @@ class WarehouseController extends Controller
         return response()->json(['message' => 'Vendor limit removed.']);
     }
 
+    public function applyDefaultLimitToAllVendors(Warehouse $warehouse): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+        abort_if($warehouse->owner_vendor_id !== null, 422, 'Default limits only apply to platform-owned warehouses.');
+
+        if (!$warehouse->default_limit_type) {
+            return response()->json(['message' => 'Set and save a default limit for this warehouse first.'], 422);
+        }
+
+        $vendorIds = VendorListing::query()
+            ->join('warehouse_inventories', 'warehouse_inventories.vendor_listing_id', '=', 'vendor_listings.id')
+            ->where('warehouse_inventories.warehouse_id', $warehouse->id)
+            ->pluck('vendor_listings.vendor_id')
+            ->merge(
+                \App\Models\FbnInboundRequest::where('warehouse_id', $warehouse->id)->pluck('vendor_id')
+            )
+            ->unique()
+            ->values();
+
+        $applied = 0;
+        foreach ($vendorIds as $vendorId) {
+            $limit = WarehouseVendorLimit::firstOrCreate(
+                ['warehouse_id' => $warehouse->id, 'vendor_id' => $vendorId],
+                [
+                    'limit_type' => $warehouse->default_limit_type,
+                    'max_quantity' => $warehouse->default_max_quantity,
+                    'max_capacity_m3' => $warehouse->default_max_capacity_m3,
+                ]
+            );
+
+            if ($limit->wasRecentlyCreated) {
+                $applied++;
+            }
+        }
+
+        return response()->json([
+            'message' => "Default limit applied to {$applied} vendor(s) without a custom limit ({$vendorIds->count()} vendor(s) checked).",
+        ]);
+    }
+
     // ─── Create / Store ──────────────────────────────────────────────────────
 
     public function create(): View

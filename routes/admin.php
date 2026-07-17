@@ -869,6 +869,7 @@ Route::middleware('auth.admin')->group(function () {
         // Vendor storage limits (platform FBN warehouses only)
         Route::post('/{warehouse}/vendor-limits', [WarehouseController::class, 'storeVendorLimit'])->name('vendor-limits.store');
         Route::delete('/{warehouse}/vendor-limits/{limit}', [WarehouseController::class, 'destroyVendorLimit'])->name('vendor-limits.destroy');
+        Route::post('/{warehouse}/vendor-limits/apply-default', [WarehouseController::class, 'applyDefaultLimitToAllVendors'])->name('vendor-limits.apply-default');
     });
 
     // ─── Analytics ───────────────────────────────────────────────────────────────

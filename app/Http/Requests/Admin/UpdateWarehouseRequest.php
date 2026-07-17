@@ -31,6 +31,9 @@ class UpdateWarehouseRequest extends FormRequest
             'storage_rate_per_m3_price' => ['nullable', 'numeric', 'min:0'],
             'storage_currency' => ['nullable', 'string', 'size:3'],
             'is_active' => ['boolean'],
+            'default_limit_type' => ['nullable', Rule::in(['quantity', 'capacity'])],
+            'default_max_quantity' => ['nullable', 'integer', 'min:1', 'required_if:default_limit_type,quantity'],
+            'default_max_capacity_m3' => ['nullable', 'numeric', 'min:0.01', 'required_if:default_limit_type,capacity'],
         ];
     }
 
@@ -45,5 +48,18 @@ class UpdateWarehouseRequest extends FormRequest
         $this->merge([
             'is_active' => $this->boolean('is_active'),
         ]);
+
+        // Default vendor limits only apply to platform-owned warehouses (no owner_vendor_id).
+        if ($this->filled('owner_vendor_id')) {
+            $this->merge([
+                'default_limit_type' => null,
+                'default_max_quantity' => null,
+                'default_max_capacity_m3' => null,
+            ]);
+        } elseif ($this->input('default_limit_type') === 'quantity') {
+            $this->merge(['default_max_capacity_m3' => null]);
+        } elseif ($this->input('default_limit_type') === 'capacity') {
+            $this->merge(['default_max_quantity' => null]);
+        }
     }
 }

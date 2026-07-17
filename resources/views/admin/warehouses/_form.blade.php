@@ -31,7 +31,7 @@ $warehouse — Warehouse model (edit mode only)
     $adminOptions = ['' => __('admin.warehouses_section.no_manager')] + $admins->toArray();
 @endphp
 
-<div class="space-y-6" x-data="{ type: '{{ $val('type', 'platform_fbn') }}' }">
+<div class="space-y-6" x-data="{ type: '{{ $val('type', 'platform_fbn') }}', ownerVendorId: '{{ $val('owner_vendor_id') }}', defaultLimitType: '{{ $val('default_limit_type', 'quantity') }}' }">
 
     {{-- ── Page Header ─────────────────────────────────────────────────── --}}
     <div class="flex items-center justify-between">
@@ -191,7 +191,7 @@ $warehouse — Warehouse model (edit mode only)
                     {{-- Only relevant for seller_owned type, but available to all --}}
                     <div x-show="type === 'seller_owned'" x-cloak>
                         <x-form-select name="owner_vendor_id" label="{{ __('admin.warehouses_section.owner_vendor') }}" :options="$vendorOptions"
-                            :value="$val('owner_vendor_id')" select2 />
+                            :value="$val('owner_vendor_id')" select2 x-model="ownerVendorId" />
                     </div>
                     <div x-show="type !== 'seller_owned'" x-cloak>
                         <p class="text-xs text-gray-400">{{ __('admin.warehouses_section.owner_vendor_hint') }}</p>
@@ -200,6 +200,51 @@ $warehouse — Warehouse model (edit mode only)
                     <x-form-select name="manager_admin_id" label="{{ __('admin.warehouses_section.manager_admin') }}" :options="$adminOptions"
                         :value="$val('manager_admin_id')" select2 />
 
+                </div>
+            </div>
+
+            {{-- Default Per-Vendor Storage Limit (platform-owned warehouses only) --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm" x-show="!ownerVendorId" x-cloak>
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h2 class="text-sm font-semibold text-gray-900">Default Vendor Storage Limit</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Applied to any vendor storing here who has no custom limit set on the Vendor Limits tab.</p>
+                </div>
+                <div class="px-5 py-4 space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-2">Limit Type</label>
+                        <div class="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50 w-full">
+                            <button type="button" @click="defaultLimitType = 'quantity'"
+                                :class="defaultLimitType === 'quantity' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'"
+                                class="flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors">
+                                Quantity
+                            </button>
+                            <button type="button" @click="defaultLimitType = 'capacity'"
+                                :class="defaultLimitType === 'capacity' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'"
+                                class="flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors">
+                                Capacity (m³)
+                            </button>
+                        </div>
+                        <input type="hidden" name="default_limit_type" :value="defaultLimitType">
+                    </div>
+                    <div x-show="defaultLimitType === 'quantity'" x-cloak>
+                        <x-form-input name="default_max_quantity" label="Max Quantity (units)" type="number"
+                            :value="$val('default_max_quantity')" placeholder="e.g. 5000" min="1" />
+                    </div>
+                    <div x-show="defaultLimitType === 'capacity'" x-cloak>
+                        <x-form-input name="default_max_capacity_m3" label="Max Capacity (m³)" type="number"
+                            :value="$val('default_max_capacity_m3')" placeholder="e.g. 20.00" step="0.01" min="0.01" />
+                    </div>
+
+                    @if($isEdit)
+                        <div class="pt-2 border-t border-gray-100">
+                            <button type="button" id="btn-apply-default-limit"
+                                data-url="{{ route('admin.warehouses.vendor-limits.apply-default', $warehouse->id) }}"
+                                class="btn btn-secondary btn-sm w-full">
+                                Apply Default to All Vendors
+                            </button>
+                            <p class="mt-1.5 text-xs text-gray-400">Fills the default limit in for any vendor in this warehouse who doesn't already have a custom limit. Save this default first.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -224,3 +269,35 @@ $warehouse — Warehouse model (edit mode only)
         </div>
     </div>
 </div>
+
+@if($isEdit)
+    @push('scripts')
+    <script>
+    document.getElementById('btn-apply-default-limit')?.addEventListener('click', async function () {
+        if (!confirm('Apply the default storage limit to every vendor in this warehouse who doesn\'t already have a custom limit?')) return;
+
+        const btn = this;
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(btn.dataset.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                },
+                body: JSON.stringify({}),
+            });
+            const json = await res.json();
+            if (!res.ok) throw json;
+            window.Toast?.success(json.message ?? 'Default limit applied.');
+        } catch (err) {
+            window.Toast?.error(err.message ?? 'Request failed. Save the default limit first.');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+    </script>
+    @endpush
+@endif
