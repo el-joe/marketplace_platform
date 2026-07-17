@@ -321,6 +321,7 @@ return [
         'payment_methods'       => 'طرق الدفع',
         'warehouses'            => 'المستودعات',
         'inventory_transfers'   => 'تحويلات المخزون',
+        'warehouse_shipping_surcharges' => 'رسوم الشحن الإضافية',
         'activity_log'          => 'سجل النشاط',
         'travel'                => 'السفر',
         'cod_settlements'       => 'تسويات الدفع عند الاستلام',

@@ -32,6 +32,7 @@ use App\Services\Customer\CartService;
 use App\Services\Customer\CheckoutCalculationService;
 use App\Services\Customer\CityShippingSurchargeService;
 use App\Services\Customer\ListingIdentifierService;
+use App\Services\Customer\WarehouseShippingSurchargeService;
 use App\Services\GiftCardService;
 use App\Services\PaymentService;
 use App\Services\WarrantyPlanService;
@@ -50,6 +51,7 @@ class CheckoutController extends Controller
         private readonly GiftCardService $giftCardService,
         private readonly WarrantyPlanService $warrantyPlanService,
         private readonly CityShippingSurchargeService $cityShippingSurchargeService,
+        private readonly WarehouseShippingSurchargeService $warehouseShippingSurchargeService,
     ) {}
 
     public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
@@ -755,6 +757,11 @@ class CheckoutController extends Controller
                 foreach ($items as $cartItem) {
                     $warehouseId = $this->resolveCartItemWarehouseId($cartItem);
                     $surchargeCents += $this->cityShippingSurchargeService->resolveSurcharge($vendorId, $warehouseId);
+                }
+            } elseif ($isFbn) {
+                foreach ($items as $cartItem) {
+                    $warehouseId = $this->resolveCartItemWarehouseId($cartItem);
+                    $surchargeCents += $this->warehouseShippingSurchargeService->resolveSurcharge($warehouseId);
                 }
             }
 

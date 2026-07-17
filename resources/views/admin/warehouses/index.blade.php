@@ -25,7 +25,10 @@ Object.assign(window.TRANSLATIONS, {
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.warehouses_section.manage_desc') }}</p>
         </div>
         @if(auth('admin')->user()->can('warehouses.view'))
-            <a href="{{ route('admin.warehouses.create') }}" class="btn btn-primary btn-sm">+ {{ __('admin.warehouses_section.add_warehouse') }}</a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('admin.warehouses.shipping-surcharges.index') }}" class="btn btn-secondary btn-sm">Shipping Surcharges</a>
+                <a href="{{ route('admin.warehouses.create') }}" class="btn btn-primary btn-sm">+ {{ __('admin.warehouses_section.add_warehouse') }}</a>
+            </div>
         @endif
     </div>
 

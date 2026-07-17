@@ -574,6 +574,13 @@ class NavigationService
                         'permission' => 'warehouses.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => __('admin.nav.warehouse_shipping_surcharges'),
+                        'route' => 'admin.warehouses.shipping-surcharges.index',
+                        'icon' => 'currency-dollar',
+                        'permission' => 'warehouses.view',
+                        'badge' => null,
+                    ],
                     // [
                     //     'label' => __('admin.nav.settings'),
                     //     'route' => 'admin.settings.index',

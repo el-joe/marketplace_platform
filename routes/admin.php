@@ -43,6 +43,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ShippingZoneController;
 use App\Http\Controllers\Admin\WarehouseController;
+use App\Http\Controllers\Admin\WarehouseShippingSurchargeController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\FinancialReportController;
 use App\Http\Controllers\Admin\PaymentMethodController;
@@ -830,6 +831,17 @@ Route::middleware('auth.admin')->group(function () {
         // Create / Store
         Route::get('/create', [WarehouseController::class, 'create'])->name('create');
         Route::post('/', [WarehouseController::class, 'store'])->name('store');
+
+        // Shipping surcharges (must be before /{warehouse} so 'shipping-surcharges' is not treated as a UUID)
+        // Applies to FBN-fulfilled listings shipped from a warehouse.
+        Route::prefix('shipping-surcharges')->name('shipping-surcharges.')
+            ->controller(WarehouseShippingSurchargeController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+                Route::put('/{surcharge}', 'update')->name('update');
+                Route::post('/{surcharge}/toggle-active', 'toggleActive')->name('toggle-active');
+            });
 
         // Transfers (must be before /{warehouse} so 'transfers' is not treated as a UUID)
         Route::prefix('transfers')->name('transfers.')->group(function () {

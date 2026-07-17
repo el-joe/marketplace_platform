@@ -321,6 +321,7 @@ return [
         'payment_methods'       => 'Payment Methods',
         'warehouses'            => 'Warehouses',
         'inventory_transfers'   => 'Inventory Transfers',
+        'warehouse_shipping_surcharges' => 'Shipping Surcharges',
         'activity_log'          => 'Activity Log',
         'travel'                => 'Travel',
         'cod_settlements'       => 'COD Settlements',
