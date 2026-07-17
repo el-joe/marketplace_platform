@@ -354,6 +354,13 @@ class NavigationService
                         'permission' => 'travel.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => __('admin.nav.inclusions'),
+                        'route' => 'admin.travel.inclusions.index',
+                        'icon' => 'check-badge',
+                        'permission' => 'travel.view',
+                        'badge' => null,
+                    ],
                 ],
             ],
             [

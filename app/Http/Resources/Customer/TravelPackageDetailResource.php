@@ -31,7 +31,13 @@ class TravelPackageDetailResource extends JsonResource
             'duration_nights'     => $this->duration_nights,
             'departure_date'      => $this->departure_date?->toDateString(),
             'return_date'         => $this->return_date?->toDateString(),
-            'inclusions'          => $this->inclusions ?? [],
+            'inclusions'          => $this->relationLoaded('inclusions')
+                ? $this->inclusions->map(fn ($i) => [
+                    'id'   => $i->id,
+                    'name' => $i->name,
+                    'icon' => $i->icon,
+                ])->values()
+                : [],
             'images'              => $this->relationLoaded('media')
                 ? $this->media->map(fn ($m) => [
                     'id'       => $m->id,

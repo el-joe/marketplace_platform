@@ -188,16 +188,16 @@
     <h3 class="font-bold text-gray-800">{{ __('travel.packages.inclusions') }}</h3>
     <p class="text-xs text-gray-500">{{ __('travel.packages.inclusions_description') }}</p>
     @php
-    $inclusionOptions = ['flights' => __('travel.packages.flights'), 'hotel' => __('travel.packages.hotel'), 'meals' => __('travel.packages.meals'), 'tours' => __('travel.packages.tours'), 'visa' => __('travel.packages.visa'), 'insurance' => __('travel.packages.insurance'), 'transfers' => __('travel.packages.transfers')];
-    $selected = old('inclusions', $pkg?->inclusions ?? []);
+    $inclusionOptions = \App\Models\TravelInclusion::where('is_active', true)->orderBy('sort_order')->orderBy('name_en')->get();
+    $selected = old('inclusion_ids', $pkg ? $pkg->inclusions->pluck('id')->all() : []);
     @endphp
     <div class="grid grid-cols-3 gap-3">
-        @foreach($inclusionOptions as $value => $label)
+        @foreach($inclusionOptions as $inclusion)
         <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" name="inclusions[]" value="{{ $value }}"
-                   {{ in_array($value, $selected) ? 'checked' : '' }}
+            <input type="checkbox" name="inclusion_ids[]" value="{{ $inclusion->id }}"
+                   {{ in_array($inclusion->id, $selected) ? 'checked' : '' }}
                    class="w-4 h-4 rounded border-gray-300 text-blue-500">
-            <span class="text-sm text-gray-700">{{ $label }}</span>
+            <span class="text-sm text-gray-700">{{ $inclusion->icon }} {{ $inclusion->name }}</span>
         </label>
         @endforeach
     </div>

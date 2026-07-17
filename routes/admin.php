@@ -1237,6 +1237,13 @@ Route::middleware('auth.admin')->group(function () {
         Route::prefix('inquiries')->name('inquiries.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\TravelPackageInquiryController::class, 'index'])->name('index');
         });
+
+        Route::prefix('inclusions')->name('inclusions.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TravelInclusionController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Admin\TravelInclusionController::class, 'store'])->name('store');
+            Route::put('/{travelInclusion}', [\App\Http\Controllers\Admin\TravelInclusionController::class, 'update'])->name('update');
+            Route::delete('/{travelInclusion}', [\App\Http\Controllers\Admin\TravelInclusionController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // ─── Shipping Companies (Carrier Portal) ─────────────────────────────────

@@ -89,22 +89,11 @@
 
             <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
                 <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">{{ __('travel.packages.inclusions') }}</h3>
-                @if($package->inclusions)
+                @if($package->inclusions->isNotEmpty())
                     <ul class="space-y-1 text-sm text-gray-700">
-                        @php
-                            $inclusionLabels = [
-                                'flights' => __('travel.packages.flights'),
-                                'hotel' => __('travel.packages.hotel'),
-                                'meals' => __('travel.packages.meals'),
-                                'tours' => __('travel.packages.tours'),
-                                'visa' => __('travel.packages.visa'),
-                                'insurance' => __('travel.packages.insurance'),
-                                'transfers' => __('travel.packages.transfers')
-                            ];
-                        @endphp
                         @foreach($package->inclusions as $item)
                             <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span>
-                                {{ $inclusionLabels[$item] ?? $item }}</li>
+                                {{ $item->icon }} {{ $item->name }}</li>
                         @endforeach
                     </ul>
                 @else

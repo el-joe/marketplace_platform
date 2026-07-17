@@ -56,6 +56,9 @@ class PackageController extends Controller
         $priceTiers = $data['price_tiers'] ?? [];
         unset($data['price_tiers']);
 
+        $inclusionIds = $data['inclusion_ids'] ?? [];
+        unset($data['inclusion_ids']);
+
         $package = TravelPackage::create([
             ...$data,
             'travel_agency_id' => $this->agencyId(),
@@ -63,10 +66,11 @@ class PackageController extends Controller
         ]);
 
         $package->syncPricingTiers($priceTiers);
+        $package->inclusions()->sync($inclusionIds);
         $this->storeContractFile($request, $package);
         $this->handleMediaUploads($request, $package);
 
-        $package->load(['media', 'destinationCountry', 'destinationCity', 'pricingTiers']);
+        $package->load(['media', 'destinationCountry', 'destinationCity', 'pricingTiers', 'inclusions']);
 
         return ApiResponse::success(new TravelPackageResource($package), 'Package saved as draft.', 201);
     }
@@ -95,8 +99,12 @@ class PackageController extends Controller
         $priceTiers = $data['price_tiers'] ?? [];
         unset($data['price_tiers']);
 
+        $inclusionIds = $data['inclusion_ids'] ?? [];
+        unset($data['inclusion_ids']);
+
         $package->update($data);
         $package->syncPricingTiers($priceTiers);
+        $package->inclusions()->sync($inclusionIds);
 
         if ($request->hasFile('contract_file')) {
             if ($package->contract_file_path) {
@@ -107,7 +115,7 @@ class PackageController extends Controller
 
         $this->handleMediaUploads($request, $package);
 
-        $package->load(['media', 'destinationCountry', 'destinationCity', 'pricingTiers']);
+        $package->load(['media', 'destinationCountry', 'destinationCity', 'pricingTiers', 'inclusions']);
 
         return ApiResponse::success(new TravelPackageResource($package), 'Package updated.');
     }

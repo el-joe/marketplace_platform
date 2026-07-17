@@ -68,25 +68,13 @@
             </div>
 
             {{-- Inclusions --}}
-            @if($package->inclusions)
-            @php
-            $inclusionLabels = [
-                'flights'   => __('portal.travel_page.inclusion_flights'),
-                'hotel'     => __('portal.travel_page.inclusion_hotel'),
-                'meals'     => __('portal.travel_page.inclusion_meals'),
-                'tours'     => __('portal.travel_page.inclusion_tours'),
-                'visa'      => __('portal.travel_page.inclusion_visa'),
-                'insurance' => __('portal.travel_page.inclusion_insurance'),
-                'transfers' => __('portal.travel_page.inclusion_transfers'),
-            ];
-            $inclusionIcons  = ['flights'=>'✈','hotel'=>'🏨','meals'=>'🍽','tours'=>'🗺','visa'=>'📋','insurance'=>'🛡','transfers'=>'🚌'];
-            @endphp
+            @if($package->inclusions->isNotEmpty())
             <div>
                 <h3 class="font-bold text-gray-900 mb-3">{{ __('portal.travel_page.whats_included') }}</h3>
                 <div class="flex flex-wrap gap-2">
                     @foreach($package->inclusions as $item)
                     <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-3 py-1 text-sm font-medium">
-                        {{ $inclusionIcons[$item] ?? '✓' }} {{ $inclusionLabels[$item] ?? $item }}
+                        {{ $item->icon ?: '✓' }} {{ $item->name }}
                     </span>
                     @endforeach
                 </div>

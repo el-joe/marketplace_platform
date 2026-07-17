@@ -151,6 +151,7 @@ class TravelPackageController extends Controller
             'agency',
             'media',
             'categories',
+            'inclusions',
             'approvedByAdmin',
             'destinationCountry',
             'destinationCity',

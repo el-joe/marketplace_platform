@@ -156,12 +156,12 @@
     </x-card>
 
     {{-- ─── Inclusions ───────────────────────────────────────────────────────────── --}}
-    @if($travelPackage->inclusions)
+    @if($travelPackage->inclusions->isNotEmpty())
     <x-card>
         <h3 class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-3">{{ __('admin.travel.inclusions') }}</h3>
         <ul class="grid grid-cols-2 gap-1 text-sm text-gray-700">
             @foreach($travelPackage->inclusions as $item)
-            <li class="flex items-center gap-2"><span class="text-success-500 shrink-0">✓</span> {{ $item }}</li>
+            <li class="flex items-center gap-2"><span class="text-success-500 shrink-0">✓</span> {{ $item->icon }} {{ $item->name }}</li>
             @endforeach
         </ul>
     </x-card>

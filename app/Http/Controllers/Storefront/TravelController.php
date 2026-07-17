@@ -48,7 +48,7 @@ class TravelController extends Controller
             abort(404);
         }
 
-        $package->load(['agency', 'media']);
+        $package->load(['agency', 'media', 'inclusions']);
 
         return view('storefront.travel.show', compact('package'));
     }

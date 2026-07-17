@@ -34,7 +34,11 @@ class TravelPackageResource extends JsonResource
             'available_seats' => $this->available_seats,
             'seats_booked' => $this->seats_booked,
             'seats_remaining' => $this->seatsRemaining(),
-            'inclusions' => $this->inclusions,
+            'inclusions' => $this->whenLoaded('inclusions', fn () => $this->inclusions->map(fn ($i) => [
+                'id' => $i->id,
+                'name' => $i->name,
+                'icon' => $i->icon,
+            ])),
             'status' => $this->status?->value,
             'rejection_reason' => $this->rejection_reason,
             'contract_uploaded' => (bool) $this->contract_file_path,

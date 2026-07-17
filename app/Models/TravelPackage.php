@@ -35,7 +35,6 @@ class TravelPackage extends Model
         'return_date',
         'available_seats',
         'seats_booked',
-        'inclusions',
         'status',
         'approved_by_admin_id',
         'approved_at',
@@ -59,7 +58,6 @@ class TravelPackage extends Model
     protected function casts(): array
     {
         return [
-            'inclusions' => 'array',
             'departure_date' => 'date',
             'return_date' => 'date',
             'approved_at' => 'datetime',
@@ -105,6 +103,11 @@ class TravelPackage extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(TravelCategory::class, 'travel_package_categories');
+    }
+
+    public function inclusions(): BelongsToMany
+    {
+        return $this->belongsToMany(TravelInclusion::class, 'travel_package_inclusions');
     }
 
     public function destinationCountry(): BelongsTo
