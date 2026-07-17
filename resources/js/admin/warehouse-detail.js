@@ -143,10 +143,120 @@ function initAdjustModal() {
     });
 }
 
+// ─── Vendor Limits Modal ──────────────────────────────────────────────────────
+
+function initVendorLimitModal() {
+    const modal = document.getElementById('vendor-limit-modal');
+    const form = document.getElementById('vendor-limit-form');
+    const errorEl = document.getElementById('vendor-limit-error');
+
+    if (!modal || !form) return;
+
+    const limitTypeInput = form.querySelector('input[name="limit_type"]');
+    const qtyField = document.getElementById('vendor-limit-qty-field');
+    const capacityField = document.getElementById('vendor-limit-capacity-field');
+
+    const setLimitType = value => {
+        limitTypeInput.value = value;
+        form.querySelectorAll('.js-limit-type-btn').forEach(btn => {
+            const active = btn.dataset.value === value;
+            btn.classList.toggle('bg-white', active);
+            btn.classList.toggle('shadow-sm', active);
+            btn.classList.toggle('text-gray-800', active);
+            btn.classList.toggle('text-gray-500', !active);
+        });
+        qtyField.classList.toggle('hidden', value !== 'quantity');
+        capacityField.classList.toggle('hidden', value !== 'capacity');
+    };
+
+    form.querySelectorAll('.js-limit-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => setLimitType(btn.dataset.value));
+    });
+
+    const openModal = () => {
+        errorEl.classList.add('hidden');
+        errorEl.textContent = '';
+        form.reset();
+        setLimitType('quantity');
+        modal.classList.remove('hidden');
+    };
+    const closeModal = () => modal.classList.add('hidden');
+
+    document.getElementById('btn-add-vendor-limit')?.addEventListener('click', openModal);
+    document.getElementById('close-vendor-limit-modal')?.addEventListener('click', closeModal);
+    document.getElementById('cancel-vendor-limit')?.addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+    form.addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const payload = {
+            vendor_id: formData.get('vendor_id'),
+            limit_type: formData.get('limit_type'),
+            max_quantity: formData.get('limit_type') === 'quantity' ? parseInt(formData.get('max_quantity'), 10) : null,
+            max_capacity_m3: formData.get('limit_type') === 'capacity' ? parseFloat(formData.get('max_capacity_m3')) : null,
+        };
+
+        errorEl.classList.add('hidden');
+
+        try {
+            const res = await fetch(form.dataset.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                },
+                body: JSON.stringify(payload),
+            });
+            const json = await res.json();
+
+            if (!res.ok) {
+                const firstError = json.errors ? Object.values(json.errors)[0]?.[0] : null;
+                errorEl.textContent = firstError ?? json.message ?? 'Save failed.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            window.Toast?.success(json.message ?? 'Vendor limit saved.');
+            closeModal();
+            setTimeout(() => location.reload(), 600);
+        } catch (err) {
+            errorEl.textContent = err.message ?? 'Network error.';
+            errorEl.classList.remove('hidden');
+        }
+    });
+
+    document.addEventListener('click', async e => {
+        const btn = e.target.closest('.js-delete-vendor-limit');
+        if (!btn) return;
+
+        if (!confirm('Remove this vendor storage limit?')) return;
+
+        try {
+            const res = await fetch(btn.dataset.url, {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                },
+            });
+            const json = await res.json();
+            if (!res.ok) throw json;
+            window.Toast?.success(json.message ?? 'Vendor limit removed.');
+            setTimeout(() => location.reload(), 600);
+        } catch (err) {
+            window.Toast?.error(err.message ?? 'Request failed.');
+        }
+    });
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
     initInventoryTable();
     initToggleActive();
     initAdjustModal();
+    initVendorLimitModal();
 });

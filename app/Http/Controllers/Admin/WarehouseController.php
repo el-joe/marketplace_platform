@@ -17,19 +17,24 @@ use App\Models\Vendor;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
+use App\Models\WarehouseVendorLimit;
 use App\Services\WarehouseService;
+use App\Services\WarehouseVendorLimitService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class WarehouseController extends Controller
 {
     use HasDataTable;
 
-    public function __construct(private readonly WarehouseService $warehouseService)
-    {
+    public function __construct(
+        private readonly WarehouseService $warehouseService,
+        private readonly WarehouseVendorLimitService $limitService,
+    ) {
     }
 
     // ─── Index ───────────────────────────────────────────────────────────────
@@ -161,13 +166,78 @@ class WarehouseController extends Controller
 
         $usedPct = $warehouse->capacity_used_percent;
 
+        $vendorLimits = collect();
+        $vendors = collect();
+        if ($warehouse->owner_vendor_id === null) {
+            $vendorLimits = WarehouseVendorLimit::where('warehouse_id', $warehouse->id)
+                ->with('vendor')
+                ->get()
+                ->map(function (WarehouseVendorLimit $limit) use ($warehouse) {
+                    $usage = $limit->isQuantityBased()
+                        ? $this->limitService->currentQuantityUsage($warehouse->id, $limit->vendor_id)
+                        : $this->limitService->currentCapacityUsage($warehouse->id, $limit->vendor_id);
+
+                    return [
+                        'id' => $limit->id,
+                        'vendor_id' => $limit->vendor_id,
+                        'vendor_name' => $limit->vendor?->store_name ?? '—',
+                        'limit_type' => $limit->limit_type,
+                        'max_quantity' => $limit->max_quantity,
+                        'max_capacity_m3' => $limit->max_capacity_m3,
+                        'current_usage' => $usage,
+                    ];
+                });
+
+            $vendors = Vendor::/*where('global_status', 'approved')->*/orderBy('store_name')->pluck('store_name', 'id');
+        }
+
         return view('admin.warehouses.show', compact(
             'warehouse',
             'inventoryStats',
             'recentMovements',
             'transfers',
-            'usedPct'
+            'usedPct',
+            'vendorLimits',
+            'vendors'
         ));
+    }
+
+    // ─── Vendor Limits (FBN platform warehouses only) ───────────────────────────
+
+    public function storeVendorLimit(Request $request, Warehouse $warehouse): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+        abort_if($warehouse->owner_vendor_id !== null, 422, 'Vendor limits only apply to platform FBN warehouses.');
+
+        $data = $request->validate([
+            'vendor_id' => ['required', 'uuid', 'exists:vendors,id'],
+            'limit_type' => ['required', Rule::in(['quantity', 'capacity'])],
+            'max_quantity' => ['required_if:limit_type,quantity', 'nullable', 'integer', 'min:1'],
+            'max_capacity_m3' => ['required_if:limit_type,capacity', 'nullable', 'numeric', 'min:0.01'],
+        ]);
+
+        $limit = WarehouseVendorLimit::updateOrCreate(
+            ['warehouse_id' => $warehouse->id, 'vendor_id' => $data['vendor_id']],
+            [
+                'limit_type' => $data['limit_type'],
+                'max_quantity' => $data['limit_type'] === 'quantity' ? $data['max_quantity'] : null,
+                'max_capacity_m3' => $data['limit_type'] === 'capacity' ? $data['max_capacity_m3'] : null,
+            ]
+        );
+
+        return response()->json(['message' => 'Vendor limit saved.', 'id' => $limit->id]);
+    }
+
+    public function destroyVendorLimit(Warehouse $warehouse, WarehouseVendorLimit $limit): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+        abort_if($limit->warehouse_id !== $warehouse->id, 404);
+
+        $limit->delete();
+
+        return response()->json(['message' => 'Vendor limit removed.']);
     }
 
     // ─── Create / Store ──────────────────────────────────────────────────────

@@ -865,6 +865,10 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{warehouse}/inventory/datatable', [WarehouseController::class, 'inventoryDatatable'])->name('inventory.datatable');
         Route::post('/{warehouse}/inventory/{inventory}/adjust', [WarehouseController::class, 'adjustInventory'])->name('inventory.adjust');
         Route::get('/{warehouse}/inventory/{inventory}/movements', [WarehouseController::class, 'movements'])->name('inventory.movements');
+
+        // Vendor storage limits (platform FBN warehouses only)
+        Route::post('/{warehouse}/vendor-limits', [WarehouseController::class, 'storeVendorLimit'])->name('vendor-limits.store');
+        Route::delete('/{warehouse}/vendor-limits/{limit}', [WarehouseController::class, 'destroyVendorLimit'])->name('vendor-limits.destroy');
     });
 
     // ─── Analytics ───────────────────────────────────────────────────────────────

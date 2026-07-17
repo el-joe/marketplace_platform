@@ -162,6 +162,13 @@
                 class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors">
                 {{ __('admin.warehouses_section.tab_transfers') }}
             </button>
+            @if($warehouse->owner_vendor_id === null)
+                <button @click="tab = 'vendor_limits'"
+                    :class="tab === 'vendor_limits' ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors">
+                    Vendor Limits
+                </button>
+            @endif
         </div>
 
         {{-- ─── Inventory Tab ─────────────────────────────────────────────── --}}
@@ -333,6 +340,64 @@
             </x-card>
         </div>
 
+        {{-- ─── Vendor Limits Tab ─────────────────────────────────────────── --}}
+        @if($warehouse->owner_vendor_id === null)
+            <div x-show="tab === 'vendor_limits'" x-cloak>
+                <x-card>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-semibold text-gray-800">Per-Vendor Storage Limits</h3>
+                        <button type="button" id="btn-add-vendor-limit" class="btn btn-primary btn-xs">Add Limit</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
+                                    <th class="pb-3 pr-4">Vendor</th>
+                                    <th class="pb-3 pr-4">Limit Type</th>
+                                    <th class="pb-3 pr-4 text-end">Limit</th>
+                                    <th class="pb-3 pr-4 text-end">Current Usage</th>
+                                    <th class="pb-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @forelse($vendorLimits as $vl)
+                                    @php
+                                        $isQty = $vl['limit_type'] === 'quantity';
+                                        $limitValue = $isQty ? number_format($vl['max_quantity']) . ' units' : number_format($vl['max_capacity_m3'], 2) . ' m³';
+                                        $usageValue = $isQty ? number_format($vl['current_usage']) . ' units' : number_format($vl['current_usage'], 2) . ' m³';
+                                        $overLimit = $isQty
+                                            ? $vl['current_usage'] > $vl['max_quantity']
+                                            : $vl['current_usage'] > (float) $vl['max_capacity_m3'];
+                                    @endphp
+                                    <tr>
+                                        <td class="py-2.5 pr-4">{{ $vl['vendor_name'] }}</td>
+                                        <td class="py-2.5 pr-4">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $isQty ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }}">
+                                                {{ $isQty ? 'Quantity' : 'Capacity (m³)' }}
+                                            </span>
+                                        </td>
+                                        <td class="py-2.5 pr-4 text-end tabular-nums">{{ $limitValue }}</td>
+                                        <td class="py-2.5 pr-4 text-end tabular-nums {{ $overLimit ? 'text-red-600 font-semibold' : 'text-gray-600' }}">{{ $usageValue }}</td>
+                                        <td class="py-2.5 text-end">
+                                            <button type="button"
+                                                class="btn btn-xs btn-ghost text-red-500 js-delete-vendor-limit"
+                                                data-url="{{ route('admin.warehouses.vendor-limits.destroy', [$warehouse->id, $vl['id']]) }}">
+                                                Remove
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="py-8 text-center text-sm text-gray-400">No vendor limits configured for this warehouse.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </x-card>
+            </div>
+        @endif
+
     </div>
 
     {{-- ─── Adjust Inventory Modal ──────────────────────────────────────────── --}}
@@ -374,6 +439,55 @@
             </form>
         </div>
     </div>
+
+    {{-- ─── Add Vendor Limit Modal ──────────────────────────────────────────── --}}
+    @if($warehouse->owner_vendor_id === null)
+        <div id="vendor-limit-modal" class="fixed inset-0 z-50 hidden bg-black/40 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="text-base font-semibold text-gray-900">Add / Update Vendor Limit</h3>
+                    <button type="button" id="close-vendor-limit-modal" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+                </div>
+                <form id="vendor-limit-form" data-url="{{ route('admin.warehouses.vendor-limits.store', $warehouse->id) }}" class="px-6 py-5 space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Vendor</label>
+                        <select name="vendor_id" class="form-input w-full text-sm" required>
+                            <option value="">— Select vendor —</option>
+                            @foreach($vendors as $vendorId => $vendorName)
+                                <option value="{{ $vendorId }}">{{ $vendorName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-2">Limit Type</label>
+                        <div class="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50">
+                            <button type="button" data-value="quantity" class="js-limit-type-btn px-3 py-1.5 text-xs font-medium rounded-md transition-colors bg-white shadow-sm text-gray-800">
+                                Quantity
+                            </button>
+                            <button type="button" data-value="capacity" class="js-limit-type-btn px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-gray-500">
+                                Capacity (m³)
+                            </button>
+                        </div>
+                        <input type="hidden" name="limit_type" value="quantity">
+                    </div>
+                    <div id="vendor-limit-qty-field">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Max Quantity (units)</label>
+                        <input type="number" name="max_quantity" min="1" class="form-input w-full text-sm" placeholder="e.g. 5000">
+                    </div>
+                    <div id="vendor-limit-capacity-field" class="hidden">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Max Capacity (m³)</label>
+                        <input type="number" step="0.01" min="0.01" name="max_capacity_m3" class="form-input w-full text-sm" placeholder="e.g. 20.00">
+                    </div>
+                    <div id="vendor-limit-error" class="hidden text-sm text-red-600 bg-red-50 rounded p-2"></div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" id="cancel-vendor-limit" class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 
 @endsection
 

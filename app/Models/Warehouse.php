@@ -64,6 +64,11 @@ class Warehouse extends Model
         return $this->hasMany(WarehouseInventory::class);
     }
 
+    public function vendorLimits(): HasMany
+    {
+        return $this->hasMany(WarehouseVendorLimit::class);
+    }
+
     public function outboundTransfers(): HasMany
     {
         return $this->hasMany(InventoryTransfer::class, 'source_warehouse_id');

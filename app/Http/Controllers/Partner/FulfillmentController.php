@@ -11,6 +11,7 @@ use App\Models\MarketplaceShippingRule;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
+use App\Services\WarehouseVendorLimitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,8 @@ use Illuminate\View\View;
 
 class FulfillmentController extends Controller
 {
+    public function __construct(private readonly WarehouseVendorLimitService $limitService) {}
+
     private function vendor()
     {
         return Auth::guard('vendor')->user()->vendor;
@@ -112,6 +115,8 @@ class FulfillmentController extends Controller
             ->where('vendor_id', $vendor->id)
             ->where('global_system_type', GlobalSystemType::ExpressFbn)
             ->firstOrFail();
+
+        $this->limitService->assertWithinLimit($data['warehouse_id'], $listing, $data['quantity_requested']);
 
         $req = FbnInboundRequest::create([
             'vendor_id' => $vendor->id,
