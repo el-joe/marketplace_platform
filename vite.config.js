@@ -63,8 +63,6 @@ export default defineConfig({
                 'resources/js/admin/marketer-tiers.js',
                 'resources/js/admin/travel-packages.js',
                 'resources/js/admin/travel-bookings.js',
-                'resources/js/admin/vendor-subsidy-settings.js',
-                'resources/js/admin/vendor-exceptional-zones.js',
                 'resources/js/admin/packaging-supplies.js',
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
@@ -90,8 +88,7 @@ export default defineConfig({
                 'resources/js/partner/warehouse-create.js',
                 'resources/js/partner/warehouse-detail.js',
                 'resources/js/partner/classifieds.js',
-                'resources/js/partner/vendor-subsidy-settings.js',
-                'resources/js/partner/vendor-exceptional-zones.js',
+                'resources/js/partner/city-surcharges.js',
                 'resources/js/vendor/coupons.js',
                 // Delivery Agent Panel (delivery.noon.loc)
                 'resources/js/delivery/app.js',

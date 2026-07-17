@@ -30,10 +30,10 @@ use App\Models\WarehouseInventory;
 use App\Models\WarrantyPurchase;
 use App\Services\Customer\CartService;
 use App\Services\Customer\CheckoutCalculationService;
+use App\Services\Customer\CityShippingSurchargeService;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\GiftCardService;
 use App\Services\PaymentService;
-use App\Services\ShippingCalculationService;
 use App\Services\WarrantyPlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,7 +49,7 @@ class CheckoutController extends Controller
         private readonly PaymentService $paymentService,
         private readonly GiftCardService $giftCardService,
         private readonly WarrantyPlanService $warrantyPlanService,
-        private readonly ShippingCalculationService $shippingCalculationService,
+        private readonly CityShippingSurchargeService $cityShippingSurchargeService,
     ) {}
 
     public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
@@ -165,6 +165,8 @@ class CheckoutController extends Controller
             $isCod
         );
 
+        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee'], $address->city_id);
+
         $shippingMethod = ShippingMethod::find($validated['shipping_method_id']);
 
         $codFeeCents = $isCod ? $shippingResult['cod_extra_fee'] : 0;
@@ -203,7 +205,7 @@ class CheckoutController extends Controller
 
         $preGiftCardSummary = $this->calculationService->buildOrderSummary(
             $cartItems,
-            $shippingResult['fee'],
+            $vendorShipping['total'],
             $codFeeCents,
             $discountCents,
             $country,
@@ -233,7 +235,7 @@ class CheckoutController extends Controller
 
         $summary = $this->calculationService->buildOrderSummary(
             $cartItems,
-            $shippingResult['fee'],
+            $vendorShipping['total'],
             $codFeeCents,
             $discountCents,
             $country,
@@ -269,22 +271,24 @@ class CheckoutController extends Controller
             ];
         })->values();
 
-        $deliveryDisplay = $this->buildDeliveryDisplay($cartItems, $shippingResult['fee'], $address, $country);
+        $vendorDeliveryResponse = collect($vendorShipping['per_vendor'])->map(fn ($v, $vendorId) => [
+            'vendor_id' => $vendorId,
+            'delivery_fee' => $v['shipping'],
+            'surcharge_applied' => $v['surcharge'] > 0,
+        ])->values();
 
         return ApiResponse::success([
             'order_summary' => $summary,
             'shipping' => [
                 'method_id' => $validated['shipping_method_id'],
                 'method_name' => $shippingMethod?->name,
-                'fee' => $shippingResult['fee'],
-                'is_free' => $shippingResult['is_free'],
+                'fee' => $vendorShipping['total'],
+                'is_free' => $vendorShipping['total'] === 0,
                 'estimated_delivery_days_min' => $shippingMethod?->min_delivery_days,
                 'estimated_delivery_days_max' => $shippingMethod?->max_delivery_days,
-                'delivery_fee' => $deliveryDisplay['delivery_fee'],
-                'delivery_label_en' => $deliveryDisplay['delivery_label_en'],
-                'delivery_label_ar' => $deliveryDisplay['delivery_label_ar'],
-                'is_free_delivery' => $deliveryDisplay['is_free_delivery'],
-                'vendor_delivery' => $deliveryDisplay['vendor_delivery'],
+                'delivery_fee' => $vendorShipping['total'],
+                'is_free_delivery' => $vendorShipping['total'] === 0,
+                'vendor_delivery' => $vendorDeliveryResponse,
             ],
             'address' => [
                 'id' => $address->id,
@@ -358,7 +362,8 @@ class CheckoutController extends Controller
             $cartItems,
             $isCod
         );
-        $shippingFeeCents = $shippingResult['fee'];
+        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee'], $address->city_id);
+        $shippingFeeCents = $vendorShipping['total'];
         $codFeeCents = $isCod ? $shippingResult['cod_extra_fee'] : 0;
 
         $warrantyResult = $this->calculationService->resolveWarrantySelections(
@@ -428,15 +433,13 @@ class CheckoutController extends Controller
 
         $attribution = session('marketer_attribution', []);
 
-        $address->loadMissing('city');
-        $shippingZoneId = $address->city?->shipping_zone_id;
-
         try {
             $result = DB::transaction(function () use (
                 $customer, $country, $address, $validated, $coupon,
-                $cartItems, $summary, $shippingFeeCents, $attribution,
-                $giftCard, $giftCardAppliedCents, $warrantySelections, $shippingZoneId
+                $cartItems, $summary, $attribution, $vendorShipping,
+                $giftCard, $giftCardAppliedCents, $warrantySelections
             ) {
+                $vendorShippingMap = $vendorShipping['per_vendor'];
                 $order = Order::create([
                     'order_number' => $this->generateOrderNumber(),
                     'customer_id' => $customer->id,
@@ -464,20 +467,15 @@ class CheckoutController extends Controller
                 ]);
 
                 $grouped = collect($cartItems)->groupBy(fn ($item) => $item->vendorListing->vendor_id);
-                $subtotalAll = max(1, $summary['subtotal']);
                 $subOrders = [];
-                $subOrderDeliveryDisplay = [];
                 $idx = 0;
 
                 foreach ($grouped as $vendorId => $items) {
                     $idx++;
                     $vendorSubtotal = (int) $items->sum(fn ($i) => $i->unit_price * $i->quantity);
                     $firstListing = $items->first()->vendorListing;
-                    $isFbn = $firstListing->global_system_type === GlobalSystemType::ExpressFbn;
 
-                    $vendorShipping = $isFbn
-                        ? 0
-                        : (int) round($shippingFeeCents * ($vendorSubtotal / $subtotalAll));
+                    $vendorShippingCents = $vendorShippingMap[$vendorId]['shipping'] ?? 0;
 
                     $vendorTax = (int) round($vendorSubtotal * ((float) $country->vat_rate / 100));
 
@@ -523,13 +521,6 @@ class CheckoutController extends Controller
 
                     $warehouseId = $reservedInventories[$items->first()->id]->warehouse_id;
 
-                    $deliveryDisplay = $this->shippingCalculationService->calculate(
-                        $vendorShipping,
-                        $firstListing,
-                        $shippingZoneId,
-                        $country->currency_code
-                    );
-
                     $subOrder = SubOrder::create([
                         'order_id' => $order->id,
                         'sub_order_number' => $order->order_number.'-'.str_pad((string) $idx, 2, '0', STR_PAD_LEFT),
@@ -538,9 +529,7 @@ class CheckoutController extends Controller
                         'status' => 'placed',
                         'fulfillment_model' => $firstListing->fulfillment_model,
                         'subtotal' => $vendorSubtotal,
-                        'shipping' => $vendorShipping,
-                        'admin_subsidy' => $deliveryDisplay['admin_subsidy'],
-                        'vendor_deduction' => $deliveryDisplay['vendor_deduction'],
+                        'shipping' => $vendorShippingCents,
                         'tax' => $vendorTax,
                         'platform_commission' => $totalCommission,
                         'gateway_fee' => 0,
@@ -549,8 +538,6 @@ class CheckoutController extends Controller
                         'shipping_method_id' => $validated['shipping_method_id'],
                         'sla_ship_deadline' => now()->addHours(24),
                     ]);
-
-                    $subOrderDeliveryDisplay[$subOrder->id] = $deliveryDisplay;
 
                     foreach ($items as $cartItem) {
                         $listing = $cartItem->vendorListing;
@@ -625,7 +612,7 @@ class CheckoutController extends Controller
                     $coupon->increment('times_used');
                 }
 
-                return ['order' => $order, 'sub_orders' => $subOrders, 'delivery_display' => $subOrderDeliveryDisplay];
+                return ['order' => $order, 'sub_orders' => $subOrders];
             });
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
@@ -633,7 +620,6 @@ class CheckoutController extends Controller
 
         $subOrders = $result['sub_orders'];
         $order = $result['order'];
-        $deliveryDisplayBySubOrder = $result['delivery_display'];
 
         if ($isCod) {
             // Cash hasn't changed hands yet — this transaction (and order.payment_status,
@@ -696,18 +682,14 @@ class CheckoutController extends Controller
             'warranty_total' => $order->warranty_total,
             'currency' => $order->currency,
             'placed_at' => $order->placed_at?->toIso8601String(),
-            'sub_orders' => $order->subOrders->map(function (SubOrder $so) use ($deliveryDisplayBySubOrder) {
-                $display = $deliveryDisplayBySubOrder[$so->id] ?? null;
-
+            'sub_orders' => $order->subOrders->map(function (SubOrder $so) {
                 return [
                 'sub_order_number' => $so->sub_order_number,
                 'vendor' => $so->vendor?->store_name,
                 'status' => $so->status->value,
                 'fulfillment_model' => $so->fulfillment_model,
-                'delivery_fee' => $display['customer_display'] ?? $so->shipping,
-                'delivery_label_en' => $display['subsidy_label_en'] ?? null,
-                'delivery_label_ar' => $display['subsidy_label_ar'] ?? null,
-                'is_free_delivery' => $display ? $display['customer_display'] === 0 : false,
+                'delivery_fee' => $so->shipping,
+                'is_free_delivery' => $so->shipping === 0,
                 'items' => $so->items->map(fn (OrderItem $item) => [
                     'listing_ref' => $item->vendorListing
                         ? $this->listingIdentifierService->buildListingRef($item->vendorListing)
@@ -743,74 +725,45 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Build the customer-facing delivery display (per vendor + aggregate) using
-     * ShippingCalculationService, without altering the actual shipping fee used
-     * for the order total.
+     * Split the base cart-level shipping fee across vendors proportionally
+     * (FBN vendors ship free), then add each FBP vendor's flat city surcharge
+     * on top, if they've configured one for the destination city.
      *
      * @param  array<\App\Models\CartItem>  $cartItems
+     * @return array{total: int, per_vendor: array<string, array{shipping: int, surcharge: int}>}
      */
-    private function buildDeliveryDisplay(array $cartItems, int $totalShippingFeeCents, Address $address, $country): array
+    private function resolveVendorShipping(array $cartItems, int $baseFeeCents, ?string $cityId): array
     {
-        $address->loadMissing('city');
-        $shippingZoneId = $address->city?->shipping_zone_id;
-
         $subtotalAll = max(1, (int) collect($cartItems)->sum(fn ($i) => $i->unit_price * $i->quantity));
         $grouped = collect($cartItems)->groupBy(fn ($item) => $item->vendorListing->vendor_id);
 
-        $vendorDelivery = [];
-        $aggregateCustomerDisplayCents = 0;
+        $totalCents = 0;
+        $perVendor = [];
 
         foreach ($grouped as $vendorId => $items) {
             $vendorSubtotal = (int) $items->sum(fn ($i) => $i->unit_price * $i->quantity);
             $firstListing = $items->first()->vendorListing;
             $isFbn = $firstListing->global_system_type === GlobalSystemType::ExpressFbn;
+            $isFbp = $firstListing->global_system_type === GlobalSystemType::MerchantFbp;
 
-            $vendorShippingCents = $isFbn
+            $vendorBaseShippingCents = $isFbn
                 ? 0
-                : (int) round($totalShippingFeeCents * ($vendorSubtotal / $subtotalAll));
+                : (int) round($baseFeeCents * ($vendorSubtotal / $subtotalAll));
 
-            $display = $this->shippingCalculationService->calculate(
-                $vendorShippingCents,
-                $firstListing,
-                $shippingZoneId,
-                $country->currency_code
-            );
+            $surchargeCents = $isFbp
+                ? $this->cityShippingSurchargeService->resolveSurcharge($vendorId, $cityId)
+                : 0;
 
-            $aggregateCustomerDisplayCents += $display['customer_display'];
+            $vendorShippingCents = $vendorBaseShippingCents + $surchargeCents;
+            $totalCents += $vendorShippingCents;
 
-            // Customer-safe subset only — admin_subsidy / vendor_deduction
-            // are internal ledger figures and must never reach the customer API response.
-            $vendorDelivery[] = [
-                'vendor_id' => $vendorId,
-                'display_mode' => $display['display_mode'],
-                'delivery_fee' => $display['customer_display'],
-                'delivery_label_en' => $display['subsidy_label_en'],
-                'delivery_label_ar' => $display['subsidy_label_ar'],
-                'is_free_delivery' => $display['customer_display'] === 0,
+            $perVendor[$vendorId] = [
+                'shipping' => $vendorShippingCents,
+                'surcharge' => $surchargeCents,
             ];
         }
 
-        if (count($vendorDelivery) === 1) {
-            $labelEn = $vendorDelivery[0]['subsidy_label_en'];
-            $labelAr = $vendorDelivery[0]['subsidy_label_ar'];
-            $displayMode = $vendorDelivery[0]['display_mode'];
-        } else {
-            $labelEn = $aggregateCustomerDisplayCents === 0 ? 'Free Delivery' : 'Delivery charges apply';
-            $labelAr = $aggregateCustomerDisplayCents === 0 ? 'توصيل مجاني' : 'يتم تطبيق رسوم التوصيل';
-            // Multiple vendors can land on different display modes; when they disagree,
-            // 'subsidized' is the safest umbrella label (never overstates "free").
-            $modes = array_unique(array_column($vendorDelivery, 'display_mode'));
-            $displayMode = count($modes) === 1 ? $modes[0] : ($aggregateCustomerDisplayCents === 0 ? 'free' : 'subsidized');
-        }
-
-        return [
-            'delivery_fee' => $aggregateCustomerDisplayCents,
-            'delivery_display_mode' => $displayMode,
-            'delivery_label_en' => $labelEn,
-            'delivery_label_ar' => $labelAr,
-            'is_free_delivery' => $aggregateCustomerDisplayCents === 0,
-            'vendor_delivery' => $vendorDelivery,
-        ];
+        return ['total' => $totalCents, 'per_vendor' => $perVendor];
     }
 
     private function releaseReservedInventory(Order $order): void

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class VendorExceptionalZone extends Model
+class VendorCityShippingSurcharge extends Model
 {
     use HasUuids;
 
@@ -15,7 +15,8 @@ class VendorExceptionalZone extends Model
 
     protected $fillable = [
         'vendor_id',
-        'shipping_zone_id',
+        'city_id',
+        'extra_amount_cents',
         'is_active',
     ];
 
@@ -31,8 +32,8 @@ class VendorExceptionalZone extends Model
         return $this->belongsTo(Vendor::class);
     }
 
-    public function shippingZone(): BelongsTo
+    public function city(): BelongsTo
     {
-        return $this->belongsTo(ShippingZone::class);
+        return $this->belongsTo(City::class);
     }
 }

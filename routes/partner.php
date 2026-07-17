@@ -167,23 +167,14 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/stats', 'stats')->name('stats');
     });
 
-    // ── Shipping preferences (exceptional zones) ─────────────────────────────
-    Route::prefix('shipping/preferences')->name('shipping.preferences.')
-        ->controller(\App\Http\Controllers\Partner\ShippingPreferencesController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/toggle-zone', 'toggleZone')->name('toggle-zone');
-        });
-
-    // ── FBP Subsidy settings ──────────────────────────────────────────────────
-    Route::prefix('subsidy-settings')->name('subsidy-settings.')
-        ->controller(\App\Http\Controllers\Partner\VendorSubsidySettingController::class)
+    // ── City shipping surcharges ──────────────────────────────────────────────
+    Route::prefix('city-surcharges')->name('city-surcharges.')
+        ->controller(\App\Http\Controllers\Partner\CityShippingSurchargeController::class)
         ->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
-            Route::put('/{setting}', 'update')->name('update');
-            Route::post('/{setting}/deactivate', 'deactivate')->name('deactivate');
-            Route::get('/exceptional-zones', 'exceptionalZones')->name('exceptional-zones.index');
+            Route::put('/{surcharge}', 'update')->name('update');
+            Route::post('/{surcharge}/toggle-active', 'toggleActive')->name('toggle-active');
         });
 
     // ── Profile & store settings ─────────────────────────────────────────────

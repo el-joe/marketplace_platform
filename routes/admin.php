@@ -15,7 +15,6 @@ use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\FlashSaleController;
 use App\Http\Controllers\Admin\PageBuilderController;
 use App\Http\Controllers\Admin\VendorController;
-use App\Http\Controllers\Admin\VendorSubsidySettingController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\AdminController;
@@ -452,15 +451,6 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{vendor}/bank-accounts/{accountId}/verify', [VendorController::class, 'verifyBankAccount'])->name('bank-accounts.verify');
         Route::get('/{vendor}/performance-data', [VendorController::class, 'performanceData'])->name('performance-data');
         Route::post('/{vendor}/notify', [VendorController::class, 'sendNotification'])->name('notify');
-
-        // ── FBP subsidy settings ────────────────────────────────────────────
-        // GET serves both the page (no ?draw) and the DataTable's ajax fetch (?draw=..., ajaxMethod: 'GET')
-        // so it doesn't collide with the POST store route below.
-        Route::get('/{vendor}/subsidy-settings', [VendorSubsidySettingController::class, 'index'])->name('subsidy-settings.index');
-        Route::post('/{vendor}/subsidy-settings', [VendorSubsidySettingController::class, 'store'])->name('subsidy-settings.store');
-        Route::put('/{vendor}/subsidy-settings/{setting}', [VendorSubsidySettingController::class, 'update'])->name('subsidy-settings.update');
-        Route::post('/{vendor}/subsidy-settings/{setting}/deactivate', [VendorSubsidySettingController::class, 'deactivate'])->name('subsidy-settings.deactivate');
-        Route::get('/{vendor}/exceptional-zones', [VendorSubsidySettingController::class, 'exceptionalZones'])->name('exceptional-zones.index');
     });
 
     // ─── Geography ───────────────────────────────────────────────────────────────

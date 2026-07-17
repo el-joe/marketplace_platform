@@ -168,14 +168,9 @@ class Vendor extends Model
         return $this->hasMany(Payout::class);
     }
 
-    public function subsidySettings(): HasMany
+    public function cityShippingSurcharges(): HasMany
     {
-        return $this->hasMany(VendorSubsidySetting::class);
-    }
-
-    public function exceptionalZones(): HasMany
-    {
-        return $this->hasMany(VendorExceptionalZone::class);
+        return $this->hasMany(VendorCityShippingSurcharge::class);
     }
 
     public function addresses(): MorphMany
