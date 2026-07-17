@@ -250,15 +250,7 @@ class WarehouseController extends Controller
             return response()->json(['message' => 'Set and save a default limit for this warehouse first.'], 422);
         }
 
-        $vendorIds = VendorListing::query()
-            ->join('warehouse_inventories', 'warehouse_inventories.vendor_listing_id', '=', 'vendor_listings.id')
-            ->where('warehouse_inventories.warehouse_id', $warehouse->id)
-            ->pluck('vendor_listings.vendor_id')
-            ->merge(
-                \App\Models\FbnInboundRequest::where('warehouse_id', $warehouse->id)->pluck('vendor_id')
-            )
-            ->unique()
-            ->values();
+        $vendorIds = Vendor::/*where('global_status', 'approved')->*/pluck('id');
 
         $applied = 0;
         foreach ($vendorIds as $vendorId) {
