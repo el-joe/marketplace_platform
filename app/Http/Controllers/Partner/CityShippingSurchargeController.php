@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Partner;
 use App\Enums\GlobalSystemType;
 use App\Http\Controllers\Controller;
 use App\Models\City;
+use App\Models\Vendor;
 use App\Models\VendorCityShippingSurcharge;
 use App\Models\VendorListing;
 use App\Traits\HasDataTable;
@@ -12,6 +13,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class CityShippingSurchargeController extends Controller
 {
@@ -32,7 +34,10 @@ class CityShippingSurchargeController extends Controller
                 ->whereNotIn('status', ['archived'])
                 ->exists();
 
+            $vendorCountryId = Vendor::where('id', $vendorId)->value('country_id');
+
             $cities = City::where('is_active', true)
+                ->where('country_id', $vendorCountryId)
                 ->with('country')
                 ->orderBy('name_en')
                 ->get(['id', 'name_en', 'country_id']);
@@ -71,9 +76,10 @@ class CityShippingSurchargeController extends Controller
     public function store(Request $request): JsonResponse
     {
         $vendorId = $this->vendorId();
+        $vendorCountryId = Vendor::where('id', $vendorId)->value('country_id');
 
         $validated = $request->validate([
-            'city_id' => ['required', 'uuid', 'exists:cities,id'],
+            'city_id' => ['required', 'uuid', Rule::exists('cities', 'id')->where('country_id', $vendorCountryId)],
             'extra_amount_cents' => ['required', 'integer', 'min:0'],
         ]);
 
@@ -88,9 +94,10 @@ class CityShippingSurchargeController extends Controller
     public function update(Request $request, VendorCityShippingSurcharge $surcharge): JsonResponse
     {
         abort_unless($surcharge->vendor_id === $this->vendorId(), 404);
+        $vendorCountryId = Vendor::where('id', $this->vendorId())->value('country_id');
 
         $validated = $request->validate([
-            'city_id' => ['required', 'uuid', 'exists:cities,id'],
+            'city_id' => ['required', 'uuid', Rule::exists('cities', 'id')->where('country_id', $vendorCountryId)],
             'extra_amount_cents' => ['required', 'integer', 'min:0'],
         ]);
 

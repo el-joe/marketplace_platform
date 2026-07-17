@@ -8,7 +8,6 @@
         window.WAREHOUSE_CREATE = {
             storeUrl:   '{{ route('partner.warehouses.store') }}',
             indexUrl:   '{{ route('partner.warehouses.index') }}',
-            citiesUrl:  '{{ url('/api/cities') }}',
         };
     </script>
 @endpush
@@ -33,21 +32,13 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('common.country') }} <span class="text-red-500">*</span></label>
-                    <select name="country_id" id="wh-country" required
-                        class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                        <option value="">{{ __('partner.warehouses.select_country') }}</option>
-                        @foreach($countries as $country)
-                            <option value="{{ $country->id }}">{{ $country->name_en }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('common.city') }}</label>
                     <select name="city_id" id="wh-city"
                         class="block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                        <option value="">{{ __('partner.warehouses.select_country_first') }}</option>
+                        <option value="">{{ __('partner.warehouses.select_city') }}</option>
+                        @foreach($cities as $city)
+                            <option value="{{ $city->id }}">{{ $city->name_en }}</option>
+                        @endforeach
                     </select>
                 </div>
 

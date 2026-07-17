@@ -77,6 +77,7 @@
                     'performance' => __('admin.vendors.tab_performance'),
                     'orders'      => __('admin.vendors.tab_orders'),
                     'payouts'     => __('admin.vendors.tab_payouts'),
+                    'city_surcharges' => __('admin.vendors.tab_city_surcharges'),
                     'activity'    => __('admin.vendors.tab_activity'),
                 ] as $key => $label)
                     <button type="button"
@@ -444,6 +445,41 @@
                                     </tr>
                                 @empty
                                     <tr><td colspan="6" class="py-8 text-center text-sm text-gray-400">{{ __('admin.vendors.no_payouts_yet') }}</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </x-card>
+            </div>
+
+            {{-- ── City Shipping Surcharges (read-only, vendor-managed) ────────── --}}
+            <div x-show="tab === 'city_surcharges'">
+                <x-card title="{{ __('admin.vendors.tab_city_surcharges') }}">
+                    <p class="text-xs text-gray-500 mb-4">{{ __('admin.vendors.city_surcharges_note') }}</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-100 text-start">
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.city_column') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.country') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.extra_shipping_column') }}</th>
+                                    <th class="py-2 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.status_column') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @forelse($citySurcharges as $surcharge)
+                                    <tr class="hover:bg-gray-50/50">
+                                        <td class="py-3 pr-4">{{ $surcharge->city?->name_en }}</td>
+                                        <td class="py-3 pr-4 text-gray-600">{{ $surcharge->city?->country?->name_en }}</td>
+                                        <td class="py-3 pr-4 tabular-nums">{{ number_format($surcharge->extra_amount_cents / 100, 2) }}</td>
+                                        <td class="py-3">
+                                            <x-badge :color="$surcharge->is_active ? 'success' : 'gray'">
+                                                {{ $surcharge->is_active ? __('admin.vendors.active') : __('admin.vendors.inactive') }}
+                                            </x-badge>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="py-8 text-center text-sm text-gray-400">{{ __('admin.vendors.no_city_surcharges_yet') }}</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

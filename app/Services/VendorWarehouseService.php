@@ -29,7 +29,7 @@ class VendorWarehouseService
             $code = $this->generateUniqueCode('SW-', 'warehouses', 'code');
 
             $warehouse = Warehouse::create([
-                'country_id'       => $data['country_id'],
+                'country_id'       => $vendor->country_id,
                 'name'             => $data['name'],
                 'code'             => $code,
                 'type'             => WarehouseType::SellerOwned->value,
@@ -42,7 +42,7 @@ class VendorWarehouseService
             $address = Address::create([
                 'addressable_type' => Warehouse::class,
                 'addressable_id'   => $warehouse->id,
-                'country_id'       => $data['country_id'],
+                'country_id'       => $vendor->country_id,
                 'city_id'          => $data['city_id'] ?? null,
                 'area'             => $data['area'] ?? null,
                 'street_address'   => $data['street_address'] ?? null,

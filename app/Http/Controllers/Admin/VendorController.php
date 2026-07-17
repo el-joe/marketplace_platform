@@ -125,6 +125,7 @@ class VendorController extends Controller
 
         $subOrders = $vendor->subOrders()->latest()->limit(50)->get();
         $payouts = $vendor->payouts()->latest()->limit(50)->get();
+        $citySurcharges = $vendor->cityShippingSurcharges()->with('city.country')->orderBy('created_at', 'desc')->get();
         $activityLog = Activity::query()
             ->where('subject_type', Vendor::class)
             ->where('subject_id', $vendor->id)
@@ -134,7 +135,7 @@ class VendorController extends Controller
 
         $admins = Admin::orderBy('name')->get(['id', 'name']);
 
-        return view('admin.vendors.show', compact('vendor', 'subOrders', 'payouts', 'activityLog', 'admins'));
+        return view('admin.vendors.show', compact('vendor', 'subOrders', 'payouts', 'activityLog', 'admins', 'citySurcharges'));
     }
 
     // ── Update ────────────────────────────────────────────────────────────────

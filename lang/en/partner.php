@@ -781,6 +781,7 @@ return [
         'name_placeholder' => 'e.g. My Main Storage - Riyadh',
         'select_country' => 'Select Country',
         'select_country_first' => 'Select Country First',
+        'select_city' => 'Select City',
         'area_district' => 'Area / District',
         'warehouse_name' => 'Warehouse Name',
         'transfers' => 'Transfers',

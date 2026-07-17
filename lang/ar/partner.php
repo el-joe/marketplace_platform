@@ -778,6 +778,7 @@ return [
         'name_placeholder' => 'مثال: مخزني الرئيسي - الرياض',
         'select_country' => 'اختر الدولة',
         'select_country_first' => 'اختر الدولة أولا',
+        'select_city' => 'اختر المدينة',
         'area_district' => 'المنطقة / الحي',
         'warehouse_name' => 'اسم المستودع',
         'transfers' => 'التحويلات',

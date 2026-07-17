@@ -13,40 +13,6 @@ function initWarehouseCreate() {
     const form = document.getElementById('warehouse-create-form');
     if (!cfg || !form) return;
 
-    // Country → city cascade
-    const countrySelect = document.getElementById('wh-country');
-    const citySelect    = document.getElementById('wh-city');
-
-    if (countrySelect && citySelect) {
-        countrySelect.addEventListener('change', async () => {
-            const countryId = countrySelect.value;
-            citySelect.innerHTML = '<option value="">Loading…</option>';
-
-            if (!countryId) {
-                citySelect.innerHTML = '<option value="">Select country first…</option>';
-                return;
-            }
-
-            try {
-                const res = await fetch(`/api/cities?country_id=${countryId}`, {
-                    headers: { 'Accept': 'application/json' },
-                });
-                const json = await res.json();
-                const cities = json.data ?? json;
-
-                citySelect.innerHTML = '<option value="">Select city…</option>';
-                cities.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.id;
-                    opt.textContent = c.name_en ?? c.name;
-                    citySelect.appendChild(opt);
-                });
-            } catch {
-                citySelect.innerHTML = '<option value="">Failed to load cities</option>';
-            }
-        });
-    }
-
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn   = document.getElementById('register-warehouse-btn');
@@ -57,7 +23,6 @@ function initWarehouseCreate() {
 
         const payload = {
             name:               document.getElementById('wh-name')?.value,
-            country_id:         document.getElementById('wh-country')?.value,
             city_id:            document.getElementById('wh-city')?.value || null,
             area:               document.getElementById('wh-area')?.value || null,
             street_address:     document.getElementById('wh-street')?.value,

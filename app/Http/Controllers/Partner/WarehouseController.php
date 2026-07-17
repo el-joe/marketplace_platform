@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Partner\StoreTransferRequest;
 use App\Http\Requests\Partner\StoreVendorWarehouseRequest;
 use App\Http\Requests\Partner\UpdateVendorWarehouseRequest;
+use App\Models\City;
 use App\Models\Country;
 use App\Models\InventoryMovement;
 use App\Models\InventoryTransfer;
@@ -70,9 +71,14 @@ class WarehouseController extends Controller
 
     public function create(): View
     {
-        $countries = Country::where('is_active', 1)->get();
+        $vendor = $this->vendor();
 
-        return view('partner.warehouses.create', compact('countries'));
+        $cities = City::where('is_active', 1)
+            ->where('country_id', $vendor->country_id)
+            ->orderBy('name_en')
+            ->get();
+
+        return view('partner.warehouses.create', compact('cities'));
     }
 
     // ─── Store ────────────────────────────────────────────────────────────────
