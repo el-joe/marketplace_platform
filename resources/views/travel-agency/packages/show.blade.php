@@ -89,7 +89,7 @@
 
             <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
                 <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">{{ __('travel.packages.inclusions') }}</h3>
-                @if($package->inclusions->isNotEmpty())
+                @if($package->inclusions && $package->inclusions->isNotEmpty())
                     <ul class="space-y-1 text-sm text-gray-700">
                         @foreach($package->inclusions as $item)
                             <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span>
@@ -100,6 +100,63 @@
                     <p class="text-sm text-gray-400">{{ __('travel.packages.not_specified') }}</p>
                 @endif
             </div>
+        </div>
+
+        {{-- Pricing Tiers --}}
+        @if($package->pricing_tiers_enabled && $package->pricingTiers->isNotEmpty())
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+                <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide mb-4">{{ __('travel.packages.pricing_tiers') }}</h3>
+                <table class="min-w-full divide-y divide-gray-100 text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-start font-semibold text-gray-700">{{ __('travel.packages.travelers_count') }}</th>
+                            <th class="px-4 py-2 text-start font-semibold text-gray-700">{{ __('travel.packages.price') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach($package->pricingTiers as $tier)
+                            <tr>
+                                <td class="px-4 py-2 text-gray-700">{{ __('travel.packages.per_traveler_count', ['count' => $tier->travelers_count]) }}</td>
+                                <td class="px-4 py-2 font-medium text-gray-900">{{ \App\Helpers\CurrencyFormatter::formatPrice($tier->price, $package->currency) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                @unless($package->show_pricing_tiers_to_customer)
+                    <p class="text-xs text-gray-400 mt-3">{{ __('travel.packages.pricing_tiers_description') }}</p>
+                @endunless
+            </div>
+        @endif
+
+        {{-- Contract --}}
+        <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide mb-4">{{ __('travel.packages.package_contract') }}</h3>
+            @if($package->contract_file_path)
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <svg class="w-8 h-8 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">{{ $package->contract_file_original_name }}</p>
+                            @if($package->contract_uploaded_at)
+                                <p class="text-xs text-gray-400 mt-0.5">{{ __('travel.packages.uploaded_at') }}{{ $package->contract_uploaded_at->format('d M Y H:i') }}</p>
+                            @endif
+                        </div>
+                    </div>
+                    <a href="{{ route('travel-agency.packages.contract.download', $package) }}"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 shrink-0">
+                        {{ __('travel.packages.download_contract') }}
+                    </a>
+                </div>
+            @else
+                <p class="text-sm text-amber-600 flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {{ __('travel.packages.no_contract_uploaded') }}
+                </p>
+            @endif
         </div>
 
         {{-- Media --}}

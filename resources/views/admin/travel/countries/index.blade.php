@@ -192,8 +192,8 @@ function closeModal() { modal.classList.add('hidden'); }
 async function saveCountry() {
     const id  = document.getElementById('country-id').value;
     const url = id
-        ? `/admin/travel/countries/${id}`
-        : '/admin/travel/countries';
+        ? `/travel/countries/${id}`
+        : '/travel/countries';
     const method = id ? 'PUT' : 'POST';
 
     const body = {
@@ -236,7 +236,7 @@ async function saveCountry() {
 async function deleteCountry(id, name) {
     if (!confirm(window.TRANSLATIONS.delete_country_confirm.replace('__NAME__', name))) return;
 
-    const res = await fetch(`/admin/travel/countries/${id}`, {
+    const res = await fetch(`/travel/countries/${id}`, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
     });

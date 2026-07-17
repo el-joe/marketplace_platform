@@ -145,6 +145,9 @@ return [
         'departure' => 'المغادرة',
         'return' => 'العودة',
         'not_specified' => 'لم يحدد',
+        'no_contract_uploaded' => 'لم يتم رفع أي عقد بعد.',
+        'download_contract' => 'تحميل PDF',
+        'per_traveler_count' => ':count مسافرين',
     ],
 
     'bookings' => [

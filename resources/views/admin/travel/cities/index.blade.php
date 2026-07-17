@@ -190,7 +190,7 @@ function closeModal() { modal.classList.add('hidden'); }
 
 async function saveCity() {
     const id  = document.getElementById('city-id').value;
-    const url = id ? `/admin/travel/cities/${id}` : '/admin/travel/cities';
+    const url = id ? `/travel/cities/${id}` : '/travel/cities';
     const method = id ? 'PUT' : 'POST';
 
     const lat = document.getElementById('f-lat').value;
@@ -235,7 +235,7 @@ async function saveCity() {
 async function deleteCity(id, name) {
     if (!confirm(window.TRANSLATIONS.delete_city_confirm.replace('__NAME__', name))) return;
 
-    const res = await fetch(`/admin/travel/cities/${id}`, {
+    const res = await fetch(`/travel/cities/${id}`, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
     });

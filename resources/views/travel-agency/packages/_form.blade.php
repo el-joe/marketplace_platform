@@ -168,12 +168,12 @@
 
     <div id="pricing-tiers-rows" class="space-y-2">
         @php $existingTiers = old('price_tiers', $pkg?->pricingTiers?->map(fn ($t) => ['travelers_count' => $t->travelers_count, 'price' => $t->price])->all() ?? []); @endphp
-        @foreach($existingTiers as $tier)
+        @foreach($existingTiers as $tierIndex => $tier)
         <div class="pricing-tier-row grid grid-cols-[1fr_1fr_auto] gap-3 items-center">
-            <input type="number" name="price_tiers[][travelers_count]" value="{{ $tier['travelers_count'] }}" min="1"
+            <input type="number" name="price_tiers[{{ $tierIndex }}][travelers_count]" value="{{ $tier['travelers_count'] ?? '' }}" min="1"
                    placeholder="{{ __('travel.packages.travelers_count') }}"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
-            <input type="number" name="price_tiers[][price]" value="{{ $tier['price'] }}" min="1"
+            <input type="number" name="price_tiers[{{ $tierIndex }}][price]" value="{{ $tier['price'] ?? '' }}" min="1"
                    placeholder="{{ __('travel.packages.price') }}"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
             <button type="button" class="remove-tier-row text-red-500 text-sm px-2">&times;</button>
@@ -295,6 +295,17 @@
     const rowsContainer = document.getElementById('pricing-tiers-rows');
     const addButton     = document.getElementById('add-tier-row');
 
+    function reindexRows() {
+        rowsContainer.querySelectorAll('.pricing-tier-row').forEach(function (row, index) {
+            row.querySelectorAll('input[name$="[travelers_count]"]').forEach(function (input) {
+                input.name = 'price_tiers[' + index + '][travelers_count]';
+            });
+            row.querySelectorAll('input[name$="[price]"]').forEach(function (input) {
+                input.name = 'price_tiers[' + index + '][price]';
+            });
+        });
+    }
+
     function makeRow() {
         const row = document.createElement('div');
         row.className = 'pricing-tier-row grid grid-cols-[1fr_1fr_auto] gap-3 items-center';
@@ -307,11 +318,13 @@
 
     addButton.addEventListener('click', function () {
         rowsContainer.appendChild(makeRow());
+        reindexRows();
     });
 
     rowsContainer.addEventListener('click', function (e) {
         if (e.target.classList.contains('remove-tier-row')) {
             e.target.closest('.pricing-tier-row').remove();
+            reindexRows();
         }
     });
 })();

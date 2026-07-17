@@ -163,8 +163,8 @@ function closeModal() { modal.classList.add('hidden'); }
 async function saveInclusion() {
     const id  = document.getElementById('inclusion-id').value;
     const url = id
-        ? `/admin/travel/inclusions/${id}`
-        : '/admin/travel/inclusions';
+        ? `/travel/inclusions/${id}`
+        : '/travel/inclusions';
     const method = id ? 'PUT' : 'POST';
 
     const body = {
@@ -205,7 +205,7 @@ async function saveInclusion() {
 async function deleteInclusion(id, name) {
     if (!confirm(window.TRANSLATIONS.delete_inclusion_confirm.replace('__NAME__', name))) return;
 
-    const res = await fetch(`/admin/travel/inclusions/${id}`, {
+    const res = await fetch(`/travel/inclusions/${id}`, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
     });

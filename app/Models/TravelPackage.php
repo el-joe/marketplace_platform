@@ -107,7 +107,7 @@ class TravelPackage extends Model
 
     public function inclusions(): BelongsToMany
     {
-        return $this->belongsToMany(TravelInclusion::class, 'travel_package_inclusions');
+        return $this->belongsToMany(TravelInclusion::class, 'travel_package_inclusions', 'travel_package_id', 'travel_inclusion_id');
     }
 
     public function destinationCountry(): BelongsTo

@@ -111,8 +111,7 @@ class PackageController extends Controller
     public function show(TravelPackage $package): View
     {
         $this->authorise($package);
-        $package->load(['media', 'bookings.customer', 'inclusions']);
-
+        $package->load(['media', 'bookings.customer', 'inclusions', 'pricingTiers']);
         return view('travel-agency.packages.show', compact('package'));
     }
 
