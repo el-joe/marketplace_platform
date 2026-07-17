@@ -175,6 +175,17 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
             Route::post('/toggle-zone', 'toggleZone')->name('toggle-zone');
         });
 
+    // ── FBP Subsidy settings ──────────────────────────────────────────────────
+    Route::prefix('subsidy-settings')->name('subsidy-settings.')
+        ->controller(\App\Http\Controllers\Partner\VendorSubsidySettingController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{setting}', 'update')->name('update');
+            Route::post('/{setting}/deactivate', 'deactivate')->name('deactivate');
+            Route::get('/exceptional-zones', 'exceptionalZones')->name('exceptional-zones.index');
+        });
+
     // ── Profile & store settings ─────────────────────────────────────────────
     Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->group(function () {
         Route::get('/', 'index')->name('index');

@@ -60,6 +60,7 @@
             <x-partner-nav-item route="partner.warehouses.index" icon="building-storefront" label="{{ __('partner.nav.warehouses') }}" />
             <x-partner-nav-item route="partner.warehouses.transfers.index" icon="arrows-right-left" label="{{ __('partner.nav.transfers') }}" />
             <x-partner-nav-item route="partner.shipping.preferences.index" icon="globe-alt" label="Shipping Preferences" />
+            <x-partner-nav-item route="partner.subsidy-settings.index" icon="currency-dollar" label="Subsidy Settings" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.finance') }}">

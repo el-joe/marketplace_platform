@@ -90,6 +90,8 @@ export default defineConfig({
                 'resources/js/partner/warehouse-create.js',
                 'resources/js/partner/warehouse-detail.js',
                 'resources/js/partner/classifieds.js',
+                'resources/js/partner/vendor-subsidy-settings.js',
+                'resources/js/partner/vendor-exceptional-zones.js',
                 'resources/js/vendor/coupons.js',
                 // Delivery Agent Panel (delivery.noon.loc)
                 'resources/js/delivery/app.js',
