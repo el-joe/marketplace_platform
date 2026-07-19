@@ -13,6 +13,8 @@ class MarketerPayout extends \Illuminate\Database\Eloquent\Model
     protected $fillable = [
         'payout_number',
         'marketer_id',
+        'influencer_deal_id',
+        'payout_type',
         'period_start',
         'period_end',
         'total_conversions',
@@ -55,6 +57,11 @@ class MarketerPayout extends \Illuminate\Database\Eloquent\Model
     public function marketer(): BelongsTo
     {
         return $this->belongsTo(Marketer::class);
+    }
+
+    public function influencerDeal(): BelongsTo
+    {
+        return $this->belongsTo(InfluencerDeal::class);
     }
 
     public function approvedBy(): BelongsTo

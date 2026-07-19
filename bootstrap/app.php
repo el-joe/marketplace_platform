@@ -70,6 +70,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'delivery.api.active' => \App\Http\Middleware\DeliveryApiActive::class,
             'auth.marketer' => \App\Http\Middleware\MarketerAuth::class,
             'marketer.active' => \App\Http\Middleware\MarketerAuth::class,
+            'marketer.influencer' => \App\Http\Middleware\MarketerInfluencerOnly::class,
+            'marketer.affiliate' => \App\Http\Middleware\MarketerAffiliateOnly::class,
             'marketer.api.auth' => \App\Http\Middleware\MarketerApiAuth::class,
             'marketer.api.active' => \App\Http\Middleware\MarketerApiActive::class,
             'track.marketer.click' => \App\Http\Middleware\TrackMarketerClick::class,

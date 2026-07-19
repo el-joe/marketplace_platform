@@ -44,6 +44,8 @@ class Order extends Model
         'total',
         'coupon_id',
         'coupon_code_used',
+        'affiliate_promo_code_id',
+        'affiliate_commission_amount',
         'payment_method',
         'payment_status',
         'shipping_address_snapshot',

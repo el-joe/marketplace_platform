@@ -3,6 +3,7 @@
 namespace App\Services\Customer;
 
 use App\Enums\VendorListingStatus;
+use App\Models\AffiliatePromoCode;
 use App\Models\Cart;
 use App\Models\CartInventoryLock;
 use App\Models\CartItem;
@@ -191,7 +192,7 @@ class CartService
     public function clearCart(Cart $cart): void
     {
         $cart->items()->delete();
-        $cart->update(['coupon_id' => null]);
+        $cart->update(['coupon_id' => null, 'affiliate_promo_code_id' => null]);
         $this->recalculateCart($cart);
     }
 
@@ -234,6 +235,31 @@ class CartService
         $this->recalculateCart($cart);
     }
 
+    public function applyAffiliatePromoCode(Cart $cart, string $code): AffiliatePromoCode
+    {
+        $subtotal = (int) $cart->items()->get()->sum(fn (CartItem $item) => $item->unit_price * $item->quantity);
+
+        $cart->setAttribute('subtotal', $subtotal);
+        $cart->setAttribute('estimated_shipping', 0);
+
+        $result = $this->calculationService->applyAffiliatePromoCode($cart, $code, $cart->coupon);
+
+        if (! $result['applied']) {
+            throw new \DomainException($result['message']);
+        }
+
+        $cart->update(['affiliate_promo_code_id' => $result['promo_code_id']]);
+        $this->recalculateCart($cart);
+
+        return AffiliatePromoCode::findOrFail($result['promo_code_id']);
+    }
+
+    public function removeAffiliatePromoCode(Cart $cart): void
+    {
+        $cart->update(['affiliate_promo_code_id' => null]);
+        $this->recalculateCart($cart);
+    }
+
     /**
      * Recalculates cart totals from scratch using live vendor_listing prices.
      * Called after every cart mutation so totals can never go stale.
@@ -249,7 +275,7 @@ class CartService
      */
     private function recalculateCart(Cart $cart): void
     {
-        $cart->load(array_merge(self::ITEM_EAGER_LOADS, ['coupon', 'customer']));
+        $cart->load(array_merge(self::ITEM_EAGER_LOADS, ['coupon', 'affiliatePromoCode', 'customer']));
 
         $priceChanges = [];
 
@@ -285,17 +311,38 @@ class CartService
             $discount = $result['error'] ? 0 : $result['discount'];
         }
 
+        if ($cart->affiliatePromoCode) {
+            $cart->setAttribute('subtotal', $subtotal);
+            $cart->setAttribute('estimated_shipping', 0);
+
+            $promoResult = $this->calculationService->applyAffiliatePromoCode(
+                $cart,
+                $cart->affiliatePromoCode->code,
+                $cart->coupon,
+            );
+
+            if ($promoResult['applied']) {
+                $discount += $promoResult['discount_amount'];
+            } else {
+                // Promo code became invalid (expired, limit reached, no longer
+                // stackable with the applied coupon) — drop it silently so
+                // totals stay consistent without throwing mid-recalculation.
+                $cart->affiliate_promo_code_id = null;
+            }
+        }
+
         $country = Country::find($cart->country_id);
         $taxable = max(0, $subtotal - $discount);
         $estimatedTax = $country ? $this->calculationService->calculateTax($taxable, $country) : 0;
 
         $cart->update([
-            'subtotal'           => $subtotal,
-            'discount'           => $discount,
-            'estimated_shipping' => 0,
-            'estimated_tax'      => $estimatedTax,
-            'estimated_total'    => max(0, $subtotal - $discount + $estimatedTax),
-            'expires_at'         => now()->addDays(30),
+            'subtotal'                 => $subtotal,
+            'discount'                 => $discount,
+            'estimated_shipping'       => 0,
+            'estimated_tax'            => $estimatedTax,
+            'estimated_total'          => max(0, $subtotal - $discount + $estimatedTax),
+            'affiliate_promo_code_id'  => $cart->affiliate_promo_code_id,
+            'expires_at'               => now()->addDays(30),
         ]);
 
         foreach ($cart->items as $item) {

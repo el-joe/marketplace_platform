@@ -185,16 +185,70 @@
                 {{ __('marketer.nav.dashboard') }}
             </a>
 
-            <a href="{{ route('marketer.campaigns.index') }}"
-                class="{{ Str::startsWith($route, 'marketer.campaigns') ? 'active' : '' }}">
+            @php $isInfluencer = auth('marketer')->check() && auth('marketer')->user()->isInfluencer(); @endphp
+
+            @if(!$isInfluencer)
+                <a href="{{ route('marketer.campaigns.index') }}"
+                    class="{{ Str::startsWith($route, 'marketer.campaigns') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5" />
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M17.5 2.5a2.121 2.121 0 013 3L12 14l-4 1 1-4 7.5-7.5z" />
+                    </svg>
+                    {{ __('marketer.nav.campaigns') }}
+                </a>
+
+                <a href="{{ route('marketer.promo-codes.index') }}"
+                    class="{{ Str::startsWith($route, 'marketer.promo-codes') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M20.59 13.41L11 3.83A2 2 0 009.59 3.24H4a1 1 0 00-1 1v5.59a2 2 0 00.59 1.41l9.58 9.58a2 2 0 002.83 0l4.59-4.59a2 2 0 000-2.82z" />
+                        <circle cx="7.5" cy="7.5" r="1.5" />
+                    </svg>
+                    {{ __('marketer.promo_codes.title') }}
+                </a>
+            @endif
+
+            <a href="{{ route('marketer.qr-codes.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.qr-codes') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 14h3v3M14 20h3M20 14v3M20 20v.01" />
+                </svg>
+                {{ __('marketer.nav.qr_codes') }}
+            </a>
+
+            <a href="{{ route('marketer.samples.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.samples') ? 'active' : '' }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5" />
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M17.5 2.5a2.121 2.121 0 013 3L12 14l-4 1 1-4 7.5-7.5z" />
+                        d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375C2.754 3.75 2.25 4.254 2.25 4.875v1.5c0 .621.504 1.125 1.125 1.125z" />
                 </svg>
-                {{ __('marketer.nav.campaigns') }}
+                {{ __('marketer.nav.sample_requests') }}
             </a>
+
+            @if($isInfluencer)
+                <a href="{{ route('marketer.deals.index') }}"
+                    class="{{ Str::startsWith($route, 'marketer.deals') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zM17 8a4 4 0 100 8" />
+                    </svg>
+                    {{ __('marketer.nav.deals') }}
+                </a>
+
+                <a href="{{ route('marketer.media-kit.show') }}"
+                    class="{{ Str::startsWith($route, 'marketer.media-kit') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <rect x="3" y="4" width="18" height="16" rx="2" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4M16 2v4M3 10h18" />
+                    </svg>
+                    {{ __('marketer.nav.media_kit') }}
+                </a>
+            @endif
 
             <a href="{{ route('marketer.earnings.index') }}"
                 class="{{ Str::startsWith($route, 'marketer.earnings') ? 'active' : '' }}">
@@ -203,6 +257,15 @@
                         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {{ __('marketer.nav.earnings') }}
+            </a>
+
+            <a href="{{ route('marketer.wallet.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.wallet') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9A2.25 2.25 0 0018.75 6.75H5.25A2.25 2.25 0 003 9v3" />
+                </svg>
+                {{ __('marketer.nav.wallet') }}
             </a>
 
             @auth('marketer')

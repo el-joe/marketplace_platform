@@ -78,15 +78,13 @@
 <x-card>
     <div class="overflow-x-auto">
         <table id="marketers-table" class="w-full text-sm" style="width:100%">
-            <thead>
+            <thead id="marketers-table-head">
                 <tr>
                     <th>{{ __('admin.marketers.photo') }}</th>
                     <th>{{ __('admin.marketers.name_email') }}</th>
-                    <th>{{ __('admin.marketers.type') }}</th>
                     <th>{{ __('admin.marketers.country') }}</th>
-                    <th>{{ __('admin.marketers.followers') }}</th>
-                    <th>{{ __('admin.marketers.clicks') }}</th>
-                    <th>{{ __('admin.marketers.conv') }}</th>
+                    <th>{{ __('admin.marketers.type') }}</th>
+                    <th>{{ __('admin.marketers.clicks') }} / {{ __('admin.marketers.deals') }}</th>
                     <th>{{ __('admin.marketers.earnings') }}</th>
                     <th>{{ __('admin.status') }}</th>
                     <th>{{ __('admin.marketers.actions') }}</th>
@@ -231,43 +229,73 @@
 <script type="module">
 $(function () {
     let currentType = '';
+    let table = null;
 
-    const table = $('#marketers-table').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url:  '{{ route('admin.marketers.all.datatable') }}',
-            type: 'POST',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            data: function (d) {
-                d.filter_type    = currentType;
-                d.filter_status  = $('#filter-status').val();
-                d.filter_country = $('#filter-country').val();
-                d.search         = { value: $('#search-input').val() };
-            }
-        },
-        columns: [
-            { orderable: false, width: '40px' },
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
-            { orderable: false, width: '140px' },
-        ],
-        pageLength: 25,
-        order: [[1, 'asc']],
-    });
+    // The metric columns (indices 3-5, 0-based) differ by type-view; the rest
+    // of the table (photo, name/email, country, status, actions) is constant.
+    const HEAD_METRIC_COLS = {
+        affiliate:   ['{{ __('admin.marketers.clicks') }}', '{{ __('admin.marketers.conv') }}', '{{ __('admin.marketers.conv_rate') }}', '{{ __('admin.marketers.earnings') }}'],
+        influencer:  ['{{ __('admin.marketers.active_deals') }}', '{{ __('admin.marketers.pending_deliverables') }}', '{{ __('admin.marketers.total_paid_out') }}', '{{ __('admin.marketers.earnings') }}'],
+        all:         ['{{ __('admin.marketers.type') }}', '{{ __('admin.marketers.clicks') }} / {{ __('admin.marketers.deals') }}', '{{ __('admin.marketers.earnings') }}'],
+    };
+
+    function viewModeFor(type) {
+        if (type === 'affiliate') return 'affiliate';
+        if (['influencer', 'celebrity', 'brand_ambassador'].includes(type)) return 'influencer';
+        return 'all';
+    }
+
+    function buildTable(viewMode) {
+        if (table) { table.destroy(); }
+
+        const metricHeads = HEAD_METRIC_COLS[viewMode];
+        const $head = $('<tr>')
+            .append('<th>{{ __('admin.marketers.photo') }}</th>')
+            .append('<th>{{ __('admin.marketers.name_email') }}</th>')
+            .append('<th>{{ __('admin.marketers.country') }}</th>');
+        metricHeads.forEach(label => $head.append('<th>' + label + '</th>'));
+        $head.append('<th>{{ __('admin.status') }}</th>')
+             .append('<th>{{ __('admin.marketers.actions') }}</th>');
+        $('#marketers-table-head').empty().append($head);
+
+        const metricColumnDefs = metricHeads.map(() => ({}));
+
+        table = $('#marketers-table').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url:  '{{ route('admin.marketers.all.datatable') }}',
+                type: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                data: function (d) {
+                    d.type           = currentType;
+                    d.filter_type    = currentType;
+                    d.filter_status  = $('#filter-status').val();
+                    d.filter_country = $('#filter-country').val();
+                    d.search         = { value: $('#search-input').val() };
+                }
+            },
+            columns: [
+                { orderable: false, width: '40px' },
+                {},
+                {},
+                ...metricColumnDefs,
+                {},
+                { orderable: false, width: '140px' },
+            ],
+            pageLength: 25,
+            order: [[1, 'asc']],
+        });
+    }
+
+    buildTable('all');
 
     // Type tab switching
     $(document).on('click', '.type-tab', function () {
         $('.type-tab').removeClass('bg-white text-gray-800 shadow-sm').addClass('text-gray-500');
         $(this).addClass('bg-white text-gray-800 shadow-sm').removeClass('text-gray-500');
         currentType = $(this).data('type');
-        table.ajax.reload();
+        buildTable(viewModeFor(currentType));
     });
 
     // Filters
@@ -278,7 +306,7 @@ $(function () {
         $('#filter-status, #filter-country').val('');
         currentType = '';
         $('.type-tab[data-type=""]').click();
-        table.ajax.reload();
+        buildTable('all');
     });
 
     // Approve

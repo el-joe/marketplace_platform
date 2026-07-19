@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\MarketerPortal\AffiliatePromoCodeController;
 use App\Http\Controllers\MarketerPortal\AuthController;
 use App\Http\Controllers\MarketerPortal\CampaignController;
 use App\Http\Controllers\MarketerPortal\DashboardController;
 use App\Http\Controllers\MarketerPortal\EarningsController;
+use App\Http\Controllers\MarketerPortal\InfluencerDealController;
 use App\Http\Controllers\MarketerPortal\InvitationController;
+use App\Http\Controllers\MarketerPortal\MediaKitController;
 use App\Http\Controllers\MarketerPortal\ProfileController;
 use App\Http\Controllers\MarketerPortal\QrCodeController;
 use App\Http\Controllers\MarketerPortal\SampleRequestController;
@@ -108,6 +111,23 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
                 Route::get('/{invitation}', [InvitationController::class, 'show'])->name('show');
                 Route::post('/{invitation}/accept', [InvitationController::class, 'accept'])->name('accept');
                 Route::post('/{invitation}/decline', [InvitationController::class, 'decline'])->name('decline');
+            });
+
+            // ── Affiliate only: Promo Codes ───────────────────────────────────────
+            Route::middleware('marketer.affiliate')->group(function () {
+                Route::resource('promo-codes', AffiliatePromoCodeController::class)->only(['index', 'store', 'show']);
+            });
+
+            // ── Influencer only: Deals + Deliverables + Media Kit ────────────────
+            Route::middleware('marketer.influencer')->group(function () {
+                Route::get('/deals', [InfluencerDealController::class, 'index'])->name('deals.index');
+                Route::get('/deals/{deal}', [InfluencerDealController::class, 'show'])->name('deals.show');
+                Route::post('/deals/{deal}/accept', [InfluencerDealController::class, 'accept'])->name('deals.accept');
+                Route::post('/deals/{deal}/reject', [InfluencerDealController::class, 'reject'])->name('deals.reject');
+                Route::post('/deals/{deal}/deliverables/{deliverable}/submit', [InfluencerDealController::class, 'submitDeliverable'])->name('deals.deliverables.submit');
+
+                Route::get('/media-kit', [MediaKitController::class, 'show'])->name('media-kit.show');
+                Route::put('/media-kit', [MediaKitController::class, 'update'])->name('media-kit.update');
             });
         });
     });

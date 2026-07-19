@@ -195,6 +195,8 @@ Route::prefix('v1/{country}')
             Route::delete('/', [CartController::class, 'clear'])->name('clear');
             Route::post('coupon', [CartController::class, 'applyCoupon'])->name('coupon.apply');
             Route::delete('coupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
+            Route::post('promo-code', [CartController::class, 'applyPromoCode'])->name('promo-code.apply');
+            Route::delete('promo-code', [CartController::class, 'removePromoCode'])->name('promo-code.remove');
         });
 
         // ── Authenticated endpoints ───────────────────────────────────────────

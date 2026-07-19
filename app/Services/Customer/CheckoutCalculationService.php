@@ -4,6 +4,7 @@ namespace App\Services\Customer;
 
 use App\Enums\GlobalSystemType;
 use App\Models\Address;
+use App\Models\Cart;
 use App\Models\City;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
@@ -14,12 +15,52 @@ use App\Models\Order;
 use App\Models\ShippingRate;
 use App\Models\VendorListing;
 use App\Models\WarrantyPlan;
+use App\Services\AffiliatePromoCodeService;
 use App\Services\WarrantyPlanService;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class CheckoutCalculationService
 {
+    public function __construct(
+        private readonly AffiliatePromoCodeService $affiliatePromoCodeService,
+    ) {}
+
+    /**
+     * Applies an affiliate promo code to a cart's current totals.
+     *
+     * Promo codes cannot stack with an already-applied coupon unless that
+     * coupon is explicitly marked `is_stackable`.
+     */
+    public function applyAffiliatePromoCode(Cart $cart, string $code, ?Coupon $coupon = null): array
+    {
+        if ($coupon !== null && ! $coupon->is_stackable) {
+            return [
+                'applied' => false,
+                'discount_amount' => 0,
+                'promo_code_id' => null,
+                'message' => 'This promo code cannot be combined with the applied coupon.',
+            ];
+        }
+
+        $result = $this->affiliatePromoCodeService->applyCode($code, $cart);
+
+        if (! $result['valid']) {
+            return [
+                'applied' => false,
+                'discount_amount' => 0,
+                'promo_code_id' => null,
+                'message' => $result['message'],
+            ];
+        }
+
+        return [
+            'applied' => true,
+            'discount_amount' => $result['discount'],
+            'promo_code_id' => $result['promo_code_id'],
+            'message' => $result['message'],
+        ];
+    }
     /**
      * Resolve destination zone, applicable rate, weight fee and COD eligibility
      * for a shipping method and cart.

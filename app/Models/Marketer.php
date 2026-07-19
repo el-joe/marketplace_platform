@@ -6,6 +6,7 @@ use App\Enums\MarketerTrackingStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -162,7 +163,32 @@ class Marketer extends Authenticatable implements JWTSubject
         return $this->hasMany(MarketerCommissionTier::class);
     }
 
+    public function deals(): HasMany
+    {
+        return $this->hasMany(InfluencerDeal::class);
+    }
+
+    public function mediaKit(): HasOne
+    {
+        return $this->hasOne(InfluencerMediaKit::class);
+    }
+
+    public function affiliatePromoCodes(): HasMany
+    {
+        return $this->hasMany(AffiliatePromoCode::class);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    public function isInfluencer(): bool
+    {
+        return in_array($this->type?->value ?? $this->type, ['influencer', 'celebrity', 'brand_ambassador'], true);
+    }
+
+    public function isAffiliate(): bool
+    {
+        return ($this->type?->value ?? $this->type) === 'affiliate';
+    }
 
     public function getTypeLabelAttribute(): string
     {

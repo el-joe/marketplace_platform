@@ -53,7 +53,9 @@ use App\Http\Controllers\Admin\DeliveryAgentController;
 use App\Http\Controllers\Admin\DeliveryZoneController;
 use App\Http\Controllers\Admin\DeliveryAssignmentController;
 use App\Http\Controllers\Admin\DeliveryPayoutController;
+use App\Http\Controllers\Admin\AffiliatePromoCodeController;
 use App\Http\Controllers\Admin\MarketerController;
+use App\Http\Controllers\Admin\InfluencerDealController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\FbnController;
 use App\Http\Controllers\Admin\SecretPromotionController;
@@ -1028,8 +1030,32 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{marketer}/conversions/datatable', [MarketerController::class, 'marketerConversionsDatatable'])->name('marketer-conversions.datatable');
         Route::post('/{marketer}/samples/datatable', [MarketerController::class, 'marketerSamplesDatatable'])->name('marketer-samples.datatable');
         Route::post('/{marketer}/secret-promotions/datatable', [MarketerController::class, 'marketerSecretPromotionsDatatable'])->name('marketer-secret-promotions.datatable');
+        Route::post('/{marketer}/payouts/datatable', [MarketerController::class, 'marketerPayoutsDatatable'])->name('marketer-payouts.datatable');
+        Route::post('/{marketer}/deliverables/datatable', [MarketerController::class, 'marketerDeliverablesDatatable'])->name('marketer-deliverables.datatable');
         Route::get('/{marketer}/tiers', [MarketerController::class, 'tiersShow'])->name('tiers.show');
         Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
+    });
+
+    // ── Affiliate Promo Codes ────────────────────────────────────────────────────
+    Route::prefix('affiliate-promo-codes')->name('affiliate-promo-codes.')->group(function () {
+        Route::get('/', [AffiliatePromoCodeController::class, 'index'])->name('index');
+        Route::post('/datatable', [AffiliatePromoCodeController::class, 'datatable'])->name('datatable');
+        Route::post('/', [AffiliatePromoCodeController::class, 'store'])->name('store');
+        Route::post('/{id}/toggle', [AffiliatePromoCodeController::class, 'toggle'])->name('toggle');
+        Route::delete('/{id}', [AffiliatePromoCodeController::class, 'destroy'])->name('destroy');
+    });
+
+    // ── Influencer Deals ─────────────────────────────────────────────────────────
+    Route::prefix('influencer-deals')->name('influencer-deals.')->group(function () {
+        Route::get('/', [InfluencerDealController::class, 'index'])->name('index');
+        Route::post('/datatable', [InfluencerDealController::class, 'datatable'])->name('datatable');
+        Route::post('/propose', [InfluencerDealController::class, 'propose'])->name('propose');
+        Route::get('/{deal}', [InfluencerDealController::class, 'show'])->name('show');
+        Route::post('/{deal}/approve', [InfluencerDealController::class, 'approve'])->name('approve');
+        Route::post('/{deal}/payment', [InfluencerDealController::class, 'initiatePayment'])->name('payment');
+        Route::post('/{deal}/cancel', [InfluencerDealController::class, 'cancel'])->name('cancel');
+        Route::post('/{deal}/deliverables/{deliverable}/approve', [InfluencerDealController::class, 'approveDeliverable'])->name('deliverables.approve');
+        Route::post('/{deal}/deliverables/{deliverable}/reject', [InfluencerDealController::class, 'rejectDeliverable'])->name('deliverables.reject');
     });
 
     // ── Marketer Secret Promotions ──────────────────────────────────────────────

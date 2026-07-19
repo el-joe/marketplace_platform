@@ -7,6 +7,8 @@ use App\Enums\SecretPromotionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Country;
+use App\Models\InfluencerDeal;
+use App\Models\InfluencerDealDeliverable;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
 use App\Models\MarketerCommissionTier;
@@ -82,15 +84,45 @@ class MarketerController extends Controller
 
     public function datatable(Request $request): JsonResponse
     {
-        $columns = [
+        // 'type' is the canonical filter param; 'filter_type' is kept as an alias
+        // for backwards compatibility with the existing type-tab UI.
+        $type = $request->input('type') ?: $request->input('filter_type');
+        $type = in_array($type, ['influencer', 'celebrity', 'brand_ambassador', 'affiliate'], true) ? $type : null;
+        $viewMode = match (true) {
+            $type === 'affiliate' => 'affiliate',
+            in_array($type, ['influencer', 'celebrity', 'brand_ambassador'], true) => 'influencer',
+            default => 'all',
+        };
+
+        $baseColumns = [
             ['searchable_columns' => ['marketers.name']],
             ['searchable_columns' => ['marketers.email', 'marketers.phone']],
-            ['orderable_column' => 'marketers.type'],
             ['orderable_column' => 'countries.name_en'],
-            ['orderable_column' => 'marketers.followers_count'],
-            ['orderable_column' => 'marketers.total_clicks'],
-            ['orderable_column' => 'marketers.total_conversions'],
-            ['orderable_column' => 'marketers.total_earnings'],
+        ];
+
+        $metricColumns = match ($viewMode) {
+            'affiliate' => [
+                ['orderable_column' => 'marketers.total_clicks'],
+                ['orderable_column' => 'marketers.total_conversions'],
+                [],
+                ['orderable_column' => 'marketers.total_earnings'],
+            ],
+            'influencer' => [
+                [],
+                [],
+                [],
+                ['orderable_column' => 'marketers.total_earnings'],
+            ],
+            default => [
+                ['orderable_column' => 'marketers.type'],
+                [],
+                ['orderable_column' => 'marketers.total_earnings'],
+            ],
+        };
+
+        $columns = [
+            ...$baseColumns,
+            ...$metricColumns,
             ['orderable_column' => 'marketers.status'],
             [],
         ];
@@ -114,8 +146,28 @@ class MarketerController extends Controller
                 'countries.name_en as country_name',
             ]);
 
+        if ($viewMode === 'influencer') {
+            $query->addSelect([
+                'active_deals_count' => InfluencerDeal::selectRaw('count(*)')
+                    ->whereColumn('marketer_id', 'marketers.id')
+                    ->whereIn('status', ['accepted', 'in_progress', 'content_submitted', 'approved']),
+                'pending_deliverables_count' => InfluencerDealDeliverable::selectRaw('count(*)')
+                    ->join('influencer_deals', 'influencer_deals.id', '=', 'influencer_deal_deliverables.deal_id')
+                    ->whereColumn('influencer_deals.marketer_id', 'marketers.id')
+                    ->where('influencer_deal_deliverables.status', 'pending'),
+                'total_paid_out' => MarketerPayout::selectRaw('coalesce(sum(net_amount), 0)')
+                    ->whereColumn('marketer_id', 'marketers.id')
+                    ->where('status', 'paid'),
+            ]);
+        } elseif ($viewMode === 'all') {
+            $query->addSelect([
+                'deals_count' => InfluencerDeal::selectRaw('count(*)')
+                    ->whereColumn('marketer_id', 'marketers.id'),
+            ]);
+        }
+
         // Filters
-        if ($type = $request->input('filter_type')) {
+        if ($type) {
             $query->where('marketers.type', $type);
         }
         if ($status = $request->input('filter_status')) {
@@ -125,27 +177,55 @@ class MarketerController extends Controller
             $query->where('marketers.country_id', $country);
         }
 
-        return $this->dataTableResponse($request, $query, $columns, function ($row) {
-            return [
+        return $this->dataTableResponse($request, $query, $columns, function ($row) use ($viewMode) {
+            $row_ = [
                 $row->profile_photo_path
                 ? '<img src="' . asset('storage/' . $row->profile_photo_path) . '" class="w-8 h-8 rounded-full object-cover">'
                 : '<span class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-sm">' . strtoupper(substr($row->name, 0, 1)) . '</span>',
                 '<div><p class="font-medium">' . e($row->name) . '</p><p class="text-xs text-gray-400">' . e($row->email) . '</p></div>',
-                '<span class="badge badge-' . $this->typeColor($row->type?->value) . '">' . ucfirst(str_replace('_', ' ', $row->type?->value)) . '</span>',
                 e($row->country_name ?? '—'),
-                number_format($row->followers_count),
-                number_format($row->total_clicks),
-                number_format($row->total_conversions),
-                number_format($row->total_earnings / 100, 2),
-                '<span class="badge badge-' . $this->statusColor($row->status?->value) . '">' . ucfirst($row->status?->value) . '</span>',
-                $this->actions($row),
             ];
+
+            if ($viewMode === 'affiliate') {
+                $convRate = $row->total_clicks > 0 ? round(($row->total_conversions / $row->total_clicks) * 100, 2) : 0;
+                $row_ = [
+                    ...$row_,
+                    number_format($row->total_clicks),
+                    number_format($row->total_conversions),
+                    $convRate . '%',
+                    number_format($row->total_earnings / 100, 2),
+                ];
+            } elseif ($viewMode === 'influencer') {
+                $row_ = [
+                    ...$row_,
+                    number_format($row->active_deals_count ?? 0),
+                    number_format($row->pending_deliverables_count ?? 0),
+                    number_format(($row->total_paid_out ?? 0) / 100, 2),
+                    number_format($row->total_earnings / 100, 2),
+                ];
+            } else {
+                $row_ = [
+                    ...$row_,
+                    view('components.marketer-type-badge', ['type' => $row->type])->render(),
+                    number_format($row->type?->value === 'affiliate' ? $row->total_clicks : ($row->deals_count ?? 0)),
+                    number_format($row->total_earnings / 100, 2),
+                ];
+            }
+
+            $row_[] = '<span class="badge badge-' . $this->statusColor($row->status?->value) . '">' . ucfirst($row->status?->value) . '</span>';
+            $row_[] = $this->actions($row);
+
+            return $row_;
         });
     }
 
     public function show(Marketer $marketer): View
     {
         $marketer->load(['country', 'campaigns' => fn($q) => $q->latest()->limit(5)]);
+
+        if ($marketer->isInfluencer()) {
+            $marketer->load(['mediaKit', 'deals' => fn($q) => $q->with('vendor:id,store_name')->latest()->limit(10)]);
+        }
 
         // Earnings grouped by currency — never sum across currencies.
         $pendingByCurrency = $marketer->conversions()->where('status', 'pending')
@@ -286,6 +366,64 @@ class MarketerController extends Controller
     public function marketerConversionsDatatable(Marketer $marketer, Request $request): JsonResponse
     {
         return $this->buildConversionsDatatable($request, $marketer->conversions()->getQuery());
+    }
+
+    public function marketerPayoutsDatatable(Marketer $marketer, Request $request): JsonResponse
+    {
+        $columns = [
+            ['searchable_columns' => ['marketer_payouts.payout_number']],
+            ['orderable_column' => 'marketer_payouts.period_start'],
+            ['orderable_column' => 'marketer_payouts.total_conversions'],
+            ['orderable_column' => 'marketer_payouts.net_amount'],
+            ['orderable_column' => 'marketer_payouts.status'],
+            ['orderable_column' => 'marketer_payouts.processed_at'],
+        ];
+
+        $query = $marketer->payouts()->getQuery();
+
+        if ($status = $request->input('filter_status')) {
+            $query->where('marketer_payouts.status', $status);
+        }
+
+        return $this->dataTableResponse($request, $query, $columns, fn($row) => [
+            '<span class="font-mono text-xs">' . e($row->payout_number) . '</span>',
+            $row->period_start . ' – ' . $row->period_end,
+            number_format($row->total_conversions),
+            number_format($row->net_amount / 100, 2) . ' ' . $row->currency,
+            '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
+            $row->processed_at?->format('d M Y') ?? '—',
+        ]);
+    }
+
+    public function marketerDeliverablesDatatable(Marketer $marketer, Request $request): JsonResponse
+    {
+        $columns = [
+            ['searchable_columns' => ['influencer_deals.deal_name']],
+            ['orderable_column' => 'influencer_deal_deliverables.platform'],
+            ['orderable_column' => 'influencer_deal_deliverables.content_type'],
+            ['orderable_column' => 'influencer_deal_deliverables.status'],
+            ['orderable_column' => 'influencer_deal_deliverables.due_at'],
+        ];
+
+        $query = InfluencerDealDeliverable::query()
+            ->join('influencer_deals', 'influencer_deals.id', '=', 'influencer_deal_deliverables.deal_id')
+            ->where('influencer_deals.marketer_id', $marketer->id)
+            ->select([
+                'influencer_deal_deliverables.*',
+                'influencer_deals.deal_name',
+            ]);
+
+        if ($status = $request->input('filter_status')) {
+            $query->where('influencer_deal_deliverables.status', $status);
+        }
+
+        return $this->dataTableResponse($request, $query, $columns, fn($row) => [
+            e($row->deal_name),
+            ucfirst($row->platform),
+            ucfirst(str_replace('_', ' ', $row->content_type)),
+            '<span class="badge badge-' . $this->deliverableStatusColor($row->status) . '">' . ucfirst(str_replace('_', ' ', $row->status)) . '</span>',
+            $row->due_at?->format('d M Y') ?? '—',
+        ]);
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -810,6 +948,17 @@ class MarketerController extends Controller
             'influencer' => 'primary',
             'affiliate' => 'success',
             'brand_ambassador' => 'secondary',
+            default => 'secondary',
+        };
+    }
+
+    private function deliverableStatusColor(string $status): string
+    {
+        return match ($status) {
+            'approved' => 'success',
+            'submitted' => 'primary',
+            'pending' => 'warning',
+            'rejected' => 'danger',
             default => 'secondary',
         };
     }

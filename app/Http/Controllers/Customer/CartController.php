@@ -11,6 +11,7 @@ use App\Http\Resources\Customer\CartItemResource;
 use App\Http\Resources\Customer\CartResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Services\Customer\CartService;
 use App\Services\Customer\ListingIdentifierService;
 use Illuminate\Http\JsonResponse;
@@ -175,6 +176,63 @@ class CartController extends Controller
         $this->cartService->removeCoupon($cart);
 
         return ApiResponse::success(new CartResource($cart), 'Coupon removed');
+    }
+
+    /**
+     * Applies a discount code to the cart, trying the coupons table first
+     * and falling back to affiliate promo codes.
+     */
+    public function applyPromoCode(ApplyCouponRequest $request): JsonResponse
+    {
+        $customer = auth('customer')->user();
+        $cart = $this->resolveCart($request);
+        $code = $request->code;
+
+        $coupon = Coupon::where('code', $code)->first();
+        if ($coupon) {
+            try {
+                $this->cartService->applyCoupon($cart, $customer, $code);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+                return ApiResponse::error('Coupon not found or is invalid.', [], 404);
+            } catch (\DomainException $e) {
+                return ApiResponse::error($e->getMessage(), [], 422);
+            }
+
+            return ApiResponse::success([
+                'success' => true,
+                'message' => "Coupon \"{$code}\" applied",
+                'data' => [
+                    'discount_amount' => $cart->discount,
+                    'type' => 'coupon',
+                ],
+                'cart' => new CartResource($cart),
+            ], "Coupon \"{$code}\" applied");
+        }
+
+        try {
+            $this->cartService->applyAffiliatePromoCode($cart, $code);
+        } catch (\DomainException $e) {
+            return ApiResponse::error($e->getMessage(), [], 422);
+        }
+
+        return ApiResponse::success([
+            'success' => true,
+            'message' => "Promo code \"{$code}\" applied",
+            'data' => [
+                'discount_amount' => $cart->discount,
+                'type' => 'affiliate_promo',
+            ],
+            'cart' => new CartResource($cart),
+        ], "Promo code \"{$code}\" applied");
+    }
+
+    public function removePromoCode(Request $request): JsonResponse
+    {
+        $cart = $this->resolveCart($request);
+
+        $this->cartService->removeAffiliatePromoCode($cart);
+
+        return ApiResponse::success(new CartResource($cart), 'Promo code removed');
     }
 
     public function mergeCart(Request $request): JsonResponse

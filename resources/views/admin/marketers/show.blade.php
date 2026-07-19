@@ -25,7 +25,7 @@
             <div>
                 <h2 class="text-xl font-bold text-gray-900">{{ $marketer->name }}</h2>
                 <span class="badge badge-{{ $marketer->status_color }}">{{ $marketer->status->label() }}</span>
-                <span class="badge badge-secondary ml-1">{{ $marketer->type_label }}</span>
+                <x-marketer-type-badge :type="$marketer->type" class="ml-1" />
             </div>
         </div>
 
@@ -117,17 +117,28 @@
 </div>
 
 {{-- ─── Tabs ────────────────────────────────────────────────────────────────── --}}
-<div x-data="{ tab: 'campaigns' }"
+@php
+    $tabLabels = $marketer->isAffiliate()
+        ? [
+            'overview'    => '📋 ' . __('admin.marketers.tab_overview'),
+            'campaigns'   => __('admin.marketers.tab_campaigns'),
+            'promo_codes' => '🏷️ Promo Codes',
+            'conversions' => __('admin.marketers.tab_conversions'),
+            'payouts'     => '💳 ' . __('admin.marketers.tab_payouts'),
+        ]
+        : [
+            'overview'     => '📋 ' . __('admin.marketers.tab_overview'),
+            'deals'        => '🤝 Deals',
+            'deliverables' => '📄 Deliverables',
+            'media_kit'    => '🪪 Media Kit',
+            'payouts'      => '💳 ' . __('admin.marketers.tab_payouts'),
+        ];
+@endphp
+<div x-data="{ tab: 'overview' }"
      x-effect="document.dispatchEvent(new CustomEvent('marketer-tab-change', { detail: tab }))">
 
     <div class="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5 flex-wrap">
-        @foreach([
-            'campaigns'     => __('admin.marketers.tab_campaigns'),
-            'conversions'   => __('admin.marketers.tab_conversions'),
-            'tiers'         => '📈 ' . __('admin.marketers.tab_tiers'),
-            'samples'       => '📦 ' . __('admin.marketers.tab_samples'),
-            'secret_promos' => '🔒 ' . __('admin.marketers.tab_secret_promos'),
-        ] as $key => $label)
+        @foreach($tabLabels as $key => $label)
             <button type="button" @click="tab = '{{ $key }}'"
                     class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors"
                     :class="tab === '{{ $key }}' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
@@ -136,6 +147,92 @@
         @endforeach
     </div>
 
+    {{-- Overview --}}
+    <div x-show="tab === 'overview'" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">{{ __('admin.marketers.commission_tiers_title') }}</h3>
+            <p class="text-sm text-gray-500 mb-3">{{ __('admin.marketers.current_sales') }}: <strong>{{ $stats['total_conversions'] }}</strong></p>
+            @php $tiers = $marketer->commissionTiers()->whereNull('campaign_id')->orderBy('tier_order')->get(); @endphp
+            @if($tiers->isEmpty())
+                <p class="text-sm text-gray-400 italic">{{ __('admin.marketers.no_tiers_configured', ['rate' => $marketer->commission_rate]) }}</p>
+            @else
+                <div class="space-y-2">
+                    @foreach($tiers as $tier)
+                        @php $isCurrent = $stats['total_conversions'] >= $tier->min_sales_count && ($tier->max_sales_count === null || $stats['total_conversions'] <= $tier->max_sales_count); @endphp
+                        <div class="flex items-center gap-3 p-3 rounded-xl {{ $isCurrent ? 'bg-primary-50 border-2 border-primary-300' : 'bg-gray-50 border border-gray-200' }}">
+                            <div class="w-7 h-7 rounded-full {{ $isCurrent ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-600' }} flex items-center justify-center font-bold text-xs">{{ $tier->tier_order }}</div>
+                            <div class="flex-1">
+                                <p class="text-sm font-semibold">{{ __('admin.marketers.sales_range', ['min' => number_format($tier->min_sales_count), 'max' => $tier->max_sales_count ? number_format($tier->max_sales_count) : __('admin.marketers.unlimited_sales')]) }}</p>
+                                <p class="text-xs text-gray-500">{{ __('admin.marketers.commission') }}: <strong>{{ $tier->commission_rate }}%</strong></p>
+                            </div>
+                            @if($isCurrent)<span class="badge badge-primary">{{ __('admin.marketers.current_tier') }}</span>@endif
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+            <a href="{{ route('admin.marketers.all.tiers.show', $marketer) }}" class="btn btn-primary btn-sm mt-4">{{ __('admin.marketers.edit_tiers') }}</a>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">📦 {{ __('admin.marketers.tab_samples') }}</h3>
+                <div class="overflow-x-auto">
+                <table id="marketer-samples-table" class="w-full text-sm" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>{{ __('admin.marketers.sample_vendor') }}</th>
+                            <th>{{ __('admin.status') }}</th>
+                            <th>{{ __('admin.marketers.sample_date') }}</th>
+                            <th>{{ __('admin.marketers.sample_actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">🔒 {{ __('admin.marketers.tab_secret_promos') }}</h3>
+                <div class="overflow-x-auto">
+                <table id="marketer-secret-promos-table" class="w-full text-sm" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>{{ __('admin.marketers.vendor') }} / {{ __('admin.marketers.product') }}</th>
+                            <th>{{ __('admin.marketers.total_pct') }}</th>
+                            <th>{{ __('admin.status') }}</th>
+                            <th>{{ __('admin.marketers.valid_until') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Payouts DataTable (both types) --}}
+    <div x-show="tab === 'payouts'">
+        <x-card>
+            <div class="overflow-x-auto">
+            <table id="marketer-payouts-table" class="w-full text-sm" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>{{ __('admin.marketers.payout_number') ?? 'Payout #' }}</th>
+                        <th>{{ __('admin.marketers.period') ?? 'Period' }}</th>
+                        <th>{{ __('admin.marketers.conv') }}</th>
+                        <th>{{ __('admin.marketers.net_amount') ?? 'Net Amount' }}</th>
+                        <th>{{ __('admin.status') }}</th>
+                        <th>{{ __('admin.marketers.processed_at') ?? 'Processed' }}</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            </div>
+        </x-card>
+    </div>
+
+    {{-- Affiliate-only tabs --}}
+    @if($marketer->isAffiliate())
     {{-- Campaigns DataTable --}}
     <div x-show="tab === 'campaigns'">
         <x-card>
@@ -181,52 +278,119 @@
         </x-card>
     </div>
 
-    {{-- Commission Tiers --}}
-    <div x-show="tab === 'tiers'">
-        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <div class="flex items-center justify-between mb-5">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800">{{ __('admin.marketers.commission_tiers_title') }}</h3>
-                    <p class="text-sm text-gray-500 mt-1">{{ __('admin.marketers.current_sales') }}: <strong>{{ $stats['total_conversions'] }}</strong></p>
-                </div>
-                <a href="{{ route('admin.marketers.all.tiers.show', $marketer) }}" class="btn btn-primary btn-sm">{{ __('admin.marketers.edit_tiers') }}</a>
+    <div x-show="tab === 'promo_codes'">
+        <div class="flex justify-end mb-3">
+            <button type="button" id="create-marketer-promo-btn" class="btn btn-primary btn-sm">Create Promo Code</button>
+        </div>
+        <x-card>
+            <div class="overflow-x-auto">
+            <table id="marketer-promo-codes-table" class="w-full text-sm" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Marketer</th>
+                        <th>Discount</th>
+                        <th>Uses</th>
+                        <th>Revenue Generated</th>
+                        <th>Commission Earned</th>
+                        <th>Status</th>
+                        <th>Valid Until</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
             </div>
-            @php $tiers = $marketer->commissionTiers()->whereNull('campaign_id')->orderBy('tier_order')->get(); @endphp
-            @if($tiers->isEmpty())
-                <p class="text-sm text-gray-400 italic">{{ __('admin.marketers.no_tiers_configured', ['rate' => $marketer->commission_rate]) }}</p>
-            @else
-                <div class="space-y-3">
-                    @foreach($tiers as $tier)
-                        @php $isCurrent = $stats['total_conversions'] >= $tier->min_sales_count && ($tier->max_sales_count === null || $stats['total_conversions'] <= $tier->max_sales_count); @endphp
-                        <div class="flex items-center gap-4 p-4 rounded-xl {{ $isCurrent ? 'bg-primary-50 border-2 border-primary-300' : 'bg-gray-50 border border-gray-200' }}">
-                            <div class="w-8 h-8 rounded-full {{ $isCurrent ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-600' }} flex items-center justify-center font-bold text-sm">{{ $tier->tier_order }}</div>
-                            <div class="flex-1">
-                                <p class="text-sm font-semibold">
-                                    {{ __('admin.marketers.sales_range', ['min' => number_format($tier->min_sales_count), 'max' => $tier->max_sales_count ? number_format($tier->max_sales_count) : __('admin.marketers.unlimited_sales')]) }}
-                                </p>
-                                <p class="text-xs text-gray-500">{{ __('admin.marketers.commission') }}: <strong>{{ $tier->commission_rate }}%</strong></p>
-                            </div>
-                            @if($isCurrent)
-                                <span class="badge badge-primary">{{ __('admin.marketers.current_tier') }}</span>
-                            @endif
-                        </div>
-                    @endforeach
+        </x-card>
+    </div>
+
+    {{-- Create Promo Code Modal (marketer-scoped) --}}
+    <div id="create-marketer-promo-modal" class="modal-backdrop hidden">
+        <div class="modal-box max-w-xl">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-lg font-semibold text-gray-900">Create Promo Code for {{ $marketer->name }}</h3>
+                <button type="button" data-modal-close class="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1">&times;</button>
+            </div>
+            <form id="create-marketer-promo-form">
+                <input type="hidden" name="marketer_id" value="{{ $marketer->id }}">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="form-label">Code</label>
+                        <input type="text" name="code" class="form-input w-full" placeholder="Leave blank to auto-generate (AFF-XX-XXXXXX)">
+                    </div>
+                    <div>
+                        <label class="form-label">Discount Type <span class="text-red-500">*</span></label>
+                        <select name="discount_type" class="form-input w-full" required>
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed_amount">Fixed Amount</option>
+                            <option value="free_shipping">Free Shipping</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Discount Value <span class="text-red-500">*</span></label>
+                        <input type="number" name="discount_value" class="form-input w-full" step="0.01" min="0" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Currency</label>
+                        <input type="text" name="currency" class="form-input w-full" maxlength="3" placeholder="e.g. SAR">
+                    </div>
+                    <div>
+                        <label class="form-label">Max Uses</label>
+                        <input type="number" name="max_uses" class="form-input w-full" min="1" placeholder="Unlimited">
+                    </div>
+                    <div>
+                        <label class="form-label">Min Order Amount</label>
+                        <input type="number" name="min_order_amount" class="form-input w-full" min="0" placeholder="No minimum">
+                    </div>
+                    <div>
+                        <label class="form-label">Valid From <span class="text-red-500">*</span></label>
+                        <input type="date" name="valid_from" class="form-input w-full" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="form-label">Valid Until <span class="text-red-500">*</span></label>
+                        <input type="date" name="valid_until" class="form-input w-full" required>
+                    </div>
                 </div>
-            @endif
+                <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-gray-100">
+                    <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Create Promo Code</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    {{-- Influencer-only tabs --}}
+    @if($marketer->isInfluencer())
+    <div x-show="tab === 'deals'">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Deals</h3>
+            @forelse($marketer->deals as $deal)
+                <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200 mb-2">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-800">{{ $deal->deal_name }}</p>
+                        <p class="text-xs text-gray-500">{{ $deal->vendor?->store_name ?? '—' }} · {{ ucfirst(str_replace('_', ' ', $deal->deal_type)) }}</p>
+                    </div>
+                    <span class="badge badge-secondary">{{ ucfirst($deal->status) }}</span>
+                </div>
+            @empty
+                <p class="text-sm text-gray-400 italic">No deals yet.</p>
+            @endforelse
+            <a href="{{ route('admin.influencer-deals.index') }}?filter_marketer={{ $marketer->id }}" class="text-sm text-primary-600 hover:underline mt-3 inline-block">View all deals →</a>
         </div>
     </div>
 
-    {{-- Sample Requests DataTable --}}
-    <div x-show="tab === 'samples'">
+    <div x-show="tab === 'deliverables'">
         <x-card>
             <div class="overflow-x-auto">
-            <table id="marketer-samples-table" class="w-full text-sm" style="width:100%">
+            <table id="marketer-deliverables-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
-                        <th>{{ __('admin.marketers.sample_vendor') }}</th>
+                        <th>Deal</th>
+                        <th>Platform</th>
+                        <th>Content Type</th>
                         <th>{{ __('admin.status') }}</th>
-                        <th>{{ __('admin.marketers.sample_date') }}</th>
-                        <th>{{ __('admin.marketers.sample_actions') }}</th>
+                        <th>Due</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -235,24 +399,22 @@
         </x-card>
     </div>
 
-    {{-- Secret Promotions DataTable --}}
-    <div x-show="tab === 'secret_promos'">
-        <x-card>
-            <div class="overflow-x-auto">
-            <table id="marketer-secret-promos-table" class="w-full text-sm" style="width:100%">
-                <thead>
-                    <tr>
-                        <th>{{ __('admin.marketers.vendor') }} / {{ __('admin.marketers.product') }}</th>
-                        <th>{{ __('admin.marketers.total_pct') }}</th>
-                        <th>{{ __('admin.status') }}</th>
-                        <th>{{ __('admin.marketers.valid_until') }}</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            </div>
-        </x-card>
+    <div x-show="tab === 'media_kit'">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 max-w-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Media Kit</h3>
+            @if($marketer->mediaKit)
+                <div class="space-y-2 text-sm">
+                    <p class="font-semibold">{{ $marketer->mediaKit->headline }}</p>
+                    <div class="flex justify-between"><span class="text-gray-400">Avg. Post Reach</span><span class="font-medium">{{ number_format($marketer->mediaKit->avg_post_reach ?? 0) }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Rate / Post</span><span class="font-medium">{{ $marketer->mediaKit->rate_per_post ? number_format($marketer->mediaKit->rate_per_post / 100, 2) . ' ' . $marketer->mediaKit->rate_currency : '—' }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Visible to Vendors</span><span class="font-medium">{{ $marketer->mediaKit->is_visible_to_vendors ? 'Yes' : 'No' }}</span></div>
+                </div>
+            @else
+                <p class="text-sm text-gray-400 italic">No media kit on file.</p>
+            @endif
+        </div>
     </div>
+    @endif
 
 </div>
 
@@ -289,7 +451,24 @@ $(function () {
         if (inited[tab]) return;
         inited[tab] = true;
 
-        if (tab === 'campaigns') {
+        if (tab === 'overview') {
+            $('#marketer-samples-table').DataTable(dtConfig(
+                '{{ route('admin.marketers.all.marketer-samples.datatable', $marketer->id) }}',
+                [{}, {}, {}, { orderable: false }],
+                [[2, 'desc']]
+            ));
+            $('#marketer-secret-promos-table').DataTable(dtConfig(
+                '{{ route('admin.marketers.all.marketer-secret-promotions.datatable', $marketer->id) }}',
+                [{}, {}, {}, {}],
+                [[3, 'desc']]
+            ));
+        } else if (tab === 'payouts') {
+            $('#marketer-payouts-table').DataTable(dtConfig(
+                '{{ route('admin.marketers.all.marketer-payouts.datatable', $marketer->id) }}',
+                [{}, {}, {}, {}, {}, {}],
+                [[1, 'desc']]
+            ));
+        } else if (tab === 'campaigns') {
             $('#marketer-campaigns-table').DataTable(dtConfig(
                 '{{ route('admin.marketers.all.marketer-campaigns.datatable', $marketer->id) }}',
                 [{}, {}, {}, {}, {}, {}, {}, { orderable: false }],
@@ -301,23 +480,31 @@ $(function () {
                 [{}, {}, {}, {}, {}, {}, { orderable: false }],
                 [[5, 'desc']]
             ));
-        } else if (tab === 'samples') {
-            $('#marketer-samples-table').DataTable(dtConfig(
-                '{{ route('admin.marketers.all.marketer-samples.datatable', $marketer->id) }}',
-                [{}, {}, {}, { orderable: false }],
-                [[2, 'desc']]
+        } else if (tab === 'deliverables') {
+            $('#marketer-deliverables-table').DataTable(dtConfig(
+                '{{ route('admin.marketers.all.marketer-deliverables.datatable', $marketer->id) }}',
+                [{}, {}, {}, {}, {}],
+                [[4, 'asc']]
             ));
-        } else if (tab === 'secret_promos') {
-            $('#marketer-secret-promos-table').DataTable(dtConfig(
-                '{{ route('admin.marketers.all.marketer-secret-promotions.datatable', $marketer->id) }}',
-                [{}, {}, {}, {}],
-                [[3, 'desc']]
-            ));
+        } else if (tab === 'promo_codes') {
+            $('#marketer-promo-codes-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('admin.affiliate-promo-codes.datatable') }}',
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': tok },
+                    data: function (d) { d.filter_marketer = markId; },
+                },
+                columns: [{}, {}, {}, {}, {}, {}, {}, {}, { orderable: false, searchable: false }],
+                order: [[7, 'desc']],
+                pageLength: 10,
+            });
         }
     }
 
     // Initialize the default tab on load, then lazily init others on switch.
-    initTab('campaigns');
+    initTab('overview');
 
     document.addEventListener('marketer-tab-change', function (e) {
         initTab(e.detail);
@@ -349,6 +536,49 @@ $(function () {
         $.post('/marketers/' + markId + '/activate', { _token: tok })
             .done(r => { window.Toast.success(r.message); setTimeout(() => location.reload(), 1200); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
+    });
+
+    // ── Promo codes (delegated) ────────────────────────────────────────────────
+    $('#create-marketer-promo-btn').on('click', () => $('#create-marketer-promo-modal').removeClass('hidden'));
+    $('#create-marketer-promo-modal [data-modal-close]').on('click', () => $('#create-marketer-promo-modal').addClass('hidden'));
+
+    $('#create-marketer-promo-form').on('submit', function (e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(this).entries());
+
+        $.ajax({
+            url: '{{ route('admin.affiliate-promo-codes.store') }}',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': tok },
+            data,
+        })
+            .done(r => {
+                window.Toast.success(r.message);
+                $('#create-marketer-promo-modal').addClass('hidden');
+                this.reset();
+                $('#marketer-promo-codes-table').DataTable().ajax.reload();
+            })
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
+    });
+
+    $(document).on('click', '.btn-toggle-promo', function () {
+        const id = $(this).data('id');
+        $.post('{{ url('affiliate-promo-codes') }}/' + id + '/toggle', { _token: tok })
+            .done(r => { window.Toast.success(r.message); $('#marketer-promo-codes-table').DataTable().ajax.reload(); })
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
+    });
+
+    $(document).on('click', '.btn-disable-promo', function () {
+        const id = $(this).data('id');
+        window.confirmDialog({ title: 'Disable this promo code?', onConfirm: () => {
+            $.ajax({
+                url: '{{ url('affiliate-promo-codes') }}/' + id,
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': tok },
+            })
+                .done(r => { window.Toast.success(r.message); $('#marketer-promo-codes-table').DataTable().ajax.reload(); })
+                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
+        }});
     });
 
     // ── Sample datatable actions (delegated) ──────────────────────────────────

@@ -15,6 +15,8 @@ class PermissionSeeder extends Seeder
         $guard = 'admin';
 
         $permissions = [
+            // Dashboard
+            'dashboard.view',
             // Catalog – Products
             'products.view',
             'products.create',
@@ -168,6 +170,8 @@ class PermissionSeeder extends Seeder
             'travel.reject',
             'travel.suspend',
             'travel.geography.manage',
+            // Classifieds
+            'classifieds.view',
         ];
 
         foreach ($permissions as $name) {

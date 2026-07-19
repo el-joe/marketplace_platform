@@ -33,6 +33,7 @@ use App\Services\Customer\CheckoutCalculationService;
 use App\Services\Customer\CityShippingSurchargeService;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\Customer\WarehouseShippingSurchargeService;
+use App\Services\AffiliatePromoCodeService;
 use App\Services\GiftCardService;
 use App\Services\PaymentService;
 use App\Services\WarrantyPlanService;
@@ -52,6 +53,7 @@ class CheckoutController extends Controller
         private readonly WarrantyPlanService $warrantyPlanService,
         private readonly CityShippingSurchargeService $cityShippingSurchargeService,
         private readonly WarehouseShippingSurchargeService $warehouseShippingSurchargeService,
+        private readonly AffiliatePromoCodeService $affiliatePromoCodeService,
     ) {}
 
     public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
@@ -396,6 +398,27 @@ class CheckoutController extends Controller
             $discountCents = $couponResult['discount'];
         }
 
+        $affiliatePromoCode = null;
+        $affiliatePromoDiscountCents = 0;
+        if ($cart->affiliate_promo_code_id) {
+            $cart->loadMissing('affiliatePromoCode');
+            $subtotal = (int) collect($cartItems)->sum(fn ($i) => $i->unit_price * $i->quantity);
+            $cart->setAttribute('subtotal', $subtotal);
+            $cart->setAttribute('estimated_shipping', 0);
+
+            $promoResult = $this->calculationService->applyAffiliatePromoCode(
+                $cart,
+                $cart->affiliatePromoCode->code,
+                $coupon,
+            );
+
+            if ($promoResult['applied']) {
+                $affiliatePromoCode = $cart->affiliatePromoCode;
+                $affiliatePromoDiscountCents = $promoResult['discount_amount'];
+                $discountCents += $affiliatePromoDiscountCents;
+            }
+        }
+
         $preGiftCardSummary = $this->calculationService->buildOrderSummary(
             $cartItems,
             $shippingFeeCents,
@@ -439,7 +462,8 @@ class CheckoutController extends Controller
             $result = DB::transaction(function () use (
                 $customer, $country, $address, $validated, $coupon,
                 $cartItems, $summary, $attribution, $vendorShipping,
-                $giftCard, $giftCardAppliedCents, $warrantySelections
+                $giftCard, $giftCardAppliedCents, $warrantySelections,
+                $affiliatePromoCode, $affiliatePromoDiscountCents
             ) {
                 $vendorShippingMap = $vendorShipping['per_vendor'];
                 $order = Order::create([
@@ -455,6 +479,7 @@ class CheckoutController extends Controller
                     'cod_fee' => $summary['cod_fee'],
                     'warranty_total' => $summary['warranty_total'],
                     'total' => $summary['total'],
+                    'affiliate_promo_code_id' => $affiliatePromoCode?->id,
                     'coupon_id' => $coupon?->id,
                     'coupon_code_used' => $coupon?->code,
                     'payment_method' => $validated['payment_method'],
@@ -612,6 +637,15 @@ class CheckoutController extends Controller
                         'used_at' => now(),
                     ]);
                     $coupon->increment('times_used');
+                }
+
+                if ($affiliatePromoCode) {
+                    $marketer = $affiliatePromoCode->marketer;
+                    $commissionAmount = (int) floor($order->total * ((float) ($marketer?->commission_rate ?? 0) / 100));
+
+                    $order->update(['affiliate_commission_amount' => $commissionAmount]);
+
+                    $this->affiliatePromoCodeService->recordConversion($affiliatePromoCode, $order, $commissionAmount);
                 }
 
                 return ['order' => $order, 'sub_orders' => $subOrders];

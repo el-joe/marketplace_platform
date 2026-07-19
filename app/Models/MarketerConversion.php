@@ -26,6 +26,7 @@ class MarketerConversion extends \Illuminate\Database\Eloquent\Model
         'click_chain',
         'is_whatsapp_conversion',
         'whatsapp_link_id',
+        'affiliate_promo_code_id',
         'approved_at',
         'paid_at',
         'reversed_at',
@@ -56,6 +57,11 @@ class MarketerConversion extends \Illuminate\Database\Eloquent\Model
     public function marketer(): BelongsTo
     {
         return $this->belongsTo(Marketer::class);
+    }
+
+    public function affiliatePromoCode(): BelongsTo
+    {
+        return $this->belongsTo(AffiliatePromoCode::class);
     }
 
     public function click(): BelongsTo

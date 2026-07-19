@@ -45,6 +45,13 @@ class NavigationService
                         'permission' => 'analytics.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => __('admin.nav.ai_dashboard'),
+                        'route' => 'admin.ai.index',
+                        'icon' => 'sparkles',
+                        'permission' => 'dashboard.view',
+                        'badge' => null,
+                    ],
                 ],
             ],
             [
@@ -189,6 +196,27 @@ class NavigationService
                         'permission' => 'campaign_offers.view',
                         'badge'      => $this->cachedBadge('pending_campaign_offers', fn() => $this->countPendingCampaignOffers()),
                     ],
+                    [
+                        'label' => __('admin.nav.ad_slots'),
+                        'route' => 'admin.ad-slots.index',
+                        'icon' => 'rectangle-stack',
+                        'permission' => 'ad_campaigns.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.paid_ad_bookings'),
+                        'route' => 'admin.paid-ad-bookings.index',
+                        'icon' => 'ticket',
+                        'permission' => 'ad_campaigns.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.affiliate_promo_codes'),
+                        'route' => 'admin.affiliate-promo-codes.index',
+                        'icon' => 'ticket',
+                        'permission' => 'marketers.view',
+                        'badge' => null,
+                    ],
                 ],
             ],
             [
@@ -222,6 +250,13 @@ class NavigationService
                         'icon' => 'inbox-arrow-down',
                         'permission' => 'vendors.view',
                         'badge' => $this->cachedBadge('pending_vendors', fn() => $this->countPendingVendors()),
+                    ],
+                    [
+                        'label' => __('admin.nav.vendor_applications_queue'),
+                        'route' => 'admin.vendor-applications.index',
+                        'icon' => 'inbox-arrow-down',
+                        'permission' => 'vendors.view',
+                        'badge' => null,
                     ],
                     [
                         'label' => __('admin.nav.admins'),
@@ -278,6 +313,13 @@ class NavigationService
                         'icon' => 'inbox-stack',
                         'permission' => 'marketers.samples.view',
                         'badge' => $this->cachedBadge('pending_marketer_samples', fn() => $this->countPendingMarketerSamples()),
+                    ],
+                    [
+                        'label' => __('admin.nav.influencer_deals'),
+                        'route' => 'admin.influencer-deals.index',
+                        'icon' => 'gift',
+                        'permission' => 'marketers.view',
+                        'badge' => $this->cachedBadge('pending_influencer_deals', fn() => $this->countPendingInfluencerDeals()),
                     ],
                     [
                         'label' => __('admin.nav.secret_promotions'),
@@ -361,6 +403,75 @@ class NavigationService
                         'permission' => 'travel.view',
                         'badge' => null,
                     ],
+                    [
+                        'label' => __('admin.nav.travel_inquiries'),
+                        'route' => 'admin.travel.inquiries.index',
+                        'icon' => 'chat-bubble-left-right',
+                        'permission' => 'travel.view',
+                        'badge' => null,
+                    ],
+                ],
+            ],
+            [
+                'group' => __('admin.nav.delivery'),
+                'icon' => 'truck',
+                'items' => [
+                    [
+                        'label' => __('admin.nav.delivery_agents'),
+                        'route' => 'admin.delivery.agents.index',
+                        'icon' => 'user-group',
+                        'permission' => 'payouts.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.delivery_zones'),
+                        'route' => 'admin.delivery.zones.index',
+                        'icon' => 'map-pin',
+                        'permission' => 'payouts.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.delivery_assignments'),
+                        'route' => 'admin.delivery.assignments.index',
+                        'icon' => 'arrows-right-left',
+                        'permission' => 'payouts.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.delivery_payouts'),
+                        'route' => 'admin.delivery.payouts.index',
+                        'icon' => 'banknotes',
+                        'permission' => 'payouts.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.carrier_claims'),
+                        'route' => 'admin.carrier-claims.index',
+                        'icon' => 'exclamation-triangle',
+                        'permission' => 'payouts.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.carrier_scorecard'),
+                        'route' => 'admin.carrier-scorecard.index',
+                        'icon' => 'chart-bar',
+                        'permission' => 'payouts.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.shipping_companies'),
+                        'route' => 'admin.shipping-companies.index',
+                        'icon' => 'building-office',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.packaging_supplies'),
+                        'route' => 'admin.packaging-supplies.index',
+                        'icon' => 'cube',
+                        'permission' => 'warehouses.view',
+                        'badge' => null,
+                    ],
                 ],
             ],
             [
@@ -408,6 +519,55 @@ class NavigationService
                         'icon' => 'shield-check',
                         'permission' => 'warranty_plans.view',
                         'badge' => $this->cachedBadge('pending_warranty_purchases', fn() => $this->countPendingWarrantyPurchases(), 300),
+                    ],
+                    [
+                        'label' => __('admin.nav.wallets'),
+                        'route' => 'admin.wallets.index',
+                        'icon' => 'banknotes',
+                        'permission' => 'payouts.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.subscriptions'),
+                        'route' => 'admin.subscriptions.index',
+                        'icon' => 'banknotes',
+                        'permission' => 'transactions.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.subscription_plans'),
+                        'route' => 'admin.subscriptions.plans.index',
+                        'icon' => 'rectangle-stack',
+                        'permission' => 'transactions.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.subscription_invoices'),
+                        'route' => 'admin.subscriptions.invoices.index',
+                        'icon' => 'document-text',
+                        'permission' => 'transactions.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.fbn_inbound'),
+                        'route' => 'admin.fbn.inbound.index',
+                        'icon' => 'inbox-stack',
+                        'permission' => 'warehouses.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.fbn_marketplace'),
+                        'route' => 'admin.fbn.marketplace.index',
+                        'icon' => 'inbox-stack',
+                        'permission' => 'warehouses.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.fbn_storage_fees'),
+                        'route' => 'admin.fbn.storage-fees.index',
+                        'icon' => 'inbox-stack',
+                        'permission' => 'warehouses.view',
+                        'badge' => null,
                     ],
                 ],
             ],
@@ -557,6 +717,20 @@ class NavigationService
                         'label' => __('admin.nav.payment_methods'),
                         'route' => 'admin.payment-methods.index',
                         'icon' => 'credit-card',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.payment_gateways'),
+                        'route' => 'admin.payment-gateways.index',
+                        'icon' => 'credit-card',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.shipping_weight_slabs'),
+                        'route' => 'admin.shipping.weight-slabs.index',
+                        'icon' => 'truck',
                         'permission' => 'settings.view',
                         'badge' => null,
                     ],
@@ -760,6 +934,15 @@ class NavigationService
     {
         try {
             return (int) \App\Models\Marketer::query()->where('status', MarketerStatus::Pending->value)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingInfluencerDeals(): int
+    {
+        try {
+            return (int) \App\Models\InfluencerDeal::query()->where('status', 'content_submitted')->count();
         } catch (\Throwable) {
             return 0;
         }
