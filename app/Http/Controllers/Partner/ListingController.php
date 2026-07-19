@@ -14,7 +14,10 @@ use App\Models\ProductImage;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
+use App\Models\PlatformShippingSubsidy;
+use App\Models\ShippingZone;
 use App\Services\ListingShippingResolver;
+use App\Services\ShippingWeightService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,9 +33,13 @@ class ListingController extends Controller
 {
     use HasDataTable;
 
-    public function __construct(private readonly ListingShippingResolver $shippingResolver)
-    {
+    public function __construct(
+        private readonly ListingShippingResolver $shippingResolver,
+        private readonly ShippingWeightService $weightService,
+    ) {
     }
+
+    private const HANDLING_CLASSES = ['standard', 'refrigerated', 'fragile', 'special_tech'];
 
     // ─────────────────────────────────────────────────────────────────────────
     // Helpers
@@ -374,6 +381,11 @@ class ListingController extends Controller
             'affiliate_commission_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'influencer_sample_quota' => ['nullable', 'integer', 'min:0', 'max:9999', 'required_with:influencer_commission_percentage'],
             'affiliate_sample_quota' => ['nullable', 'integer', 'min:0', 'max:9999', 'required_with:affiliate_commission_percentage'],
+            'declared_weight_grams' => ['required', 'integer', 'min:1'],
+            'declared_length_cm' => ['nullable', 'numeric', 'min:0.1'],
+            'declared_width_cm' => ['nullable', 'numeric', 'min:0.1'],
+            'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
+            'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
         ]);
 
         // Resolve product_variant_id — either sent directly (has_variants=1) or resolved
@@ -424,9 +436,24 @@ class ListingController extends Controller
 
         $currency = Country::find($request->country_id)?->currency_code ?? '';
 
+        // Pre-fill dimensions from the product variant when the vendor left them blank
+        // (but never overwrite what the vendor explicitly entered).
+        $variantForDefaults = \App\Models\ProductVariant::find($resolvedVariantId);
+        $length = $request->filled('declared_length_cm') ? (float) $request->declared_length_cm : $variantForDefaults?->length_cm;
+        $width = $request->filled('declared_width_cm') ? (float) $request->declared_width_cm : $variantForDefaults?->width_cm;
+        $height = $request->filled('declared_height_cm') ? (float) $request->declared_height_cm : $variantForDefaults?->height_cm;
+
+        $billable = $this->weightService->billableWeightGrams(
+            (int) $request->declared_weight_grams,
+            $length !== null ? (float) $length : null,
+            $width !== null ? (float) $width : null,
+            $height !== null ? (float) $height : null,
+        );
+        $weightClass = $this->weightService->classifyWeight($billable);
+
         // try {
         $listing = null;
-        DB::transaction(function () use ($request, $vendorId, $status, $currency, &$listing, $vendor, $resolvedVariantId) {
+        DB::transaction(function () use ($request, $vendorId, $status, $currency, &$listing, $vendor, $resolvedVariantId, $length, $width, $height, $weightClass) {
             $listing = VendorListing::create([
                 'id' => (string) Str::uuid(),
                 'vendor_id' => $vendorId,
@@ -446,6 +473,12 @@ class ListingController extends Controller
                 'affiliate_commission_percentage' => $request->affiliate_commission_percentage,
                 'influencer_sample_quota' => $request->influencer_sample_quota,
                 'affiliate_sample_quota' => $request->affiliate_sample_quota,
+                'declared_weight_grams' => (int) $request->declared_weight_grams,
+                'declared_length_cm' => $length,
+                'declared_width_cm' => $width,
+                'declared_height_cm' => $height,
+                'handling_class' => $request->handling_class,
+                'weight_class' => $weightClass,
             ]);
 
             // Create warehouse inventory record
@@ -664,5 +697,131 @@ class ListingController extends Controller
             'message' => 'تم تعديل المخزون بنجاح.',
             'new_quantity' => $result,
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Update Shipping Dimensions / Weight / Handling Class
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function updateDimensions(Request $request, VendorListing $listing): JsonResponse
+    {
+        $this->authoriseListing($listing);
+
+        $request->validate([
+            'declared_weight_grams' => ['required', 'integer', 'min:1'],
+            'declared_length_cm' => ['nullable', 'numeric', 'min:0.1'],
+            'declared_width_cm' => ['nullable', 'numeric', 'min:0.1'],
+            'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
+            'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
+            'vendor_covers_delivery' => ['nullable', 'boolean'],
+        ]);
+
+        $billable = $this->weightService->billableWeightGrams(
+            (int) $request->declared_weight_grams,
+            $request->declared_length_cm !== null ? (float) $request->declared_length_cm : null,
+            $request->declared_width_cm !== null ? (float) $request->declared_width_cm : null,
+            $request->declared_height_cm !== null ? (float) $request->declared_height_cm : null,
+        );
+
+        $listing->update([
+            'declared_weight_grams' => (int) $request->declared_weight_grams,
+            'declared_length_cm' => $request->declared_length_cm,
+            'declared_width_cm' => $request->declared_width_cm,
+            'declared_height_cm' => $request->declared_height_cm,
+            'handling_class' => $request->handling_class,
+            'weight_class' => $this->weightService->classifyWeight($billable),
+            'vendor_covers_delivery' => $request->has('vendor_covers_delivery')
+                ? $request->boolean('vendor_covers_delivery')
+                : $listing->vendor_covers_delivery,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث بيانات الشحن.',
+            'weight_class' => $listing->weight_class,
+            'billable_weight_grams' => $billable,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Shipping / Subsidy Preview (per zone)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function shippingPreview(VendorListing $listing): JsonResponse
+    {
+        $this->authoriseListing($listing);
+
+        $listing->load('productVariant.product.category');
+
+        $billable = $this->weightService->billableWeightGrams(
+            (int) ($listing->declared_weight_grams ?? $listing->productVariant?->weight_grams ?? 0),
+            $listing->declared_length_cm !== null ? (float) $listing->declared_length_cm : null,
+            $listing->declared_width_cm !== null ? (float) $listing->declared_width_cm : null,
+            $listing->declared_height_cm !== null ? (float) $listing->declared_height_cm : null,
+        );
+
+        $methods = $this->shippingResolver->resolveForListing($listing);
+        $currency = $listing->currency;
+
+        $zones = ShippingZone::where('country_id', $listing->country_id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $result = [];
+
+        foreach ($zones as $zone) {
+            foreach ($methods as $method) {
+                $rate = \App\Models\ShippingRate::where('destination_zone_id', $zone->id)
+                    ->where('shipping_method_id', $method->id)
+                    ->whereNull('origin_zone_id')
+                    ->where('is_active', true)
+                    ->orderBy('base_fee')
+                    ->first();
+
+                if (!$rate) {
+                    continue;
+                }
+
+                $rawFee = $this->weightService->computeRawShippingFee($rate, $billable);
+
+                $subsidy = PlatformShippingSubsidy::where('shipping_zone_id', $zone->id)
+                    ->where('shipping_method_id', $method->id)
+                    ->where('is_active', true)
+                    ->first();
+
+                $subsidyCap = 0;
+                if ($subsidy) {
+                    if ($subsidy->max_subsidy_weight_grams !== null && $billable > $subsidy->max_subsidy_weight_grams) {
+                        $subsidizableFee = $this->weightService->computeRawShippingFee($rate, $subsidy->max_subsidy_weight_grams);
+                        $subsidyCap = min($subsidy->subsidy_cap, $subsidizableFee);
+                    } else {
+                        $subsidyCap = min($subsidy->subsidy_cap, $rawFee);
+                    }
+                }
+
+                $customerPays = max(0, $rawFee - $subsidyCap);
+                $vendorContribution = 0;
+
+                if ($listing->vendor_covers_delivery && $customerPays > 0) {
+                    $vendorContribution = $customerPays;
+                    $customerPays = 0;
+                }
+
+                $result[] = [
+                    'zone_name' => $zone->name,
+                    'method_name' => $method->name,
+                    'raw_fee' => $rawFee,
+                    'platform_subsidy' => $subsidyCap,
+                    'vendor_contribution' => $vendorContribution,
+                    'customer_pays' => $customerPays,
+                    'is_free_for_customer' => $customerPays === 0,
+                    'currency' => $currency,
+                    'billable_weight_grams' => $billable,
+                ];
+            }
+        }
+
+        return response()->json($result);
     }
 }

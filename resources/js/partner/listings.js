@@ -583,6 +583,92 @@ function initDetailPage() {
     document.getElementById('adjust-modal-close')?.addEventListener('click', () => hideModal('adjust-stock-modal'));
     document.getElementById('adjust-cancel-btn')?.addEventListener('click', () => hideModal('adjust-stock-modal'));
 
+    // ── Update Shipping & Dimensions Modal ────────────────────────────────────
+    document.getElementById('btn-update-dimensions')?.addEventListener('click', () => {
+        hideError('dimensions-update-error');
+        showModal('update-dimensions-modal');
+    });
+    document.getElementById('dimensions-modal-close')?.addEventListener('click', () => hideModal('update-dimensions-modal'));
+    document.getElementById('dimensions-close-btn')?.addEventListener('click', () => hideModal('update-dimensions-modal'));
+
+    document.getElementById('dimensions-update-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError('dimensions-update-error');
+        const formData = new FormData(e.target);
+        const payload = Object.fromEntries(formData.entries());
+        const submitBtn = e.target.querySelector('[type=submit]');
+        submitBtn.disabled = true;
+
+        const { ok, data } = await postJson(cfg.updateDimensionsUrl, payload);
+        if (ok) {
+            hideModal('update-dimensions-modal');
+            toast(data.message ?? 'تم التحديث.');
+            const weightEl = document.getElementById('display-declared-weight');
+            const dimsEl = document.getElementById('display-declared-dimensions');
+            const classEl = document.getElementById('display-weight-class');
+            const handlingEl = document.getElementById('display-handling-class');
+            const classLabels = { light: 'خفيف / Light', medium: 'متوسط / Medium', heavy: 'ثقيل / Heavy' };
+            const handlingLabels = { standard: 'عادي / Standard', refrigerated: 'يحتاج تبريد / Refrigerated', fragile: 'هش / Fragile', special_tech: 'تقنية خاصة / Special Tech' };
+            if (weightEl) weightEl.textContent = `${payload.declared_weight_grams} g`;
+            if (dimsEl) dimsEl.textContent = `${payload.declared_length_cm || '—'} × ${payload.declared_width_cm || '—'} × ${payload.declared_height_cm || '—'}`;
+            if (classEl) classEl.textContent = classLabels[data.weight_class] ?? data.weight_class;
+            if (handlingEl) handlingEl.textContent = handlingLabels[payload.handling_class] ?? payload.handling_class;
+        } else {
+            showError('dimensions-update-error', data.message ?? 'حدث خطأ.');
+        }
+        submitBtn.disabled = false;
+    });
+
+    // ── Delivery Cost Preview ─────────────────────────────────────────────────
+    let shippingPreviewLoaded = false;
+    window.loadShippingPreview = async () => {
+        if (shippingPreviewLoaded) return;
+        shippingPreviewLoaded = true;
+
+        const loadingEl = document.getElementById('shipping-preview-loading');
+        const emptyEl = document.getElementById('shipping-preview-empty');
+        const wrapEl = document.getElementById('shipping-preview-table-wrap');
+        const tbody = document.getElementById('shipping-preview-tbody');
+        if (!loadingEl || !tbody) return;
+
+        try {
+            const res = await fetch(cfg.shippingPreviewUrl, {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            });
+            const rows = await res.json();
+            loadingEl.classList.add('hidden');
+
+            if (!rows.length) {
+                emptyEl?.classList.remove('hidden');
+                return;
+            }
+
+            wrapEl?.classList.remove('hidden');
+            tbody.innerHTML = rows.map(row => {
+                let display;
+                if (row.customer_pays === 0 && row.vendor_contribution > 0) {
+                    display = `<span class="text-green-600 font-semibold">FREE 🎉 (you cover: ${row.vendor_contribution} ${row.currency})</span>`;
+                } else if (row.customer_pays === 0) {
+                    display = `<span class="text-green-600 font-semibold">FREE 🎉 (platform covers)</span>`;
+                } else {
+                    display = `<span class="text-gray-600">Paid by customer</span>`;
+                }
+                return `<tr>
+                    <td class="py-2.5 text-gray-800">${row.zone_name}</td>
+                    <td class="py-2.5 text-gray-600">${row.method_name}</td>
+                    <td class="py-2.5 text-center">${row.raw_fee} ${row.currency}</td>
+                    <td class="py-2.5 text-center text-blue-600">${row.platform_subsidy} ${row.currency}</td>
+                    <td class="py-2.5 text-center">${row.vendor_contribution} ${row.currency}</td>
+                    <td class="py-2.5 text-center font-semibold">${row.customer_pays} ${row.currency}</td>
+                    <td class="py-2.5 text-center">${display}</td>
+                </tr>`;
+            }).join('');
+        } catch {
+            loadingEl.classList.add('hidden');
+            emptyEl?.classList.remove('hidden');
+        }
+    };
+
     document.getElementById('adjust-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError('adjust-error');

@@ -44,6 +44,8 @@ class SettingsSeeder extends Seeder
             ['key' => 'min_order_amount', 'value' => 0, 'category' => 'orders', 'description' => 'Minimum order value in cents (0 = no minimum)'],
             ['key' => 'auto_complete_order_days', 'value' => 7, 'category' => 'orders', 'description' => 'Days after delivery before order auto-completes'],
             ['key' => 'max_order_quantity_per_item', 'value' => 10, 'category' => 'orders', 'description' => 'Maximum quantity of single item per order'],
+            ['key' => 'weight_class_light_max_grams', 'value' => 1000, 'category' => 'orders', 'description' => 'Max billable weight (grams) classified as "light"'],
+            ['key' => 'weight_class_medium_max_grams', 'value' => 5000, 'category' => 'orders', 'description' => 'Max billable weight (grams) classified as "medium"; above this is "heavy"'],
 
             // ─── vendors ──────────────────────────────────────────────────────
             ['key' => 'vendor_commission_default', 'value' => 10.00, 'category' => 'vendors', 'description' => 'Default platform commission % if no rule matches'],

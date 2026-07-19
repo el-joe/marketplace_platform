@@ -58,6 +58,8 @@
             toggleStatusUrl: '{{ route('partner.listings.toggle-status', $listing->id) }}',
             adjustStockUrl: '{{ route('partner.listings.adjust-stock', $listing->id) }}',
             toggleCoversDeliveryUrl: '{{ route('partner.listings.toggle-covers-delivery', $listing->id) }}',
+            updateDimensionsUrl: '{{ route('partner.listings.update-dimensions', $listing->id) }}',
+            shippingPreviewUrl: '{{ route('partner.listings.shipping-preview', $listing->id) }}',
             csrf: '{{ csrf_token() }}',
         };
     </script>
@@ -199,6 +201,68 @@
                         <p class="text-sm text-red-800">{{ $listing->rejection_reason }}</p>
                     </div>
                 @endif
+            </div>
+
+            {{-- Shipping & Dimensions --}}
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-gray-800">الشحن والأبعاد / Shipping &amp; Dimensions</h3>
+                    <button id="btn-update-dimensions"
+                        class="text-xs text-blue-600 hover:underline">تعديل / Edit</button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 text-sm">
+                    <div>
+                        <span class="text-xs text-gray-400 block mb-0.5">الوزن الفعلي / Weight</span>
+                        <span id="display-declared-weight" class="font-medium">{{ $listing->declared_weight_grams ?? '—' }} g</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-400 block mb-0.5">الأبعاد / Dimensions (cm)</span>
+                        <span id="display-declared-dimensions" class="font-medium">
+                            {{ $listing->declared_length_cm ?? '—' }} × {{ $listing->declared_width_cm ?? '—' }} × {{ $listing->declared_height_cm ?? '—' }}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-400 block mb-0.5">تصنيف الوزن / Weight Class</span>
+                        <span id="display-weight-class" class="font-medium">{{ ['light' => 'خفيف / Light', 'medium' => 'متوسط / Medium', 'heavy' => 'ثقيل / Heavy'][$listing->weight_class] ?? '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-400 block mb-0.5">فئة المناولة / Handling Class</span>
+                        <span id="display-handling-class" class="font-medium">
+                            {{ ['standard' => 'عادي / Standard', 'refrigerated' => 'يحتاج تبريد / Refrigerated', 'fragile' => 'هش / Fragile', 'special_tech' => 'تقنية خاصة / Special Tech'][$listing->handling_class] ?? '—' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Delivery Cost Preview (collapsible) --}}
+            <div class="bg-white rounded-2xl border border-gray-200 p-6" x-data="{ open: false }">
+                <button type="button" class="w-full flex items-center justify-between" @click="open = !open; if (open) window.loadShippingPreview && window.loadShippingPreview();">
+                    <h3 class="font-semibold text-gray-800">معاينة تكلفة التوصيل / Delivery Cost Preview</h3>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open" x-cloak class="mt-4">
+                    <p class="text-xs text-gray-400 mb-3">هذه الأسعار استرشادية / These are indicative prices based on current zone rates</p>
+                    <div id="shipping-preview-loading" class="text-sm text-gray-400 text-center py-6">جاري التحميل...</div>
+                    <div id="shipping-preview-empty" class="hidden text-sm text-gray-400 text-center py-6">لا توجد بيانات شحن متاحة لهذه القائمة.</div>
+                    <div id="shipping-preview-table-wrap" class="hidden overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-xs text-gray-500 border-b border-gray-100">
+                                    <th class="text-right py-2 font-medium">Zone</th>
+                                    <th class="text-right py-2 font-medium">Method</th>
+                                    <th class="py-2 text-center font-medium">Full Rate</th>
+                                    <th class="py-2 text-center font-medium">Platform Covers</th>
+                                    <th class="py-2 text-center font-medium">You Cover</th>
+                                    <th class="py-2 text-center font-medium">Customer Pays</th>
+                                    <th class="py-2 text-center font-medium">Display</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shipping-preview-tbody" class="divide-y divide-gray-50"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             {{-- Influencer / Affiliate Marketing Commissions --}}
@@ -527,6 +591,83 @@
                     <button type="submit" @disabled($availableShippingMethods->isEmpty())
                         class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{{ __('partner.listings.show.save') }}</button>
                     <button type="button" id="shipping-close-btn"
+                        class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">{{ __('partner.listings.show.cancel') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Update Shipping & Dimensions Modal --}}
+    <div id="update-dimensions-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="font-semibold text-gray-900 text-sm">الشحن والأبعاد / Shipping &amp; Dimensions</h3>
+                <button id="dimensions-modal-close" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="dimensions-update-form" class="p-5 space-y-4"
+                x-data="{
+                    l: {{ (float) ($listing->declared_length_cm ?? 0) }},
+                    w: {{ (float) ($listing->declared_width_cm ?? 0) }},
+                    h: {{ (float) ($listing->declared_height_cm ?? 0) }},
+                    actual: {{ (int) ($listing->declared_weight_grams ?? 0) }},
+                    get volumetric() { return (this.l && this.w && this.h) ? Math.ceil((this.l * this.w * this.h) / 5) : 0; },
+                    get billable() { return Math.max(this.actual, this.volumetric); },
+                    get weightClass() {
+                        if (this.billable <= 1000) return 'خفيف / Light';
+                        if (this.billable <= 5000) return 'متوسط / Medium';
+                        return 'ثقيل / Heavy';
+                    }
+                }">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">وزن المنتج (جرام) / Product Weight (grams)</label>
+                    <input type="number" name="declared_weight_grams" min="1" step="1" required x-model.number="actual"
+                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">أبعاد التغليف / Packaged Dimensions (cm)</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="number" name="declared_length_cm" min="0.1" step="0.1" x-model.number="l" placeholder="L"
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        <input type="number" name="declared_width_cm" min="0.1" step="0.1" x-model.number="w" placeholder="W"
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        <input type="number" name="declared_height_cm" min="0.1" step="0.1" x-model.number="h" placeholder="H"
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">L × W × H ÷ 5 = وزن حجمي بالجرام</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-4 space-y-1.5 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">الوزن الحجمي / Volumetric</span><span x-text="volumetric + ' g'"></span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">الوزن الفعلي / Actual</span><span x-text="actual + ' g'"></span></div>
+                    <div class="flex justify-between font-bold"><span class="text-gray-500 font-normal">القابل للفوترة / Billable</span><span x-text="billable + ' g'"></span></div>
+                    <div class="flex justify-between pt-1.5 border-t border-gray-100"><span class="text-gray-500">التصنيف / Class</span><span class="font-semibold text-yellow-600" x-text="weightClass"></span></div>
+                </div>
+
+                <a href="{{ route('partner.tools.weight-calculator') }}" target="_blank"
+                   class="text-sm text-blue-600 hover:underline">
+                    📐 فتح حاسبة الوزن / Open Weight Calculator
+                </a>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">فئة المناولة / Handling Class</label>
+                    <select name="handling_class"
+                        class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        <option value="standard" @selected($listing->handling_class === 'standard')>عادي / Standard</option>
+                        <option value="refrigerated" @selected($listing->handling_class === 'refrigerated')>يحتاج تبريد / Requires Refrigeration</option>
+                        <option value="fragile" @selected($listing->handling_class === 'fragile')>هش - يحتاج حرص / Fragile</option>
+                        <option value="special_tech" @selected($listing->handling_class === 'special_tech')>يحتاج تقنية خاصة / Special Handling</option>
+                    </select>
+                </div>
+
+                <div id="dimensions-update-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3"></div>
+                <div class="flex gap-2">
+                    <button type="submit"
+                        class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-2.5 rounded-xl text-sm transition-colors">{{ __('partner.listings.show.save') }}</button>
+                    <button type="button" id="dimensions-close-btn"
                         class="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors">{{ __('partner.listings.show.cancel') }}</button>
                 </div>
             </form>

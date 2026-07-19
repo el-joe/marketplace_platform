@@ -114,6 +114,8 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/{listing}/toggle-status', 'toggleStatus')->name('toggle-status')->middleware('vendor.can:listings.publish');
         Route::post('/{listing}/adjust-stock', 'adjustStock')->name('adjust-stock')->middleware('vendor.can:listings.stock.edit');
         Route::post('/{listing}/toggle-covers-delivery', 'toggleCoversDelivery')->name('toggle-covers-delivery')->middleware('vendor.can:listings.edit');
+        Route::post('/{listing}/update-dimensions', 'updateDimensions')->name('update-dimensions')->middleware('vendor.can:listings.edit');
+        Route::get('/{listing}/shipping-preview', 'shippingPreview')->name('shipping-preview')->middleware('vendor.can:listings.view');
     });
 
     // ── Inventory module ─────────────────────────────────────────────────────
@@ -348,6 +350,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
     // ─── Finance / Transactions ───────────────────────────────────────────────
     Route::prefix('finance')->name('finance.')->group(function () {
         Route::get('/transactions', [\App\Http\Controllers\Partner\FinanceController::class, 'transactions'])->name('transactions')->middleware('vendor.can:finance.view');
+        Route::get('/sales-report', [\App\Http\Controllers\Partner\FinanceController::class, 'salesReport'])->name('sales-report')->middleware('vendor.can:finance.view');
     });
 
     // ─── Campaign Offers (Vendor → Marketer) ─────────────────────────────────

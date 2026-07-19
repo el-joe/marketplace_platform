@@ -169,6 +169,7 @@ Route::prefix('v1')->group(function (): void {
                 Route::get('transactions',     [FinanceController::class, 'transactions'])->name('transactions');
                 Route::get('ledger',           [FinanceController::class, 'ledger'])->name('ledger');
                 Route::get('commission-rates', [FinanceController::class, 'commissionRates'])->name('commission-rates');
+                Route::get('sales-report',     [FinanceController::class, 'salesReport'])->name('sales-report');
 
                 Route::prefix('payouts')->name('payouts.')->group(function (): void {
                     Route::get('/',              [FinanceController::class, 'payouts'])->name('index');

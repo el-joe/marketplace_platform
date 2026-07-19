@@ -13,8 +13,10 @@ use App\Services\Vendor\TransactionFeedService;
 use App\Http\Responses\ApiResponse;
 use App\Models\LedgerEntry;
 use App\Models\Payout;
+use App\Models\SubOrder;
 use App\Models\Vendor;
 use App\Models\VendorBankAccount;
+use App\Models\VendorListing;
 use App\Services\Vendor\FinanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -134,6 +136,65 @@ class FinanceController extends Controller
     public function commissionRates(): JsonResponse
     {
         return ApiResponse::success($this->financeService->resolveCommissionRates($this->vendor()));
+    }
+
+    public function salesReport(Request $request): JsonResponse
+    {
+        $vendorId = $this->vendorId();
+        $currency = $this->vendor()->country?->currency_code ?? '';
+
+        $dateFrom = $request->query('date_from')
+            ? \Carbon\Carbon::parse($request->query('date_from'))->startOfDay()
+            : now()->startOfMonth();
+
+        $dateTo = $request->query('date_to')
+            ? \Carbon\Carbon::parse($request->query('date_to'))->endOfDay()
+            : now()->endOfDay();
+
+        $baseQuery = SubOrder::where('vendor_id', $vendorId)
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$dateFrom, $dateTo]);
+
+        $totals = (clone $baseQuery)
+            ->selectRaw('
+                COALESCE(SUM(shipping), 0) as total_shipping_charged_to_customers,
+                COALESCE(SUM(admin_subsidy_amount), 0) as total_platform_subsidy,
+                COALESCE(SUM(vendor_contribution_amount), 0) as total_vendor_shipping_contribution,
+                COALESCE(SUM(shipping + admin_subsidy_amount + vendor_contribution_amount), 0) as total_actual_shipping_cost
+            ')
+            ->first();
+
+        $hasVendorContribution = VendorListing::where('vendor_id', $vendorId)
+            ->where('vendor_covers_delivery', true)
+            ->exists();
+
+        $perPage = min(100, max(1, (int) $request->query('per_page', 30)));
+
+        $shipments = (clone $baseQuery)
+            ->with('order:id,order_number')
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+
+        return ApiResponse::success([
+            'currency'                 => $currency,
+            'date_from'                => $dateFrom->toDateString(),
+            'date_to'                  => $dateTo->toDateString(),
+            'has_vendor_contribution'  => $hasVendorContribution,
+            'totals'                   => [
+                'total_shipping_charged_to_customers'  => (int) $totals->total_shipping_charged_to_customers,
+                'total_platform_subsidy'                => (int) $totals->total_platform_subsidy,
+                'total_vendor_shipping_contribution'    => (int) $totals->total_vendor_shipping_contribution,
+                'total_actual_shipping_cost'            => (int) $totals->total_actual_shipping_cost,
+            ],
+            'shipments' => $shipments->through(fn (SubOrder $s) => [
+                'sub_order_number'          => $s->sub_order_number,
+                'order_number'              => $s->order?->order_number,
+                'date'                      => $s->created_at->toDateString(),
+                'shipping_charged'          => (int) $s->shipping,
+                'delivery_subsidy'          => (int) $s->admin_subsidy_amount,
+                'your_delivery_contribution' => (int) $s->vendor_contribution_amount,
+            ]),
+        ]);
     }
 
     // ── Bank Accounts ─────────────────────────────────────────────────────────

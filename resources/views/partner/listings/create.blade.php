@@ -177,9 +177,94 @@
                                 <input type="checkbox" name="vendor_covers_delivery" value="1"
                                     class="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400/40">
                                 <span class="text-sm text-gray-700">
-                                    Cover remaining delivery cost (optional) — amount will be deducted from your earnings per order
+                                    أتحمل تكاليف التوصيل المتبقية / I cover remaining delivery costs
+                                    <span class="block text-xs text-gray-400 mt-0.5">
+                                        إذا فعّلت هذا الخيار، سيظهر التوصيل مجانياً للعميل حتى لو كانت هناك فجوة بعد دعم المنصة. /
+                                        If enabled, delivery appears free to customer even if there's a gap after platform subsidy.
+                                    </span>
                                 </span>
                             </label>
+                        </div>
+                    </div>
+
+                    {{-- Shipping & Dimensions --}}
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4"
+                        x-data="{
+                            l: 0, w: 0, h: 0, actual: 0,
+                            get volumetric() { return (this.l && this.w && this.h) ? Math.ceil((this.l * this.w * this.h) / 5) : 0; },
+                            get billable() { return Math.max(this.actual, this.volumetric); },
+                            get weightClass() {
+                                if (this.billable <= 1000) return 'خفيف / Light';
+                                if (this.billable <= 5000) return 'متوسط / Medium';
+                                return 'ثقيل / Heavy';
+                            }
+                        }">
+                        <h4 class="font-semibold text-gray-800 text-sm mb-1">الشحن والأبعاد / Shipping &amp; Dimensions</h4>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                وزن المنتج (جرام) / Product Weight (grams) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" name="declared_weight_grams" min="1" step="1" required
+                                x-model.number="actual"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
+                                placeholder="0">
+                            <p class="text-xs text-gray-400 mt-1">Enter the packed/boxed weight including packaging</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                أبعاد التغليف / Packaged Dimensions (cm)
+                            </label>
+                            <div class="grid grid-cols-3 gap-3">
+                                <input type="number" name="declared_length_cm" min="0.1" step="0.1" x-model.number="l"
+                                    placeholder="L"
+                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                                <input type="number" name="declared_width_cm" min="0.1" step="0.1" x-model.number="w"
+                                    placeholder="W"
+                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                                <input type="number" name="declared_height_cm" min="0.1" step="0.1" x-model.number="h"
+                                    placeholder="H"
+                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">L × W × H ÷ 5 = وزن حجمي بالجرام (Length × Width × Height ÷ 5 = volumetric grams)</p>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-xl p-4 space-y-1.5 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">الوزن الحجمي / Volumetric Weight</span>
+                                <span class="font-medium text-gray-800" x-text="volumetric + ' g'"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">الوزن الفعلي / Actual Weight</span>
+                                <span class="font-medium text-gray-800" x-text="actual + ' g'"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">الوزن القابل للفوترة / Billable Weight</span>
+                                <span class="font-bold text-gray-900" x-text="billable + ' g'"></span>
+                            </div>
+                            <div class="flex justify-between pt-1.5 border-t border-gray-100">
+                                <span class="text-gray-500">تصنيف الوزن / Weight Class</span>
+                                <span class="font-semibold text-yellow-600" x-text="weightClass"></span>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('partner.tools.weight-calculator') }}" target="_blank"
+                           class="text-sm text-blue-600 hover:underline">
+                            📐 فتح حاسبة الوزن / Open Weight Calculator
+                        </a>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                فئة المناولة / Handling Class <span class="text-red-500">*</span>
+                            </label>
+                            <select name="handling_class" required
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                                <option value="standard">عادي / Standard</option>
+                                <option value="refrigerated">يحتاج تبريد / Requires Refrigeration</option>
+                                <option value="fragile">هش - يحتاج حرص / Fragile - Handle with Care</option>
+                                <option value="special_tech">يحتاج تقنية خاصة / Requires Special Handling</option>
+                            </select>
                         </div>
                     </div>
 

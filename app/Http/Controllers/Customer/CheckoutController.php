@@ -24,6 +24,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentTransaction;
 use App\Models\ShippingMethod;
+use App\Models\ShippingZone;
 use App\Models\SubOrder;
 use App\Models\VendorListing;
 use App\Models\WarehouseInventory;
@@ -36,6 +37,7 @@ use App\Services\Customer\WarehouseShippingSurchargeService;
 use App\Services\AffiliatePromoCodeService;
 use App\Services\GiftCardService;
 use App\Services\PaymentService;
+use App\Services\ShippingSubsidyService;
 use App\Services\WarrantyPlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -54,6 +56,7 @@ class CheckoutController extends Controller
         private readonly CityShippingSurchargeService $cityShippingSurchargeService,
         private readonly WarehouseShippingSurchargeService $warehouseShippingSurchargeService,
         private readonly AffiliatePromoCodeService $affiliatePromoCodeService,
+        private readonly ShippingSubsidyService $shippingSubsidyService,
     ) {}
 
     public function shippingMethods(ShippingMethodsRequest $request): JsonResponse
@@ -153,6 +156,7 @@ class CheckoutController extends Controller
         if (! $address) {
             return ApiResponse::error('Address not found.', [], 404);
         }
+        $address->load('city.shippingZone');
 
         $isCod = $validated['payment_method'] === 'cod';
         if ($isCod && ! $this->codAvailable($address, $country)) {
@@ -169,9 +173,10 @@ class CheckoutController extends Controller
             $isCod
         );
 
-        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee']);
-
         $shippingMethod = ShippingMethod::find($validated['shipping_method_id']);
+        $shippingZone = $address->city?->shippingZone;
+
+        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee'], $shippingZone, $shippingMethod);
 
         $codFeeCents = $isCod ? $shippingResult['cod_extra_fee'] : 0;
 
@@ -279,6 +284,8 @@ class CheckoutController extends Controller
             'vendor_id' => $vendorId,
             'delivery_fee' => $v['shipping'],
             'surcharge_applied' => $v['surcharge'] > 0,
+            'platform_subsidy' => $v['platform_subsidy'],
+            'delivery_message' => $this->deliveryMessage($v),
         ])->values();
 
         return ApiResponse::success([
@@ -351,6 +358,7 @@ class CheckoutController extends Controller
         if (! $address) {
             return ApiResponse::error('Address not found.', [], 404);
         }
+        $address->load('city.shippingZone');
 
         $isCod = $validated['payment_method'] === 'cod';
         if ($isCod && ! $this->codAvailable($address, $country)) {
@@ -366,7 +374,9 @@ class CheckoutController extends Controller
             $cartItems,
             $isCod
         );
-        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee']);
+        $shippingZone = $address->city?->shippingZone;
+        $shippingMethodForOrder = ShippingMethod::find($validated['shipping_method_id']);
+        $vendorShipping = $this->resolveVendorShipping($cartItems, $shippingResult['fee'], $shippingZone, $shippingMethodForOrder);
         $shippingFeeCents = $vendorShipping['total'];
         $codFeeCents = $isCod ? $shippingResult['cod_extra_fee'] : 0;
 
@@ -503,6 +513,9 @@ class CheckoutController extends Controller
                     $firstListing = $items->first()->vendorListing;
 
                     $vendorShippingCents = $vendorShippingMap[$vendorId]['shipping'] ?? 0;
+                    $vendorAdminSubsidyCents = $vendorShippingMap[$vendorId]['platform_subsidy'] ?? 0;
+                    $vendorContributionCents = $vendorShippingMap[$vendorId]['vendor_contribution'] ?? 0;
+                    $vendorBillableWeightGrams = $vendorShippingMap[$vendorId]['billable_weight_grams'] ?? null;
 
                     $vendorTax = (int) round($vendorSubtotal * ((float) $country->vat_rate / 100));
 
@@ -557,6 +570,9 @@ class CheckoutController extends Controller
                         'fulfillment_model' => $firstListing->fulfillment_model,
                         'subtotal' => $vendorSubtotal,
                         'shipping' => $vendorShippingCents,
+                        'admin_subsidy_amount' => $vendorAdminSubsidyCents,
+                        'vendor_contribution_amount' => $vendorContributionCents,
+                        'billable_weight_grams' => $vendorBillableWeightGrams,
                         'tax' => $vendorTax,
                         'platform_commission' => $totalCommission,
                         'gateway_fee' => 0,
@@ -761,15 +777,20 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Split the base cart-level shipping fee across vendors proportionally
-     * (FBN vendors ship free), then add a flat warehouse surcharge on top for
-     * each FBP cart line whose fulfilling warehouse has one configured.
+     * Resolve per-vendor shipping (FBN vendors ship free). FBP vendor fees
+     * go through ShippingSubsidyService for billable-weight-based fees and
+     * platform/vendor subsidy splitting; a flat warehouse surcharge is added
+     * on top for each cart line whose fulfilling warehouse has one configured.
      *
      * @param  array<\App\Models\CartItem>  $cartItems
-     * @return array{total: int, per_vendor: array<string, array{shipping: int, surcharge: int}>}
+     * @return array{total: int, per_vendor: array<string, array{shipping: int, surcharge: int, raw_fee: int, platform_subsidy: int, vendor_contribution: int, billable_weight_grams: int, is_free_by_platform: bool, is_free_by_vendor: bool}>}
      */
-    private function resolveVendorShipping(array $cartItems, int $baseFeeCents): array
-    {
+    private function resolveVendorShipping(
+        array $cartItems,
+        int $baseFeeCents,
+        ?ShippingZone $zone = null,
+        ?ShippingMethod $method = null,
+    ): array {
         $subtotalAll = max(1, (int) collect($cartItems)->sum(fn ($i) => $i->unit_price * $i->quantity));
         $grouped = collect($cartItems)->groupBy(fn ($item) => $item->vendorListing->vendor_id);
 
@@ -782,9 +803,17 @@ class CheckoutController extends Controller
             $isFbn = $firstListing->global_system_type === GlobalSystemType::ExpressFbn;
             $isFbp = $firstListing->global_system_type === GlobalSystemType::MerchantFbp;
 
-            $vendorBaseShippingCents = $isFbn
-                ? 0
-                : (int) round($baseFeeCents * ($vendorSubtotal / $subtotalAll));
+            $subsidyBreakdown = null;
+            $vendorBaseShippingCents = 0;
+
+            if ($isFbp && $zone && $method) {
+                $subsidyBreakdown = $this->shippingSubsidyService->resolve($items, $zone, $method);
+                $vendorBaseShippingCents = $subsidyBreakdown['customer_pays'];
+            } elseif ($isFbp) {
+                // No resolvable zone/method (should not happen once an address is set) - fall back
+                // to the previous proportional split so shipping is never silently dropped.
+                $vendorBaseShippingCents = (int) round($baseFeeCents * ($vendorSubtotal / $subtotalAll));
+            }
 
             $surchargeCents = 0;
             if ($isFbp) {
@@ -805,10 +834,40 @@ class CheckoutController extends Controller
             $perVendor[$vendorId] = [
                 'shipping' => $vendorShippingCents,
                 'surcharge' => $surchargeCents,
+                'raw_fee' => $subsidyBreakdown['raw_fee'] ?? 0,
+                'platform_subsidy' => $subsidyBreakdown['platform_subsidy'] ?? 0,
+                'vendor_contribution' => $subsidyBreakdown['vendor_contribution'] ?? 0,
+                'billable_weight_grams' => $subsidyBreakdown['billable_weight_grams'] ?? 0,
+                'is_free_by_platform' => $subsidyBreakdown['is_free_by_platform'] ?? false,
+                'is_free_by_vendor' => $subsidyBreakdown['is_free_by_vendor'] ?? false,
             ];
         }
 
         return ['total' => $totalCents, 'per_vendor' => $perVendor];
+    }
+
+    /**
+     * Customer-facing delivery fee message for a single vendor's shipping breakdown
+     * (as returned by resolveVendorShipping's per_vendor entries).
+     */
+    private function deliveryMessage(array $vendorShipping): string
+    {
+        if ($vendorShipping['shipping'] > 0) {
+            return sprintf(
+                'Platform covered: %d',
+                $vendorShipping['platform_subsidy'],
+            );
+        }
+
+        if ($vendorShipping['is_free_by_vendor']) {
+            return 'Free delivery offered by seller';
+        }
+
+        if ($vendorShipping['is_free_by_platform'] || $vendorShipping['platform_subsidy'] > 0) {
+            return 'Delivered free by noon';
+        }
+
+        return 'Free Delivery';
     }
 
     /**

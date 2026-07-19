@@ -146,4 +146,53 @@ class FinanceController extends Controller
             'type',
         ));
     }
+
+    public function salesReport(Request $request)
+    {
+        $vendorAdmin = Auth::guard('vendor')->user();
+        $vendor      = $vendorAdmin->vendor;
+        $vendorId    = $vendor->id;
+        $currency    = $vendor->country?->currency_code ?? '';
+
+        $dateFrom = $request->input('date_from')
+            ? \Carbon\Carbon::parse($request->input('date_from'))->startOfDay()
+            : now()->startOfMonth();
+
+        $dateTo = $request->input('date_to')
+            ? \Carbon\Carbon::parse($request->input('date_to'))->endOfDay()
+            : now()->endOfDay();
+
+        $baseQuery = SubOrder::where('vendor_id', $vendorId)
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$dateFrom, $dateTo]);
+
+        $totals = (clone $baseQuery)
+            ->selectRaw('
+                COALESCE(SUM(shipping), 0) as total_shipping_charged,
+                COALESCE(SUM(admin_subsidy_amount), 0) as total_platform_subsidy,
+                COALESCE(SUM(vendor_contribution_amount), 0) as total_vendor_contribution,
+                COALESCE(SUM(shipping + admin_subsidy_amount + vendor_contribution_amount), 0) as total_actual_shipping_cost
+            ')
+            ->first();
+
+        $hasVendorContribution = \App\Models\VendorListing::where('vendor_id', $vendorId)
+            ->where('vendor_covers_delivery', true)
+            ->exists();
+
+        $shipments = (clone $baseQuery)
+            ->with('order:id,order_number')
+            ->orderByDesc('created_at')
+            ->paginate(30)
+            ->withQueryString();
+
+        return view('partner.finance.sales-report', compact(
+            'vendor',
+            'currency',
+            'totals',
+            'shipments',
+            'hasVendorContribution',
+            'dateFrom',
+            'dateTo',
+        ));
+    }
 }

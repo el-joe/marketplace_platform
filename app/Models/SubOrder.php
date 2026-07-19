@@ -67,6 +67,10 @@ class SubOrder extends Model
             'cod_remittance_confirmed' => 'boolean',
             'cod_remittance_confirmed_at' => 'datetime',
             'status' => SubOrderStatus::class,
+            'admin_subsidy_amount' => 'integer',
+            'vendor_contribution_amount' => 'integer',
+            'billable_weight_grams' => 'integer',
+            'subsidy_ledgered' => 'boolean',
         ];
     }
 
@@ -80,6 +84,10 @@ class SubOrder extends Model
         'fulfillment_model',
         'subtotal',
         'shipping',
+        'admin_subsidy_amount',
+        'vendor_contribution_amount',
+        'billable_weight_grams',
+        'subsidy_ledgered',
         'tax',
         'platform_commission',
         'gateway_fee',

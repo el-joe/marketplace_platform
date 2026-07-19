@@ -351,6 +351,7 @@ return [
         'payment_gateways'      => 'بوابات الدفع',
         'shipping_companies'    => 'شركات الشحن',
         'shipping_weight_slabs' => 'شرائح الوزن',
+        'shipping_subsidies' => 'دعم الشحن',
         'subscription_plans'    => 'خطط الاشتراك',
         'subscription_invoices' => 'فواتير الاشتراك',
         'travel_inquiries'      => 'استفسارات السفر',

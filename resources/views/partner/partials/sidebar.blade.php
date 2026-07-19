@@ -58,6 +58,7 @@
             <x-partner-nav-item route="partner.inventory.index" icon="cube" label="{{ __('partner.nav.inventory') }}" />
             <x-partner-nav-item route="partner.change-requests.index" icon="pencil-square" label="{{ __('partner.nav.change_requests') }}" />
             <x-partner-nav-item route="partner.ai.credits" icon="sparkles" label="{{ __('partner.nav.ai_credits') }}" />
+            <x-partner-nav-item route="partner.tools.weight-calculator" icon="scale" label="حاسبة الوزن / Weight Calculator" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.fulfillment_storage') }}">
@@ -71,6 +72,7 @@
         <x-partner-nav-group label="{{ __('partner.nav.finance') }}">
             <x-partner-nav-item route="partner.payouts.index" icon="banknotes" label="{{ __('partner.nav.payouts') }}" />
             <x-partner-nav-item route="partner.finance.transactions" icon="credit-card" label="{{ __('partner.nav.transactions') }}" />
+            <x-partner-nav-item route="partner.finance.sales-report" icon="document-chart-bar" label="{{ __('partner.finance.sales_report') }}" />
             <x-partner-nav-item route="partner.wallet.index" icon="wallet" label="{{ __('partner.nav.wallet') }}" />
             <x-partner-nav-item route="partner.subscription.index" icon="credit-card" label="{{ __('partner.nav.subscription') }}" />
         </x-partner-nav-group>

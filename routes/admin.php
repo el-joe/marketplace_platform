@@ -43,6 +43,7 @@ use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\PortalContentController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\ShippingSubsidyController;
 use App\Http\Controllers\Admin\ShippingZoneController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\WarehouseShippingSurchargeController;
@@ -845,6 +846,17 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/{zone}/cities', [ShippingZoneController::class, 'getCities'])->name('cities');
         Route::post('/{zone}/cities', [ShippingZoneController::class, 'assignCities'])->name('cities.assign')
             ->middleware('admin.permission:settings.edit');
+    });
+
+    // ─── Platform Shipping Subsidies ───────────────────────────────────────────
+    Route::prefix('shipping-subsidies')->name('shipping-subsidies.')->middleware('admin.permission:settings.view')->group(function () {
+        Route::get('/', [ShippingSubsidyController::class, 'index'])->name('index');
+
+        Route::middleware('admin.permission:settings.edit')->group(function () {
+            Route::post('/', [ShippingSubsidyController::class, 'store'])->name('store');
+            Route::put('/{subsidy}', [ShippingSubsidyController::class, 'update'])->name('update');
+            Route::delete('/{subsidy}', [ShippingSubsidyController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // ─── Warehouses ───────────────────────────────────────────────────────────

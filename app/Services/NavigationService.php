@@ -742,6 +742,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.shipping_subsidies'),
+                        'route' => 'admin.shipping-subsidies.index',
+                        'icon' => 'truck',
+                        'permission' => 'settings.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.warehouses'),
                         'route' => 'admin.warehouses.index',
                         'icon' => 'building-office-2',

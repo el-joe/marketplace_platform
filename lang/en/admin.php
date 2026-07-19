@@ -351,6 +351,7 @@ return [
         'payment_gateways'      => 'Payment Gateways',
         'shipping_companies'    => 'Shipping Companies',
         'shipping_weight_slabs' => 'Weight Slabs',
+        'shipping_subsidies' => 'Shipping Subsidies',
         'subscription_plans'    => 'Subscription Plans',
         'subscription_invoices' => 'Subscription Invoices',
         'travel_inquiries'      => 'Travel Inquiries',
