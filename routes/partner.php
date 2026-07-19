@@ -220,10 +220,10 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ── Disputes ─────────────────────────────────────────────────────────────
     Route::prefix('disputes')->name('disputes.')->controller(DisputeController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/{disputeNumber}', 'show')->name('show');
-        Route::post('/{disputeNumber}/reply', 'reply')->name('reply');
-        Route::post('/{disputeNumber}/evidence', 'uploadEvidence')->name('evidence');
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:disputes.view');
+        Route::get('/{disputeNumber}', 'show')->name('show')->middleware('vendor.can:disputes.view');
+        Route::post('/{disputeNumber}/reply', 'reply')->name('reply')->middleware('vendor.can:disputes.respond');
+        Route::post('/{disputeNumber}/evidence', 'uploadEvidence')->name('evidence')->middleware('vendor.can:disputes.respond');
     });
 
     // ── Fulfillment (FBN / FBP / Marketplace) ───────────────────────────────
@@ -343,8 +343,8 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ─── Returns ─────────────────────────────────────────────────────────────
     Route::prefix('returns')->name('returns.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Partner\ReturnController::class, 'index'])->name('index');
-        Route::get('{returnNumber}', [\App\Http\Controllers\Partner\ReturnController::class, 'show'])->name('show');
+        Route::get('/', [\App\Http\Controllers\Partner\ReturnController::class, 'index'])->name('index')->middleware('vendor.can:returns.view');
+        Route::get('{returnNumber}', [\App\Http\Controllers\Partner\ReturnController::class, 'show'])->name('show')->middleware('vendor.can:returns.view');
     });
 
     // ─── Finance / Transactions ───────────────────────────────────────────────
