@@ -201,6 +201,30 @@
                 @endif
             </div>
 
+            {{-- Influencer / Affiliate Marketing Commissions --}}
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="font-semibold text-gray-800 mb-1">{{ __('partner.listings.marketing_commissions') }}</h3>
+                <p class="text-xs text-gray-400 mb-4">{{ __('partner.listings.marketing_commissions_hint') }}</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 text-sm">
+                    <div>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.influencer_commission_percentage') }}</span>
+                        <span class="font-medium">{{ $listing->influencer_commission_percentage !== null ? number_format($listing->influencer_commission_percentage, 2) . '%' : '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.influencer_sample_quota') }}</span>
+                        <span class="font-medium">{{ $listing->influencer_sample_quota ?? '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.affiliate_commission_percentage') }}</span>
+                        <span class="font-medium">{{ $listing->affiliate_commission_percentage !== null ? number_format($listing->affiliate_commission_percentage, 2) . '%' : '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-400 block mb-0.5">{{ __('partner.listings.affiliate_sample_quota') }}</span>
+                        <span class="font-medium">{{ $listing->affiliate_sample_quota ?? '—' }}</span>
+                    </div>
+                </div>
+            </div>
+
             {{-- Inventory per Warehouse --}}
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
                 <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">

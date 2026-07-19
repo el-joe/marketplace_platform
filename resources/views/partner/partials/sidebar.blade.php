@@ -43,16 +43,21 @@
     <nav class="flex-1 px-3 py-4 space-y-0.5">
 
         <x-partner-nav-item route="partner.dashboard" icon="squares-2x2" label="{{ __('partner.nav.home') }}" />
+        <x-partner-nav-item route="partner.notifications.index" icon="bell" label="{{ __('partner.nav.notifications') }}" />
 
         <x-partner-nav-group label="{{ __('partner.nav.orders') }}">
             <x-partner-nav-item route="partner.orders.index" icon="shopping-bag" label="{{ __('partner.nav.my_orders') }}" />
             <x-partner-nav-item route="partner.returns.index" icon="arrow-uturn-left" label="{{ __('partner.nav.returns') }}" />
             <x-partner-nav-item route="partner.warranty-claims.index" icon="shield-check" label="{{ __('partner.nav.warranty_claims') }}" />
+            <x-partner-nav-item route="partner.claims.index" icon="shield-exclamation" label="{{ __('partner.nav.claims') }}" />
+            <x-partner-nav-item route="partner.disputes.index" icon="exclamation-triangle" label="{{ __('partner.nav.disputes') }}" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.catalog') }}">
             <x-partner-nav-item route="partner.listings.index" icon="tag" label="{{ __('partner.nav.listings') }}" />
             <x-partner-nav-item route="partner.inventory.index" icon="cube" label="{{ __('partner.nav.inventory') }}" />
+            <x-partner-nav-item route="partner.change-requests.index" icon="pencil-square" label="{{ __('partner.nav.change_requests') }}" />
+            <x-partner-nav-item route="partner.ai.credits" icon="sparkles" label="{{ __('partner.nav.ai_credits') }}" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.fulfillment_storage') }}">
@@ -60,11 +65,13 @@
             <x-partner-nav-item route="partner.warehouses.index" icon="building-storefront" label="{{ __('partner.nav.warehouses') }}" />
             <x-partner-nav-item route="partner.warehouses.transfers.index" icon="arrows-right-left" label="{{ __('partner.nav.transfers') }}" />
             <x-partner-nav-item route="partner.city-surcharges.index" icon="map-pin" label="City Shipping Surcharges" />
+            <x-partner-nav-item route="partner.packaging-supplies.index" icon="archive-box" label="{{ __('partner.nav.packaging_supplies') }}" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.finance') }}">
             <x-partner-nav-item route="partner.payouts.index" icon="banknotes" label="{{ __('partner.nav.payouts') }}" />
             <x-partner-nav-item route="partner.finance.transactions" icon="credit-card" label="{{ __('partner.nav.transactions') }}" />
+            <x-partner-nav-item route="partner.wallet.index" icon="wallet" label="{{ __('partner.nav.wallet') }}" />
             <x-partner-nav-item route="partner.subscription.index" icon="credit-card" label="{{ __('partner.nav.subscription') }}" />
         </x-partner-nav-group>
 
@@ -74,6 +81,7 @@
             <x-partner-nav-item route="partner.ads.index" icon="megaphone" label="{{ __('partner.nav.ads') }}" />
             <x-partner-nav-item route="partner.marketer-campaigns.index" icon="user-group" label="{{ __('partner.nav.marketer_campaigns') }}" />
             <x-partner-nav-item route="partner.marketer-samples.index" icon="inbox-stack" label="{{ __('partner.nav.sample_requests') }}" />
+            <x-partner-nav-item route="partner.campaign-offers.index" icon="gift" label="{{ __('partner.nav.campaign_offers') }}" />
         </x-partner-nav-group>
 
         <x-partner-nav-group label="{{ __('partner.nav.open_market') }}">
