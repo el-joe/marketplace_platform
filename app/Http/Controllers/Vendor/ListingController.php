@@ -76,6 +76,10 @@ class ListingController extends Controller
 
         Gate::authorize('updatePrice', $listing);
 
+        if (!auth('vendor')->user()->can('listings.pricing.edit')) {
+            return ApiResponse::error('You do not have permission to edit listing pricing.', [], 403);
+        }
+
         $updated = $this->listingService->updatePrice($listing, $request->validated());
 
         return ApiResponse::success(new VendorListingResource($updated), 'Price updated.');
@@ -86,6 +90,10 @@ class ListingController extends Controller
         $listing = VendorListing::findOrFail($id);
 
         Gate::authorize('updateStatus', $listing);
+
+        if (!auth('vendor')->user()->can('listings.publish')) {
+            return ApiResponse::error('You do not have permission to publish or unpublish listings.', [], 403);
+        }
 
         if (!in_array($listing->status?->value, ['active', 'paused'])) {
             return ApiResponse::error('Only active or paused listings can have their status changed by the vendor.', [], 422);

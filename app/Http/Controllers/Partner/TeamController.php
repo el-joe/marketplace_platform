@@ -8,6 +8,7 @@ use App\Models\VendorAdmin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -73,14 +74,20 @@ class TeamController extends Controller
 
         $tempPassword = Str::password(12, symbols: false);
 
-        $member = VendorAdmin::create([
-            'vendor_id' => $this->vendorId(),
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($tempPassword),
-            'role' => $validated['role'],
-            'is_active' => true,
-        ]);
+        $member = DB::transaction(function () use ($validated, $tempPassword) {
+            $member = VendorAdmin::create([
+                'vendor_id' => $this->vendorId(),
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($tempPassword),
+                'role' => $validated['role'],
+                'is_active' => true,
+            ]);
+
+            $member->assignRole('vendor_' . $validated['role']);
+
+            return $member;
+        });
 
         Mail::to($member->email)->send(new TeamMemberInviteMail($member, $tempPassword));
 
@@ -95,6 +102,42 @@ class TeamController extends Controller
                 'last_login_at' => null,
             ],
         ], 201);
+    }
+
+    /**
+     * Change a team member's role (owner only, cannot change own or another owner's role).
+     */
+    public function updateRole(Request $request, VendorAdmin $member): JsonResponse
+    {
+        $admin = $this->vendorAdmin();
+
+        if (!$admin->isOwner()) {
+            return response()->json(['message' => 'يحق للمالك فقط تعديل أدوار الأعضاء'], 403);
+        }
+
+        $this->authoriseMember($member);
+
+        if ($member->id === $admin->id) {
+            return response()->json(['message' => 'لا يمكنك تعديل دورك الخاص'], 422);
+        }
+
+        if ($member->isOwner()) {
+            return response()->json(['message' => 'لا يمكن تعديل دور المالك'], 422);
+        }
+
+        $validated = $request->validate([
+            'role' => 'required|in:manager,staff',
+        ]);
+
+        DB::transaction(function () use ($member, $validated) {
+            $member->syncRoles(['vendor_' . $validated['role']]);
+            $member->update(['role' => $validated['role']]);
+        });
+
+        return response()->json([
+            'message' => 'تم تحديث دور العضو بنجاح',
+            'role' => $member->role->value,
+        ]);
     }
 
     /**
@@ -114,7 +157,15 @@ class TeamController extends Controller
             return response()->json(['message' => 'لا يمكن تعطيل حساب المالك'], 422);
         }
 
-        $member->update(['is_active' => !$member->is_active]);
+        DB::transaction(function () use ($member) {
+            $member->update(['is_active' => !$member->is_active]);
+
+            if ($member->is_active) {
+                $member->syncRoles(['vendor_' . $member->role->value]);
+            } else {
+                $member->syncRoles([]);
+            }
+        });
 
         return response()->json([
             'message' => $member->is_active ? 'تم تفعيل العضو' : 'تم تعطيل العضو',

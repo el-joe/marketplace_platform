@@ -38,8 +38,8 @@ class TeamController extends Controller
     // POST /team
     public function store(InviteTeamMemberRequest $request): JsonResponse
     {
-        if (!$this->actor()->isOwner()) {
-            return ApiResponse::error('Only the store owner can invite team members.', [], 403);
+        if (!$this->actor()->can('team.invite')) {
+            return ApiResponse::error('You do not have permission to invite team members.', [], 403);
         }
 
         $member = $this->team->invite($this->vendor(), $request->validated());

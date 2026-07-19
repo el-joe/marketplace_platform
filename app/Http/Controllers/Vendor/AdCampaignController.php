@@ -43,6 +43,11 @@ class AdCampaignController extends Controller
         $this->authorize('create', AdCampaign::class);
 
         $vendorAdmin = auth('vendor')->user();
+
+        if (!$vendorAdmin->can('campaigns.create')) {
+            return ApiResponse::error('You do not have permission to create campaigns.', [], 403);
+        }
+
         $campaign = $this->campaignService->create($vendorAdmin, $request->validated());
 
         return ApiResponse::success(new AdCampaignDetailResource($campaign), 'تم إنشاء الحملة وهي بانتظار المراجعة.', 201);

@@ -18,8 +18,10 @@ use App\Models\Country;
 use App\Models\Notification;
 use App\Models\SubOrder;
 use App\Models\Vendor;
+use App\Models\VendorAdmin;
 use App\Models\VendorBankAccount;
 use App\Models\VendorDocument;
+use App\Services\ActivityLoggerService;
 use App\Services\VendorApprovalService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
@@ -29,8 +31,10 @@ class VendorController extends Controller
 {
     use HasDataTable;
 
-    public function __construct(private VendorApprovalService $approvalService)
-    {
+    public function __construct(
+        private VendorApprovalService $approvalService,
+        private ActivityLoggerService $activityLogger,
+    ) {
     }
 
     // ── Index ─────────────────────────────────────────────────────────────────
@@ -121,6 +125,9 @@ class VendorController extends Controller
             'documents',
             'strikes.issuedByAdmin',
             'bankAccounts',
+            'vendorAdmins' => function ($q) {
+                $q->withTrashed()->with('roles');
+            },
         ]);
 
         $subOrders = $vendor->subOrders()->latest()->limit(50)->get();
@@ -253,6 +260,46 @@ class VendorController extends Controller
         $vendor->update(['account_manager_admin_id' => $request->input('admin_id')]);
 
         return response()->json(['message' => 'Account manager assigned.']);
+    }
+
+    // ── Team ──────────────────────────────────────────────────────────────────
+
+    public function deactivateTeamMember(Request $request, Vendor $vendor, VendorAdmin $vendorAdmin): JsonResponse
+    {
+        abort_if($vendorAdmin->vendor_id !== $vendor->id, 404);
+
+        $request->validate(['reason' => ['required', 'string', 'min:5', 'max:500']]);
+
+        $vendorAdmin->update(['is_active' => false]);
+
+        $this->activityLogger->log(
+            description: 'vendor_team_member_deactivated',
+            subject: $vendorAdmin,
+            causer: auth('admin')->user(),
+            properties: ['reason' => $request->input('reason'), 'vendor_id' => $vendor->id],
+            logName: 'vendor_team',
+            event: 'deactivated',
+        );
+
+        return response()->json(['message' => 'Team member deactivated.']);
+    }
+
+    public function reactivateTeamMember(Request $request, Vendor $vendor, VendorAdmin $vendorAdmin): JsonResponse
+    {
+        abort_if($vendorAdmin->vendor_id !== $vendor->id, 404);
+
+        $vendorAdmin->update(['is_active' => true]);
+
+        $this->activityLogger->log(
+            description: 'vendor_team_member_reactivated',
+            subject: $vendorAdmin,
+            causer: auth('admin')->user(),
+            properties: ['vendor_id' => $vendor->id],
+            logName: 'vendor_team',
+            event: 'reactivated',
+        );
+
+        return response()->json(['message' => 'Team member reactivated.']);
     }
 
     // ── Documents ─────────────────────────────────────────────────────────────

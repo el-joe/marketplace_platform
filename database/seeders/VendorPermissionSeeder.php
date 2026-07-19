@@ -1,0 +1,104 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+
+class VendorPermissionSeeder extends Seeder
+{
+    public function run(): void
+    {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $guard = 'vendor';
+
+        $permissions = [
+            'listings.view',
+            'listings.create',
+            'listings.edit',
+            'listings.delete',
+            'listings.pricing.edit',
+            'listings.stock.edit',
+            'listings.publish',
+            'orders.view',
+            'orders.process',
+            'orders.cancel',
+            'orders.export',
+            'returns.view',
+            'returns.process',
+            'disputes.view',
+            'disputes.respond',
+            'finance.view',
+            'finance.payouts.view',
+            'finance.invoices.view',
+            'finance.invoices.export',
+            'campaigns.view',
+            'campaigns.create',
+            'campaigns.edit',
+            'campaigns.manage_marketers',
+            'promotions.view',
+            'promotions.create',
+            'products.view',
+            'products.create',
+            'products.edit',
+            'products.delete',
+            'reviews.view',
+            'reviews.respond',
+            'customers.view',
+            'team.view',
+            'team.invite',
+            'team.manage',
+            'settings.view',
+            'settings.edit',
+            'documents.upload',
+        ];
+
+        foreach ($permissions as $name) {
+            Permission::firstOrCreate(['name' => $name, 'guard_name' => $guard]);
+        }
+
+        $managerPermissions = [
+            'listings.view', 'listings.create', 'listings.edit', 'listings.stock.edit',
+            'orders.view', 'orders.process', 'orders.export',
+            'returns.view', 'disputes.view', 'disputes.respond',
+            'finance.view', 'finance.invoices.view',
+            'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.manage_marketers',
+            'promotions.view', 'promotions.create',
+            'products.view', 'products.create', 'products.edit',
+            'reviews.view', 'reviews.respond',
+            'customers.view', 'settings.view', 'documents.upload',
+        ];
+
+        $staffPermissions = [
+            'listings.view', 'listings.create', 'listings.edit', 'listings.stock.edit',
+            'orders.view', 'orders.process',
+            'returns.view', 'disputes.view',
+            'campaigns.view', 'promotions.view',
+            'products.view', 'products.create', 'products.edit',
+            'reviews.view', 'reviews.respond',
+            'customers.view',
+        ];
+
+        $vendorOwner = Role::where('name', 'vendor_owner')->where('guard_name', $guard)->first();
+        $vendorManager = Role::where('name', 'vendor_manager')->where('guard_name', $guard)->first();
+        $vendorStaff = Role::where('name', 'vendor_staff')->where('guard_name', $guard)->first();
+
+        if ($vendorOwner) {
+            $vendorOwner->syncPermissions($permissions);
+        }
+
+        if ($vendorManager) {
+            $vendorManager->syncPermissions($managerPermissions);
+        }
+
+        if ($vendorStaff) {
+            $vendorStaff->syncPermissions($staffPermissions);
+        }
+
+        $countPermissions = Permission::where('guard_name', $guard)->count();
+        $this->command->info('Vendor permissions seeded: ' . $countPermissions . ' permissions (guard: ' . $guard . ').');
+    }
+}

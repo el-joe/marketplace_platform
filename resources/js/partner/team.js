@@ -100,6 +100,34 @@ function initTeamActions() {
     const tbody = document.getElementById('team-tbody');
     if (!tbody) return;
 
+    tbody.addEventListener('change', async (e) => {
+        // ── Change role ──────────────────────────────────────────────────────
+        const roleSelect = e.target.closest('.select-change-role');
+        if (roleSelect) {
+            const id = roleSelect.dataset.id;
+            const url = urlFor(cfg().updateRoleUrl, id);
+            const role = roleSelect.value;
+
+            roleSelect.disabled = true;
+
+            try {
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: { ...csrfHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ role }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message ?? 'فشل تحديث الدور');
+
+                toast(data.message);
+            } catch (err) {
+                toast(err.message, false);
+            } finally {
+                roleSelect.disabled = false;
+            }
+        }
+    });
+
     tbody.addEventListener('click', async (e) => {
         // ── Toggle active ────────────────────────────────────────────────────
         const toggleBtn = e.target.closest('.btn-toggle-active');

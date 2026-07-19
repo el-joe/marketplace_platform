@@ -72,6 +72,10 @@ class FinanceController extends Controller
 
     public function payouts(Request $request): JsonResponse
     {
+        if (!auth('vendor')->user()->can('finance.payouts.view')) {
+            return ApiResponse::error('You do not have permission to view payouts.', [], 403);
+        }
+
         $vendorId = $this->vendorId();
 
         $query = Payout::where('vendor_id', $vendorId)
@@ -87,6 +91,10 @@ class FinanceController extends Controller
 
     public function showPayout(int $id): JsonResponse
     {
+        if (!auth('vendor')->user()->can('finance.payouts.view')) {
+            return ApiResponse::error('You do not have permission to view payouts.', [], 403);
+        }
+
         $payout = Payout::where('vendor_id', $this->vendorId())
             ->with(['items', 'bankAccount'])
             ->findOrFail($id);
@@ -96,6 +104,10 @@ class FinanceController extends Controller
 
     public function payoutInvoice(int $id): JsonResponse
     {
+        if (!auth('vendor')->user()->can('finance.payouts.view')) {
+            return ApiResponse::error('You do not have permission to view payouts.', [], 403);
+        }
+
         $payout = Payout::where('vendor_id', $this->vendorId())->findOrFail($id);
 
         if (!$payout->receipt_url) {

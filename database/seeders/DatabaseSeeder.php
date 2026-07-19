@@ -41,6 +41,11 @@ class DatabaseSeeder extends Seeder
 
                 // ── All guard user accounts ────────────────────────────────────
             VendorSeeder::class,
+
+                // ── Vendor guard permissions & role migration ──────────────────
+            VendorPermissionSeeder::class,
+            VendorAdminRoleMigrationSeeder::class,
+
             CustomerSeeder::class,
             MarketerSeeder::class,
             ShippingCompanySeeder::class,

@@ -454,6 +454,9 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{vendor}/bank-accounts/{accountId}/verify', [VendorController::class, 'verifyBankAccount'])->name('bank-accounts.verify');
         Route::get('/{vendor}/performance-data', [VendorController::class, 'performanceData'])->name('performance-data');
         Route::post('/{vendor}/notify', [VendorController::class, 'sendNotification'])->name('notify');
+
+        Route::post('/{vendor}/team/{vendorAdmin}/deactivate', [VendorController::class, 'deactivateTeamMember'])->name('team.deactivate');
+        Route::post('/{vendor}/team/{vendorAdmin}/reactivate', [VendorController::class, 'reactivateTeamMember'])->name('team.reactivate');
     });
 
     // ─── Geography ───────────────────────────────────────────────────────────────

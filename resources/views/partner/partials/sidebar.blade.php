@@ -85,7 +85,9 @@
 
         <x-partner-nav-group label="{{ __('partner.nav.settings') }}">
             <x-partner-nav-item route="partner.profile.index" icon="building-storefront" label="{{ __('partner.nav.my_profile') }}" />
-            <x-partner-nav-item route="partner.team.index" icon="users" label="{{ __('partner.nav.team') }}" />
+            @if ($vendorAdmin?->can('team.view'))
+                <x-partner-nav-item route="partner.team.index" icon="users" label="{{ __('partner.nav.team') }}" />
+            @endif
             <x-partner-nav-item route="partner.bank-accounts.index" icon="building-library" label="{{ __('partner.nav.bank_accounts') }}" />
             <x-partner-nav-item route="partner.documents.index" icon="document-check" label="{{ __('partner.nav.documents') }}" />
         </x-partner-nav-group>

@@ -9,6 +9,7 @@
         window.TEAM = {
             csrf: '{{ csrf_token() }}',
             storeUrl: '{{ route('partner.team.store') }}',
+            updateRoleUrl: '{{ route('partner.team.update-role', ':id') }}',
             toggleActiveUrl: '{{ route('partner.team.toggle-active', ':id') }}',
             destroyUrl: '{{ route('partner.team.destroy', ':id') }}',
             isOwner:         {{ $admin->isOwner() ? 'true' : 'false' }},
@@ -124,6 +125,15 @@
                                 <td class="px-6 py-4 text-left">
                                     @if (!$member->isOwner())
                                                 <div class="flex items-center justify-end gap-2">
+                                                    {{-- Change role --}}
+                                                    @unless ($member->id === $admin->id)
+                                                        <select class="select-change-role text-xs font-medium rounded-lg border border-gray-300 px-2 py-1.5 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                                                            data-id="{{ $member->id }}">
+                                                            <option value="manager" @selected($member->role?->value === 'manager')>{{ __('partner.team.role_manager') }}</option>
+                                                            <option value="staff" @selected($member->role?->value === 'staff')>{{ __('partner.team.role_staff') }}</option>
+                                                        </select>
+                                                    @endunless
+
                                                     {{-- Toggle active --}}
                                                     <button type="button" class="btn-toggle-active text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors
                                                                         {{ $member->is_active

@@ -482,6 +482,38 @@ $(function () {
         );
     });
 
+    // ── Team: open deactivate modal with member context ──────────────────────
+    $(document).on('click', '[data-modal-open="deactivate-team-modal"]', function () {
+        $('#deactivate-team-member-id').val($(this).data('team-member-id'));
+        $('#deactivate-team-member-notice').text('Deactivate ' + $(this).data('team-member-name') + '? They will lose portal access until reactivated.');
+    });
+
+    // ── Team: deactivate form submit ──────────────────────────────────────────
+    $('#deactivate-team-form').on('submit', function (e) {
+        e.preventDefault();
+        const vendorId = $(this).data('vendor-id');
+        const memberId = $('#deactivate-team-member-id').val();
+
+        withLoading('#deactivate-team-form [type=submit]',
+            $.post('/vendors/' + vendorId + '/team/' + memberId + '/deactivate', $(this).serialize())
+                .done(function (res) { closeModal('deactivate-team-modal'); Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed.'); })
+        );
+    });
+
+    // ── Team: reactivate member ────────────────────────────────────────────────
+    $(document).on('click', '[data-reactivate-team-member]', function () {
+        const memberId = $(this).data('reactivate-team-member');
+        const vendorId = $(this).data('vendor-id');
+        if (!confirm('Reactivate this team member?')) return;
+
+        withLoading(this,
+            $.post('/vendors/' + vendorId + '/team/' + memberId + '/reactivate', { _token: csrfToken() })
+                .done(function (res) { Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
+                .fail(function () { Toast.error('Reactivation failed.'); })
+        );
+    });
+
     // ── Suspend form ──────────────────────────────────────────────────────────
     $('#suspend-form').on('submit', function (e) {
         e.preventDefault();

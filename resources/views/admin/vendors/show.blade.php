@@ -78,6 +78,7 @@
                     'orders'      => __('admin.vendors.tab_orders'),
                     'payouts'     => __('admin.vendors.tab_payouts'),
                     'city_surcharges' => __('admin.vendors.tab_city_surcharges'),
+                    'team'        => __('admin.vendors.tab_team'),
                     'activity'    => __('admin.vendors.tab_activity'),
                 ] as $key => $label)
                     <button type="button"
@@ -487,6 +488,84 @@
                 </x-card>
             </div>
 
+            {{-- ── Team ─────────────────────────────────────────────────────── --}}
+            <div x-show="tab === 'team'">
+                <x-card title="{{ __('admin.vendors.tab_team') }}">
+                    <p class="text-xs text-gray-500 mb-4">{{ __('admin.vendors.team_note') }}</p>
+                    @php
+                        $teamRoleColors = [
+                            'owner'   => 'bg-purple-100 text-purple-700',
+                            'manager' => 'bg-blue-100 text-blue-700',
+                            'staff'   => 'bg-gray-100 text-gray-600',
+                        ];
+                    @endphp
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-100 text-start">
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.name_column') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.email_column') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.role_column') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.status_column') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.last_login_column') }}</th>
+                                    <th class="py-2 text-end text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.actions_column') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @forelse($vendor->vendorAdmins as $member)
+                                    @php
+                                        $roleSlug = $member->roles->first()?->name
+                                            ? str_replace('vendor_', '', $member->roles->first()->name)
+                                            : $member->role?->value;
+                                    @endphp
+                                    <tr class="hover:bg-gray-50/50 {{ $member->trashed() ? 'opacity-60' : '' }}">
+                                        <td class="py-3 pr-4 font-medium text-gray-900">{{ $member->name }}</td>
+                                        <td class="py-3 pr-4 text-gray-600">{{ $member->email }}</td>
+                                        <td class="py-3 pr-4">
+                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $teamRoleColors[$roleSlug] ?? 'bg-gray-100 text-gray-600' }}">
+                                                {{ __('admin.vendors.team_role_' . $roleSlug) }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3 pr-4">
+                                            @if($member->trashed())
+                                                <x-badge color="danger">{{ __('admin.vendors.team_deleted') }}</x-badge>
+                                            @elseif($member->is_active)
+                                                <x-badge color="success">{{ __('admin.vendors.active_badge') }}</x-badge>
+                                            @else
+                                                <x-badge color="gray">{{ __('admin.vendors.team_deactivated') }}</x-badge>
+                                            @endif
+                                        </td>
+                                        <td class="py-3 pr-4 text-xs text-gray-500 whitespace-nowrap">{{ $member->last_login_at?->format('d M Y H:i') ?? '—' }}</td>
+                                        <td class="py-3 text-end">
+                                            @if(!$member->trashed())
+                                                <div class="flex items-center justify-end gap-2">
+                                                    @if($member->is_active)
+                                                        <button type="button"
+                                                                class="text-xs text-danger-600 hover:underline"
+                                                                data-modal-open="deactivate-team-modal"
+                                                                data-team-member-id="{{ $member->id }}"
+                                                                data-team-member-name="{{ $member->name }}">{{ __('admin.vendors.team_deactivate') }}</button>
+                                                    @else
+                                                        <button type="button"
+                                                                class="text-xs text-success-700 hover:underline"
+                                                                data-reactivate-team-member="{{ $member->id }}"
+                                                                data-vendor-id="{{ $vendor->id }}">{{ __('admin.vendors.team_reactivate') }}</button>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-400">—</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="6" class="py-8 text-center text-sm text-gray-400">{{ __('admin.vendors.no_team_members') }}</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </x-card>
+            </div>
+
             {{-- ── Activity Log ──────────────────────────────────────────────── --}}
             <div x-show="tab === 'activity'">
                 <x-card title="{{ __('admin.vendors.activity_log') }}">
@@ -801,6 +880,25 @@
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.vendors.cancel') }}</button>
             <button type="submit" id="request-doc-btn" form="request-doc-form" class="btn btn-primary btn-sm">{{ __('admin.vendors.send_request') }}</button>
+        </x-slot>
+    </form>
+</x-modal>
+
+{{-- Deactivate Team Member --}}
+<x-modal id="deactivate-team-modal" title="{{ __('admin.vendors.team_deactivate_title') }}" size="sm">
+    <form id="deactivate-team-form" data-vendor-id="{{ $vendor->id }}">
+        @csrf
+        <input type="hidden" id="deactivate-team-member-id" name="vendor_admin_id">
+        <div class="space-y-4">
+            <p class="text-sm text-gray-600" id="deactivate-team-member-notice"></p>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('common.reason') }} <span class="text-danger-500">*</span></label>
+                <textarea name="reason" class="form-input w-full resize-none" rows="3" required></textarea>
+            </div>
+        </div>
+        <x-slot name="footer">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.vendors.cancel') }}</button>
+            <button type="submit" form="deactivate-team-form" class="btn btn-danger btn-sm">{{ __('admin.vendors.team_deactivate') }}</button>
         </x-slot>
     </form>
 </x-modal>

@@ -2,7 +2,6 @@
 
 namespace App\Services\Vendor;
 
-use App\Enums\VendorAdminRole;
 use App\Models\Vendor;
 use App\Models\VendorAdmin;
 use Illuminate\Support\Facades\Hash;
@@ -37,6 +36,6 @@ class TeamService
             return false;
         }
 
-        return in_array($actor->role, [VendorAdminRole::Owner, VendorAdminRole::Manager], true);
+        return $actor->can('team.manage');
     }
 }

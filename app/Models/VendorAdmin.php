@@ -55,6 +55,18 @@ class VendorAdmin extends Authenticatable implements JWTSubject
         return $this->belongsTo(Vendor::class);
     }
 
+    // ── Role helpers ──────────────────────────────────────────────────────────
+
+    public function isManager(): bool
+    {
+        return $this->hasRole('vendor_manager');
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->hasRole('vendor_staff');
+    }
+
     public function deviceTokens(): MorphMany
     {
         return $this->morphMany(DeviceToken::class, 'tokenable');

@@ -89,30 +89,30 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ── Orders module ────────────────────────────────────────────────────────
     Route::prefix('orders')->name('orders.')->controller(OrderController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/datatable', 'datatable')->name('datatable');
-        Route::get('/{subOrderNumber}', 'show')->name('show');
-        Route::post('/{subOrderNumber}/confirm', 'confirm')->name('confirm');
-        Route::post('/{subOrderNumber}/ship', 'ship')->name('ship');
-        Route::post('/{subOrderNumber}/out-for-delivery', 'markOutForDelivery')->name('out-for-delivery');
-        Route::post('/{subOrderNumber}/deliver', 'markDelivered')->name('deliver');
-        Route::post('/{subOrderNumber}/cancel', 'cancel')->name('cancel');
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:orders.view');
+        Route::get('/datatable', 'datatable')->name('datatable')->middleware('vendor.can:orders.view');
+        Route::get('/{subOrderNumber}', 'show')->name('show')->middleware('vendor.can:orders.view');
+        Route::post('/{subOrderNumber}/confirm', 'confirm')->name('confirm')->middleware('vendor.can:orders.process');
+        Route::post('/{subOrderNumber}/ship', 'ship')->name('ship')->middleware('vendor.can:orders.process');
+        Route::post('/{subOrderNumber}/out-for-delivery', 'markOutForDelivery')->name('out-for-delivery')->middleware('vendor.can:orders.process');
+        Route::post('/{subOrderNumber}/deliver', 'markDelivered')->name('deliver')->middleware('vendor.can:orders.process');
+        Route::post('/{subOrderNumber}/cancel', 'cancel')->name('cancel')->middleware('vendor.can:orders.cancel');
     });
 
     // ── Listings module ──────────────────────────────────────────────────────
     Route::prefix('listings')->name('listings.')->controller(ListingController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/datatable', 'datatable')->name('datatable');
-        Route::get('/create', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
-        Route::get('/product-search', 'productSearch')->name('product-search');
-        Route::get('/warehouses-by-country', 'warehousesByCountry')->name('warehouses-by-country');
-        Route::get('/{listing}', 'show')->name('show');
-        Route::post('/{listing}/update-price', 'updatePrice')->name('update-price');
-        Route::post('/{listing}/update-shipping', 'updateShipping')->name('update-shipping');
-        Route::post('/{listing}/toggle-status', 'toggleStatus')->name('toggle-status');
-        Route::post('/{listing}/adjust-stock', 'adjustStock')->name('adjust-stock');
-        Route::post('/{listing}/toggle-covers-delivery', 'toggleCoversDelivery')->name('toggle-covers-delivery');
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:listings.view');
+        Route::get('/datatable', 'datatable')->name('datatable')->middleware('vendor.can:listings.view');
+        Route::get('/create', 'create')->name('create')->middleware('vendor.can:listings.create');
+        Route::post('/', 'store')->name('store')->middleware('vendor.can:listings.create');
+        Route::get('/product-search', 'productSearch')->name('product-search')->middleware('vendor.can:listings.view');
+        Route::get('/warehouses-by-country', 'warehousesByCountry')->name('warehouses-by-country')->middleware('vendor.can:listings.view');
+        Route::get('/{listing}', 'show')->name('show')->middleware('vendor.can:listings.view');
+        Route::post('/{listing}/update-price', 'updatePrice')->name('update-price')->middleware('vendor.can:listings.pricing.edit');
+        Route::post('/{listing}/update-shipping', 'updateShipping')->name('update-shipping')->middleware('vendor.can:listings.edit');
+        Route::post('/{listing}/toggle-status', 'toggleStatus')->name('toggle-status')->middleware('vendor.can:listings.publish');
+        Route::post('/{listing}/adjust-stock', 'adjustStock')->name('adjust-stock')->middleware('vendor.can:listings.stock.edit');
+        Route::post('/{listing}/toggle-covers-delivery', 'toggleCoversDelivery')->name('toggle-covers-delivery')->middleware('vendor.can:listings.edit');
     });
 
     // ── Inventory module ─────────────────────────────────────────────────────
@@ -126,9 +126,9 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ── Payouts module ───────────────────────────────────────────────────────
     Route::prefix('payouts')->name('payouts.')->controller(PayoutController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/earnings-summary', 'earningsSummary')->name('earnings-summary');
-        Route::get('/{payoutNumber}', 'show')->name('show');
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:finance.payouts.view');
+        Route::get('/earnings-summary', 'earningsSummary')->name('earnings-summary')->middleware('vendor.can:finance.payouts.view');
+        Route::get('/{payoutNumber}', 'show')->name('show')->middleware('vendor.can:finance.payouts.view');
     });
 
     // ── Coupons module ────────────────────────────────────────────────────────
@@ -179,23 +179,24 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ── Profile & store settings ─────────────────────────────────────────────
     Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::post('/update-store', 'updateStore')->name('update-store');
-        Route::post('/update-password', 'updatePassword')->name('update-password');
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:settings.view');
+        Route::post('/update-store', 'updateStore')->name('update-store')->middleware('vendor.can:settings.edit');
+        Route::post('/update-password', 'updatePassword')->name('update-password')->middleware('vendor.can:settings.edit');
     });
 
     // ── Documents ────────────────────────────────────────────────────────────
     Route::prefix('documents')->name('documents.')->controller(ProfileController::class)->group(function () {
-        Route::get('/', 'documentsIndex')->name('index');
-        Route::post('/upload', 'uploadDocument')->name('upload');
+        Route::get('/', 'documentsIndex')->name('index')->middleware('vendor.can:settings.view');
+        Route::post('/upload', 'uploadDocument')->name('upload')->middleware('vendor.can:documents.upload');
     });
 
     // ── Team management ──────────────────────────────────────────────────────
     Route::prefix('team')->name('team.')->controller(TeamController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::post('/', 'store')->name('store');
-        Route::post('/{member}/toggle-active', 'toggleActive')->name('toggle-active');
-        Route::delete('/{member}', 'destroy')->name('destroy');
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:team.view');
+        Route::post('/', 'store')->name('store')->middleware('vendor.can:team.invite');
+        Route::put('/{member}/role', 'updateRole')->name('update-role')->middleware('vendor.can:team.manage');
+        Route::post('/{member}/toggle-active', 'toggleActive')->name('toggle-active')->middleware('vendor.can:team.manage');
+        Route::delete('/{member}', 'destroy')->name('destroy')->middleware('vendor.can:team.manage');
     });
 
     // ── Support tickets ──────────────────────────────────────────────────────
@@ -234,15 +235,15 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ── Marketer Campaigns (read-only for vendors) ───────────────────────────────
     Route::prefix('marketer-campaigns')->name('marketer-campaigns.')->controller(PartnerMarketerCampaignController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/{campaign}', 'show')->name('show');
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:campaigns.view');
+        Route::get('/{campaign}', 'show')->name('show')->middleware('vendor.can:campaigns.view');
     });
 
     // ── Marketer Sample Requests ─────────────────────────────────────────────────
     Route::prefix('marketer-samples')->name('marketer-samples.')->controller(PartnerMarketerSampleController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::post('/{req}/approve', 'approve')->name('approve');
-        Route::post('/{req}/reject', 'reject')->name('reject');
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:campaigns.view');
+        Route::post('/{req}/approve', 'approve')->name('approve')->middleware('vendor.can:campaigns.manage_marketers');
+        Route::post('/{req}/reject', 'reject')->name('reject')->middleware('vendor.can:campaigns.manage_marketers');
     });
 
     // ── Wallet ────────────────────────────────────────────────────────────────
@@ -338,21 +339,21 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
 
     // ─── Finance / Transactions ───────────────────────────────────────────────
     Route::prefix('finance')->name('finance.')->group(function () {
-        Route::get('/transactions', [\App\Http\Controllers\Partner\FinanceController::class, 'transactions'])->name('transactions');
+        Route::get('/transactions', [\App\Http\Controllers\Partner\FinanceController::class, 'transactions'])->name('transactions')->middleware('vendor.can:finance.view');
     });
 
     // ─── Campaign Offers (Vendor → Marketer) ─────────────────────────────────
     Route::prefix('campaign-offers')->name('campaign-offers.')->group(function () {
-        Route::get('/',                                        [CampaignOfferController::class, 'index'])->name('index');
-        Route::get('/create',                                  [CampaignOfferController::class, 'create'])->name('create');
-        Route::post('/',                                       [CampaignOfferController::class, 'store'])->name('store');
-        Route::get('/marketers/search',                        [CampaignOfferController::class, 'searchMarketers'])->name('marketers.search');
-        Route::get('/{offer}',                                 [CampaignOfferController::class, 'show'])->name('show');
-        Route::post('/{offer}/submit',                         [CampaignOfferController::class, 'submitForReview'])->name('submit');
-        Route::post('/{offer}/pause',                          [CampaignOfferController::class, 'pauseOffer'])->name('pause');
-        Route::post('/{offer}/resume',                         [CampaignOfferController::class, 'resumeOffer'])->name('resume');
-        Route::post('/{offer}/invite',                         [CampaignOfferController::class, 'invite'])->name('invite');
-        Route::delete('/invitations/{invitation}/revoke',      [CampaignOfferController::class, 'revokeInvitation'])->name('invitations.revoke');
+        Route::get('/',                                        [CampaignOfferController::class, 'index'])->name('index')->middleware('vendor.can:campaigns.view');
+        Route::get('/create',                                  [CampaignOfferController::class, 'create'])->name('create')->middleware('vendor.can:campaigns.create');
+        Route::post('/',                                       [CampaignOfferController::class, 'store'])->name('store')->middleware('vendor.can:campaigns.create');
+        Route::get('/marketers/search',                        [CampaignOfferController::class, 'searchMarketers'])->name('marketers.search')->middleware('vendor.can:campaigns.view');
+        Route::get('/{offer}',                                 [CampaignOfferController::class, 'show'])->name('show')->middleware('vendor.can:campaigns.view');
+        Route::post('/{offer}/submit',                         [CampaignOfferController::class, 'submitForReview'])->name('submit')->middleware('vendor.can:campaigns.edit');
+        Route::post('/{offer}/pause',                          [CampaignOfferController::class, 'pauseOffer'])->name('pause')->middleware('vendor.can:campaigns.edit');
+        Route::post('/{offer}/resume',                         [CampaignOfferController::class, 'resumeOffer'])->name('resume')->middleware('vendor.can:campaigns.edit');
+        Route::post('/{offer}/invite',                         [CampaignOfferController::class, 'invite'])->name('invite')->middleware('vendor.can:campaigns.manage_marketers');
+        Route::delete('/invitations/{invitation}/revoke',      [CampaignOfferController::class, 'revokeInvitation'])->name('invitations.revoke')->middleware('vendor.can:campaigns.manage_marketers');
     });
 
     // ─── Ads ─────────────────────────────────────────────────────────────────

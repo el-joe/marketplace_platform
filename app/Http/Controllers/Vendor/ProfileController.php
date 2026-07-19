@@ -35,6 +35,13 @@ class ProfileController extends Controller
     // PUT /profile
     public function update(UpdateProfileRequest $request): JsonResponse
     {
+        /** @var VendorAdmin $admin */
+        $admin = auth('vendor')->user();
+
+        if (!$admin->can('settings.edit')) {
+            return ApiResponse::error('You do not have permission to edit store settings.', [], 403);
+        }
+
         $this->vendor()->update($request->validated());
         return ApiResponse::success(new VendorProfileResource($this->vendor()->fresh()), 'Profile updated.');
     }
