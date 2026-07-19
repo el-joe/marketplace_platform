@@ -44,6 +44,8 @@ export default defineConfig({
                 'resources/js/admin/banners.js',
                 'resources/js/admin/ad-campaigns.js',
                 'resources/js/admin/vendor-applications.js',
+                'resources/js/admin/vendor-change-requests.js',
+                'resources/js/admin/vendor-change-requests-show.js',
                 'resources/js/admin/reviews.js',
                 'resources/js/admin/transactions.js',
                 'resources/js/admin/ledger.js',

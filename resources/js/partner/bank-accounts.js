@@ -156,6 +156,12 @@ function initAddModal() {
         if (ok && data.success) {
             hideModal('add-account-modal');
             toast(data.message ?? 'تم إضافة الحساب.');
+            if (data.pending_review) {
+                // No account was created yet — it's pending admin review. Just refresh
+                // the page so the "pending request" notice picks it up.
+                setTimeout(() => window.location.reload(), 1200);
+                return;
+            }
             // Re-render grid with new account appended
             const grid = document.getElementById('accounts-grid');
             if (grid) {

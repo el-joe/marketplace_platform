@@ -44,6 +44,21 @@
         </p>
     </div>
 
+    {{-- Section always locked notice --}}
+    <div class="bg-yellow-50 border border-yellow-300 rounded-xl p-4 mb-6 flex items-start gap-3">
+        <span>🔒</span>
+        <p class="text-sm text-yellow-800">{{ __('partner.profile.section_locked_generic') }}</p>
+    </div>
+
+    @if ($pendingChangeRequests->isNotEmpty())
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
+            <p class="text-sm text-gray-600 mb-1">{{ __('partner.profile.change_request_pending_notice') }}</p>
+            <a href="{{ route('partner.change-requests.index') }}" class="text-sm font-medium text-primary-600 hover:text-primary-800">
+                {{ __('partner.profile.view_change_requests') }}
+            </a>
+        </div>
+    @endif
+
     {{-- Accounts grid --}}
     <div id="accounts-container">
         @if($accounts->isEmpty())
@@ -211,6 +226,12 @@
                             @endforeach
                         </select>
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('partner.profile.change_request_reason') }}</label>
+                    <textarea name="note" rows="2"
+                              class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40"></textarea>
                 </div>
 
                 <div id="account-form-error" class="hidden text-sm text-red-600 bg-red-50 rounded-lg p-3"></div>

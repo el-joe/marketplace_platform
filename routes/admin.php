@@ -15,6 +15,8 @@ use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\FlashSaleController;
 use App\Http\Controllers\Admin\PageBuilderController;
 use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Admin\VendorSectionLockController;
+use App\Http\Controllers\Admin\VendorChangeRequestController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\AdminController;
@@ -457,7 +459,24 @@ Route::middleware('auth.admin')->group(function () {
 
         Route::post('/{vendor}/team/{vendorAdmin}/deactivate', [VendorController::class, 'deactivateTeamMember'])->name('team.deactivate');
         Route::post('/{vendor}/team/{vendorAdmin}/reactivate', [VendorController::class, 'reactivateTeamMember'])->name('team.reactivate');
+
+        Route::post('/{vendor}/lock', [VendorSectionLockController::class, 'lock'])->name('lock');
+        Route::post('/{vendor}/unlock', [VendorSectionLockController::class, 'unlock'])->name('unlock');
     });
+
+    // ─── Vendor Change Requests ────────────────────────────────────────────────
+    Route::prefix('vendor-change-requests')->name('vendor-change-requests.')->middleware('admin.permission:vendor_change_requests.view')->group(function () {
+        Route::post('/datatable', [VendorChangeRequestController::class, 'datatable'])->name('datatable');
+    });
+    Route::resource('vendor-change-requests', VendorChangeRequestController::class)
+        ->only(['index', 'show'])
+        ->middleware('admin.permission:vendor_change_requests.view');
+    Route::post('vendor-change-requests/{changeRequest}/approve', [VendorChangeRequestController::class, 'approve'])
+        ->name('vendor-change-requests.approve')
+        ->middleware('admin.permission:vendor_change_requests.approve');
+    Route::post('vendor-change-requests/{changeRequest}/reject', [VendorChangeRequestController::class, 'reject'])
+        ->name('vendor-change-requests.reject')
+        ->middleware('admin.permission:vendor_change_requests.approve');
 
     // ─── Geography ───────────────────────────────────────────────────────────────
 

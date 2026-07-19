@@ -259,6 +259,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.vendor_change_requests'),
+                        'route' => 'admin.vendor-change-requests.index',
+                        'icon' => 'lock-closed',
+                        'permission' => 'vendor_change_requests.view',
+                        'badge' => $this->cachedBadge('pending_vendor_change_requests', fn() => $this->countPendingVendorChangeRequests()),
+                    ],
+                    [
                         'label' => __('admin.nav.admins'),
                         'route' => 'admin.admins.index',
                         'icon' => 'shield-check',
@@ -907,6 +914,18 @@ class NavigationService
         }
         try {
             return (int) \App\Models\Vendor::query()->where('global_status', VendorGlobalStatus::Pending->value)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingVendorChangeRequests(): int
+    {
+        if (!class_exists(\App\Models\VendorChangeRequest::class)) {
+            return 0;
+        }
+        try {
+            return (int) \App\Models\VendorChangeRequest::query()->where('status', 'pending')->count();
         } catch (\Throwable) {
             return 0;
         }

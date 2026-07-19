@@ -18,6 +18,7 @@ use App\Http\Controllers\Partner\FulfillmentController;
 use App\Http\Controllers\Partner\MarketerCampaignController as PartnerMarketerCampaignController;
 use App\Http\Controllers\Partner\MarketerSampleController as PartnerMarketerSampleController;
 use App\Http\Controllers\Partner\TeamController;
+use App\Http\Controllers\Partner\VendorChangeRequestController;
 use App\Http\Controllers\Partner\WarehouseController;
 use App\Http\Controllers\Partner\AdsController;
 use App\Http\Controllers\Partner\CampaignOfferController;
@@ -188,6 +189,13 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
     Route::prefix('documents')->name('documents.')->controller(ProfileController::class)->group(function () {
         Route::get('/', 'documentsIndex')->name('index')->middleware('vendor.can:settings.view');
         Route::post('/upload', 'uploadDocument')->name('upload')->middleware('vendor.can:documents.upload');
+    });
+
+    // ── Change requests (locked-section edits) ─────────────────────────────────
+    Route::prefix('change-requests')->name('change-requests.')->controller(VendorChangeRequestController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::post('/{changeRequest}/cancel', 'cancel')->name('cancel');
     });
 
     // ── Team management ──────────────────────────────────────────────────────

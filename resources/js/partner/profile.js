@@ -96,6 +96,56 @@ function initPasswordForm() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Change request form (locked sections)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function initChangeRequestForm() {
+    const form = document.getElementById('form-change-request-store');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-submit-change-request-store');
+        setLoading(btn, true);
+
+        const formData = new FormData(form);
+        const fields = (formData.get('fields') ?? '').split(',').filter(Boolean);
+        const note = formData.get('note');
+
+        const storeProfileFields = ['store_name', 'store_description'];
+        const contactInfoFields = ['contact_email', 'contact_phone', 'whatsapp_number'];
+
+        const requestsToSend = [];
+        const storeData = {};
+        const contactData = {};
+        fields.forEach((f) => {
+            if (storeProfileFields.includes(f)) storeData[f] = formData.get(f);
+            if (contactInfoFields.includes(f)) contactData[f] = formData.get(f);
+        });
+        if (Object.keys(storeData).length) requestsToSend.push({ section: 'store_profile', requested_data: storeData });
+        if (Object.keys(contactData).length) requestsToSend.push({ section: 'contact_info', requested_data: contactData });
+
+        try {
+            for (const payload of requestsToSend) {
+                const res = await fetch(cfg().changeRequestUrl, {
+                    method: 'POST',
+                    headers: { ...csrfHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...payload, note }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message ?? 'فشل إرسال الطلب');
+            }
+            toast('تم إرسال طلب التعديل للمراجعة');
+            setTimeout(() => location.reload(), 1200);
+        } catch (err) {
+            toast(err.message, false);
+        } finally {
+            setLoading(btn, false);
+        }
+    });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Document uploads
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -143,5 +193,6 @@ function initDocumentUploads() {
 document.addEventListener('DOMContentLoaded', () => {
     initStoreForm();
     initPasswordForm();
+    initChangeRequestForm();
     initDocumentUploads();
 });

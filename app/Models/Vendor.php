@@ -192,4 +192,14 @@ class Vendor extends Model
     {
         return $this->morphMany(ClassifiedListing::class, 'seller');
     }
+
+    public function sectionLocks(): HasMany
+    {
+        return $this->hasMany(VendorSectionLock::class);
+    }
+
+    public function changeRequests(): HasMany
+    {
+        return $this->hasMany(VendorChangeRequest::class);
+    }
 }

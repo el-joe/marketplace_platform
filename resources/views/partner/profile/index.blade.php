@@ -7,11 +7,12 @@
     @vite('resources/js/partner/profile.js')
     <script>
         window.PROFILE = {
-            csrf:              '{{ csrf_token() }}',
-            updateStoreUrl:    '{{ route('partner.profile.update-store') }}',
-            updatePasswordUrl: '{{ route('partner.profile.update-password') }}',
-            uploadDocumentUrl: '{{ route('partner.documents.upload') }}',
-            isOwner:           {{ $admin->isOwner() ? 'true' : 'false' }},
+            csrf:               '{{ csrf_token() }}',
+            updateStoreUrl:     '{{ route('partner.profile.update-store') }}',
+            updatePasswordUrl:  '{{ route('partner.profile.update-password') }}',
+            uploadDocumentUrl:  '{{ route('partner.documents.upload') }}',
+            changeRequestUrl:   '{{ route('partner.change-requests.store') }}',
+            isOwner:            {{ $admin->isOwner() ? 'true' : 'false' }},
         };
     </script>
 @endpush
@@ -53,6 +54,13 @@ $businessTypeLabels = [
         </div>
     </div>
 
+    <div class="mb-4">
+        <a href="{{ route('partner.change-requests.index') }}"
+           class="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-800">
+            {{ __('partner.profile.view_change_requests') }}
+        </a>
+    </div>
+
     {{-- Tabs nav --}}
     <div class="border-b border-gray-200 mb-6">
         <nav class="-mb-px flex gap-x-6 overflow-x-auto">
@@ -76,7 +84,12 @@ $businessTypeLabels = [
     {{-- ══════════════════════════════════════════════════════════════════════ --}}
     {{-- TAB: Store info                                                        --}}
     {{-- ══════════════════════════════════════════════════════════════════════ --}}
-    <div x-show="tab === 'store'" x-cloak>
+    @php
+        $storeProfileLocked = $lockStatus[\App\Models\VendorSectionLock::SECTION_STORE_PROFILE] ?? false;
+        $contactInfoLocked  = $lockStatus[\App\Models\VendorSectionLock::SECTION_CONTACT_INFO] ?? false;
+        $anySectionLocked   = $storeProfileLocked || $contactInfoLocked;
+    @endphp
+    <div x-show="tab === 'store'" x-cloak x-data="{ showChangeRequest: {{ $anySectionLocked ? 'true' : 'false' }} }">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             {{-- Editable store fields --}}
@@ -89,6 +102,24 @@ $businessTypeLabels = [
                     </div>
                 @endif
 
+                @if ($anySectionLocked)
+                    <div class="mb-4 rounded-lg bg-yellow-50 border border-yellow-300 px-4 py-3 text-sm text-yellow-800 flex items-start gap-2">
+                        <span>🔒</span>
+                        <div>
+                            @if ($storeProfileLocked)
+                                <p>{{ __('partner.profile.section_locked', ['reason' => $sectionLocks[\App\Models\VendorSectionLock::SECTION_STORE_PROFILE]->locked_reason ?? __('partner.profile.section_locked_generic')]) }}</p>
+                            @endif
+                            @if ($contactInfoLocked)
+                                <p>{{ __('partner.profile.section_locked', ['reason' => $sectionLocks[\App\Models\VendorSectionLock::SECTION_CONTACT_INFO]->locked_reason ?? __('partner.profile.section_locked_generic')]) }}</p>
+                            @endif
+                            <button type="button" @click="showChangeRequest = !showChangeRequest"
+                                class="mt-2 inline-flex items-center gap-1 rounded-lg bg-yellow-100 px-3 py-1.5 text-xs font-semibold text-yellow-800 hover:bg-yellow-200">
+                                {{ __('partner.profile.request_change') }}
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
                 <form id="form-store" novalidate>
                     <div class="space-y-4">
                         {{-- Store name --}}
@@ -96,7 +127,7 @@ $businessTypeLabels = [
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.store_name') }} <span class="text-red-500">*</span></label>
                             <input type="text" name="store_name"
                                 value="{{ old('store_name', $vendor->store_name) }}"
-                                {{ ! $admin->isOwner() ? 'disabled' : '' }}
+                                {{ (! $admin->isOwner() || $storeProfileLocked) ? 'disabled' : '' }}
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400">
                         </div>
 
@@ -104,7 +135,7 @@ $businessTypeLabels = [
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.store_description') }}</label>
                             <textarea name="store_description" rows="3"
-                                {{ ! $admin->isOwner() ? 'disabled' : '' }}
+                                {{ (! $admin->isOwner() || $storeProfileLocked) ? 'disabled' : '' }}
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400">{{ old('store_description', $vendor->store_description) }}</textarea>
                         </div>
 
@@ -114,14 +145,14 @@ $businessTypeLabels = [
                                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.contact_email') }} <span class="text-red-500">*</span></label>
                                 <input type="email" name="contact_email"
                                     value="{{ old('contact_email', $vendor->contact_email) }}"
-                                    {{ ! $admin->isOwner() ? 'disabled' : '' }}
+                                    {{ (! $admin->isOwner() || $contactInfoLocked) ? 'disabled' : '' }}
                                     class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.contact_phone') }} <span class="text-red-500">*</span></label>
                                 <input type="text" name="contact_phone"
                                     value="{{ old('contact_phone', $vendor->contact_phone) }}"
-                                    {{ ! $admin->isOwner() ? 'disabled' : '' }}
+                                    {{ (! $admin->isOwner() || $contactInfoLocked) ? 'disabled' : '' }}
                                     class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400">
                             </div>
                         </div>
@@ -131,7 +162,7 @@ $businessTypeLabels = [
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.whatsapp_number') }}</label>
                             <input type="text" name="whatsapp_number"
                                 value="{{ old('whatsapp_number', $vendor->whatsapp_number) }}"
-                                {{ ! $admin->isOwner() ? 'disabled' : '' }}
+                                {{ (! $admin->isOwner() || $contactInfoLocked) ? 'disabled' : '' }}
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400">
                         </div>
                     </div>
@@ -146,6 +177,65 @@ $businessTypeLabels = [
                         </div>
                     @endif
                 </form>
+
+                {{-- Change request form for locked fields --}}
+                @if ($anySectionLocked && $admin->isOwner())
+                    <div x-show="showChangeRequest" x-cloak class="mt-6 border-t border-gray-100 pt-6">
+                        @if ($pendingChangeRequests->has(\App\Models\VendorSectionLock::SECTION_STORE_PROFILE) || $pendingChangeRequests->has(\App\Models\VendorSectionLock::SECTION_CONTACT_INFO))
+                            <div class="mb-4 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-600">
+                                {{ __('partner.profile.change_request_pending_notice') }}
+                            </div>
+                        @else
+                            <form id="form-change-request-store" novalidate>
+                                <input type="hidden" name="fields" value="{{ implode(',', array_merge(
+                                    $storeProfileLocked ? ['store_name', 'store_description'] : [],
+                                    $contactInfoLocked ? ['contact_email', 'contact_phone', 'whatsapp_number'] : []
+                                )) }}">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    @if ($storeProfileLocked)
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.store_name') }}</label>
+                                            <input type="text" name="store_name" value="{{ $vendor->store_name }}"
+                                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.store_description') }}</label>
+                                            <input type="text" name="store_description" value="{{ $vendor->store_description }}"
+                                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+                                        </div>
+                                    @endif
+                                    @if ($contactInfoLocked)
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.contact_email') }}</label>
+                                            <input type="email" name="contact_email" value="{{ $vendor->contact_email }}"
+                                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.contact_phone') }}</label>
+                                            <input type="text" name="contact_phone" value="{{ $vendor->contact_phone }}"
+                                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.whatsapp_number') }}</label>
+                                            <input type="text" name="whatsapp_number" value="{{ $vendor->whatsapp_number }}"
+                                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.profile.change_request_reason') }}</label>
+                                    <textarea name="note" rows="2" class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"></textarea>
+                                </div>
+                                <div class="mt-4 flex justify-end">
+                                    <button type="submit" id="btn-submit-change-request-store"
+                                        class="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-5 py-2 text-sm font-semibold text-white hover:bg-yellow-700">
+                                        {{ __('partner.profile.submit_change_request') }}
+                                    </button>
+                                </div>
+                            </form>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             {{-- Read-only business info --}}
@@ -206,6 +296,14 @@ $businessTypeLabels = [
     {{-- TAB: Documents                                                         --}}
     {{-- ══════════════════════════════════════════════════════════════════════ --}}
     <div x-show="tab === 'documents'" x-cloak>
+
+        @php $documentsLocked = $lockStatus[\App\Models\VendorSectionLock::SECTION_DOCUMENTS] ?? false; @endphp
+        @if ($documentsLocked)
+            <div class="mb-4 rounded-lg bg-yellow-50 border border-yellow-300 px-4 py-3 text-sm text-yellow-800 flex items-start gap-2">
+                <span>🔒</span>
+                <p>{{ __('partner.profile.section_locked', ['reason' => $sectionLocks[\App\Models\VendorSectionLock::SECTION_DOCUMENTS]->locked_reason ?? __('partner.profile.section_locked_generic')]) }}</p>
+            </div>
+        @endif
 
         @if ($requiredDocs->isEmpty())
             <div class="rounded-lg bg-gray-50 border border-gray-200 px-4 py-6 text-center text-sm text-gray-500">
@@ -326,12 +424,13 @@ $businessTypeLabels = [
                                 </a>
                             @endif
 
-                            <label class="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            <label class="{{ $documentsLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer' }} inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                 {{ $doc ? __('partner.profile.reupload') : __('partner.profile.upload_file') }}
                                 <input type="file"
                                        class="hidden doc-upload-input"
                                        data-type-id="{{ $docType->id }}"
+                                       {{ $documentsLocked ? 'disabled' : '' }}
                                        accept=".pdf,.jpg,.jpeg,.png">
                             </label>
 

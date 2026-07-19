@@ -91,6 +91,8 @@ class PermissionSeeder extends Seeder
             'ad_campaigns.delete',
             'ad_campaigns.manage',
             'campaign_offers.view',
+            'vendor_change_requests.view',
+            'vendor_change_requests.approve',
             'pages.view',
             'pages.manage',
             'app_contexts.view',

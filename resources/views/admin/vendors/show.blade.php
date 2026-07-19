@@ -66,7 +66,7 @@
     {{-- ══ MAIN (8/12) ════════════════════════════════════════════════════════ --}}
     <div class="col-span-12 lg:col-span-8 space-y-6">
 
-        <div x-data="{ tab: 'profile' }">
+        <div x-data="{ tab: 'profile', lockModalOpen: false, lockSection: '', lockReason: '' }">
             {{-- Tab bar --}}
             <div class="flex gap-1 border-b border-gray-200 overflow-x-auto pb-px mb-6">
                 @foreach([
@@ -79,6 +79,7 @@
                     'payouts'     => __('admin.vendors.tab_payouts'),
                     'city_surcharges' => __('admin.vendors.tab_city_surcharges'),
                     'team'        => __('admin.vendors.tab_team'),
+                    'locks'       => __('admin.vendors.tab_locks'),
                     'activity'    => __('admin.vendors.tab_activity'),
                 ] as $key => $label)
                     <button type="button"
@@ -566,6 +567,73 @@
                 </x-card>
             </div>
 
+            {{-- ── Profile Locks ────────────────────────────────────────────── --}}
+            <div x-show="tab === 'locks'">
+                <x-card title="{{ __('admin.vendors.tab_locks') }}">
+                    <p class="text-xs text-gray-500 mb-4">{{ __('admin.vendors.locks_note') }}</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-100 text-start">
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.section_column') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.status_column') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.reason_column') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.locked_by_column') }}</th>
+                                    <th class="py-2 pr-4 text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.locked_at_column') }}</th>
+                                    <th class="py-2 text-end text-xs font-medium text-gray-500 uppercase">{{ __('admin.vendors.actions_column') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @foreach(\App\Models\VendorSectionLock::sections() as $section)
+                                    @php
+                                        $lock = $sectionLocks->get($section);
+                                        $isBankAccounts = $section === \App\Models\VendorSectionLock::SECTION_BANK_ACCOUNTS;
+                                        $isLocked = $isBankAccounts || ($lock?->is_locked ?? false);
+                                    @endphp
+                                    <tr class="hover:bg-gray-50/50">
+                                        <td class="py-3 pr-4 font-medium text-gray-900">
+                                            {{ __('admin.vendors.section_' . $section) }}
+                                            @if($isBankAccounts)
+                                                <span class="block text-xs text-gray-400 font-normal">{{ __('admin.vendors.bank_accounts_always_locked') }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-3 pr-4">
+                                            @if($isLocked)
+                                                <x-badge color="danger">{{ __('admin.vendors.locked') }}</x-badge>
+                                            @else
+                                                <x-badge color="success">{{ __('admin.vendors.unlocked') }}</x-badge>
+                                            @endif
+                                        </td>
+                                        <td class="py-3 pr-4 text-gray-600">{{ $lock?->is_locked ? $lock->locked_reason : '—' }}</td>
+                                        <td class="py-3 pr-4 text-gray-600">{{ $lock?->is_locked ? ($lock->lockedByAdmin?->name ?? '—') : '—' }}</td>
+                                        <td class="py-3 pr-4 text-xs text-gray-500 whitespace-nowrap">{{ $lock?->is_locked ? $lock->locked_at?->format('d M Y H:i') : '—' }}</td>
+                                        <td class="py-3 text-end">
+                                            @if(!$isBankAccounts)
+                                                @if($isLocked)
+                                                    <form method="POST" action="{{ route('admin.vendors.unlock', $vendor) }}" class="inline">
+                                                        @csrf
+                                                        <input type="hidden" name="section" value="{{ $section }}">
+                                                        <button type="submit" class="text-xs text-success-700 hover:underline">{{ __('admin.vendors.unlock_btn') }}</button>
+                                                    </form>
+                                                @else
+                                                    <button type="button"
+                                                            class="text-xs text-danger-600 hover:underline"
+                                                            @click="lockModalOpen = true; lockSection = '{{ $section }}'; lockReason = ''">
+                                                        {{ __('admin.vendors.lock_btn') }}
+                                                    </button>
+                                                @endif
+                                            @else
+                                                <span class="text-xs text-gray-400">—</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </x-card>
+            </div>
+
             {{-- ── Activity Log ──────────────────────────────────────────────── --}}
             <div x-show="tab === 'activity'">
                 <x-card title="{{ __('admin.vendors.activity_log') }}">
@@ -602,6 +670,46 @@
                         </div>
                     @endif
                 </x-card>
+            </div>
+
+            {{-- ── Lock Section Modal (Alpine.js) ──────────────────────────────── --}}
+            <div x-show="lockModalOpen"
+                 x-cloak
+                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+                 @keydown.escape.window="lockModalOpen = false">
+                <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6" @click.outside="lockModalOpen = false">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ __('admin.vendors.lock_section_title') }}</h3>
+                    <form @submit.prevent="
+                        fetch('{{ route('admin.vendors.lock', $vendor) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ section: lockSection, locked_reason: lockReason }),
+                        }).then(res => res.json()).then(data => {
+                            lockModalOpen = false;
+                            if (window.Toast) { Toast.success(data.message); }
+                            setTimeout(() => location.reload(), 700);
+                        }).catch(() => { if (window.Toast) { Toast.error('Failed.'); } });
+                    ">
+                        <input type="hidden" name="section" x-model="lockSection">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendors.locked_reason_label') }} <span class="text-danger-500">*</span></label>
+                            <input type="text"
+                                   x-model="lockReason"
+                                   required
+                                   maxlength="255"
+                                   class="form-input w-full"
+                                   placeholder="{{ __('admin.vendors.locked_reason_placeholder') }}">
+                        </div>
+                        <div class="flex justify-end gap-2 mt-6">
+                            <button type="button" class="btn btn-ghost btn-sm" @click="lockModalOpen = false">{{ __('admin.vendors.cancel') }}</button>
+                            <button type="submit" class="btn btn-danger btn-sm">{{ __('admin.vendors.confirm_lock') }}</button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
         </div>{{-- end x-data --}}

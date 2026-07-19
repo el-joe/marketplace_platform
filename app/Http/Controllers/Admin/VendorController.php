@@ -128,7 +128,11 @@ class VendorController extends Controller
             'vendorAdmins' => function ($q) {
                 $q->withTrashed()->with('roles');
             },
+            'sectionLocks.lockedByAdmin',
+            'sectionLocks.unlockedByAdmin',
         ]);
+
+        $sectionLocks = $vendor->sectionLocks->keyBy('section');
 
         $subOrders = $vendor->subOrders()->latest()->limit(50)->get();
         $payouts = $vendor->payouts()->latest()->limit(50)->get();
@@ -142,7 +146,7 @@ class VendorController extends Controller
 
         $admins = Admin::orderBy('name')->get(['id', 'name']);
 
-        return view('admin.vendors.show', compact('vendor', 'subOrders', 'payouts', 'activityLog', 'admins', 'citySurcharges'));
+        return view('admin.vendors.show', compact('vendor', 'subOrders', 'payouts', 'activityLog', 'admins', 'citySurcharges', 'sectionLocks'));
     }
 
     // ── Update ────────────────────────────────────────────────────────────────

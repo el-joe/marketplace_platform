@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\VendorBankAccount;
 use App\Models\VendorDocument;
 use App\Models\VendorDocumentCountryRequirement;
+use App\Models\VendorSectionLock;
+use App\Services\VendorChangeRequestService;
+use App\Services\VendorSectionLockService;
+use App\Traits\ChecksVendorSectionLock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +19,13 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    use ChecksVendorSectionLock;
+
+    public function __construct(
+        private readonly VendorSectionLockService $sectionLocks,
+        private readonly VendorChangeRequestService $changeRequests,
+    ) {}
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private function vendorAdmin()
@@ -55,8 +66,21 @@ class ProfileController extends Controller
             ->orderByDesc('is_primary')
             ->get();
 
+        $sectionLocks = VendorSectionLock::where('vendor_id', $this->vendorId())
+            ->where('is_locked', true)
+            ->get()
+            ->keyBy('section');
+
+        $lockStatus = $this->sectionLocks->getLockStatus($this->vendorId());
+
+        $pendingChangeRequests = $vendor->changeRequests()
+            ->pending()
+            ->get()
+            ->keyBy('section');
+
         return view('partner.profile.index', compact(
-            'admin', 'vendor', 'requiredDocs', 'latestDocByType', 'bankAccounts'
+            'admin', 'vendor', 'requiredDocs', 'latestDocByType', 'bankAccounts',
+            'sectionLocks', 'lockStatus', 'pendingChangeRequests'
         ));
     }
 
@@ -80,15 +104,64 @@ class ProfileController extends Controller
             return response()->json(['message' => 'يحق للمالك فقط تعديل بيانات المتجر'], 403);
         }
 
+        // Fields belonging to a locked section may be omitted by the form (disabled inputs),
+        // so validation is "sometimes" — omitted fields are simply not touched below.
         $validated = $request->validate([
-            'store_name' => 'required|string|max:255',
-            'store_description' => 'nullable|string|max:2000',
-            'contact_email' => 'required|email|max:255',
-            'contact_phone' => 'required|string|max:30',
-            'whatsapp_number' => 'nullable|string|max:30',
+            'store_name' => 'sometimes|required|string|max:255',
+            'store_description' => 'sometimes|nullable|string|max:2000',
+            'contact_email' => 'sometimes|required|email|max:255',
+            'contact_phone' => 'sometimes|required|string|max:30',
+            'whatsapp_number' => 'sometimes|nullable|string|max:30',
         ]);
 
-        $admin->vendor()->update($validated);
+        $vendor = $admin->vendor()->firstOrFail();
+
+        $sections = [
+            VendorSectionLock::SECTION_STORE_PROFILE => array_intersect_key(
+                $validated,
+                array_flip(['store_name', 'store_description'])
+            ),
+            VendorSectionLock::SECTION_CONTACT_INFO => array_intersect_key(
+                $validated,
+                array_flip(['contact_email', 'contact_phone', 'whatsapp_number'])
+            ),
+        ];
+
+        $applied = [];
+        $submittedForReview = [];
+
+        foreach ($sections as $section => $fields) {
+            if ($this->sectionLocks->isLocked($vendor->id, $section)) {
+                try {
+                    $this->changeRequests->submitRequest(
+                        vendor: $vendor,
+                        requestedBy: $admin,
+                        section: $section,
+                        requestType: 'update',
+                        currentData: $vendor->only(array_keys($fields)),
+                        requestedData: $fields,
+                        vendorNote: $request->input('note'),
+                    );
+                } catch (\RuntimeException) {
+                    // A request is already pending for this section — nothing to do.
+                }
+                $submittedForReview[] = $section;
+            } else {
+                $applied[] = $fields;
+            }
+        }
+
+        if (! empty($applied)) {
+            $vendor->update(array_merge(...$applied));
+        }
+
+        if (! empty($submittedForReview) && empty($applied)) {
+            return response()->json(['message' => 'تم إرسال طلب التعديل للمراجعة من قبل الإدارة']);
+        }
+
+        if (! empty($submittedForReview)) {
+            return response()->json(['message' => 'تم تحديث الحقول غير المقفلة، وتم إرسال باقي التعديلات للمراجعة']);
+        }
 
         return response()->json(['message' => 'تم تحديث بيانات المتجر بنجاح']);
     }
@@ -123,6 +196,8 @@ class ProfileController extends Controller
      */
     public function uploadDocument(Request $request): JsonResponse
     {
+        $this->assertSectionEditable(VendorSectionLock::SECTION_DOCUMENTS);
+
         $admin    = $this->vendorAdmin();
         $vendor   = $admin->vendor()->with('country')->firstOrFail();
         $vendorId = $vendor->id;
