@@ -370,6 +370,10 @@ class ListingController extends Controller
             'warehouse_id' => ['required', 'exists:warehouses,id'],
             'initial_quantity' => ['required', 'integer', 'min:0', 'max:99999'],
             'vendor_covers_delivery' => ['nullable', 'boolean'],
+            'influencer_commission_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'affiliate_commission_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'influencer_sample_quota' => ['nullable', 'integer', 'min:0', 'max:9999', 'required_with:influencer_commission_percentage'],
+            'affiliate_sample_quota' => ['nullable', 'integer', 'min:0', 'max:9999', 'required_with:affiliate_commission_percentage'],
         ]);
 
         // Resolve product_variant_id — either sent directly (has_variants=1) or resolved
@@ -438,6 +442,10 @@ class ListingController extends Controller
                 'max_order_quantity' => $request->max_order_quantity,
                 'low_stock_threshold' => $request->low_stock_threshold ?? 5,
                 'vendor_covers_delivery' => $request->boolean('vendor_covers_delivery'),
+                'influencer_commission_percentage' => $request->influencer_commission_percentage,
+                'affiliate_commission_percentage' => $request->affiliate_commission_percentage,
+                'influencer_sample_quota' => $request->influencer_sample_quota,
+                'affiliate_sample_quota' => $request->affiliate_sample_quota,
             ]);
 
             // Create warehouse inventory record
