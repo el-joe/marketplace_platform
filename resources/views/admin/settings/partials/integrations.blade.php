@@ -24,12 +24,7 @@
     </div>
     <div class="divide-y divide-gray-100">
 
-        @foreach($settings->whereIn('key', [
-            'payment_gateway_provider',
-            'payment_gateway_live_mode',
-            'payment_gateway_api_key',
-            'payment_gateway_secret',
-        ]) as $setting)
+        @foreach($settings as $setting)
             @include('admin.settings.partials._field', ['setting' => $setting])
         @endforeach
 

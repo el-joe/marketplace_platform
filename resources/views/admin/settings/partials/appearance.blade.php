@@ -8,7 +8,7 @@
     </div>
     <div class="divide-y divide-gray-100">
 
-        @foreach($settings->whereIn('key', ['primary_color', 'secondary_color']) as $setting)
+        @foreach($settings as $setting)
             @include('admin.settings.partials._field', ['setting' => $setting])
         @endforeach
 

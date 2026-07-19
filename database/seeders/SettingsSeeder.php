@@ -57,6 +57,11 @@ class SettingsSeeder extends Seeder
             ['key' => 'vendor_review_sla_days', 'value' => 5, 'category' => 'vendors', 'description' => 'Target days to review new vendor applications'],
             ['key' => 'vendor_min_payout_amount', 'value' => 10000, 'category' => 'vendors', 'description' => 'Minimum payout amount in cents (e.g. 10000 = 100 EGP)'],
             ['key' => 'vendor_payout_processing_days', 'value' => 3, 'category' => 'vendors', 'description' => 'Business days to process approved payouts'],
+            ['key' => 'min_influencer_commission_percentage', 'value' => 5.00, 'category' => 'vendors', 'description' => 'Minimum commission % a vendor must offer influencers when opting a listing into influencer promotion'],
+            ['key' => 'min_affiliate_commission_percentage', 'value' => 5.00, 'category' => 'vendors', 'description' => 'Minimum commission % a vendor must offer affiliates when opting a listing into affiliate promotion'],
+            ['key' => 'min_influencer_sample_quota', 'value' => 1, 'category' => 'vendors', 'description' => 'Minimum number of free samples a vendor must allocate for influencer promotion'],
+            ['key' => 'min_affiliate_sample_quota', 'value' => 1, 'category' => 'vendors', 'description' => 'Minimum number of free samples a vendor must allocate for affiliate promotion'],
+            ['key' => 'admin_mandated_sample_quota', 'value' => 0, 'category' => 'vendors', 'description' => 'Additional samples auto-reserved for admin use on top of vendor-provided influencer/affiliate samples'],
 
             // ─── customers ────────────────────────────────────────────────────
             ['key' => 'loyalty_points_per_100_egp', 'value' => 1, 'category' => 'customers', 'description' => 'Loyalty points earned per 100 EGP spent'],

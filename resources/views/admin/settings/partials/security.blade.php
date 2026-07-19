@@ -6,16 +6,7 @@
     </div>
     <div class="divide-y divide-gray-100">
 
-        @foreach($settings->whereIn('key', [
-                'max_login_attempts',
-                'login_lockout_minutes',
-                'admin_session_timeout_minutes',
-                'require_2fa_admins',
-                'password_min_length',
-                'api_rate_limit_per_minute',
-                'sanctum_token_expiry_days_web',
-                'sanctum_token_expiry_days_app',
-            ]) as $setting)
+        @foreach($settings as $setting)
                 @include('admin.settings.partials._field', ['setting' => $setting])
         @endforeach
 

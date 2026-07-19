@@ -6,15 +6,7 @@
     </div>
     <div class="divide-y divide-gray-100">
 
-        @foreach($settings->whereIn('key', [
-            'admin_notification_email',
-            'notify_admin_new_order',
-            'notify_admin_new_vendor_application',
-            'notify_admin_new_dispute',
-            'notify_admin_sla_breach',
-            'notify_admin_low_stock',
-            'notify_admin_payout_failure',
-        ]) as $setting)
+        @foreach($settings as $setting)
             @include('admin.settings.partials._field', ['setting' => $setting])
         @endforeach
 

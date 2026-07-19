@@ -5,6 +5,7 @@ namespace App\Services\Vendor;
 use App\Enums\GlobalSystemType;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
+use App\Models\Setting;
 use App\Models\SubOrder;
 use App\Models\VendorListing;
 use App\Models\Vendor;
@@ -25,6 +26,8 @@ class ListingService
             ]);
         }
 
+        $this->assertPromotionFieldsMeetMinimums($data);
+
         return VendorListing::create([
             'vendor_id'              => $vendor->id,
             'product_variant_id'     => $data['product_variant_id'],
@@ -34,7 +37,46 @@ class ListingService
             'condition'              => $data['condition'],
             'fulfillment_model'      => $data['fulfillment_model'],
             'status'                 => 'pending_review',
+            'influencer_commission_percentage' => $data['influencer_commission_percentage'] ?? null,
+            'affiliate_commission_percentage'  => $data['affiliate_commission_percentage'] ?? null,
+            'influencer_sample_quota'          => $data['influencer_sample_quota'] ?? null,
+            'affiliate_sample_quota'           => $data['affiliate_sample_quota'] ?? null,
         ]);
+    }
+
+    private function assertPromotionFieldsMeetMinimums(array $data): void
+    {
+        if (! empty($data['influencer_commission_percentage'])) {
+            $minCommission = (float) Setting::get('min_influencer_commission_percentage', 0);
+            if ($data['influencer_commission_percentage'] < $minCommission) {
+                throw ValidationException::withMessages([
+                    'influencer_commission_percentage' => ["Influencer commission must be at least {$minCommission}%."],
+                ]);
+            }
+
+            $minSamples = (int) Setting::get('min_influencer_sample_quota', 0);
+            if (($data['influencer_sample_quota'] ?? 0) < $minSamples) {
+                throw ValidationException::withMessages([
+                    'influencer_sample_quota' => ["Influencer sample quota must be at least {$minSamples}."],
+                ]);
+            }
+        }
+
+        if (! empty($data['affiliate_commission_percentage'])) {
+            $minCommission = (float) Setting::get('min_affiliate_commission_percentage', 0);
+            if ($data['affiliate_commission_percentage'] < $minCommission) {
+                throw ValidationException::withMessages([
+                    'affiliate_commission_percentage' => ["Affiliate commission must be at least {$minCommission}%."],
+                ]);
+            }
+
+            $minSamples = (int) Setting::get('min_affiliate_sample_quota', 0);
+            if (($data['affiliate_sample_quota'] ?? 0) < $minSamples) {
+                throw ValidationException::withMessages([
+                    'affiliate_sample_quota' => ["Affiliate sample quota must be at least {$minSamples}."],
+                ]);
+            }
+        }
     }
 
     public function updatePrice(VendorListing $listing, array $data): VendorListing

@@ -22,7 +22,7 @@
     </div>
     <div class="divide-y divide-gray-100">
 
-        @foreach($settings->whereIn('key', ['site_name', 'site_tagline', 'support_email', 'support_phone']) as $setting)
+        @foreach($settings as $setting)
             @include('admin.settings.partials._field', ['setting' => $setting])
         @endforeach
 

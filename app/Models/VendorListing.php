@@ -22,6 +22,8 @@ class VendorListing extends Model
             'status' => VendorListingStatus::class,
             'global_system_type' => GlobalSystemType::class,
             'vendor_covers_delivery' => 'boolean',
+            'influencer_commission_percentage' => 'decimal:2',
+            'affiliate_commission_percentage' => 'decimal:2',
         ];
     }
 
@@ -60,6 +62,10 @@ class VendorListing extends Model
         'calculated_at',
         'next_recalculate_at',
         'vendor_covers_delivery',
+        'influencer_commission_percentage',
+        'affiliate_commission_percentage',
+        'influencer_sample_quota',
+        'affiliate_sample_quota',
     ];
 
     public function vendor(): BelongsTo

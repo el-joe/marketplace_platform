@@ -6,13 +6,7 @@
     </div>
     <div class="divide-y divide-gray-100">
 
-        @foreach($settings->whereIn('key', [
-            'loyalty_points_per_100_egp',
-            'loyalty_referral_bonus_points',
-            'loyalty_new_customer_bonus_points',
-            'max_addresses_per_customer',
-            'customer_otp_expiry_minutes',
-        ]) as $setting)
+        @foreach($settings as $setting)
             @include('admin.settings.partials._field', ['setting' => $setting])
         @endforeach
 
