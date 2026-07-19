@@ -52,6 +52,9 @@ Schedule::call(function () {
 // FBN: remind admins of pending inbound requests every Monday at 08:00
 Schedule::job(new FbnInboundReminderJob)->weeklyOn(1, '08:00')->name('fbn-inbound-reminder');
 
+// FBN: compute daily storage overage fees for platform_fbn warehouses past their free period
+Schedule::command('fbn:compute-daily-overage')->dailyAt('01:00')->name('fbn-compute-daily-overage');
+
 // Generate COD settlements for delivery agents nightly at 23:30
 Schedule::job(new GenerateCodSettlementsJob)->dailyAt('23:30')->name('generate-cod-settlements');
 

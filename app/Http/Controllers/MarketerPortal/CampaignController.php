@@ -162,6 +162,47 @@ class CampaignController extends Controller
             ->with('success', 'Campaign submitted for approval.');
     }
 
+    public function pause(MarketerCampaign $campaign): JsonResponse
+    {
+        /** @var \App\Models\Marketer $marketer */
+        $marketer = Auth::guard('marketer')->user();
+        abort_if($campaign->marketer_id !== $marketer->id, 403);
+        abort_unless($campaign->status === \App\Enums\MarketerCampaignStatus::Active, 422, 'Only active campaigns can be paused.');
+
+        $campaign->update(['status' => \App\Enums\MarketerCampaignStatus::Paused]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function resume(MarketerCampaign $campaign): JsonResponse
+    {
+        /** @var \App\Models\Marketer $marketer */
+        $marketer = Auth::guard('marketer')->user();
+        abort_if($campaign->marketer_id !== $marketer->id, 403);
+        abort_unless($campaign->status === \App\Enums\MarketerCampaignStatus::Paused, 422, 'Only paused campaigns can be resumed.');
+        abort_if($campaign->ends_at !== null && $campaign->ends_at <= now(), 422, 'Cannot resume an expired campaign.');
+
+        $campaign->update(['status' => \App\Enums\MarketerCampaignStatus::Active]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function cancel(MarketerCampaign $campaign): JsonResponse
+    {
+        /** @var \App\Models\Marketer $marketer */
+        $marketer = Auth::guard('marketer')->user();
+        abort_if($campaign->marketer_id !== $marketer->id, 403);
+        abort_unless(in_array($campaign->status, [
+            \App\Enums\MarketerCampaignStatus::Draft,
+            \App\Enums\MarketerCampaignStatus::Active,
+            \App\Enums\MarketerCampaignStatus::Paused,
+        ], true), 422, 'This campaign cannot be cancelled.');
+
+        $campaign->update(['status' => \App\Enums\MarketerCampaignStatus::Cancelled]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function requestWhatsappLink(Request $request, MarketerCampaign $campaign): JsonResponse
     {
         /** @var \App\Models\Marketer $marketer */

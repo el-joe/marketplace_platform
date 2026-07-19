@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -41,5 +42,23 @@ class ProfileController extends Controller
         $agency->update($data);
 
         return back()->with('success', 'تم تحديث الملف الشخصي بنجاح.');
+    }
+
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $agency = Auth::guard('travel_agency')->user();
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password'          => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if (!Hash::check($validated['current_password'], $agency->password)) {
+            return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة.']);
+        }
+
+        $agency->update(['password' => Hash::make($validated['password'])]);
+
+        return back()->with('success', 'تم تحديث كلمة المرور بنجاح.');
     }
 }

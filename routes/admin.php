@@ -94,7 +94,7 @@ Route::post('/set-locale', function (Request $request) {
 Broadcast::routes(['middleware' => ['web', 'auth.admin']]);
 
 // ─── All protected admin routes ───────────────────────────────────────────────────
-Route::middleware('auth.admin')->group(function () {
+Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -452,6 +452,7 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{vendor}/hold', [VendorController::class, 'placeHold'])->name('hold.place');
         Route::post('/{vendor}/release-hold', [VendorController::class, 'releaseHold'])->name('hold.release');
         Route::post('/{vendor}/assign-manager', [VendorController::class, 'assignManager'])->name('assign-manager');
+        Route::patch('/{vendor}/account-manager', [VendorController::class, 'assignAccountManager'])->name('account-manager');
         Route::get('/{vendor}/documents', [VendorController::class, 'documents'])->name('documents.index');
         Route::post('/{vendor}/bank-accounts/{accountId}/verify', [VendorController::class, 'verifyBankAccount'])->name('bank-accounts.verify');
         Route::get('/{vendor}/performance-data', [VendorController::class, 'performanceData'])->name('performance-data');
@@ -889,6 +890,9 @@ Route::middleware('auth.admin')->group(function () {
         Route::post('/{warehouse}/inventory/datatable', [WarehouseController::class, 'inventoryDatatable'])->name('inventory.datatable');
         Route::post('/{warehouse}/inventory/{inventory}/adjust', [WarehouseController::class, 'adjustInventory'])->name('inventory.adjust');
         Route::get('/{warehouse}/inventory/{inventory}/movements', [WarehouseController::class, 'movements'])->name('inventory.movements');
+
+        // Daily overage fees report (platform FBN warehouses)
+        Route::post('/{warehouse}/overage-fees/datatable', [WarehouseController::class, 'overageFeesDatatable'])->name('overage-fees.datatable');
 
         // Vendor storage limits (platform FBN warehouses only)
         Route::post('/{warehouse}/vendor-limits', [WarehouseController::class, 'storeVendorLimit'])->name('vendor-limits.store');
@@ -1413,6 +1417,7 @@ Route::middleware('auth.admin')->group(function () {
         Route::delete('/{post}', [\App\Http\Controllers\Admin\BlogPostController::class, 'destroy'])->name('destroy');
         Route::post('/{post}/archive', [\App\Http\Controllers\Admin\BlogPostController::class, 'archive'])->name('archive');
         Route::post('/{post}/feature', [\App\Http\Controllers\Admin\BlogPostController::class, 'feature'])->name('feature');
+        Route::delete('/{post}/attachments/{file}', [\App\Http\Controllers\Admin\BlogPostController::class, 'deleteAttachment'])->name('attachments.delete');
     });
 
     // ─── Ad Support Collections (Knowledge Hub) ──────────────────────────────

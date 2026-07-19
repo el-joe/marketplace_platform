@@ -6,7 +6,9 @@ use App\Enums\TravelBookingStatus;
 use App\Enums\TravelPackageInquiryStatus;
 use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Activity;
 use App\Models\Customer;
+use App\Models\TravelAgency;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
 use App\Models\TravelPackageInquiry;
@@ -165,6 +167,7 @@ class BookingController extends Controller
 
         $request->validate([
             'status' => ['required', 'in:confirmed,cancelled'],
+            'cancellation_reason' => ['required_if:status,cancelled', 'nullable', 'string', 'max:1000'],
         ]);
 
         $newStatus = TravelBookingStatus::from($request->status);
@@ -179,7 +182,13 @@ class BookingController extends Controller
             return back()->withErrors(['status' => 'لا يمكن تغيير حالة هذا الحجز.']);
         }
 
-        DB::transaction(function () use ($booking, $newStatus) {
+        if ($newStatus === TravelBookingStatus::Confirmed && !$booking->passport_file_path) {
+            return back()->withErrors(['status' => 'لا يمكن تأكيد الحجز قبل رفع صورة جواز السفر.']);
+        }
+
+        $cancellationReason = $request->input('cancellation_reason');
+
+        DB::transaction(function () use ($booking, $newStatus, $cancellationReason) {
             if ($newStatus === TravelBookingStatus::Confirmed) {
                 $pkg = TravelPackage::lockForUpdate()->findOrFail($booking->travel_package_id);
 
@@ -208,16 +217,34 @@ class BookingController extends Controller
                 $booking->package()->increment('seats_booked', -$booking->travelers_count);
             }
 
-            $booking->update(['status' => $newStatus]);
+            $booking->update([
+                'status' => $newStatus,
+                ...($newStatus === TravelBookingStatus::Cancelled ? ['cancellation_reason' => $cancellationReason] : []),
+            ]);
         });
 
         $booking->loadMissing('customer');
+
+        /** @var TravelAgency $agency */
+        $agency = Auth::guard('travel_agency')->user();
 
         if ($newStatus === TravelBookingStatus::Confirmed) {
             $booking->customer?->notify(new TravelBookingConfirmed($booking));
         } elseif ($newStatus === TravelBookingStatus::Cancelled) {
             $booking->customer?->notify(new CustomerTravelBookingCancelled($booking, 'agency'));
         }
+
+        Activity::create([
+            'log_name'     => 'travel_bookings',
+            'description'  => $newStatus === TravelBookingStatus::Confirmed ? 'Booking confirmed' : 'Booking cancelled',
+            'subject_type' => TravelBooking::class,
+            'subject_id'   => $booking->id,
+            'causer_type'  => TravelAgency::class,
+            'causer_id'    => $agency->id,
+            'event'        => $newStatus->value,
+            'properties'   => json_encode(array_filter(['cancellation_reason' => $cancellationReason])),
+            'ip_address'   => $request->ip(),
+        ]);
 
         $label = $newStatus === TravelBookingStatus::Confirmed ? 'تم تأكيد الحجز.' : 'تم إلغاء الحجز.';
 

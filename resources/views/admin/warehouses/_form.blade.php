@@ -29,6 +29,7 @@ $warehouse — Warehouse model (edit mode only)
     $countryOptions = ['' => __('admin.warehouses_section.select_country')] + $countries->toArray();
     $vendorOptions = ['' => __('admin.warehouses_section.none_platform_owned')] + $vendors->toArray();
     $adminOptions = ['' => __('admin.warehouses_section.no_manager')] + $admins->toArray();
+    $currencyOptions = ['' => '— Select currency —'] + (($currencies ?? collect())->toArray());
 @endphp
 
 <div class="space-y-6" x-data="{ type: '{{ $val('type', 'platform_fbn') }}', ownerVendorId: '{{ $val('owner_vendor_id') }}', defaultLimitType: '{{ $val('default_limit_type', 'quantity') }}' }">
@@ -142,6 +143,28 @@ $warehouse — Warehouse model (edit mode only)
                 </div>
             </div>
 
+            {{-- FBN Free Storage & Daily Overage Fee (platform_fbn warehouses only) --}}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm" x-show="type === 'platform_fbn'" x-cloak>
+                <div class="px-5 py-4 border-b border-gray-100">
+                    <h2 class="text-sm font-semibold text-gray-900">FBN Free Storage & Daily Overage Fee</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">After the free storage days expire, a daily fee per unit is charged.</p>
+                </div>
+                <div class="px-5 py-5 space-y-4">
+
+                    <x-form-input name="free_storage_days" label="أيام التخزين المجانية / Free Storage Days" type="number"
+                        :value="$val('free_storage_days', 30)" min="0" placeholder="30" />
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <x-form-input name="daily_fee_per_unit" label="رسوم يومية لكل وحدة / Daily Fee Per Unit" type="number"
+                            :value="$val('daily_fee_per_unit', 0)" min="0" placeholder="0"
+                            hint="Whole base currency units — no decimals." />
+                        <x-form-select name="daily_fee_currency" label="عملة الرسوم اليومية / Daily Fee Currency"
+                            :options="$currencyOptions" :value="$val('daily_fee_currency')" select2 />
+                    </div>
+
+                </div>
+            </div>
+
             {{-- GPS Location --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
@@ -206,22 +229,22 @@ $warehouse — Warehouse model (edit mode only)
             {{-- Default Per-Vendor Storage Limit (platform-owned warehouses only) --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm" x-show="!ownerVendorId" x-cloak>
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Default Vendor Storage Limit</h2>
-                    <p class="text-xs text-gray-500 mt-0.5">Applied to any vendor storing here who has no custom limit set on the Vendor Limits tab.</p>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.warehouses_section.default_vendor_storage_limit_title') }}</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ __('admin.warehouses_section.default_vendor_storage_limit_desc') }}</p>
                 </div>
                 <div class="px-5 py-4 space-y-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-2">Limit Type</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-2">{{ __('admin.warehouses_section.limit_type_column') }}</label>
                         <div class="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50 w-full">
                             <button type="button" @click="defaultLimitType = 'quantity'"
                                 :class="defaultLimitType === 'quantity' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'"
                                 class="flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors">
-                                Quantity
+                                {{ __('admin.warehouses_section.quantity_type_label') }}
                             </button>
                             <button type="button" @click="defaultLimitType = 'capacity'"
                                 :class="defaultLimitType === 'capacity' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'"
                                 class="flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors">
-                                Capacity (m³)
+                                {{ __('admin.warehouses_section.capacity_m3_label') }}
                             </button>
                         </div>
                         <input type="hidden" name="default_limit_type" :value="defaultLimitType">

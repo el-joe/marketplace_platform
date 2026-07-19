@@ -40,6 +40,35 @@ function initInventoryTable() {
     return dt;
 }
 
+// ─── Daily Overage Fees DataTable ───────────────────────────────────────────────
+
+function initOverageFeesTable() {
+    const tableEl = document.getElementById('overage-fees-table');
+    if (!tableEl) return;
+
+    return new DataTable('#overage-fees-table', {
+        processing: true,
+        serverSide: true,
+        order: [[0, 'desc']],
+        ajax: {
+            url: tableEl.dataset.url,
+            type: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
+        },
+        columns: [
+            { data: 'fee_date' },
+            { data: 'vendor', orderable: false },
+            { data: 'sku', orderable: false },
+            { data: 'units', className: 'text-right tabular-nums' },
+            { data: 'fee_per_unit', className: 'text-right tabular-nums' },
+            { data: 'total_fee', className: 'text-right tabular-nums' },
+            { data: 'currency' },
+            { data: 'status' },
+        ],
+        pageLength: 25,
+    });
+}
+
 // ─── Toggle Active ────────────────────────────────────────────────────────────
 
 function initToggleActive() {
@@ -256,6 +285,7 @@ function initVendorLimitModal() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initInventoryTable();
+    initOverageFeesTable();
     initToggleActive();
     initAdjustModal();
     initVendorLimitModal();

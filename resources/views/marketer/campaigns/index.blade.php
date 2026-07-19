@@ -84,6 +84,31 @@
                             {{ __('marketer.campaigns.view_details') }}
                         </a>
                     </div>
+
+                    @if(in_array($campaign->status->value, ['active', 'paused', 'draft']))
+                        <div class="flex items-center gap-2 mt-3" x-data="{ busy: false }">
+                            @if($campaign->status->value === 'active')
+                                <button type="button" :disabled="busy"
+                                    @click="busy = true; fetch('{{ route('marketer.campaigns.pause', $campaign->id) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => location.reload())"
+                                    class="flex-1 text-xs font-semibold rounded-lg px-3 py-1.5 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 disabled:opacity-50">
+                                    {{ __('marketer.campaigns.pause') }}
+                                </button>
+                            @elseif($campaign->status->value === 'paused')
+                                <button type="button" :disabled="busy"
+                                    @click="busy = true; fetch('{{ route('marketer.campaigns.resume', $campaign->id) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => location.reload())"
+                                    class="flex-1 text-xs font-semibold rounded-lg px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50">
+                                    {{ __('marketer.campaigns.resume') }}
+                                </button>
+                            @endif
+                            @if(in_array($campaign->status->value, ['active', 'paused', 'draft']))
+                                <button type="button" :disabled="busy"
+                                    @click="if (confirm(@json(__('marketer.campaigns.confirm_cancel')))) { busy = true; fetch('{{ route('marketer.campaigns.cancel', $campaign->id) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => location.reload()) }"
+                                    class="flex-1 text-xs font-semibold rounded-lg px-3 py-1.5 bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50">
+                                    {{ __('marketer.campaigns.cancel') }}
+                                </button>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             @endforeach
         </div>

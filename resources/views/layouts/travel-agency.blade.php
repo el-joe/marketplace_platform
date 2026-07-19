@@ -22,8 +22,18 @@
                 <x-notification-bell guard="travel_agency" />
                 <a href="{{ route('travel-agency.dashboard') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.nav.dashboard') }}</a>
                 <a href="{{ route('travel-agency.packages.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.nav.packages') }}</a>
-                <a href="{{ route('travel-agency.bookings.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.nav.bookings') }}</a>
-                <a href="{{ route('travel-agency.inquiries.index') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.inquiries.interested_clients') }}</a>
+                <a href="{{ route('travel-agency.bookings.index') }}" class="text-gray-600 hover:text-blue-600 font-medium inline-flex items-center gap-1.5">
+                    {{ __('travel.nav.bookings') }}
+                    @if(($pendingBookingsCount ?? 0) > 0)
+                    <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-amber-500 text-white text-xs font-bold">{{ $pendingBookingsCount }}</span>
+                    @endif
+                </a>
+                <a href="{{ route('travel-agency.inquiries.index') }}" class="text-gray-600 hover:text-blue-600 font-medium inline-flex items-center gap-1.5">
+                    {{ __('travel.inquiries.interested_clients') }}
+                    @if(($newInquiriesCount ?? 0) > 0)
+                    <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-rose-500 text-white text-xs font-bold">{{ $newInquiriesCount }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('travel-agency.profile.edit') }}" class="text-gray-600 hover:text-blue-600 font-medium">{{ __('travel.nav.profile') }}</a>
 
                 {{-- Language Switcher (AR / EN) --}}

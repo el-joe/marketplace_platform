@@ -7,6 +7,7 @@ return [
         'dashboard'        => 'Dashboard',
         'campaigns'        => 'My Campaigns',
         'invitations'      => 'Invitations',
+        'secret_promotions' => 'Secret Promotions',
         'earnings'         => 'Earnings',
         'wallet'           => 'Wallet',
         'qr_codes'         => 'QR Codes',
@@ -125,6 +126,10 @@ return [
         'ends'                     => 'Ends :date',
         'no_end_date'              => 'No end date',
         'view_details'             => 'View details →',
+        'pause'                    => 'Pause',
+        'resume'                   => 'Resume',
+        'cancel'                   => 'Cancel',
+        'confirm_cancel'           => 'Are you sure you want to cancel this campaign? This cannot be undone.',
         'back_to_campaigns'        => '← Campaigns',
         'new_campaign_title'       => 'New Campaign',
         'request_a_campaign'       => 'Request a Campaign',
@@ -474,6 +479,18 @@ return [
         'customer'           => 'Customer',
         'order_value'        => 'Order Value',
         'date'               => 'Date',
+    ],
+
+    'secret_promotions' => [
+        'title'            => 'Secret Promotions',
+        'subtitle'         => 'Targeted promotions offered to you by vendors and admins.',
+        'none_title'       => 'No secret promotions right now',
+        'none_desc'        => 'Check back later — vendors and admins may target you with special offers.',
+        'unknown_product'  => 'Product',
+        'your_commission'  => 'Your commission',
+        'valid_until'      => 'Valid until :date',
+        'no_expiry'        => 'No expiry date',
+        'promote_this'     => 'Promote This',
     ],
 
 ];

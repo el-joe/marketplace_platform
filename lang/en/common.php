@@ -132,4 +132,5 @@ return [
         'disputed'           => 'Disputed',
     ],
     'all_rights_reserved' => 'All rights reserved.',
+    'remove' => 'Remove',
 ];

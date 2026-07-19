@@ -132,4 +132,5 @@ return [
         'disputed'           => 'متنازع عليه',
     ],
     'all_rights_reserved' => 'جميع الحقوق محفوظة.',
+    'remove' => 'إزالة',
 ];

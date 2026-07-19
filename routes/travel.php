@@ -63,6 +63,7 @@ Route::name('travel-agency.')
                 Route::get('/{package}/edit', [PackageController::class, 'edit'])->name('edit');
                 Route::put('/{package}', [PackageController::class, 'update'])->name('update');
                 Route::post('/{package}/submit', [PackageController::class, 'submitForReview'])->name('submit');
+                Route::post('/{package}/withdraw', [PackageController::class, 'withdraw'])->name('withdraw');
                 Route::delete('/{package}/media/{media}', [PackageController::class, 'destroyMedia'])->name('media.destroy');
                 Route::get('/{package}/contract', [PackageController::class, 'downloadContract'])->name('contract.download');
             });
@@ -88,5 +89,6 @@ Route::name('travel-agency.')
             // Profile
             Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+            Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
         });
     });

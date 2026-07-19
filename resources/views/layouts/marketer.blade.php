@@ -270,11 +270,26 @@
 
             @auth('marketer')
             @php
-                $invitationPendingCount = \App\Models\VendorCampaignInvitation::where('marketer_id', auth()->guard('marketer')->id())
-                    ->where('status', 'pending')
-                    ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
-                    ->count();
+                $invitationPendingCount = \Illuminate\Support\Facades\Cache::remember(
+                    'marketer:' . auth()->guard('marketer')->id() . ':pending-invitations-count',
+                    60,
+                    fn () => \App\Models\VendorCampaignInvitation::where('marketer_id', auth()->guard('marketer')->id())
+                        ->where('status', 'pending')
+                        ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                        ->count()
+                );
             @endphp
+            <a href="{{ route('marketer.secret-promotions.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.secret-promotions') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                {{ __('marketer.nav.secret_promotions') }}
+            </a>
+
             <a href="{{ route('marketer.invitations.index') }}"
                 class="{{ Str::startsWith($route, 'marketer.invitations') ? 'active' : '' }}"
                 style="position:relative;">

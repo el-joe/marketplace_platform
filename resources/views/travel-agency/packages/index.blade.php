@@ -35,6 +35,11 @@
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">{{ $pkg->title_ar ?: $pkg->title_en }}</p>
                                 <p class="text-xs text-gray-400">{{ $pkg->title_en }}</p>
+                                @if($pkg->status === \App\Enums\TravelPackageStatus::Draft && $pkg->rejection_reason)
+                                <p class="mt-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1 max-w-xs">
+                                    {{ __('travel.packages.rejected') }}: {{ $pkg->rejection_reason }}
+                                </p>
+                                @endif
                             </td>
                             <td class="px-4 py-3 text-gray-600">
                                 @if($pkg->destinationCountry)
@@ -53,13 +58,37 @@
                                     {{ $labels[$pkg->status->value] ?? $pkg->status->label() }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 flex gap-2">
-                                <a href="{{ route('travel-agency.packages.show', $pkg) }}"
-                                    class="text-blue-600 text-xs hover:underline">{{ __('travel.packages.view') }}</a>
-                                @if(in_array($pkg->status, [\App\Enums\TravelPackageStatus::Draft, \App\Enums\TravelPackageStatus::PendingReview]))
-                                    <a href="{{ route('travel-agency.packages.edit', $pkg) }}"
-                                        class="text-amber-600 text-xs hover:underline">{{ __('travel.packages.edit') }}</a>
-                                @endif
+                            <td class="px-4 py-3">
+                                <div class="flex gap-2 items-center flex-wrap">
+                                    <a href="{{ route('travel-agency.packages.show', $pkg) }}"
+                                        class="text-blue-600 text-xs hover:underline">{{ __('travel.packages.view') }}</a>
+
+                                    @if($pkg->status === \App\Enums\TravelPackageStatus::Draft)
+                                        <a href="{{ route('travel-agency.packages.edit', $pkg) }}"
+                                            class="text-amber-600 text-xs hover:underline">
+                                            {{ $pkg->rejection_reason ? __('travel.packages.edit_resubmit') : __('travel.packages.edit') }}
+                                        </a>
+                                        <form method="POST" action="{{ route('travel-agency.packages.submit', $pkg) }}">
+                                            @csrf
+                                            <button type="submit" class="text-emerald-600 text-xs hover:underline">
+                                                {{ __('travel.packages.submit_for_review') }}
+                                            </button>
+                                        </form>
+                                    @elseif($pkg->status === \App\Enums\TravelPackageStatus::PendingReview)
+                                        <a href="{{ route('travel-agency.packages.edit', $pkg) }}"
+                                            class="text-amber-600 text-xs hover:underline">{{ __('travel.packages.edit') }}</a>
+                                        <form method="POST" action="{{ route('travel-agency.packages.withdraw', $pkg) }}">
+                                            @csrf
+                                            <button type="submit" class="text-red-600 text-xs hover:underline">
+                                                {{ __('travel.packages.withdraw') }}
+                                            </button>
+                                        </form>
+                                        <span class="text-xs text-gray-400">{{ __('travel.packages.awaiting_approval') }}</span>
+                                    @endif
+                                </div>
+                                @error('submission')
+                                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                @enderror
                             </td>
                         </tr>
                     @empty

@@ -136,6 +136,20 @@
                     </div>
                 </x-card>
 
+                {{-- Attachments --}}
+                <x-card title="{{ __('admin.blog.attachments') }}">
+                    <div class="p-4 space-y-4">
+                        <div>
+                            <label class="form-label text-xs">{{ __('admin.blog.add_attachments') }}</label>
+                            <input type="file" name="attachments[]" multiple
+                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.png,.jpg,.jpeg"
+                                   class="form-input w-full text-sm">
+                            <p class="text-xs text-gray-400 mt-1">{{ __('admin.blog.attachments_hint') }}</p>
+                            @error('attachments.*') <p class="form-error">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                </x-card>
+
                 {{-- Bottom action buttons --}}
                 <div class="flex items-center gap-3">
                     <button type="button" class="btn btn-secondary" onclick="submitForm('draft')">{{ __('admin.blog.save_draft') }}</button>

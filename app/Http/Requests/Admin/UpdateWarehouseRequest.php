@@ -34,6 +34,9 @@ class UpdateWarehouseRequest extends FormRequest
             'default_limit_type' => ['nullable', Rule::in(['quantity', 'capacity'])],
             'default_max_quantity' => ['nullable', 'integer', 'min:1', 'required_if:default_limit_type,quantity'],
             'default_max_capacity_m3' => ['nullable', 'numeric', 'min:0.01', 'required_if:default_limit_type,capacity'],
+            'free_storage_days' => ['nullable', 'integer', 'min:0'],
+            'daily_fee_per_unit' => ['nullable', 'integer', 'min:0'],
+            'daily_fee_currency' => ['nullable', 'string', 'size:3'],
         ];
     }
 

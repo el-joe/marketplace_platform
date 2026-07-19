@@ -68,5 +68,38 @@
             </button>
         </div>
     </form>
+
+    {{-- Change Password --}}
+    <form method="POST" action="{{ route('travel-agency.profile.password') }}"
+          class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+        @csrf @method('PUT')
+        <h2 class="font-bold text-gray-800 border-b border-gray-100 pb-2">{{ __('travel.profile.change_password') }}</h2>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('travel.profile.current_password') }}</label>
+            <input type="password" name="current_password" required
+                   class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+            @error('current_password') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('travel.profile.new_password') }}</label>
+            <input type="password" name="password" required minlength="8"
+                   class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+            @error('password') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('travel.profile.confirm_password') }}</label>
+            <input type="password" name="password_confirmation" required minlength="8"
+                   class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+        </div>
+
+        <div class="pt-2">
+            <button type="submit" class="px-6 py-2.5 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-700 transition-colors">
+                {{ __('travel.profile.update_password') }}
+            </button>
+        </div>
+    </form>
 </div>
 @endsection

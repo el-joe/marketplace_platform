@@ -172,6 +172,28 @@
     </div>
     <div class="flex items-center gap-3">
         <span class="text-sm font-semibold rounded-full px-3 py-1 {{ $sc }}">{{ $campaign->status->label() }}</span>
+        @if(in_array($campaign->status->value, ['active', 'paused', 'draft']))
+            <div x-data="{ busy: false }" class="flex items-center gap-2">
+                @if($campaign->status->value === 'active')
+                    <button type="button" :disabled="busy"
+                        @click="busy = true; fetch('{{ route('marketer.campaigns.pause', $campaign->id) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => location.reload())"
+                        class="text-sm font-semibold rounded-xl px-3 py-1.5 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 disabled:opacity-50">
+                        {{ __('marketer.campaigns.pause') }}
+                    </button>
+                @elseif($campaign->status->value === 'paused')
+                    <button type="button" :disabled="busy"
+                        @click="busy = true; fetch('{{ route('marketer.campaigns.resume', $campaign->id) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => location.reload())"
+                        class="text-sm font-semibold rounded-xl px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50">
+                        {{ __('marketer.campaigns.resume') }}
+                    </button>
+                @endif
+                <button type="button" :disabled="busy"
+                    @click="if (confirm(@json(__('marketer.campaigns.confirm_cancel')))) { busy = true; fetch('{{ route('marketer.campaigns.cancel', $campaign->id) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => location.reload()) }"
+                    class="text-sm font-semibold rounded-xl px-3 py-1.5 bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50">
+                    {{ __('marketer.campaigns.cancel') }}
+                </button>
+            </div>
+        @endif
     </div>
 </div>
 

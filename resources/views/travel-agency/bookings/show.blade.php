@@ -75,9 +75,25 @@ $statusLabels = [
                     <dt class="text-gray-500">{{ __('travel.bookings.total_payment') }}</dt>
                     <dd class="font-bold text-gray-900">{{ $booking->totalFormatted() }}</dd>
                 </div>
+                <div class="flex justify-between">
+                    <dt class="text-gray-500">{{ __('travel.bookings.phone') }}</dt>
+                    <dd class="text-gray-700">
+                        @if($booking->customer?->phone)
+                            <a href="tel:{{ $booking->customer->phone }}" class="text-blue-600 hover:underline">{{ $booking->customer->phone }}</a>
+                        @else
+                            —
+                        @endif
+                    </dd>
+                </div>
             </dl>
         </div>
     </div>
+
+    @if($booking->status === \App\Enums\TravelBookingStatus::Cancelled && $booking->cancellation_reason)
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+        <span class="font-semibold">{{ __('travel.bookings.cancellation_reason') }}:</span> {{ $booking->cancellation_reason }}
+    </div>
+    @endif
 
     {{-- Documents --}}
     <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
@@ -122,15 +138,31 @@ $statusLabels = [
                 </button>
             </form>
             @endif
-            <form method="POST" action="{{ route('travel-agency.bookings.status', $booking) }}">
-                @csrf @method('PATCH')
-                <input type="hidden" name="status" value="cancelled">
-                <button type="submit"
-                        class="px-5 py-2.5 bg-red-500 text-white rounded-xl font-bold hover:bg-red-400 transition-colors"
-                        onclick="return confirm('{{ __('travel.bookings.cancel_booking_prompt') }}')">
+            <div x-data="{ open: false, reason: '' }">
+                <button type="button" @click="open = true"
+                        class="px-5 py-2.5 bg-red-500 text-white rounded-xl font-bold hover:bg-red-400 transition-colors">
                     ✗ {{ __('travel.bookings.cancel_booking') }}
                 </button>
-            </form>
+                <div x-show="open" x-cloak
+                     class="fixed inset-0 bg-black/40 flex items-center justify-center z-50" @click.self="open = false">
+                    <form method="POST" action="{{ route('travel-agency.bookings.status', $booking) }}"
+                          class="bg-white rounded-xl p-6 w-full max-w-sm space-y-3">
+                        @csrf @method('PATCH')
+                        <input type="hidden" name="status" value="cancelled">
+                        <h3 class="font-bold text-gray-900">{{ __('travel.bookings.cancel_booking_prompt') }}</h3>
+                        <textarea name="cancellation_reason" x-model="reason" required rows="3"
+                                  class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                                  placeholder="{{ __('travel.bookings.cancellation_reason') }}"></textarea>
+                        <div class="flex justify-end gap-2">
+                            <button type="button" @click="open = false" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700">{{ __('travel.bookings.close') ?? 'إلغاء' }}</button>
+                            <button type="submit" :disabled="reason.length === 0"
+                                    class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-400 disabled:opacity-50">
+                                {{ __('travel.bookings.cancel_booking') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
         @error('status')
         <p class="mt-3 text-sm text-red-600">{{ $message }}</p>

@@ -39,22 +39,39 @@ class VendorController extends Controller
 
     // ── Index ─────────────────────────────────────────────────────────────────
 
-    public function index()
+    public function index(Request $request)
     {
-        $pendingCount = Vendor::where('global_status', VendorGlobalStatus::Pending->value)->count();
+        $isScopedAdmin = (bool) $request->attributes->get('is_scoped_admin');
+        $scopedVendorIds = $request->attributes->get('scoped_vendor_ids');
+
+        $pendingCountQuery = Vendor::where('global_status', VendorGlobalStatus::Pending->value);
+        if ($isScopedAdmin) {
+            $pendingCountQuery->whereIn('id', $scopedVendorIds ?? []);
+        }
+        $pendingCount = $pendingCountQuery->count();
+
         $admins = Admin::orderBy('name')->get(['id', 'name']);
         $countries = Country::orderBy('name_en')->get(['id', 'name_en']);
 
-        return view('admin.vendors.index', compact('pendingCount', 'admins', 'countries'));
+        return view('admin.vendors.index', compact('pendingCount', 'admins', 'countries', 'isScopedAdmin'));
     }
 
     // ── DataTable ─────────────────────────────────────────────────────────────
 
     public function datatable(Request $request): JsonResponse
     {
+        $isScopedAdmin = (bool) $request->attributes->get('is_scoped_admin');
+        $scopedVendorIds = $request->attributes->get('scoped_vendor_ids');
+
         $query = Vendor::query()
             ->with(['country', 'accountManagerAdmin'])
             ->select('vendors.*');
+
+        if ($isScopedAdmin) {
+            $query->whereIn('vendors.id', $scopedVendorIds ?? []);
+        } else {
+            $query->withCount('bankAccounts');
+        }
 
         $query = $this->applyFilters($query, $request, [
             'global_status' => fn($q, $v) => $q->where('global_status', $v),
@@ -76,18 +93,16 @@ class VendorController extends Controller
             ['orderable_column' => 'vendors.created_at'],
         ];
 
-        return $this->dataTableResponse($request, $query, $columns, function (Vendor $vendor) {
-            return [
+        return $this->dataTableResponse($request, $query, $columns, function (Vendor $vendor) use ($isScopedAdmin) {
+            $row = [
                 'store' => [
                     'id' => $vendor->id,
                     'store_name' => $vendor->store_name,
                     'avatar' => $vendor->avatar,
                     'strikes' => $vendor->strikes_count,
-                    'payout_hold' => $vendor->payout_hold_active,
                 ],
                 'owner_name' => $vendor->name,
                 'email' => $vendor->email,
-                'gmv' => '$' . number_format($vendor->total_sales, 2),
                 'orders' => number_format($vendor->total_orders),
                 'rating' => number_format($vendor->store_rating_avg, 1),
                 'global_status' => $vendor->global_status?->value,
@@ -99,6 +114,17 @@ class VendorController extends Controller
                     'global_status' => $vendor->global_status?->value,
                 ],
             ];
+
+            // Financial / payout columns are omitted entirely for account managers
+            // scoped to their assigned vendor(s) — they must not see revenue data.
+            if (!$isScopedAdmin) {
+                $row['store']['payout_hold'] = $vendor->payout_hold_active;
+                $row['gmv'] = '$' . number_format($vendor->total_sales, 2);
+                $row['commission_rate'] = $vendor->commission_rate;
+                $row['bank_account_count'] = $vendor->bank_accounts_count;
+            }
+
+            return $row;
         });
     }
 
@@ -116,8 +142,25 @@ class VendorController extends Controller
 
     // ── Show ──────────────────────────────────────────────────────────────────
 
-    public function show(Vendor $vendor)
+    public function show(Request $request, Vendor $vendor)
     {
+        $isScopedAdmin = (bool) $request->attributes->get('is_scoped_admin');
+        $scopedVendorIds = $request->attributes->get('scoped_vendor_ids');
+
+        if ($isScopedAdmin) {
+            abort_if(!in_array($vendor->id, $scopedVendorIds ?? [], true), 403);
+
+            $completedOrdersCount = SubOrder::query()
+                ->join('orders as o', 'o.id', '=', 'sub_orders.order_id')
+                ->where('sub_orders.vendor_id', $vendor->id)
+                ->where('o.status', 'completed')
+                ->count();
+
+            $vendor->load(['country']);
+
+            return view('admin.vendors.show_scoped', compact('vendor', 'completedOrdersCount'));
+        }
+
         $vendor->load([
             'country',
             'approvedByAdmin',
@@ -145,8 +188,9 @@ class VendorController extends Controller
             ->get();
 
         $admins = Admin::orderBy('name')->get(['id', 'name']);
+        $accountManagerCandidates = Admin::role('vendor_relations_admin')->orderBy('name')->get(['id', 'name', 'email']);
 
-        return view('admin.vendors.show', compact('vendor', 'subOrders', 'payouts', 'activityLog', 'admins', 'citySurcharges', 'sectionLocks'));
+        return view('admin.vendors.show', compact('vendor', 'subOrders', 'payouts', 'activityLog', 'admins', 'accountManagerCandidates', 'citySurcharges', 'sectionLocks'));
     }
 
     // ── Update ────────────────────────────────────────────────────────────────
@@ -266,6 +310,33 @@ class VendorController extends Controller
         return response()->json(['message' => 'Account manager assigned.']);
     }
 
+    public function assignAccountManager(Request $request, Vendor $vendor): JsonResponse
+    {
+        $request->validate([
+            'admin_id' => ['nullable', 'uuid', 'exists:admins,id'],
+        ]);
+
+        $adminId = $request->input('admin_id');
+
+        if ($adminId !== null) {
+            $manager = Admin::findOrFail($adminId);
+            abort_unless($manager->hasRole('vendor_relations_admin'), 422, 'Selected admin does not have the vendor relations role.');
+        }
+
+        $vendor->update(['account_manager_admin_id' => $adminId]);
+
+        $this->activityLogger->log(
+            description: 'account_manager_assigned',
+            subject: $vendor,
+            causer: auth('admin')->user(),
+            properties: ['admin_id' => $adminId],
+            logName: 'vendor',
+            event: 'account_manager_assigned',
+        );
+
+        return response()->json(['message' => 'Account manager assigned.']);
+    }
+
     // ── Team ──────────────────────────────────────────────────────────────────
 
     public function deactivateTeamMember(Request $request, Vendor $vendor, VendorAdmin $vendorAdmin): JsonResponse
@@ -352,6 +423,8 @@ class VendorController extends Controller
 
     public function verifyBankAccount(Request $request, Vendor $vendor, string $accountId): JsonResponse
     {
+        abort_if((bool) $request->attributes->get('is_scoped_admin'), 403);
+
         $account = $vendor->bankAccounts()->findOrFail($accountId);
 
         $account->update([

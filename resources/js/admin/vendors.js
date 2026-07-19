@@ -98,7 +98,7 @@ $(function () {
                 { data: 'store', render: renderStore },
                 { data: 'owner_name' },
                 { data: 'email' },
-                { data: 'gmv' },
+                { data: 'gmv', defaultContent: '—' },
                 { data: 'orders' },
                 { data: 'rating' },
                 { data: 'global_status', render: renderStatus },
@@ -610,8 +610,12 @@ $(function () {
         const vendorId = $(this).data('vendor-id');
 
         withLoading('#assign-manager-form [type=submit]',
-            $.post('/vendors/' + vendorId + '/assign-manager', $(this).serialize())
-                .done(function (res) { closeModal('assign-manager-modal'); Toast.success(res.message); })
+            $.ajax({
+                url: '/vendors/' + vendorId + '/account-manager',
+                method: 'PATCH',
+                data: $(this).serialize(),
+            })
+                .done(function (res) { closeModal('assign-manager-modal'); Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
                 .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed.'); })
         );
     });

@@ -163,6 +163,36 @@
                     </div>
                 </x-card>
 
+                {{-- Attachments --}}
+                <x-card title="{{ __('admin.blog.attachments') }}">
+                    <div class="p-4 space-y-4">
+                        @if($post->attachments->isNotEmpty())
+                            <ul class="space-y-2" id="existing-attachments">
+                                @foreach($post->attachments as $attachment)
+                                    <li class="flex items-center justify-between gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2" data-attachment-id="{{ $attachment->id }}">
+                                        <a href="{{ Storage::disk('public')->url($attachment->path) }}" target="_blank" class="text-gray-700 truncate hover:underline">
+                                            📎 {{ basename($attachment->path) }}
+                                            <span class="text-xs text-gray-400">({{ number_format($attachment->size / 1024, 0) }} KB)</span>
+                                        </a>
+                                        <button type="button" class="text-red-500 hover:text-red-700 text-xs shrink-0" onclick="removeAttachment('{{ $attachment->id }}', this)">
+                                            {{ __('common.remove') }}
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        <div id="delete-attachment-ids"></div>
+                        <div>
+                            <label class="form-label text-xs">{{ __('admin.blog.add_attachments') }}</label>
+                            <input type="file" name="attachments[]" multiple
+                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.png,.jpg,.jpeg"
+                                   class="form-input w-full text-sm">
+                            <p class="text-xs text-gray-400 mt-1">{{ __('admin.blog.attachments_hint') }}</p>
+                            @error('attachments.*') <p class="form-error">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                </x-card>
+
                 {{-- Bottom action buttons --}}
                 <div class="flex items-center gap-3 flex-wrap">
                     <button type="button" class="btn btn-secondary" onclick="submitForm('draft')">{{ __('admin.blog.save_draft') }}</button>
@@ -462,6 +492,18 @@
     window.submitForm = function (action) {
         document.getElementById('form-action').value = action;
         document.getElementById('post-form').submit();
+    };
+
+    // ── Attachment removal (marks for deletion on next save) ───────────────────
+    window.removeAttachment = function (fileId, button) {
+        const li = button.closest('li');
+        li?.remove();
+        const holder = document.getElementById('delete-attachment-ids');
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'delete_attachment_ids[]';
+        input.value = fileId;
+        holder.appendChild(input);
     };
 })();
 </script>

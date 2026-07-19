@@ -10,6 +10,8 @@ use App\Http\Requests\Admin\StoreWarehouseRequest;
 use App\Http\Requests\Admin\UpdateWarehouseRequest;
 use App\Models\Admin;
 use App\Models\Country;
+use App\Models\Currency;
+use App\Models\FbnDailyOverageFee;
 use App\Models\InventoryMovement;
 use App\Models\InventoryTransfer;
 use App\Models\InventoryTransferItem;
@@ -202,6 +204,58 @@ class WarehouseController extends Controller
         ));
     }
 
+    // ─── Daily Overage Fees (platform_fbn warehouses only) ──────────────────────
+
+    public function overageFeesDatatable(Request $request, Warehouse $warehouse): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $query = FbnDailyOverageFee::query()
+            ->where('fbn_daily_overage_fees.warehouse_id', $warehouse->id)
+            ->leftJoin('vendors', 'vendors.id', '=', 'fbn_daily_overage_fees.vendor_id')
+            ->leftJoin('warehouse_inventories', 'warehouse_inventories.id', '=', 'fbn_daily_overage_fees.warehouse_inventory_id')
+            ->leftJoin('vendor_listings', 'vendor_listings.id', '=', 'warehouse_inventories.vendor_listing_id')
+            ->leftJoin('product_variants', 'product_variants.id', '=', 'vendor_listings.product_variant_id')
+            ->select(
+                'fbn_daily_overage_fees.*',
+                'vendors.store_name as vendor_name',
+                'vendor_listings.vendor_sku as vendor_sku',
+                'product_variants.sku as sku',
+            );
+
+        $columns = [
+            0 => ['orderable_column' => 'fbn_daily_overage_fees.fee_date'],
+            1 => ['searchable_columns' => ['vendors.store_name']],
+            2 => ['searchable_columns' => ['vendor_listings.vendor_sku', 'product_variants.sku']],
+            3 => ['orderable_column' => 'fbn_daily_overage_fees.units'],
+            4 => ['orderable_column' => 'fbn_daily_overage_fees.fee_per_unit'],
+            5 => ['orderable_column' => 'fbn_daily_overage_fees.total_fee'],
+            6 => [],
+            7 => ['orderable_column' => 'fbn_daily_overage_fees.status'],
+        ];
+
+        return $this->dataTableResponse($request, $query, $columns, function (FbnDailyOverageFee $fee) {
+            $statusBadge = match ($fee->status->value) {
+                'invoiced' => 'bg-primary-100 text-primary-700',
+                'paid' => 'bg-green-100 text-green-700',
+                default => 'bg-yellow-100 text-yellow-700',
+            };
+
+            return [
+                'DT_RowId' => 'ovg-' . $fee->id,
+                'fee_date' => $fee->fee_date?->format('Y-m-d'),
+                'vendor' => e($fee->vendor_name ?? '—'),
+                'sku' => '<span class="font-mono text-xs">' . e($fee->vendor_sku ?? $fee->sku ?? '—') . '</span>',
+                'units' => number_format($fee->units),
+                'fee_per_unit' => number_format($fee->fee_per_unit) . ' ' . $fee->currency,
+                'total_fee' => number_format($fee->total_fee) . ' ' . $fee->currency,
+                'currency' => $fee->currency,
+                'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e($fee->status->value) . '</span>',
+            ];
+        });
+    }
+
     // ─── Vendor Limits (FBN platform warehouses only) ───────────────────────────
 
     public function storeVendorLimit(Request $request, Warehouse $warehouse): JsonResponse
@@ -283,8 +337,9 @@ class WarehouseController extends Controller
         $countries = Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id');
         $vendors = Vendor::where('global_status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
         $admins = Admin::orderBy('name')->pluck('name', 'id');
+        $currencies = Currency::where('is_active', true)->orderBy('code')->pluck('code', 'code');
 
-        return view('admin.warehouses.create', compact('countries', 'vendors', 'admins'));
+        return view('admin.warehouses.create', compact('countries', 'vendors', 'admins', 'currencies'));
     }
 
     public function store(StoreWarehouseRequest $request): RedirectResponse
@@ -308,8 +363,9 @@ class WarehouseController extends Controller
         $countries = Country::where('is_active', true)->orderBy('name_en')->pluck('name_en', 'id');
         $vendors = Vendor::where('global_status', 'approved')->orderBy('store_name')->pluck('store_name', 'id');
         $admins = Admin::orderBy('name')->pluck('name', 'id');
+        $currencies = Currency::where('is_active', true)->orderBy('code')->pluck('code', 'code');
 
-        return view('admin.warehouses.edit', compact('warehouse', 'countries', 'vendors', 'admins'));
+        return view('admin.warehouses.edit', compact('warehouse', 'countries', 'vendors', 'admins', 'currencies'));
     }
 
     public function update(UpdateWarehouseRequest $request, Warehouse $warehouse): RedirectResponse

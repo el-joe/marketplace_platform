@@ -99,6 +99,26 @@
                 </div>
             </div>
 
+            {{-- ── Attachments ──────────────────────────────────────── --}}
+            @if($post->attachments->isNotEmpty())
+                <div class="px-8 pb-8 pt-0">
+                    <div class="blog-attachments pt-8 border-t border-gray-800">
+                        <h3 class="text-sm font-semibold text-gray-300 mb-3">{{ __('المرفقات / Attachments') }}</h3>
+                        <div class="flex flex-col gap-2">
+                            @foreach($post->attachments as $attachment)
+                                <a href="{{ Storage::url($attachment->path) }}" download
+                                   class="attachment-link flex items-center gap-2 rounded-lg px-3 py-2 bg-gray-800
+                                          text-gray-300 hover:bg-[#feee00]/10 hover:text-[#feee00] transition-colors text-sm">
+                                    <span class="icon">📎</span>
+                                    {{ basename($attachment->path) }}
+                                    <span class="size text-xs text-gray-500">({{ number_format($attachment->size / 1024, 0) }} KB)</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- ── Tags ─────────────────────────────────────────────── --}}
             @if($post->tags && count($post->tags) > 0)
                 <div class="px-8 pb-8 pt-0">

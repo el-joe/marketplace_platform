@@ -22,6 +22,7 @@ class TravelBooking extends Model
         'contract_signed_at',
         'contract_signature_data',
         'status',
+        'cancellation_reason',
     ];
 
     protected function casts(): array

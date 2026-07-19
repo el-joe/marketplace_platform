@@ -214,6 +214,21 @@ class PackageController extends Controller
         return back()->with('success', 'Package submitted for admin review.');
     }
 
+    // ── Withdraw from review ──────────────────────────────────────────────────
+
+    public function withdraw(TravelPackage $package): RedirectResponse
+    {
+        $this->authorise($package);
+
+        if ($package->status !== TravelPackageStatus::PendingReview) {
+            return back()->withErrors(['status' => 'Only packages pending review can be withdrawn.']);
+        }
+
+        $package->update(['status' => TravelPackageStatus::Draft]);
+
+        return back()->with('success', 'Package withdrawn from review.');
+    }
+
     // ── Delete media ──────────────────────────────────────────────────────────
 
     public function destroyMedia(TravelPackage $package, TravelPackageMedia $media): RedirectResponse

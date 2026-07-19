@@ -29,6 +29,9 @@ class StoreWarehouseRequest extends FormRequest
             'storage_rate_per_m3_price' => ['nullable', 'numeric', 'min:0'],
             'storage_currency' => ['nullable', 'string', 'size:3'],
             'is_active' => ['boolean'],
+            'free_storage_days' => ['nullable', 'integer', 'min:0'],
+            'daily_fee_per_unit' => ['nullable', 'integer', 'min:0'],
+            'daily_fee_currency' => ['nullable', 'string', 'size:3'],
         ];
     }
 

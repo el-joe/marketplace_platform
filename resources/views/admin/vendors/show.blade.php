@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @push('styles')
-    @vite(['resources/js/components/datatable.js'])
+    @vite(['resources/js/components/datatable.js', 'resources/js/components/select2.js'])
 @endpush
 
 @section('title', $vendor->store_name . ' — ' . __('admin.vendors.title'))
@@ -730,7 +730,13 @@
                 </div>
                 <div class="flex justify-between">
                     <dt class="text-gray-500">{{ __('admin.vendors.account_manager') }}</dt>
-                    <dd class="font-medium text-gray-900 truncate ml-2">{{ $vendor->accountManagerAdmin?->name ?? '—' }}</dd>
+                    <dd class="font-medium text-gray-900 truncate ml-2">
+                        @if($vendor->accountManagerAdmin)
+                            {{ $vendor->accountManagerAdmin->name }} <span class="text-gray-400 text-xs">({{ $vendor->accountManagerAdmin->email }})</span>
+                        @else
+                            {{ __('admin.vendors.unassigned') }}
+                        @endif
+                    </dd>
                 </div>
                 <div class="flex justify-between">
                     <dt class="text-gray-500">{{ __('admin.vendors.rating') }}</dt>
@@ -925,11 +931,11 @@
         @csrf
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendors.assign_to_admin') }} <span class="text-danger-500">*</span></label>
-            <select name="admin_id" class="form-input w-full" required>
+            <select name="admin_id" class="form-input w-full" data-select2-init required>
                 <option value="">{{ __('admin.vendors.select_admin_placeholder') }}</option>
-                @foreach($admins as $admin)
+                @foreach($accountManagerCandidates as $admin)
                     <option value="{{ $admin->id }}" {{ $vendor->account_manager_admin_id === $admin->id ? 'selected' : '' }}>
-                        {{ $admin->name }}
+                        {{ $admin->name }} ({{ $admin->email }})
                     </option>
                 @endforeach
             </select>

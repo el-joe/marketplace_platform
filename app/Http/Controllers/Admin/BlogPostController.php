@@ -8,6 +8,7 @@ use App\Models\Admin;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Models\Country;
+use App\Models\File;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -197,7 +198,12 @@ class BlogPostController extends Controller
         $data['reading_time_minutes'] = $this->computeReadingTime($request->input('body_en', ''));
         $data['tags'] = $this->parseTags($request->input('tags', ''));
 
-        $post = BlogPost::create($data);
+        $post = DB::transaction(function () use ($data, $request) {
+            $post = BlogPost::create($data);
+            $this->storeAttachments($request, $post);
+
+            return $post;
+        });
 
         return redirect()->route('admin.blog.posts.edit', $post->id)
             ->with('success', 'Post saved.');
@@ -245,10 +251,64 @@ class BlogPostController extends Controller
         $data['reading_time_minutes'] = $this->computeReadingTime($request->input('body_en', ''));
         $data['tags'] = $this->parseTags($request->input('tags', ''));
 
-        $post->update($data);
+        DB::transaction(function () use ($post, $data, $request) {
+            $post->update($data);
+            $this->deleteAttachmentIds($post, $request->input('delete_attachment_ids', []));
+            $this->storeAttachments($request, $post);
+        });
 
         return redirect()->route('admin.blog.posts.edit', $post->id)
             ->with('success', 'Post updated.');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Attachments
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function deleteAttachment(BlogPost $post, File $file): JsonResponse
+    {
+        if ($file->model_type !== BlogPost::class || $file->model_id !== $post->id) {
+            abort(403);
+        }
+
+        $file->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    private function storeAttachments(Request $request, BlogPost $post): void
+    {
+        if (!$request->hasFile('attachments')) {
+            return;
+        }
+
+        $position = (int) $post->attachments()->max('position');
+
+        foreach ($request->file('attachments') as $uploaded) {
+            $position++;
+            $path = $uploaded->store('blog-attachments/' . $post->id, 'public');
+
+            File::create([
+                'model_type' => BlogPost::class,
+                'model_id' => $post->id,
+                'file_type' => 'blog_attachment',
+                'storage_type' => 'public',
+                'path' => $path,
+                'mime_type' => $uploaded->getMimeType(),
+                'extension' => $uploaded->getClientOriginalExtension(),
+                'size' => $uploaded->getSize(),
+                'position' => $position,
+            ]);
+        }
+    }
+
+    private function deleteAttachmentIds(BlogPost $post, array $fileIds): void
+    {
+        if (empty($fileIds)) {
+            return;
+        }
+
+        $post->attachments()->whereIn('id', $fileIds)->get()->each->delete();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -365,6 +425,10 @@ class BlogPostController extends Controller
             'allow_comments' => 'nullable|boolean',
             'scheduled_for' => 'nullable|date',
             'tags' => 'nullable|string',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,png,jpg,jpeg|max:20480',
+            'delete_attachment_ids' => 'nullable|array',
+            'delete_attachment_ids.*' => 'integer|exists:files,id',
         ]);
     }
 

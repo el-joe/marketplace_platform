@@ -7,6 +7,7 @@ return [
         'dashboard'        => 'لوحة التحكم',
         'campaigns'        => 'حملاتي',
         'invitations'      => 'الدعوات',
+        'secret_promotions' => 'العروض السرية',
         'earnings'         => 'أرباحي',
         'wallet'           => 'المحفظة',
         'qr_codes'         => 'رموز QR',
@@ -125,6 +126,10 @@ return [
         'ends'                     => 'تنتهي في :date',
         'no_end_date'              => 'بدون تاريخ انتهاء',
         'view_details'             => 'عرض التفاصيل ←',
+        'pause'                    => 'إيقاف مؤقت',
+        'resume'                   => 'استئناف',
+        'cancel'                   => 'إلغاء',
+        'confirm_cancel'           => 'هل أنت متأكد أنك تريد إلغاء هذه الحملة؟ لا يمكن التراجع عن هذا الإجراء.',
         'back_to_campaigns'        => '← الحملات',
         'new_campaign_title'       => 'حملة جديدة',
         'request_a_campaign'       => 'طلب حملة',
@@ -474,6 +479,18 @@ return [
         'customer'           => 'العميل',
         'order_value'        => 'قيمة الطلب',
         'date'               => 'التاريخ',
+    ],
+
+    'secret_promotions' => [
+        'title'            => 'العروض السرية',
+        'subtitle'         => 'عروض مخصصة موجهة إليك من التجار والإدارة.',
+        'none_title'       => 'لا توجد عروض سرية حالياً',
+        'none_desc'        => 'تحقق لاحقاً — قد يستهدفك التجار أو الإدارة بعروض خاصة.',
+        'unknown_product'  => 'منتج',
+        'your_commission'  => 'عمولتك',
+        'valid_until'      => 'صالح حتى :date',
+        'no_expiry'        => 'بدون تاريخ انتهاء',
+        'promote_this'     => 'روّج لهذا',
     ],
 
 ];

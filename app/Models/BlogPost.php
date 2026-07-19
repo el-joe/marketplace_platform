@@ -6,6 +6,7 @@ use App\Enums\BlogPostStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BlogPost extends Model
@@ -73,6 +74,13 @@ class BlogPost extends Model
     public function publishedBy(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'published_by_admin_id');
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(File::class, 'model')
+            ->where('file_type', 'blog_attachment')
+            ->orderBy('position');
     }
 
     public function getReadingTimeAttribute(): int

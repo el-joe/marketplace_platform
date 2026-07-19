@@ -169,6 +169,13 @@
                     Vendor Limits
                 </button>
             @endif
+            @if($warehouse->type?->value === 'platform_fbn')
+                <button @click="tab = 'overage_fees'"
+                    :class="tab === 'overage_fees' ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors">
+                    Daily Overage Fees
+                </button>
+            @endif
         </div>
 
         {{-- ─── Inventory Tab ─────────────────────────────────────────────── --}}
@@ -345,17 +352,17 @@
             <div x-show="tab === 'vendor_limits'" x-cloak>
                 <x-card>
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-semibold text-gray-800">Per-Vendor Storage Limits</h3>
-                        <button type="button" id="btn-add-vendor-limit" class="btn btn-primary btn-xs">Add Limit</button>
+                        <h3 class="text-sm font-semibold text-gray-800">{{ __('admin.warehouses_section.per_vendor_storage_limits') }}</h3>
+                        <button type="button" id="btn-add-vendor-limit" class="btn btn-primary btn-xs">{{ __('admin.warehouses_section.add_limit') }}</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
-                                    <th class="pb-3 pr-4">Vendor</th>
-                                    <th class="pb-3 pr-4">Limit Type</th>
-                                    <th class="pb-3 pr-4 text-end">Limit</th>
-                                    <th class="pb-3 pr-4 text-end">Current Usage</th>
+                                    <th class="pb-3 pr-4">{{ __('admin.warehouses_section.vendor_column') }}</th>
+                                    <th class="pb-3 pr-4">{{ __('admin.warehouses_section.limit_type_column') }}</th>
+                                    <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.limit_column') }}</th>
+                                    <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.current_usage_column') }}</th>
                                     <th class="pb-3"></th>
                                 </tr>
                             </thead>
@@ -373,7 +380,7 @@
                                         <td class="py-2.5 pr-4">{{ $vl['vendor_name'] }}</td>
                                         <td class="py-2.5 pr-4">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $isQty ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }}">
-                                                {{ $isQty ? 'Quantity' : 'Capacity (m³)' }}
+                                                {{ $isQty ? __('admin.warehouses_section.quantity_type_label') : __('admin.warehouses_section.capacity_m3_label') }}
                                             </span>
                                         </td>
                                         <td class="py-2.5 pr-4 text-end tabular-nums">{{ $limitValue }}</td>
@@ -382,16 +389,47 @@
                                             <button type="button"
                                                 class="btn btn-xs btn-ghost text-red-500 js-delete-vendor-limit"
                                                 data-url="{{ route('admin.warehouses.vendor-limits.destroy', [$warehouse->id, $vl['id']]) }}">
-                                                Remove
+                                                {{ __('admin.warehouses_section.remove') }}
                                             </button>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="py-8 text-center text-sm text-gray-400">No vendor limits configured for this warehouse.</td>
+                                        <td colspan="5" class="py-8 text-center text-sm text-gray-400">{{ __('admin.warehouses_section.no_vendor_limits') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
+                        </table>
+                    </div>
+                </x-card>
+            </div>
+        @endif
+
+        {{-- ─── Daily Overage Fees Tab ────────────────────────────────────── --}}
+        @if($warehouse->type?->value === 'platform_fbn')
+            <div x-show="tab === 'overage_fees'" x-cloak>
+                <x-card>
+                    <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('admin.warehouses_section.daily_overage_fees') }}</h3>
+                    <p class="text-xs text-gray-500 mb-4">
+                        Free storage: {{ $warehouse->free_storage_days }} days.
+                        Daily fee: {{ number_format($warehouse->daily_fee_per_unit) }} {{ $warehouse->daily_fee_currency ?? '—' }} per unit/day.
+                    </p>
+                    <div class="overflow-x-auto">
+                        <table id="overage-fees-table"
+                            data-url="{{ route('admin.warehouses.overage-fees.datatable', $warehouse->id) }}"
+                            class="w-full text-sm">
+                            <thead>
+                                <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
+                                    <th class="pb-3 pr-4">{{ __('admin.warehouses_section.date_column') }}</th>
+                                    <th class="pb-3 pr-4">{{ __('admin.warehouses_section.vendor_column') }}</th>
+                                    <th class="pb-3 pr-4">{{ __('admin.warehouses_section.sku_listing_column') }}</th>
+                                    <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.units_column') }}</th>
+                                    <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.fee_per_unit_column') }}</th>
+                                    <th class="pb-3 pr-4 text-end">{{ __('admin.warehouses_section.total_fee_column') }}</th>
+                                    <th class="pb-3 pr-4">{{ __('admin.warehouses_section.currency_column') }}</th>
+                                    <th class="pb-3">{{ __('admin.warehouses_section.status_column') }}</th>
+                                </tr>
+                            </thead>
                         </table>
                     </div>
                 </x-card>
@@ -445,44 +483,44 @@
         <div id="vendor-limit-modal" class="fixed inset-0 z-50 hidden bg-black/40 flex items-center justify-center p-4">
             <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
                 <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                    <h3 class="text-base font-semibold text-gray-900">Add / Update Vendor Limit</h3>
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('admin.warehouses_section.add_update_vendor_limit') }}</h3>
                     <button type="button" id="close-vendor-limit-modal" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
                 </div>
                 <form id="vendor-limit-form" data-url="{{ route('admin.warehouses.vendor-limits.store', $warehouse->id) }}" class="px-6 py-5 space-y-4">
                     @csrf
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Vendor</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.warehouses_section.vendor_field_label') }}</label>
                         <select name="vendor_id" class="form-input w-full text-sm" required>
-                            <option value="">— Select vendor —</option>
+                            <option value="">{{ __('admin.warehouses_section.select_vendor_placeholder') }}</option>
                             @foreach($vendors as $vendorId => $vendorName)
                                 <option value="{{ $vendorId }}">{{ $vendorName }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-2">Limit Type</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-2">{{ __('admin.warehouses_section.limit_type_column') }}</label>
                         <div class="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50">
                             <button type="button" data-value="quantity" class="js-limit-type-btn px-3 py-1.5 text-xs font-medium rounded-md transition-colors bg-white shadow-sm text-gray-800">
-                                Quantity
+                                {{ __('admin.warehouses_section.quantity_type_label') }}
                             </button>
                             <button type="button" data-value="capacity" class="js-limit-type-btn px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-gray-500">
-                                Capacity (m³)
+                                {{ __('admin.warehouses_section.capacity_m3_label') }}
                             </button>
                         </div>
                         <input type="hidden" name="limit_type" value="quantity">
                     </div>
                     <div id="vendor-limit-qty-field">
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Max Quantity (units)</label>
-                        <input type="number" name="max_quantity" min="1" class="form-input w-full text-sm" placeholder="e.g. 5000">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.warehouses_section.max_quantity_label') }}</label>
+                        <input type="number" name="max_quantity" min="1" class="form-input w-full text-sm" placeholder="{{ __('admin.warehouses_section.max_quantity_placeholder') }}">
                     </div>
                     <div id="vendor-limit-capacity-field" class="hidden">
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Max Capacity (m³)</label>
-                        <input type="number" step="0.01" min="0.01" name="max_capacity_m3" class="form-input w-full text-sm" placeholder="e.g. 20.00">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.warehouses_section.max_capacity_label') }}</label>
+                        <input type="number" step="0.01" min="0.01" name="max_capacity_m3" class="form-input w-full text-sm" placeholder="{{ __('admin.warehouses_section.max_capacity_placeholder') }}">
                     </div>
                     <div id="vendor-limit-error" class="hidden text-sm text-red-600 bg-red-50 rounded p-2"></div>
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" id="cancel-vendor-limit" class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
-                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                        <button type="submit" class="btn btn-primary btn-sm">{{ __('common.save') }}</button>
                     </div>
                 </form>
             </div>

@@ -29,6 +29,9 @@ class Warehouse extends Model
         'storage_currency',
         'manager_admin_id',
         'is_active',
+        'free_storage_days',
+        'daily_fee_per_unit',
+        'daily_fee_currency',
     ];
 
     protected $casts = [
@@ -40,6 +43,8 @@ class Warehouse extends Model
         'default_max_quantity' => 'integer',
         'default_max_capacity_m3' => 'decimal:2',
         'type' => WarehouseType::class,
+        'free_storage_days' => 'integer',
+        'daily_fee_per_unit' => 'integer',
     ];
 
     // ─── Relationships ─────────────────────────────────────────────────────────
@@ -118,6 +123,18 @@ class Warehouse extends Model
             ->whereNotNull('reorder_point')
             ->whereRaw('quantity_on_hand <= reorder_point')
             ->count();
+    }
+
+    // ─── FBN Daily Overage Helpers ──────────────────────────────────────────────
+
+    public function hasFreeStoragePeriod(): bool
+    {
+        return $this->free_storage_days > 0;
+    }
+
+    public function isDailyFeeWarehouse(): bool
+    {
+        return $this->type === WarehouseType::PlatformFbn && $this->daily_fee_per_unit > 0;
     }
 }
 

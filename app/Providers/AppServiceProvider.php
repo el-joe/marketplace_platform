@@ -69,6 +69,12 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use App\Enums\TravelBookingStatus;
+use App\Enums\TravelPackageInquiryStatus;
+use App\Models\TravelBooking;
+use App\Models\TravelPackageInquiry;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -172,6 +178,32 @@ class AppServiceProvider extends ServiceProvider
             $currentCountry = $countries->firstWhere('site_code', $currentCode) ?? $countries->first();
 
             $view->with(compact('countries', 'currentCountry'));
+        });
+
+        // Travel agency top nav: pending-bookings / new-inquiries badge counts, cached 60s per agency.
+        View::composer('layouts.travel-agency', function ($view): void {
+            $agencyId = Auth::guard('travel_agency')->id();
+
+            if (!$agencyId) {
+                $view->with(['pendingBookingsCount' => 0, 'newInquiriesCount' => 0]);
+                return;
+            }
+
+            $pendingBookingsCount = Cache::remember("travel-agency.{$agencyId}.pending-bookings-count", 60, function () use ($agencyId) {
+                return TravelBooking::query()
+                    ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
+                    ->where('status', TravelBookingStatus::PendingDocuments)
+                    ->count();
+            });
+
+            $newInquiriesCount = Cache::remember("travel-agency.{$agencyId}.new-inquiries-count", 60, function () use ($agencyId) {
+                return TravelPackageInquiry::query()
+                    ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
+                    ->where('status', TravelPackageInquiryStatus::New)
+                    ->count();
+            });
+
+            $view->with(compact('pendingBookingsCount', 'newInquiriesCount'));
         });
     }
 }

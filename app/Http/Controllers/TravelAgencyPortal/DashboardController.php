@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\TravelAgencyPortal;
 
+use App\Enums\TravelBookingStatus;
+use App\Enums\TravelPackageInquiryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
+use App\Models\TravelPackageInquiry;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -32,6 +35,30 @@ class DashboardController extends Controller
             ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
             ->count();
 
+        $pendingBookings = TravelBooking::query()
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->where('status', TravelBookingStatus::PendingDocuments)
+            ->count();
+
+        $confirmedBookings = TravelBooking::query()
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->where('status', TravelBookingStatus::Confirmed)
+            ->count();
+
+        $newInquiries = TravelPackageInquiry::query()
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->where('status', TravelPackageInquiryStatus::New)
+            ->count();
+
+        // Revenue grouped by currency — never sum across currencies.
+        $revenueByCurrency = TravelBooking::query()
+            ->join('travel_packages', 'travel_packages.id', '=', 'travel_bookings.travel_package_id')
+            ->where('travel_packages.travel_agency_id', $agency->id)
+            ->whereIn('travel_bookings.status', [TravelBookingStatus::Confirmed, TravelBookingStatus::Completed])
+            ->selectRaw('travel_packages.currency as currency, SUM(travel_bookings.total_price) as total')
+            ->groupBy('travel_packages.currency')
+            ->pluck('total', 'currency');
+
         $recentPackages = TravelPackage::where('travel_agency_id', $agency->id)
             ->with('media')
             ->latest()
@@ -45,13 +72,26 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $recentInquiries = TravelPackageInquiry::query()
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->where('status', TravelPackageInquiryStatus::New)
+            ->with('package')
+            ->latest()
+            ->limit(5)
+            ->get();
+
         return view('travel-agency.dashboard', compact(
             'agency',
             'packageCounts',
             'totalBookings',
+            'pendingBookings',
+            'confirmedBookings',
+            'newInquiries',
+            'revenueByCurrency',
             'bookingStats',
             'recentPackages',
             'recentBookings',
+            'recentInquiries',
         ));
     }
 }

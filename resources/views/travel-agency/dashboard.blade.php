@@ -7,24 +7,43 @@
     <h1 class="text-2xl font-black text-gray-900"> {{ __('travel.dashboard.welcome_message') }} {{ $agency->name }}</h1>
 
     {{-- Summary KPI row --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
-            <p class="text-3xl font-black text-gray-900">{{ $packageCounts->sum() }}</p>
-            <p class="mt-1 text-xs text-gray-500">{{ __('travel.dashboard.total_packages') }}</p>
-        </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
             <p class="text-3xl font-black text-emerald-600">{{ $packageCounts['active'] ?? 0 }}</p>
             <p class="mt-1 text-xs text-gray-500">{{ __('travel.dashboard.active_packages') }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
+            <p class="text-3xl font-black text-amber-600">{{ $packageCounts['pending_review'] ?? 0 }}</p>
+            <p class="mt-1 text-xs text-gray-500">{{ __('travel.dashboard.pending_review') }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
             <p class="text-3xl font-black text-blue-600">{{ $totalBookings }}</p>
             <p class="mt-1 text-xs text-gray-500">{{ __('travel.dashboard.total_bookings') }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
-            @php $rev = $bookingStats->revenue ?? 0; @endphp
-            <p class="text-3xl font-black text-purple-600">{{ number_format($rev / 100, 0) }}</p>
-            <p class="mt-1 text-xs text-gray-500">{{ __('travel.dashboard.monthly_revenue') }}</p>
+            <p class="text-3xl font-black text-amber-600">{{ $pendingBookings }}</p>
+            <p class="mt-1 text-xs text-gray-500">{{ __('travel.dashboard.pending_documents') }}</p>
         </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
+            <p class="text-3xl font-black text-rose-600">{{ $newInquiries }}</p>
+            <p class="mt-1 text-xs text-gray-500">{{ __('travel.dashboard.new_inquiries') }}</p>
+        </div>
+    </div>
+
+    {{-- Revenue by currency --}}
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <p class="text-xs text-gray-500 mb-3">{{ __('travel.dashboard.total_revenue') }}</p>
+        @if($revenueByCurrency->isNotEmpty())
+        <div class="flex flex-wrap gap-6">
+            @foreach($revenueByCurrency as $currency => $amount)
+            <div>
+                <p class="text-2xl font-black text-purple-600">{{ number_format($amount / 100, 0) }} <span class="text-sm font-semibold text-gray-500">{{ $currency }}</span></p>
+            </div>
+            @endforeach
+        </div>
+        @else
+        <p class="text-sm text-gray-400">—</p>
+        @endif
     </div>
 
     {{-- Package status breakdown --}}
@@ -81,6 +100,34 @@
                             {{ $bkLabels[$bk->status->value] ?? $bk->status->label() }}
                         </span>
                     </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+
+    {{-- Recent inquiries --}}
+    @if($recentInquiries->isNotEmpty())
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="font-bold text-gray-900">{{ __('travel.dashboard.recent_inquiries') }}</h2>
+            <a href="{{ route('travel-agency.inquiries.index', ['status' => 'new']) }}" class="text-sm text-blue-600 hover:underline">{{ __('travel.dashboard.view_all') }}</a>
+        </div>
+        <table class="min-w-full divide-y divide-gray-100 text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.inquiries.contact_name') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.packages.title') }}</th>
+                    <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('travel.bookings.date') }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @foreach($recentInquiries as $inq)
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium text-gray-900">{{ $inq->name }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ $inq->package->title_ar ?: $inq->package->title_en }}</td>
+                    <td class="px-4 py-3 text-gray-500 text-xs">{{ $inq->created_at->format('d M Y') }}</td>
                 </tr>
                 @endforeach
             </tbody>

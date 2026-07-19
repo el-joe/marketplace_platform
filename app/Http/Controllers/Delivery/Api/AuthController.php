@@ -173,7 +173,7 @@ class AuthController extends Controller
         $refreshToken = JWTAuth::customClaims([
             'type'  => 'refresh',
             'guard' => 'delivery_api',
-        ])->setTTL(self::REFRESH_TTL_MINUTES)->fromUser($agent);
+        ])->fromUser($agent);
 
         return [
             'access_token'  => $accessToken,

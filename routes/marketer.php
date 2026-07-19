@@ -83,6 +83,9 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             Route::post('/campaigns/{campaign}/whatsapp-link', [CampaignController::class, 'requestWhatsappLink'])->name('campaigns.whatsapp-link');
             Route::post('/campaigns/{campaign}/qr-code', [CampaignController::class, 'generateQrCode'])->name('campaigns.qr-code');
             Route::post('/campaigns/{campaign}/samples', [CampaignController::class, 'requestSamples'])->name('campaigns.samples');
+            Route::post('/campaigns/{campaign}/pause', [CampaignController::class, 'pause'])->name('campaigns.pause');
+            Route::post('/campaigns/{campaign}/resume', [CampaignController::class, 'resume'])->name('campaigns.resume');
+            Route::post('/campaigns/{campaign}/cancel', [CampaignController::class, 'cancel'])->name('campaigns.cancel');
 
             // Product / classified / travel AJAX search
             Route::get('/campaigns/products/search', [CampaignController::class, 'searchProducts'])->name('campaigns.products.search');
@@ -104,6 +107,11 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             // Wallet
             Route::get('/wallet', [\App\Http\Controllers\MarketerPortal\WalletController::class, 'index'])->name('wallet.index');
             Route::post('/wallet/withdraw', [\App\Http\Controllers\MarketerPortal\WalletController::class, 'requestWithdrawal'])->name('wallet.withdraw');
+
+            // Secret Promotions
+            Route::prefix('secret-promotions')->name('secret-promotions.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\MarketerPortal\SecretPromotionController::class, 'index'])->name('index');
+            });
 
             // Invitations
             Route::prefix('invitations')->name('invitations.')->group(function () {
