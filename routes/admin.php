@@ -41,6 +41,7 @@ use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\LedgerController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\PortalContentController;
+use App\Http\Controllers\Admin\ContentSettingsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ShippingSubsidyController;
@@ -780,6 +781,13 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/reset', [SettingsController::class, 'reset'])->name('reset')->middleware('admin.permission:settings.edit');
         Route::post('/test-gateway', [SettingsController::class, 'testGateway'])->name('test-gateway');
         Route::post('/clear-cache', [SettingsController::class, 'clearCache'])->name('clear-cache')->middleware('admin.permission:settings.edit');
+    });
+
+    // ─── Content Settings ─────────────────────────────────────────────────────
+    Route::prefix('content-settings')->name('content-settings.')->middleware('admin.permission:settings.content')->group(function () {
+        Route::get('/', [ContentSettingsController::class, 'index'])->name('index');
+        Route::get('/{group}', [ContentSettingsController::class, 'showGroup'])->name('group');
+        Route::post('/update', [ContentSettingsController::class, 'update'])->name('update');
     });
 
     // ─── Portal Content ───────────────────────────────────────────────────────

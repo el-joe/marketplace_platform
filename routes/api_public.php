@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\PublicSettingsController;
 use App\Http\Controllers\Marketer\PublicProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,4 +25,9 @@ Route::prefix('v1')->group(function (): void {
     Route::get('marketers/{slug}', [PublicProfileController::class, 'show'])
         ->name('public.marketer.profile')
         ->middleware('throttle:30,1');
+
+    // ── Public settings (consumed by Flutter apps) ──────────────────────────────
+    Route::get('settings', [PublicSettingsController::class, 'index'])
+        ->name('public.settings')
+        ->middleware('throttle:60,1');
 });

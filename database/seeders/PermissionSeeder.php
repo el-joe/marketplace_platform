@@ -129,6 +129,7 @@ class PermissionSeeder extends Seeder
             'warehouses.manage',
             'settings.view',
             'settings.edit',
+            'settings.content',
             'portal_content.view',
             'portal_content.edit',
             'faqs.view',

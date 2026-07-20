@@ -71,3 +71,40 @@ if (!function_exists('portal_link')) {
         return ['label' => $label, 'url' => $url];
     }
 }
+
+if (!function_exists('portal_image')) {
+    /**
+     * Get a localized image (src + alt) from the admin-editable "Portal
+     * Content" CMS. Always returns ['src' => string, 'alt' => string],
+     * falling back to the given fallback args if the row is missing,
+     * inactive, or of the wrong type.
+     *
+     * Usage in Blade:
+     *   @php($img = portal_image('home', 'hero', 'photo', 'https://.../fallback.jpg', 'A delivery agent', 'مندوب توصيل'))
+     *   <img src="{{ $img['src'] }}" alt="{{ $img['alt'] }}">
+     */
+    function portal_image(
+        string $pageKey,
+        string $blockKey,
+        string $fieldKey,
+        ?string $fallbackSrc = null,
+        ?string $fallbackAltEn = null,
+        ?string $fallbackAltAr = null
+    ): array {
+        $isAr = session('locale', 'ar') === 'ar';
+        $fallbackAlt = ($isAr ? $fallbackAltAr : $fallbackAltEn) ?? $fallbackAltAr ?? $fallbackAltEn ?? '';
+        $fallback = ['src' => $fallbackSrc ?? '', 'alt' => $fallbackAlt];
+
+        $row = PortalContent::forPage($pageKey)->get($blockKey . '.' . $fieldKey);
+
+        if (!$row || !$row->is_active || $row->type !== PortalContentType::Image) {
+            return $fallback;
+        }
+
+        $alt = $isAr ? $row->value_ar : $row->value_en;
+        $alt = ($alt === null || $alt === '') ? $fallbackAlt : $alt;
+        $src = ($row->value_url === null || $row->value_url === '') ? ($fallbackSrc ?? '') : $row->value_url;
+
+        return ['src' => $src, 'alt' => $alt];
+    }
+}

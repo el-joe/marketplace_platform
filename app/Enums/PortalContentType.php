@@ -11,4 +11,5 @@ enum PortalContentType: string
     case Text = 'text';
     case RichText = 'richtext';
     case Link = 'link';
+    case Image = 'image';
 }
