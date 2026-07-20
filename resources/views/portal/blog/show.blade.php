@@ -77,7 +77,7 @@
                     <span>{{ $post->reading_time_minutes }} {{ __('portal.blog.min_read') }}</span>
                     @if($post->views_count)
                         <span>·</span>
-                        <span>{{ number_format($post->views_count) }} {{ $locale === 'ar' ? 'مشاهدة' : 'views' }}</span>
+                        <span>{{ number_format($post->views_count) }} {{ portal_content('blog', 'show', 'views_label', 'views', 'مشاهدة') }}</span>
                     @endif
                 </div>
             </div>
@@ -103,7 +103,7 @@
             @if($post->attachments->isNotEmpty())
                 <div class="px-8 pb-8 pt-0">
                     <div class="blog-attachments pt-8 border-t border-gray-800">
-                        <h3 class="text-sm font-semibold text-gray-300 mb-3">{{ __('المرفقات / Attachments') }}</h3>
+                        <h3 class="text-sm font-semibold text-gray-300 mb-3">{{ portal_content('blog', 'show', 'attachments_label', 'Attachments', 'المرفقات') }}</h3>
                         <div class="flex flex-col gap-2">
                             @foreach($post->attachments as $attachment)
                                 <a href="{{ Storage::url($attachment->path) }}" download

@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\MarketerPortal\AdminOfferController;
 use App\Http\Controllers\MarketerPortal\AffiliatePromoCodeController;
+use App\Http\Controllers\MarketerPortal\AnalyticsController;
 use App\Http\Controllers\MarketerPortal\AuthController;
 use App\Http\Controllers\MarketerPortal\CampaignController;
 use App\Http\Controllers\MarketerPortal\DashboardController;
@@ -66,9 +68,17 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             // Dashboard
             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+            // Analytics
+            Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+
             // Profile
             Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+            // My Store — same underlying profile data, "store" naming for the public-facing brand
+            Route::get('/store', [ProfileController::class, 'edit'])->name('store.edit');
+            Route::put('/store', [ProfileController::class, 'update'])->name('store.update');
+            Route::get('/store/preview', [ProfileController::class, 'preview'])->name('store.preview');
 
             // QR Codes
             Route::get('/qr-codes', [QrCodeController::class, 'index'])->name('qr-codes.index');
@@ -80,12 +90,16 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
             Route::get('/campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');
             Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
             Route::get('/campaigns/{campaign}', [CampaignController::class, 'show'])->name('campaigns.show');
+            Route::get('/campaigns/{campaign}/edit', [CampaignController::class, 'edit'])->name('campaigns.edit');
             Route::post('/campaigns/{campaign}/whatsapp-link', [CampaignController::class, 'requestWhatsappLink'])->name('campaigns.whatsapp-link');
             Route::post('/campaigns/{campaign}/qr-code', [CampaignController::class, 'generateQrCode'])->name('campaigns.qr-code');
             Route::post('/campaigns/{campaign}/samples', [CampaignController::class, 'requestSamples'])->name('campaigns.samples');
             Route::post('/campaigns/{campaign}/pause', [CampaignController::class, 'pause'])->name('campaigns.pause');
             Route::post('/campaigns/{campaign}/resume', [CampaignController::class, 'resume'])->name('campaigns.resume');
             Route::post('/campaigns/{campaign}/cancel', [CampaignController::class, 'cancel'])->name('campaigns.cancel');
+            Route::post('/campaigns/{campaign}/request-pause', [CampaignController::class, 'requestPause'])->name('campaigns.request-pause');
+            Route::post('/campaigns/{campaign}/resubmit', [CampaignController::class, 'resubmit'])->name('campaigns.resubmit');
+            Route::post('/campaigns/{campaign}/conversions/datatable', [CampaignController::class, 'conversionsDatatable'])->name('campaigns.conversions.datatable');
 
             // Product / classified / travel AJAX search
             Route::get('/campaigns/products/search', [CampaignController::class, 'searchProducts'])->name('campaigns.products.search');
@@ -119,6 +133,14 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
                 Route::get('/{invitation}', [InvitationController::class, 'show'])->name('show');
                 Route::post('/{invitation}/accept', [InvitationController::class, 'accept'])->name('accept');
                 Route::post('/{invitation}/decline', [InvitationController::class, 'decline'])->name('decline');
+            });
+
+            // Admin Offers (direct campaign invitations sent by admins)
+            Route::prefix('admin-offers')->name('admin-offers.')->group(function () {
+                Route::get('/', [AdminOfferController::class, 'index'])->name('index');
+                Route::get('/{invitation}', [AdminOfferController::class, 'show'])->name('show');
+                Route::post('/{invitation}/accept', [AdminOfferController::class, 'accept'])->name('accept');
+                Route::post('/{invitation}/decline', [AdminOfferController::class, 'decline'])->name('decline');
             });
 
             // ── Affiliate only: Promo Codes ───────────────────────────────────────

@@ -16,6 +16,33 @@
         </a>
     </div>
 
+    {{-- Status filter tabs --}}
+    @php
+        $tabDefs = [
+            null => __('marketer.campaigns.all_statuses'),
+            'draft' => \App\Enums\MarketerCampaignStatus::Draft->label(),
+            'pending_review' => \App\Enums\MarketerCampaignStatus::PendingReview->label(),
+            'active' => \App\Enums\MarketerCampaignStatus::Active->label(),
+            'paused' => \App\Enums\MarketerCampaignStatus::Paused->label(),
+            'rejected' => \App\Enums\MarketerCampaignStatus::Rejected->label(),
+            'ended' => \App\Enums\MarketerCampaignStatus::Ended->label(),
+            'cancelled' => \App\Enums\MarketerCampaignStatus::Cancelled->label(),
+        ];
+    @endphp
+    <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-100 pb-3">
+        @foreach($tabDefs as $value => $label)
+            @php
+                $count = $value === null ? $totalCount : ($tabs[$value] ?? 0);
+                $isCurrent = $statusFilter === $value;
+            @endphp
+            <a href="{{ route('marketer.campaigns.index', $value ? ['status' => $value] : []) }}"
+                class="text-xs font-semibold rounded-full px-3 py-1.5 transition-colors {{ $isCurrent ? 'bg-slate-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                {{ $label }}
+                <span class="ml-1 opacity-70">{{ $count }}</span>
+            </a>
+        @endforeach
+    </div>
+
     @if($campaigns->isEmpty())
         <div class="bg-white rounded-2xl border border-gray-100 p-12 text-center">
             <div class="text-4xl mb-3">📣</div>
@@ -33,7 +60,9 @@
                     $statusColors = [
                         'active' => 'bg-green-100 text-green-700',
                         'draft' => 'bg-gray-100 text-gray-600',
+                        'pending_review' => 'bg-blue-100 text-blue-700',
                         'paused' => 'bg-yellow-100 text-yellow-700',
+                        'rejected' => 'bg-red-100 text-red-600',
                         'ended' => 'bg-blue-100 text-blue-700',
                         'cancelled' => 'bg-red-100 text-red-600',
                     ];
@@ -85,7 +114,7 @@
                         </a>
                     </div>
 
-                    @if(in_array($campaign->status->value, ['active', 'paused', 'draft']))
+                    @if(in_array($campaign->status->value, ['active', 'paused', 'draft', 'pending_review']))
                         <div class="flex items-center gap-2 mt-3" x-data="{ busy: false }">
                             @if($campaign->status->value === 'active')
                                 <button type="button" :disabled="busy"
@@ -100,7 +129,7 @@
                                     {{ __('marketer.campaigns.resume') }}
                                 </button>
                             @endif
-                            @if(in_array($campaign->status->value, ['active', 'paused', 'draft']))
+                            @if(in_array($campaign->status->value, ['active', 'paused', 'draft', 'pending_review']))
                                 <button type="button" :disabled="busy"
                                     @click="if (confirm(@json(__('marketer.campaigns.confirm_cancel')))) { busy = true; fetch('{{ route('marketer.campaigns.cancel', $campaign->id) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => location.reload()) }"
                                     class="flex-1 text-xs font-semibold rounded-lg px-3 py-1.5 bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50">

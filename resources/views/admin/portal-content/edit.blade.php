@@ -22,7 +22,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('admin.portal-content.save', $pageKey) }}" class="space-y-6">
+    <form method="POST" action="{{ route('admin.portal-content.save', $pageKey) }}" class="space-y-6" enctype="multipart/form-data">
         @csrf
 
         @forelse($blocks as $blockKey => $rows)
@@ -64,6 +64,20 @@
                                 <div>
                                     <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('admin.portal_content.url') }}</label>
                                     <input type="text" name="fields[{{ $row->id }}][value_url]" value="{{ old("fields.{$row->id}.value_url", $row->value_url) }}" class="w-full rounded-lg border-gray-300 text-sm font-mono" dir="ltr">
+                                </div>
+                            @endif
+
+                            @if($row->type === \App\Enums\PortalContentType::Image)
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('admin.portal_content.image_file') }}</label>
+                                    <input type="file" name="fields[{{ $row->id }}][value_file]" accept="image/*" class="w-full rounded-lg border-gray-300 text-sm">
+                                    @error("fields.{$row->id}.value_file")
+                                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                    @enderror
+                                    @if($row->value_url)
+                                        <img src="{{ \Illuminate\Support\Str::startsWith($row->value_url, ['http://', 'https://']) ? $row->value_url : \Illuminate\Support\Facades\Storage::disk('public')->url($row->value_url) }}"
+                                             alt="" class="mt-2 h-16 rounded border border-gray-200 object-cover">
+                                    @endif
                                 </div>
                             @endif
                         </div>

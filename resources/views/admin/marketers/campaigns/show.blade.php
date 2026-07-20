@@ -31,7 +31,7 @@
         </p>
     </div>
 
-    @if ($campaign->status === \App\Enums\MarketerCampaignStatus::Draft)
+    @if (in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::PendingReview], true))
         <div class="flex gap-2">
             <button type="button"
                 class="btn btn-success btn-sm btn-approve-campaign"
@@ -50,6 +50,32 @@
         </span>
     @endif
 </div>
+
+@if ($campaign->pause_requested_at)
+<div class="mb-6 flex items-center justify-between gap-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+    <p class="text-sm text-amber-800">
+        {{ __('admin.marketers.pause_requested_on', ['date' => $campaign->pause_requested_at->format('d M Y, H:i')]) }}
+    </p>
+    <div class="flex gap-2 flex-shrink-0">
+        <button type="button" class="btn btn-warning btn-sm btn-approve-pause"
+            data-url="{{ route('admin.marketers.campaigns.pause-request.approve', $campaign) }}">
+            {{ __('admin.marketers.approve_pause') }}
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm btn-dismiss-pause"
+            data-url="{{ route('admin.marketers.campaigns.pause-request.dismiss', $campaign) }}">
+            {{ __('admin.marketers.dismiss') }}
+        </button>
+    </div>
+</div>
+@endif
+
+@if ($campaign->status === \App\Enums\MarketerCampaignStatus::Rejected && $campaign->rejection_reason)
+<div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+    <p class="text-sm text-red-700">
+        <span class="font-semibold">{{ __('admin.marketers.rejection_reason') }}:</span> {{ $campaign->rejection_reason }}
+    </p>
+</div>
+@endif
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -240,16 +266,16 @@
                 <input type="number" id="samples-required-input"
                     value="{{ $campaign->samples_required }}" min="0" max="10"
                     class="form-input w-24 text-sm py-1.5"
-                    {{ !in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::Active], true) ? 'disabled' : '' }}>
+                    {{ !in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::PendingReview, \App\Enums\MarketerCampaignStatus::Active], true) ? 'disabled' : '' }}>
                 <button type="button" id="samples-required-btn"
                     onclick="saveSamplesRequired()"
                     class="btn btn-sm btn-primary"
-                    {{ !in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::Active], true) ? 'disabled' : '' }}>
+                    {{ !in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::PendingReview, \App\Enums\MarketerCampaignStatus::Active], true) ? 'disabled' : '' }}>
                     {{ __('admin.save') }}
                 </button>
             </div>
             <p id="samples-required-msg" class="text-xs mt-2 hidden"></p>
-            @if (!in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::Active], true))
+            @if (!in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::PendingReview, \App\Enums\MarketerCampaignStatus::Active], true))
                 <p class="text-xs text-gray-400 mt-2">{{ __('admin.marketers.editing_locked', ['status' => $campaign->status->label()]) }}</p>
             @endif
         </x-card>
@@ -327,6 +353,17 @@ $(function () {
                 else { window.Toast.error(data.message); }
             });
         }});
+    });
+
+    $('.btn-approve-pause, .btn-dismiss-pause').on('click', function () {
+        fetch($(this).data('url'), {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
+            body: '{}'
+        }).then(r => r.json()).then(data => {
+            if (data.success) { window.Toast.success(data.message); setTimeout(() => location.reload(), 800); }
+            else { window.Toast.error(data.message); }
+        });
     });
 
     $('.btn-reject-campaign').on('click', function () {

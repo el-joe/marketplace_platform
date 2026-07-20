@@ -69,6 +69,11 @@ class Admin extends Authenticatable
         return $this->hasMany(Activity::class, 'causer_id');
     }
 
+    public function marketerInvitations(): HasMany
+    {
+        return $this->hasMany(AdminMarketerInvitation::class);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     public function isAdmin(): bool

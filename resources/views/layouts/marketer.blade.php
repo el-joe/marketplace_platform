@@ -185,11 +185,20 @@
                 {{ __('marketer.nav.dashboard') }}
             </a>
 
+            <a href="{{ route('marketer.analytics.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.analytics') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M8 17V10M13 17V6M18 17v-4" />
+                </svg>
+                {{ __('marketer.nav.analytics') }}
+            </a>
+
             @php $isInfluencer = auth('marketer')->check() && auth('marketer')->user()->isInfluencer(); @endphp
 
             @if(!$isInfluencer)
                 <a href="{{ route('marketer.campaigns.index') }}"
-                    class="{{ Str::startsWith($route, 'marketer.campaigns') ? 'active' : '' }}">
+                    class="{{ Str::startsWith($route, 'marketer.campaigns') ? 'active' : '' }}"
+                    style="position:relative;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5" />
@@ -197,6 +206,17 @@
                             d="M17.5 2.5a2.121 2.121 0 013 3L12 14l-4 1 1-4 7.5-7.5z" />
                     </svg>
                     {{ __('marketer.nav.campaigns') }}
+                    @if(($badges['pending_campaigns'] ?? 0) > 0)
+                        <span style="
+                            position:absolute; top:6px; right:10px;
+                            background:#f59e0b; color:#fff;
+                            font-size:0.6rem; font-weight:700;
+                            min-width:1.1rem; height:1.1rem;
+                            border-radius:999px;
+                            display:inline-flex; align-items:center; justify-content:center;
+                            padding:0 3px; line-height:1;
+                        ">{{ $badges['pending_campaigns'] > 99 ? '99+' : $badges['pending_campaigns'] }}</span>
+                    @endif
                 </a>
 
                 <a href="{{ route('marketer.promo-codes.index') }}"
@@ -222,12 +242,24 @@
             </a>
 
             <a href="{{ route('marketer.samples.index') }}"
-                class="{{ Str::startsWith($route, 'marketer.samples') ? 'active' : '' }}">
+                class="{{ Str::startsWith($route, 'marketer.samples') ? 'active' : '' }}"
+                style="position:relative;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375C2.754 3.75 2.25 4.254 2.25 4.875v1.5c0 .621.504 1.125 1.125 1.125z" />
                 </svg>
                 {{ __('marketer.nav.sample_requests') }}
+                @if(($badges['pending_sample_requests'] ?? 0) > 0)
+                    <span style="
+                        position:absolute; top:6px; right:10px;
+                        background:#f59e0b; color:#fff;
+                        font-size:0.6rem; font-weight:700;
+                        min-width:1.1rem; height:1.1rem;
+                        border-radius:999px;
+                        display:inline-flex; align-items:center; justify-content:center;
+                        padding:0 3px; line-height:1;
+                    ">{{ $badges['pending_sample_requests'] > 99 ? '99+' : $badges['pending_sample_requests'] }}</span>
+                @endif
             </a>
 
             @if($isInfluencer)
@@ -270,14 +302,7 @@
 
             @auth('marketer')
             @php
-                $invitationPendingCount = \Illuminate\Support\Facades\Cache::remember(
-                    'marketer:' . auth()->guard('marketer')->id() . ':pending-invitations-count',
-                    60,
-                    fn () => \App\Models\VendorCampaignInvitation::where('marketer_id', auth()->guard('marketer')->id())
-                        ->where('status', 'pending')
-                        ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
-                        ->count()
-                );
+                $invitationPendingCount = $badges['pending_invitations'] ?? 0;
             @endphp
             <a href="{{ route('marketer.secret-promotions.index') }}"
                 class="{{ Str::startsWith($route, 'marketer.secret-promotions') ? 'active' : '' }}">
@@ -310,6 +335,30 @@
                     ">{{ $invitationPendingCount > 99 ? '99+' : $invitationPendingCount }}</span>
                 @endif
             </a>
+
+            @php
+                $adminOfferPendingCount = $badges['pending_admin_offers'] ?? 0;
+            @endphp
+            <a href="{{ route('marketer.admin-offers.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.admin-offers') ? 'active' : '' }}"
+                style="position:relative;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                </svg>
+                {{ __('marketer.nav.admin_offers') }}
+                @if($adminOfferPendingCount > 0)
+                    <span style="
+                        position:absolute; top:6px; right:10px;
+                        background:#f59e0b; color:#fff;
+                        font-size:0.6rem; font-weight:700;
+                        min-width:1.1rem; height:1.1rem;
+                        border-radius:999px;
+                        display:inline-flex; align-items:center; justify-content:center;
+                        padding:0 3px; line-height:1;
+                    ">{{ $adminOfferPendingCount > 99 ? '99+' : $adminOfferPendingCount }}</span>
+                @endif
+            </a>
             @endauth
 
             <a href="{{ route('marketer.profile.edit') }}"
@@ -319,6 +368,15 @@
                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 {{ __('marketer.nav.profile') }}
+            </a>
+
+            <a href="{{ route('marketer.store.edit') }}"
+                class="{{ Str::startsWith($route, 'marketer.store') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 9.5L4.5 4h15L21 9.5M3 9.5V19a1 1 0 001 1h16a1 1 0 001-1V9.5M3 9.5h18M9 21v-6h6v6" />
+                </svg>
+                {{ __('marketer.nav.store') }}
             </a>
         </nav>
 

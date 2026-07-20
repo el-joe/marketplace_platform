@@ -41,8 +41,10 @@
             <select id="filter-status" class="form-input w-full text-sm">
                 <option value="">{{ __('admin.marketers.all_statuses') }}</option>
                 <option value="draft">{{ __('admin.marketers.draft') }}</option>
+                <option value="pending_review">{{ \App\Enums\MarketerCampaignStatus::PendingReview->label() }}</option>
                 <option value="active">{{ __('admin.marketers.active') }}</option>
                 <option value="paused">{{ __('admin.marketers.paused') }}</option>
+                <option value="rejected">{{ \App\Enums\MarketerCampaignStatus::Rejected->label() }}</option>
                 <option value="ended">{{ __('admin.marketers.ended') }}</option>
                 <option value="cancelled">{{ __('admin.marketers.cancelled') }}</option>
             </select>

@@ -2,8 +2,8 @@
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
-@section('title', ($isAr ? 'الرئيسية | أعلن بذكاء، وانمُ أسرع' : 'Home | Advertise smarter, grow faster'))
-@section('description', ($isAr ? 'أعلن بذكاء، وانمُ أسرع' : 'Advertise smarter, grow faster'))
+@section('title', portal_content('adsupport', 'index', 'page_title', 'Home | Advertise smarter, grow faster', 'الرئيسية | أعلن بذكاء، وانمُ أسرع'))
+@section('description', portal_content('adsupport', 'index', 'page_description', 'Advertise smarter, grow faster', 'أعلن بذكاء، وانمُ أسرع'))
 
 @section('header')
     @include('portal.partials.adsupport-header', ['variant' => 'home', 'country' => $country])
@@ -28,7 +28,7 @@
                         </div>
                         <div class="flex">
                             <span class="line-clamp-1 flex text-base text-[#737373]">
-                                {{ $articleCount }} {{ $isAr ? 'مقالة' : Str::plural('article', $articleCount) }}
+                                {{ $articleCount }} {{ $isAr ? portal_content('adsupport', 'index', 'article_word', 'article', 'مقالة') : Str::plural('article', $articleCount) }}
                             </span>
                         </div>
                     </div>
@@ -39,11 +39,11 @@
         @if($featuredArticle)
             <section class="mb-14 flex w-full flex-col items-center bg-white py-14 text-black rounded-[10px] border border-solid border-[#e6e6e6]">
                 <div class="flex flex-col items-center px-6 sm:w-[482px] sm:px-0">
-                    <header class="text-center text-[28px] font-medium">{{ $isAr ? 'جديد على الإعلانات؟' : 'New to ads?' }}</header>
+                    <header class="text-center text-[28px] font-medium">{{ portal_content('adsupport', 'index', 'featured_heading', 'New to ads?', 'جديد على الإعلانات؟') }}</header>
                     <div class="mt-2 whitespace-pre-wrap text-center">{{ $featuredArticle->localizedExcerpt() }}</div>
                     <a href="{{ route('portal.adsupport.articles.show', ['country' => $country, 'article' => $featuredArticle->slug]) }}"
                        class="mt-6 rounded-lg bg-[#333333] px-[14px] py-2 font-semibold text-white no-underline hover:opacity-90">
-                        {{ $isAr ? 'اطّلع أكثر' : 'Learn more' }}
+                        {{ portal_content('adsupport', 'index', 'learn_more', 'Learn more', 'اطّلع أكثر') }}
                     </a>
                 </div>
             </section>

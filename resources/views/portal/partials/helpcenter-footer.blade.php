@@ -11,7 +11,7 @@
                             <path d="M98,41.9c11.6,0,21-9.4,21-21S109.5,0,98,0s-21,9.4-21,21,9.4,21,21,21Z"></path>
                             <path d="M582.4,41.9c11.6,0,21-9.4,21-21s-9.4-21-21-21-21,9.4-21,21,9.4,21,21,21Z"></path>
                         </svg>
-                        <span class="text-gray-700 font-medium">{{ $isAr ? 'مركز مساعدة البائع' : 'noon Seller Help Center' }}</span>
+                        <span class="text-gray-700 font-medium">{{ portal_content('helpcenter', 'footer', 'brand_label', 'noon Seller Help Center', 'مركز مساعدة البائع') }}</span>
                     </a>
                 </div>
 
@@ -19,18 +19,21 @@
                     <div class="grid grid-cols-2 gap-x-8 gap-y-10 md:flex md:flex-row md:flex-wrap">
                         <div class="w-1/2 sm:w-auto">
                             <div class="flex w-40 flex-col break-words">
-                                <p class="mb-4 font-semibold text-gray-900">{{ $isAr ? 'الدعم' : 'Support' }}</p>
+                                <p class="mb-4 font-semibold text-gray-900">{{ portal_content('helpcenter', 'footer', 'support_heading', 'Support', 'الدعم') }}</p>
                                 <ul class="p-0 m-0">
-                                    <li class="mb-3 list-none"><a href="mailto:seller@noon.com" class="no-underline hover:text-orange-600">{{ $isAr ? 'تواصل معنا' : 'Contact us' }}</a></li>
+                                    @php($footerContactLink = portal_link('helpcenter', 'footer', 'contact_us', 'Contact us', 'تواصل معنا', 'mailto:seller@noon.com'))
+                                    <li class="mb-3 list-none"><a href="{{ $footerContactLink['url'] }}" class="no-underline hover:text-orange-600">{{ $footerContactLink['label'] }}</a></li>
                                 </ul>
                             </div>
                         </div>
                         <div class="w-1/2 sm:w-auto">
                             <div class="flex w-40 flex-col break-words">
-                                <p class="mb-4 font-semibold text-gray-900">{{ $isAr ? 'روابط ذات صلة' : 'Related Links' }}</p>
+                                <p class="mb-4 font-semibold text-gray-900">{{ portal_content('helpcenter', 'footer', 'related_links_heading', 'Related Links', 'روابط ذات صلة') }}</p>
                                 <ul class="p-0 m-0">
-                                    <li class="mb-3 list-none"><a href="{{ route('portal.home') }}" class="no-underline hover:text-orange-600">{{ $isAr ? 'موقعنا' : 'Our website' }}</a></li>
-                                    <li class="mb-3 list-none"><a href="{{ route('portal.register') }}" class="no-underline hover:text-orange-600">{{ $isAr ? 'سجّل كبائع' : 'Register as a seller' }}</a></li>
+                                    @php($footerWebsiteLink = portal_link('helpcenter', 'footer', 'our_website', 'Our website', 'موقعنا', route('portal.home')))
+                                    <li class="mb-3 list-none"><a href="{{ $footerWebsiteLink['url'] }}" class="no-underline hover:text-orange-600">{{ $footerWebsiteLink['label'] }}</a></li>
+                                    @php($footerRegisterLink = portal_link('helpcenter', 'footer', 'register_as_seller', 'Register as a seller', 'سجّل كبائع', route('portal.register')))
+                                    <li class="mb-3 list-none"><a href="{{ $footerRegisterLink['url'] }}" class="no-underline hover:text-orange-600">{{ $footerRegisterLink['label'] }}</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -38,7 +41,7 @@
                 </div>
             </div>
             <div class="mt-12 pt-6 border-t border-gray-200 text-sm text-gray-400">
-                &copy; {{ now()->year }} noon. {{ $isAr ? 'جميع الحقوق محفوظة.' : 'All rights reserved.' }}
+                &copy; {{ now()->year }} noon. {{ portal_content('helpcenter', 'footer', 'copyright', 'All rights reserved.', 'جميع الحقوق محفوظة.') }}
             </div>
         </div>
     </div>

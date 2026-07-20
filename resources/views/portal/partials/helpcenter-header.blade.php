@@ -19,14 +19,15 @@
                                 <path d="M98,41.9c11.6,0,21-9.4,21-21S109.5,0,98,0s-21,9.4-21,21,9.4,21,21,21Z"></path>
                                 <path d="M582.4,41.9c11.6,0,21-9.4,21-21s-9.4-21-21-21-21,9.4-21,21,9.4,21,21,21Z"></path>
                             </svg>
-                            <span class="hidden sm:block text-sm font-semibold text-gray-800">{{ $isAr ? 'مركز مساعدة البائع' : 'Seller Help Center' }}</span>
+                            <span class="hidden sm:block text-sm font-semibold text-gray-800">{{ portal_content('helpcenter', 'header', 'brand_label', 'Seller Help Center', 'مركز مساعدة البائع') }}</span>
                         </a>
 
                         <div class="{{ $isAr ? 'me-auto' : 'ms-auto' }} flex items-center gap-1 font-medium text-sm">
                             {{-- Language switcher --}}
                             <div class="hidden sm:flex items-center gap-1 me-2">
-                                <a href="{{ route('portal.language', $isAr ? 'en' : 'ar') }}" class="px-2 py-1 rounded hover:bg-black/5 no-underline text-gray-700">
-                                    {{ $isAr ? 'English' : 'العربية' }}
+                                @php($langToggle = portal_link('helpcenter', 'header', 'language_toggle_desktop', 'English', 'العربية', route('portal.language', $isAr ? 'en' : 'ar')))
+                                <a href="{{ $langToggle['url'] }}" class="px-2 py-1 rounded hover:bg-black/5 no-underline text-gray-700">
+                                    {{ $langToggle['label'] }}
                                 </a>
                             </div>
 
@@ -43,8 +44,10 @@
 
                             {{-- Desktop nav --}}
                             <nav class="hidden items-center md:flex">
-                                <a href="{{ route('portal.register') }}" class="mx-3 no-underline hover:text-orange-600">{{ $isAr ? 'سجّل الآن' : 'Register now' }}</a>
-                                <a href="mailto:seller@noon.com" class="mx-3 rounded-full bg-orange-500 px-4 py-2 text-white no-underline hover:bg-orange-600">{{ $isAr ? 'تواصل معنا' : 'Contact us' }}</a>
+                                @php($registerLink = portal_link('helpcenter', 'header', 'register_now', 'Register now', 'سجّل الآن', route('portal.register')))
+                                <a href="{{ $registerLink['url'] }}" class="mx-3 no-underline hover:text-orange-600">{{ $registerLink['label'] }}</a>
+                                @php($contactLink = portal_link('helpcenter', 'header', 'contact_us', 'Contact us', 'تواصل معنا', 'mailto:seller@noon.com'))
+                                <a href="{{ $contactLink['url'] }}" class="mx-3 rounded-full bg-orange-500 px-4 py-2 text-white no-underline hover:bg-orange-600">{{ $contactLink['label'] }}</a>
                             </nav>
                         </div>
                     </div>
@@ -56,9 +59,12 @@
                         <div class="flex h-fit w-full flex-col bg-white opacity-100 sm:w-1/2" @click.stop>
                             <button type="button" @click="mobileOpen = false" class="flex items-center self-end border-none bg-transparent pe-6 pt-6" aria-label="Close menu">✕</button>
                             <nav class="flex flex-col ps-6 pb-6 text-black">
-                                <a href="{{ route('portal.register') }}" class="mb-4 no-underline hover:text-orange-600">{{ $isAr ? 'سجّل الآن' : 'Register now' }}</a>
-                                <a href="mailto:seller@noon.com" class="mb-4 no-underline hover:text-orange-600">{{ $isAr ? 'تواصل معنا' : 'Contact us' }}</a>
-                                <a href="{{ route('portal.language', $isAr ? 'en' : 'ar') }}" class="mb-4 no-underline hover:text-orange-600">{{ $isAr ? 'English' : 'العربية' }}</a>
+                                @php($registerLinkMobile = portal_link('helpcenter', 'header', 'register_now', 'Register now', 'سجّل الآن', route('portal.register')))
+                                <a href="{{ $registerLinkMobile['url'] }}" class="mb-4 no-underline hover:text-orange-600">{{ $registerLinkMobile['label'] }}</a>
+                                @php($contactLinkMobile = portal_link('helpcenter', 'header', 'contact_us', 'Contact us', 'تواصل معنا', 'mailto:seller@noon.com'))
+                                <a href="{{ $contactLinkMobile['url'] }}" class="mb-4 no-underline hover:text-orange-600">{{ $contactLinkMobile['label'] }}</a>
+                                @php($langToggleMobile = portal_link('helpcenter', 'header', 'language_toggle_mobile', 'English', 'العربية', route('portal.language', $isAr ? 'en' : 'ar')))
+                                <a href="{{ $langToggleMobile['url'] }}" class="mb-4 no-underline hover:text-orange-600">{{ $langToggleMobile['label'] }}</a>
                             </nav>
                         </div>
                     </div>
@@ -69,16 +75,16 @@
             <section class="relative mx-4 flex h-full w-full flex-col items-center px-4 sm:px-8">
                 <div class="flex h-full max-w-full flex-col w-full lg:w-[1000px] justify-center">
                     @if($variant === 'home')
-                        <h1 class="text-2xl sm:text-4xl mb-6 font-bold text-black text-center">{{ $isAr ? 'مرحباً، كيف يمكننا مساعدتك؟' : 'Hi, how can we help you?' }}</h1>
+                        <h1 class="text-2xl sm:text-4xl mb-6 font-bold text-black text-center">{{ portal_content('helpcenter', 'header', 'hero_title', 'Hi, how can we help you?', 'مرحباً، كيف يمكننا مساعدتك؟') }}</h1>
                     @endif
 
                     <div class="relative w-full">
                         <form action="{{ route('portal.helpcenter.search', $country) }}" method="GET" autocomplete="off">
                             <div class="flex w-full flex-col items-center">
                                 <div class="relative flex w-full sm:w-[640px]">
-                                    <label for="hc-search-input" class="sr-only">{{ $isAr ? 'ابحث في المقالات...' : 'Search for articles...' }}</label>
+                                    <label for="hc-search-input" class="sr-only">{{ portal_content('helpcenter', 'header', 'search_placeholder', 'Search for articles...', 'ابحث في المقالات...') }}</label>
                                     <input id="hc-search-input" type="text" name="q" autocomplete="off" value="{{ request('q') }}"
-                                           placeholder="{{ $isAr ? 'ابحث في المقالات...' : 'Search for articles...' }}"
+                                           placeholder="{{ portal_content('helpcenter', 'header', 'search_placeholder', 'Search for articles...', 'ابحث في المقالات...') }}"
                                            class="peer w-full rounded-[10px] border border-black/10 bg-white/80 p-4 ps-12 text-lg text-black shadow-sm outline-none transition ease-linear placeholder:text-gray-400 hover:bg-white focus:border-orange-300 focus:bg-white focus:shadow-md">
                                     <div class="absolute inset-y-0 start-0 flex items-center fill-gray-400 pointer-events-none ps-5">
                                         <svg width="20" height="20" viewBox="0 0 22 21" xmlns="http://www.w3.org/2000/svg" class="fill-inherit" aria-hidden="true">

@@ -12,6 +12,7 @@ use App\Notifications\Vendor\MarketerDeclinedInvitation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -120,6 +121,8 @@ class InvitationController extends Controller
 
         $invitation->refresh();
 
+        Cache::forget("marketer_badges_{$marketer->id}");
+
         Notification::send($invitation->offer->vendor->vendorAdmins, new MarketerAcceptedInvitation($invitation));
 
         return response()->json([
@@ -153,6 +156,8 @@ class InvitationController extends Controller
             'marketer_note'=> $request->marketer_note,
             'responded_at' => now(),
         ]);
+
+        Cache::forget("marketer_badges_{$marketer->id}");
 
         Notification::send($invitation->offer->vendor->vendorAdmins, new MarketerDeclinedInvitation($invitation));
 

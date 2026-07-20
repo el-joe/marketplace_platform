@@ -1080,6 +1080,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{marketer}/deliverables/datatable', [MarketerController::class, 'marketerDeliverablesDatatable'])->name('marketer-deliverables.datatable');
         Route::get('/{marketer}/tiers', [MarketerController::class, 'tiersShow'])->name('tiers.show');
         Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
+        Route::post('/{marketer}/invite', [MarketerController::class, 'sendInvitation'])->name('invite');
     });
 
     // ── Affiliate Promo Codes ────────────────────────────────────────────────────
@@ -1145,6 +1146,8 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{campaign}/approve', [MarketerController::class, 'approveCampaign'])->name('approve');
         Route::post('/{campaign}/reject', [MarketerController::class, 'rejectCampaign'])->name('reject');
         Route::post('/{campaign}/samples-required', [MarketerController::class, 'updateCampaignSamplesRequired'])->name('samples-required');
+        Route::post('/{campaign}/pause-request/approve', [MarketerController::class, 'approvePauseRequest'])->name('pause-request.approve');
+        Route::post('/{campaign}/pause-request/dismiss', [MarketerController::class, 'dismissPauseRequest'])->name('pause-request.dismiss');
     });
 
     // ── Marketer Conversions ──────────────────────────────────────────────────────

@@ -1,9 +1,7 @@
 @extends('layouts.advertise')
 
-@section('title', session('locale', 'ar') === 'ar' ? 'حلول الإعلانات ذات الشعبية | العلامات التجارية - نون' : 'Popular Ad Solutions | Brands - noon')
-@section('description', session('locale', 'ar') === 'ar'
-    ? 'قم بتعزيز الوعي بعلامتك التجارية، والوصول إلى عملاء أكثر، والتواصل مع العملاء من خلال الاستفادة من المنتجات الإستراتيجية لإعلانات نون'
-    : 'Boost your brand awareness, reach large audiences, and connect with customers by leveraging noon ads strategic products.')
+@section('title', portal_content('advertise-brands', 'meta', 'title', 'Popular Ad Solutions | Brands - noon', 'حلول الإعلانات ذات الشعبية | العلامات التجارية - نون'))
+@section('description', portal_content('advertise-brands', 'meta', 'description', 'Boost your brand awareness, reach large audiences, and connect with customers by leveraging noon ads strategic products.', 'قم بتعزيز الوعي بعلامتك التجارية، والوصول إلى عملاء أكثر، والتواصل مع العملاء من خلال الاستفادة من المنتجات الإستراتيجية لإعلانات نون'))
 
 @section('content')
     @include('portal.partials.brands-hero')

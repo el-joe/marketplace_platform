@@ -151,15 +151,30 @@
 
 @php
     $statusColors = [
-        'active'    => 'bg-green-100 text-green-700',
-        'draft'     => 'bg-gray-100 text-gray-600',
-        'paused'    => 'bg-yellow-100 text-yellow-700',
-        'ended'     => 'bg-blue-100 text-blue-700',
-        'cancelled' => 'bg-red-100 text-red-600',
+        'active'         => 'bg-green-100 text-green-700',
+        'draft'          => 'bg-gray-100 text-gray-600',
+        'pending_review' => 'bg-blue-100 text-blue-700',
+        'paused'         => 'bg-yellow-100 text-yellow-700',
+        'rejected'       => 'bg-red-100 text-red-600',
+        'ended'          => 'bg-blue-100 text-blue-700',
+        'cancelled'      => 'bg-red-100 text-red-600',
     ];
     $sc = $statusColors[$campaign->status->value] ?? 'bg-gray-100 text-gray-600';
     $isActive = $campaign->status === \App\Enums\MarketerCampaignStatus::Active;
+    $isRejected = $campaign->status === \App\Enums\MarketerCampaignStatus::Rejected;
 @endphp
+
+@if($isRejected)
+<div class="bg-red-50 border border-red-200 rounded-2xl p-5 mb-6">
+    <p class="text-sm text-red-700 font-medium">
+        {{ __('marketer.campaigns.rejected_banner', ['reason' => $campaign->rejection_reason ?? '—']) }}
+    </p>
+    <a href="{{ route('marketer.campaigns.edit', $campaign->id) }}"
+        class="inline-block mt-3 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-xl px-4 py-2 transition-colors">
+        {{ __('marketer.campaigns.edit_and_resubmit') }}
+    </a>
+</div>
+@endif
 
 {{-- ── Header ───────────────────────────────────────────────────────────────── --}}
 <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
@@ -172,7 +187,7 @@
     </div>
     <div class="flex items-center gap-3">
         <span class="text-sm font-semibold rounded-full px-3 py-1 {{ $sc }}">{{ $campaign->status->label() }}</span>
-        @if(in_array($campaign->status->value, ['active', 'paused', 'draft']))
+        @if(in_array($campaign->status->value, ['active', 'paused', 'draft', 'pending_review']))
             <div x-data="{ busy: false }" class="flex items-center gap-2">
                 @if($campaign->status->value === 'active')
                     <button type="button" :disabled="busy"
@@ -186,6 +201,19 @@
                         class="text-sm font-semibold rounded-xl px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50">
                         {{ __('marketer.campaigns.resume') }}
                     </button>
+                @endif
+                @if($campaign->status->value === 'active')
+                    @if($campaign->pause_requested_at)
+                        <span class="text-xs font-semibold rounded-xl px-3 py-1.5 bg-amber-100 text-amber-700">
+                            {{ __('marketer.campaigns.pause_already_requested') }}
+                        </span>
+                    @else
+                        <button type="button" :disabled="busy"
+                            @click="if (confirm(@json(__('marketer.campaigns.confirm_request_pause')))) { busy = true; fetch('{{ route('marketer.campaigns.request-pause', $campaign->id) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => location.reload()) }"
+                            class="text-sm font-semibold rounded-xl px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50">
+                            {{ __('marketer.campaigns.request_pause') }}
+                        </button>
+                    @endif
                 @endif
                 <button type="button" :disabled="busy"
                     @click="if (confirm(@json(__('marketer.campaigns.confirm_cancel')))) { busy = true; fetch('{{ route('marketer.campaigns.cancel', $campaign->id) }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(() => location.reload()) }"
@@ -284,6 +312,7 @@ function copyTrackingUrl() {
                     }
                 @endphp
                 <div class="product-card">
+                    <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-lg shrink-0">🛍️</div>
                     <div class="flex-1 min-w-0">
                         <p class="font-semibold text-sm text-gray-800 truncate">
                             {{ $product?->name_en ?? __('marketer.campaigns.product_number', ['id' => $cp->id]) }}
@@ -291,6 +320,10 @@ function copyTrackingUrl() {
                         @if($listing?->sale_price)
                             <p class="text-xs text-gray-500 mt-0.5">{{ number_format($listing->sale_price / 100, 2) }} {{ $listing->vendor?->country?->currency_code ?? '' }}</p>
                         @endif
+                        <div class="flex items-center gap-3 mt-1">
+                            <span class="text-xs font-semibold text-green-600">{{ $cp->effective_commission_rate }}% {{ __('marketer.campaigns.commission_rate_col') }}</span>
+                            <span class="text-xs text-gray-400">{{ $cp->conversions_count }} {{ __('marketer.campaigns.conversions_col') }}</span>
+                        </div>
                         <div class="link-row">
                             <span class="link-text">{{ $productLink }}</span>
                             <button onclick="copyProductLink(this, {{ json_encode($productLink) }})"
@@ -642,6 +675,33 @@ function copyTrackingUrl() {
 @endif {{-- quota > 0 --}}
 @endif
 
+{{-- ── Conversions ──────────────────────────────────────────────────────────── --}}
+@if($isActive || $campaign->status === \App\Enums\MarketerCampaignStatus::Ended)
+<div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+    <h3 class="font-bold text-gray-800 mb-4">{{ __('marketer.campaigns.recent_conversions') }}</h3>
+    <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+            <thead>
+                <tr class="border-b border-gray-100 text-gray-400">
+                    <th class="text-left px-3 py-2 font-medium">{{ __('marketer.campaigns.conv_date') }}</th>
+                    <th class="text-left px-3 py-2 font-medium">{{ __('marketer.campaigns.order_ref') }}</th>
+                    <th class="text-right px-3 py-2 font-medium">{{ __('marketer.campaigns.commission_amount') }}</th>
+                    <th class="text-left px-3 py-2 font-medium">{{ __('marketer.campaigns.currency') }}</th>
+                    <th class="text-left px-3 py-2 font-medium">{{ __('marketer.campaigns.status') }}</th>
+                </tr>
+            </thead>
+            <tbody id="conversions-tbody" class="divide-y divide-gray-50 text-gray-700"></tbody>
+        </table>
+        <p id="conversions-empty" class="text-xs text-gray-400 py-4 text-center hidden">{{ __('marketer.campaigns.no_sample_requests') }}</p>
+    </div>
+    <div class="flex items-center justify-between mt-3" id="conversions-pager" style="display:none">
+        <button type="button" id="conv-prev" class="text-xs font-semibold text-blue-600 hover:underline disabled:opacity-30" disabled>‹ Prev</button>
+        <span id="conv-page-info" class="text-xs text-gray-400"></span>
+        <button type="button" id="conv-next" class="text-xs font-semibold text-blue-600 hover:underline disabled:opacity-30">Next ›</button>
+    </div>
+</div>
+@endif
+
 {{-- ── Campaign Details ─────────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
     <h3 class="font-bold text-gray-800 mb-4">{{ __('marketer.campaigns.details') }}</h3>
@@ -960,5 +1020,51 @@ function confirmSampleReceived(requestId) {
         }
     }).catch(function() { showToast('error', @json(__('marketer.campaigns.network_error_title')), @json(__('marketer.campaigns.try_again')), 0); });
 }
+
+// ── Conversions table ───────────────────────────────────────────────────────
+(function () {
+    var tbody = document.getElementById('conversions-tbody');
+    if (!tbody) return;
+
+    var pageLength = 25;
+    var start = 0;
+
+    function load() {
+        fetch('{{ route('marketer.campaigns.conversions.datatable', $campaign) }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ start: start, length: pageLength, order: [{ column: 0, dir: 'desc' }] }),
+        }).then(r => r.json()).then(function (res) {
+            tbody.innerHTML = '';
+            document.getElementById('conversions-empty').classList.toggle('hidden', res.data.length > 0);
+            res.data.forEach(function (row) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = row.map(function (cell, i) {
+                    return '<td class="px-3 py-2' + (i === 2 ? ' text-right' : '') + '">' + cell + '</td>';
+                }).join('');
+                tbody.appendChild(tr);
+            });
+
+            var pager = document.getElementById('conversions-pager');
+            pager.style.display = res.recordsFiltered > pageLength ? 'flex' : 'none';
+            document.getElementById('conv-prev').disabled = start === 0;
+            document.getElementById('conv-next').disabled = start + pageLength >= res.recordsFiltered;
+            var page = Math.floor(start / pageLength) + 1;
+            var totalPages = Math.max(1, Math.ceil(res.recordsFiltered / pageLength));
+            document.getElementById('conv-page-info').textContent = 'Page ' + page + ' / ' + totalPages;
+        });
+    }
+
+    document.getElementById('conv-prev').addEventListener('click', function () {
+        start = Math.max(0, start - pageLength);
+        load();
+    });
+    document.getElementById('conv-next').addEventListener('click', function () {
+        start += pageLength;
+        load();
+    });
+
+    load();
+})();
 </script>
 @endpush

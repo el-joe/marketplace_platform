@@ -73,6 +73,13 @@ class DatabaseSeeder extends Seeder
                 // ── FAQ CRUD module starter content ─────────────────────────────
             FaqSeeder::class,
 
+                // ── Portal Content CMS (admin-editable bilingual marketing text) ─
+            PortalContentSeeder::class,
+            PortalContentSeederBatch1::class,
+            PortalContentSeederBatch2::class,
+            PortalContentSeederBatch3::class,
+            PortalContentSeederBatch4::class,
+
                 // ── Light cross-reference demo data (run last) ─────────────────
             DemoDataSeeder::class,
         ]);

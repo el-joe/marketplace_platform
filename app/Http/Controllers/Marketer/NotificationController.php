@@ -7,6 +7,7 @@ use App\Http\Responses\ApiResponse;
 use App\Models\Marketer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
@@ -69,6 +70,8 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
+        Cache::forget("marketer_badges_{$marketer->id}");
+
         return ApiResponse::success(null, 'Marked as read.');
     }
 
@@ -82,6 +85,8 @@ class NotificationController extends Controller
             ->where('notifiable_id', $marketer->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+
+        Cache::forget("marketer_badges_{$marketer->id}");
 
         return ApiResponse::success(null, 'All marked as read.');
     }

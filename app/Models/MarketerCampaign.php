@@ -37,6 +37,8 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
         'secret_promotion_id',
         'approved_by_admin_id',
         'approved_at',
+        'rejection_reason',
+        'pause_requested_at',
         'campaignable_type',
         'campaignable_id',
     ];
@@ -48,6 +50,7 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
             'ends_at' => 'datetime',
             'approved_at' => 'datetime',
             'auto_approve_at' => 'datetime',
+            'pause_requested_at' => 'datetime',
             'commission_rate' => 'decimal:2',
             'budget' => 'integer',
             'budget_spent' => 'integer',
@@ -172,7 +175,7 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
     {
         return $this->auto_approve_at !== null
             && now() >= $this->auto_approve_at
-            && $this->status === \App\Enums\MarketerCampaignStatus::Draft;
+            && $this->status === \App\Enums\MarketerCampaignStatus::PendingReview;
     }
 
     public function getStatusColorAttribute(): string
@@ -180,7 +183,9 @@ class MarketerCampaign extends \Illuminate\Database\Eloquent\Model
         return match ($this->status) {
             \App\Enums\MarketerCampaignStatus::Active => 'success',
             \App\Enums\MarketerCampaignStatus::Draft => 'secondary',
+            \App\Enums\MarketerCampaignStatus::PendingReview => 'info',
             \App\Enums\MarketerCampaignStatus::Paused => 'warning',
+            \App\Enums\MarketerCampaignStatus::Rejected => 'danger',
             \App\Enums\MarketerCampaignStatus::Ended => 'primary',
             \App\Enums\MarketerCampaignStatus::Cancelled => 'danger',
             default => 'secondary',

@@ -19,11 +19,13 @@ class Marketer extends Authenticatable implements JWTSubject
 
     protected $fillable = [
         'name',
+        'display_name',
         'email',
         'phone',
         'password',
         'type',
         'bio',
+        'bio_ar',
         'profile_photo_path',
         'country_id',
         'social_instagram',
@@ -31,6 +33,8 @@ class Marketer extends Authenticatable implements JWTSubject
         'social_youtube',
         'social_twitter',
         'social_facebook',
+        'social_snapchat',
+        'website_url',
         'followers_count',
         'engagement_rate',
         'niche',
@@ -53,6 +57,8 @@ class Marketer extends Authenticatable implements JWTSubject
         'whatsapp_number',
         'total_samples_used',
         'total_samples_allocated',
+        'is_profile_public',
+        'accept_new_campaigns',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -69,6 +75,8 @@ class Marketer extends Authenticatable implements JWTSubject
             'total_clicks' => 'integer',
             'total_conversions' => 'integer',
             'followers_count' => 'integer',
+            'is_profile_public' => 'boolean',
+            'accept_new_campaigns' => 'boolean',
             'status' => \App\Enums\MarketerStatus::class,
             'type' => \App\Enums\MarketerType::class,
         ];
@@ -141,6 +149,11 @@ class Marketer extends Authenticatable implements JWTSubject
     public function payouts(): HasMany
     {
         return $this->hasMany(MarketerPayout::class);
+    }
+
+    public function adminInvitations(): HasMany
+    {
+        return $this->hasMany(AdminMarketerInvitation::class);
     }
 
     public function qrCodes(): HasMany
@@ -235,9 +248,19 @@ class Marketer extends Authenticatable implements JWTSubject
         return route('marketer.profile.public', $this->boutiqaat_style_slug ?? $this->id);
     }
 
+    public function getPublicNameAttribute(): string
+    {
+        return $this->display_name ?: $this->name;
+    }
+
     public function scopeActive($q)
     {
         return $q->where('status', \App\Enums\MarketerStatus::Active);
+    }
+
+    public function scopePubliclyVisible($q)
+    {
+        return $q->where('is_profile_public', true);
     }
 
     public function scopePending($q)

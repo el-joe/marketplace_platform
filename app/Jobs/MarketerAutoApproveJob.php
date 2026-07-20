@@ -35,7 +35,7 @@ class MarketerAutoApproveJob implements ShouldQueue
                 return;
             }
 
-            if ($campaign->status !== MarketerCampaignStatus::Draft) {
+            if ($campaign->status !== MarketerCampaignStatus::PendingReview) {
                 return;
             }
 

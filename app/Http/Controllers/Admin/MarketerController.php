@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AdminInvitationCommissionType;
+use App\Enums\CampaignType;
 use App\Enums\MarketerSampleRequestStatus;
 use App\Enums\SecretPromotionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\AdminMarketerInvitation;
 use App\Models\Country;
+use App\Models\Currency;
 use App\Models\InfluencerDeal;
 use App\Models\InfluencerDealDeliverable;
 use App\Models\Marketer;
@@ -36,15 +40,19 @@ use App\Notifications\Marketer\ConversionApproved as MarketerConversionApproved;
 use App\Notifications\Marketer\PayoutProcessed as MarketerPayoutProcessed;
 use App\Notifications\Marketer\SampleDispatched as MarketerSampleDispatched;
 use App\Notifications\Marketer\SampleRequestApproved as MarketerSampleRequestApproved;
+use App\Notifications\Marketer\AdminCampaignInvitationReceived;
 use App\Notifications\Marketer\SampleRequestRejected as MarketerSampleRequestRejected;
+use App\Services\ActivityLoggerService;
 use App\Services\SampleQuotaResolver;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class MarketerController extends Controller
@@ -243,6 +251,12 @@ class MarketerController extends Controller
             'paid_by_currency' => $paidByCurrency,
         ];
 
+        $adminInvitations = $marketer->adminInvitations()
+            ->with('admin:id,name')
+            ->latest()
+            ->limit(20)
+            ->get();
+
         return view('admin.marketers.show', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
@@ -251,6 +265,67 @@ class MarketerController extends Controller
             ],
             'marketer' => $marketer,
             'stats' => $stats,
+            'adminInvitations' => $adminInvitations,
+            'campaignTypeOptions' => CampaignType::options(),
+            'commissionTypeOptions' => AdminInvitationCommissionType::options(),
+            'currencies' => Currency::where('is_active', true)->orderBy('code')->pluck('code'),
+        ]);
+    }
+
+    public function sendInvitation(Request $request, Marketer $marketer, ActivityLoggerService $activityLogger): JsonResponse
+    {
+        $admin = auth('admin')->user();
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'campaign_type' => ['required', Rule::in(array_column(CampaignType::cases(), 'value'))],
+            'offered_commission_rate' => 'required|integer|min:1|max:10000',
+            'commission_type' => ['required', Rule::in(array_column(AdminInvitationCommissionType::cases(), 'value'))],
+            'budget' => 'nullable|integer|min:0',
+            'budget_currency' => ['required_with:budget', Rule::in(Currency::where('is_active', true)->pluck('code')->all())],
+            'starts_at' => 'nullable|date|after:today',
+            'ends_at' => 'nullable|date|after:starts_at',
+            'expires_at' => 'nullable|date|after:today',
+        ]);
+
+        $invitation = DB::transaction(function () use ($request, $marketer, $admin, $activityLogger) {
+            $invitation = AdminMarketerInvitation::create([
+                'admin_id' => $admin->id,
+                'marketer_id' => $marketer->id,
+                'title' => $request->title,
+                'description' => $request->description,
+                'campaign_type' => $request->campaign_type,
+                'offered_commission_rate' => $request->offered_commission_rate,
+                'commission_type' => $request->commission_type,
+                'budget' => $request->budget,
+                'budget_currency' => $request->budget ? $request->budget_currency : null,
+                'starts_at' => $request->starts_at,
+                'ends_at' => $request->ends_at,
+                'expires_at' => $request->expires_at,
+                'status' => 'pending',
+            ]);
+
+            Cache::forget("marketer_badges_{$marketer->id}");
+
+            Notification::send($marketer, new AdminCampaignInvitationReceived($invitation));
+
+            $activityLogger->log(
+                description: 'admin_marketer_invitation_sent',
+                subject: $invitation,
+                causer: $admin,
+                properties: ['marketer_id' => $marketer->id, 'title' => $invitation->title],
+                logName: 'marketer',
+                event: 'created',
+            );
+
+            return $invitation;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Campaign invitation sent to ' . $marketer->name . '.',
+            'invitation' => $invitation,
         ]);
     }
 
@@ -435,7 +510,7 @@ class MarketerController extends Controller
         $stats = [
             'total' => MarketerCampaign::count(),
             'active' => MarketerCampaign::where('status', 'active')->count(),
-            'pending' => MarketerCampaign::where('status', 'draft')->count(),
+            'pending' => MarketerCampaign::where('status', 'pending_review')->count(),
             'total_clicks' => MarketerCampaign::sum('total_clicks'),
         ];
 
@@ -523,8 +598,8 @@ class MarketerController extends Controller
 
     public function approveCampaign(MarketerCampaign $campaign): JsonResponse
     {
-        if ($campaign->status !== \App\Enums\MarketerCampaignStatus::Draft) {
-            return response()->json(['success' => false, 'message' => 'Campaign is not in draft status.'], 422);
+        if (!in_array($campaign->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::PendingReview], true)) {
+            return response()->json(['success' => false, 'message' => 'Campaign is not pending review.'], 422);
         }
 
         DB::transaction(function () use ($campaign) {
@@ -570,6 +645,8 @@ class MarketerController extends Controller
             // }
         });
 
+        Cache::forget("marketer_badges_{$campaign->marketer_id}");
+
         $campaign->marketer->notify(new MarketerCampaignApproved($campaign));
 
         return response()->json(['success' => true, 'message' => 'Campaign approved and activated.']);
@@ -579,11 +656,36 @@ class MarketerController extends Controller
     {
         $request->validate(['reason' => 'required|string|max:500']);
 
-        $campaign->update(['status' => 'cancelled']);
+        $campaign->update([
+            'status' => 'rejected',
+            'rejection_reason' => $request->reason,
+        ]);
+
+        Cache::forget("marketer_badges_{$campaign->marketer_id}");
 
         $campaign->marketer->notify(new MarketerCampaignRejected($campaign, $request->reason));
 
         return response()->json(['success' => true, 'message' => 'Campaign rejected.']);
+    }
+
+    public function approvePauseRequest(MarketerCampaign $campaign): JsonResponse
+    {
+        abort_if($campaign->pause_requested_at === null, 422, 'This campaign has no pending pause request.');
+        abort_unless($campaign->status === \App\Enums\MarketerCampaignStatus::Active, 422, 'Only active campaigns can be paused.');
+
+        $campaign->update([
+            'status' => \App\Enums\MarketerCampaignStatus::Paused,
+            'pause_requested_at' => null,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Campaign paused.']);
+    }
+
+    public function dismissPauseRequest(MarketerCampaign $campaign): JsonResponse
+    {
+        $campaign->update(['pause_requested_at' => null]);
+
+        return response()->json(['success' => true, 'message' => 'Pause request dismissed.']);
     }
 
     public function updateCampaignSamplesRequired(Request $request, MarketerCampaign $campaign): JsonResponse
@@ -996,7 +1098,7 @@ class MarketerController extends Controller
     private function campaignActions(object $row): string
     {
         $html = '<div class="flex gap-1">';
-        if ($row->status === \App\Enums\MarketerCampaignStatus::Draft) {
+        if (in_array($row->status, [\App\Enums\MarketerCampaignStatus::Draft, \App\Enums\MarketerCampaignStatus::PendingReview], true)) {
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-success btn-approve-campaign">Approve</button>';
             $html .= '<button type="button" data-id="' . $row->id . '" class="btn btn-xs btn-danger btn-reject-campaign">Reject</button>';
         } else {
@@ -1241,6 +1343,8 @@ class MarketerController extends Controller
             ]);
         });
 
+        Cache::forget("marketer_badges_{$req->marketer_id}");
+
         $req->marketer->notify(new MarketerSampleRequestApproved($req));
 
         return response()->json(['success' => true, 'message' => 'Sample request approved.']);
@@ -1277,6 +1381,8 @@ class MarketerController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $validated['rejection_reason'],
         ]);
+
+        Cache::forget("marketer_badges_{$req->marketer_id}");
 
         $req->marketer->notify(new MarketerSampleRequestRejected($req));
 

@@ -2,7 +2,7 @@
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
-@section('title', ($isAr ? 'نتائج البحث' : 'Search results') . ' | ' . ($isAr ? 'مركز مساعدة البائع' : 'noon Seller Help Center'))
+@section('title', portal_content('helpcenter', 'search', 'results_word', 'Search results', 'نتائج البحث') . ' | ' . portal_content('helpcenter', 'search', 'page_title', 'noon Seller Help Center', 'مركز مساعدة البائع'))
 
 @section('header')
     @include('portal.partials.helpcenter-header', ['variant' => 'home', 'country' => $country])
@@ -11,7 +11,7 @@
 @section('content')
     <div class="flex flex-col gap-6">
         <h1 class="text-xl font-semibold text-gray-800">
-            {{ $isAr ? 'نتائج البحث عن' : 'Search results for' }} "{{ $q }}"
+            {{ portal_content('helpcenter', 'search', 'results_for', 'Search results for', 'نتائج البحث عن') }} "{{ $q }}"
             <span class="text-gray-400 font-normal text-base">({{ $articles->count() }})</span>
         </h1>
 
@@ -32,7 +32,7 @@
             </section>
         @else
             <section class="flex flex-col items-center rounded-[10px] border border-solid border-[#e6e6e6] bg-white p-10 text-center text-[#737373]">
-                {{ $isAr ? 'لم يتم العثور على نتائج مطابقة.' : 'No matching articles found.' }}
+                {{ portal_content('helpcenter', 'search', 'no_results', 'No matching articles found.', 'لم يتم العثور على نتائج مطابقة.') }}
             </section>
         @endif
     </div>

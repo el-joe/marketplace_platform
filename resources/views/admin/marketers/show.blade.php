@@ -79,6 +79,12 @@
                 <button type="button" class="btn btn-success btn-sm flex-1" id="btn-activate">{{ __('admin.marketers.activate') }}</button>
             @endif
         </div>
+
+        <div class="mt-2">
+            <button type="button" class="btn btn-primary btn-sm w-full" id="btn-send-invitation">
+                📣 Send Campaign Invitation
+            </button>
+        </div>
     </div>
 
     {{-- Stats Column --}}
@@ -204,6 +210,42 @@
                         </tr>
                     </thead>
                     <tbody></tbody>
+                </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-gray-200 p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">📣 Admin Campaign Invitations</h3>
+                <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-400 text-xs uppercase">
+                            <th class="pb-2">Title</th>
+                            <th class="pb-2">Type</th>
+                            <th class="pb-2">Rate</th>
+                            <th class="pb-2">Status</th>
+                            <th class="pb-2">Sent At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($adminInvitations as $inv)
+                            @php
+                                $statusColors = [
+                                    'pending' => 'warning', 'accepted' => 'success',
+                                    'declined' => 'danger', 'expired' => 'secondary', 'revoked' => 'secondary',
+                                ];
+                            @endphp
+                            <tr class="border-t border-gray-100">
+                                <td class="py-2">{{ $inv->title }}</td>
+                                <td class="py-2">{{ $inv->campaign_type->label() }}</td>
+                                <td class="py-2">{{ number_format($inv->commission_rate_percent, 2) }}%</td>
+                                <td class="py-2"><span class="badge badge-{{ $statusColors[$inv->status->value] ?? 'secondary' }}">{{ $inv->status->label() }}</span></td>
+                                <td class="py-2 text-gray-500">{{ $inv->created_at->format('d M Y') }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="5" class="py-4 text-center text-gray-400 italic">No invitations sent yet.</td></tr>
+                        @endforelse
+                    </tbody>
                 </table>
                 </div>
             </div>
@@ -359,6 +401,78 @@
         </div>
     </div>
     @endif
+
+    {{-- Send Campaign Invitation Modal --}}
+    <div id="send-invitation-modal" class="modal-backdrop hidden">
+        <div class="modal-box max-w-xl">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-lg font-semibold text-gray-900">Send Campaign Invitation to {{ $marketer->name }}</h3>
+                <button type="button" data-modal-close class="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1">&times;</button>
+            </div>
+            <form id="send-invitation-form">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="form-label">Title <span class="text-red-500">*</span></label>
+                        <input type="text" name="title" class="form-input w-full" maxlength="255" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-input w-full" rows="3"></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label">Campaign Type <span class="text-red-500">*</span></label>
+                        <select name="campaign_type" class="form-input w-full" required>
+                            @foreach($campaignTypeOptions as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Commission Type <span class="text-red-500">*</span></label>
+                        <select name="commission_type" class="form-input w-full" required>
+                            @foreach($commissionTypeOptions as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Commission Rate (%) <span class="text-red-500">*</span></label>
+                        <input type="number" name="offered_commission_rate_pct" class="form-input w-full" step="0.01" min="0.01" max="100" required
+                               placeholder="e.g. 5 for 5%">
+                    </div>
+                    <div>
+                        <label class="form-label">Budget</label>
+                        <input type="number" name="budget" class="form-input w-full" min="0" placeholder="Optional">
+                    </div>
+                    <div>
+                        <label class="form-label">Budget Currency</label>
+                        <select name="budget_currency" class="form-input w-full">
+                            <option value="">—</option>
+                            @foreach($currencies as $code)
+                                <option value="{{ $code }}">{{ $code }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Starts At</label>
+                        <input type="date" name="starts_at" class="form-input w-full">
+                    </div>
+                    <div>
+                        <label class="form-label">Ends At</label>
+                        <input type="date" name="ends_at" class="form-input w-full">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="form-label">Response Deadline</label>
+                        <input type="date" name="expires_at" class="form-input w-full">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-gray-100">
+                    <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Send Invitation</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     {{-- Influencer-only tabs --}}
     @if($marketer->isInfluencer())
@@ -579,6 +693,35 @@ $(function () {
                 .done(r => { window.Toast.success(r.message); $('#marketer-promo-codes-table').DataTable().ajax.reload(); })
                 .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
         }});
+    });
+
+    // ── Send Campaign Invitation ───────────────────────────────────────────────
+    $('#btn-send-invitation').on('click', () => $('#send-invitation-modal').removeClass('hidden'));
+    $('#send-invitation-modal [data-modal-close]').on('click', () => $('#send-invitation-modal').addClass('hidden'));
+
+    $('#send-invitation-form').on('submit', function (e) {
+        e.preventDefault();
+        const form = this;
+        const data = Object.fromEntries(new FormData(form).entries());
+
+        // Convert the human-entered percentage into basis points (5 -> 500)
+        data.offered_commission_rate = Math.round(parseFloat(data.offered_commission_rate_pct || '0') * 100);
+        delete data.offered_commission_rate_pct;
+        if (!data.budget) delete data.budget_currency;
+
+        $.ajax({
+            url: '{{ route('admin.marketers.all.invite', $marketer->id) }}',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': tok },
+            data,
+        })
+            .done(r => {
+                window.Toast.success(r.message);
+                $('#send-invitation-modal').addClass('hidden');
+                form.reset();
+                setTimeout(() => location.reload(), 1200);
+            })
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
     });
 
     // ── Sample datatable actions (delegated) ──────────────────────────────────

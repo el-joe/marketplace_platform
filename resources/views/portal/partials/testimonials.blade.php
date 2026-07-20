@@ -2,28 +2,24 @@
 
 <section>
     <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-[#feee00] font-bold text-[28px] lg:text-[36px] mb-8">{{ $isAr ? 'شهادات' : 'Testimonials' }}</h2>
+        <h2 class="text-[#feee00] font-bold text-[28px] lg:text-[36px] mb-8">{{ portal_content('home', 'testimonials', 'heading', 'Testimonials', 'شهادات') }}</h2>
 
         {{-- Featured video story --}}
         <div class="grid md:grid-cols-2 gap-8 lg:gap-16 items-center mb-10">
             <div class="relative rounded-2xl overflow-hidden aspect-video shadow-xl">
                 <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/SKrJq4XZYn8"
-                        title="{{ $isAr ? 'كيف نمت حول الإمارات متجرها على نون' : 'How PAN Emirates scaled their noon store' }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        title="{{ portal_content('home', 'testimonials', 'video_title', 'How PAN Emirates scaled their noon store', 'كيف نمت حول الإمارات متجرها على نون') }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
             <div>
-                <p class="text-[#feee00] font-black uppercase tracking-wide text-xs mb-2">{{ $isAr ? 'قصة نجاح بائع' : 'Seller success story' }}</p>
+                <p class="text-[#feee00] font-black uppercase tracking-wide text-xs mb-2">{{ portal_content('home', 'testimonials', 'eyebrow', 'Seller success story', 'قصة نجاح بائع') }}</p>
                 <h3 class="text-white font-black text-lg lg:text-2xl leading-snug mb-4 text-pretty">
-                    {{ $isAr
-                        ? 'اختارت بان هوم نموذج التوصيل عن طريق البائع (FBP) من نون — وأصبحت البائع رقم 1 للأثاث في المنطقة.'
-                        : 'PAN Home chose noon\'s Fulfilled by Partner (FBP) model — and became the #1 furniture seller in the region.' }}
+                    {{ portal_content('home', 'testimonials', 'featured_title', 'PAN Home chose noon\'s Fulfilled by Partner (FBP) model — and became the #1 furniture seller in the region.', 'اختارت بان هوم نموذج التوصيل عن طريق البائع (FBP) من نون — وأصبحت البائع رقم 1 للأثاث في المنطقة.') }}
                 </h3>
                 <p class="text-gray-400 text-[15px] mb-4">
-                    {{ $isAr
-                        ? 'اكتشف كيف ساعد الدعم المخصص، والإدارة المصممة خصيصا، والأدوات القوية في تحقيق نجاحهم.'
-                        : 'Discover how dedicated support, tailored account management, and powerful tools helped drive their success.' }}
+                    {{ portal_content('home', 'testimonials', 'featured_subtitle', 'Discover how dedicated support, tailored account management, and powerful tools helped drive their success.', 'اكتشف كيف ساعد الدعم المخصص، والإدارة المصممة خصيصا، والأدوات القوية في تحقيق نجاحهم.') }}
                 </p>
-                <p class="text-xs font-bold text-[#feee00] tracking-wide">- {{ $isAr ? 'بان هوم' : 'PAN Home' }}</p>
+                <p class="text-xs font-bold text-[#feee00] tracking-wide">- {{ portal_content('home', 'testimonials', 'featured_name', 'PAN Home', 'بان هوم') }}</p>
             </div>
         </div>
 
@@ -73,17 +69,24 @@
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         </style>
         <div class="flex overflow-x-auto gap-6 lg:gap-7 pb-4 snap-x snap-mandatory no-scrollbar xl:grid xl:grid-cols-5 xl:pb-0 xl:overflow-visible">
-            @foreach($testimonials as $t)
+            @foreach($testimonials as $i => $t)
+                @php
+                    $tBlock = 'testimonial_' . ($i + 1);
+                    $tImg = portal_image('home', $tBlock, 'photo', $t['image'], $t['name_en'], $t['name_ar']);
+                    $tQuote = portal_content('home', $tBlock, 'quote', $t['quote_en'], $t['quote_ar']);
+                    $tName = portal_content('home', $tBlock, 'name', $t['name_en'], $t['name_ar']);
+                    $tCompany = portal_content('home', $tBlock, 'company', $t['company'], $t['company']);
+                @endphp
                 <div class="relative rounded-2xl overflow-hidden h-[515px] flex-none snap-start w-[80vw] max-w-[280px] xl:w-full xl:max-w-none">
-                    <img src="{{ $t['image'] }}" alt="{{ $isAr ? $t['name_ar'] : $t['name_en'] }}"
+                    <img src="{{ $tImg['src'] }}" alt="{{ $tImg['alt'] }}"
                          class="absolute inset-0 w-full h-full object-cover object-top">
                     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
                     <div class="relative h-full flex flex-col justify-end p-4 lg:p-5">
                         <p class="text-white text-[13px] leading-[18px] font-medium line-clamp-6">
-                            {{ $isAr ? $t['quote_ar'] : $t['quote_en'] }}
+                            {{ $tQuote }}
                         </p>
-                        <p class="text-white text-xs font-extrabold mt-3">{{ $isAr ? $t['name_ar'] : $t['name_en'] }}</p>
-                        <p class="text-[#feee00] text-xs font-extrabold">{{ $t['company'] }}</p>
+                        <p class="text-white text-xs font-extrabold mt-3">{{ $tName }}</p>
+                        <p class="text-[#feee00] text-xs font-extrabold">{{ $tCompany }}</p>
                     </div>
                 </div>
             @endforeach

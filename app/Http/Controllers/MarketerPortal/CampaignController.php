@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\MarketerPortal;
 
 use App\Enums\AttributionModel;
+use App\Enums\MarketerCampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\ClassifiedListing;
@@ -11,9 +12,11 @@ use App\Models\MarketerCampaignProduct;
 use App\Models\TravelPackage;
 use App\Models\Vendor;
 use App\Models\VendorListing;
+use App\Notifications\Admin\CampaignPauseRequested;
 use App\Notifications\Admin\SampleRequestSubmitted;
 use App\Services\MarketerService;
 use App\Services\SampleQuotaResolver;
+use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,22 +26,41 @@ use Illuminate\View\View;
 
 class CampaignController extends Controller
 {
+    use HasDataTable;
+
     public function __construct(private readonly MarketerService $service)
     {
     }
-    public function index(): View
+    public function index(Request $request): View
     {
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
 
+        $statusFilter = $request->input('status');
+
         $campaigns = $marketer->campaigns()
             ->withCount('products')
+            ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
             ->orderByDesc('created_at')
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
+
+        $statusCounts = $marketer->campaigns()
+            ->selectRaw('status, COUNT(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+
+        $tabs = [];
+        foreach (MarketerCampaignStatus::cases() as $status) {
+            $tabs[$status->value] = (int) ($statusCounts[$status->value] ?? 0);
+        }
 
         return view('marketer.campaigns.index', [
             'marketer' => $marketer,
             'campaigns' => $campaigns,
+            'statusFilter' => $statusFilter,
+            'tabs' => $tabs,
+            'totalCount' => (int) $statusCounts->sum(),
         ]);
     }
 
@@ -92,7 +114,7 @@ class CampaignController extends Controller
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'campaign_type' => $campaignType,
-                'status' => 'draft',
+                'status' => 'pending_review',
                 'commission_type' => 'percentage',
                 'commission_rate' => $marketer->commission_rate ?? 5,
                 'starts_at' => $validated['starts_at'],
@@ -115,7 +137,7 @@ class CampaignController extends Controller
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'campaign_type' => $campaignType,
-                'status' => 'draft',
+                'status' => 'pending_review',
                 'commission_type' => 'percentage',
                 'commission_rate' => $marketer->commission_rate ?? 5,
                 'starts_at' => $validated['starts_at'],
@@ -133,7 +155,7 @@ class CampaignController extends Controller
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'campaign_type' => $campaignType,
-                'status' => 'draft',
+                'status' => 'pending_review',
                 'commission_type' => 'percentage',
                 'commission_rate' => $marketer->commission_rate ?? 5,
                 'starts_at' => $validated['starts_at'],
@@ -194,6 +216,7 @@ class CampaignController extends Controller
         abort_if($campaign->marketer_id !== $marketer->id, 403);
         abort_unless(in_array($campaign->status, [
             \App\Enums\MarketerCampaignStatus::Draft,
+            \App\Enums\MarketerCampaignStatus::PendingReview,
             \App\Enums\MarketerCampaignStatus::Active,
             \App\Enums\MarketerCampaignStatus::Paused,
         ], true), 422, 'This campaign cannot be cancelled.');
@@ -201,6 +224,62 @@ class CampaignController extends Controller
         $campaign->update(['status' => \App\Enums\MarketerCampaignStatus::Cancelled]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function requestPause(MarketerCampaign $campaign): JsonResponse
+    {
+        /** @var \App\Models\Marketer $marketer */
+        $marketer = Auth::guard('marketer')->user();
+        abort_if($campaign->marketer_id !== $marketer->id, 403);
+        abort_unless($campaign->status === \App\Enums\MarketerCampaignStatus::Active, 422, 'Only active campaigns can request a pause.');
+
+        if ($campaign->pause_requested_at === null) {
+            $campaign->update(['pause_requested_at' => now()]);
+
+            Notification::send(
+                Admin::permission('marketers.campaigns.approve')->get(),
+                new CampaignPauseRequested($campaign),
+            );
+        }
+
+        return response()->json(['success' => true, 'message' => 'Pause request sent to admin for review.']);
+    }
+
+    public function resubmit(Request $request, MarketerCampaign $campaign): RedirectResponse
+    {
+        /** @var \App\Models\Marketer $marketer */
+        $marketer = Auth::guard('marketer')->user();
+        abort_if($campaign->marketer_id !== $marketer->id, 403);
+        abort_unless($campaign->status === \App\Enums\MarketerCampaignStatus::Rejected, 422, 'Only rejected campaigns can be resubmitted.');
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'starts_at' => 'required|date|after_or_equal:today',
+            'ends_at' => 'required|date|after:starts_at',
+            'budget' => 'nullable|numeric|min:1',
+            'attribution_model' => 'nullable|in:last_click,first_click,linear',
+            'whatsapp_sharing_enabled' => 'nullable|boolean',
+        ]);
+
+        $campaign->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'starts_at' => $validated['starts_at'],
+            'ends_at' => $validated['ends_at'],
+            'budget' => isset($validated['budget']) ? (int) round($validated['budget'] * 100) : null,
+            'attribution_model' => $validated['attribution_model'] ?? AttributionModel::LastClick->value,
+            'whatsapp_sharing_enabled' => (bool) ($validated['whatsapp_sharing_enabled'] ?? false),
+            'status' => \App\Enums\MarketerCampaignStatus::PendingReview,
+            'rejection_reason' => null,
+            'auto_approve_at' => now()->addHours(36),
+        ]);
+
+        \App\Jobs\MarketerAutoApproveJob::dispatch($campaign->id, null)
+            ->delay(now()->addHours(36));
+
+        return redirect()->route('marketer.campaigns.show', $campaign->id)
+            ->with('success', 'Campaign resubmitted for approval.');
     }
 
     public function requestWhatsappLink(Request $request, MarketerCampaign $campaign): JsonResponse
@@ -312,6 +391,19 @@ class CampaignController extends Controller
         ]);
     }
 
+    public function edit(MarketerCampaign $campaign): View
+    {
+        /** @var \App\Models\Marketer $marketer */
+        $marketer = Auth::guard('marketer')->user();
+        abort_if($campaign->marketer_id !== $marketer->id, 403);
+        abort_unless($campaign->status === \App\Enums\MarketerCampaignStatus::Rejected, 422, 'Only rejected campaigns can be edited.');
+
+        return view('marketer.campaigns.edit', [
+            'marketer' => $marketer,
+            'campaign' => $campaign,
+        ]);
+    }
+
     public function show(MarketerCampaign $campaign): View
     {
         /** @var \App\Models\Marketer $marketer */
@@ -326,6 +418,19 @@ class CampaignController extends Controller
                 'items' => fn($iq) => $iq->where('is_mandatory', false)->with('vendorListing.productVariant.product'),
             ])->latest(),
         ]);
+
+        // Conversion counts per product (traced via the order item's vendor listing)
+        $conversionsByListing = \DB::table('marketer_conversions')
+            ->join('order_items', 'order_items.id', '=', 'marketer_conversions.order_item_id')
+            ->where('marketer_conversions.campaign_id', $campaign->id)
+            ->selectRaw('order_items.vendor_listing_id, COUNT(*) as cnt')
+            ->groupBy('order_items.vendor_listing_id')
+            ->pluck('cnt', 'vendor_listing_id');
+
+        foreach ($campaign->products as $product) {
+            $product->conversions_count = (int) ($conversionsByListing[$product->vendor_listing_id] ?? 0);
+            $product->effective_commission_rate = $product->commission_override ?? $campaign->commission_rate;
+        }
 
         // Resolve quota for this campaign's category
         $quotaCategory = null;
@@ -354,6 +459,40 @@ class CampaignController extends Controller
             'quotaCategory' => $quotaCategory,
             'quota' => $quota,
         ]);
+    }
+
+    public function conversionsDatatable(Request $request, MarketerCampaign $campaign): JsonResponse
+    {
+        /** @var \App\Models\Marketer $marketer */
+        $marketer = Auth::guard('marketer')->user();
+        abort_if($campaign->marketer_id !== $marketer->id, 403);
+
+        $columns = [
+            ['orderable_column' => 'marketer_conversions.created_at'],
+            [],
+            ['orderable_column' => 'marketer_conversions.commission_amount'],
+            ['orderable_column' => 'marketer_conversions.currency'],
+            ['orderable_column' => 'marketer_conversions.status'],
+        ];
+
+        $query = \App\Models\MarketerConversion::query()
+            ->where('campaign_id', $campaign->id)
+            ->with('order:id,order_number');
+
+        return $this->dataTableResponse($request, $query, $columns, function ($row) {
+            $orderRef = (string) ($row->order?->order_number ?? $row->order_id ?? '');
+            $maskedRef = strlen($orderRef) > 8
+                ? substr($orderRef, 0, 4) . str_repeat('•', max(0, strlen($orderRef) - 8)) . substr($orderRef, -4)
+                : $orderRef;
+
+            return [
+                $row->created_at?->format('d M Y') ?? '—',
+                $maskedRef,
+                number_format($row->commission_amount / 100, 2),
+                $row->currency,
+                '<span class="badge badge-' . $row->status_color . '">' . ucfirst($row->status?->value) . '</span>',
+            ];
+        });
     }
 
     public function searchClassifiedListings(Request $request): JsonResponse

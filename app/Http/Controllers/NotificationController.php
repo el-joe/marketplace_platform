@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Marketer;
 use App\Models\Vendor;
 use App\Models\VendorAdmin;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -154,6 +156,10 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
+        if ($user instanceof Marketer) {
+            Cache::forget("marketer_badges_{$user->id}");
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -166,6 +172,10 @@ class NotificationController extends Controller
             ->where('notifiable_id', $user->getKey())
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+
+        if ($user instanceof Marketer) {
+            Cache::forget("marketer_badges_{$user->id}");
+        }
 
         return response()->json(['success' => true]);
     }

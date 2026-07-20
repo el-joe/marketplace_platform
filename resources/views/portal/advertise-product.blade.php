@@ -1,9 +1,7 @@
 @extends('layouts.advertise')
 
-@section('title', session('locale', 'ar') === 'ar' ? 'إعلانات المنتجات | نون' : 'Product Ads | noon')
-@section('description', session('locale', 'ar') === 'ar'
-    ? 'قم بتعزيز رؤية منتجاتك على مسار التحويل السفلي من خلال الإعلانات المستهدفة التي تصل إلى قاعدة عملاء أكبر وتمكّن النمو.'
-    : 'Amplify your products visibility on the lower funnel with targeted ads that reach a larger customer base and enable growth.')
+@section('title', portal_content('advertise-product', 'meta', 'title', 'Product Ads | noon', 'إعلانات المنتجات | نون'))
+@section('description', portal_content('advertise-product', 'meta', 'description', 'Amplify your products visibility on the lower funnel with targeted ads that reach a larger customer base and enable growth.', 'قم بتعزيز رؤية منتجاتك على مسار التحويل السفلي من خلال الإعلانات المستهدفة التي تصل إلى قاعدة عملاء أكبر وتمكّن النمو.'))
 
 @section('content')
     @include('portal.partials.product-hero')

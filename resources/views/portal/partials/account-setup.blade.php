@@ -3,86 +3,88 @@
 
     $steps = [
         [
-            'title_ar' => 'قم بتجهيز بياناتك',
-            'title_en' => 'Get your details ready',
-            'caption_ar' => 'قبل أن تبدأ، احرص على توفر ما يلي',
-            'caption_en' => 'BEFORE YOU START, HAVE THE FOLLOWING HANDY',
+            'title_ar' => portal_content('account_setup', 'step_1', 'title', 'Get your details ready', 'قم بتجهيز بياناتك'),
+            'title_en' => portal_content('account_setup', 'step_1', 'title', 'Get your details ready', 'قم بتجهيز بياناتك'),
+            'caption_ar' => portal_content('account_setup', 'step_1', 'caption', 'BEFORE YOU START, HAVE THE FOLLOWING HANDY', 'قبل أن تبدأ، احرص على توفر ما يلي'),
+            'caption_en' => portal_content('account_setup', 'step_1', 'caption', 'BEFORE YOU START, HAVE THE FOLLOWING HANDY', 'قبل أن تبدأ، احرص على توفر ما يلي'),
             'items' => [
                 [
-                    'text_ar' => 'عنوان بريد إلكتروني ورقم هاتف',
-                    'text_en' => 'Email address and a phone number',
+                    'text_ar' => portal_content('account_setup', 'step_1', 'item_1_text', 'Email address and a phone number', 'عنوان بريد إلكتروني ورقم هاتف'),
+                    'text_en' => portal_content('account_setup', 'step_1', 'item_1_text', 'Email address and a phone number', 'عنوان بريد إلكتروني ورقم هاتف'),
                 ],
                 [
-                    'text_ar' => 'السجل التجاري / رخصة التجارة',
-                    'text_en' => 'Commercial Registration / Trade License',
-                    'link_ar' => 'لست متأكد ما هذا؟ تعرف علي المزيد',
-                    'link_en' => "Not sure what this is? Learn more",
+                    'text_ar' => portal_content('account_setup', 'step_1', 'item_2_text', 'Commercial Registration / Trade License', 'السجل التجاري / رخصة التجارة'),
+                    'text_en' => portal_content('account_setup', 'step_1', 'item_2_text', 'Commercial Registration / Trade License', 'السجل التجاري / رخصة التجارة'),
+                    'link_ar' => portal_content('account_setup', 'step_1', 'item_2_link', 'Not sure what this is? Learn more', 'لست متأكد ما هذا؟ تعرف علي المزيد'),
+                    'link_en' => portal_content('account_setup', 'step_1', 'item_2_link', 'Not sure what this is? Learn more', 'لست متأكد ما هذا؟ تعرف علي المزيد'),
                     'link_route' => 'portal.faq',
                     'link_arrow' => true,
                 ],
                 [
-                    'text_ar' => 'إثبات الهوية — جواز السفر / بطاقة الهوية الإماراتية',
-                    'text_en' => 'Identity proof — Passport / Emirates ID',
+                    'text_ar' => portal_content('account_setup', 'step_1', 'item_3_text', 'Identity proof — Passport / Emirates ID', 'إثبات الهوية — جواز السفر / بطاقة الهوية الإماراتية'),
+                    'text_en' => portal_content('account_setup', 'step_1', 'item_3_text', 'Identity proof — Passport / Emirates ID', 'إثبات الهوية — جواز السفر / بطاقة الهوية الإماراتية'),
                 ],
             ],
         ],
         [
-            'title_ar' => 'قم بالتسجيل كبائع',
-            'title_en' => 'Sign up as a seller',
-            'caption_ar' => 'إنشاء حساب البائع الخاص بك سريع وسهل',
-            'caption_en' => 'CREATING YOUR SELLER ACCOUNT IS QUICK AND EASY',
+            'title_ar' => portal_content('account_setup', 'step_2', 'title', 'Sign up as a seller', 'قم بالتسجيل كبائع'),
+            'title_en' => portal_content('account_setup', 'step_2', 'title', 'Sign up as a seller', 'قم بالتسجيل كبائع'),
+            'caption_ar' => portal_content('account_setup', 'step_2', 'caption', 'CREATING YOUR SELLER ACCOUNT IS QUICK AND EASY', 'إنشاء حساب البائع الخاص بك سريع وسهل'),
+            'caption_en' => portal_content('account_setup', 'step_2', 'caption', 'CREATING YOUR SELLER ACCOUNT IS QUICK AND EASY', 'إنشاء حساب البائع الخاص بك سريع وسهل'),
             'items' => [
                 [
-                    'text_ar' => 'اضغط على',
-                    'text_en' => 'Click on',
-                    'inline_link_ar' => 'سجل الآن',
-                    'inline_link_en' => 'Sign up now',
+                    'text_ar' => portal_content('account_setup', 'step_2', 'item_1_text', 'Click on', 'اضغط على'),
+                    'text_en' => portal_content('account_setup', 'step_2', 'item_1_text', 'Click on', 'اضغط على'),
+                    'inline_link_ar' => portal_content('account_setup', 'step_2', 'item_1_inline_link', 'Sign up now', 'سجل الآن'),
+                    'inline_link_en' => portal_content('account_setup', 'step_2', 'item_1_inline_link', 'Sign up now', 'سجل الآن'),
                     'inline_link_route' => 'portal.register',
                     'inline_link_arrow' => true,
                 ],
                 [
-                    'text_ar' => 'زودنا ببعض التفاصيل',
-                    'text_en' => 'Provide us with a few details',
+                    'text_ar' => portal_content('account_setup', 'step_2', 'item_2_text', 'Provide us with a few details', 'زودنا ببعض التفاصيل'),
+                    'text_en' => portal_content('account_setup', 'step_2', 'item_2_text', 'Provide us with a few details', 'زودنا ببعض التفاصيل'),
                 ],
                 [
-                    'text_ar' => 'قم بالتحقق منها',
-                    'text_en' => 'Verify them',
+                    'text_ar' => portal_content('account_setup', 'step_2', 'item_3_text', 'Verify them', 'قم بالتحقق منها'),
+                    'text_en' => portal_content('account_setup', 'step_2', 'item_3_text', 'Verify them', 'قم بالتحقق منها'),
                 ],
             ],
-            'after_list_text_ar' => 'وهكذا، أصبحت الآن جزءاً من عائلة نون',
-            'after_list_text_en' => 'And just like that, you are now part of the noon family',
+            'after_list_text_ar' => portal_content('account_setup', 'step_2', 'after_list_text', 'And just like that, you are now part of the noon family', 'وهكذا، أصبحت الآن جزءاً من عائلة نون'),
+            'after_list_text_en' => portal_content('account_setup', 'step_2', 'after_list_text', 'And just like that, you are now part of the noon family', 'وهكذا، أصبحت الآن جزءاً من عائلة نون'),
         ],
         [
-            'title_ar' => 'إعداد متجرك',
-            'title_en' => 'Set up your store',
-            'caption_ar' => 'قم بإنشاء متجرك وإضافة مستندات عملك',
-            'caption_en' => 'CREATE YOUR STORE AND ADD YOUR BUSINESS DOCUMENTS',
+            'title_ar' => portal_content('account_setup', 'step_3', 'title', 'Set up your store', 'إعداد متجرك'),
+            'title_en' => portal_content('account_setup', 'step_3', 'title', 'Set up your store', 'إعداد متجرك'),
+            'caption_ar' => portal_content('account_setup', 'step_3', 'caption', 'CREATE YOUR STORE AND ADD YOUR BUSINESS DOCUMENTS', 'قم بإنشاء متجرك وإضافة مستندات عملك'),
+            'caption_en' => portal_content('account_setup', 'step_3', 'caption', 'CREATE YOUR STORE AND ADD YOUR BUSINESS DOCUMENTS', 'قم بإنشاء متجرك وإضافة مستندات عملك'),
             'paragraphs' => [
                 [
-                    'text_ar' => 'قم بإنشاء متجرك للبلد الذي ترغب في البيع فيه وأضف مستندات عملك للحصول على موافقة سريعة وسلسة',
-                    'text_en' => 'Create your store for the country that you wish to sell in and add your business documents for a quick and seamless approval',
+                    'text_ar' => portal_content('account_setup', 'step_3', 'paragraph_1', 'Create your store for the country that you wish to sell in and add your business documents for a quick and seamless approval', 'قم بإنشاء متجرك للبلد الذي ترغب في البيع فيه وأضف مستندات عملك للحصول على موافقة سريعة وسلسة'),
+                    'text_en' => portal_content('account_setup', 'step_3', 'paragraph_1', 'Create your store for the country that you wish to sell in and add your business documents for a quick and seamless approval', 'قم بإنشاء متجرك للبلد الذي ترغب في البيع فيه وأضف مستندات عملك للحصول على موافقة سريعة وسلسة'),
                 ],
                 [
-                    'text_ar' => 'بمجرد إنشاء متجرك، يصبح مختبر البائع مركز التحكم الخاص بك لكل ما يتعلق بنون',
-                    'text_en' => 'Once you create your store, seller lab becomes your control center for everything noon',
+                    'text_ar' => portal_content('account_setup', 'step_3', 'paragraph_2', 'Once you create your store, seller lab becomes your control center for everything noon', 'بمجرد إنشاء متجرك، يصبح مختبر البائع مركز التحكم الخاص بك لكل ما يتعلق بنون'),
+                    'text_en' => portal_content('account_setup', 'step_3', 'paragraph_2', 'Once you create your store, seller lab becomes your control center for everything noon', 'بمجرد إنشاء متجرك، يصبح مختبر البائع مركز التحكم الخاص بك لكل ما يتعلق بنون'),
                 ],
             ],
         ],
     ];
+
+    $accountSetupImg = portal_image('account_setup', 'main', 'photo', 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-selling.jpg', 'Registration steps', 'خطوات التسجيل');
 @endphp
 
 <section id="registering" class="bg-[#1c1c1c] py-10 lg:py-16">
     <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-start">
             <div class="relative aspect-[4/3] rounded-2xl overflow-hidden">
-                <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-selling.jpg"
-                     alt="{{ $isAr ? 'خطوات التسجيل' : 'Registration steps' }}"
+                <img src="{{ $accountSetupImg['src'] }}"
+                     alt="{{ $accountSetupImg['alt'] }}"
                      class="absolute inset-0 w-full h-full object-cover">
             </div>
 
             <div>
             <h2 class="text-[32px] sm:text-[40px] lg:text-[48px] font-black mb-6 lg:mb-8 text-white leading-tight">
-                {{ $isAr ? 'إعداد حسابك' : 'Set up your account' }}
+                {{ portal_content('account_setup', 'main', 'title', 'Set up your account', 'إعداد حسابك') }}
             </h2>
 
             <div x-data="{ openStep: 0 }" class="flex flex-col gap-3 min-h-[420px]">

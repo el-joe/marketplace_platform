@@ -3,15 +3,17 @@
 <section class="relative overflow-hidden bg-black">
     {{-- Mobile: near full-viewport hero --}}
     <div class="h-[calc(100svh_-_72px)] md:hidden relative">
-        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-hero.jpg"
-             alt="{{ $isAr ? 'مستودع نون في حركة كاملة' : 'A noon warehouse in full motion' }}"
+        @php($smartToolsHeroImgMobile = portal_image('smart-tools', 'hero', 'photo', 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-hero.jpg', 'A noon warehouse in full motion', 'مستودع نون في حركة كاملة'))
+        <img src="{{ $smartToolsHeroImgMobile['src'] }}"
+             alt="{{ $smartToolsHeroImgMobile['alt'] }}"
              class="absolute inset-0 w-full h-full object-cover {{ $isAr ? '-scale-x-100' : '' }}">
     </div>
 
     {{-- Desktop: fixed-height hero, image anchored to one side --}}
     <div class="hidden md:flex md:justify-end h-[444px] relative">
-        <img src="https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-hero.jpg"
-             alt="{{ $isAr ? 'مستودع نون في حركة كاملة' : 'A noon warehouse in full motion' }}"
+        @php($smartToolsHeroImgDesktop = portal_image('smart-tools', 'hero', 'photo', 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-hero.jpg', 'A noon warehouse in full motion', 'مستودع نون في حركة كاملة'))
+        <img src="{{ $smartToolsHeroImgDesktop['src'] }}"
+             alt="{{ $smartToolsHeroImgDesktop['alt'] }}"
              class="h-full w-full max-w-none object-cover object-center lg:w-[80%] xl:w-[70%] xl:object-[100%_25%] {{ $isAr ? '-scale-x-100' : '' }}">
     </div>
 
@@ -23,13 +25,13 @@
         <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div class="max-w-[560px] {{ $isAr ? 'text-right' : 'text-left' }}">
                 <h1 class="text-[#feee00] font-black leading-[1.1] text-[40px] sm:text-[44px] md:text-[50px] mb-2">
-                    {{ $isAr ? 'نمِّ أعمالك بذكاء' : 'Grow Smarter' }}
+                    {{ portal_content('smart-tools', 'hero', 'title', 'Grow Smarter', 'نمِّ أعمالك بذكاء') }}
                 </h1>
                 <h2 class="text-white font-bold text-[24px] sm:text-[28px] md:text-[32px] leading-tight">
-                    {{ $isAr ? 'الإعلانات، الرسوم، والرؤى التحليلية' : 'Ads, Fees and insights' }}
+                    {{ portal_content('smart-tools', 'hero', 'subtitle', 'Ads, Fees and insights', 'الإعلانات، الرسوم، والرؤى التحليلية') }}
                 </h2>
                 <p class="mt-3 text-gray-200 font-semibold text-[16px] md:text-[18px] max-w-[500px] leading-relaxed">
-                    {{ $isAr ? 'أنفق بذكاء، وتوسّع بسرعة' : 'Spend smarter, scale faster' }}
+                    {{ portal_content('smart-tools', 'hero', 'tagline', 'Spend smarter, scale faster', 'أنفق بذكاء، وتوسّع بسرعة') }}
                 </p>
             </div>
         </div>

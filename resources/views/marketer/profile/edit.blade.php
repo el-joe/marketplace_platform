@@ -32,6 +32,11 @@
                         class="form-input text-sm py-2" required>
                 </div>
                 <div>
+                    <label class="form-label text-xs">{{ __('marketer.profile.display_name') }}</label>
+                    <input type="text" name="display_name" value="{{ old('display_name', $marketer->display_name) }}"
+                        class="form-input text-sm py-2" placeholder="{{ __('marketer.profile.display_name_placeholder') }}">
+                </div>
+                <div>
                     <label class="form-label text-xs">{{ __('marketer.profile.phone') }}</label>
                     <input type="text" name="phone" value="{{ old('phone', $marketer->phone) }}"
                         class="form-input text-sm py-2" placeholder="+966 5X XXX XXXX">
@@ -76,14 +81,6 @@
                     <p class="font-semibold mt-0.5">{{ $marketer->commission_rate }}%</p>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 uppercase">{{ __('marketer.profile.followers') }}</p>
-                    <p class="font-semibold mt-0.5">{{ $marketer->followers_count ? number_format($marketer->followers_count) : '—' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase">{{ __('marketer.profile.engagement_rate') }}</p>
-                    <p class="font-semibold mt-0.5">{{ $marketer->engagement_rate ? $marketer->engagement_rate . '%' : '—' }}</p>
-                </div>
-                <div>
                     <p class="text-xs text-gray-400 uppercase">{{ __('marketer.profile.total_earnings') }}</p>
                     <p class="font-semibold mt-0.5">{{ number_format($marketer->total_earnings, 2) }} {{ $marketer->country?->currency_code ?? '' }}</p>
                 </div>
@@ -92,9 +89,38 @@
                     <p class="font-semibold mt-0.5">{{ $marketer->total_samples_used }} / {{ $marketer->total_samples_allocated ?: '∞' }}</p>
                 </div>
             </div>
-            <p class="text-xs text-gray-400 mt-4">
-                {{ __('marketer.profile.followers_hint') }}
-            </p>
+        </div>
+
+        {{-- Audience stats & visibility --}}
+        <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <h3 class="font-bold text-gray-800 mb-4">{{ __('marketer.profile.audience_visibility') }}</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="form-label text-xs">{{ __('marketer.profile.followers') }}</label>
+                    <input type="number" min="0" name="followers_count"
+                        value="{{ old('followers_count', $marketer->followers_count) }}"
+                        class="form-input text-sm py-2">
+                </div>
+                <div>
+                    <label class="form-label text-xs">{{ __('marketer.profile.engagement_rate') }}</label>
+                    <input type="number" min="0" max="100" step="0.01" name="engagement_rate"
+                        value="{{ old('engagement_rate', $marketer->engagement_rate) }}"
+                        class="form-input text-sm py-2">
+                </div>
+            </div>
+            <p class="text-xs text-gray-400 mb-4">{{ __('marketer.profile.followers_hint') }}</p>
+            <div class="space-y-3">
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="is_profile_public" value="1"
+                        {{ old('is_profile_public', $marketer->is_profile_public) ? 'checked' : '' }}>
+                    {{ __('marketer.profile.is_profile_public') }}
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="accept_new_campaigns" value="1"
+                        {{ old('accept_new_campaigns', $marketer->accept_new_campaigns) ? 'checked' : '' }}>
+                    {{ __('marketer.profile.accept_new_campaigns') }}
+                </label>
+            </div>
         </div>
 
         {{-- Public slug --}}
@@ -111,6 +137,10 @@
                class="text-xs text-blue-600 hover:underline mt-2 inline-block"
                style="{{ $marketer->boutiqaat_style_slug ? '' : 'display:none' }}">
                 {{ __('marketer.profile.view_public_profile') }}
+            </a>
+            <a href="{{ route('marketer.store.preview') }}" target="_blank"
+               class="text-xs text-blue-600 hover:underline mt-2 ml-4 inline-block">
+                {{ __('marketer.profile.preview_my_store') }}
             </a>
         </div>
 
@@ -153,6 +183,18 @@
                     </p>
                 </div>
                 <div>
+                    <label class="form-label">{{ __('marketer.profile.short_bio_ar') }}</label>
+                    <textarea name="bio_ar" dir="rtl" rows="3" class="form-input text-sm py-2"
+                        placeholder="{{ __('marketer.profile.bio_ar_placeholder') }}"
+                        maxlength="2000">{{ old('bio_ar', $marketer->bio_ar) }}</textarea>
+                </div>
+                <div>
+                    <label class="form-label">{{ __('marketer.profile.website_url') }}</label>
+                    <input type="url" name="website_url"
+                        value="{{ old('website_url', $marketer->website_url) }}"
+                        class="form-input text-sm py-2" placeholder="https://example.com">
+                </div>
+                <div>
                     <label class="form-label">{{ __('marketer.profile.promo_content') }}</label>
                     <textarea name="promo_content" rows="4" class="form-input text-sm py-2"
                         placeholder="{{ __('marketer.profile.promo_content_placeholder') }}"
@@ -180,6 +222,7 @@
                     ['social_youtube',   'YouTube',   'https://youtube.com/@username'],
                     ['social_twitter',   'Twitter / X', 'https://x.com/username'],
                     ['social_facebook',  'Facebook',  'https://facebook.com/username'],
+                    ['social_snapchat',  'Snapchat',  'https://snapchat.com/add/username'],
                 ] as [$field, $label, $placeholder])
                     <div>
                         <label class="form-label text-xs">{{ $label }}</label>

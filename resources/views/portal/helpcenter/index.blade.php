@@ -2,8 +2,8 @@
 
 @php $isAr = app()->getLocale() === 'ar'; @endphp
 
-@section('title', ($isAr ? 'مركز مساعدة البائع' : 'noon Seller Help Center'))
-@section('description', ($isAr ? 'مركز مساعدة البائع في نون' : 'noon Seller Help Center'))
+@section('title', portal_content('helpcenter', 'index', 'page_title', 'noon Seller Help Center', 'مركز مساعدة البائع'))
+@section('description', portal_content('helpcenter', 'index', 'page_description', 'noon Seller Help Center', 'مركز مساعدة البائع في نون'))
 
 @section('header')
     @include('portal.partials.helpcenter-header', ['variant' => 'home', 'country' => $country])
@@ -30,14 +30,14 @@
                         </div>
                         <div class="flex">
                             <span class="line-clamp-1 flex text-sm text-[#737373]">
-                                {{ $articleCount }} {{ $isAr ? 'مقالة' : Str::plural('article', $articleCount) }}
+                                {{ $articleCount }} {{ $isAr ? portal_content('helpcenter', 'index', 'article_word', 'article', 'مقالة') : Str::plural('article', $articleCount) }}
                             </span>
                         </div>
                     </div>
                 </a>
             @empty
                 <div class="col-span-3 rounded-[10px] border border-dashed border-gray-300 p-10 text-center text-gray-400">
-                    {{ $isAr ? 'لا توجد فئات بعد.' : 'No categories yet.' }}
+                    {{ portal_content('helpcenter', 'index', 'no_categories', 'No categories yet.', 'لا توجد فئات بعد.') }}
                 </div>
             @endforelse
         </div>
@@ -49,7 +49,7 @@
                     <div class="mt-2 whitespace-pre-wrap text-center text-gray-500">{{ $featuredArticle->localizedExcerpt() }}</div>
                     <a href="{{ route('portal.helpcenter.article.show', ['country' => $country, 'article' => $featuredArticle->slug]) }}"
                        class="mt-6 rounded-lg bg-orange-500 px-4 py-2 font-semibold text-white no-underline hover:bg-orange-600">
-                        {{ $isAr ? 'اطّلع أكثر' : 'Learn more' }}
+                        {{ portal_content('helpcenter', 'index', 'learn_more', 'Learn more', 'اطّلع أكثر') }}
                     </a>
                 </div>
             </section>

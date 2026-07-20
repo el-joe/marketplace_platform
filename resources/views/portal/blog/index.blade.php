@@ -10,15 +10,13 @@
          style="background-image: radial-gradient(circle at 20% 20%, #F59E0B 0%, transparent 35%);"></div>
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <span class="inline-block text-xs font-bold tracking-widest uppercase text-[#feee00] mb-3">
-            {{ $locale === 'ar' ? 'مدونة نون للبائعين' : 'Noon Sellers Blog' }}
+            {{ portal_content('blog', 'header', 'eyebrow', 'Noon Sellers Blog', 'مدونة نون للبائعين') }}
         </span>
         <h1 class="text-4xl sm:text-5xl font-black text-white leading-tight">
             {{ __('portal.blog.title') }}
         </h1>
         <p class="text-gray-400 mt-3 text-lg max-w-2xl">
-            {{ $locale === 'ar'
-                ? 'أخبار وتوجيهات ونصائح من منصة نون'
-                : 'News, guides and tips from the Noon platform' }}
+            {{ portal_content('blog', 'header', 'subtitle', 'News, guides and tips from the Noon platform', 'أخبار وتوجيهات ونصائح من منصة نون') }}
         </p>
 
         <form method="GET" action="{{ route('portal.blog.index') }}" class="mt-8 flex gap-3 max-w-xl">

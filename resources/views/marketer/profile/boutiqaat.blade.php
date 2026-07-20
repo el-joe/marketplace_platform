@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $marketer->name }} — Creator Profile</title>
+    <title>{{ $marketer->public_name }} — Creator Profile</title>
     @vite(['resources/css/app.css'])
     <style>
         body { background: #f1f5f9; font-family: 'Inter', sans-serif; }
@@ -48,6 +48,12 @@
 </head>
 <body>
 
+@if($isPreview ?? false)
+    <div style="background:#fef9c3; color:#854d0e; text-align:center; padding:0.6rem 1rem; font-size:0.85rem; font-weight:600;">
+        This is how your profile appears to vendors and customers.
+    </div>
+@endif
+
 {{-- Hero Banner --}}
 <div class="hero-banner {{ $marketer->profile_banner_path ? 'has-image' : '' }}">
     @if($marketer->profile_banner_path)
@@ -69,17 +75,33 @@
 {{-- Profile Card --}}
 <div class="max-w-2xl mx-auto px-4">
     <div class="bg-white rounded-2xl border border-gray-200 pt-16 pb-6 px-6 text-center -mt-2 shadow-sm">
-        <h1 class="text-2xl font-bold text-gray-900">{{ $marketer->name }}</h1>
-        <div class="flex items-center justify-center gap-2 mt-1">
+        <h1 class="text-2xl font-bold text-gray-900">{{ $marketer->public_name }}</h1>
+        <div class="flex items-center justify-center gap-2 mt-1 flex-wrap">
             <span class="text-xs font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full
-                {{ $marketer->marketer_type === 'influencer' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
-                {{ ucfirst($marketer->marketer_type ?? 'Creator') }}
+                {{ $marketer->type?->value === 'influencer' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
+                {{ ucfirst($marketer->type?->value ?? 'Creator') }}
             </span>
+            @if($marketer->niche)
+                <span class="text-xs font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                    {{ $marketer->niche }}
+                </span>
+            @endif
         </div>
 
-        @if($marketer->bio)
-            <p class="text-sm text-gray-600 mt-3 leading-relaxed max-w-md mx-auto">{{ $marketer->bio }}</p>
+        @php $bioText = $marketer->bio_ar && app()->getLocale() === 'ar' ? $marketer->bio_ar : $marketer->bio; @endphp
+        @if($bioText)
+            <p class="text-sm text-gray-600 mt-3 leading-relaxed max-w-md mx-auto">{{ $bioText }}</p>
         @endif
+
+        <div class="flex items-center justify-center gap-4 mt-4 text-sm text-gray-500">
+            @if($marketer->followers_count)
+                <span><strong class="text-gray-800">{{ number_format($marketer->followers_count) }}</strong> followers</span>
+            @endif
+            @if($marketer->engagement_rate)
+                <span><strong class="text-gray-800">{{ $marketer->engagement_rate }}%</strong> engagement</span>
+            @endif
+            <span><strong class="text-gray-800">{{ $activeCampaignsCount ?? $campaigns->count() }}</strong> active campaigns</span>
+        </div>
 
         {{-- Social Links --}}
         @php
@@ -89,6 +111,8 @@
                 'youtube'   => ['label' => 'YouTube',   'color' => 'bg-red-600 text-white', 'url' => $marketer->social_youtube],
                 'twitter'   => ['label' => 'Twitter',   'color' => 'bg-sky-500 text-white', 'url' => $marketer->social_twitter],
                 'facebook'  => ['label' => 'Facebook',  'color' => 'bg-blue-600 text-white', 'url' => $marketer->social_facebook],
+                'snapchat'  => ['label' => 'Snapchat',  'color' => 'bg-yellow-400 text-gray-900', 'url' => $marketer->social_snapchat],
+                'website'   => ['label' => 'Website',   'color' => 'bg-gray-700 text-white', 'url' => $marketer->website_url],
             ], fn($s) => !empty($s['url']));
         @endphp
         @if(count($socials) > 0)
@@ -109,6 +133,17 @@
                    target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-semibold text-sm rounded-xl px-5 py-2.5 transition-colors">
                     📱 Contact on WhatsApp
+                </a>
+            </div>
+        @endif
+
+        {{-- Work with me CTA (only when accepting new campaigns) --}}
+        @if($marketer->accept_new_campaigns && $marketer->whatsapp_number)
+            <div class="mt-3">
+                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $marketer->whatsapp_number) }}?text=Hi%2C%20I%27d%20like%20to%20work%20with%20you"
+                   target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-xl px-5 py-2.5 transition-colors">
+                    🤝 Work with me
                 </a>
             </div>
         @endif

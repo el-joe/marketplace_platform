@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\View\Composers\SettingsComposer;
+use App\Http\View\Composers\MarketerSidebarComposer;
 use App\View\Components\Form\AsyncSelect;
 use App\View\Components\Form\FileUpload;
 use App\View\Components\Form\Input;
@@ -206,6 +207,8 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with(compact('pendingBookingsCount', 'newInquiriesCount'));
         });
+
+        View::composer('layouts.marketer', MarketerSidebarComposer::class);
 
         View::composer('*', SettingsComposer::class);
     }

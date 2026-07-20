@@ -18,14 +18,16 @@ class PublicProfileService
             $marketer = Marketer::with('country')
                 ->where('boutiqaat_style_slug', $slug)
                 ->where('status', MarketerStatus::Active)
+                ->where('is_profile_public', true)
                 ->firstOrFail();
 
             return [
                 // Explicit allow-list — internal fields are safe-by-default excluded
-                'name'              => $marketer->name,
+                'name'              => $marketer->public_name,
                 'type'              => $marketer->type?->value,
                 'niche'             => $marketer->niche,
                 'bio'               => $marketer->bio,
+                'bio_ar'            => $marketer->bio_ar,
                 'profile_photo_url' => $marketer->profile_photo_path
                     ? asset('storage/' . $marketer->profile_photo_path)
                     : null,
@@ -33,12 +35,20 @@ class PublicProfileService
                     ? asset('storage/' . $marketer->profile_banner_path)
                     : null,
                 'profile_video_url' => $marketer->profile_video_url,
+                'website_url'       => $marketer->website_url,
+                'followers_count'   => $marketer->followers_count,
+                'engagement_rate'   => $marketer->engagement_rate,
+                'active_campaigns_count' => MarketerCampaign::where('marketer_id', $marketer->id)
+                    ->where('status', MarketerCampaignStatus::Active)
+                    ->count(),
+                'accept_new_campaigns' => (bool) $marketer->accept_new_campaigns,
                 'social_links'      => array_filter([
                     'instagram' => $marketer->social_instagram,
                     'tiktok'    => $marketer->social_tiktok,
                     'youtube'   => $marketer->social_youtube,
                     'twitter'   => $marketer->social_twitter,
                     'facebook'  => $marketer->social_facebook,
+                    'snapchat'  => $marketer->social_snapchat,
                 ]),
                 'country_flag'      => $marketer->country?->flag ?? null,
                 'featured_products' => $this->getFeaturedProducts($marketer),

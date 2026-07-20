@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PortalContent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class PortalContentController extends Controller
@@ -69,6 +70,10 @@ class PortalContentController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('portal_content.edit'), 403);
 
+        $request->validate([
+            'fields.*.value_file' => ['nullable', 'image', 'max:5120'],
+        ]);
+
         $fields = $request->input('fields', []);
         $count = 0;
 
@@ -88,6 +93,14 @@ class PortalContentController extends Controller
 
             if ($row->type === PortalContentType::Link) {
                 $update['value_url'] = $data['value_url'] ?? null;
+            }
+
+            if ($row->type === PortalContentType::Image) {
+                $uploaded = $request->file("fields.{$id}.value_file");
+
+                if ($uploaded) {
+                    $update['value_url'] = $uploaded->store('portal-content/' . $pageKey, 'public');
+                }
             }
 
             $row->update($update);

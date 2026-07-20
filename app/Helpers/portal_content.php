@@ -105,6 +105,12 @@ if (!function_exists('portal_image')) {
         $alt = ($alt === null || $alt === '') ? $fallbackAlt : $alt;
         $src = ($row->value_url === null || $row->value_url === '') ? ($fallbackSrc ?? '') : $row->value_url;
 
+        // Uploaded files are stored as relative paths on the "public" disk;
+        // CMS rows seeded with an external CDN URL stay untouched.
+        if ($src !== '' && !str_starts_with($src, 'http://') && !str_starts_with($src, 'https://')) {
+            $src = \Illuminate\Support\Facades\Storage::disk('public')->url($src);
+        }
+
         return ['src' => $src, 'alt' => $alt];
     }
 }

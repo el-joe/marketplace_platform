@@ -16,7 +16,7 @@
     <nav class="pb-4 text-base" aria-label="Breadcrumb">
         <ol class="m-0 flex list-none flex-wrap items-baseline gap-2 p-0">
             <li class="flex items-center gap-2">
-                <a href="{{ route('portal.helpcenter.index', $country) }}" class="text-black no-underline hover:text-orange-600">{{ $isAr ? 'كل الفئات' : 'All Categories' }}</a>
+                <a href="{{ route('portal.helpcenter.index', $country) }}" class="text-black no-underline hover:text-orange-600">{{ portal_content('helpcenter', 'category', 'all_categories', 'All Categories', 'كل الفئات') }}</a>
                 <svg width="6" height="10" viewBox="0 0 6 10" class="block h-2 w-2 fill-[#737373] {{ $isAr ? 'rotate-180' : '' }}" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0.648862 0.898862C0.316916 1.23081 0.316916 1.769 0.648862 2.10094L3.54782 4.9999L0.648862 7.89886C0.316916 8.23081 0.316917 8.769 0.648862 9.10094C0.980808 9.43289 1.519 9.43289 1.85094 9.10094L5.35094 5.60094C5.68289 5.269 5.68289 4.73081 5.35094 4.39886L1.85094 0.898862C1.519 0.566916 0.980807 0.566916 0.648862 0.898862Z"></path></svg>
             </li>
             <li aria-current="page" class="text-[#737373]">{{ $category->localizedName() }}</li>
@@ -41,7 +41,7 @@
                 @endif
             </div>
             <div class="mt-5">
-                <span class="flex text-sm text-[#737373]">{{ $totalArticles }} {{ $isAr ? 'مقالة' : Str::plural('article', $totalArticles) }}</span>
+                <span class="flex text-sm text-[#737373]">{{ $totalArticles }} {{ $isAr ? portal_content('helpcenter', 'category', 'article_word', 'article', 'مقالة') : Str::plural('article', $totalArticles) }}</span>
             </div>
         </div>
 
@@ -77,7 +77,7 @@
 
             @if($totalArticles === 0)
                 <section class="flex flex-col items-center rounded-[10px] border border-solid border-[#e6e6e6] bg-white p-10 text-center text-[#737373]">
-                    {{ $isAr ? 'ستتوفر المقالات في هذه الفئة قريباً.' : 'Articles in this category are coming soon.' }}
+                    {{ portal_content('helpcenter', 'category', 'no_articles', 'Articles in this category are coming soon.', 'ستتوفر المقالات في هذه الفئة قريباً.') }}
                 </section>
             @endif
         </div>

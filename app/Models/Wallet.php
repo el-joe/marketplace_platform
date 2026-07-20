@@ -52,11 +52,11 @@ class Wallet extends Model
 
     public function getBalanceAttribute(): float
     {
-        return $this->balance / 100;
+        return $this->attributes['balance'] / 100;
     }
 
     public function getPendingBalanceAttribute(): float
     {
-        return $this->pending_balance / 100;
+        return $this->attributes['pending_balance'] / 100;
     }
 }

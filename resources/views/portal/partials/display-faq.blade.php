@@ -11,7 +11,7 @@
 <section class="bg-white pb-16 lg:pb-24">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-[32px] sm:text-[40px] lg:text-[48px] font-black text-gray-900 text-center leading-tight mb-8 lg:mb-10">
-            {{ $isAr ? 'الأسئلة الشائعة' : 'Frequently asked questions' }}
+            {{ portal_content('advertise-display', 'faq', 'title', 'Frequently asked questions', 'الأسئلة الشائعة') }}
         </h2>
 
         <div class="divide-y divide-gray-100 border-y border-gray-100" x-data="{ openIndex: 0 }">
