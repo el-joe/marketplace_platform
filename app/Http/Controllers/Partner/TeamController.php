@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Spatie\Permission\Models\Role;
 
 class TeamController extends Controller
 {
@@ -47,11 +49,16 @@ class TeamController extends Controller
     {
         $admin = $this->vendorAdmin();
         $members = VendorAdmin::where('vendor_id', $this->vendorId())
-            ->orderByRaw("FIELD(role, 'owner', 'manager', 'staff')")
+            ->orderByDesc('is_owner')
             ->orderBy('created_at')
             ->get();
 
-        return view('partner.team.index', compact('admin', 'members'));
+        $assignableRoles = Role::where('guard_name', 'vendor')
+            ->where('name', '!=', 'vendor_owner')
+            ->orderBy('name')
+            ->pluck('name');
+
+        return view('partner.team.index', compact('admin', 'members', 'assignableRoles'));
     }
 
     /**
@@ -69,7 +76,7 @@ class TeamController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:vendor_admins,email',
-            'role' => 'required|in:manager,staff',
+            'role' => ['required', Rule::exists('roles', 'name')->where('guard_name', 'vendor'), Rule::notIn(['vendor_owner'])],
         ]);
 
         $tempPassword = Str::password(12, symbols: false);
@@ -84,7 +91,7 @@ class TeamController extends Controller
                 'is_active' => true,
             ]);
 
-            $member->assignRole('vendor_' . $validated['role']);
+            $member->assignRole($validated['role']);
 
             return $member;
         });
@@ -97,7 +104,7 @@ class TeamController extends Controller
                 'id' => $member->id,
                 'name' => $member->name,
                 'email' => $member->email,
-                'role' => $member->role->value,
+                'role' => $member->role,
                 'is_active' => $member->is_active,
                 'last_login_at' => null,
             ],
@@ -126,17 +133,17 @@ class TeamController extends Controller
         }
 
         $validated = $request->validate([
-            'role' => 'required|in:manager,staff',
+            'role' => ['required', Rule::exists('roles', 'name')->where('guard_name', 'vendor'), Rule::notIn(['vendor_owner'])],
         ]);
 
         DB::transaction(function () use ($member, $validated) {
-            $member->syncRoles(['vendor_' . $validated['role']]);
+            $member->syncRoles([$validated['role']]);
             $member->update(['role' => $validated['role']]);
         });
 
         return response()->json([
             'message' => 'تم تحديث دور العضو بنجاح',
-            'role' => $member->role->value,
+            'role' => $member->role,
         ]);
     }
 
@@ -161,7 +168,7 @@ class TeamController extends Controller
             $member->update(['is_active' => !$member->is_active]);
 
             if ($member->is_active) {
-                $member->syncRoles(['vendor_' . $member->role->value]);
+                $member->syncRoles([$member->role]);
             } else {
                 $member->syncRoles([]);
             }

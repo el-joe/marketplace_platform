@@ -17,6 +17,7 @@ use App\Http\Controllers\Partner\SubscriptionController as PartnerSubscriptionCo
 use App\Http\Controllers\Partner\FulfillmentController;
 use App\Http\Controllers\Partner\MarketerCampaignController as PartnerMarketerCampaignController;
 use App\Http\Controllers\Partner\MarketerSampleController as PartnerMarketerSampleController;
+use App\Http\Controllers\Partner\RoleController;
 use App\Http\Controllers\Partner\TeamController;
 use App\Http\Controllers\Partner\VendorChangeRequestController;
 use App\Http\Controllers\Partner\WarehouseController;
@@ -207,6 +208,17 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::put('/{member}/role', 'updateRole')->name('update-role')->middleware('vendor.can:team.manage');
         Route::post('/{member}/toggle-active', 'toggleActive')->name('toggle-active')->middleware('vendor.can:team.manage');
         Route::delete('/{member}', 'destroy')->name('destroy')->middleware('vendor.can:team.manage');
+    });
+
+    // ── Roles & permissions ──────────────────────────────────────────────────
+    Route::prefix('roles')->name('roles.')->controller(RoleController::class)->group(function () {
+        Route::get('/', 'index')->name('index')->middleware('vendor.can:roles.view');
+        Route::get('/permissions', 'permissions')->name('permissions')->middleware('vendor.can:roles.view');
+        Route::get('/create', 'create')->name('create')->middleware('vendor.can:roles.create');
+        Route::post('/', 'store')->name('store')->middleware('vendor.can:roles.create');
+        Route::get('/{role}/edit', 'edit')->name('edit')->middleware('vendor.can:roles.edit');
+        Route::put('/{role}', 'update')->name('update')->middleware('vendor.can:roles.edit');
+        Route::delete('/{role}', 'destroy')->name('destroy')->middleware('vendor.can:roles.delete');
     });
 
     // ── Support tickets ──────────────────────────────────────────────────────

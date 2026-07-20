@@ -14,7 +14,7 @@ class ScopeAdminToAssignedVendor
     {
         $admin = Auth::guard('admin')->user();
 
-        if ($admin && $admin->hasRole('vendor_relations_admin')) {
+        if ($admin && ($admin->hasRole('vendor_relations_admin') || $admin->hasPermissionTo('vendors.assigned_only', 'admin'))) {
             $vendorIds = Vendor::where('account_manager_admin_id', $admin->id)->pluck('id')->all();
 
             $request->attributes->set('is_scoped_admin', true);

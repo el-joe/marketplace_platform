@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\VendorAdminRole;
 use App\Enums\VendorBankAccountVerificationStatus;
 use App\Enums\VendorDocumentStatus;
 use App\Enums\VendorGlobalStatus;
@@ -292,16 +291,18 @@ class VendorApplicationController extends Controller
             }
 
             // 4. Create VendorAdmin (owner role) if not exists
-            $exists = VendorAdmin::where('vendor_id', $vendor->id)->where('role', VendorAdminRole::Owner->value)->exists();
+            $exists = VendorAdmin::where('vendor_id', $vendor->id)->where('is_owner', true)->exists();
             if (!$exists) {
-                VendorAdmin::create([
+                $owner = VendorAdmin::create([
                     'vendor_id' => $vendor->id,
                     'name' => $vendor->business_name ?? $vendor->store_name,
                     'email' => $vendor->email,
                     'password' => Hash::make(Str::random(12)),
-                    'role' => VendorAdminRole::Owner,
+                    'role' => 'vendor_owner',
+                    'is_owner' => true,
                     'is_active' => true,
                 ]);
+                $owner->assignRole('vendor_owner');
             }
 
             // 5. Dispatch welcome job

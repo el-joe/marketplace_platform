@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\VendorAdminRole;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -26,6 +25,7 @@ class VendorAdmin extends Authenticatable implements JWTSubject
         'email',
         'password',
         'role',
+        'is_owner',
         'is_active',
         'email_verified_at',
         'last_login_at',
@@ -43,8 +43,8 @@ class VendorAdmin extends Authenticatable implements JWTSubject
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'is_active' => 'boolean',
+            'is_owner' => 'boolean',
             'password' => 'hashed',
-            'role' => VendorAdminRole::class,
         ];
     }
 
@@ -88,7 +88,7 @@ class VendorAdmin extends Authenticatable implements JWTSubject
 
     public function isOwner(): bool
     {
-        return $this->role === VendorAdminRole::Owner;
+        return $this->is_owner;
     }
 
     // ── JWTSubject ─────────────────────────────────────────────────────────────

@@ -27,6 +27,7 @@
                 ['label_ar' => 'النمو باستخدام التحليلات', 'label_en' => 'Scale with Insights', 'route' => route('portal.smart-tools') . '#insights'],
             ]
         ],
+        ['block' => 'link_blog', 'label_ar' => 'المدونة', 'label_en' => 'Blog', 'route' => 'portal.blog.index'],
     ];
     foreach ($navLinks as $i => $l) {
         $navLinks[$i]['label'] = portal_content('nav', $l['block'], 'label', $l['label_en'], $l['label_ar']);

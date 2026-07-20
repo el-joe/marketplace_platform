@@ -54,6 +54,10 @@ class VendorPermissionSeeder extends Seeder
             'settings.view',
             'settings.edit',
             'documents.upload',
+            'roles.view',
+            'roles.create',
+            'roles.edit',
+            'roles.delete',
         ];
 
         foreach ($permissions as $name) {

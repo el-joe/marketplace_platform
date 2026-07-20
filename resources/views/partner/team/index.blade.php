@@ -18,6 +18,18 @@
 @endpush
 
 @section('content')
+    @php
+        $roleColors = [
+            'vendor_owner' => 'bg-purple-100 text-purple-700',
+            'vendor_manager' => 'bg-blue-100 text-blue-700',
+            'vendor_staff' => 'bg-gray-100 text-gray-600',
+        ];
+        $roleLabels = [
+            'vendor_owner' => __('partner.team.role_owner'),
+            'vendor_manager' => __('partner.team.role_manager'),
+            'vendor_staff' => __('partner.team.role_staff'),
+        ];
+    @endphp
     <div class="px-4 py-6 sm:px-6 lg:px-8" x-data="{ showInviteModal: false }">
 
         {{-- Page header --}}
@@ -65,18 +77,6 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100" id="team-tbody">
                     @forelse ($members as $member)
-                        @php
-                            $roleColors = [
-                                'owner' => 'bg-purple-100 text-purple-700',
-                                'manager' => 'bg-blue-100 text-blue-700',
-                                'staff' => 'bg-gray-100 text-gray-600',
-                            ];
-                            $roleLabels = [
-                                'owner' => __('partner.team.role_owner'),
-                                'manager' => __('partner.team.role_manager'),
-                                'staff' => __('partner.team.role_staff'),
-                            ];
-                        @endphp
                         <tr class="hover:bg-gray-50 transition-colors" id="member-row-{{ $member->id }}">
                             {{-- Name / Email --}}
                             <td class="px-6 py-4">
@@ -100,8 +100,8 @@
                             {{-- Role --}}
                             <td class="px-6 py-4">
                                 <span
-                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $roleColors[$member->role?->value] ?? 'bg-gray-100 text-gray-600' }}">
-                                    {{ $roleLabels[$member->role?->value] ?? $member->role?->value }}
+                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $roleColors[$member->role] ?? 'bg-gray-100 text-gray-600' }}">
+                                    {{ $roleLabels[$member->role] ?? $member->role }}
                                 </span>
                             </td>
 
@@ -129,8 +129,11 @@
                                                     @unless ($member->id === $admin->id)
                                                         <select class="select-change-role text-xs font-medium rounded-lg border border-gray-300 px-2 py-1.5 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                                                             data-id="{{ $member->id }}">
-                                                            <option value="manager" @selected($member->role?->value === 'manager')>{{ __('partner.team.role_manager') }}</option>
-                                                            <option value="staff" @selected($member->role?->value === 'staff')>{{ __('partner.team.role_staff') }}</option>
+                                                            @foreach ($assignableRoles as $roleName)
+                                                                <option value="{{ $roleName }}" @selected($member->role === $roleName)>
+                                                                    {{ $roleLabels[$roleName] ?? $roleName }}
+                                                                </option>
+                                                            @endforeach
                                                         </select>
                                                     @endunless
 
@@ -212,8 +215,11 @@
                                     class="text-red-500">*</span></label>
                             <select name="role"
                                 class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                                <option value="manager">{{ __('partner.team.role_manager') }}</option>
-                                <option value="staff">{{ __('partner.team.role_staff') }}</option>
+                                @foreach ($assignableRoles as $roleName)
+                                    <option value="{{ $roleName }}">
+                                        {{ $roleLabels[$roleName] ?? $roleName }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>

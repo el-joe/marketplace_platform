@@ -192,6 +192,33 @@
                 </div>
             </div>
 
+            {{-- Vendor scope restriction card --}}
+            @if($isEdit && !$model->hasRole('super_admin'))
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+                    <div class="px-5 py-4 border-b border-gray-100">
+                        <h2 class="text-sm font-semibold text-gray-900">Vendor Scope Restriction</h2>
+                    </div>
+                    <div class="px-5 py-4">
+                        <label class="flex items-start gap-2.5 cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                name="vendors_assigned_only"
+                                value="1"
+                                {{ old('vendors_assigned_only', $vendorsAssignedOnly ?? false) ? 'checked' : '' }}
+                                class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            >
+                            <span class="text-sm text-gray-700 group-hover:text-gray-900">
+                                Restrict this admin to see only their assigned vendors
+                            </span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-2">
+                            When enabled, this admin will only see vendors where they are set
+                            as the Account Manager, with financial details hidden.
+                        </p>
+                    </div>
+                </div>
+            @endif
+
             {{-- Effective permissions card --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">

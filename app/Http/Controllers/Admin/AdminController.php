@@ -9,6 +9,7 @@ use App\Enums\AdminStatus;
 use App\Models\Admin;
 use App\Models\AdminLoginSession;
 use App\Models\Country;
+use App\Services\ActivityLoggerService;
 use App\Traits\HasDataTable;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -25,6 +26,10 @@ use Spatie\Permission\Models\Role;
 class AdminController extends Controller
 {
     use HasDataTable;
+
+    public function __construct(private readonly ActivityLoggerService $activityLogger)
+    {
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Index
@@ -185,6 +190,7 @@ class AdminController extends Controller
             'model' => $admin,
             'allRoles' => Role::where('guard_name', 'admin')->with('permissions')->orderBy('name')->get(),
             'countries' => Country::orderBy('name_en')->get(['id', 'name_en']),
+            'vendorsAssignedOnly' => $admin->hasDirectPermission('vendors.assigned_only'),
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
                 ['label' => 'Administrators', 'url' => route('admin.admins.index')],
@@ -219,6 +225,8 @@ class AdminController extends Controller
             ]);
 
             $admin->syncRoles($request->roles);
+            $this->syncDirectPermissions($admin, $request);
+
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -227,6 +235,40 @@ class AdminController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Syncs the small whitelist of directly-assignable (non-role) permissions.
+     * The UI can only ever grant permissions on this whitelist — never system
+     * permissions, and never for a super_admin (it's a restriction, not a grant).
+     */
+    private function syncDirectPermissions(Admin $admin, UpdateAdminRequest $request): void
+    {
+        $whitelist = ['vendors.assigned_only'];
+
+        $requested = collect($whitelist)
+            ->filter(fn ($p) => $request->boolean('vendors_assigned_only') && $p === 'vendors.assigned_only')
+            ->values()
+            ->all();
+
+        if ($admin->hasRole('super_admin')) {
+            $requested = [];
+        }
+
+        $hadPermission = $admin->hasDirectPermission('vendors.assigned_only');
+        $willHavePermission = in_array('vendors.assigned_only', $requested, true);
+
+        $admin->syncPermissions($requested);
+
+        if ($hadPermission !== $willHavePermission) {
+            $this->activityLogger->log(
+                description: 'vendors.assigned_only ' . ($willHavePermission ? 'granted' : 'revoked'),
+                subject: $admin,
+                causer: auth('admin')->user(),
+                logName: 'admin_permissions',
+                event: 'admin_permission_changed',
+            );
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────

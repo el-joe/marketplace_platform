@@ -13,14 +13,18 @@ class TeamService
     {
         $tempPassword = Str::random(16);
 
+        $roleName = 'vendor_' . $data['role'];
+
         $member = VendorAdmin::create([
             'vendor_id' => $vendor->id,
             'name'      => $data['name'],
             'email'     => $data['email'],
             'password'  => Hash::make($tempPassword),
-            'role'      => $data['role'],
+            'role'      => $roleName,
             'is_active' => true,
         ]);
+
+        $member->assignRole($roleName);
 
         // Queue invite email with password-set link.
         // SendVendorTeamInviteJob::dispatch($member, $tempPassword);

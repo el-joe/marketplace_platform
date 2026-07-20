@@ -53,6 +53,7 @@ class PermissionSeeder extends Seeder
             'vendors.documents.verify',
             'vendors.strikes.issue',
             'vendors.payouts.hold',
+            'vendors.assigned_only',
             // Orders
             'orders.view',
             'orders.cancel',

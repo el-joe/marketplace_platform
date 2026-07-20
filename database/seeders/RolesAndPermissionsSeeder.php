@@ -39,7 +39,9 @@ class RolesAndPermissionsSeeder extends Seeder
             [
                 'name'        => 'super_admin',
                 'guard'       => 'admin',
-                'permissions' => $adminPermissions,
+                // vendors.assigned_only is a manually-granted restriction, never a
+                // system-role grant — excluded even from the otherwise-full super_admin set.
+                'permissions' => array_values(array_diff($adminPermissions, ['vendors.assigned_only'])),
             ],
             [
                 'name'  => 'operations_admin',

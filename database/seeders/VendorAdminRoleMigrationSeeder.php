@@ -30,7 +30,7 @@ class VendorAdminRoleMigrationSeeder extends Seeder
                         continue;
                     }
 
-                    $roleValue = $vendorAdmin->role?->value ?? $vendorAdmin->getRawOriginal('role');
+                    $roleValue = $vendorAdmin->getRawOriginal('role');
                     $roleName = $roleMap[$roleValue] ?? null;
 
                     if (! $roleName) {
@@ -38,6 +38,10 @@ class VendorAdminRoleMigrationSeeder extends Seeder
                     }
 
                     $vendorAdmin->assignRole($roleName);
+                    $vendorAdmin->update([
+                        'role' => $roleName,
+                        'is_owner' => $roleValue === 'owner',
+                    ]);
                 }
             });
         });

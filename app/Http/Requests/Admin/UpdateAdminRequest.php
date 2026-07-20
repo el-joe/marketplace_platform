@@ -26,6 +26,7 @@ class UpdateAdminRequest extends FormRequest
             'status' => ['required', Rule::enum(AdminStatus::class)],
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', 'exists:roles,name'],
+            'vendors_assigned_only' => ['sometimes', 'boolean'],
         ];
     }
 }

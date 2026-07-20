@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\VendorAdminRole;
 use App\Models\Coupon;
 use App\Models\VendorAdmin;
 use App\Services\Vendor\CouponService;
@@ -12,16 +11,12 @@ use App\Services\Vendor\CouponService;
  * admin-facing policy bound for the default guard. Vendor controllers
  * invoke this policy's methods directly instead.
  *
- * There is no general permission system for the vendor guard (VendorAdmin
- * only carries a plain owner/manager/staff role enum). Coupons touch
- * pricing/discounting directly, so — unlike most other vendor modules,
- * which are open to any role — mutation is restricted to owner/manager;
- * staff get read-only access.
+ * Coupons touch pricing/discounting directly, so — unlike most other vendor
+ * modules, which are open to any role — mutation requires the
+ * 'promotions.create' permission.
  */
 class VendorCouponPolicy
 {
-    private const MANAGE_ROLES = [VendorAdminRole::Owner, VendorAdminRole::Manager];
-
     public function viewAny(VendorAdmin $actor): bool
     {
         return true;
@@ -55,6 +50,6 @@ class VendorCouponPolicy
 
     private function canManage(VendorAdmin $actor): bool
     {
-        return in_array($actor->role, self::MANAGE_ROLES, true);
+        return $actor->can('promotions.create');
     }
 }

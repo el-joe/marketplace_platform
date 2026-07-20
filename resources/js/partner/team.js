@@ -228,8 +228,8 @@ function appendMemberRow(member) {
     // Remove empty state row if present
     tbody.querySelectorAll('tr td[colspan]').forEach(td => td.closest('tr').remove());
 
-    const roleLabelMap = { manager: 'مدير', staff: 'موظف' };
-    const roleColorMap = { manager: 'bg-blue-100 text-blue-700', staff: 'bg-gray-100 text-gray-600' };
+    const roleLabelMap = { vendor_owner: 'مالك', vendor_manager: 'مدير', vendor_staff: 'موظف' };
+    const roleColorMap = { vendor_owner: 'bg-purple-100 text-purple-700', vendor_manager: 'bg-blue-100 text-blue-700', vendor_staff: 'bg-gray-100 text-gray-600' };
 
     const tr = document.createElement('tr');
     tr.id = `member-row-${member.id}`;

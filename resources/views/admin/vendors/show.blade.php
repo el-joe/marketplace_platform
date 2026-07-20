@@ -517,7 +517,7 @@
                                     @php
                                         $roleSlug = $member->roles->first()?->name
                                             ? str_replace('vendor_', '', $member->roles->first()->name)
-                                            : $member->role?->value;
+                                            : $member->role;
                                     @endphp
                                     <tr class="hover:bg-gray-50/50 {{ $member->trashed() ? 'opacity-60' : '' }}">
                                         <td class="py-3 pr-4 font-medium text-gray-900">{{ $member->name }}</td>

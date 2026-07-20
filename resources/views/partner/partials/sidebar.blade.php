@@ -98,6 +98,9 @@
             @if ($vendorAdmin?->can('team.view'))
                 <x-partner-nav-item route="partner.team.index" icon="users" label="{{ __('partner.nav.team') }}" />
             @endif
+            @if ($vendorAdmin?->can('roles.view'))
+                <x-partner-nav-item route="partner.roles.index" icon="shield-check" label="{{ __('partner.nav.roles') }}" />
+            @endif
             <x-partner-nav-item route="partner.bank-accounts.index" icon="building-library" label="{{ __('partner.nav.bank_accounts') }}" />
             <x-partner-nav-item route="partner.documents.index" icon="document-check" label="{{ __('partner.nav.documents') }}" />
         </x-partner-nav-group>

@@ -8,7 +8,7 @@ class VendorAdminPolicy
 {
     public function manageTeam(VendorAdmin $actor): bool
     {
-        return in_array($actor->role, ['owner', 'manager'], true);
+        return $actor->can('team.manage');
     }
 
     public function mutateTeamMember(VendorAdmin $actor, VendorAdmin $target): bool
@@ -17,6 +17,6 @@ class VendorAdminPolicy
             return false;
         }
 
-        return in_array($actor->role, ['owner', 'manager'], true);
+        return $actor->can('team.manage');
     }
 }
