@@ -32,7 +32,7 @@ class BookingController extends Controller
 
     private function agencyId(): string
     {
-        return Auth::guard('travel_agency')->id();
+        return Auth::guard('travel_agency')->user()->travel_agency_id;
     }
 
     // ── Customer search (AJAX) ────────────────────────────────────────────────
@@ -225,8 +225,8 @@ class BookingController extends Controller
 
         $booking->loadMissing('customer');
 
-        /** @var TravelAgency $agency */
-        $agency = Auth::guard('travel_agency')->user();
+        /** @var \App\Models\TravelAgencyMember $agencyMember */
+        $agencyMember = Auth::guard('travel_agency')->user();
 
         if ($newStatus === TravelBookingStatus::Confirmed) {
             $booking->customer?->notify(new TravelBookingConfirmed($booking));
@@ -240,7 +240,7 @@ class BookingController extends Controller
             'subject_type' => TravelBooking::class,
             'subject_id'   => $booking->id,
             'causer_type'  => TravelAgency::class,
-            'causer_id'    => $agency->id,
+            'causer_id'    => $agencyMember->travel_agency_id,
             'event'        => $newStatus->value,
             'properties'   => json_encode(array_filter(['cancellation_reason' => $cancellationReason])),
             'ip_address'   => $request->ip(),

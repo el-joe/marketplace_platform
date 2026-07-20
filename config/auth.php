@@ -74,10 +74,10 @@ return [
             'driver' => 'jwt',
             'provider' => 'marketers',
         ],
-        // Travel agency portal
+        // Travel agency portal (session-based login for the agency owner + team members)
         'travel_agency' => [
             'driver' => 'session',
-            'provider' => 'travel_agencies',
+            'provider' => 'travel_agency_members',
         ],
         // Travel agency mobile/API (JWT)
         'travel_agencies' => [
@@ -138,6 +138,10 @@ return [
             'driver' => 'eloquent',
             'model' => \App\Models\TravelAgency::class,
         ],
+        'travel_agency_members' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\TravelAgencyMember::class,
+        ],
         'shipping_supervisors' => [
             'driver' => 'eloquent',
             'model' => \App\Models\ShippingCompanySupervisor::class,
@@ -191,6 +195,12 @@ return [
         'travel_agencies' => [
             'provider' => 'travel_agencies',
             'table' => 'travel_agency_password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'travel_agency_members' => [
+            'provider' => 'travel_agency_members',
+            'table' => 'travel_agency_member_password_resets',
             'expire' => 60,
             'throttle' => 60,
         ],

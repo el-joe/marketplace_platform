@@ -68,6 +68,11 @@ class TravelAgency extends Authenticatable implements JWTSubject
         return $this->hasMany(TravelPackage::class);
     }
 
+    public function travelAgencyMembers(): HasMany
+    {
+        return $this->hasMany(TravelAgencyMember::class);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     public function isActive(): bool

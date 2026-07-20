@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\TravelAgencyPortal\AuthController;
 use App\Http\Controllers\TravelAgencyPortal\BookingController;
+use App\Http\Controllers\TravelAgencyPortal\CampaignController;
 use App\Http\Controllers\TravelAgencyPortal\DashboardController;
 use App\Http\Controllers\TravelAgencyPortal\PackageController;
 use App\Http\Controllers\TravelAgencyPortal\PackageInquiryController;
 use App\Http\Controllers\TravelAgencyPortal\ProfileController;
+use App\Http\Controllers\TravelAgencyPortal\RoleController;
+use App\Http\Controllers\TravelAgencyPortal\TeamController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +81,22 @@ Route::name('travel-agency.')
                 Route::patch('/{booking}/status', [BookingController::class, 'updateStatus'])->name('status');
             });
 
+            // Campaign Offers
+            Route::prefix('campaigns')->name('campaigns.')->group(function () {
+                Route::get('/',                                   [CampaignController::class, 'index'])->name('index');
+                Route::get('/create',                              [CampaignController::class, 'create'])->name('create');
+                Route::post('/',                                   [CampaignController::class, 'store'])->name('store');
+                Route::get('/marketers/search',                    [CampaignController::class, 'searchMarketers'])->name('marketers.search');
+                Route::get('/packages/search',                     [CampaignController::class, 'searchPackages'])->name('packages.search');
+                Route::get('/{offer}',                             [CampaignController::class, 'show'])->name('show');
+                Route::post('/{offer}/submit',                     [CampaignController::class, 'submitForReview'])->name('submit');
+                Route::post('/{offer}/pause',                      [CampaignController::class, 'pauseOffer'])->name('pause');
+                Route::post('/{offer}/resume',                     [CampaignController::class, 'resumeOffer'])->name('resume');
+                Route::delete('/{offer}',                          [CampaignController::class, 'destroy'])->name('destroy');
+                Route::post('/{offer}/invite',                     [CampaignController::class, 'invite'])->name('invite');
+                Route::delete('/invitations/{invitation}/revoke',  [CampaignController::class, 'revokeInvitation'])->name('invitations.revoke');
+            });
+
             // Package Inquiries (lead management)
             Route::prefix('inquiries')->name('inquiries.')->group(function () {
                 Route::get('/', [PackageInquiryController::class, 'index'])->name('index');
@@ -90,5 +109,25 @@ Route::name('travel-agency.')
             Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
             Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
             Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+            // Team management
+            Route::prefix('team')->name('team.')->controller(TeamController::class)->group(function () {
+                Route::get('/', 'index')->name('index')->middleware('travel_agency.can:team.view');
+                Route::post('/', 'store')->name('store')->middleware('travel_agency.can:team.invite');
+                Route::put('/{member}/role', 'updateRole')->name('update-role')->middleware('travel_agency.can:team.manage');
+                Route::post('/{member}/toggle-active', 'toggleActive')->name('toggle-active')->middleware('travel_agency.can:team.manage');
+                Route::delete('/{member}', 'destroy')->name('destroy')->middleware('travel_agency.can:team.manage');
+            });
+
+            // Roles & permissions
+            Route::prefix('roles')->name('roles.')->controller(RoleController::class)->group(function () {
+                Route::get('/', 'index')->name('index')->middleware('travel_agency.can:roles.view');
+                Route::get('/permissions', 'permissions')->name('permissions')->middleware('travel_agency.can:roles.view');
+                Route::get('/create', 'create')->name('create')->middleware('travel_agency.can:roles.create');
+                Route::post('/', 'store')->name('store')->middleware('travel_agency.can:roles.create');
+                Route::get('/{role}/edit', 'edit')->name('edit')->middleware('travel_agency.can:roles.edit');
+                Route::put('/{role}', 'update')->name('update')->middleware('travel_agency.can:roles.edit');
+                Route::delete('/{role}', 'destroy')->name('destroy')->middleware('travel_agency.can:roles.delete');
+            });
         });
     });

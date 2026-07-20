@@ -94,10 +94,15 @@ export default defineConfig({
                 'resources/js/partner/classifieds.js',
                 'resources/js/partner/city-surcharges.js',
                 'resources/js/partner/roles.js',
+                'resources/js/partner/campaign-offers.js',
                 'resources/js/vendor/coupons.js',
                 // Delivery Agent Panel (delivery.noon.loc)
                 'resources/js/delivery/app.js',
-                'resources/js/marketer/app.js'
+                'resources/js/marketer/app.js',
+                // Travel Agency Portal (travel-agency subdomain)
+                'resources/js/travel_agency/campaigns.js',
+                'resources/js/travel_agency/team.js',
+                'resources/js/travel_agency/roles.js',
             ],
             refresh: [
                 'resources/views/**',

@@ -21,7 +21,7 @@ class PackageInquiryController extends Controller
 
     private function agencyId(): string
     {
-        return Auth::guard('travel_agency')->id();
+        return Auth::guard('travel_agency')->user()->travel_agency_id;
     }
 
     private function authorise(TravelPackageInquiry $inquiry): void

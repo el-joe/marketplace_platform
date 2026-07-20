@@ -52,6 +52,10 @@ class DatabaseSeeder extends Seeder
             DeliveryAgentSeeder::class,
             TravelAgencySeeder::class,
 
+                // ── Travel agency guard permissions & role migration ────────────
+            TravelAgencyPermissionSeeder::class,
+            TravelAgencyMemberRoleMigrationSeeder::class,
+
                 // ── Products (needs vendor data from VendorSeeder above) ───────
             ProductSeeder::class,
 

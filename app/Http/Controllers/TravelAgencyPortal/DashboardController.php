@@ -16,64 +16,64 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        $agency = Auth::guard('travel_agency')->user();
+        $agencyId = Auth::guard('travel_agency')->user()->travel_agency_id;
 
-        $packageCounts = TravelPackage::where('travel_agency_id', $agency->id)
+        $packageCounts = TravelPackage::where('travel_agency_id', $agencyId)
             ->selectRaw('status, COUNT(*) as cnt')
             ->groupBy('status')
             ->pluck('cnt', 'status');
 
         // Booking stats scoped to this agency's packages
         $bookingStats = TravelBooking::query()
-            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
             ->selectRaw('COUNT(*) as total, SUM(total_price) as revenue')
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->first();
 
         $totalBookings = TravelBooking::query()
-            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
             ->count();
 
         $pendingBookings = TravelBooking::query()
-            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
             ->where('status', TravelBookingStatus::PendingDocuments)
             ->count();
 
         $confirmedBookings = TravelBooking::query()
-            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
             ->where('status', TravelBookingStatus::Confirmed)
             ->count();
 
         $newInquiries = TravelPackageInquiry::query()
-            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
             ->where('status', TravelPackageInquiryStatus::New)
             ->count();
 
         // Revenue grouped by currency — never sum across currencies.
         $revenueByCurrency = TravelBooking::query()
             ->join('travel_packages', 'travel_packages.id', '=', 'travel_bookings.travel_package_id')
-            ->where('travel_packages.travel_agency_id', $agency->id)
+            ->where('travel_packages.travel_agency_id', $agencyId)
             ->whereIn('travel_bookings.status', [TravelBookingStatus::Confirmed, TravelBookingStatus::Completed])
             ->selectRaw('travel_packages.currency as currency, SUM(travel_bookings.total_price) as total')
             ->groupBy('travel_packages.currency')
             ->pluck('total', 'currency');
 
-        $recentPackages = TravelPackage::where('travel_agency_id', $agency->id)
+        $recentPackages = TravelPackage::where('travel_agency_id', $agencyId)
             ->with('media')
             ->latest()
             ->limit(5)
             ->get();
 
         $recentBookings = TravelBooking::query()
-            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
             ->with(['package', 'customer'])
             ->latest()
             ->limit(5)
             ->get();
 
         $recentInquiries = TravelPackageInquiry::query()
-            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agency->id))
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
             ->where('status', TravelPackageInquiryStatus::New)
             ->with('package')
             ->latest()

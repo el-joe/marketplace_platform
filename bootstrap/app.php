@@ -78,6 +78,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'marketer.api.active' => \App\Http\Middleware\MarketerApiActive::class,
             'track.marketer.click' => \App\Http\Middleware\TrackMarketerClick::class,
             'auth.travel_agency' => \App\Http\Middleware\TravelAgencyAuth::class,
+            'travel_agency.can' => \App\Http\Middleware\TravelAgencyPermissionMiddleware::class,
             'auth.carrier' => \App\Http\Middleware\ShippingCompanySupervisorAuth::class,
             'carrier.api.auth' => \App\Http\Middleware\CarrierApiAuth::class,
             'carrier.api.active' => \App\Http\Middleware\CarrierApiActive::class,

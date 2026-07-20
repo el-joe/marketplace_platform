@@ -14,14 +14,14 @@ class ProfileController extends Controller
 {
     public function edit(): View
     {
-        $agency = Auth::guard('travel_agency')->user();
+        $agency = Auth::guard('travel_agency')->user()->travelAgency;
 
         return view('travel-agency.profile.edit', compact('agency'));
     }
 
     public function update(Request $request): RedirectResponse
     {
-        $agency = Auth::guard('travel_agency')->user();
+        $agency = Auth::guard('travel_agency')->user()->travelAgency;
 
         $data = $request->validate([
             'name'           => ['required', 'string', 'max:255'],
@@ -46,18 +46,18 @@ class ProfileController extends Controller
 
     public function updatePassword(Request $request): RedirectResponse
     {
-        $agency = Auth::guard('travel_agency')->user();
+        $member = Auth::guard('travel_agency')->user();
 
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
             'password'          => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        if (!Hash::check($validated['current_password'], $agency->password)) {
+        if (!Hash::check($validated['current_password'], $member->password)) {
             return back()->withErrors(['current_password' => 'كلمة المرور الحالية غير صحيحة.']);
         }
 
-        $agency->update(['password' => Hash::make($validated['password'])]);
+        $member->update(['password' => Hash::make($validated['password'])]);
 
         return back()->with('success', 'تم تحديث كلمة المرور بنجاح.');
     }
