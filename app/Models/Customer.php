@@ -25,6 +25,10 @@ class Customer extends Authenticatable implements JWTSubject
         'password',
         'country_id',
         'status',
+        'locale',
+        'marketing_email_enabled',
+        'marketing_sms_enabled',
+        'marketing_whatsapp_enabled',
         'date_of_birth',
         'last_login_at',
         'last_login_ip',
@@ -48,6 +52,9 @@ class Customer extends Authenticatable implements JWTSubject
             'total_spent' => 'decimal:2',
             'password' => 'hashed',
             'status' => CustomerStatus::class,
+            'marketing_email_enabled' => 'boolean',
+            'marketing_sms_enabled' => 'boolean',
+            'marketing_whatsapp_enabled' => 'boolean',
         ];
     }
 

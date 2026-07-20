@@ -365,6 +365,8 @@ Route::prefix('v1/{country}')
                 Route::patch('{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
                 Route::post('device-token', [NotificationController::class, 'registerDevice'])->name('device-token.store');
                 Route::delete('device-token', [NotificationController::class, 'removeDevice'])->name('device-token.destroy');
+                Route::get('preferences', [NotificationController::class, 'preferences'])->name('preferences.show');
+                Route::put('preferences', [NotificationController::class, 'updatePreferences'])->name('preferences.update');
             });
 
             // Account dashboard

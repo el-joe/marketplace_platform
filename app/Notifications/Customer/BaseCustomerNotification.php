@@ -30,13 +30,17 @@ abstract class BaseCustomerNotification extends BaseDatabaseBroadcastNotificatio
     public function toMail(object $notifiable): MailMessage
     {
         $data = $this->notificationData($notifiable);
+        $locale = $notifiable->locale ?? 'ar';
+
+        $title = $locale === 'ar' ? ($data['title_ar'] ?? $data['title'] ?? 'إشعار') : ($data['title'] ?? 'Notification');
+        $message = $locale === 'ar' ? ($data['message_ar'] ?? $data['message'] ?? '') : ($data['message'] ?? '');
 
         $mail = (new MailMessage)
-            ->subject($data['title'] ?? 'Notification')
-            ->line($data['message'] ?? '');
+            ->subject($title)
+            ->line($message);
 
         if (!empty($data['url'])) {
-            $mail->action('View Details', $data['url']);
+            $mail->action($locale === 'ar' ? 'عرض التفاصيل' : 'View Details', $data['url']);
         }
 
         return $mail;

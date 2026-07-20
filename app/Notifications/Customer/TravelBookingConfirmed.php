@@ -20,7 +20,9 @@ class TravelBookingConfirmed extends BaseCustomerNotification
 
         return [
             'title'          => 'Booking Confirmed',
+            'title_ar'       => 'تم تأكيد الحجز',
             'message'        => "Your travel booking #{$this->booking->booking_number} for \"{$this->booking->package->title}\" has been confirmed.",
+            'message_ar'     => "تم تأكيد حجز السفر رقم #{$this->booking->booking_number} الخاص بـ \"{$this->booking->package->title}\".",
             'url'            => route('customer.account.travel-bookings.show', ['country' => $notifiable->country?->site_code, 'id' => $this->booking->id]),
             'booking_id'     => $this->booking->id,
             'booking_number' => $this->booking->booking_number,

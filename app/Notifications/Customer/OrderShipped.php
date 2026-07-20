@@ -20,8 +20,11 @@ class OrderShipped extends BaseCustomerNotification
 
         return [
             'title'            => 'Order Shipped',
+            'title_ar'         => 'تم شحن الطلب',
             'message'          => "Your order #{$this->subOrder->sub_order_number} is on its way!"
                 . ($tracking ? " Tracking number: {$tracking}." : ''),
+            'message_ar'       => "طلبك رقم #{$this->subOrder->sub_order_number} في الطريق إليك!"
+                . ($tracking ? " رقم التتبع: {$tracking}." : ''),
             'url'              => route('customer.orders.show', $this->subOrder->order->order_number),
             'sub_order_id'     => $this->subOrder->id,
             'sub_order_number' => $this->subOrder->sub_order_number,

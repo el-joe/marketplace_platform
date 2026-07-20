@@ -23,6 +23,12 @@ class CustomerResource extends JsonResource
             'email_verified' => $this->email_verified_at !== null,
             'phone_verified' => $this->phone_verified_at !== null,
             'member_since' => $this->created_at->toDateString(),
+            'locale' => $this->locale,
+            'marketing_preferences' => [
+                'email' => $this->marketing_email_enabled,
+                'sms' => $this->marketing_sms_enabled,
+                'whatsapp' => $this->marketing_whatsapp_enabled,
+            ],
         ];
     }
 }

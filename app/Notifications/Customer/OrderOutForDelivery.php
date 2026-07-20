@@ -18,7 +18,9 @@ class OrderOutForDelivery extends BaseCustomerNotification
     {
         return [
             'title'            => 'Out for Delivery',
+            'title_ar'         => 'الطلب في الطريق إليك',
             'message'          => "Your order #{$this->subOrder->sub_order_number} is out for delivery today.",
+            'message_ar'       => "طلبك رقم #{$this->subOrder->sub_order_number} في الطريق إليك اليوم.",
             'url'              => route('customer.orders.show', $this->subOrder->order->order_number),
             'sub_order_id'     => $this->subOrder->id,
             'sub_order_number' => $this->subOrder->sub_order_number,

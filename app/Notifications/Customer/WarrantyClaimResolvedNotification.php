@@ -14,6 +14,13 @@ class WarrantyClaimResolvedNotification extends BaseCustomerNotification
         'no_action' => 'No Action',
     ];
 
+    private static array $resolutionLabelsAr = [
+        'repair' => 'إصلاح',
+        'replace' => 'استبدال',
+        'refund' => 'استرداد',
+        'no_action' => 'لا يوجد إجراء',
+    ];
+
     public function __construct(
         private readonly WarrantyClaim $warrantyClaim,
     ) {}
@@ -26,10 +33,13 @@ class WarrantyClaimResolvedNotification extends BaseCustomerNotification
     public function notificationData(object $notifiable): array
     {
         $resolutionLabel = self::$resolutionLabels[$this->warrantyClaim->resolution] ?? ucfirst((string) $this->warrantyClaim->resolution);
+        $resolutionLabelAr = self::$resolutionLabelsAr[$this->warrantyClaim->resolution] ?? $resolutionLabel;
 
         return [
             'title' => 'Warranty Claim Resolved',
+            'title_ar' => 'تم حل مطالبة الضمان',
             'message' => "Your warranty claim #{$this->warrantyClaim->claim_number} has been resolved: {$resolutionLabel}.",
+            'message_ar' => "تم حل مطالبة الضمان رقم #{$this->warrantyClaim->claim_number}: {$resolutionLabelAr}.",
             'url' => route('customer.warranty-claims.show', $this->warrantyClaim->id),
             'warranty_claim_id' => $this->warrantyClaim->id,
             'claim_number' => $this->warrantyClaim->claim_number,

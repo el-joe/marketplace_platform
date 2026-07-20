@@ -10,6 +10,7 @@ use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 /**
  * Notification data contract.
@@ -149,5 +150,63 @@ class NotificationController extends Controller
             ->update(['is_active' => false]);
 
         return ApiResponse::success(null, 'Device removed.');
+    }
+
+    public function preferences(): JsonResponse
+    {
+        $customer = auth('customer')->user();
+
+        return ApiResponse::success([
+            'locale' => $customer->locale,
+            'marketing_preferences' => [
+                'email' => $customer->marketing_email_enabled,
+                'sms' => $customer->marketing_sms_enabled,
+                'whatsapp' => $customer->marketing_whatsapp_enabled,
+            ],
+        ]);
+    }
+
+    public function updatePreferences(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'locale' => ['sometimes', 'string', Rule::in(config('app.available_locales', ['ar', 'en']))],
+            'marketing_preferences' => ['sometimes', 'array'],
+            'marketing_preferences.email' => ['sometimes', 'boolean'],
+            'marketing_preferences.sms' => ['sometimes', 'boolean'],
+            'marketing_preferences.whatsapp' => ['sometimes', 'boolean'],
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponse::error('Validation failed.', $validator->errors()->toArray());
+        }
+
+        $data = $validator->validated();
+        $customer = auth('customer')->user();
+
+        $update = [];
+        if (array_key_exists('locale', $data)) {
+            $update['locale'] = $data['locale'];
+        }
+        $prefs = $data['marketing_preferences'] ?? [];
+        if (array_key_exists('email', $prefs)) {
+            $update['marketing_email_enabled'] = $prefs['email'];
+        }
+        if (array_key_exists('sms', $prefs)) {
+            $update['marketing_sms_enabled'] = $prefs['sms'];
+        }
+        if (array_key_exists('whatsapp', $prefs)) {
+            $update['marketing_whatsapp_enabled'] = $prefs['whatsapp'];
+        }
+
+        $customer->update($update);
+
+        return ApiResponse::success([
+            'locale' => $customer->locale,
+            'marketing_preferences' => [
+                'email' => $customer->marketing_email_enabled,
+                'sms' => $customer->marketing_sms_enabled,
+                'whatsapp' => $customer->marketing_whatsapp_enabled,
+            ],
+        ], 'Notification preferences updated.');
     }
 }

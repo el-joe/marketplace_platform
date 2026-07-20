@@ -37,7 +37,9 @@ class ClassifiedInquiryReceived extends BaseDatabaseBroadcastNotification
 
         return [
             'title'      => 'New Inquiry on Your Listing',
+            'title_ar'   => 'استفسار جديد على إعلانك',
             'message'    => "You have received a new inquiry on \"{$listing->title}\".",
+            'message_ar' => "لقد تلقيت استفسارًا جديدًا على \"{$listing->title}\".",
             'url'        => $this->resolveListingUrl($notifiable),
             'inquiry_id' => $this->inquiry->id,
             'listing_id' => $listing->id,
@@ -69,11 +71,15 @@ class ClassifiedInquiryReceived extends BaseDatabaseBroadcastNotification
     public function toMail(object $notifiable): MailMessage
     {
         $data = $this->notificationData($notifiable);
+        $locale = $notifiable->locale ?? 'ar';
+
+        $title = $locale === 'ar' ? ($data['title_ar'] ?? $data['title']) : $data['title'];
+        $message = $locale === 'ar' ? ($data['message_ar'] ?? $data['message']) : $data['message'];
 
         return (new MailMessage)
-            ->subject($data['title'])
-            ->line($data['message'])
-            ->action('View Inquiry', $data['url']);
+            ->subject($title)
+            ->line($message)
+            ->action($locale === 'ar' ? 'عرض الاستفسار' : 'View Inquiry', $data['url']);
     }
 
     private function resolveListingUrl(object $notifiable): string

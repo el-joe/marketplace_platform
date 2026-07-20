@@ -16,6 +16,15 @@ class DisputeStatusChanged extends BaseCustomerNotification
         'closed'           => 'Closed',
     ];
 
+    private static array $statusLabelsAr = [
+        'open'             => 'مفتوح',
+        'seller_responded' => 'رد البائع',
+        'under_review'     => 'قيد المراجعة',
+        'escalated'        => 'تم التصعيد',
+        'resolved'         => 'تم الحل',
+        'closed'           => 'مغلق',
+    ];
+
     public function __construct(
         private readonly Dispute $dispute,
         private readonly string $previousStatus,
@@ -29,10 +38,13 @@ class DisputeStatusChanged extends BaseCustomerNotification
     public function notificationData(object $notifiable): array
     {
         $newLabel = self::$statusLabels[$this->dispute->status->value] ?? ucfirst($this->dispute->status->value);
+        $newLabelAr = self::$statusLabelsAr[$this->dispute->status->value] ?? $newLabel;
 
         return [
             'title'           => 'Dispute Update',
+            'title_ar'        => 'تحديث حالة النزاع',
             'message'         => "Your dispute #{$this->dispute->dispute_number} status changed to: {$newLabel}.",
+            'message_ar'      => "تم تغيير حالة نزاعك رقم #{$this->dispute->dispute_number} إلى: {$newLabelAr}.",
             'url'             => route('customer.disputes.show', $this->dispute->dispute_number),
             'dispute_id'      => $this->dispute->id,
             'dispute_number'  => $this->dispute->dispute_number,

@@ -18,7 +18,9 @@ class OrderConfirmed extends BaseCustomerNotification
     {
         return [
             'title'          => 'Order Confirmed',
+            'title_ar'       => 'تم تأكيد الطلب',
             'message'        => "Your order #{$this->subOrder->sub_order_number} has been confirmed and is being prepared.",
+            'message_ar'     => "تم تأكيد طلبك رقم #{$this->subOrder->sub_order_number} وجاري تجهيزه.",
             'url'            => route('customer.orders.show', $this->subOrder->order->order_number),
             'sub_order_id'   => $this->subOrder->id,
             'sub_order_number' => $this->subOrder->sub_order_number,

@@ -21,7 +21,9 @@ class SendOtpNotification extends BaseCustomerNotification
     {
         return [
             'title' => 'Your verification code',
+            'title_ar' => 'رمز التحقق الخاص بك',
             'message' => "Your {$this->purpose} code is {$this->otp}. It expires in 15 minutes.",
+            'message_ar' => "رمز التحقق الخاص بـ {$this->purpose} هو {$this->otp}. تنتهي صلاحيته خلال 15 دقيقة.",
         ];
     }
 

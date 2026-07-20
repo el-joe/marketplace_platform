@@ -21,18 +21,23 @@ class OrderRefundProcessed extends BaseCustomerNotification
         $netAmount = number_format($this->refund->net_refund / 100, 2);
 
         $message = "Refund of {$currency} {$netAmount} processed";
+        $messageAr = "تمت معالجة استرداد بقيمة {$currency} {$netAmount}";
         if ($this->refund->gateway_fee_deducted > 0) {
             $feeAmount = number_format(
                 ($this->refund->gateway_fee_deducted + $this->refund->tax_deducted) / 100,
                 2
             );
             $message .= " (gateway fee of {$currency} {$feeAmount} deducted)";
+            $messageAr .= " (بعد خصم رسوم بوابة الدفع {$currency} {$feeAmount})";
         }
         $message .= '.';
+        $messageAr .= '.';
 
         return [
             'title' => 'Refund Processed',
+            'title_ar' => 'تمت معالجة المبلغ المسترد',
             'message' => $message,
+            'message_ar' => $messageAr,
             'url' => route('customer.orders.show', $order->order_number),
             'refund_id' => $this->refund->id,
             'order_id' => $order->id,
