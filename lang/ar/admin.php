@@ -333,6 +333,8 @@ return [
         'app_contexts'          => 'سياقات التطبيق',
         'subscriptions'         => 'الاشتراكات',
         'packaging_supplies'    => 'مستلزمات التغليف',
+        'packaging_catalog'     => 'كتالوج مستلزمات التغليف',
+        'packaging_orders'      => 'طلبات مستلزمات التغليف',
         'carrier_claims'        => 'مطالبات الناقل',
         'carrier_scorecard'     => 'بطاقة أداء الناقل',
         'fbn'                   => 'FBN',

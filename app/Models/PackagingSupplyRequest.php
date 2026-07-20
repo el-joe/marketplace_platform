@@ -19,9 +19,12 @@ class PackagingSupplyRequest extends Model
         'status',
         'total_cost',
         'delivery_fee',
+        'currency',
         'notes',
         'approved_by_admin_id',
         'approved_at',
+        'shipped_at',
+        'delivered_at',
     ];
 
     protected function casts(): array
@@ -30,6 +33,8 @@ class PackagingSupplyRequest extends Model
             'total_cost'   => 'integer',
             'delivery_fee' => 'integer',
             'approved_at'        => 'datetime',
+            'shipped_at'         => 'datetime',
+            'delivered_at'       => 'datetime',
             'status'           => PackagingSupplyRequestStatus::class,
         ];
     }
@@ -62,14 +67,14 @@ class PackagingSupplyRequest extends Model
     {
         return $this->total_cost === 0
             ? 'Free'
-            : number_format($this->total_cost / 100, 2);
+            : number_format($this->total_cost / 100, 2) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
     }
 
     public function getDeliveryFeeFormattedAttribute(): string
     {
         return $this->delivery_fee === 0
             ? 'Free'
-            : number_format($this->delivery_fee / 100, 2);
+            : number_format($this->delivery_fee / 100, 2) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
     }
 
     public function getGrandTotalAttribute(): int
@@ -79,7 +84,7 @@ class PackagingSupplyRequest extends Model
 
     public function getGrandTotalFormattedAttribute(): string
     {
-        return number_format($this->grand_total / 100, 2);
+        return number_format($this->grand_total / 100, 2) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
     }
 
     public function isPending(): bool

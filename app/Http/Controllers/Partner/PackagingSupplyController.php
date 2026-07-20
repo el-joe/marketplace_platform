@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Partner;
 
 use App\Enums\PackagingSupplyRequestStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\PackagingSupply;
 use App\Models\PackagingSupplyRequest;
 use App\Models\PackagingSupplyRequestItem;
 use App\Models\Setting;
 use App\Models\Warehouse;
+use App\Notifications\Admin\NewPackagingOrderReceived;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class PackagingSupplyController extends Controller
@@ -66,9 +70,16 @@ class PackagingSupplyController extends Controller
 
         $totalCents = 0;
         $lineItems  = [];
+        $currency   = null;
 
         foreach ($data['items'] as $item) {
-            $supply    = $supplies[$item['supply_id']];
+            $supply = $supplies[$item['supply_id']];
+
+            if ($currency && $currency !== $supply->currency) {
+                abort(422, 'All items in a single order must use the same currency.');
+            }
+            $currency = $supply->currency;
+
             $lineCents = $supply->unit_cost * $item['quantity'];
             $totalCents += $lineCents;
 
@@ -81,19 +92,26 @@ class PackagingSupplyController extends Controller
             ];
         }
 
-        $supplyRequest = PackagingSupplyRequest::create([
-            'request_number'     => PackagingSupplyRequest::generateRequestNumber(),
-            'vendor_id'          => $vendor->vendor_id,
-            'warehouse_id'       => $data['warehouse_id'] ?? null,
-            'status'             => PackagingSupplyRequestStatus::Pending,
-            'total_cost'   => $totalCents,
-            'delivery_fee' => $this->resolveDeliveryFeeCents($vendor->vendor),
-            'notes'              => $data['notes'] ?? null,
-        ]);
+        $supplyRequest = DB::transaction(function () use ($vendor, $data, $lineItems, $totalCents, $currency) {
+            $supplyRequest = PackagingSupplyRequest::create([
+                'request_number'     => PackagingSupplyRequest::generateRequestNumber(),
+                'vendor_id'          => $vendor->vendor_id,
+                'warehouse_id'       => $data['warehouse_id'] ?? null,
+                'status'             => PackagingSupplyRequestStatus::Pending,
+                'total_cost'   => $totalCents,
+                'delivery_fee' => $this->resolveDeliveryFeeCents($vendor->vendor),
+                'currency'           => $currency,
+                'notes'              => $data['notes'] ?? null,
+            ]);
 
-        foreach ($lineItems as $line) {
-            $supplyRequest->items()->create($line);
-        }
+            foreach ($lineItems as $line) {
+                $supplyRequest->items()->create($line);
+            }
+
+            return $supplyRequest;
+        });
+
+        Notification::send(Admin::permission('packaging.manage')->get(), new NewPackagingOrderReceived($supplyRequest));
 
         return redirect()
             ->route('partner.packaging-supplies.my-requests')

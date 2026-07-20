@@ -3,44 +3,52 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Enums\PackagingSupplyRequestStatus;
-use App\Enums\PackagingSupplyType;
 use App\Models\PackagingSupply;
 use App\Models\PackagingSupplyRequest;
 use App\Models\Vendor;
+use App\Notifications\Vendor\PackagingOrderApproved;
+use App\Notifications\Vendor\PackagingOrderDelivered;
+use App\Notifications\Vendor\PackagingOrderRejected;
+use App\Notifications\Vendor\PackagingOrderShipped;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class PackagingSupplyController extends Controller
 {
     use HasDataTable;
 
+    private const CURRENCIES = ['AED', 'SAR', 'EGP', 'KWD', 'OMR', 'QAR', 'BHD', 'JOD'];
+    private const TYPES = ['box', 'bag', 'tape', 'label', 'bubble_wrap', 'other'];
+
     // ── Catalog ────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function catalog(): View
     {
-        return view('admin.packaging-supplies.index');
+        $supplies = PackagingSupply::orderBy('sort_order')->orderBy('name_en')->get();
+
+        return view('admin.packaging.catalog', compact('supplies'));
     }
 
-    public function datatable(Request $request): JsonResponse
+    public function datatableCatalog(Request $request): JsonResponse
     {
         $query = PackagingSupply::query();
 
         $query = $this->applyFilters($query, $request, [
-            'type' => fn($q, $v) => $q->where('type', $v),
-            'is_active' => fn($q, $v) => $q->where('is_active', (bool) $v),
+            'type' => fn ($q, $v) => $q->where('type', $v),
+            'is_active' => fn ($q, $v) => $q->where('is_active', (bool) $v),
         ]);
 
         $columns = [
             ['searchable_columns' => [], 'orderable_column' => null], // image
             ['searchable_columns' => ['name_en', 'name_ar'], 'orderable_column' => 'name_en'],
-            ['searchable_columns' => [], 'orderable_column' => 'type'],
-            ['searchable_columns' => [], 'orderable_column' => 'size'],
+            ['searchable_columns' => ['type'], 'orderable_column' => 'type'],
+            ['searchable_columns' => ['size'], 'orderable_column' => 'size'],
             ['searchable_columns' => [], 'orderable_column' => 'unit_cost'],
             ['searchable_columns' => [], 'orderable_column' => 'stock_available'],
             ['searchable_columns' => [], 'orderable_column' => 'is_active'],
@@ -48,7 +56,7 @@ class PackagingSupplyController extends Controller
         ];
 
         if (!$query->getQuery()->orders) {
-            $query->orderByDesc('created_at');
+            $query->orderBy('sort_order')->orderBy('name_en');
         }
 
         return $this->dataTableResponse($request, $query, $columns, function (PackagingSupply $row) {
@@ -61,23 +69,18 @@ class PackagingSupplyController extends Controller
                 . '<div class="text-xs text-gray-400 truncate max-w-xs" dir="rtl">' . e($row->name_ar) . '</div>'
                 . '</div>';
 
-            $typeBadge = '<span class="badge ' . $row->typeBadgeClass() . '">' . e($row->type->label()) . '</span>';
+            $typeBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ' . $row->typeBadgeClass() . '">' . e($row->type->label()) . '</span>';
 
             $stockHtml = $row->stock_available !== null ? number_format($row->stock_available) : '&infin;';
 
-            $statusBadge = $row->is_active
-                ? '<span class="badge bg-green-100 text-green-800">Active</span>'
-                : '<span class="badge bg-gray-100 text-gray-600">Inactive</span>';
-
-            $editUrl = route('admin.packaging-supplies.edit', $row->id);
-            $deleteUrl = route('admin.packaging-supplies.destroy', $row->id);
+            $statusToggle = '<button type="button" class="js-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none '
+                . ($row->is_active ? 'bg-emerald-500' : 'bg-gray-200') . '" data-id="' . $row->id . '" data-active="' . ($row->is_active ? '1' : '0') . '">'
+                . '<span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform '
+                . ($row->is_active ? 'translate-x-4' : 'translate-x-0.5') . '"></span></button>';
 
             $actionsHtml = '<div class="flex justify-end gap-3">'
-                . '<a href="' . $editUrl . '" class="text-primary-600 hover:underline text-xs font-medium">Edit</a>'
-                . '<form method="POST" action="' . $deleteUrl . '" class="btn-delete-form inline">'
-                . csrf_field() . method_field('DELETE')
-                . '<button type="submit" class="text-red-500 hover:underline text-xs font-medium">Delete</button>'
-                . '</form>'
+                . '<button type="button" class="js-edit-item text-primary-600 hover:underline text-xs font-medium" data-item="' . e(json_encode($row)) . '">Edit</button>'
+                . '<button type="button" class="js-delete-item text-red-500 hover:underline text-xs font-medium" data-id="' . $row->id . '" data-name="' . e($row->name_en) . '">Delete</button>'
                 . '</div>';
 
             return [
@@ -87,241 +90,266 @@ class PackagingSupplyController extends Controller
                 'size' => $row->size ?? '—',
                 'unit_cost' => $row->unit_cost_formatted,
                 'stock' => $stockHtml,
-                'status' => $statusBadge,
+                'status' => $statusToggle,
                 'actions' => $actionsHtml,
             ];
         });
     }
 
-    public function create(): View
+    private function validateCatalogItem(Request $request): array
     {
-        return view('admin.packaging-supplies.create');
+        return $request->validate([
+            'name_en' => ['required', 'string', 'max:255'],
+            'name_ar' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:' . implode(',', self::TYPES)],
+            'size' => ['nullable', 'string', 'max:100'],
+            'description_en' => ['nullable', 'string'],
+            'description_ar' => ['nullable', 'string'],
+            'unit_cost' => ['required', 'integer', 'min:1'],
+            'currency' => ['required', 'in:' . implode(',', self::CURRENCIES)],
+            'stock_available' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['boolean'],
+            'sort_order' => ['integer', 'min:0'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+        ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function storeCatalogItem(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'name_en'         => ['required', 'string', 'max:150'],
-            'name_ar'         => ['required', 'string', 'max:150'],
-            'type'            => ['required', Rule::enum(PackagingSupplyType::class)],
-            'size'            => ['nullable', 'string', 'max:50'],
-            'unit_cost' => ['required', 'integer', 'min:0'],
-            'stock_available' => ['nullable', 'integer', 'min:0'],
-            'is_active'       => ['boolean'],
-            'image_path'      => ['nullable', 'string', 'max:255'],
-        ]);
-
+        $data = $this->validateCatalogItem($request);
         $data['is_active'] = $request->boolean('is_active');
+        $data['sort_order'] = $data['sort_order'] ?? 0;
+
+        if ($request->hasFile('image')) {
+            $data['image_path'] = $this->storeImage($request->file('image'));
+        }
 
         $supply = PackagingSupply::create($data);
 
-        return redirect()
-            ->route('admin.packaging-supplies.index')
-            ->with('success', "Supply \"{$supply->name_en}\" created.");
-    }
-
-    public function edit(PackagingSupply $packagingSupply): View
-    {
-        return view('admin.packaging-supplies.edit', ['supply' => $packagingSupply]);
-    }
-
-    public function update(Request $request, PackagingSupply $packagingSupply): RedirectResponse
-    {
-        $data = $request->validate([
-            'name_en'         => ['required', 'string', 'max:150'],
-            'name_ar'         => ['required', 'string', 'max:150'],
-            'type'            => ['required', Rule::enum(PackagingSupplyType::class)],
-            'size'            => ['nullable', 'string', 'max:50'],
-            'unit_cost' => ['required', 'integer', 'min:0'],
-            'stock_available' => ['nullable', 'integer', 'min:0'],
-            'is_active'       => ['boolean'],
-            'image_path'      => ['nullable', 'string', 'max:255'],
+        return response()->json([
+            'success' => true,
+            'message' => "Supply \"{$supply->name_en}\" created.",
+            'data' => $supply,
         ]);
-
-        $data['is_active'] = $request->boolean('is_active');
-
-        $packagingSupply->update($data);
-
-        return redirect()
-            ->route('admin.packaging-supplies.index')
-            ->with('success', "Supply \"{$packagingSupply->name_en}\" updated.");
     }
 
-    public function destroy(PackagingSupply $packagingSupply): RedirectResponse
+    public function updateCatalogItem(Request $request, PackagingSupply $supply): JsonResponse
     {
-        if ($packagingSupply->image_path) {
-            Storage::disk('public')->delete($packagingSupply->image_path);
+        $data = $this->validateCatalogItem($request);
+        $data['is_active'] = $request->boolean('is_active');
+        $data['sort_order'] = $data['sort_order'] ?? 0;
+
+        if ($request->hasFile('image')) {
+            if ($supply->image_path) {
+                Storage::disk('public')->delete($supply->image_path);
+            }
+            $data['image_path'] = $this->storeImage($request->file('image'));
         }
 
-        $packagingSupply->delete();
-
-        return redirect()
-            ->route('admin.packaging-supplies.index')
-            ->with('success', 'Supply deleted.');
-    }
-
-    // ── Catalog image upload (FilePond) ─────────────────────────────────────
-
-    public function uploadImage(Request $request): JsonResponse
-    {
-        $request->validate([
-            'image' => ['required', 'image', 'max:5120'],
-        ]);
-
-        $path = $request->file('image')->store('packaging-supplies', 'public');
+        $supply->update($data);
 
         return response()->json([
-            'path' => $path,
-            'url' => Storage::disk('public')->url($path),
+            'success' => true,
+            'message' => "Supply \"{$supply->name_en}\" updated.",
+            'data' => $supply,
         ]);
     }
 
-    public function deleteImage(Request $request): JsonResponse
+    private function storeImage($file): string
     {
-        $data = $request->validate([
-            'path' => ['required', 'string'],
-        ]);
+        $filename = (string) Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $file->storeAs('packaging', $filename, 'public');
 
-        Storage::disk('public')->delete($data['path']);
+        return 'packaging/' . $filename;
+    }
 
-        return response()->json(['success' => true]);
+    public function destroyCatalogItem(PackagingSupply $supply): JsonResponse
+    {
+        if ($supply->requestItems()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This item has existing orders and cannot be deleted. Deactivate it instead.',
+            ], 422);
+        }
+
+        if ($supply->image_path) {
+            Storage::disk('public')->delete($supply->image_path);
+        }
+
+        $supply->delete();
+
+        return response()->json(['success' => true, 'message' => 'Supply deleted.']);
+    }
+
+    public function toggleActive(PackagingSupply $supply): JsonResponse
+    {
+        $supply->update(['is_active' => !$supply->is_active]);
+
+        return response()->json(['success' => true, 'is_active' => $supply->is_active]);
     }
 
     // ── Requests queue ─────────────────────────────────────────────────────
 
-    public function requests(Request $request): View
+    public function requests(): View
     {
+        $pending = PackagingSupplyRequest::where('status', 'pending')->count();
+        $inTransit = PackagingSupplyRequest::whereIn('status', ['approved', 'shipped'])->count();
+        $deliveredThisMonth = PackagingSupplyRequest::where('status', 'delivered')
+            ->whereMonth('delivered_at', now()->month)
+            ->whereYear('delivered_at', now()->year)
+            ->count();
+
+        $revenueThisMonth = PackagingSupplyRequest::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->selectRaw('currency, SUM(total_cost + delivery_fee) as total')
+            ->groupBy('currency')
+            ->get()
+            ->map(fn ($row) => ['currency' => $row->currency, 'total' => (int) $row->total])
+            ->values();
+
         $stats = [
-            'pending'   => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Pending)->count(),
-            'approved'  => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Approved)->count(),
-            'shipped'   => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Shipped)->count(),
-            'delivered' => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Delivered)->count(),
-            'rejected'  => PackagingSupplyRequest::where('status', PackagingSupplyRequestStatus::Rejected)->count(),
+            'pending' => $pending,
+            'in_transit' => $inTransit,
+            'delivered_this_month' => $deliveredThisMonth,
+            'revenue_this_month' => $revenueThisMonth,
         ];
 
         $vendors = Vendor::orderBy('store_name')->get(['id', 'store_name']);
 
-        return view('admin.packaging-supplies.requests', compact('stats', 'vendors'));
+        return view('admin.packaging.requests', compact('stats', 'vendors'));
     }
 
-    public function requestsDatatable(Request $request): JsonResponse
+    public function datatableRequests(Request $request): JsonResponse
     {
-        $query = PackagingSupplyRequest::with(['vendor', 'warehouse']);
+        $query = PackagingSupplyRequest::with('vendor');
 
         $query = $this->applyFilters($query, $request, [
-            'status' => fn($q, $v) => $q->where('status', $v),
-            'vendor_id' => fn($q, $v) => $q->where('vendor_id', $v),
-            'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
-            'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+            'status' => fn ($q, $v) => $q->where('status', $v),
+            'vendor_id' => fn ($q, $v) => $q->where('vendor_id', $v),
+            'date_from' => fn ($q, $v) => $q->whereDate('created_at', '>=', $v),
+            'date_to' => fn ($q, $v) => $q->whereDate('created_at', '<=', $v),
         ]);
 
         $columns = [
             ['searchable_columns' => ['request_number'], 'orderable_column' => 'request_number'],
             ['searchable_columns' => [], 'orderable_column' => null], // vendor
             ['searchable_columns' => [], 'orderable_column' => 'status'],
+            ['searchable_columns' => [], 'orderable_column' => null], // items count
             ['searchable_columns' => [], 'orderable_column' => 'total_cost'],
-            ['searchable_columns' => [], 'orderable_column' => null], // delivery fee
+            ['searchable_columns' => [], 'orderable_column' => 'delivery_fee'],
+            ['searchable_columns' => [], 'orderable_column' => null], // grand total
             ['searchable_columns' => [], 'orderable_column' => null], // currency
             ['searchable_columns' => [], 'orderable_column' => 'created_at'],
             ['searchable_columns' => [], 'orderable_column' => null], // actions
         ];
 
+        $searchValue = $request->input('search.value');
+        if (!empty($searchValue)) {
+            $query->orWhereHas('vendor', function ($q) use ($searchValue) {
+                $q->where('store_name', 'like', '%' . $searchValue . '%');
+            });
+        }
+
         if (!$query->getQuery()->orders) {
-            $query->orderByDesc('created_at');
+            $query->orderByRaw("status = 'pending' desc")->orderByDesc('created_at');
         }
 
         return $this->dataTableResponse($request, $query, $columns, function (PackagingSupplyRequest $row) {
-            $statusBadge = '<span class="badge ' . $row->statusBadgeClass() . '">' . e($row->status->label()) . '</span>';
+            $statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ' . $row->statusBadgeClass() . '">' . e($row->status->label()) . '</span>';
 
-            $viewUrl = route('admin.packaging-supplies.show-request', $row->id);
-
+            $viewUrl = route('admin.packaging.requests.show', $row->id);
             $actionsHtml = '<a href="' . $viewUrl . '" class="text-primary-600 hover:underline text-xs font-medium">View</a>';
 
             return [
                 'request_number' => e($row->request_number),
                 'vendor' => e($row->vendor->store_name ?? '—'),
                 'status' => $statusBadge,
-                'total_cost' => $row->total_cost_formatted,
-                'delivery_fee' => isset($row->delivery_fee) ? number_format($row->delivery_fee / 100, 2) : '—',
-                'currency' => $row->currency ?? config('app.currency', 'SAR'),
-                'date' => $row->created_at->format('d M Y'),
+                'items_count' => $row->items()->count(),
+                'total_cost' => number_format($row->total_cost / 100, 2),
+                'delivery_fee' => number_format($row->delivery_fee / 100, 2),
+                'grand_total' => number_format($row->grand_total / 100, 2),
+                'currency' => $row->currency,
+                'created_at' => $row->created_at->format('d M Y'),
                 'actions' => $actionsHtml,
             ];
         });
     }
 
-    public function showRequest(PackagingSupplyRequest $packagingSupplyRequest): View
+    public function showRequest(PackagingSupplyRequest $request): View
     {
-        $packagingSupplyRequest->load(['vendor', 'warehouse', 'items.supply', 'approvedBy']);
+        $request->load(['items.supply', 'vendor', 'approvedBy']);
 
-        return view('admin.packaging-supplies.show-request', ['req' => $packagingSupplyRequest]);
+        return view('admin.packaging.show-request', ['req' => $request]);
     }
 
-    public function approveRequest(Request $request, PackagingSupplyRequest $packagingSupplyRequest): RedirectResponse
+    public function approve(PackagingSupplyRequest $request): JsonResponse
     {
-        abort_if(! $packagingSupplyRequest->isPending(), 422, 'Request is not pending.');
+        if ($request->status->value !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'Request is not pending.'], 422);
+        }
 
-        $admin = auth('admin')->user();
+        DB::transaction(function () use ($request) {
+            $request->update([
+                'status' => 'approved',
+                'approved_by_admin_id' => auth('admin')->id(),
+                'approved_at' => now(),
+            ]);
 
-        $packagingSupplyRequest->update([
-            'status'              => PackagingSupplyRequestStatus::Approved,
-            'approved_by_admin_id'=> $admin->id,
-            'approved_at'         => now(),
+            foreach ($request->items as $item) {
+                if ($item->supply && $item->supply->stock_available !== null) {
+                    $item->supply->decrement('stock_available', $item->quantity);
+                }
+            }
+
+            Notification::send($request->vendor->vendorAdmins, new PackagingOrderApproved($request));
+        });
+
+        return response()->json(['success' => true, 'message' => 'Request approved.']);
+    }
+
+    public function reject(Request $httpRequest, PackagingSupplyRequest $request): JsonResponse
+    {
+        $httpRequest->validate([
+            'notes' => ['required', 'string', 'max:1000'],
         ]);
 
-        return redirect()
-            ->route('admin.packaging-supplies.show-request', $packagingSupplyRequest)
-            ->with('success', "Request #{$packagingSupplyRequest->request_number} approved.");
-    }
+        if ($request->status->value !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'Request is not pending.'], 422);
+        }
 
-    public function rejectRequest(Request $request, PackagingSupplyRequest $packagingSupplyRequest): RedirectResponse
-    {
-        abort_if(! $packagingSupplyRequest->isPending(), 422, 'Request is not pending.');
-
-        $data = $request->validate([
-            'reason' => ['nullable', 'string', 'max:1000'],
+        $request->update([
+            'status' => 'rejected',
+            'notes' => $httpRequest->input('notes'),
         ]);
 
-        $packagingSupplyRequest->update([
-            'status' => PackagingSupplyRequestStatus::Rejected,
-            'notes' => trim(($packagingSupplyRequest->notes ? $packagingSupplyRequest->notes . "\n\n" : '')
-                . 'Rejection reason: ' . ($data['reason'] ?? '—')),
-        ]);
+        Notification::send($request->vendor->vendorAdmins, new PackagingOrderRejected($request));
 
-        return redirect()
-            ->route('admin.packaging-supplies.show-request', $packagingSupplyRequest)
-            ->with('success', "Request #{$packagingSupplyRequest->request_number} rejected.");
+        return response()->json(['success' => true, 'message' => 'Request rejected.']);
     }
 
-    public function markShipped(PackagingSupplyRequest $packagingSupplyRequest): RedirectResponse
+    public function markShipped(PackagingSupplyRequest $request): JsonResponse
     {
-        abort_if($packagingSupplyRequest->status !== PackagingSupplyRequestStatus::Approved, 422, 'Request must be approved first.');
+        if ($request->status->value !== 'approved') {
+            return response()->json(['success' => false, 'message' => 'Request must be approved first.'], 422);
+        }
 
-        $packagingSupplyRequest->update(['status' => PackagingSupplyRequestStatus::Shipped]);
+        $request->update(['status' => 'shipped', 'shipped_at' => now()]);
 
-        return back()->with('success', "Request #{$packagingSupplyRequest->request_number} marked as shipped.");
+        Notification::send($request->vendor->vendorAdmins, new PackagingOrderShipped($request));
+
+        return response()->json(['success' => true, 'message' => 'Request marked as shipped.']);
     }
 
-    public function markDelivered(PackagingSupplyRequest $packagingSupplyRequest): RedirectResponse
+    public function markDelivered(PackagingSupplyRequest $request): JsonResponse
     {
-        abort_if($packagingSupplyRequest->status !== PackagingSupplyRequestStatus::Shipped, 422, 'Request must be shipped first.');
+        if ($request->status->value !== 'shipped') {
+            return response()->json(['success' => false, 'message' => 'Request must be shipped first.'], 422);
+        }
 
-        $packagingSupplyRequest->update(['status' => PackagingSupplyRequestStatus::Delivered]);
+        $request->update(['status' => 'delivered', 'delivered_at' => now()]);
 
-        return back()->with('success', "Request #{$packagingSupplyRequest->request_number} marked as delivered.");
-    }
+        Notification::send($request->vendor->vendorAdmins, new PackagingOrderDelivered($request));
 
-    public function updateRequestStatus(Request $request, PackagingSupplyRequest $packagingSupplyRequest): RedirectResponse
-    {
-        $data = $request->validate([
-            'status' => ['required', Rule::enum(PackagingSupplyRequestStatus::class)->only([
-                PackagingSupplyRequestStatus::Shipped,
-                PackagingSupplyRequestStatus::Delivered,
-            ])],
-        ]);
-
-        return $data['status'] === PackagingSupplyRequestStatus::Shipped->value
-            ? $this->markShipped($packagingSupplyRequest)
-            : $this->markDelivered($packagingSupplyRequest);
+        return response()->json(['success' => true, 'message' => 'Request marked as delivered.']);
     }
 }

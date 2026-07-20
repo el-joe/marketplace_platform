@@ -473,11 +473,18 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
-                        'label' => __('admin.nav.packaging_supplies'),
-                        'route' => 'admin.packaging-supplies.index',
+                        'label' => __('admin.nav.packaging_catalog'),
+                        'route' => 'admin.packaging.catalog',
                         'icon' => 'cube',
-                        'permission' => 'warehouses.view',
+                        'permission' => 'packaging.manage',
                         'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.packaging_orders'),
+                        'route' => 'admin.packaging.requests',
+                        'icon' => 'clipboard-document-list',
+                        'permission' => 'packaging.manage',
+                        'badge' => $this->cachedBadge('packaging_pending_count', fn() => $this->countPendingPackagingRequests(), 60),
                     ],
                 ],
             ],
@@ -871,6 +878,18 @@ class NavigationService
         }
         try {
             return (int) \App\Models\WarrantyPurchase::query()->where('status', 'pending')->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingPackagingRequests(): int
+    {
+        if (!class_exists(\App\Models\PackagingSupplyRequest::class)) {
+            return 0;
+        }
+        try {
+            return (int) \App\Models\PackagingSupplyRequest::query()->where('status', 'pending')->count();
         } catch (\Throwable) {
             return 0;
         }

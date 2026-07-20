@@ -333,6 +333,8 @@ return [
         'app_contexts'          => 'App Contexts',
         'subscriptions'         => 'Subscriptions',
         'packaging_supplies'    => 'Packaging Supplies',
+        'packaging_catalog'     => 'Packaging Catalog',
+        'packaging_orders'      => 'Packaging Orders',
         'carrier_claims'        => 'Carrier Claims',
         'carrier_scorecard'     => 'Carrier Scorecard',
         'fbn'                   => 'FBN',

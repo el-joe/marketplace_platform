@@ -1395,27 +1395,21 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
     });
 
     // ─── Packaging Supplies ───────────────────────────────────────────────────
-    Route::prefix('packaging-supplies')->name('packaging-supplies.')->group(function () {
-        // Catalog CRUD
-        Route::get('/', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'index'])->name('index');
-        Route::post('/datatable', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'datatable'])->name('datatable');
-        Route::get('/create', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'store'])->name('store');
-        Route::post('/upload-image', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'uploadImage'])->name('upload-image');
-        Route::delete('/delete-image', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'deleteImage'])->name('delete-image');
-        Route::get('/{packagingSupply}/edit', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'edit'])->name('edit');
-        Route::put('/{packagingSupply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'update'])->name('update');
-        Route::delete('/{packagingSupply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'destroy'])->name('destroy');
+    Route::prefix('packaging')->name('packaging.')->middleware('admin.permission:packaging.manage')->group(function () {
+        Route::get('/catalog', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'catalog'])->name('catalog');
+        Route::post('/catalog/datatable', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'datatableCatalog'])->name('catalog.datatable');
+        Route::post('/catalog', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'storeCatalogItem'])->name('catalog.store');
+        Route::put('/catalog/{supply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'updateCatalogItem'])->name('catalog.update');
+        Route::delete('/catalog/{supply}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'destroyCatalogItem'])->name('catalog.destroy');
+        Route::patch('/catalog/{supply}/toggle', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'toggleActive'])->name('catalog.toggle');
 
-        // Requests queue
         Route::get('/requests', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'requests'])->name('requests');
-        Route::post('/requests/datatable', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'requestsDatatable'])->name('requests.datatable');
-        Route::get('/requests/{packagingSupplyRequest}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'showRequest'])->name('show-request');
-        Route::patch('/requests/{packagingSupplyRequest}/approve', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'approveRequest'])->name('approve-request');
-        Route::patch('/requests/{packagingSupplyRequest}/reject', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'rejectRequest'])->name('reject-request');
-        Route::patch('/requests/{packagingSupplyRequest}/ship', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'markShipped'])->name('mark-shipped');
-        Route::patch('/requests/{packagingSupplyRequest}/deliver', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'markDelivered'])->name('mark-delivered');
-        Route::patch('/requests/{packagingSupplyRequest}/status', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'updateRequestStatus'])->name('update-request-status');
+        Route::post('/requests/datatable', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'datatableRequests'])->name('requests.datatable');
+        Route::get('/requests/{request}', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'showRequest'])->name('requests.show');
+        Route::post('/requests/{request}/approve', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'approve'])->name('requests.approve');
+        Route::post('/requests/{request}/reject', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'reject'])->name('requests.reject');
+        Route::post('/requests/{request}/ship', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'markShipped'])->name('requests.ship');
+        Route::post('/requests/{request}/deliver', [\App\Http\Controllers\Admin\PackagingSupplyController::class, 'markDelivered'])->name('requests.deliver');
     });
 
 

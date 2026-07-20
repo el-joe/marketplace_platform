@@ -12,5 +12,6 @@ enum PackagingSupplyType: string
     case Bag = 'bag';
     case Tape = 'tape';
     case Label = 'label';
+    case BubbleWrap = 'bubble_wrap';
     case Other = 'other';
 }

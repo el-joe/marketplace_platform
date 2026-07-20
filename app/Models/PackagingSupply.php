@@ -16,9 +16,13 @@ class PackagingSupply extends Model
         'name_ar',
         'type',
         'size',
+        'description_en',
+        'description_ar',
         'unit_cost',
+        'currency',
         'stock_available',
         'is_active',
+        'sort_order',
         'image_path',
     ];
 
@@ -28,8 +32,20 @@ class PackagingSupply extends Model
             'unit_cost'  => 'integer',
             'stock_available'  => 'integer',
             'is_active'        => 'boolean',
+            'sort_order'       => 'integer',
             'type'             => PackagingSupplyType::class,
         ];
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1);
+    }
+
+    public function scopeInStock($query)
+    {
+        return $query->where(fn ($q) => $q->whereNull('stock_available')
+            ->orWhere('stock_available', '>', 0));
     }
 
     public function requestItems(): HasMany
@@ -39,9 +55,11 @@ class PackagingSupply extends Model
 
     public function getUnitCostFormattedAttribute(): string
     {
-        return $this->unit_cost === 0
-            ? 'Free'
-            : number_format($this->unit_cost / 100, 2);
+        if ($this->unit_cost === 0) {
+            return 'Free';
+        }
+
+        return number_format($this->unit_cost / 100, 2) . ' ' . ($this->currency ?? config('app.currency', 'SAR'));
     }
 
     public function isFree(): bool
@@ -52,10 +70,11 @@ class PackagingSupply extends Model
     public function typeBadgeClass(): string
     {
         return match ($this->type) {
-            PackagingSupplyType::Box   => 'bg-orange-100 text-orange-800',
-            PackagingSupplyType::Bag   => 'bg-blue-100 text-blue-800',
-            PackagingSupplyType::Tape  => 'bg-yellow-100 text-yellow-800',
-            PackagingSupplyType::Label => 'bg-purple-100 text-purple-800',
+            PackagingSupplyType::Box        => 'bg-blue-100 text-blue-800',
+            PackagingSupplyType::Bag        => 'bg-green-100 text-green-800',
+            PackagingSupplyType::Tape       => 'bg-orange-100 text-orange-800',
+            PackagingSupplyType::Label      => 'bg-purple-100 text-purple-800',
+            PackagingSupplyType::BubbleWrap => 'bg-gray-100 text-gray-800',
             default => 'bg-gray-100 text-gray-800',
         };
     }

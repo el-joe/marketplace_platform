@@ -127,6 +127,7 @@ class PermissionSeeder extends Seeder
             'countries.launch',
             'warehouses.view',
             'warehouses.manage',
+            'packaging.manage',
             'settings.view',
             'settings.edit',
             'settings.content',
