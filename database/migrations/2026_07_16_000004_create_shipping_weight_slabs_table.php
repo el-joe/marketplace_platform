@@ -23,7 +23,7 @@ return new class extends Migration {
 
             $table->foreign('shipping_method_id')->references('id')->on('shipping_methods')->onDelete('cascade');
             $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
-            $table->index(['shipping_method_id', 'country_id', 'min_weight_grams', 'max_weight_grams']);
+            $table->index(['shipping_method_id', 'country_id', 'min_weight_grams', 'max_weight_grams'], 'weight_slabs_composite_idx');
         });
     }
 

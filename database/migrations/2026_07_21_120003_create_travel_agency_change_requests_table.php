@@ -9,8 +9,8 @@ return new class extends Migration {
     {
         Schema::create('travel_agency_change_requests', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('travel_agency_id')->constrained('travel_agencies');
-            $table->foreignUuid('requested_by_travel_agency_member_id')->constrained('travel_agency_members');
+            $table->foreignUuid('travel_agency_id')->constrained('travel_agencies')->name('requests_travel_agency_id_fk');
+            $table->foreignUuid('requested_by_travel_agency_member_id')->constrained('travel_agency_members')->name('requests_requested_by_member_id_fk');
             $table->enum('section', ['bank_accounts']);
             $table->enum('request_type', ['add', 'edit', 'delete'])->default('edit');
             $table->json('current_data');
