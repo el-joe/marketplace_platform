@@ -45,7 +45,7 @@
      }">
     <div class="flex items-center justify-between">
         <div>
-            <p class="text-base font-bold" x-text="isAvailable ? '🟢 {{ __('delivery.dashboard.online') }}' : '⚫ {{ __('delivery.dashboard.offline') }}'"></p>
+            <p class="text-base font-bold" x-text="isAvailable ? '🟢 ' + {{ Illuminate\Support\Js::from(__('delivery.dashboard.online')) }} : '⚫ ' + {{ Illuminate\Support\Js::from(__('delivery.dashboard.offline')) }}"></p>
             <p class="text-xs text-slate-400 mt-0.5" x-text="isAvailable ? '{{ __('delivery.dashboard.ready_for_assignments') }}' : '{{ __('delivery.dashboard.not_receiving_assignments') }}'"></p>
         </div>
         <button type="button" @click="toggle()" :disabled="loading"
