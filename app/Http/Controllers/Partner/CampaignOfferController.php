@@ -45,10 +45,10 @@ class CampaignOfferController extends Controller
             'active'      => $offers->where('status', VendorCampaignOfferStatus::Active)->count(),
             'invited'     => $offers->sum('invitations_count'),
             'accepted'    => $offers->sum('accepted_count'),
-            'conversions' => VendorCampaignOffer::where('vendor_id', $vendorId)
+            'conversions' => VendorCampaignOffer::where('vendor_campaign_offers.vendor_id', $vendorId)
                 ->join('vendor_campaign_invitations', 'vendor_campaign_offers.id', '=', 'vendor_campaign_invitations.vendor_campaign_offer_id')
                 ->join('marketer_campaigns', 'vendor_campaign_invitations.resulting_campaign_id', '=', 'marketer_campaigns.id')
-                ->join('marketer_conversions', 'marketer_campaigns.id', '=', 'marketer_conversions.marketer_campaign_id')
+                ->join('marketer_conversions', 'marketer_campaigns.id', '=', 'marketer_conversions.campaign_id')
                 ->count('marketer_conversions.id'),
         ];
 

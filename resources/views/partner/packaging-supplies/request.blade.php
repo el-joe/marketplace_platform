@@ -1,19 +1,18 @@
 @extends('layouts.partner')
 
 @section('title', __('partner.packaging_supplies.request_supplies'))
+@section('page-title', __('partner.packaging_supplies.request_supplies'))
 
 @section('content')
 
-    <div class="mb-6 flex items-center justify-between">
-        <div>
-            <a href="{{ route('partner.packaging-supplies.index') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('partner.packaging_supplies.back_to_catalog') }}</a>
-            <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ __('partner.packaging_supplies.request_supplies') }}</h1>
-        </div>
+    <div class="mb-4">
+        <a href="{{ route('partner.packaging-supplies.index') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('partner.packaging_supplies.back_to_catalog') }}</a>
+        <h2 class="text-lg font-semibold text-gray-900 mt-1">{{ __('partner.packaging_supplies.request_supplies') }}</h2>
     </div>
 
     @if($errors->any())
-        <div class="alert alert-danger mb-4">
-            <ul class="list-disc list-inside text-sm space-y-1">
+        <div class="mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
+            <ul class="list-disc list-inside space-y-1">
                 @foreach($errors->all() as $err)
                     <li>{{ $err }}</li>
                 @endforeach
@@ -29,15 +28,15 @@
             {{-- ─── Supply selection ───────────────────────────────────────────── --}}
             <div class="col-span-2 space-y-4">
 
-                <div class="card overflow-hidden">
-                    <div class="px-5 py-3 border-b bg-gray-50 font-medium text-sm text-gray-700">{{ __('partner.packaging_supplies.select_items') }}</div>
+                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                    <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 font-medium text-sm text-gray-700">{{ __('partner.packaging_supplies.select_items') }}</div>
                     <div class="divide-y divide-gray-100">
                         @foreach($supplies as $supply)
                             <div class="px-5 py-4 flex items-center gap-4" x-data="{ qty: 0 }">
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2">
                                         <span class="font-medium text-gray-900 text-sm">{{ $supply->name_en }}</span>
-                                        <span class="badge {{ $supply->typeBadgeClass() }}">{{ ucfirst($supply->type->value) }}</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $supply->typeBadgeClass() }}">{{ ucfirst($supply->type->value) }}</span>
                                     </div>
                                     <div class="text-xs text-gray-400 mt-0.5">
                                         {{ $supply->name_ar }}
@@ -56,7 +55,7 @@
                                            min="0" max="1000"
                                            data-name="{{ $supply->name_en }}"
                                            data-unit-cost-cents="{{ $supply->unit_cost }}"
-                                           class="w-14 text-center input text-sm py-1"
+                                           class="w-14 text-center border border-gray-200 rounded-lg text-sm py-1 focus:outline-none focus:ring-2 focus:ring-primary-400/40"
                                            onchange="syncItem(this, '{{ $supply->id }}')">
                                     <button type="button" onclick="adjustQty('qty_{{ $supply->id }}', 1)"
                                             class="w-7 h-7 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-100 flex items-center justify-center text-lg leading-none">+</button>
@@ -72,12 +71,12 @@
 
             {{-- ─── Sidebar ─────────────────────────────────────────────────── --}}
             <div class="space-y-4">
-                <div class="card p-5 space-y-4">
+                <div class="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
 
                     @if($warehouses->isNotEmpty())
                         <div>
-                            <label class="label">{{ __('partner.packaging_supplies.delivery_warehouse') }} <span class="text-gray-400">{{ __('partner.packaging_supplies.optional') }}</span></label>
-                            <select name="warehouse_id" class="input text-sm">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.packaging_supplies.delivery_warehouse') }} <span class="text-gray-400 font-normal">{{ __('partner.packaging_supplies.optional') }}</span></label>
+                            <select name="warehouse_id" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400/40">
                                 <option value="">{{ __('partner.packaging_supplies.ship_to_my_address') }}</option>
                                 @foreach($warehouses as $wh)
                                     <option value="{{ $wh->id }}" @selected(old('warehouse_id') === $wh->id)>{{ $wh->name }}</option>
@@ -88,15 +87,15 @@
                     @endif
 
                     <div>
-                        <label class="label">{{ __('partner.packaging_supplies.notes') }} <span class="text-gray-400">{{ __('partner.packaging_supplies.optional') }}</span></label>
-                        <textarea name="notes" rows="3" class="input text-sm resize-none"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.packaging_supplies.notes') }} <span class="text-gray-400 font-normal">{{ __('partner.packaging_supplies.optional') }}</span></label>
+                        <textarea name="notes" rows="3" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-400/40"
                                   placeholder="{{ __('partner.packaging_supplies.notes_placeholder') }}">{{ old('notes') }}</textarea>
                     </div>
 
-                    <button type="button" class="btn btn-primary w-full" onclick="openConfirmModal()">{{ __('partner.packaging_supplies.submit_request_btn') }}</button>
+                    <button type="button" class="w-full inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors" onclick="openConfirmModal()">{{ __('partner.packaging_supplies.submit_request_btn') }}</button>
 
                     <a href="{{ route('partner.packaging-supplies.index') }}"
-                       class="btn btn-secondary w-full text-center block">{{ __('common.cancel') }}</a>
+                       class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-200 bg-white text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">{{ __('common.cancel') }}</a>
                 </div>
             </div>
 
@@ -105,8 +104,8 @@
 
     {{-- ─── Confirmation Modal ─────────────────────────────────────────────── --}}
     <div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
-            <div class="px-5 py-3 border-b font-medium text-gray-900">{{ __('partner.packaging_supplies.confirm_order') }}</div>
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4">
+            <div class="p-5 border-b border-gray-100 font-medium text-gray-900">{{ __('partner.packaging_supplies.confirm_order') }}</div>
             <div class="p-5 space-y-4">
                 <table class="w-full text-sm">
                     <thead>
@@ -135,9 +134,9 @@
                 </div>
                 <p class="text-xs text-gray-400">{{ __('partner.packaging_supplies.delivery_fee_payout_note') }}</p>
             </div>
-            <div class="px-5 py-3 border-t flex justify-end gap-2">
-                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">{{ __('common.cancel') }}</button>
-                <button type="button" class="btn btn-primary" onclick="document.getElementById('requestForm').submit()">{{ __('partner.packaging_supplies.confirm_and_submit') }}</button>
+            <div class="px-5 py-3 border-t border-gray-100 flex justify-end gap-2">
+                <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-200 bg-white text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors" onclick="closeConfirmModal()">{{ __('common.cancel') }}</button>
+                <button type="button" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors" onclick="document.getElementById('requestForm').submit()">{{ __('partner.packaging_supplies.confirm_and_submit') }}</button>
             </div>
         </div>
     </div>

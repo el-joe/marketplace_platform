@@ -2,10 +2,6 @@
 
 @section('title', __('partner.nav.subscription'))
 
-@push('styles')
-    @vite(['resources/css/app.css', 'resources/js/partner/app.js'])
-@endpush
-
 @section('content')
 
 <div class="max-w-5xl mx-auto py-6 px-4 space-y-8" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}">
@@ -168,42 +164,38 @@
 </div>
 
 {{-- ─── Cancel Modal ────────────────────────────────────────────────────────── --}}
-<div id="cancel-modal" class="modal" style="display:none;" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}">
-    <div class="modal-box max-w-sm">
-        <h3 class="font-bold text-lg mb-4">{{ __('partner.subscriptions.cancel_subscription_title') }}</h3>
-        <p class="text-sm text-gray-500 mb-3">
-            {{ __('partner.subscriptions.cancel_confirm_text') }}
-        </p>
-        <div>
-            <label class="label-sm">{{ __('partner.subscriptions.cancel_reason_optional') }}</label>
-            <textarea id="cancel-reason" rows="3" class="form-input w-full text-sm" placeholder="{{ __('partner.subscriptions.cancel_reason_placeholder') }}"></textarea>
-        </div>
-        <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-gray-100">
-            <button type="button" id="cancel-modal-close" class="btn btn-ghost btn-sm">{{ __('partner.subscriptions.go_back') }}</button>
-            <button type="button" id="cancel-modal-confirm" class="btn btn-danger btn-sm">{{ __('partner.subscriptions.confirm_cancellation') }}</button>
-        </div>
+<x-modal id="cancel-modal" size="sm" title="{{ __('partner.subscriptions.cancel_subscription_title') }}">
+    <p class="text-sm text-gray-500 mb-3">
+        {{ __('partner.subscriptions.cancel_confirm_text') }}
+    </p>
+    <div>
+        <label class="label-sm">{{ __('partner.subscriptions.cancel_reason_optional') }}</label>
+        <textarea id="cancel-reason" rows="3" class="form-input w-full text-sm" placeholder="{{ __('partner.subscriptions.cancel_reason_placeholder') }}"></textarea>
     </div>
-</div>
+    <x-slot name="footer">
+        <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('partner.subscriptions.go_back') }}</button>
+        <button type="button" id="cancel-modal-confirm" class="btn btn-danger btn-sm">{{ __('partner.subscriptions.confirm_cancellation') }}</button>
+    </x-slot>
+</x-modal>
 
 {{-- ─── Subscribe Confirm Modal ────────────────────────────────────────────── --}}
-<div id="subscribe-confirm-modal" class="modal" style="display:none;" dir="{{ session('locale', 'ar') === 'ar' ? 'rtl' : 'ltr' }}">
-    <div class="modal-box max-w-sm text-center">
+<x-modal id="subscribe-confirm-modal" size="sm" title="{{ __('partner.subscriptions.confirm_subscription_title') }}">
+    <div class="text-center">
         <div class="text-5xl mb-3">🌟</div>
-        <h3 class="font-bold text-lg mb-2">{{ __('partner.subscriptions.confirm_subscription_title') }}</h3>
-        <p class="text-sm text-gray-500 mb-5">{{ __('partner.subscriptions.confirm_subscription_prefix') }} <strong id="sc-plan-name"></strong> {{ __('partner.subscriptions.confirm_subscription_suffix') }}</p>
+        <p class="text-sm text-gray-500 mb-1">{{ __('partner.subscriptions.confirm_subscription_prefix') }} <strong id="sc-plan-name"></strong> {{ __('partner.subscriptions.confirm_subscription_suffix') }}</p>
         <input type="hidden" id="sc-plan-id">
-        <div class="flex gap-3 justify-center">
-            <button type="button" id="sc-close" class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
-            <button type="button" id="sc-confirm" class="btn btn-primary btn-sm px-8">{{ __('partner.subscriptions.confirm') }}</button>
-        </div>
     </div>
-</div>
+    <x-slot name="footer">
+        <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('common.cancel') }}</button>
+        <button type="button" id="sc-confirm" class="btn btn-primary btn-sm px-8">{{ __('partner.subscriptions.confirm') }}</button>
+    </x-slot>
+</x-modal>
 
 @endsection
 
 @push('scripts')
 <script>
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const tok = '{{ csrf_token() }}';
     const genericError = @json(__('partner.subscriptions.generic_error'));
 
@@ -211,9 +203,8 @@ $(function () {
     $(document).on('click', '.btn-subscribe', function () {
         $('#sc-plan-id').val($(this).data('plan-id'));
         $('#sc-plan-name').text($(this).data('plan-name'));
-        $('#subscribe-confirm-modal').show();
+        $('#subscribe-confirm-modal').modal('open');
     });
-    $('#sc-close').on('click', () => $('#subscribe-confirm-modal').hide());
     $('#sc-confirm').on('click', function () {
         fetch('{{ route('partner.subscription.subscribe') }}', {
             method: 'POST',
@@ -228,9 +219,8 @@ $(function () {
     // ── Cancel ─────────────────────────────────────────────────────────────────
     $('#btn-cancel-sub').on('click', () => {
         $('#cancel-reason').val('');
-        $('#cancel-modal').show();
+        $('#cancel-modal').modal('open');
     });
-    $('#cancel-modal-close').on('click', () => $('#cancel-modal').hide());
     $('#cancel-modal-confirm').on('click', function () {
         fetch('{{ route('partner.subscription.cancel') }}', {
             method: 'POST',

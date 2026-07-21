@@ -1,56 +1,57 @@
 @extends('layouts.partner')
 
 @section('title', __('partner.packaging_supplies.request_title', ['number' => $req->request_number]))
+@section('page-title', __('partner.packaging_supplies.request_title', ['number' => $req->request_number]))
 
 @section('content')
 
-    <div class="mb-6 flex items-center justify-between gap-4">
+    <div class="flex items-center justify-between gap-4 mb-4">
         <div>
             <a href="{{ route('partner.packaging-supplies.my-requests') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('partner.packaging_supplies.my_requests_link') }}</a>
-            <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ __('partner.packaging_supplies.request_number') }}{{ $req->request_number }}</h1>
+            <h2 class="text-lg font-semibold text-gray-900 mt-1">{{ __('partner.packaging_supplies.request_number') }}{{ $req->request_number }}</h2>
         </div>
-        <span class="badge text-sm px-3 py-1 {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status->value) }}</span>
+        <span class="inline-flex items-center px-3 py-1 rounded text-sm font-medium {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status->value) }}</span>
     </div>
 
     <div class="grid grid-cols-3 gap-6">
 
         {{-- ─── Items ─────────────────────────────────────────────────────────── --}}
         <div class="col-span-2">
-            <div class="card overflow-hidden">
-                <div class="px-5 py-3 border-b bg-gray-50 font-medium text-sm text-gray-700">{{ __('partner.packaging_supplies.items') }}</div>
-                <table class="min-w-full divide-y divide-gray-100 text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="th">{{ __('partner.packaging_supplies.supply') }}</th>
-                            <th class="th">{{ __('partner.packaging_supplies.type') }}</th>
-                            <th class="th">{{ __('partner.packaging_supplies.unit_cost') }}</th>
-                            <th class="th">{{ __('partner.packaging_supplies.qty') }}</th>
-                            <th class="th text-right">{{ __('partner.packaging_supplies.total') }}</th>
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="px-5 py-3 border-b border-gray-200 bg-gray-50 font-medium text-sm text-gray-700">{{ __('partner.packaging_supplies.items') }}</div>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+                            <th class="px-4 py-3 font-semibold tracking-wide">{{ __('partner.packaging_supplies.supply') }}</th>
+                            <th class="px-4 py-3 font-semibold tracking-wide">{{ __('partner.packaging_supplies.type') }}</th>
+                            <th class="px-4 py-3 font-semibold tracking-wide">{{ __('partner.packaging_supplies.unit_cost') }}</th>
+                            <th class="px-4 py-3 font-semibold tracking-wide">{{ __('partner.packaging_supplies.qty') }}</th>
+                            <th class="px-4 py-3 font-semibold tracking-wide text-right">{{ __('partner.packaging_supplies.total') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 bg-white">
+                    <tbody class="divide-y divide-gray-100">
                         @foreach($req->items as $item)
                             <tr>
-                                <td class="td font-medium">{{ $item->supply->name_en }}</td>
-                                <td class="td">
-                                    <span class="badge {{ $item->supply->typeBadgeClass() }}">{{ ucfirst($item->supply->type->value) }}</span>
+                                <td class="px-4 py-3 font-medium">{{ $item->supply->name_en }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $item->supply->typeBadgeClass() }}">{{ ucfirst($item->supply->type->value) }}</span>
                                 </td>
-                                <td class="td">{{ $item->supply->unit_cost_formatted }}</td>
-                                <td class="td">{{ number_format($item->quantity) }}</td>
-                                <td class="td text-right font-medium">{{ $item->line_total_formatted }}</td>
+                                <td class="px-4 py-3">{{ $item->supply->unit_cost_formatted }}</td>
+                                <td class="px-4 py-3">{{ number_format($item->quantity) }}</td>
+                                <td class="px-4 py-3 text-right font-medium">{{ $item->line_total_formatted }}</td>
                             </tr>
                         @endforeach
                         <tr class="bg-gray-50">
-                            <td colspan="4" class="td text-right text-gray-700">{{ __('partner.packaging_supplies.items_subtotal') }}</td>
-                            <td class="td text-right font-medium text-gray-900">{{ $req->total_cost_formatted }}</td>
+                            <td colspan="4" class="px-4 py-3 text-right text-gray-700">{{ __('partner.packaging_supplies.items_subtotal') }}</td>
+                            <td class="px-4 py-3 text-right font-medium text-gray-900">{{ $req->total_cost_formatted }}</td>
                         </tr>
                         <tr class="bg-gray-50">
-                            <td colspan="4" class="td text-right text-gray-700">{{ __('partner.packaging_supplies.delivery_fee') }}</td>
-                            <td class="td text-right font-medium text-gray-900">{{ $req->delivery_fee_formatted }}</td>
+                            <td colspan="4" class="px-4 py-3 text-right text-gray-700">{{ __('partner.packaging_supplies.delivery_fee') }}</td>
+                            <td class="px-4 py-3 text-right font-medium text-gray-900">{{ $req->delivery_fee_formatted }}</td>
                         </tr>
                         <tr class="bg-gray-50">
-                            <td colspan="4" class="td text-right font-semibold text-gray-700">{{ __('partner.packaging_supplies.grand_total') }}</td>
-                            <td class="td text-right font-bold text-gray-900">{{ $req->grand_total_formatted }}</td>
+                            <td colspan="4" class="px-4 py-3 text-right font-semibold text-gray-700">{{ __('partner.packaging_supplies.grand_total') }}</td>
+                            <td class="px-4 py-3 text-right font-bold text-gray-900">{{ $req->grand_total_formatted }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -66,7 +67,7 @@
             @endphp
 
             @if(!$isRejected)
-                <div class="card p-5">
+                <div class="bg-white rounded-2xl border border-gray-200 p-5">
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">{{ __('partner.packaging_supplies.request_status') }}</p>
                     <ol class="space-y-3">
                         @foreach($timelineSteps as $i => $step)
@@ -84,10 +85,10 @@
                 </div>
             @endif
 
-            <div class="card p-5 text-sm space-y-3">
+            <div class="bg-white rounded-2xl border border-gray-200 p-5 text-sm space-y-3">
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{{ __('common.status') }}</p>
-                    <span class="badge {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status->value) }}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $req->statusBadgeClass() }}">{{ ucfirst($req->status->value) }}</span>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">{{ __('partner.packaging_supplies.submitted') }}</p>
@@ -108,11 +109,11 @@
             </div>
 
             @if($req->status === \App\Enums\PackagingSupplyRequestStatus::Delivered)
-                <div class="card p-5 bg-green-50 border-green-200 text-sm text-green-800">
+                <div class="bg-green-50 rounded-2xl border border-green-200 p-5 text-sm text-green-800">
                     {{ __('partner.packaging_supplies.delivered_message') }}
                 </div>
             @elseif($req->status === \App\Enums\PackagingSupplyRequestStatus::Rejected)
-                <div class="card p-5 bg-red-50 border-red-200 text-sm text-red-800">
+                <div class="bg-red-50 rounded-2xl border border-red-200 p-5 text-sm text-red-800">
                     {{ __('partner.packaging_supplies.rejected_message') }}
                 </div>
             @endif
