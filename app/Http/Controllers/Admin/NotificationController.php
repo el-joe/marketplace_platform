@@ -61,18 +61,28 @@ class NotificationController extends Controller
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function (Notification $row) {
-            $recipientType = class_basename($row->notifiable_type ?? '');
+            $recipientKey = Str::snake(class_basename($row->notifiable_type ?? ''));
+            $recipientLabel = trans("admin.notifications_section.recipient_types.$recipientKey");
+            $recipientLabel = $recipientLabel === "admin.notifications_section.recipient_types.$recipientKey"
+                ? class_basename($row->notifiable_type ?? '')
+                : $recipientLabel;
+
+            $typeKey = Str::snake(class_basename($row->type ?? ''));
+            $typeLabel = trans("enums/notification_type.$typeKey");
+            $typeLabel = $typeLabel === "enums/notification_type.$typeKey"
+                ? Str::headline(class_basename($row->type ?? ''))
+                : $typeLabel;
 
             return [
-                'type' => e($row->type),
+                'type' => e($typeLabel),
                 'channel' => '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">'
-                    . e($row->channel?->value ?? '—') . '</span>',
-                'recipient' => e($recipientType) . ' · ' . e(Str::limit($row->notifiable_id ?? '', 8, '')),
+                    . e($row->channel?->label() ?? '—') . '</span>',
+                'recipient' => e($recipientLabel) . ' · ' . e(Str::limit($row->notifiable_id ?? '', 8, '')),
                 'title' => e($row->data['title'] ?? '—'),
                 'read' => $row->read_at
-                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">Read</span>'
-                    : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Unread</span>',
-                'sent_at' => $row->sent_at ? $row->sent_at->format('d M Y H:i') : '—',
+                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">' . e(__('admin.notifications_section.read_label')) . '</span>'
+                    : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">' . e(__('admin.notifications_section.unread_label')) . '</span>',
+                'sent_at' => $row->sent_at ? $row->sent_at->format('d/m/Y H:i') : '—',
             ];
         });
     }

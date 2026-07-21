@@ -8475,6 +8475,19 @@ return [
         'fill_all_fields'       => 'Please fill in all required fields.',
         'failed_to_send'        => 'Failed to send broadcast.',
         'select_at_least_one_channel' => 'Please select at least one channel.',
+        'read_label'            => 'Read',
+        'unread_label'          => 'Unread',
+        'recipient_types'       => [
+            'customer'                    => 'Customer',
+            'admin'                       => 'Admin',
+            'marketer'                    => 'Marketer',
+            'delivery_agent'              => 'Delivery Agent',
+            'vendor_admin'                => 'Vendor',
+            'travel_agency_member'        => 'Travel Agency Member',
+            'travel_agency'               => 'Travel Agency',
+            'shipping_company_supervisor' => 'Shipping Company Supervisor',
+            'user'                        => 'User',
+        ],
     ],
 
     'app_contexts' => [

@@ -8476,6 +8476,19 @@ return [
         'fill_all_fields'       => 'يرجى تعبئة جميع الحقول المطلوبة.',
         'failed_to_send'        => 'فشل إرسال الإشعار الجماعي.',
         'select_at_least_one_channel' => 'يرجى اختيار قناة واحدة على الأقل.',
+        'read_label'            => 'مقروء',
+        'unread_label'          => 'غير مقروء',
+        'recipient_types'       => [
+            'customer'                    => 'عميل',
+            'admin'                       => 'مسؤول',
+            'marketer'                    => 'مسوّق',
+            'delivery_agent'              => 'مندوب توصيل',
+            'vendor_admin'                => 'بائع',
+            'travel_agency_member'        => 'عضو وكالة سفر',
+            'travel_agency'               => 'وكالة سفر',
+            'shipping_company_supervisor' => 'مشرف شركة شحن',
+            'user'                        => 'مستخدم',
+        ],
     ],
 
     'app_contexts' => [

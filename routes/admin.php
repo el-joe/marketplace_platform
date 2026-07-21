@@ -659,7 +659,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         ->middleware('admin.permission:notifications.view')
         ->group(function () {
             Route::get('/', [AdminNotificationController::class, 'index'])->name('index');
-            Route::get('/datatable', [AdminNotificationController::class, 'datatable'])->name('datatable');
+            Route::post('/datatable', [AdminNotificationController::class, 'datatable'])->name('datatable');
             Route::get('/send', [AdminNotificationController::class, 'create'])->name('send')
                 ->middleware('admin.permission:notifications.send');
             Route::post('/send', [AdminNotificationController::class, 'sendManual'])->name('send.store')
