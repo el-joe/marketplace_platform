@@ -35,6 +35,9 @@ class TravelAgencyPermissionSeeder extends Seeder
             'roles.create',
             'roles.edit',
             'roles.delete',
+            'bank_accounts.view',
+            'bank_accounts.manage',
+            'reports.view',
         ];
 
         foreach ($permissions as $name) {
@@ -47,6 +50,7 @@ class TravelAgencyPermissionSeeder extends Seeder
             'campaigns.view', 'campaigns.manage',
             'inquiries.view', 'inquiries.manage',
             'profile.view',
+            'reports.view',
         ];
 
         $staffPermissions = [

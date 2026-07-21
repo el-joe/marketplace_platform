@@ -1286,6 +1286,19 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             Route::post('/{travelAgency}/reject', [\App\Http\Controllers\Admin\TravelAgencyController::class, 'reject'])->name('reject');
         });
 
+        Route::prefix('change-requests')->name('change-requests.')
+            ->middleware('admin.permission:travel_agency_change_requests.view')
+            ->group(function () {
+                Route::get('/', [\App\Http\Controllers\Admin\TravelAgencyChangeRequestController::class, 'index'])->name('index');
+                Route::get('/{changeRequest}', [\App\Http\Controllers\Admin\TravelAgencyChangeRequestController::class, 'show'])->name('show');
+                Route::post('/{changeRequest}/approve', [\App\Http\Controllers\Admin\TravelAgencyChangeRequestController::class, 'approve'])
+                    ->name('approve')
+                    ->middleware('admin.permission:travel_agency_change_requests.approve');
+                Route::post('/{changeRequest}/reject', [\App\Http\Controllers\Admin\TravelAgencyChangeRequestController::class, 'reject'])
+                    ->name('reject')
+                    ->middleware('admin.permission:travel_agency_change_requests.approve');
+            });
+
         Route::prefix('packages')->name('packages.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\TravelPackageController::class, 'index'])->name('index');
             Route::post('/datatable', [\App\Http\Controllers\Admin\TravelPackageController::class, 'datatable'])->name('datatable');

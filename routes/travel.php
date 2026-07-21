@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\TravelAgencyPortal\AuthController;
+use App\Http\Controllers\TravelAgencyPortal\BankAccountController;
 use App\Http\Controllers\TravelAgencyPortal\BookingController;
 use App\Http\Controllers\TravelAgencyPortal\CampaignController;
+use App\Http\Controllers\TravelAgencyPortal\ChangeRequestController;
 use App\Http\Controllers\TravelAgencyPortal\DashboardController;
 use App\Http\Controllers\TravelAgencyPortal\PackageController;
 use App\Http\Controllers\TravelAgencyPortal\PackageInquiryController;
 use App\Http\Controllers\TravelAgencyPortal\ProfileController;
+use App\Http\Controllers\TravelAgencyPortal\ReportController;
 use App\Http\Controllers\TravelAgencyPortal\RoleController;
 use App\Http\Controllers\TravelAgencyPortal\TeamController;
 use App\Http\Controllers\NotificationController;
@@ -118,6 +121,31 @@ Route::name('travel-agency.')
                 Route::post('/{member}/toggle-active', 'toggleActive')->name('toggle-active')->middleware('travel_agency.can:team.manage');
                 Route::delete('/{member}', 'destroy')->name('destroy')->middleware('travel_agency.can:team.manage');
             });
+
+            // Bank accounts (feature-flagged, owner-only — see config/features.php)
+            Route::prefix('bank-accounts')->name('bank-accounts.')->controller(BankAccountController::class)->group(function () {
+                Route::get('/', 'index')->name('index')->middleware('travel_agency.can:bank_accounts.view');
+                Route::post('/', 'store')->name('store')->middleware('travel_agency.can:bank_accounts.manage');
+                Route::post('/{account}/set-primary', 'setPrimary')->name('set-primary')->middleware('travel_agency.can:bank_accounts.manage');
+                Route::delete('/{account}', 'destroy')->name('destroy')->middleware('travel_agency.can:bank_accounts.manage');
+            });
+
+            // Change requests (locked-section edits, e.g. bank accounts)
+            Route::prefix('change-requests')->name('change-requests.')->controller(ChangeRequestController::class)->group(function () {
+                Route::get('/', 'index')->name('index')->middleware('travel_agency.can:bank_accounts.view');
+                Route::post('/{changeRequest}/cancel', 'cancel')->name('cancel')->middleware('travel_agency.can:bank_accounts.manage');
+            });
+
+            // Reports
+            Route::prefix('reports')->name('reports.')->controller(ReportController::class)
+                ->middleware('travel_agency.can:reports.view')
+                ->group(function () {
+                    Route::get('/revenue', 'revenue')->name('revenue');
+                    Route::get('/bookings', 'bookings')->name('bookings');
+                    Route::get('/packages', 'packages')->name('packages');
+                    Route::get('/revenue/export', 'exportRevenue')->name('revenue.export');
+                    Route::get('/bookings/export', 'exportBookings')->name('bookings.export');
+                });
 
             // Roles & permissions
             Route::prefix('roles')->name('roles.')->controller(RoleController::class)->group(function () {

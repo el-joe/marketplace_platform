@@ -103,6 +103,8 @@ export default defineConfig({
                 'resources/js/travel_agency/campaigns.js',
                 'resources/js/travel_agency/team.js',
                 'resources/js/travel_agency/roles.js',
+                'resources/js/travel_agency/bank-accounts.js',
+                'resources/js/travel_agency/reports.js',
             ],
             refresh: [
                 'resources/views/**',

@@ -210,6 +210,33 @@
                 {{ __('travel.nav.campaigns') }}
             </a>
 
+            @if (auth()->guard('travel_agency')->user()?->can('reports.view'))
+                <a href="{{ route('travel-agency.reports.revenue') }}"
+                    class="{{ request()->routeIs('travel-agency.reports.revenue') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l4-5 3 3 5-7" />
+                    </svg>
+                    {{ __('travel.nav.reports_revenue') }}
+                </a>
+
+                <a href="{{ route('travel-agency.reports.bookings') }}"
+                    class="{{ request()->routeIs('travel-agency.reports.bookings') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V9m3 8V5m3 12v-4M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    {{ __('travel.nav.reports_bookings') }}
+                </a>
+
+                <a href="{{ route('travel-agency.reports.packages') }}"
+                    class="{{ request()->routeIs('travel-agency.reports.packages') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    </svg>
+                    {{ __('travel.nav.reports_packages') }}
+                </a>
+            @endif
+
             <a href="{{ route('travel-agency.profile.edit') }}"
                 class="{{ request()->routeIs('travel-agency.profile.*') ? 'active' : '' }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -218,6 +245,17 @@
                 </svg>
                 {{ __('travel.nav.profile') }}
             </a>
+
+            @if (auth()->guard('travel_agency')->user()?->can('bank_accounts.view'))
+                <a href="{{ route('travel-agency.bank-accounts.index') }}"
+                    class="hidden {{ request()->routeIs('travel-agency.bank-accounts.*') || request()->routeIs('travel-agency.change-requests.*') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 6l9-3 9 3M3 6v14l9 3 9-3V6M3 6l9 3 9-3"/>
+                    </svg>
+                    {{ __('travel.nav.bank_accounts') }}
+                </a>
+            @endif
 
             @if (auth()->guard('travel_agency')->user()?->isOwner())
                 <a href="{{ route('travel-agency.team.index') }}"
