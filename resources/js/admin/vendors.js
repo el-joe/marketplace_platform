@@ -407,10 +407,10 @@ $(function () {
     });
 
     // ══════════════════════════════════════════════════════════════════════════
-    // APPLICATION QUEUE — card actions
+    // VENDOR SHOW PAGE — quick approve action
     // ══════════════════════════════════════════════════════════════════════════
 
-    // Quick approve on queue card
+    // Quick approve on vendor show page
     $(document).on('click', '[data-approve-vendor]', function () {
         const vendorId = $(this).data('approve-vendor');
         if (!confirm(t('admin.vendors.approve_confirm'))) return;
@@ -422,30 +422,6 @@ $(function () {
                     setTimeout(function () { location.reload(); }, 700);
                 })
                 .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.approval_failed')); })
-        );
-    });
-
-    // Populate quick-reject modal
-    $(document).on('click', '[data-open-modal="quick-reject-modal"]', function () {
-        const vendorId = $(this).data('vendor-id');
-        const vendorName = $(this).data('vendor-name');
-        $('#qr-vendor-id').val(vendorId);
-        $('#qr-vendor-name').text(vendorName);
-        openModal('quick-reject-modal');
-    });
-
-    $('#quick-reject-form').on('submit', function (e) {
-        e.preventDefault();
-        const vendorId = $('#qr-vendor-id').val();
-
-        withLoading('#quick-reject-form [type=submit]',
-            $.post('/vendors/' + vendorId + '/reject', $(this).serialize())
-                .done(function (res) {
-                    closeModal('quick-reject-modal');
-                    Toast.success(res.message);
-                    setTimeout(function () { location.reload(); }, 700);
-                })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.rejection_failed')); })
         );
     });
 

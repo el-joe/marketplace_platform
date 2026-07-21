@@ -433,7 +433,6 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
     // ─── Vendors ─────────────────────────────────────────────────────────────────
 
     Route::prefix('vendors')->name('vendors.')->middleware('admin.permission:vendors.view')->group(function () {
-        Route::get('/applications', [VendorController::class, 'applicationQueue'])->name('applications');
         Route::post('/datatable', [VendorController::class, 'datatable'])->name('datatable');
         Route::post('/bulk', [VendorController::class, 'bulkAction'])->name('bulk');
 

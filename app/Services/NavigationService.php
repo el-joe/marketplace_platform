@@ -246,17 +246,10 @@ class NavigationService
                     ],
                     [
                         'label' => __('admin.nav.applications'),
-                        'route' => 'admin.vendors.applications',
-                        'icon' => 'inbox-arrow-down',
-                        'permission' => 'vendors.view',
-                        'badge' => $this->cachedBadge('pending_vendors', fn() => $this->countPendingVendors()),
-                    ],
-                    [
-                        'label' => __('admin.nav.vendor_applications_queue'),
                         'route' => 'admin.vendor-applications.index',
                         'icon' => 'inbox-arrow-down',
                         'permission' => 'vendors.view',
-                        'badge' => null,
+                        'badge' => $this->cachedBadge('pending_vendors', fn() => $this->countPendingVendors()),
                     ],
                     [
                         'label' => __('admin.nav.vendor_change_requests'),

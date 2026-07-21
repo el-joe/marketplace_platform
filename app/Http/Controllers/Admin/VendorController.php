@@ -128,18 +128,6 @@ class VendorController extends Controller
         });
     }
 
-    // ── Application queue ─────────────────────────────────────────────────────
-
-    public function applicationQueue()
-    {
-        $vendors = Vendor::where('global_status', VendorGlobalStatus::Pending->value)
-            ->with(['country', 'documents'])
-            ->orderBy('created_at', 'asc')
-            ->paginate(24);
-
-        return view('admin.vendors.applications', compact('vendors'));
-    }
-
     // ── Show ──────────────────────────────────────────────────────────────────
 
     public function show(Request $request, Vendor $vendor)

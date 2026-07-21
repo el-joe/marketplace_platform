@@ -15,7 +15,7 @@
         </div>
         <div class="flex items-center gap-3">
             @if($pendingCount > 0)
-                <a href="{{ route('admin.vendors.applications') }}"
+                <a href="{{ route('admin.vendor-applications.index') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-warning-100 text-warning-800 px-3 py-1.5 text-sm font-medium hover:bg-warning-200 transition-colors">
                     <span>{{ __('admin.vendors.application_queue') }}</span>
                     <span
