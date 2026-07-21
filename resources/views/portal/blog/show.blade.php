@@ -169,6 +169,8 @@
     </div>
 </div>
 
+@include('portal.partials.cta-footer')
+
 @endsection
 
 @push('scripts')
