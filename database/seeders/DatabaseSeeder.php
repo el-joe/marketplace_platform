@@ -13,8 +13,28 @@ use Illuminate\Database\Seeder;
  */
 class DatabaseSeeder extends Seeder
 {
-    public function run(): void
+    public function run(bool $permissionsOnly = false): void
     {
+        if ($permissionsOnly) {
+            $this->call([
+                AdminSeeder::class,
+
+                PermissionSeeder::class,
+                PermissionRoleSeeder::class,
+                RolesAndPermissionsSeeder::class,
+                AdminRoleAssignmentSeeder::class,
+
+                TravelAgencyPermissionSeeder::class,
+                TravelAgencyMemberRoleMigrationSeeder::class,
+
+                VendorPermissionSeeder::class,
+                VendorAdminRoleMigrationSeeder::class,
+
+
+            ]);
+
+            return;
+        }
 
         $this->call([
                 // ── Core reference data ────────────────────────────────────────
