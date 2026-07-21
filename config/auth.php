@@ -77,7 +77,7 @@ return [
         // Travel agency portal (session-based login for the agency owner + team members)
         'travel_agency' => [
             'driver' => 'session',
-            'provider' => 'travel_agency_members',
+            'provider' => 'travel_agency_users',
         ],
         // Travel agency mobile/API (JWT)
         'travel_agencies' => [
@@ -141,6 +141,12 @@ return [
         'travel_agency_members' => [
             'driver' => 'eloquent',
             'model' => \App\Models\TravelAgencyMember::class,
+        ],
+        // Backs the 'travel_agency' session guard: resolves the owner
+        // (travel_agencies) or a staff member (travel_agency_members) by email.
+        'travel_agency_users' => [
+            'driver' => 'travel_agency_provider',
+            'model' => \App\Models\TravelAgency::class,
         ],
         'shipping_supervisors' => [
             'driver' => 'eloquent',

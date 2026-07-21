@@ -77,6 +77,7 @@ use App\Enums\TravelBookingStatus;
 use App\Enums\TravelPackageInquiryStatus;
 use App\Models\TravelBooking;
 use App\Models\TravelPackageInquiry;
+use App\Auth\TravelAgencyUserProvider;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -112,6 +113,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Auth::provider('travel_agency_provider', function ($app, array $config) {
+            return new TravelAgencyUserProvider($app['hash'], $config['model']);
+        });
+
         Gate::before(function ($user, $ability) {
             if (method_exists($user, 'hasRole') && $user->hasRole('super_admin')) {
                 return true;

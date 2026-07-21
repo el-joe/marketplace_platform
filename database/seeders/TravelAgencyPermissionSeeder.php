@@ -19,13 +19,21 @@ class TravelAgencyPermissionSeeder extends Seeder
             'packages.view',
             'packages.create',
             'packages.edit',
+            'packages.delete',
+            'packages.publish',
+            'packages.unpublish',
             'bookings.view',
             'bookings.create',
             'bookings.manage',
+            'bookings.export',
             'campaigns.view',
+            'campaigns.create',
+            'campaigns.edit',
             'campaigns.manage',
             'inquiries.view',
             'inquiries.manage',
+            'inquiries.respond',
+            'inquiries.close',
             'profile.view',
             'profile.edit',
             'team.view',
@@ -38,6 +46,7 @@ class TravelAgencyPermissionSeeder extends Seeder
             'bank_accounts.view',
             'bank_accounts.manage',
             'reports.view',
+            'reports.export',
         ];
 
         foreach ($permissions as $name) {
@@ -45,20 +54,23 @@ class TravelAgencyPermissionSeeder extends Seeder
         }
 
         $managerPermissions = [
-            'packages.view', 'packages.create', 'packages.edit',
-            'bookings.view', 'bookings.create', 'bookings.manage',
-            'campaigns.view', 'campaigns.manage',
-            'inquiries.view', 'inquiries.manage',
-            'profile.view',
-            'reports.view',
+            'packages.view', 'packages.create', 'packages.edit', 'packages.publish', 'packages.unpublish',
+            'bookings.view', 'bookings.create', 'bookings.manage', 'bookings.export',
+            'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.manage',
+            'inquiries.view', 'inquiries.manage', 'inquiries.respond', 'inquiries.close',
+            'profile.view', 'profile.edit',
+            'team.view',
+            'roles.view',
+            'reports.view', 'reports.export',
         ];
 
         $staffPermissions = [
             'packages.view',
-            'bookings.view', 'bookings.create',
+            'bookings.view', 'bookings.create', 'bookings.manage',
             'campaigns.view',
-            'inquiries.view', 'inquiries.manage',
+            'inquiries.view', 'inquiries.manage', 'inquiries.respond', 'inquiries.close',
             'profile.view',
+            'reports.view',
         ];
 
         $roleLabels = [

@@ -29,6 +29,7 @@ class RoleController extends Controller
         'profile' => 'Settings',
         'team' => 'Team',
         'roles' => 'Roles',
+        'bank_accounts' => 'Bank Accounts',
     ];
 
     // ─────────────────────────────────────────────────────────────────────────

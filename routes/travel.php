@@ -61,51 +61,51 @@ Route::name('travel-agency.')
 
             // Packages
             Route::prefix('packages')->name('packages.')->group(function () {
-                Route::get('/', [PackageController::class, 'index'])->name('index');
-                Route::get('/create', [PackageController::class, 'create'])->name('create');
-                Route::post('/', [PackageController::class, 'store'])->name('store');
-                Route::get('/cities-for-country/{travelCountryId}', [PackageController::class, 'citiesForCountry'])->name('cities-for-country');
-                Route::get('/{package}', [PackageController::class, 'show'])->name('show');
-                Route::get('/{package}/edit', [PackageController::class, 'edit'])->name('edit');
-                Route::put('/{package}', [PackageController::class, 'update'])->name('update');
-                Route::post('/{package}/submit', [PackageController::class, 'submitForReview'])->name('submit');
-                Route::post('/{package}/withdraw', [PackageController::class, 'withdraw'])->name('withdraw');
-                Route::delete('/{package}/media/{media}', [PackageController::class, 'destroyMedia'])->name('media.destroy');
-                Route::get('/{package}/contract', [PackageController::class, 'downloadContract'])->name('contract.download');
+                Route::get('/', [PackageController::class, 'index'])->name('index')->middleware('travel_agency.can:packages.view');
+                Route::get('/create', [PackageController::class, 'create'])->name('create')->middleware('travel_agency.can:packages.create');
+                Route::post('/', [PackageController::class, 'store'])->name('store')->middleware('travel_agency.can:packages.create');
+                Route::get('/cities-for-country/{travelCountryId}', [PackageController::class, 'citiesForCountry'])->name('cities-for-country')->middleware('travel_agency.can:packages.view');
+                Route::get('/{package}', [PackageController::class, 'show'])->name('show')->middleware('travel_agency.can:packages.view');
+                Route::get('/{package}/edit', [PackageController::class, 'edit'])->name('edit')->middleware('travel_agency.can:packages.edit');
+                Route::put('/{package}', [PackageController::class, 'update'])->name('update')->middleware('travel_agency.can:packages.edit');
+                Route::post('/{package}/submit', [PackageController::class, 'submitForReview'])->name('submit')->middleware('travel_agency.can:packages.publish');
+                Route::post('/{package}/withdraw', [PackageController::class, 'withdraw'])->name('withdraw')->middleware('travel_agency.can:packages.unpublish');
+                Route::delete('/{package}/media/{media}', [PackageController::class, 'destroyMedia'])->name('media.destroy')->middleware('travel_agency.can:packages.edit');
+                Route::get('/{package}/contract', [PackageController::class, 'downloadContract'])->name('contract.download')->middleware('travel_agency.can:packages.view');
             });
 
             // Bookings
             Route::prefix('bookings')->name('bookings.')->group(function () {
-                Route::get('/', [BookingController::class, 'index'])->name('index');
-                Route::get('/create', [BookingController::class, 'create'])->name('create');
-                Route::post('/', [BookingController::class, 'store'])->name('store');
-                Route::get('/customer-search', [BookingController::class, 'customerSearch'])->name('customer-search');
-                Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
-                Route::patch('/{booking}/status', [BookingController::class, 'updateStatus'])->name('status');
+                Route::get('/', [BookingController::class, 'index'])->name('index')->middleware('travel_agency.can:bookings.view');
+                Route::get('/create', [BookingController::class, 'create'])->name('create')->middleware('travel_agency.can:bookings.create');
+                Route::post('/', [BookingController::class, 'store'])->name('store')->middleware('travel_agency.can:bookings.create');
+                Route::get('/customer-search', [BookingController::class, 'customerSearch'])->name('customer-search')->middleware('travel_agency.can:bookings.create');
+                Route::get('/{booking}', [BookingController::class, 'show'])->name('show')->middleware('travel_agency.can:bookings.view');
+                Route::patch('/{booking}/status', [BookingController::class, 'updateStatus'])->name('status')->middleware('travel_agency.can:bookings.manage');
             });
 
             // Campaign Offers
             Route::prefix('campaigns')->name('campaigns.')->group(function () {
-                Route::get('/',                                   [CampaignController::class, 'index'])->name('index');
-                Route::get('/create',                              [CampaignController::class, 'create'])->name('create');
-                Route::post('/',                                   [CampaignController::class, 'store'])->name('store');
-                Route::get('/marketers/search',                    [CampaignController::class, 'searchMarketers'])->name('marketers.search');
-                Route::get('/packages/search',                     [CampaignController::class, 'searchPackages'])->name('packages.search');
-                Route::get('/{offer}',                             [CampaignController::class, 'show'])->name('show');
-                Route::post('/{offer}/submit',                     [CampaignController::class, 'submitForReview'])->name('submit');
-                Route::post('/{offer}/pause',                      [CampaignController::class, 'pauseOffer'])->name('pause');
-                Route::post('/{offer}/resume',                     [CampaignController::class, 'resumeOffer'])->name('resume');
-                Route::delete('/{offer}',                          [CampaignController::class, 'destroy'])->name('destroy');
-                Route::post('/{offer}/invite',                     [CampaignController::class, 'invite'])->name('invite');
-                Route::delete('/invitations/{invitation}/revoke',  [CampaignController::class, 'revokeInvitation'])->name('invitations.revoke');
+                Route::get('/',                                   [CampaignController::class, 'index'])->name('index')->middleware('travel_agency.can:campaigns.view');
+                Route::get('/create',                              [CampaignController::class, 'create'])->name('create')->middleware('travel_agency.can:campaigns.create');
+                Route::post('/',                                   [CampaignController::class, 'store'])->name('store')->middleware('travel_agency.can:campaigns.create');
+                Route::get('/marketers/search',                    [CampaignController::class, 'searchMarketers'])->name('marketers.search')->middleware('travel_agency.can:campaigns.create');
+                Route::get('/packages/search',                     [CampaignController::class, 'searchPackages'])->name('packages.search')->middleware('travel_agency.can:campaigns.create');
+                Route::get('/{offer}',                             [CampaignController::class, 'show'])->name('show')->middleware('travel_agency.can:campaigns.view');
+                Route::post('/{offer}/submit',                     [CampaignController::class, 'submitForReview'])->name('submit')->middleware('travel_agency.can:campaigns.edit');
+                Route::post('/{offer}/pause',                      [CampaignController::class, 'pauseOffer'])->name('pause')->middleware('travel_agency.can:campaigns.manage');
+                Route::post('/{offer}/resume',                     [CampaignController::class, 'resumeOffer'])->name('resume')->middleware('travel_agency.can:campaigns.manage');
+                Route::delete('/{offer}',                          [CampaignController::class, 'destroy'])->name('destroy')->middleware('travel_agency.can:campaigns.manage');
+                Route::post('/{offer}/invite',                     [CampaignController::class, 'invite'])->name('invite')->middleware('travel_agency.can:campaigns.manage');
+                Route::delete('/invitations/{invitation}/revoke',  [CampaignController::class, 'revokeInvitation'])->name('invitations.revoke')->middleware('travel_agency.can:campaigns.manage');
             });
 
             // Package Inquiries (lead management)
             Route::prefix('inquiries')->name('inquiries.')->group(function () {
-                Route::get('/', [PackageInquiryController::class, 'index'])->name('index');
-                Route::post('/{inquiry}/contacted', [PackageInquiryController::class, 'markContacted'])->name('contacted');
-                Route::post('/{inquiry}/convert', [PackageInquiryController::class, 'convertToBooking'])->name('convert');
-                Route::post('/{inquiry}/close', [PackageInquiryController::class, 'close'])->name('close');
+                Route::get('/', [PackageInquiryController::class, 'index'])->name('index')->middleware('travel_agency.can:inquiries.view');
+                Route::post('/{inquiry}/contacted', [PackageInquiryController::class, 'markContacted'])->name('contacted')->middleware('travel_agency.can:inquiries.manage');
+                Route::post('/{inquiry}/convert', [PackageInquiryController::class, 'convertToBooking'])->name('convert')->middleware('travel_agency.can:inquiries.manage');
+                Route::post('/{inquiry}/close', [PackageInquiryController::class, 'close'])->name('close')->middleware('travel_agency.can:inquiries.close');
             });
 
             // Profile
@@ -116,10 +116,15 @@ Route::name('travel-agency.')
             // Team management
             Route::prefix('team')->name('team.')->controller(TeamController::class)->group(function () {
                 Route::get('/', 'index')->name('index')->middleware('travel_agency.can:team.view');
+                Route::get('/datatable', 'datatable')->name('datatable')->middleware('travel_agency.can:team.view');
+                Route::get('/create', 'create')->name('create')->middleware('travel_agency.can:team.invite');
                 Route::post('/', 'store')->name('store')->middleware('travel_agency.can:team.invite');
-                Route::put('/{member}/role', 'updateRole')->name('update-role')->middleware('travel_agency.can:team.manage');
-                Route::post('/{member}/toggle-active', 'toggleActive')->name('toggle-active')->middleware('travel_agency.can:team.manage');
+                Route::get('/{member}/edit', 'edit')->name('edit')->middleware('travel_agency.can:team.manage');
+                Route::put('/{member}', 'update')->name('update')->middleware('travel_agency.can:team.manage');
+                Route::post('/{member}/toggle-status', 'toggleStatus')->name('toggle-status')->middleware('travel_agency.can:team.manage');
+                Route::post('/{member}/force-password-reset', 'forcePasswordReset')->name('force-password-reset')->middleware('travel_agency.can:team.manage');
                 Route::delete('/{member}', 'destroy')->name('destroy')->middleware('travel_agency.can:team.manage');
+                Route::post('/{member}/restore', 'restore')->name('restore')->middleware('travel_agency.can:team.manage');
             });
 
             // Bank accounts (feature-flagged, owner-only — see config/features.php)

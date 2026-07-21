@@ -1,25 +1,25 @@
 /**
  * Travel Agency Portal → Team Management JS
- * Mirrors resources/js/partner/team.js with travel_agency role naming.
+ *
+ * Server-side DataTable (window.initDataTable, see resources/js/components/datatable.js)
+ * driving GET {route('travel-agency.team.datatable')}. Row payload fields are built
+ * by TeamController@datatable (see app/Http/Controllers/TravelAgencyPortal/TeamController.php).
  */
+import $ from 'jquery';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-const cfg = () => window.TEAM;
-
-function csrfHeaders(json = true) {
-    const h = { 'X-CSRF-TOKEN': cfg().csrf };
-    if (json) h['Accept'] = 'application/json';
-    return h;
+function labels() {
+    return window.TEAM_LABELS || {};
 }
 
-function urlFor(template, id) {
-    return template.replace(':id', id);
+function csrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 }
 
 function toast(message, ok = true) {
+    if (window.Toast) {
+        ok ? window.Toast.success(message) : window.Toast.error(message);
+        return;
+    }
     window.Toastify?.({
         text: message,
         backgroundColor: ok ? '#22c55e' : '#ef4444',
@@ -29,258 +29,164 @@ function toast(message, ok = true) {
     }).showToast();
 }
 
-function setLoading(btn, loading, label = 'جارٍ...') {
-    btn.disabled = loading;
-    btn.dataset.orig = btn.dataset.orig ?? btn.textContent;
-    btn.textContent = loading ? label : btn.dataset.orig;
+function reloadTable() {
+    const table = $('#team-table').DataTable ? $('#team-table').DataTable() : null;
+    table?.ajax?.reload(null, false);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Invite modal form
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Submits a hidden form to `url` with the given HTTP verb, causing a full
+ * page navigation — matches the RedirectResponse contract of destroy()/restore().
+ */
+function submitFormNavigation(url, method) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.style.display = 'none';
 
-function initInviteModal() {
-    const form = document.getElementById('form-invite');
-    const errorEl = document.getElementById('invite-error');
-    if (!form) return;
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = '_token';
+    csrf.value = csrfToken();
+    form.appendChild(csrf);
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btn-send-invite');
+    if (method !== 'POST') {
+        const spoof = document.createElement('input');
+        spoof.type = 'hidden';
+        spoof.name = '_method';
+        spoof.value = method;
+        form.appendChild(spoof);
+    }
 
-        if (errorEl) errorEl.classList.add('hidden');
-        setLoading(btn, true, 'جارٍ الإرسال...');
-
-        const body = new URLSearchParams(new FormData(form));
-
-        try {
-            const res = await fetch(cfg().storeUrl, {
-                method: 'POST',
-                headers: { ...csrfHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
-                body,
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                const msg = data.errors
-                    ? Object.values(data.errors).flat().join(' — ')
-                    : (data.message ?? 'حدث خطأ');
-                if (errorEl) { errorEl.textContent = msg; errorEl.classList.remove('hidden'); }
-                return;
-            }
-
-            toast(data.message);
-            form.reset();
-            document.dispatchEvent(new CustomEvent('close-invite-modal'));
-
-            if (data.member) appendMemberRow(data.member);
-
-        } catch (err) {
-            toast(err.message, false);
-        } finally {
-            setLoading(btn, false);
-        }
-    });
-
-    document.addEventListener('close-invite-modal', () => {
-        const el = document.querySelector('[x-data]');
-        if (el?._x_dataStack?.[0]) {
-            el._x_dataStack[0].showInviteModal = false;
-        }
-    });
+    document.body.appendChild(form);
+    form.submit();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Row actions
-// ─────────────────────────────────────────────────────────────────────────────
+async function postJson(url, method = 'POST') {
+    const res = await fetch(url, {
+        method,
+        headers: {
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': csrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message ?? 'Request failed');
+    return data;
+}
 
 function initTeamActions() {
-    const tbody = document.getElementById('team-tbody');
-    if (!tbody) return;
+    window.tableActions = window.tableActions || {};
 
-    tbody.addEventListener('change', async (e) => {
-        const roleSelect = e.target.closest('.select-change-role');
-        if (roleSelect) {
-            const id = roleSelect.dataset.id;
-            const url = urlFor(cfg().updateRoleUrl, id);
-            const role = roleSelect.value;
-
-            roleSelect.disabled = true;
-
-            try {
-                const res = await fetch(url, {
-                    method: 'PUT',
-                    headers: { ...csrfHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ role }),
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message ?? 'فشل تحديث الدور');
-
-                toast(data.message);
-            } catch (err) {
-                toast(err.message, false);
-            } finally {
-                roleSelect.disabled = false;
-            }
+    window.tableActions['team.toggleStatus'] = async (id, row) => {
+        try {
+            const data = await postJson(row.toggle_status_url, 'POST');
+            toast(data.message);
+            reloadTable();
+        } catch (err) {
+            toast(err.message, false);
         }
-    });
+    };
 
-    tbody.addEventListener('click', async (e) => {
-        const toggleBtn = e.target.closest('.btn-toggle-active');
-        if (toggleBtn) {
-            const id = toggleBtn.dataset.id;
-            const url = urlFor(cfg().toggleActiveUrl, id);
-
-            setLoading(toggleBtn, true);
-
-            try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: csrfHeaders(),
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message ?? 'فشلت العملية');
-
-                toast(data.message);
-                updateMemberRow(id, data.is_active);
-            } catch (err) {
-                toast(err.message, false);
-            } finally {
-                setLoading(toggleBtn, false);
-            }
-            return;
+    window.tableActions['team.forcePasswordReset'] = async (id, row) => {
+        if (!window.confirm(labels().confirmForcePasswordReset)) return;
+        try {
+            const data = await postJson(row.force_password_reset_url, 'POST');
+            toast(data.message);
+        } catch (err) {
+            toast(err.message, false);
         }
+    };
 
-        const deleteBtn = e.target.closest('.btn-delete-member');
-        if (deleteBtn) {
-            const id = deleteBtn.dataset.id;
-            const name = deleteBtn.dataset.name;
+    window.tableActions['team.destroy'] = (id, row) => {
+        if (!window.confirm(labels().confirmDeleteMember)) return;
+        submitFormNavigation(row.destroy_url, 'DELETE');
+    };
 
-            if (!confirm(`هل أنت متأكد من حذف "${name}"؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
-
-            const url = urlFor(cfg().destroyUrl, id);
-            deleteBtn.disabled = true;
-
-            try {
-                const res = await fetch(url, {
-                    method: 'DELETE',
-                    headers: csrfHeaders(),
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message ?? 'فشل الحذف');
-
-                toast(data.message);
-                document.getElementById(`member-row-${id}`)?.remove();
-            } catch (err) {
-                toast(err.message, false);
-                deleteBtn.disabled = false;
-            }
-        }
-    });
+    window.tableActions['team.restore'] = (id, row) => {
+        if (!window.confirm(labels().confirmRestoreMember)) return;
+        submitFormNavigation(row.restore_url, 'POST');
+    };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DOM helpers
-// ─────────────────────────────────────────────────────────────────────────────
+function escAttr(obj) {
+    return JSON.stringify(obj).replace(/'/g, '&#39;');
+}
 
-function updateMemberRow(id, isActive) {
-    const row = document.getElementById(`member-row-${id}`);
-    if (!row) return;
+function actionsRenderer(actions, type, row) {
+    if (type !== 'display') return '';
 
-    const badge = row.querySelector('.member-status-badge');
-    if (badge) {
-        badge.textContent = isActive ? 'نشط' : 'معطَّل';
-        badge.className = badge.className
-            .replace(/bg-\S+|text-\S+(?=\s)/g, '')
-            .trim();
-        badge.classList.add(
-            ...(isActive ? ['bg-green-100', 'text-green-700'] : ['bg-red-100', 'text-red-600'])
-        );
+    const l = labels();
+    const canManage = !!window.TEAM_CAN_MANAGE;
+    if (!canManage) return '';
+
+    if (row.trashed) {
+        return `
+            <button type="button" class="text-xs font-medium px-3 py-1.5 rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors"
+                data-action="team.restore" data-id="${row.id}" data-row='${escAttr(row)}'>
+                ${l.restore}
+            </button>`;
     }
 
-    const toggleBtn = row.querySelector('.btn-toggle-active');
-    if (toggleBtn) {
-        toggleBtn.dataset.active = isActive ? '1' : '0';
-        toggleBtn.textContent = isActive ? 'تعطيل' : 'تفعيل';
-        toggleBtn.classList.remove('border-amber-300', 'text-amber-700', 'hover:bg-amber-50',
-            'border-green-300', 'text-green-700', 'hover:bg-green-50');
-        if (isActive) {
-            toggleBtn.classList.add('border-amber-300', 'text-amber-700', 'hover:bg-amber-50');
-        } else {
-            toggleBtn.classList.add('border-green-300', 'text-green-700', 'hover:bg-green-50');
-        }
+    if (row.is_self) {
+        return '<span class="text-xs text-gray-400">—</span>';
     }
+
+    return `
+        <div class="flex items-center justify-end gap-2 flex-wrap">
+            <a href="${row.edit_url}" class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+                ${l.edit}
+            </a>
+            <button type="button" class="text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${row.is_active ? 'border-amber-300 text-amber-700 hover:bg-amber-50' : 'border-green-300 text-green-700 hover:bg-green-50'}"
+                data-action="team.toggleStatus" data-id="${row.id}" data-row='${escAttr(row)}'>
+                ${row.is_active ? l.deactivate : l.activate}
+            </button>
+            <button type="button" class="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                data-action="team.forcePasswordReset" data-id="${row.id}" data-row='${escAttr(row)}'>
+                ${l.forcePasswordReset}
+            </button>
+            <button type="button" class="text-xs font-medium px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                data-action="team.destroy" data-id="${row.id}" data-row='${escAttr(row)}'>
+                ${l.delete}
+            </button>
+        </div>`;
 }
 
-function appendMemberRow(member) {
-    const tbody = document.getElementById('team-tbody');
-    if (!tbody) return;
-
-    tbody.querySelectorAll('tr td[colspan]').forEach(td => td.closest('tr').remove());
-
-    const roleLabelMap = { travel_agency_owner: 'مالك', travel_agency_manager: 'مدير', travel_agency_staff: 'موظف' };
-    const roleColorMap = { travel_agency_owner: 'bg-purple-100 text-purple-700', travel_agency_manager: 'bg-blue-100 text-blue-700', travel_agency_staff: 'bg-gray-100 text-gray-600' };
-
-    const tr = document.createElement('tr');
-    tr.id = `member-row-${member.id}`;
-    tr.className = 'hover:bg-gray-50 transition-colors';
-    tr.innerHTML = `
-        <td class="px-6 py-4">
-            <div class="flex items-center gap-3">
-                <div class="flex-shrink-0 h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-sm select-none">
-                    ${escHtml(member.name.charAt(0))}
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-gray-900">${escHtml(member.name)}</p>
-                    <p class="text-xs text-gray-500">${escHtml(member.email)}</p>
-                </div>
-            </div>
-        </td>
-        <td class="px-6 py-4">
-            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${roleColorMap[member.role] ?? 'bg-gray-100 text-gray-600'}">
-                ${roleLabelMap[member.role] ?? member.role}
-            </span>
-        </td>
-        <td class="px-6 py-4 hidden sm:table-cell">
-            <span class="text-sm text-gray-500">—</span>
-        </td>
-        <td class="px-6 py-4">
-            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium member-status-badge bg-green-100 text-green-700">
-                نشط
-            </span>
-        </td>
-        <td class="px-6 py-4 text-left">
-            <div class="flex items-center justify-end gap-2">
-                <button type="button"
-                    class="btn-toggle-active text-xs font-medium px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors"
-                    data-id="${member.id}" data-active="1">
-                    تعطيل
-                </button>
-                <button type="button"
-                    class="btn-delete-member text-xs font-medium px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
-                    data-id="${member.id}" data-name="${escHtml(member.name)}">
-                    حذف
-                </button>
-            </div>
-        </td>`;
-
-    tbody.appendChild(tr);
+function statusRenderer(value, type, row) {
+    if (type !== 'display') return value;
+    const cls = row.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600';
+    return `<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${cls}">${value}</span>`;
 }
 
-function escHtml(str) {
-    return String(str ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-}
+function initTable() {
+    const routes = window.TEAM_ROUTES;
+    if (!routes || !document.getElementById('team-table')) return;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Bootstrap
-// ─────────────────────────────────────────────────────────────────────────────
+    window.initDataTable('team-table', {
+        url: routes.datatable,
+        ajaxMethod: 'GET',
+        order: [[0, 'asc']],
+        serverSideFilters: {
+            show_deleted: () => (document.getElementById('team-show-deleted')?.checked ? 1 : 0),
+        },
+        columns: [
+            { data: 'name' },
+            { data: 'email' },
+            { data: 'phone' },
+            { data: 'role' },
+            { data: 'status', className: 'text-center', orderable: false, render: statusRenderer },
+            { data: 'last_login_at' },
+            { data: null, className: 'text-center', orderable: false, render: actionsRenderer },
+        ],
+    });
+
+    document.getElementById('team-show-deleted')?.addEventListener('change', () => {
+        $('#team-table').DataTable().ajax.reload();
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-    initInviteModal();
     initTeamActions();
+    initTable();
 });

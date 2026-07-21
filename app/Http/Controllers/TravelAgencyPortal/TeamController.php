@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers\TravelAgencyPortal;
 
+use App\Contracts\TravelAgencyAuthUser;
 use App\Http\Controllers\Controller;
-use App\Mail\TravelAgencyTeamMemberInviteMail;
+use App\Models\TravelAgency;
 use App\Models\TravelAgencyMember;
+use App\Notifications\TravelAgencyMemberPasswordReset;
+use App\Notifications\TravelAgencyMemberWelcome;
+use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -18,212 +23,308 @@ use Spatie\Permission\Models\Role;
 
 class TeamController extends Controller
 {
+    use HasDataTable;
+
+    private const GUARD = 'travel_agency';
+
+    private const SYSTEM_ROLES = ['travel_agency_owner', 'travel_agency_manager', 'travel_agency_staff'];
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private function member(): TravelAgencyMember
+    /**
+     * The authenticated principal — either the TravelAgency itself (owner
+     * logging in directly) or a TravelAgencyMember.
+     */
+    private function authUser(): TravelAgencyAuthUser
     {
-        return Auth::guard('travel_agency')->user();
-    }
-
-    private function travelAgencyId(): string
-    {
-        return $this->member()->travel_agency_id;
+        return Auth::guard(self::GUARD)->user();
     }
 
     /**
-     * Guard: member must belong to the authenticated travel agency.
+     * Resolve the owning agency's id regardless of whether the authenticated
+     * principal is the TravelAgency (uses its own `id`) or a
+     * TravelAgencyMember (uses its `travel_agency_id` column).
      */
-    private function authoriseMember(TravelAgencyMember $member): void
+    private function getAgencyId(): string
     {
-        if ($member->travel_agency_id !== $this->travelAgencyId()) {
-            abort(404);
+        $user = $this->authUser();
+
+        if ($user instanceof TravelAgency) {
+            return $user->id;
+        }
+
+        return $user->travel_agency_id;
+    }
+
+    /**
+     * Roles assignable within this agency: the shared system roles plus any
+     * custom roles owned by this agency (scoped via `roles.travel_agency_id`).
+     */
+    private function scopedRoles()
+    {
+        $agencyId = $this->getAgencyId();
+
+        return Role::where('guard_name', self::GUARD)
+            ->where(function ($query) use ($agencyId) {
+                $query->whereIn('name', self::SYSTEM_ROLES)
+                    ->orWhere('travel_agency_id', $agencyId);
+            });
+    }
+
+    /**
+     * A role is usable by this agency if it's a global/system role or one of
+     * this agency's own custom roles — never another agency's custom role.
+     */
+    private function roleBelongsToAgency(Role $role): bool
+    {
+        return $role->travel_agency_id === null || $role->travel_agency_id === $this->getAgencyId();
+    }
+
+    private function authorizeMemberAccess(TravelAgencyMember $member): void
+    {
+        if ($member->travel_agency_id !== $this->getAgencyId()) {
+            abort(403);
         }
     }
 
-    /**
-     * A role is assignable if it's a shared system role or one of this
-     * agency's own custom roles — never another agency's custom role.
-     */
-    private function assignableRoleRule(): \Illuminate\Validation\Rules\Exists
+    private function forgetSidebarCache(): void
     {
-        return Rule::exists('roles', 'name')
-            ->where('guard_name', 'travel_agency')
-            ->where(function ($query) {
-                $query->whereNull('travel_agency_id')
-                    ->orWhere('travel_agency_id', $this->travelAgencyId());
-            });
+        Cache::forget('ta_sidebar_' . $this->getAgencyId());
+    }
+
+    private function roleDisplayLabel(?Role $role): ?string
+    {
+        if (!$role) {
+            return null;
+        }
+
+        if ($role->label) {
+            return $role->label;
+        }
+
+        return ucwords(str_replace(['travel_agency_', '_'], ['', ' '], $role->name));
     }
 
     // ── Actions ───────────────────────────────────────────────────────────────
 
-    /**
-     * Team management page — all members ordered owner→manager→staff.
-     */
     public function index(): View
     {
-        $admin = $this->member();
-        $members = TravelAgencyMember::where('travel_agency_id', $this->travelAgencyId())
-            ->orderByDesc('is_owner')
-            ->orderBy('created_at')
-            ->get();
+        // Resolving the agency id also validates the auth guard is set up
+        // correctly for this request; the id itself isn't needed by the view
+        // since all data is fetched client-side via the datatable() endpoint.
+        $this->getAgencyId();
 
-        $roleRows = Role::where('guard_name', 'travel_agency')
-            ->where('name', '!=', 'travel_agency_owner')
-            ->where(function ($query) {
-                $query->whereNull('travel_agency_id')
-                    ->orWhere('travel_agency_id', $this->travelAgencyId());
-            })
-            ->orderBy('name')
-            ->get(['name', 'label']);
+        $user = $this->authUser();
+        $canInvite = $user->can('team.invite');
+        $canManage = $user->can('team.manage');
 
-        $assignableRoles = $roleRows->pluck('name');
-        $customRoleLabels = $roleRows->pluck('label', 'name')->filter()->toArray();
-
-        return view('travel-agency.team.index', compact('admin', 'members', 'assignableRoles', 'customRoleLabels'));
+        return view('travel-agency.team.index', compact('canInvite', 'canManage'));
     }
 
-    /**
-     * Invite a new team member (owner only).
-     * Sends an email with a temporary password.
-     */
-    public function store(Request $request): JsonResponse
+    public function datatable(Request $request): JsonResponse
     {
-        $admin = $this->member();
+        $agencyId = $this->getAgencyId();
 
-        if (!$admin->isOwner()) {
-            return response()->json(['message' => 'Only the owner can add team members.'], 403);
+        $query = TravelAgencyMember::query()
+            ->where('travel_agency_id', $agencyId)
+            ->with('roles');
+
+        if ($request->boolean('show_deleted')) {
+            $query->withTrashed();
         }
 
+        $columns = [
+            ['orderable_column' => 'name', 'searchable_columns' => ['name', 'email']],
+            ['orderable_column' => 'email', 'searchable_columns' => ['email']],
+            ['orderable_column' => 'phone'],
+            [],
+            ['orderable_column' => 'is_active'],
+            ['orderable_column' => 'last_login_at'],
+            [],
+        ];
+
+        return $this->dataTableResponse($request, $query, $columns, function (TravelAgencyMember $member) {
+            $role = $member->roles->first();
+
+            return [
+                'id' => $member->id,
+                'name' => $member->name,
+                'email' => $member->email,
+                'phone' => $member->phone,
+                'role' => $this->roleDisplayLabel($role) ?? '—',
+                'status' => $member->is_active ? __('travel.team.active') : __('travel.team.inactive'),
+                'is_active' => (bool) $member->is_active,
+                'last_login_at' => $member->last_login_at?->diffForHumans() ?? '—',
+                'trashed' => (bool) $member->trashed(),
+                'is_self' => $member->id === $this->authUser()->getAuthIdentifier(),
+                'edit_url' => route('travel-agency.team.edit', $member->id),
+                'toggle_status_url' => route('travel-agency.team.toggle-status', $member->id),
+                'force_password_reset_url' => route('travel-agency.team.force-password-reset', $member->id),
+                'destroy_url' => route('travel-agency.team.destroy', $member->id),
+                'restore_url' => route('travel-agency.team.restore', $member->id),
+            ];
+        });
+    }
+
+    public function create(): View
+    {
+        $roles = $this->scopedRoles()->get();
+
+        return view('travel-agency.team.create', compact('roles'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:travel_agency_members,email',
-            'role' => ['required', $this->assignableRoleRule(), Rule::notIn(['travel_agency_owner'])],
+            'phone' => 'nullable|string|max:30',
+            'password' => 'required|string|min:8|confirmed',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
-        $tempPassword = Str::password(12, symbols: false);
+        $role = Role::findOrFail($validated['role_id']);
+        if (!$this->roleBelongsToAgency($role)) {
+            abort(403);
+        }
 
-        $member = DB::transaction(function () use ($validated, $tempPassword) {
+        $agencyId = $this->getAgencyId();
+        $plainPassword = $validated['password'];
+
+        $member = DB::transaction(function () use ($validated, $role, $agencyId, $plainPassword) {
             $member = TravelAgencyMember::create([
-                'travel_agency_id' => $this->travelAgencyId(),
+                'travel_agency_id' => $agencyId,
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'password' => Hash::make($tempPassword),
-                'role' => $validated['role'],
+                'phone' => $validated['phone'] ?? null,
+                'password' => Hash::make($plainPassword),
+                'role' => $role->name,
+                'is_owner' => false,
                 'is_active' => true,
             ]);
 
-            $member->assignRole($validated['role']);
+            $member->assignRole($role);
 
             return $member;
         });
 
-        Mail::to($member->email)->send(new TravelAgencyTeamMemberInviteMail($member, $tempPassword));
+        $member->notify(new TravelAgencyMemberWelcome($member, $plainPassword));
 
-        return response()->json([
-            'message' => 'Invitation sent successfully.',
-            'member' => [
-                'id' => $member->id,
-                'name' => $member->name,
-                'email' => $member->email,
-                'role' => $member->role,
-                'is_active' => $member->is_active,
-                'last_login_at' => null,
-            ],
-        ], 201);
+        $this->forgetSidebarCache();
+
+        return redirect()->route('travel-agency.team.index')
+            ->with('success', __('travel.team.member_created'));
     }
 
-    /**
-     * Change a team member's role (owner only, cannot change own or another owner's role).
-     */
-    public function updateRole(Request $request, TravelAgencyMember $member): JsonResponse
+    public function edit(TravelAgencyMember $member): View
     {
-        $admin = $this->member();
+        $this->authorizeMemberAccess($member);
 
-        if (!$admin->isOwner()) {
-            return response()->json(['message' => 'Only the owner can change member roles.'], 403);
-        }
+        $roles = $this->scopedRoles()->get();
+        $memberRole = $member->roles->first();
 
-        $this->authoriseMember($member);
+        return view('travel-agency.team.edit', compact('member', 'roles', 'memberRole'));
+    }
 
-        if ($member->id === $admin->id) {
-            return response()->json(['message' => 'You cannot change your own role.'], 422);
-        }
-
-        if ($member->isOwner()) {
-            return response()->json(['message' => "The owner's role cannot be changed."], 422);
-        }
+    public function update(Request $request, TravelAgencyMember $member): RedirectResponse
+    {
+        $this->authorizeMemberAccess($member);
 
         $validated = $request->validate([
-            'role' => ['required', $this->assignableRoleRule(), Rule::notIn(['travel_agency_owner'])],
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'email', 'max:255', Rule::unique('travel_agency_members', 'email')->ignore($member->id)],
+            'phone' => 'nullable|string|max:30',
+            'password' => 'nullable|string|min:8|confirmed',
+            'role_id' => 'nullable|exists:roles,id',
         ]);
 
-        DB::transaction(function () use ($member, $validated) {
-            $member->syncRoles([$validated['role']]);
-            $member->update(['role' => $validated['role']]);
-        });
-
-        return response()->json([
-            'message' => 'Member role updated successfully.',
-            'role' => $member->role,
-        ]);
-    }
-
-    /**
-     * Toggle a team member's active status (owner only, cannot deactivate owner).
-     */
-    public function toggleActive(TravelAgencyMember $member): JsonResponse
-    {
-        $admin = $this->member();
-
-        if (!$admin->isOwner()) {
-            return response()->json(['message' => 'Only the owner can change member status.'], 403);
+        $role = null;
+        if (!empty($validated['role_id'])) {
+            $role = Role::findOrFail($validated['role_id']);
+            if (!$this->roleBelongsToAgency($role)) {
+                abort(403);
+            }
         }
 
-        $this->authoriseMember($member);
+        DB::transaction(function () use ($member, $validated, $role) {
+            $member->name = $validated['name'];
+            $member->email = $validated['email'];
+            $member->phone = $validated['phone'] ?? null;
 
-        if ($member->isOwner()) {
-            return response()->json(['message' => "The owner's account cannot be deactivated."], 422);
-        }
+            if (!empty($validated['password'])) {
+                $member->password = Hash::make($validated['password']);
+            }
 
-        DB::transaction(function () use ($member) {
-            $member->update(['is_active' => !$member->is_active]);
+            $member->save();
 
-            if ($member->is_active) {
-                $member->syncRoles([$member->role]);
-            } else {
-                $member->syncRoles([]);
+            if ($role) {
+                $member->syncRoles([$role]);
+                $member->update(['role' => $role->name]);
             }
         });
 
+        $this->forgetSidebarCache();
+
+        return redirect()->route('travel-agency.team.index')
+            ->with('success', __('travel.team.member_updated'));
+    }
+
+    public function toggleStatus(TravelAgencyMember $member): JsonResponse
+    {
+        $this->authorizeMemberAccess($member);
+
+        $member->update(['is_active' => !$member->is_active]);
+
+        $this->forgetSidebarCache();
+
         return response()->json([
-            'message' => $member->is_active ? 'Member activated.' : 'Member deactivated.',
+            'success' => true,
             'is_active' => $member->is_active,
+            'message' => $member->is_active ? __('travel.team.activated') : __('travel.team.deactivated'),
         ]);
     }
 
-    /**
-     * Soft-delete a team member (owner only, cannot delete owner or self).
-     */
-    public function destroy(TravelAgencyMember $member): JsonResponse
+    public function forcePasswordReset(TravelAgencyMember $member): JsonResponse
     {
-        $admin = $this->member();
+        $this->authorizeMemberAccess($member);
 
-        if (!$admin->isOwner()) {
-            return response()->json(['message' => 'Only the owner can remove team members.'], 403);
-        }
+        $tempPassword = Str::random(12);
 
-        $this->authoriseMember($member);
+        $member->update(['password' => Hash::make($tempPassword)]);
 
-        if ($member->isOwner()) {
-            return response()->json(['message' => "The owner's account cannot be removed."], 422);
-        }
+        $member->notify(new TravelAgencyMemberPasswordReset($member, $tempPassword));
 
-        if ($member->id === $admin->id) {
-            return response()->json(['message' => 'You cannot remove your own account.'], 422);
+        return response()->json([
+            'success' => true,
+            'message' => __('travel.team.password_reset_sent'),
+        ]);
+    }
+
+    public function destroy(TravelAgencyMember $member): RedirectResponse
+    {
+        $this->authorizeMemberAccess($member);
+
+        if ($member->id === $this->authUser()->getAuthIdentifier()) {
+            return back()->with('error', __('travel.team.cannot_delete_self'));
         }
 
         $member->delete();
 
-        return response()->json(['message' => 'Member removed successfully.']);
+        $this->forgetSidebarCache();
+
+        return redirect()->route('travel-agency.team.index')
+            ->with('success', __('travel.team.member_removed'));
+    }
+
+    public function restore(string $member): RedirectResponse
+    {
+        $member = TravelAgencyMember::withTrashed()->findOrFail($member);
+
+        $this->authorizeMemberAccess($member);
+
+        $member->restore();
+
+        return redirect()->route('travel-agency.team.index')
+            ->with('success', __('travel.team.member_restored'));
     }
 }

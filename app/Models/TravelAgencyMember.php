@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\TravelAgencyAuthUser;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,7 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-class TravelAgencyMember extends Authenticatable
+class TravelAgencyMember extends Authenticatable implements TravelAgencyAuthUser
 {
     use HasUuids, SoftDeletes, Notifiable, HasRoles;
 
@@ -19,6 +20,7 @@ class TravelAgencyMember extends Authenticatable
         'travel_agency_id',
         'name',
         'email',
+        'phone',
         'password',
         'role',
         'is_owner',
@@ -56,5 +58,10 @@ class TravelAgencyMember extends Authenticatable
     public function isOwner(): bool
     {
         return $this->is_owner;
+    }
+
+    public function getMemberType(): string
+    {
+        return $this->isOwner() ? 'owner' : 'member';
     }
 }

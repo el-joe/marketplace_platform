@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\TravelAgencyAuthUser;
 use App\Enums\TravelAgencyStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,11 +10,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class TravelAgency extends Authenticatable implements JWTSubject
+class TravelAgency extends Authenticatable implements JWTSubject, TravelAgencyAuthUser
 {
-    use HasUuids, SoftDeletes, Notifiable;
+    use HasUuids, SoftDeletes, Notifiable, HasRoles;
+
+    protected string $guard_name = 'travel_agency';
 
     protected $fillable = [
         'name',
@@ -73,6 +77,11 @@ class TravelAgency extends Authenticatable implements JWTSubject
         return $this->hasMany(TravelAgencyMember::class);
     }
 
+    public function members(): HasMany
+    {
+        return $this->hasMany(TravelAgencyMember::class, 'travel_agency_id');
+    }
+
     public function bankAccounts(): HasMany
     {
         return $this->hasMany(TravelAgencyBankAccount::class);
@@ -98,5 +107,16 @@ class TravelAgency extends Authenticatable implements JWTSubject
     public function logoUrl(): ?string
     {
         return $this->logo_path ? asset('storage/' . $this->logo_path) : null;
+    }
+
+    public function isOwner(): bool
+    {
+        return true;
+    }
+
+    // Owner always has all permissions — gate check shortcut
+    public function getMemberType(): string
+    {
+        return 'owner';
     }
 }

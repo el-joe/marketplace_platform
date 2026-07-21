@@ -17,6 +17,20 @@ return [
         'footer_copyright' => '© :year Noon — All rights reserved.',
     ],
 
+    'travel_agency_password_reset' => [
+        'subject'          => 'Your password has been reset',
+        'title'            => 'Your password has been reset',
+        'header'           => 'Password Reset',
+        'greeting'         => 'Hello :name,',
+        'body'             => 'Your password for the Travel Agency Portal was reset by an administrator. Use the temporary password below to log in.',
+        'email_label'      => 'Email',
+        'password_label'   => 'Temporary Password',
+        'warning'          => '⚠️ Please change your password immediately after logging in to keep your account secure.',
+        'login_button'     => 'Log In Now',
+        'footer_disclaimer'=> 'If you did not expect this change, please contact your agency owner immediately.',
+        'footer_copyright' => '© :year Noon — All rights reserved.',
+    ],
+
     'vendor_application_received' => [
         'subject'          => 'Your application is under review',
         'title'            => 'Your application is under review',
