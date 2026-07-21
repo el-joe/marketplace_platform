@@ -166,7 +166,7 @@ class FinancialReportService
     public function marketerPayoutsByCountry(Carbon $from, Carbon $to): Collection
     {
         return MarketerPayout::query()
-            ->whereBetween('created_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->whereBetween('marketer_payouts.created_at', [$from->startOfDay(), $to->copy()->endOfDay()])
             ->join('marketers', 'marketers.id', '=', 'marketer_payouts.marketer_id')
             ->join('countries', 'countries.id', '=', 'marketers.country_id')
             ->groupBy('countries.id', 'countries.name_en', 'marketer_payouts.currency')
@@ -191,16 +191,16 @@ class FinancialReportService
     public function adSpendByCountry(Carbon $from, Carbon $to): Collection
     {
         return PaidAdBooking::query()
-            ->whereIn('status', ['active', 'completed'])
-            ->whereBetween('created_at', [$from->startOfDay(), $to->copy()->endOfDay()])
-            ->whereNotNull('country_id')
+            ->whereIn('paid_ad_bookings.status', ['active', 'completed'])
+            ->whereBetween('paid_ad_bookings.created_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->whereNotNull('paid_ad_bookings.country_id')
             ->join('countries', 'countries.id', '=', 'paid_ad_bookings.country_id')
             ->groupBy('countries.id', 'countries.name_en', 'paid_ad_bookings.currency')
             ->selectRaw('
                 countries.id                          AS country_id,
                 countries.name_en                     AS country_name,
                 paid_ad_bookings.currency             AS currency_code,
-                SUM(paid_ad_bookings.total_price) AS spend,
+                SUM(paid_ad_bookings.total_charged) AS spend,
                 COUNT(*)                              AS booking_count
             ')
             ->get();
