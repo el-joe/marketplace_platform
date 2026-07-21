@@ -21,3 +21,4 @@ class SeedRunCommand extends Command
         return self::SUCCESS;
     }
 }
+// pa seed:run --permissions-only

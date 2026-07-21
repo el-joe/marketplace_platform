@@ -8,4 +8,16 @@ php artisan db:seed --class=VendorDocumentTypeSeeder
 we need to add gift cards module inside admin panel and give customer api's this list and can order it to me or others same as we have into original noon
 
 
-translate every single static text into this folder files "/var/www/marketplace/marketplace_platform/resources/*" and dont forget anything (blade,js,...etc) also here "/var/www/marketplace/marketplace_platform/app/*"
+what is delivery zones used for ?
+
+
+
+STEP 4: Exceptional Zone Subsidy If vendor opted into exceptional zones AND customer address is in that zone: shipping_fee shown to customer = 0 (free delivery) Behind the scenes: vendor pays vendor_share, platform absorbs admin_share Neither deduction is visible to customer.
+
+
+STEP 8: Warranty If customer selected warranty plan: warranty_total = SUM(warranty_plan.price for selected items) warranty_total is paid to PLATFORM, not vendor
+
+
+4.5 Exceptional Shipping Zones
+
+Some zones are "exceptional" — expensive or remote. The platform offers free delivery to customers in these zones, but costs are absorbed by vendor + platform.
