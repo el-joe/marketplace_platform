@@ -47,7 +47,7 @@ class CampaignController extends Controller
             'conversions' => TravelAgencyCampaignOffer::where('travel_agency_id', $agencyId)
                 ->join('travel_agency_campaign_invitations', 'travel_agency_campaign_offers.id', '=', 'travel_agency_campaign_invitations.travel_agency_campaign_offer_id')
                 ->join('marketer_campaigns', 'travel_agency_campaign_invitations.resulting_campaign_id', '=', 'marketer_campaigns.id')
-                ->join('marketer_conversions', 'marketer_campaigns.id', '=', 'marketer_conversions.marketer_campaign_id')
+                ->join('marketer_conversions', 'marketer_campaigns.id', '=', 'marketer_conversions.campaign_id')
                 ->count('marketer_conversions.id'),
         ];
 

@@ -16,7 +16,8 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        $agencyId = Auth::guard('travel_agency')->user()->travel_agency_id;
+        $agency = Auth::guard('travel_agency')->user()->travelAgency;
+        $agencyId = $agency->id;
 
         $packageCounts = TravelPackage::where('travel_agency_id', $agencyId)
             ->selectRaw('status, COUNT(*) as cnt')
