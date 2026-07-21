@@ -8,3 +8,4 @@ php artisan db:seed --class=VendorDocumentTypeSeeder
 we need to add gift cards module inside admin panel and give customer api's this list and can order it to me or others same as we have into original noon
 
 
+translate every single static text into this folder files "/var/www/marketplace/marketplace_platform/resources/*" and dont forget anything (blade,js,...etc) also here "/var/www/marketplace/marketplace_platform/app/*"

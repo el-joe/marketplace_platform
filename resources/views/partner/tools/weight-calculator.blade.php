@@ -1,50 +1,50 @@
 @extends('layouts.partner')
 
-@section('title', 'Weight Calculator')
+@section('title', __('partner.weight_calculator.title'))
 
 @section('content')
 <div class="p-6 space-y-6" x-data="weightCalculator()">
 
     <div>
-        <h1 class="text-xl font-bold text-gray-900">Vendor Weight Calculator</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Estimate the volumetric weight and extra shipping fee for a package before you ship it.</p>
+        <h1 class="text-xl font-bold text-gray-900">{{ __('partner.weight_calculator.heading') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('partner.weight_calculator.subtitle') }}</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {{-- LEFT COLUMN — Calculator form --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 class="text-sm font-semibold text-gray-700">Package Details</h2>
+            <h2 class="text-sm font-semibold text-gray-700">{{ __('partner.weight_calculator.package_details') }}</h2>
 
             <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Length (cm)</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('partner.weight_calculator.length_cm') }}</label>
                     <input type="number" step="0.1" min="0.1" x-model.number="form.length_cm"
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Width (cm)</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('partner.weight_calculator.width_cm') }}</label>
                     <input type="number" step="0.1" min="0.1" x-model.number="form.width_cm"
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Height (cm)</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('partner.weight_calculator.height_cm') }}</label>
                     <input type="number" step="0.1" min="0.1" x-model.number="form.height_cm"
                         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Actual Weight (kg)</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('partner.weight_calculator.actual_weight_kg') }}</label>
                 <input type="number" step="0.01" min="0.01" x-model.number="form.actual_weight_kg"
                     class="w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Shipping Method</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('partner.weight_calculator.shipping_method') }}</label>
                 <select x-model="form.shipping_method_id"
                     class="w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="">Select a method</option>
+                    <option value="">{{ __('partner.weight_calculator.select_method_placeholder') }}</option>
                     @foreach($methods as $method)
                         <option value="{{ $method->id }}">{{ $method->name }}</option>
                     @endforeach
@@ -53,7 +53,7 @@
 
             {{-- Live formula preview --}}
             <div class="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-                Volumetric = L &times; W &times; H &divide; 5000
+                {!! __('partner.weight_calculator.volumetric_formula') !!}
                 <span class="font-mono">
                     (<span x-text="form.length_cm || 0"></span> &times; <span x-text="form.width_cm || 0"></span> &times; <span x-text="form.height_cm || 0"></span>) &divide; 5000
                     = <span class="font-semibold text-gray-700" x-text="volumetricPreview + ' kg'"></span>
@@ -62,8 +62,8 @@
 
             <button type="button" @click="calculate()" :disabled="loading || !canCalculate"
                 class="bg-blue-600 text-white rounded-xl px-5 py-2 text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                <span x-show="!loading">Calculate</span>
-                <span x-show="loading">Calculating…</span>
+                <span x-show="!loading">{{ __('partner.weight_calculator.calculate') }}</span>
+                <span x-show="loading">{{ __('partner.weight_calculator.calculating') }}</span>
             </button>
 
             <p x-show="error" x-text="error" class="text-sm text-red-600"></p>
@@ -71,48 +71,48 @@
 
         {{-- RIGHT COLUMN — Result --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4" x-show="result" x-cloak>
-            <h2 class="text-sm font-semibold text-gray-700">Result</h2>
+            <h2 class="text-sm font-semibold text-gray-700">{{ __('partner.weight_calculator.result_heading') }}</h2>
 
             <dl class="space-y-2 text-sm">
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Volumetric Weight</dt>
+                    <dt class="text-gray-500">{{ __('partner.weight_calculator.volumetric_weight') }}</dt>
                     <dd class="font-medium text-gray-900" x-text="result?.volumetric_weight_kg + ' kg'"></dd>
                 </div>
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Actual Weight</dt>
+                    <dt class="text-gray-500">{{ __('partner.weight_calculator.actual_weight') }}</dt>
                     <dd class="font-medium text-gray-900" x-text="result?.actual_weight_kg + ' kg'"></dd>
                 </div>
                 <div class="flex justify-between items-center border-t pt-2">
-                    <dt class="text-gray-700 font-semibold">Effective Weight</dt>
+                    <dt class="text-gray-700 font-semibold">{{ __('partner.weight_calculator.effective_weight') }}</dt>
                     <dd>
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800"
                             x-text="'✅ ' + result?.effective_weight_kg + ' kg'"></span>
                     </dd>
                 </div>
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Heavier Basis</dt>
-                    <dd class="font-medium text-gray-900" x-text="result?.is_volumetric_heavier ? 'Volumetric weight' : 'Actual weight'"></dd>
+                    <dt class="text-gray-500">{{ __('partner.weight_calculator.heavier_basis') }}</dt>
+                    <dd class="font-medium text-gray-900" x-text="result?.is_volumetric_heavier ? @js(__('partner.weight_calculator.volumetric_weight_basis')) : @js(__('partner.weight_calculator.actual_weight_basis'))"></dd>
                 </div>
                 <div class="flex justify-between">
-                    <dt class="text-gray-500">Slab</dt>
-                    <dd class="font-medium text-gray-900" x-text="result?.slab_label ? ('Falls in range: ' + result.slab_label) : '—'"></dd>
+                    <dt class="text-gray-500">{{ __('partner.weight_calculator.slab') }}</dt>
+                    <dd class="font-medium text-gray-900" x-text="result?.slab_label ? (@js(__('partner.weight_calculator.falls_in_range', ['slab' => ''])) + result.slab_label) : '—'"></dd>
                 </div>
                 <div class="flex justify-between border-t pt-2">
-                    <dt class="text-gray-700 font-semibold">Extra Fee for this Weight</dt>
+                    <dt class="text-gray-700 font-semibold">{{ __('partner.weight_calculator.extra_fee_for_weight') }}</dt>
                     <dd class="font-bold text-gray-900"
-                        x-text="result?.slab_extra_fee > 0 ? (result.currency + ' ' + formatAmount(result.slab_extra_fee)) : 'Included in base rate'"></dd>
+                        x-text="result?.slab_extra_fee > 0 ? (result.currency + ' ' + formatAmount(result.slab_extra_fee)) : @js(__('partner.weight_calculator.included_in_base_rate'))"></dd>
                 </div>
             </dl>
 
             <div class="text-xs text-blue-800 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                Any extra weight fee will be deducted from your earnings per order in your financial statements.
+                {{ __('partner.weight_calculator.earnings_note') }}
             </div>
         </div>
     </div>
 
     {{-- Weight Slabs Reference Table --}}
     <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-        <h2 class="text-sm font-semibold text-gray-700">Weight Slabs for Your Country</h2>
+        <h2 class="text-sm font-semibold text-gray-700">{{ __('partner.weight_calculator.weight_slabs_heading') }}</h2>
 
         @forelse($slabs as $methodSlabs)
             <div class="space-y-2">
@@ -121,8 +121,8 @@
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr class="text-left text-xs text-gray-500 border-b">
-                                <th class="py-2 pr-4">Weight Range</th>
-                                <th class="py-2 pr-4">Extra Fee</th>
+                                <th class="py-2 pr-4">{{ __('partner.weight_calculator.weight_range') }}</th>
+                                <th class="py-2 pr-4">{{ __('partner.weight_calculator.extra_fee') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -141,7 +141,7 @@
                 </div>
             </div>
         @empty
-            <p class="text-sm text-gray-400">No weight slabs configured for your country yet.</p>
+            <p class="text-sm text-gray-400">{{ __('partner.weight_calculator.no_slabs') }}</p>
         @endforelse
     </div>
 
@@ -149,6 +149,8 @@
 
 @push('scripts')
 <script>
+const weightCalculatorI18n = @json(__('partner.weight_calculator'));
+
 function weightCalculator() {
     return {
         form: {

@@ -23,7 +23,7 @@ class AgentWelcomeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Welcome to ' . $this->company->name . ' — your delivery agent account',
+            subject: __('mail.carrier_agent_welcome.subject', ['company' => $this->company->name]),
         );
     }
 

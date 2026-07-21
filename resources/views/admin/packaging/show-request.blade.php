@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
-@section('title', 'Packaging Order #' . $req->request_number)
+@section('title', __('admin.packaging_show_request_section.title', ['number' => $req->request_number]))
 
 @section('content')
 <div class="p-6 space-y-5">
 
     <div class="flex items-center justify-between">
         <div>
-            <a href="{{ route('admin.packaging.requests') }}" class="text-sm text-primary-600 hover:underline">&larr; Back to Orders</a>
-            <h1 class="text-2xl font-bold text-gray-900 mt-1">Request #{{ $req->request_number }}</h1>
+            <a href="{{ route('admin.packaging.requests') }}" class="text-sm text-primary-600 hover:underline">&larr; {{ __('admin.packaging_show_request_section.back_to_orders') }}</a>
+            <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ __('admin.packaging_show_request_section.request_number', ['number' => $req->request_number]) }}</h1>
         </div>
         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $req->statusBadgeClass() }}">
             {{ $req->status->label() }}
@@ -19,15 +19,15 @@
         {{-- Left column --}}
         <div class="lg:col-span-2 space-y-5">
             <div class="bg-white rounded-xl border border-gray-200 p-5">
-                <h2 class="text-sm font-semibold text-gray-900 mb-4">Order Items</h2>
+                <h2 class="text-sm font-semibold text-gray-900 mb-4">{{ __('admin.packaging_show_request_section.order_items') }}</h2>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-3 py-2 text-start text-xs font-semibold text-gray-600 uppercase">Item</th>
-                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 uppercase">Qty</th>
-                                <th class="px-3 py-2 text-end text-xs font-semibold text-gray-600 uppercase">Unit Cost</th>
-                                <th class="px-3 py-2 text-end text-xs font-semibold text-gray-600 uppercase">Line Total</th>
+                                <th class="px-3 py-2 text-start text-xs font-semibold text-gray-600 uppercase">{{ __('admin.packaging_show_request_section.col_item') }}</th>
+                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 uppercase">{{ __('admin.packaging_show_request_section.col_qty') }}</th>
+                                <th class="px-3 py-2 text-end text-xs font-semibold text-gray-600 uppercase">{{ __('admin.packaging_show_request_section.col_unit_cost') }}</th>
+                                <th class="px-3 py-2 text-end text-xs font-semibold text-gray-600 uppercase">{{ __('admin.packaging_show_request_section.col_line_total') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">

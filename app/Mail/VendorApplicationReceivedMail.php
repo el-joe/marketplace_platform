@@ -20,7 +20,7 @@ class VendorApplicationReceivedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'طلبك للبيع على نون قيد المراجعة',
+            subject: __('mail.vendor_application_received.subject'),
         );
     }
 

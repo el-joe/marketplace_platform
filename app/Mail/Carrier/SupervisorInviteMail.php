@@ -23,7 +23,7 @@ class SupervisorInviteMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'You have been invited to join ' . $this->company->name . ' on the platform',
+            subject: __('mail.carrier_supervisor_invite.subject', ['company' => $this->company->name]),
         );
     }
 

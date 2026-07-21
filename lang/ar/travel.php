@@ -164,6 +164,8 @@ return [
         'no_contract_uploaded' => 'لم يتم رفع أي عقد بعد.',
         'download_contract' => 'تحميل PDF',
         'per_traveler_count' => ':count مسافرين',
+        'edit_package_title' => 'تعديل الباقة',
+        'save_changes' => 'حفظ التعديلات',
     ],
 
     'bookings' => [

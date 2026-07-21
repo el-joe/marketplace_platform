@@ -22,7 +22,7 @@ class MarketerRejectionMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'تحديث بشأن طلب انضمامك كمسوّق',
+            subject: __('mail.marketer_rejection.subject'),
         );
     }
 

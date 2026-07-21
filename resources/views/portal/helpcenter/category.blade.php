@@ -13,7 +13,7 @@
 @endsection
 
 @section('content')
-    <nav class="pb-4 text-base" aria-label="Breadcrumb">
+    <nav class="pb-4 text-base" aria-label="{{ $isAr ? 'مسار التنقل' : 'Breadcrumb' }}">
         <ol class="m-0 flex list-none flex-wrap items-baseline gap-2 p-0">
             <li class="flex items-center gap-2">
                 <a href="{{ route('portal.helpcenter.index', $country) }}" class="text-black no-underline hover:text-orange-600">{{ portal_content('helpcenter', 'category', 'all_categories', 'All Categories', 'كل الفئات') }}</a>

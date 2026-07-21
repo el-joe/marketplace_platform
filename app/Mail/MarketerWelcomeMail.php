@@ -20,7 +20,7 @@ class MarketerWelcomeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'تمت الموافقة على حسابك كمسوّق',
+            subject: __('mail.marketer_welcome.subject'),
         );
     }
 

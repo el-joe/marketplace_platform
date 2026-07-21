@@ -22,7 +22,7 @@ class TeamMemberInviteMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'دعوة للانضمام إلى لوحة البائع',
+            subject: __('mail.vendor_team_member_invite.subject'),
         );
     }
 

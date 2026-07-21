@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دعوة للانضمام إلى بوابة شركة السفر</title>
+    <title>{{ __('mail.travel_agency_invite.title') }}</title>
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -104,42 +104,40 @@
 <body>
     <div class="wrapper">
         <div class="header">
-            <h1>مرحباً بك في فريق شركة السفر</h1>
+            <h1>{{ __('mail.travel_agency_invite.header') }}</h1>
         </div>
 
         <div class="body">
-            <p>مرحباً <strong>{{ $member->name }}</strong>،</p>
+            <p>{{ __('mail.travel_agency_invite.greeting', ['name' => $member->name]) }}</p>
             <p>
-                تمت دعوتك للانضمام إلى بوابة شركة السفر كـ
-                <strong>{{ $member->role === 'travel_agency_manager' ? 'مدير' : 'موظف' }}</strong>.
-                يمكنك تسجيل الدخول باستخدام البيانات التالية:
+                {{ __('mail.travel_agency_invite.body', ['role' => $member->role === 'travel_agency_manager' ? __('mail.travel_agency_invite.role_manager') : __('mail.travel_agency_invite.role_staff')]) }}
             </p>
 
             <div class="cred-box">
                 <div class="cred-row">
-                    <span class="cred-label">البريد الإلكتروني</span>
+                    <span class="cred-label">{{ __('mail.travel_agency_invite.email_label') }}</span>
                     <span class="cred-value">{{ $member->email }}</span>
                 </div>
                 <div class="cred-row">
-                    <span class="cred-label">كلمة المرور المؤقتة</span>
+                    <span class="cred-label">{{ __('mail.travel_agency_invite.password_label') }}</span>
                     <span class="cred-value">{{ $temporaryPassword }}</span>
                 </div>
             </div>
 
             <div class="warning">
-                ⚠️ يُرجى تغيير كلمة المرور فور تسجيل الدخول للحفاظ على أمان حسابك.
+                {{ __('mail.travel_agency_invite.warning') }}
             </div>
 
             <p style="text-align:center">
                 <a href="{{ route('travel-agency.login') }}" class="btn">
-                    تسجيل الدخول الآن
+                    {{ __('mail.travel_agency_invite.login_button') }}
                 </a>
             </p>
         </div>
 
         <div class="footer">
-            إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذا البريد بأمان.
-            <br>© {{ now()->year }} نون — جميع الحقوق محفوظة.
+            {{ __('mail.travel_agency_invite.footer_disclaimer') }}
+            <br>{{ __('mail.travel_agency_invite.footer_copyright', ['year' => now()->year]) }}
         </div>
     </div>
 </body>

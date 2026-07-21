@@ -170,6 +170,8 @@ return [
         'no_contract_uploaded' => 'No contract file uploaded.',
         'download_contract' => 'Download PDF',
         'per_traveler_count' => ':count travelers',
+        'edit_package_title' => 'Edit Package',
+        'save_changes' => 'Save Changes',
     ],
 
     'bookings' => [

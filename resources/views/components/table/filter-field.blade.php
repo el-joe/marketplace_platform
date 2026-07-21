@@ -28,7 +28,7 @@ min_length: int (for 'async_select' type, default 2)
 
     @if($type === 'text')
         <input type="text" id="{{ $tableId }}-filter-{{ $name }}" name="{{ $name }}"
-            placeholder="{{ $placeholder ?: 'Filter…' }}" class="form-input text-sm">
+            placeholder="{{ $placeholder ?: __('admin.filter_field_placeholder') }}" class="form-input text-sm">
 
     @elseif($type === 'select')
         <select id="{{ $tableId }}-filter-{{ $name }}" name="{{ $name }}" class="form-select text-sm">
@@ -44,19 +44,19 @@ min_length: int (for 'async_select' type, default 2)
 
     @elseif($type === 'date_range')
         <div class="flex gap-2">
-            <input type="text" id="{{ $tableId }}-filter-{{ $name }}_from" name="{{ $name }}_from" placeholder="From"
+            <input type="text" id="{{ $tableId }}-filter-{{ $name }}_from" name="{{ $name }}_from" placeholder="{{ __('common.from') }}"
                 readonly data-flatpickr class="form-input text-sm cursor-pointer w-full">
-            <input type="text" id="{{ $tableId }}-filter-{{ $name }}_to" name="{{ $name }}_to" placeholder="To" readonly
+            <input type="text" id="{{ $tableId }}-filter-{{ $name }}_to" name="{{ $name }}_to" placeholder="{{ __('common.to') }}" readonly
                 data-flatpickr class="form-input text-sm cursor-pointer w-full">
         </div>
 
     @elseif($type === 'number_range')
         <div class="flex gap-2">
             <input type="number" id="{{ $tableId }}-filter-{{ $name }}_min" name="{{ $name }}_min"
-                placeholder="{{ $filter['min_placeholder'] ?? 'Min' }}" class="form-input text-sm w-full"
+                placeholder="{{ $filter['min_placeholder'] ?? __('admin.min_placeholder') }}" class="form-input text-sm w-full"
                 step="{{ $filter['step'] ?? 'any' }}">
             <input type="number" id="{{ $tableId }}-filter-{{ $name }}_max" name="{{ $name }}_max"
-                placeholder="{{ $filter['max_placeholder'] ?? 'Max' }}" class="form-input text-sm w-full"
+                placeholder="{{ $filter['max_placeholder'] ?? __('admin.max_placeholder') }}" class="form-input text-sm w-full"
                 step="{{ $filter['step'] ?? 'any' }}">
         </div>
 
@@ -66,7 +66,7 @@ min_length: int (for 'async_select' type, default 2)
             "param" => $filter["param"] ?? "q",
             "minLength" => $filter["min_length"] ?? 2,
             "delay" => 300,
-        ]) }}' class="form-select text-sm" placeholder="{{ $placeholder ?: 'Search…' }}">
+        ]) }}' class="form-select text-sm" placeholder="{{ $placeholder ?: __('admin.search_field_placeholder') }}">
         </select>
     @endif
 </div>

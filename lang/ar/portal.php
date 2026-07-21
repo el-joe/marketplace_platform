@@ -77,6 +77,7 @@ return [
         'related_posts' => 'مقالات ذات صلة',
         'no_posts'      => 'لا توجد مقالات بعد.',
         'tags'          => 'الوسوم',
+        'breadcrumb'    => 'مسار التنقل',
     ],
 
     'travel_page' => [

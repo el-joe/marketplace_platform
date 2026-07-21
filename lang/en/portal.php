@@ -77,6 +77,7 @@ return [
         'related_posts' => 'Related Posts',
         'no_posts'      => 'No posts yet.',
         'tags'          => 'Tags',
+        'breadcrumb'    => 'Breadcrumb',
     ],
 
     'travel_page' => [

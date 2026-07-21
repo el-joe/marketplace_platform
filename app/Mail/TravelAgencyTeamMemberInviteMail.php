@@ -22,7 +22,7 @@ class TravelAgencyTeamMemberInviteMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'دعوة للانضمام إلى بوابة شركة السفر',
+            subject: __('mail.travel_agency_invite.subject'),
         );
     }
 

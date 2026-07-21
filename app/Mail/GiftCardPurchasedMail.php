@@ -20,7 +20,7 @@ class GiftCardPurchasedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'You\'ve received a noon gift card!',
+            subject: __('mail.gift_card_purchased.subject'),
         );
     }
 

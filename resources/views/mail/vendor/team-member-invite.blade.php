@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دعوة للانضمام إلى لوحة البائع</title>
+    <title>{{ __('mail.vendor_team_member_invite.title') }}</title>
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -104,43 +104,41 @@
 <body>
     <div class="wrapper">
         <div class="header">
-            <h1>مرحباً بك في فريق المتجر</h1>
+            <h1>{{ __('mail.vendor_team_member_invite.header') }}</h1>
         </div>
 
         <div class="body">
-            <p>مرحباً <strong>{{ $member->name }}</strong>،</p>
+            <p>{{ __('mail.vendor_team_member_invite.greeting', ['name' => $member->name]) }}</p>
             <p>
-                تمت دعوتك للانضمام إلى لوحة تحكم البائع كـ
-                <strong>{{ $member->role === 'vendor_manager' ? 'مدير' : 'موظف' }}</strong>.
-                يمكنك تسجيل الدخول باستخدام البيانات التالية:
+                {{ __('mail.vendor_team_member_invite.body', ['role' => $member->role === 'vendor_manager' ? __('mail.vendor_team_member_invite.role_manager') : __('mail.vendor_team_member_invite.role_staff')]) }}
             </p>
 
             <div class="cred-box">
                 <div class="cred-row">
-                    <span class="cred-label">البريد الإلكتروني</span>
+                    <span class="cred-label">{{ __('mail.vendor_team_member_invite.email_label') }}</span>
                     <span class="cred-value">{{ $member->email }}</span>
                 </div>
                 <div class="cred-row">
-                    <span class="cred-label">كلمة المرور المؤقتة</span>
+                    <span class="cred-label">{{ __('mail.vendor_team_member_invite.password_label') }}</span>
                     <span class="cred-value">{{ $temporaryPassword }}</span>
                 </div>
             </div>
 
             <div class="warning">
-                ⚠️ يُرجى تغيير كلمة المرور فور تسجيل الدخول للحفاظ على أمان حسابك.
+                {{ __('mail.vendor_team_member_invite.warning') }}
             </div>
 
             <p style="text-align:center">
                 <a href="{{ url(config('app.partner_url', 'https://partner.' . config('app.domain', 'localhost'))) . '/login' }}"
                     class="btn">
-                    تسجيل الدخول الآن
+                    {{ __('mail.vendor_team_member_invite.login_button') }}
                 </a>
             </p>
         </div>
 
         <div class="footer">
-            إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذا البريد بأمان.
-            <br>© {{ now()->year }} نون — جميع الحقوق محفوظة.
+            {{ __('mail.vendor_team_member_invite.footer_disclaimer') }}
+            <br>{{ __('mail.vendor_team_member_invite.footer_copyright', ['year' => now()->year]) }}
         </div>
     </div>
 </body>

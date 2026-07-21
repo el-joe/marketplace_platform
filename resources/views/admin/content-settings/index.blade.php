@@ -5,7 +5,7 @@
 
 @extends('layouts.admin')
 
-@section('title', 'Content Settings')
+@section('title', __('admin.content_settings.title'))
 
 @push('head')
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs5.min.css" rel="stylesheet">
@@ -14,8 +14,8 @@
 @section('content')
 
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Content Settings</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Manage platform-wide content, appearance and page settings.</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.content_settings.title') }}</h1>
+        <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.content_settings.subtitle') }}</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-6 items-start">
@@ -54,7 +54,7 @@
                                         <span class="font-semibold text-gray-900 text-sm">{{ $label }}</span>
                                         <x-badge color="gray">{{ $setting->type }}</x-badge>
                                         @if ($setting->is_public)
-                                            <x-badge color="success">Public API</x-badge>
+                                            <x-badge color="success">{{ __('admin.content_settings.public_api') }}</x-badge>
                                         @endif
                                     </div>
 
@@ -77,7 +77,7 @@
                                                             class="h-16 w-auto rounded border border-gray-200 object-contain p-1">
                                                     @else
                                                         <a href="{{ Storage::disk('public')->url($setting->value) }}" target="_blank"
-                                                            class="text-sm text-primary-600 hover:underline">Current File</a>
+                                                            class="text-sm text-primary-600 hover:underline">{{ __('admin.content_settings.current_file') }}</a>
                                                     @endif
                                                 </div>
                                             @endif
@@ -93,7 +93,7 @@
                                                 <input type="checkbox" name="{{ $name }}" value="1"
                                                     class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                                                     {{ $setting->value ? 'checked' : '' }}>
-                                                <span class="text-sm text-gray-600">Enabled</span>
+                                                <span class="text-sm text-gray-600">{{ __('admin.content_settings.enabled') }}</span>
                                             </label>
                                             @break
 
@@ -143,7 +143,7 @@
                                     @endswitch
 
                                     @if ($setting->default_value && !in_array($setting->type, ['number', 'url', 'email', 'phone'], true))
-                                        <p class="form-hint">Default: {{ $setting->default_value }}</p>
+                                        <p class="form-hint">{{ __('admin.content_settings.default_value') }} {{ $setting->default_value }}</p>
                                     @endif
                                 </div>
                             @endforeach
@@ -152,7 +152,7 @@
                 @endforeach
 
                 <div class="flex justify-end">
-                    <button type="submit" class="btn btn-primary">Save All</button>
+                    <button type="submit" class="btn btn-primary">{{ __('admin.content_settings.save_all') }}</button>
                 </div>
             </form>
         </div>

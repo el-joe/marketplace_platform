@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طلبك قيد المراجعة</title>
+    <title>{{ __('mail.vendor_application_received.title') }}</title>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -107,43 +107,43 @@
 <body>
     <div class="wrapper">
         <div class="header">
-            <h1>🎉 تم استلام طلبك!</h1>
+            <h1>{{ __('mail.vendor_application_received.header') }}</h1>
         </div>
         <div class="body">
-            <p class="store-name">مرحباً، {{ $vendor->name }}</p>
+            <p class="store-name">{{ __('mail.vendor_application_received.greeting', ['name' => $vendor->name]) }}</p>
 
-            <p>شكراً لتسجيلك كبائع على منصة <strong>نون</strong>. استلمنا طلبك بنجاح وسيقوم فريقنا بمراجعته قريباً.</p>
+            <p>{!! __('mail.vendor_application_received.intro') !!}</p>
 
             <div class="highlight-box">
-                <strong>تفاصيل طلبك:</strong><br>
-                اسم المتجر: <strong>{{ $vendor->store_name }}</strong><br>
-                البريد الإلكتروني: <strong>{{ $vendor->email }}</strong><br>
-                تاريخ التقديم: <strong>{{ now()->format('Y-m-d') }}</strong>
+                <strong>{{ __('mail.vendor_application_received.details_title') }}</strong><br>
+                {{ __('mail.vendor_application_received.store_name_label') }}: <strong>{{ $vendor->store_name }}</strong><br>
+                {{ __('mail.vendor_application_received.email_label') }}: <strong>{{ $vendor->email }}</strong><br>
+                {{ __('mail.vendor_application_received.submitted_at_label') }}: <strong>{{ now()->format('Y-m-d') }}</strong>
             </div>
 
-            <p>ما الذي سيحدث بعد ذلك؟</p>
+            <p>{{ __('mail.vendor_application_received.next_title') }}</p>
             <ul class="steps">
                 <li>
                     <span class="step-num">١</span>
-                    <span>سيراجع فريقنا طلبك والوثائق المرفقة خلال <strong>٣–٥ أيام عمل</strong>.</span>
+                    <span>{!! __('mail.vendor_application_received.step_1') !!}</span>
                 </li>
                 <li>
                     <span class="step-num">٢</span>
-                    <span>في حال الموافقة، ستتلقى بريداً إلكترونياً يتضمن بيانات الدخول إلى لوحة تحكم البائع.</span>
+                    <span>{{ __('mail.vendor_application_received.step_2') }}</span>
                 </li>
                 <li>
                     <span class="step-num">٣</span>
-                    <span>يمكنك بعدها إضافة منتجاتك والبدء بالبيع فوراً.</span>
+                    <span>{{ __('mail.vendor_application_received.step_3') }}</span>
                 </li>
             </ul>
 
-            <p>إذا كان لديك أي استفسار لا تتردد في التواصل معنا على <a href="mailto:vendors@noon.com"
+            <p>{{ __('mail.vendor_application_received.contact') }} <a href="mailto:vendors@noon.com"
                     style="color:#f0b429;">vendors@noon.com</a></p>
 
-            <p style="margin-top:24px;">مع تحياتنا،<br><strong>فريق نون للبائعين</strong></p>
+            <p style="margin-top:24px;">{!! __('mail.vendor_application_received.closing') !!}</p>
         </div>
         <div class="footer">
-            &copy; {{ date('Y') }} نون — جميع الحقوق محفوظة
+            {!! __('mail.vendor_application_received.footer_copyright', ['year' => date('Y')]) !!}
         </div>
     </div>
 </body>

@@ -21,7 +21,7 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {{-- ── Breadcrumb ───────────────────────────────────────────── --}}
-        <nav class="flex items-center gap-2 text-xs text-gray-500 mb-6 flex-wrap" aria-label="Breadcrumb">
+        <nav class="flex items-center gap-2 text-xs text-gray-500 mb-6 flex-wrap" aria-label="{{ __('portal.blog.breadcrumb') }}">
             <a href="{{ route('portal.home') }}" class="hover:text-gray-300 transition-colors">
                 {{ __('portal.nav.home') }}
             </a>

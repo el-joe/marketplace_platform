@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Packaging Catalog')
+@section('title', __('admin.packaging_catalog.title'))
 
 @push('styles')
     @vite(['resources/js/components/datatable.js', 'resources/js/components/column-renderers.js'])
@@ -12,14 +12,14 @@
     {{-- Header --}}
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Packaging Catalog</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Manage packaging supply items available to vendors.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.packaging_catalog.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.packaging_catalog.subtitle') }}</p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('admin.packaging.requests') }}" class="btn btn-secondary text-sm">View Orders</a>
+            <a href="{{ route('admin.packaging.requests') }}" class="btn btn-secondary text-sm">{{ __('admin.packaging_catalog.view_orders') }}</a>
             <button type="button" id="btn-new-item" class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
                 <x-heroicon name="plus" class="w-4 h-4" />
-                Add Item
+                {{ __('admin.packaging_catalog.add_item') }}
             </button>
         </div>
     </div>
@@ -28,12 +28,12 @@
     @php
         $columns = [
             ['title' => '', 'data' => 'image', 'name' => 'image', 'orderable' => false, 'searchable' => false],
-            ['title' => 'Name', 'data' => 'name', 'name' => 'name_en'],
-            ['title' => 'Type', 'data' => 'type', 'name' => 'type', 'searchable' => false],
-            ['title' => 'Size', 'data' => 'size', 'name' => 'size', 'searchable' => false],
-            ['title' => 'Unit Cost', 'data' => 'unit_cost', 'name' => 'unit_cost', 'searchable' => false],
-            ['title' => 'Stock', 'data' => 'stock', 'name' => 'stock', 'searchable' => false],
-            ['title' => 'Active', 'data' => 'status', 'name' => 'status', 'searchable' => false],
+            ['title' => __('admin.packaging_catalog.col_name'), 'data' => 'name', 'name' => 'name_en'],
+            ['title' => __('admin.packaging_catalog.col_type'), 'data' => 'type', 'name' => 'type', 'searchable' => false],
+            ['title' => __('admin.packaging_catalog.col_size'), 'data' => 'size', 'name' => 'size', 'searchable' => false],
+            ['title' => __('admin.packaging_catalog.col_unit_cost'), 'data' => 'unit_cost', 'name' => 'unit_cost', 'searchable' => false],
+            ['title' => __('admin.packaging_catalog.col_stock'), 'data' => 'stock', 'name' => 'stock', 'searchable' => false],
+            ['title' => __('admin.packaging_catalog.col_active'), 'data' => 'status', 'name' => 'status', 'searchable' => false],
             ['title' => '', 'data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false, 'className' => 'text-end'],
         ];
 
@@ -41,17 +41,17 @@
             [
                 'type' => 'select',
                 'name' => 'type',
-                'label' => 'Type',
+                'label' => __('admin.packaging_catalog.filter_type'),
                 'options' => [
-                    'box' => 'Box', 'bag' => 'Bag', 'tape' => 'Tape',
-                    'label' => 'Label', 'bubble_wrap' => 'Bubble Wrap', 'other' => 'Other',
+                    'box' => __('admin.packaging_catalog.type_box'), 'bag' => __('admin.packaging_catalog.type_bag'), 'tape' => __('admin.packaging_catalog.type_tape'),
+                    'label' => __('admin.packaging_catalog.type_label'), 'bubble_wrap' => __('admin.packaging_catalog.type_bubble_wrap'), 'other' => __('admin.packaging_catalog.type_other'),
                 ],
             ],
             [
                 'type' => 'select',
                 'name' => 'is_active',
-                'label' => 'Active',
-                'options' => ['1' => 'Active', '0' => 'Inactive'],
+                'label' => __('admin.packaging_catalog.filter_active'),
+                'options' => ['1' => __('admin.packaging_catalog.status_active'), '0' => __('admin.packaging_catalog.status_inactive')],
             ],
         ];
     @endphp
@@ -61,58 +61,58 @@
 </div>
 
 {{-- Add / Edit Modal --}}
-<x-modal id="item-modal" title="Add Packaging Item" size="lg">
+<x-modal id="item-modal" title="{{ __('admin.packaging_catalog.add_item_title') }}" size="lg">
     <form id="item-form" class="space-y-4" enctype="multipart/form-data">
         @csrf
         <input type="hidden" id="f-id" value="">
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Name (English) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.name_english') }} <span class="text-red-500">*</span></label>
                 <input type="text" id="f-name-en" required maxlength="255" class="form-input w-full text-sm">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Name (Arabic) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.name_arabic') }} <span class="text-red-500">*</span></label>
                 <input type="text" id="f-name-ar" required maxlength="255" dir="rtl" class="form-input w-full text-sm">
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.type_label_field') }} <span class="text-red-500">*</span></label>
                 <select id="f-type" required class="form-select w-full text-sm">
-                    <option value="box">Box</option>
-                    <option value="bag">Bag</option>
-                    <option value="tape">Tape</option>
-                    <option value="label">Label</option>
-                    <option value="bubble_wrap">Bubble Wrap</option>
-                    <option value="other">Other</option>
+                    <option value="box">{{ __('admin.packaging_catalog.type_box') }}</option>
+                    <option value="bag">{{ __('admin.packaging_catalog.type_bag') }}</option>
+                    <option value="tape">{{ __('admin.packaging_catalog.type_tape') }}</option>
+                    <option value="label">{{ __('admin.packaging_catalog.type_label') }}</option>
+                    <option value="bubble_wrap">{{ __('admin.packaging_catalog.type_bubble_wrap') }}</option>
+                    <option value="other">{{ __('admin.packaging_catalog.type_other') }}</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Size</label>
-                <input type="text" id="f-size" maxlength="100" class="form-input w-full text-sm" placeholder="e.g. 30x20x15 cm">
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.size_field') }}</label>
+                <input type="text" id="f-size" maxlength="100" class="form-input w-full text-sm" placeholder="{{ __('admin.packaging_catalog.size_placeholder') }}">
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Description (English)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.description_english') }}</label>
                 <textarea id="f-description-en" rows="2" class="form-input w-full text-sm"></textarea>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Description (Arabic)</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.description_arabic') }}</label>
                 <textarea id="f-description-ar" rows="2" dir="rtl" class="form-input w-full text-sm"></textarea>
             </div>
         </div>
 
         <div class="grid grid-cols-3 gap-4">
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Unit Cost (cents) <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.unit_cost_cents') }} <span class="text-red-500">*</span></label>
                 <input type="number" id="f-unit-cost" required min="1" class="form-input w-full text-sm">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Currency <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.currency') }} <span class="text-red-500">*</span></label>
                 <select id="f-currency" required class="form-select w-full text-sm">
                     @foreach(['AED','SAR','EGP','KWD','OMR','QAR','BHD','JOD'] as $c)
                         <option value="{{ $c }}" @selected($c === 'SAR')>{{ $c }}</option>
@@ -120,28 +120,28 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-700 mb-1">Sort Order</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.sort_order') }}</label>
                 <input type="number" id="f-sort-order" value="0" min="0" class="form-input w-full text-sm">
             </div>
         </div>
 
         <div class="flex items-end gap-4">
             <div class="flex-1">
-                <label class="block text-xs font-medium text-gray-700 mb-1">Stock Available</label>
+                <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.stock_available') }}</label>
                 <input type="number" id="f-stock" min="0" class="form-input w-full text-sm">
             </div>
             <label class="flex items-center gap-2 cursor-pointer select-none mb-2">
                 <input type="checkbox" id="f-unlimited-stock" class="rounded text-primary-600">
-                <span class="text-sm text-gray-700">Unlimited</span>
+                <span class="text-sm text-gray-700">{{ __('admin.packaging_catalog.unlimited') }}</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer select-none mb-2">
                 <input type="checkbox" id="f-is-active" checked class="rounded text-primary-600">
-                <span class="text-sm text-gray-700">Active</span>
+                <span class="text-sm text-gray-700">{{ __('admin.packaging_catalog.active') }}</span>
             </label>
         </div>
 
         <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Image</label>
+            <label class="block text-xs font-medium text-gray-700 mb-1">{{ __('admin.packaging_catalog.image') }}</label>
             <input type="file" id="f-image" accept="image/jpeg,image/png,image/jpg,image/webp" class="form-input w-full text-sm">
             <img id="f-image-preview" src="" class="hidden mt-2 w-20 h-20 object-cover rounded-lg border border-gray-200">
         </div>
@@ -150,19 +150,19 @@
     </form>
 
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-save-item" class="btn btn-primary">Save</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('admin.packaging_catalog.cancel') }}</button>
+        <button type="button" id="btn-save-item" class="btn btn-primary">{{ __('admin.packaging_catalog.save') }}</button>
     </x-slot:footer>
 </x-modal>
 
 {{-- Delete confirmation modal --}}
-<x-modal id="delete-item-modal" title="Delete Packaging Item" size="sm">
-    <p class="text-sm text-gray-700">Are you sure you want to delete "<strong id="delete-item-name"></strong>"?</p>
+<x-modal id="delete-item-modal" title="{{ __('admin.packaging_catalog.delete_item_title') }}" size="sm">
+    <p class="text-sm text-gray-700">{{ __('admin.packaging_catalog.delete_confirm') }} "<strong id="delete-item-name"></strong>"?</p>
     <input type="hidden" id="delete-item-id">
     <div id="delete-item-error" class="hidden mt-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"></div>
     <x-slot:footer>
-        <button type="button" data-modal-close class="btn btn-secondary">Cancel</button>
-        <button type="button" id="btn-confirm-delete-item" class="btn btn-danger">Delete</button>
+        <button type="button" data-modal-close class="btn btn-secondary">{{ __('admin.packaging_catalog.cancel') }}</button>
+        <button type="button" id="btn-confirm-delete-item" class="btn btn-danger">{{ __('admin.packaging_catalog.delete') }}</button>
     </x-slot:footer>
 </x-modal>
 
@@ -171,6 +171,8 @@
 (function () {
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const storeUrl = '{{ route('admin.packaging.catalog.store') }}';
+
+    const i18n = @json(__('admin.packaging_catalog'));
 
     function openModal(id) { window.jQuery ? window.jQuery('#' + id).modal('open') : document.getElementById(id)?.classList.remove('hidden'); }
     function closeModal(id) { window.jQuery ? window.jQuery('#' + id).modal('close') : document.getElementById(id)?.classList.add('hidden'); }
@@ -208,7 +210,7 @@
 
     document.getElementById('btn-new-item').addEventListener('click', () => {
         resetForm();
-        document.querySelector('#item-modal [id$="-title"]').textContent = 'Add Packaging Item';
+        document.querySelector('#item-modal [id$="-title"]').textContent = i18n.add_item_title;
         openModal('item-modal');
     });
 
@@ -239,7 +241,7 @@
                 preview.src = '/storage/' + item.image_path;
                 preview.classList.remove('hidden');
             }
-            document.querySelector('#item-modal [id$="-title"]').textContent = 'Edit Packaging Item';
+            document.querySelector('#item-modal [id$="-title"]').textContent = i18n.edit_item_title;
             openModal('item-modal');
         }
 
@@ -306,13 +308,13 @@
             if (res.ok && data.success !== false) {
                 closeModal('item-modal');
                 window.reloadDataTable && window.reloadDataTable('packaging-catalog-table');
-                window.Toast && window.Toast.success(data.message || 'Saved.');
+                window.Toast && window.Toast.success(data.message || i18n.saved);
             } else {
                 errEl.textContent = data.message ?? Object.values(data.errors ?? {}).flat().join(' ');
                 errEl.classList.remove('hidden');
             }
         } catch (e) {
-            errEl.textContent = 'Something went wrong.';
+            errEl.textContent = i18n.something_wrong;
             errEl.classList.remove('hidden');
         }
     });
@@ -328,15 +330,15 @@
             if (res.ok && data.success !== false) {
                 closeModal('delete-item-modal');
                 window.reloadDataTable && window.reloadDataTable('packaging-catalog-table');
-                window.Toast && window.Toast.success(data.message || 'Deleted.');
+                window.Toast && window.Toast.success(data.message || i18n.deleted);
             } else {
                 const errEl = document.getElementById('delete-item-error');
-                errEl.textContent = data.message ?? 'Could not delete item.';
+                errEl.textContent = data.message ?? i18n.could_not_delete;
                 errEl.classList.remove('hidden');
             }
         } catch (e) {
             const errEl = document.getElementById('delete-item-error');
-            errEl.textContent = 'Something went wrong.';
+            errEl.textContent = i18n.something_wrong;
             errEl.classList.remove('hidden');
         }
     });

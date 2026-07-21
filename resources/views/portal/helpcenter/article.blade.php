@@ -19,7 +19,7 @@
 @section('content')
     <div class="justify-between flex">
         <div class="relative z-3 w-full lg:max-w-[660px]">
-            <nav class="pb-4 text-base" aria-label="Breadcrumb">
+            <nav class="pb-4 text-base" aria-label="{{ $isAr ? 'مسار التنقل' : 'Breadcrumb' }}">
                 <ol class="m-0 flex list-none flex-wrap items-baseline gap-2 p-0">
                     <li class="flex items-center gap-2">
                         <a href="{{ route('portal.helpcenter.index', $country) }}" class="text-black no-underline hover:text-orange-600">{{ portal_content('helpcenter', 'article', 'all_categories', 'All Categories', 'كل الفئات') }}</a>
@@ -45,7 +45,7 @@
                 <div class="flex flex-col gap-3">
                     <h1 class="mb-1 text-2xl font-bold leading-10 text-black">{{ $article->localizedTitle() }}</h1>
                     <div class="-mt-0.5 text-sm text-[#737373]">
-                        <time datetime="{{ ($article->published_at ?? $article->updated_at)->toIso8601String() }}" title="Updated">{{ $article->updatedLabel() }}</time>
+                        <time datetime="{{ ($article->published_at ?? $article->updated_at)->toIso8601String() }}" title="{{ $isAr ? 'تم التحديث' : 'Updated' }}">{{ $article->updatedLabel() }}</time>
                         &middot; {{ number_format($article->views_count) }} {{ portal_content('helpcenter', 'article', 'views_label', 'views', 'مشاهدة') }}
                     </div>
                 </div>

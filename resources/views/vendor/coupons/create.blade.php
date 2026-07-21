@@ -5,8 +5,8 @@
     $couponProductIds = $isEdit ? collect($coupon['product_ids'] ?? [])->implode(',') : '';
 @endphp
 
-@section('title', $isEdit ? 'Edit Coupon' : 'New Coupon')
-@section('page-title', $isEdit ? 'Edit Coupon' : 'New Coupon')
+@section('title', $isEdit ? __('partner.coupons.create.title_edit') : __('partner.coupons.create.title_new'))
+@section('page-title', $isEdit ? __('partner.coupons.create.title_edit') : __('partner.coupons.create.title_new'))
 
 @push('scripts')
     @vite('resources/js/vendor/coupons.js')
@@ -36,7 +36,7 @@
          }">
 
         <div class="mb-6">
-            <a href="{{ route('partner.coupons.index') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to coupons</a>
+            <a href="{{ route('partner.coupons.index') }}" class="text-sm text-gray-500 hover:text-gray-700">{!! __('partner.coupons.create.back_to_coupons') !!}</a>
         </div>
 
         <div id="coupon-form-error" class="hidden mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3"></div>
@@ -44,17 +44,17 @@
         <form id="coupon-form" class="bg-white rounded-2xl border border-gray-200 p-6 space-y-5"
               data-url="{{ $isEdit ? route('partner.coupons.update', $coupon['id']) : route('partner.coupons.store') }}"
               data-method="{{ $isEdit ? 'PUT' : 'POST' }}"
-              data-success-message="{{ $isEdit ? 'Coupon updated.' : 'Coupon created.' }}">
+              data-success-message="{{ $isEdit ? __('partner.coupons.create.success_updated') : __('partner.coupons.create.success_created') }}">
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.code') }}</label>
                     <input type="text" name="code" required maxlength="50"
                            value="{{ $isEdit ? $coupon['code'] : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.name') }}</label>
                     <input type="text" name="name" required maxlength="150"
                            value="{{ $isEdit ? $coupon['name'] : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -62,7 +62,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.description') }}</label>
                 <textarea name="description" rows="2" maxlength="2000"
                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? $coupon['description'] : '' }}</textarea>
             </div>
@@ -70,26 +70,26 @@
             {{-- Bank offer (optional) --}}
             <div class="border border-gray-200 rounded-lg p-4 space-y-4">
                 <div>
-                    <p class="text-sm font-medium text-gray-700">Bank offer</p>
-                    <p class="text-xs text-gray-400">Optional. Associate this coupon with a card-issuing bank to display it as a bank promotion on the product page.</p>
+                    <p class="text-sm font-medium text-gray-700">{{ __('partner.coupons.create.bank_offer') }}</p>
+                    <p class="text-xs text-gray-400">{{ __('partner.coupons.create.bank_offer_hint') }}</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank name</label>
-                    <input type="text" name="bank_name" maxlength="100" placeholder="e.g. RAKBANK"
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.bank_name') }}</label>
+                    <input type="text" name="bank_name" maxlength="100" placeholder="{{ __('partner.coupons.create.bank_name_placeholder') }}"
                            value="{{ $isEdit ? $coupon['bank_name'] : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Promo title (English)</label>
-                        <input type="text" name="title_en" maxlength="255" placeholder="e.g. Extra 15% off with RAKBANK Credit Cards"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.promo_title_en') }}</label>
+                        <input type="text" name="title_en" maxlength="255" placeholder="{{ __('partner.coupons.create.promo_title_en_placeholder') }}"
                                value="{{ $isEdit ? $coupon['title_en'] : '' }}"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Promo title (Arabic)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.promo_title_ar') }}</label>
                         <input type="text" name="title_ar" dir="rtl" maxlength="255"
                                value="{{ $isEdit ? $coupon['title_ar'] : '' }}"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -98,19 +98,19 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Terms (English) <span class="text-gray-400 font-normal">one per line</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.terms_en') }} <span class="text-gray-400 font-normal">{{ __('partner.coupons.create.one_per_line') }}</span></label>
                         <textarea name="terms_en" rows="4"
                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? implode("\n", $coupon['terms_en'] ?? []) : '' }}</textarea>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Terms (Arabic) <span class="text-gray-400 font-normal">one per line</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.terms_ar') }} <span class="text-gray-400 font-normal">{{ __('partner.coupons.create.one_per_line') }}</span></label>
                         <textarea name="terms_ar" dir="rtl" rows="4"
                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">{{ $isEdit ? implode("\n", $coupon['terms_ar'] ?? []) : '' }}</textarea>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Max orders per customer / month <span class="text-gray-400 font-normal">blank = unlimited</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.max_orders_per_customer') }} <span class="text-gray-400 font-normal">{{ __('partner.coupons.create.blank_unlimited') }}</span></label>
                     <input type="number" min="1" name="max_orders_per_customer_per_month"
                            value="{{ $isEdit ? $coupon['max_orders_per_customer_per_month'] : '' }}"
                            class="w-40 border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -119,22 +119,22 @@
 
             <div class="grid grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.type') }}</label>
                     <select name="type" x-model="type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <option value="percentage">Percentage</option>
-                        <option value="fixed_amount">Fixed amount</option>
-                        <option value="free_shipping">Free shipping</option>
-                        <option value="bogo">BOGO</option>
+                        <option value="percentage">{{ __('partner.coupons.create.type_percentage') }}</option>
+                        <option value="fixed_amount">{{ __('partner.coupons.create.type_fixed_amount') }}</option>
+                        <option value="free_shipping">{{ __('partner.coupons.create.type_free_shipping') }}</option>
+                        <option value="bogo">{{ __('partner.coupons.create.type_bogo') }}</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.value') }}</label>
                     <input type="number" step="0.01" min="0" name="value" required
                            value="{{ $isEdit ? $coupon['value'] : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.currency') }}</label>
                     <input type="text" name="currency" maxlength="3" placeholder="SAR"
                            value="{{ $isEdit ? $coupon['currency'] : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase">
@@ -143,29 +143,29 @@
 
             {{-- Scope --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Scope</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.scope') }}</label>
                 <div class="flex gap-4">
                     <label class="inline-flex items-center gap-2 text-sm">
                         <input type="radio" name="scope" value="vendor" x-model="scope">
-                        Store-wide (all my products)
+                        {{ __('partner.coupons.create.scope_vendor') }}
                     </label>
                     <label class="inline-flex items-center gap-2 text-sm">
                         <input type="radio" name="scope" value="product" x-model="scope">
-                        Specific products
+                        {{ __('partner.coupons.create.scope_product') }}
                     </label>
                 </div>
             </div>
 
             {{-- Product multi-select, only visible when scope=product --}}
             <div x-show="scope === 'product'" x-cloak class="border border-gray-200 rounded-lg p-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Products</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('partner.coupons.create.products') }}</label>
 
                 <template x-for="id in selectedProducts" :key="id">
                     <input type="hidden" name="product_ids[]" :value="id">
                 </template>
 
                 <input type="text" x-model="productQuery" @input.debounce.300ms="searchProducts()"
-                       placeholder="Search your products..."
+                       placeholder="{{ __('partner.coupons.create.search_products_placeholder') }}"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2">
 
                 <div class="max-h-48 overflow-y-auto divide-y divide-gray-100" x-show="productResults.length > 0">
@@ -179,20 +179,20 @@
                 </div>
 
                 <p class="text-xs text-gray-400 mt-2" x-show="selectedProducts.length > 0">
-                    <span x-text="selectedProducts.length"></span> product(s) selected.
-                    Only products with an active listing owned by you are eligible.
+                    <span x-text="selectedProducts.length"></span> {{ __('partner.coupons.create.products_selected') }}
+                    {{ __('partner.coupons.create.products_eligible_note') }}
                 </p>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Min. order amount</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.min_order_amount') }}</label>
                     <input type="number" step="0.01" min="0" name="min_order_amount"
                            value="{{ $isEdit ? $coupon['min_order_amount'] : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Max discount</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.max_discount') }}</label>
                     <input type="number" step="0.01" min="0" name="max_discount"
                            value="{{ $isEdit ? $coupon['max_discount'] : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -201,13 +201,13 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Total usage limit</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.total_usage_limit') }}</label>
                     <input type="number" min="1" name="usage_limit_total"
                            value="{{ $isEdit ? $coupon['usage_limit_total'] : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Usage limit per customer</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.usage_limit_per_customer') }}</label>
                     <input type="number" min="1" name="usage_limit_per_customer" required
                            value="{{ $isEdit ? $coupon['usage_limit_per_customer'] : 1 }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -216,13 +216,13 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Valid from</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.valid_from') }}</label>
                     <input type="datetime-local" name="valid_from" required
                            value="{{ $isEdit ? \Illuminate\Support\Str::of($coupon['valid_from'])->before('+') : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Valid until</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('partner.coupons.create.valid_until') }}</label>
                     <input type="datetime-local" name="valid_until" required
                            value="{{ $isEdit ? \Illuminate\Support\Str::of($coupon['valid_until'])->before('+') : '' }}"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -232,20 +232,20 @@
             <div class="flex items-center gap-6">
                 <label class="inline-flex items-center gap-2 text-sm">
                     <input type="checkbox" name="is_active" value="1" {{ !$isEdit || $coupon['is_active'] ? 'checked' : '' }}>
-                    Active
+                    {{ __('partner.coupons.create.active') }}
                 </label>
                 <label class="inline-flex items-center gap-2 text-sm">
                     <input type="checkbox" name="is_stackable" value="1" {{ $isEdit && $coupon['is_stackable'] ? 'checked' : '' }}>
-                    Stackable with other coupons
+                    {{ __('partner.coupons.create.stackable') }}
                 </label>
             </div>
 
             <div class="pt-2 flex justify-end gap-3">
                 <a href="{{ route('partner.coupons.index') }}"
-                   class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">Cancel</a>
+                   class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">{{ __('partner.coupons.create.cancel') }}</a>
                 <button type="submit"
                         class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-sm font-semibold px-5 py-2 rounded-lg transition-colors">
-                    {{ $isEdit ? 'Save changes' : 'Create coupon' }}
+                    {{ $isEdit ? __('partner.coupons.create.save_changes') : __('partner.coupons.create.create_coupon') }}
                 </button>
             </div>
         </form>
