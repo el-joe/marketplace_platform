@@ -35,6 +35,13 @@ class DeliveryPayoutController extends Controller
 
         $pendingCount = DeliveryAgentPayout::where('status', DeliveryAgentPayoutStatus::Pending)->count();
 
+        $stats = [
+            'total'    => DeliveryAgentPayout::count(),
+            'pending'  => $pendingCount,
+            'approved' => DeliveryAgentPayout::where('status', DeliveryAgentPayoutStatus::Approved)->count(),
+            'paid'     => DeliveryAgentPayout::where('status', DeliveryAgentPayoutStatus::Paid)->count(),
+        ];
+
         $agents = DeliveryAgent::orderBy('name')->get(['id', 'name']);
         $currencies = Currency::where('is_active', true)->orderBy('code')->pluck('code');
 
@@ -45,6 +52,7 @@ class DeliveryPayoutController extends Controller
                 ['label' => 'Payouts'],
             ],
             'pendingCount' => $pendingCount,
+            'stats'        => $stats,
             'agents'       => $agents,
             'currencies'   => $currencies,
         ]);

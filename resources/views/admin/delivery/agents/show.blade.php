@@ -389,7 +389,7 @@ Object.assign(window.TRANSLATIONS, {
     tempPasswordAlert: @json(__('admin.delivery_section.temp_password_alert')),
 });
 
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const agentId        = @json($agent->id);
     const UPDATE_URL     = @json(route('admin.delivery.agents.update', $agent->id));
     const SUSPEND_URL    = @json(route('admin.delivery.agents.suspend', $agent->id));

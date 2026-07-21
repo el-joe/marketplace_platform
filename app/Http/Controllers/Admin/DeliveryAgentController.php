@@ -85,6 +85,10 @@ class DeliveryAgentController extends Controller
                 'delivery_agents.total_deliveries',
                 'delivery_agents.is_available',
                 'delivery_agents.last_login_at',
+                'delivery_agents.country_id',
+                'delivery_agents.zone_id',
+                'delivery_agents.national_id',
+                'delivery_agents.vehicle_plate',
                 'countries.name_en as country_name',
                 'delivery_zones.name as zone_name',
             ]);
@@ -105,12 +109,18 @@ class DeliveryAgentController extends Controller
                 'country' => e($agent->country_name ?? '—'),
                 'zone' => e($agent->zone_name ?? '—'),
                 'agent_type' => $agent->agent_type?->value,
+                'vehicle_type' => $agent->vehicle_type?->value,
                 'status' => $agent->status->value,
                 'rating_avg' => $agent->rating_avg ? number_format((float) $agent->rating_avg, 1) : '—',
                 'total_deliveries' => (int) $agent->total_deliveries,
                 'is_available' => (bool) $agent->is_available,
                 'last_login_at' => $agent->last_login_at?->format('d M Y H:i') ?? '—',
+                'country_id' => $agent->country_id,
+                'zone_id' => $agent->zone_id,
+                'national_id' => $agent->national_id,
+                'vehicle_plate' => $agent->vehicle_plate,
                 'show_url' => route('admin.delivery.agents.show', $agent->id),
+                'update_url' => route('admin.delivery.agents.update', $agent->id),
             ];
         });
     }
@@ -244,10 +254,10 @@ class DeliveryAgentController extends Controller
     {
         $columns = [
             ['orderable_column' => 'sub_orders.sub_order_number'],
-            ['orderable_column' => 'delivery_assignments.status'],
-            ['orderable_column' => 'delivery_assignments.assigned_at'],
-            ['orderable_column' => 'delivery_assignments.delivered_at'],
-            ['orderable_column' => 'delivery_assignments.customer_rating'],
+            ['orderable_column' => 'da.status'],
+            ['orderable_column' => 'da.assigned_at'],
+            ['orderable_column' => 'da.delivered_at'],
+            ['orderable_column' => 'da.customer_rating'],
         ];
 
         $query = DB::table('delivery_assignments as da')

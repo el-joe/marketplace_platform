@@ -182,7 +182,8 @@ Object.assign(window.TRANSLATIONS, {
     approvePayoutConfirm: @json(__('admin.delivery_section.approve_payout_confirm')),
     processingFailed: @json(__('admin.delivery_section.processing_failed')),
 });
-
+</script>
+<script type="module">
 (function () {
     const DATATABLE_URL = @json(route('admin.delivery.payouts.datatable'));
     const GENERATE_URL  = @json(route('admin.delivery.payouts.generate'));
