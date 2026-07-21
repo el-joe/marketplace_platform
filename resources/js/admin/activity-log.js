@@ -146,8 +146,9 @@ $(function () {
     });
 
     function loadActivityDetail(id) {
+        const showBaseUrl = baseUrl.replace(/\/datatable$/, '');
         $.ajax({
-            url: '/admin/activity-log/' + id,
+            url: showBaseUrl + '/' + id,
             method: 'GET',
             headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
         }).done(function (res) {
