@@ -46,15 +46,16 @@ class DeliveryAssignmentController extends Controller
         $columns = [
             ['searchable_columns' => ['sub_orders.sub_order_number'], 'orderable_column' => 'sub_orders.sub_order_number'],
             ['searchable_columns' => ['delivery_agents.name'], 'orderable_column' => 'delivery_agents.name'],
+            ['searchable_columns' => ['delivery_zones.name'], 'orderable_column' => 'delivery_zones.name'],
             ['orderable_column' => 'delivery_assignments.status'],
             ['orderable_column' => 'delivery_assignments.assigned_at'],
             ['orderable_column' => 'delivery_assignments.delivered_at'],
-            ['orderable_column' => 'delivery_assignments.customer_rating'],
             [],
         ];
 
         $query = DB::table('delivery_assignments')
             ->leftJoin('delivery_agents', 'delivery_agents.id', '=', 'delivery_assignments.agent_id')
+            ->leftJoin('delivery_zones', 'delivery_zones.id', '=', 'delivery_agents.zone_id')
             ->leftJoin('sub_orders', 'sub_orders.id', '=', 'delivery_assignments.sub_order_id')
             ->select([
                 'delivery_assignments.id',
@@ -67,6 +68,7 @@ class DeliveryAssignmentController extends Controller
                 'delivery_assignments.customer_rating',
                 'delivery_agents.id as agent_id',
                 'delivery_agents.name as agent_name',
+                'delivery_zones.name as zone_name',
                 'sub_orders.sub_order_number',
             ]);
 
@@ -90,6 +92,7 @@ class DeliveryAssignmentController extends Controller
                 'sub_order_number' => $row->sub_order_number ?? '—',
                 'agent_name' => e($row->agent_name ?? '—'),
                 'agent_id' => $row->agent_id,
+                'zone_name' => e($row->zone_name ?? '—'),
                 'status' => $row->status,
                 'assigned_at' => $row->assigned_at
                     ? \Carbon\Carbon::parse($row->assigned_at)->format('d M Y H:i') : '—',

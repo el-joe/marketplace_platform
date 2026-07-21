@@ -19,6 +19,22 @@
         </form>
     </div>
 
+    {{-- ─── Fleet-wide stats ──────────────────────────────────────────────── --}}
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <x-stat-card title="{{ __('admin.carriers_section.active_carriers_stat') }}"
+            :value="number_format($stats['carrier_count'])"
+            icon="trophy" iconBg="bg-primary-100 text-primary-600" />
+        <x-stat-card title="{{ __('admin.carriers_section.fleet_avg_rating_stat') }}"
+            :value="$stats['fleet_avg_rating'] ? $stats['fleet_avg_rating'] . ' ★' : '—'"
+            icon="star" iconBg="bg-yellow-100 text-yellow-600" />
+        <x-stat-card title="{{ __('admin.carriers_section.total_claims_stat') }}"
+            :value="number_format($stats['total_claims'])"
+            icon="exclamation-triangle" iconBg="bg-orange-100 text-orange-600" />
+        <x-stat-card title="{{ __('admin.carriers_section.total_compensated_stat') }}"
+            :value="number_format($stats['total_compensated'] / 100, 2)"
+            icon="banknotes" iconBg="bg-red-100 text-red-600" />
+    </div>
+
     <div class="card overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
@@ -36,10 +52,27 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100 bg-white">
                     @forelse($scorecards as $i => $row)
-                        @php $sc = $row['scorecard']; $company = $row['company']; @endphp
+                        @php
+                            $sc = $row['scorecard'];
+                            $company = $row['company'];
+                            $medal = [1 => '🥇', 2 => '🥈', 3 => '🥉'][$i + 1] ?? null;
+                        @endphp
                         <tr class="hover:bg-gray-50">
-                            <td class="td text-gray-400 font-semibold">{{ $i + 1 }}</td>
-                            <td class="td font-medium text-gray-900">{{ $company->name }}</td>
+                            <td class="td">
+                                @if($medal)
+                                    <span class="text-base">{{ $medal }}</span>
+                                @else
+                                    <span class="text-gray-400 font-semibold">{{ $i + 1 }}</span>
+                                @endif
+                            </td>
+                            <td class="td">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center text-xs font-semibold shrink-0">
+                                        {{ Str::of($company->name)->substr(0, 1)->upper() }}
+                                    </div>
+                                    <span class="font-medium text-gray-900">{{ $company->name }}</span>
+                                </div>
+                            </td>
                             <td class="td">
                                 @if($sc['avg_rating'])
                                     <div class="flex items-center gap-1">
@@ -52,14 +85,20 @@
                             </td>
                             <td class="td">
                                 @if($sc['on_time_pct'] !== null)
-                                    <span class="{{ $sc['on_time_pct'] >= 85 ? 'text-green-600' : ($sc['on_time_pct'] >= 60 ? 'text-yellow-600' : 'text-red-600') }} font-medium">
-                                        {{ $sc['on_time_pct'] }}%
-                                    </span>
+                                    <div class="flex items-center gap-2 min-w-[6rem]">
+                                        <div class="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                                            <div class="h-full rounded-full {{ $sc['on_time_pct'] >= 85 ? 'bg-green-500' : ($sc['on_time_pct'] >= 60 ? 'bg-yellow-500' : 'bg-red-500') }}"
+                                                 style="width: {{ min(100, $sc['on_time_pct']) }}%"></div>
+                                        </div>
+                                        <span class="{{ $sc['on_time_pct'] >= 85 ? 'text-green-600' : ($sc['on_time_pct'] >= 60 ? 'text-yellow-600' : 'text-red-600') }} font-medium text-xs w-10 text-end">
+                                            {{ $sc['on_time_pct'] }}%
+                                        </span>
+                                    </div>
                                 @else
                                     <span class="text-gray-400">—</span>
                                 @endif
                             </td>
-                            <td class="td">{{ $sc['total_claims'] }}</td>
+                            <td class="td text-gray-700">{{ $sc['total_claims'] }}</td>
                             <td class="td">
                                 @if($sc['claims_approved_pct'] !== null)
                                     {{ $sc['claims_approved_pct'] }}%
@@ -67,7 +106,7 @@
                                     <span class="text-gray-400">—</span>
                                 @endif
                             </td>
-                            <td class="td">{{ number_format($sc['total_compensated'] / 100, 2) }}</td>
+                            <td class="td text-gray-700">{{ number_format($sc['total_compensated'] / 100, 2) }}</td>
                             <td class="td text-end">
                                 <a href="{{ route('admin.carrier-scorecard.show', $company) }}"
                                    class="text-primary-600 hover:underline text-xs font-medium">{{ __('admin.carriers_section.details_link') }}</a>

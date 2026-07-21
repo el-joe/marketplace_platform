@@ -5871,6 +5871,9 @@ return [
         'claim_type_wrong_item' => 'Wrong Item',
         'claim_type_other'      => 'Other',
         'avg_rating_dataset_label' => 'Avg Rating',
+        'active_carriers_stat'  => 'Active Carriers',
+        'fleet_avg_rating_stat' => 'Fleet Avg Rating',
+        'total_claims_stat'     => 'Total Claims',
     ],
 
     // ─── FBN ─────────────────────────────────────────────────────────────────

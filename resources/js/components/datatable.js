@@ -17,6 +17,8 @@
  *   });
  */
 import $ from 'jquery';
+window.$ = window.jQuery = $;
+
 import DataTable from 'datatables.net-dt';
 import Responsive from 'datatables.net-responsive-dt';
 import Select from 'datatables.net-select-dt';

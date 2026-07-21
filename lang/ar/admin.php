@@ -5875,6 +5875,9 @@ return [
         'claim_type_wrong_item' => 'منتج خاطئ',
         'claim_type_other'      => 'أخرى',
         'avg_rating_dataset_label' => 'متوسط التقييم',
+        'active_carriers_stat'  => 'الناقلون النشطون',
+        'fleet_avg_rating_stat' => 'متوسط تقييم الأسطول',
+        'total_claims_stat'     => 'إجمالي المطالبات',
     ],
 
     // ─── FBN ─────────────────────────────────────────────────────────────────

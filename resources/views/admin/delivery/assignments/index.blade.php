@@ -1,8 +1,7 @@
 @extends('layouts.admin')
 
 @push('styles')
-    @vite(['resources/js/components/datatable.js'])
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9/dist/leaflet.css" />
+    @vite(['resources/js/components/datatable.js', 'resources/js/components/leaflet.js'])
 @endpush
 
 @section('title', __('admin.delivery_section.assignments'))
@@ -112,7 +111,6 @@
                             <th>{{ __('admin.delivery_section.assigned_at_col') }}</th>
                             <th>{{ __('admin.delivery_section.delivered_at_col') }}</th>
                             <th>{{ __('admin.delivery_section.duration_col') }}</th>
-                            <th>{{ __('admin.delivery_section.attempts_col') }}</th>
                         </tr>
                     </thead>
                 </table>
@@ -203,7 +201,6 @@
 @endsection
 
 @push('scripts')
-    <script src="https://unpkg.com/leaflet@1.9/dist/leaflet-src.min.js"></script>
     <script>
         window.TRANSLATIONS = window.TRANSLATIONS || {};
         Object.assign(window.TRANSLATIONS, {
@@ -211,7 +208,7 @@
             assignmentFailed: @json(__('admin.delivery_section.assignment_failed')),
         });
 
-        (function () {
+        function boot() {
             const DATATABLE_URL = @json(route('admin.delivery.assignments.datatable'));
             const AUTO_ASSIGN_URL = @json(route('admin.delivery.assignments.auto-assign'));
             const MANUAL_URL = @json(route('admin.delivery.assignments.manual-assign'));
@@ -248,7 +245,6 @@
                     { data: 'assigned_at' },
                     { data: 'delivered_at', defaultContent: '—' },
                     { data: 'duration_minutes', render: v => v ? `${v} min` : '—' },
-                    { data: 'attempt_number' },
                 ],
                 order: [[4, 'desc']],
                 pageLength: 25,
@@ -370,6 +366,14 @@
                     error: xhr => window.Toast?.error(xhr.responseJSON?.message ?? window.TRANSLATIONS.assignmentFailed),
                 });
             });
-        })();
+        }
+
+        // ES modules loaded via Vite are deferred — DOMContentLoaded fires
+        // after all deferred scripts, so jQuery ($) is guaranteed to exist.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', boot);
+        } else {
+            boot();
+        }
     </script>
 @endpush

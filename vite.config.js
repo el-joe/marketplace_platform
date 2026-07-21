@@ -18,6 +18,7 @@ export default defineConfig({
                 'resources/js/components/select2.js',
                 'resources/js/components/slug-input.js',
                 'resources/js/components/datatable.js',
+                'resources/js/components/leaflet.js',
                 'resources/js/components/column-renderers.js',
                 'resources/js/admin/dashboard.js',
                 'resources/js/admin/products.js',

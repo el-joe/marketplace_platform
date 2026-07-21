@@ -89,7 +89,7 @@
                  }, { threshold: 0.1 });
                  observer.observe($el);
              ">
-            @php
+            <?php
                 $feeCards = [
                     [
                         'image' => 'https://f.nooncdn.com/s/app/pr-comms/sell-with-us/04-transparent-fees-01.jpg',
@@ -120,7 +120,8 @@
                         ],
                     ],
                 ];
-            @endphp
+
+            ?>
 
             @foreach($feeCards as $card)
                 <div class="relative rounded-2xl overflow-hidden h-full min-h-[280px] md:min-h-[300px] transition-all duration-700 ease-out"
