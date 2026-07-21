@@ -893,6 +893,22 @@ const cartFolder = folder('Cart & Wishlist', [
     responses: [{name: 'Success', status: 'OK', code: 200, body: {success: true, message: 'Coupon removed.', data: cartExample(true)}}]
   }),
   req({
+    name: 'Apply Promo Code to Cart',
+    method: 'POST', path: '/cart/promo-code', auth: false, headers: cartHeaders,
+    desc: 'Same lookup path as Apply Coupon, but also matches affiliate/marketer promo codes in addition to the coupons table.',
+    body: raw({code: 'REF10'}),
+    responses: [
+      {name: 'Success', status: 'OK', code: 200, body: {success: true, message: 'Promo code applied.', data: {...cartExample(true), promo_code: {code: 'REF10', type: 'percentage', description: '10% referral discount'}}}},
+      {name: 'Promo Code Not Found', status: 'Not Found', code: 404, body: notFound('Promo code not found.')},
+      {name: 'Domain Error', status: 'Unprocessable Entity', code: 422, body: {success: false, message: 'This promo code does not meet the minimum order requirement.'}}
+    ]
+  }),
+  req({
+    name: 'Remove Promo Code from Cart',
+    method: 'DELETE', path: '/cart/promo-code', auth: false, headers: cartHeaders,
+    responses: [{name: 'Success', status: 'OK', code: 200, body: {success: true, message: 'Promo code removed.', data: cartExample(true)}}]
+  }),
+  req({
     name: 'Merge Guest Cart into Account',
     method: 'POST', path: '/cart/merge',
     body: raw({guest_cart_token: '{{cart_token}}'}),
@@ -1494,6 +1510,24 @@ const notificationFolder = folder('Notifications', [
     method: 'DELETE', path: '/notifications/device-token',
     body: raw({token: 'fcm-device-token-abc123xyz'}),
     responses: [{name: 'Success', status: 'OK', code: 200, body: {success: true, message: 'Device removed.', data: null}}]
+  }),
+  req({
+    name: 'Get Notification Preferences',
+    method: 'GET', path: '/notifications/preferences',
+    responses: [{name: 'Success', status: 'OK', code: 200, body: {success: true, data: {
+      locale: 'en',
+      marketing_preferences: {email: true, sms: false, whatsapp: true}
+    }}}]
+  }),
+  req({
+    name: 'Update Notification Preferences',
+    method: 'PUT', path: '/notifications/preferences',
+    desc: '`locale` must be one of the app-configured available locales (typically `ar`, `en`).',
+    body: raw({locale: 'en', marketing_preferences: {email: true, sms: false, whatsapp: true}}),
+    responses: [
+      {name: 'Success', status: 'OK', code: 200, body: {success: true, message: 'Preferences updated.', data: {locale: 'en', marketing_preferences: {email: true, sms: false, whatsapp: true}}}},
+      {name: 'Validation Error', status: 'Unprocessable Entity', code: 422, body: validationErr({locale: ['The selected locale is invalid.']})}
+    ]
   })
 ]);
 
@@ -1657,6 +1691,108 @@ fs.writeFileSync('/tmp/gen_part6.json', JSON.stringify({accountFolder}, null, 2)
 console.log('part6 written:', accountFolder.item.length);
 
 // ─────────────────────────────────────────────────────────────────────────
+// NAWY NOW (country-agnostic curated feed) & APP CONFIG
+// Both live under /api/customer/v1/... but OUTSIDE the {country} + detect.country
+// group, so these two folders build their own url/path instead of using req()'s
+// hard-coded /api/customer/v1/{{country}}/... prefix.
+// ─────────────────────────────────────────────────────────────────────────
+function reqFlat({name, method, path, query = [], auth = false, desc = '', responses = []}) {
+  const url = {
+    raw: `{{base_url}}${path}${query.length ? '?' + query.map(q => `${q.key}=${q.value ?? ''}`).join('&') : ''}`,
+    host: ['{{base_url}}'],
+    path: path.replace(/^\//, '').split('/').filter(Boolean),
+    query: query.map(q => ({key: q.key, value: q.value ?? '', description: q.description || '', disabled: !!q.disabled}))
+  };
+  return {
+    name,
+    request: {
+      method,
+      header: [],
+      url,
+      description: desc,
+      auth: auth ? {type: 'bearer', bearer: [{key: 'token', value: '{{access_token}}', type: 'string'}]} : {type: 'noauth'}
+    },
+    response: responses.map(r => ({
+      name: r.name,
+      originalRequest: {method, header: [], url},
+      status: r.status,
+      code: r.code,
+      _postman_previewlanguage: 'json',
+      header: [{key: 'Content-Type', value: 'application/json'}],
+      body: JSON.stringify(r.body, null, 2)
+    }))
+  };
+}
+
+const nawyFolder = folder('Nawy Now (Country-Agnostic)', [
+  reqFlat({
+    name: 'Nawy Feed',
+    method: 'GET', path: '/api/customer/v1/nawy/feed',
+    query: [
+      {key: 'country_id', value: '1', description: 'Country id (query param — this endpoint is outside the {country} route group)'},
+      {key: 'category_id', value: '', description: 'Optional Nawy category id filter'},
+      {key: 'page', value: '1'}
+    ],
+    desc: 'Curated Nawy Now real-estate feed. Public, country-agnostic path — country is resolved from the `country_id` query param instead of a URL segment.',
+    responses: [{name: 'Success', status: 'OK', code: 200, body: {success: true, data: {items: [
+      {id: 'nawy-uuid-1', title: bilingual('Modern Villa in New Cairo', 'فيلا حديثة في القاهرة الجديدة'), price_cents: 850000000, currency: 'EGP', thumbnail: 'https://cdn.example.com/nawy/villa1.jpg', category: {id: 'nawy-cat-1', name: bilingual('Villas', 'فيلل')}, developer: 'Nawy Partners', delivery_date: '2028-01-01'}
+    ], meta: {current_page: 1, last_page: 5, per_page: 20, total: 96}}}}]
+  }),
+  reqFlat({
+    name: 'Nawy Categories',
+    method: 'GET', path: '/api/customer/v1/nawy/categories',
+    query: [{key: 'country_id', value: '1', description: 'Country id (query param)'}],
+    responses: [{name: 'Success', status: 'OK', code: 200, body: {success: true, data: [
+      {id: 'nawy-cat-1', name: bilingual('Villas', 'فيلل'), slug: 'villas', icon: 'https://cdn.example.com/nawy/icons/villas.png', listing_count: 96},
+      {id: 'nawy-cat-2', name: bilingual('Apartments', 'شقق'), slug: 'apartments', icon: 'https://cdn.example.com/nawy/icons/apartments.png', listing_count: 340}
+    ]}}]
+  }),
+  reqFlat({
+    name: 'Nawy Listing Detail',
+    method: 'GET', path: '/api/customer/v1/nawy/nawy-uuid-1',
+    desc: '`{id}` is the Nawy listing id.',
+    responses: [
+      {name: 'Success', status: 'OK', code: 200, body: {success: true, data: {
+        id: 'nawy-uuid-1', title: bilingual('Modern Villa in New Cairo', 'فيلا حديثة في القاهرة الجديدة'), description: bilingual('5-bedroom villa with private garden and pool.', 'فيلا 5 غرف نوم مع حديقة خاصة وحمام سباحة.'),
+        price_cents: 850000000, currency: 'EGP', area_sqm: 450, bedrooms: 5, bathrooms: 4, delivery_date: '2028-01-01', developer: 'Nawy Partners',
+        images: [{id: 'nimg-1', url: 'https://cdn.example.com/nawy/villa1.jpg', position: 0}],
+        category: {id: 'nawy-cat-1', name: bilingual('Villas', 'فيلل')}, location: {city: 'New Cairo', compound: 'Mivida'}
+      }}},
+      {name: 'Not Found', status: 'Not Found', code: 404, body: notFound('Listing not found.')}
+    ]
+  })
+]);
+
+const appConfigFolder = folder('App Config (Country-Agnostic)', [
+  reqFlat({
+    name: 'App Config',
+    method: 'GET', path: '/api/customer/v1/app/config',
+    query: [{key: 'country_id', value: '1', description: 'Country id (query param — this endpoint is outside the {country} route group)'}],
+    desc: 'Public mobile-app bootstrap config: feature flags, force-update thresholds, supported locales/currencies, contact info.',
+    responses: [{name: 'Success', status: 'OK', code: 200, body: {success: true, data: {
+      min_supported_version: '2.0.0', latest_version: '2.5.0', force_update: false,
+      feature_flags: {wallet_enabled: true, gift_cards_enabled: true, bnpl_enabled: true, travel_enabled: true, classifieds_enabled: true},
+      available_locales: ['ar', 'en'], available_currencies: ['EGP', 'SAR', 'AED'],
+      support: {phone: '+20800000000', email: 'support@marketplace.example', whatsapp: '+201000000000'},
+      social_links: {facebook: 'https://facebook.com/marketplace', instagram: 'https://instagram.com/marketplace'}
+    }}}]
+  }),
+  reqFlat({
+    name: 'App Home (Config-Driven)',
+    method: 'GET', path: '/api/customer/v1/app/home',
+    query: [{key: 'country_id', value: '1', description: 'Country id (query param)'}],
+    desc: 'Public, country-agnostic home payload used by the mobile app shell (distinct from the per-country /home endpoint under Catalog).',
+    responses: [{name: 'Success', status: 'OK', code: 200, body: {success: true, data: {
+      page_builder: pageBuilderExample,
+      meta: {country_code: 'eg', currency: 'EGP', locale: 'ar'}
+    }}}]
+  })
+]);
+
+fs.writeFileSync('/tmp/gen_part7.json', JSON.stringify({nawyFolder, appConfigFolder}, null, 2));
+console.log('part7 written:', nawyFolder.item.length, appConfigFolder.item.length);
+
+// ─────────────────────────────────────────────────────────────────────────
 // FINAL ASSEMBLY
 // ─────────────────────────────────────────────────────────────────────────
 const collection = {
@@ -1677,7 +1813,9 @@ const collection = {
     giftCardFolder,
     postSaleFolder,
     notificationFolder,
-    accountFolder
+    accountFolder,
+    nawyFolder,
+    appConfigFolder
   ],
   variable: [
     {key: 'base_url', value: 'http://localhost:8000', type: 'string'},
