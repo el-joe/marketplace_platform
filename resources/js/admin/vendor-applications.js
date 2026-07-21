@@ -32,7 +32,7 @@ function initIndexPage() {
         serverSide: true,
         order: [[6, 'desc']], // days_waiting desc → oldest first
         ajax: {
-            url: '/admin/vendor-applications/datatable',
+            url: '/vendor-applications/datatable',
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken() },
             data(d) {
