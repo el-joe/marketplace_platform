@@ -147,7 +147,7 @@ Object.assign(window.TRANSLATIONS, {
     disablePromoConfirm: @json(__('admin.affiliate_promo_codes_section.disable_promo_confirm')),
 });
 
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const tok = '{{ csrf_token() }}';
 
     const table = $('#promo-codes-table').DataTable({
@@ -217,6 +217,6 @@ $(function () {
                 .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
         }});
     });
-});
+}, { once: true });
 </script>
 @endpush

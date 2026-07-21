@@ -144,7 +144,7 @@
     });
 </script>
 <script type="module">
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const tok = '{{ csrf_token() }}';
     const T = window.TRANSLATIONS;
 
@@ -368,6 +368,6 @@ $(function () {
             .done(r => { window.Toast.success(r.message); $('#reject-modal').css('display', 'none'); dt.ajax.reload(); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || T.errorGeneric));
     });
-});
+}, { once: true });
 </script>
 @endpush

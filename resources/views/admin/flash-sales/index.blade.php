@@ -167,7 +167,7 @@ window.filterTable = function filterTable(status) {
     }
 };
 
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     initDataTable('flash-sales-table', {
         url: FLASH_SALES_DATATABLE_URL,
         columns: [
@@ -197,6 +197,6 @@ $(function () {
             $('#flash-sales-table').DataTable().ajax.reload();
         }
     });
-});
+}, { once: true });
 </script>
 @endpush

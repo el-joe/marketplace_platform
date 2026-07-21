@@ -183,7 +183,7 @@ Object.assign(window.TRANSLATIONS, {
     somethingWentWrong: @json(__('admin.influencer_deal_show_section.something_went_wrong')),
 });
 
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const dealId = '{{ $deal->id }}';
     const csrf = '{{ csrf_token() }}';
 
@@ -238,6 +238,6 @@ $(function () {
             .done(r => { window.Toast.success(r.message); window.location.reload(); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
     });
-});
+}, { once: true });
 </script>
 @endpush

@@ -180,7 +180,7 @@ Object.assign(window.TRANSLATIONS, {
     failedToProposeDeal: @json(__('admin.influencer_deals_section.failed_to_propose_deal')),
 });
 
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const table = $('#influencer-deals-table').DataTable({
         processing: true,
         serverSide: true,
@@ -238,6 +238,6 @@ $(function () {
         })
         .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS.proposeDeal));
     });
-});
+}, { once: true });
 </script>
 @endpush

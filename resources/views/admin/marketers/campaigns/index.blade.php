@@ -123,7 +123,7 @@
     });
 </script>
 <script type="module">
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const tok = '{{ csrf_token() }}';
 
     const table = $('#campaigns-table').DataTable({
@@ -196,6 +196,6 @@ $(function () {
         let t;
         return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
     }
-});
+}, { once: true });
 </script>
 @endpush

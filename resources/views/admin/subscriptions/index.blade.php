@@ -137,7 +137,7 @@
             error: @json(__('admin.subscriptions.error')),
         });
 
-        $(function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const tok = '{{ csrf_token() }}';
 
             const tbl = $('#tbl-subscriptions').DataTable({

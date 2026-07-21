@@ -154,7 +154,7 @@
             error: @json(__('admin.fbn_section.error')),
         });
 
-        $(function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const tok = '{{ csrf_token() }}';
             const T = window.TRANSLATIONS;
 
@@ -271,6 +271,6 @@
                     }
                 });
             });
-        });
+        }, { once: true });
     </script>
 @endpush

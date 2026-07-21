@@ -94,7 +94,7 @@
             loading: @json(__('admin.subscriptions.loading')),
         });
 
-        $(function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const tok = '{{ csrf_token() }}';
 
             const tbl = $('#tbl-invoices').DataTable({
@@ -141,6 +141,6 @@
                     else { window.Toast.error(data.message); }
                 });
             });
-        });
+        }, { once: true });
     </script>
 @endpush

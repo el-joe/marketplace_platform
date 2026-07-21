@@ -15,7 +15,8 @@
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.subscriptions.subscription_plans_title') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.subscriptions.subscription_plans_subtitle') }}</p>
         </div>
-        <button type="button" id="btn-create-plan" class="btn btn-primary btn-sm">{{ __('admin.subscriptions.new_plan') }}</button>
+        <button type="button" id="btn-create-plan"
+            class="btn btn-primary btn-sm">{{ __('admin.subscriptions.new_plan') }}</button>
     </div>
 
     {{-- ─── Plans Grid ──────────────────────────────────────────────────────────── --}}
@@ -56,12 +57,14 @@
                         {{ __('admin.subscriptions.listings_word') }}
                     </li>
                     <li>
-                        💸 {{ __('admin.subscriptions.commission_discount_label') }} <strong>{{ $plan->commission_discount_pct }}%</strong>
+                        💸 {{ __('admin.subscriptions.commission_discount_label') }}
+                        <strong>{{ $plan->commission_discount_pct }}%</strong>
                     </li>
                     <li>
-                        🚚 {{ __('admin.subscriptions.free_shipping_label') }} <strong>{{ $plan->free_shipping_included ? __('admin.subscriptions.yes') : __('admin.subscriptions.no') }}</strong>
+                        🚚 {{ __('admin.subscriptions.free_shipping_label') }}
+                        <strong>{{ $plan->free_shipping_included ? __('admin.subscriptions.yes') : __('admin.subscriptions.no') }}</strong>
                     </li>
-                    @foreach(($plan->features ?? []) as $feature)
+                    @foreach ($plan->features ?? [] as $feature)
                         <li>✓ {{ ucwords(str_replace('_', ' ', $feature)) }}</li>
                     @endforeach
                 </ul>
@@ -74,7 +77,8 @@
                         data-id="{{ $plan->id }}" data-active="{{ $plan->is_active ? 1 : 0 }}">
                         {{ $plan->is_active ? __('admin.subscriptions.deactivate') : __('admin.subscriptions.activate') }}
                     </button>
-                    <button type="button" class="btn btn-xs btn-danger btn-delete-plan" data-id="{{ $plan->id }}">{{ __('admin.subscriptions.delete_short') }}</button>
+                    <button type="button" class="btn btn-xs btn-danger btn-delete-plan"
+                        data-id="{{ $plan->id }}">{{ __('admin.subscriptions.delete_short') }}</button>
                 </div>
             </div>
         @empty
@@ -85,18 +89,21 @@
     </div>
 
     {{-- ─── Plan Modal ──────────────────────────────────────────────────────────── --}}
-    <div id="plan-modal" class="modal" style="display:none;">
-        <div class="modal-box max-w-xl">
-            <h3 class="font-bold text-lg mb-5" id="plan-modal-title">{{ __('admin.subscriptions.new_subscription_plan') }}</h3>
+    <div id="plan-modal" class="modal-backdrop hidden">
+        <div class="modal-box modal-lg p-6">
+            <h3 class="font-bold text-lg mb-5" id="plan-modal-title">{{ __('admin.subscriptions.new_subscription_plan') }}
+            </h3>
             <input type="hidden" id="plan-modal-id">
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="label-sm">{{ __('admin.subscriptions.name_en') }} <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.subscriptions.name_en') }} <span
+                            class="text-red-500">*</span></label>
                     <input type="text" id="pm-name-en" class="form-input w-full text-sm" dir="ltr">
                 </div>
                 <div>
-                    <label class="label-sm">{{ __('admin.subscriptions.name_ar') }} <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.subscriptions.name_ar') }} <span
+                            class="text-red-500">*</span></label>
                     <input type="text" id="pm-name-ar" class="form-input w-full text-sm" dir="rtl">
                 </div>
                 <div class="col-span-2">
@@ -108,11 +115,14 @@
                     <textarea id="pm-desc-ar" rows="2" class="form-input w-full text-sm" dir="rtl"></textarea>
                 </div>
                 <div>
-                    <label class="label-sm">{{ __('admin.subscriptions.price_smallest_unit') }} <span class="text-red-500">*</span></label>
-                    <input type="number" id="pm-price" class="form-input w-full text-sm" placeholder="{{ __('admin.subscriptions.price_placeholder') }}">
+                    <label class="label-sm">{{ __('admin.subscriptions.price_smallest_unit') }} <span
+                            class="text-red-500">*</span></label>
+                    <input type="number" id="pm-price" class="form-input w-full text-sm"
+                        placeholder="{{ __('admin.subscriptions.price_placeholder') }}">
                 </div>
                 <div>
-                    <label class="label-sm">{{ __('admin.subscriptions.currency') }} <span class="text-red-500">*</span></label>
+                    <label class="label-sm">{{ __('admin.subscriptions.currency') }} <span
+                            class="text-red-500">*</span></label>
                     <input type="text" id="pm-currency" class="form-input w-full text-sm" value="EGP" maxlength="3">
                 </div>
                 <div>
@@ -121,16 +131,18 @@
                 </div>
                 <div>
                     <label class="label-sm">{{ __('admin.subscriptions.commission_discount_pct') }}</label>
-                    <input type="number" id="pm-commission-discount" class="form-input w-full text-sm" min="0" max="100"
-                        step="0.01" value="0">
+                    <input type="number" id="pm-commission-discount" class="form-input w-full text-sm" min="0"
+                        max="100" step="0.01" value="0">
                 </div>
                 <div class="flex items-center gap-3 pt-2">
                     <input type="checkbox" id="pm-free-shipping" class="w-4 h-4">
-                    <label for="pm-free-shipping" class="text-sm font-medium text-gray-700">{{ __('admin.subscriptions.free_shipping_included') }}</label>
+                    <label for="pm-free-shipping"
+                        class="text-sm font-medium text-gray-700">{{ __('admin.subscriptions.free_shipping_included') }}</label>
                 </div>
                 <div>
                     <label class="label-sm">{{ __('admin.subscriptions.sort_order') }}</label>
-                    <input type="number" id="pm-sort-order" class="form-input w-full text-sm" value="0" min="0">
+                    <input type="number" id="pm-sort-order" class="form-input w-full text-sm" value="0"
+                        min="0">
                 </div>
                 <div class="col-span-2">
                     <label class="label-sm">{{ __('admin.subscriptions.features_one_per_line') }}</label>
@@ -140,8 +152,10 @@
             </div>
 
             <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-gray-100">
-                <button type="button" id="plan-modal-cancel" class="btn btn-ghost btn-sm">{{ __('admin.subscriptions.cancel') }}</button>
-                <button type="button" id="plan-modal-save" class="btn btn-primary btn-sm px-8">{{ __('admin.subscriptions.save_plan') }}</button>
+                <button type="button" id="plan-modal-cancel"
+                    class="btn btn-ghost btn-sm">{{ __('admin.subscriptions.cancel') }}</button>
+                <button type="button" id="plan-modal-save"
+                    class="btn btn-primary btn-sm px-8">{{ __('admin.subscriptions.save_plan') }}</button>
             </div>
         </div>
     </div>
@@ -159,27 +173,30 @@
             deletePlanText: @json(__('admin.subscriptions.delete_plan_confirm_text')),
         });
 
-        $(function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const tok = '{{ csrf_token() }}';
 
-            function refreshPage() { location.reload(); }
+            function refreshPage() {
+                location.reload();
+            }
 
             // ── Open create modal ──────────────────────────────────────────────────────
-            $('#btn-create-plan').on('click', function () {
+            $('#btn-create-plan').on('click', function() {
                 $('#plan-modal-id').val('');
                 $('#plan-modal-title').text(window.TRANSLATIONS.newSubscriptionPlan);
-                ['name-en', 'name-ar', 'desc-en', 'desc-ar', 'features'].forEach(id => $('#pm-' + id).val(''));
+                ['name-en', 'name-ar', 'desc-en', 'desc-ar', 'features'].forEach(id => $('#pm-' + id).val(
+                    ''));
                 $('#pm-price').val('');
                 $('#pm-currency').val('EGP');
                 $('#pm-max-listings').val('');
                 $('#pm-commission-discount').val('0');
                 $('#pm-free-shipping').prop('checked', false);
                 $('#pm-sort-order').val('0');
-                $('#plan-modal').show();
+                $('#plan-modal').modal('open');
             });
 
             // ── Open edit modal ────────────────────────────────────────────────────────
-            $(document).on('click', '.btn-edit-plan', function () {
+            $(document).on('click', '.btn-edit-plan', function() {
                 const p = $(this).data('plan');
                 $('#plan-modal-id').val(p.id);
                 $('#plan-modal-title').text(window.TRANSLATIONS.editPlanPrefix + ' ' + p.name_en);
@@ -194,13 +211,13 @@
                 $('#pm-free-shipping').prop('checked', !!p.free_shipping_included);
                 $('#pm-sort-order').val(p.sort_order ?? 0);
                 $('#pm-features').val((p.features ?? []).join('\n'));
-                $('#plan-modal').show();
+                $('#plan-modal').modal('open');
             });
 
-            $('#plan-modal-cancel').on('click', () => $('#plan-modal').hide());
+            $('#plan-modal-cancel').on('click', () => $('#plan-modal').modal('close'));
 
             // ── Save plan ──────────────────────────────────────────────────────────────
-            $('#plan-modal-save').on('click', function () {
+            $('#plan-modal-save').on('click', function() {
                 const id = $('#plan-modal-id').val();
                 const features = $('#pm-features').val().split('\n').map(s => s.trim()).filter(Boolean);
                 const payload = {
@@ -217,48 +234,70 @@
                     features,
                 };
 
-                const url = id ? '/admin/subscriptions/plans/' + id : '{{ route('admin.subscriptions.plans.store') }}';
+                const url = id ? '/subscriptions/plans/' + id :
+                    '{{ route('admin.subscriptions.plans.store') }}';
                 const method = id ? 'PUT' : 'POST';
 
                 fetch(url, {
                     method,
-                    headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
+                    headers: {
+                        'X-CSRF-TOKEN': tok,
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(payload),
                 }).then(r => r.json()).then(data => {
-                    if (data.success) { window.Toast.success(data.message); $('#plan-modal').hide(); refreshPage(); }
-                    else { window.Toast.error(data.message ?? window.TRANSLATIONS.error); }
+                    if (data.success) {
+                        window.Toast.success(data.message);
+                        $('#plan-modal').modal('close');
+                        refreshPage();
+                    } else {
+                        window.Toast.error(data.message ?? window.TRANSLATIONS.error);
+                    }
                 });
             });
 
             // ── Toggle active ──────────────────────────────────────────────────────────
-            $(document).on('click', '.btn-toggle-plan', function () {
+            $(document).on('click', '.btn-toggle-plan', function() {
                 const id = $(this).data('id');
-                fetch('/admin/subscriptions/plans/' + id + '/toggle-active', {
+                fetch('/subscriptions/plans/' + id + '/toggle-active', {
                     method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
+                    headers: {
+                        'X-CSRF-TOKEN': tok,
+                        'Content-Type': 'application/json'
+                    },
                     body: '{}',
                 }).then(r => r.json()).then(data => {
-                    if (data.success) { window.Toast.success(data.message); refreshPage(); }
-                    else { window.Toast.error(data.message); }
+                    if (data.success) {
+                        window.Toast.success(data.message);
+                        refreshPage();
+                    } else {
+                        window.Toast.error(data.message);
+                    }
                 });
             });
 
             // ── Delete plan ────────────────────────────────────────────────────────────
-            $(document).on('click', '.btn-delete-plan', function () {
+            $(document).on('click', '.btn-delete-plan', function() {
                 const id = $(this).data('id');
-                window.confirmDelete({
+                window.confirmDelete(window.TRANSLATIONS.deletePlanText, {
                     title: window.TRANSLATIONS.deletePlanTitle,
-                    text: window.TRANSLATIONS.deletePlanText,
-                    onConfirm: () => {
-                        fetch('/admin/subscriptions/plans/' + id, {
-                            method: 'DELETE',
-                            headers: { 'X-CSRF-TOKEN': tok, 'Content-Type': 'application/json' },
-                            body: '{}',
-                        }).then(r => r.json()).then(data => {
-                            if (data.success) { window.Toast.success(data.message); refreshPage(); }
-                            else { window.Toast.error(data.message); }
-                        });
-                    }
+                }).then((confirmed) => {
+                    if (!confirmed) return;
+                    fetch('/subscriptions/plans/' + id, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': tok,
+                            'Content-Type': 'application/json'
+                        },
+                        body: '{}',
+                    }).then(r => r.json()).then(data => {
+                        if (data.success) {
+                            window.Toast.success(data.message);
+                            refreshPage();
+                        } else {
+                            window.Toast.error(data.message);
+                        }
+                    });
                 });
             });
         });

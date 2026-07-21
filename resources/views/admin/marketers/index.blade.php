@@ -227,7 +227,7 @@
     });
 </script>
 <script type="module">
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     let currentType = '';
     let table = null;
 
@@ -408,6 +408,6 @@ $(function () {
         })
         .always(() => $btn.prop('disabled', false).text(window.TRANSLATIONS.createMarketer));
     });
-});
+}, { once: true });
 </script>
 @endpush

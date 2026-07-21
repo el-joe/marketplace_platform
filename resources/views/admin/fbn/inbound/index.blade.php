@@ -161,7 +161,7 @@
         enterQuantityReceived: @json(__('admin.fbn_section.enter_quantity_received')),
     });
 
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const tok = '{{ csrf_token() }}';
     const T = window.TRANSLATIONS;
 
@@ -267,6 +267,6 @@ $(function () {
         jsonPost(`/admin/fbn/inbound/${id}/receive`, { quantity_received: qty },
             () => $('#receive-modal').hide());
     });
-});
+}, { once: true });
 </script>
 @endpush

@@ -338,7 +338,7 @@
     });
 </script>
 <script type="module">
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const tok = '{{ csrf_token() }}';
 
     $('.btn-approve-campaign').on('click', function () {
@@ -388,7 +388,7 @@ $(function () {
             } else { window.Toast.error(data.message); }
         });
     });
-});
+}, { once: true });
 
 async function saveSamplesRequired() {
     const input = document.getElementById('samples-required-input');

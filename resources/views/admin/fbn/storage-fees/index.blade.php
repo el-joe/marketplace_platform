@@ -118,7 +118,7 @@
             selectMonth: @json(__('admin.fbn_section.select_month')),
         });
 
-        $(function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const tok = '{{ csrf_token() }}';
             const T = window.TRANSLATIONS;
 
@@ -178,6 +178,6 @@
                 jsonPost('{{ route('admin.fbn.storage-fees.generate') }}', { month },
                     () => $('#generate-modal').hide());
             });
-        });
+        }, { once: true });
     </script>
 @endpush

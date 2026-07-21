@@ -228,7 +228,7 @@
 
 @push('scripts')
     <script>
-        $(function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const tok = '{{ csrf_token() }}';
 
             // ── Cancel Subscription ────────────────────────────────────────────────────
@@ -266,6 +266,6 @@
                     else { window.Toast.error(data.message); }
                 });
             });
-        });
+        }, { once: true });
     </script>
 @endpush

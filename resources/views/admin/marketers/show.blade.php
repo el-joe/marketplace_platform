@@ -546,7 +546,7 @@
     });
 </script>
 <script type="module">
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const markId = '{{ $marketer->id }}';
     const tok    = '{{ csrf_token() }}';
 
@@ -737,6 +737,6 @@ $(function () {
             .done(r => { window.Toast.success(r.message); $('#marketer-samples-table').DataTable().ajax.reload(); })
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.errorGeneric));
     });
-});
+}, { once: true });
 </script>
 @endpush

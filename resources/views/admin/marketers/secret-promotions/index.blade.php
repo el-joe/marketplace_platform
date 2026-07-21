@@ -135,7 +135,7 @@
         });
     </script>
     <script type="module">
-        $(function () {
+        document.addEventListener('DOMContentLoaded', function () {
             const tok = '{{ csrf_token() }}';
 
             $('#btn-add-promo, #btn-cancel-promo, #btn-close-promo-modal').on('click', function () {
@@ -157,6 +157,6 @@
                     })
                     .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.validationError));
             });
-        });
+        }, { once: true });
     </script>
 @endpush
