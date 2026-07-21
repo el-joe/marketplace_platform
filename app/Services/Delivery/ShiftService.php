@@ -17,11 +17,11 @@ class ShiftService
     public function start(DeliveryAgent $agent): DeliveryAgentShift
     {
         if ($agent->status === DeliveryAgentStatus::OnShift) {
-            throw new RuntimeException('You are already on shift.');
+            throw new RuntimeException(__('common.exceptions.delivery.already_on_shift'));
         }
 
         if (is_null($agent->current_latitude) || is_null($agent->current_longitude)) {
-            throw new RuntimeException('You must send your current location before starting a shift.');
+            throw new RuntimeException(__('common.exceptions.delivery.location_required'));
         }
 
         return DB::transaction(function () use ($agent): DeliveryAgentShift {
@@ -42,7 +42,7 @@ class ShiftService
     public function end(DeliveryAgent $agent): void
     {
         if ($agent->status !== DeliveryAgentStatus::OnShift) {
-            throw new RuntimeException('You are not currently on shift.');
+            throw new RuntimeException(__('common.exceptions.delivery.not_on_shift'));
         }
 
         $hasActiveAssignment = $agent->assignments()
@@ -50,7 +50,7 @@ class ShiftService
             ->exists();
 
         if ($hasActiveAssignment) {
-            throw new RuntimeException('You have an active delivery in progress. Complete or fail it before ending your shift.');
+            throw new RuntimeException(__('common.exceptions.delivery.active_delivery_in_progress'));
         }
 
         DB::transaction(function () use ($agent): void {

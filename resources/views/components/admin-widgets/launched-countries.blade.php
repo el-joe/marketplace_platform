@@ -7,17 +7,17 @@
         ->first();
 @endphp
 
-<x-stat-card title="Launched Countries" :value="$launched" :subtitle="$active . ' total active'" icon="globe-alt"
+<x-stat-card title="{{ __('admin.dashboard.launched_countries') }}" :value="$launched" :subtitle="__('admin.dashboard.total_active', ['count' => $active])" icon="globe-alt"
     color="success">
     @if ($last)
         <p class="text-xs text-gray-500 mt-1">
-            Last: <span class="font-medium text-gray-700">{{ $last->name_en }} ({{ $last->iso_code_2 }})</span>
+            {{ __('admin.dashboard.last_label') }}: <span class="font-medium text-gray-700">{{ $last->name_en }} ({{ $last->iso_code_2 }})</span>
             — {{ $last->launched_at?->diffForHumans() ?? '—' }}
         </p>
     @endif
     <div class="mt-2">
         <a href="{{ route('admin.countries.index') }}" class="text-xs text-primary-600 hover:underline">
-            Manage Countries →
+            {{ __('admin.dashboard.manage_countries') }}
         </a>
     </div>
 </x-stat-card>

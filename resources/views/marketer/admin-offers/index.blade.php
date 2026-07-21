@@ -121,7 +121,7 @@
             <div class="inv-avatar">🛡️</div>
             <div class="inv-body">
                 <div class="inv-title">{{ $inv->title }}</div>
-                <div class="inv-admin">Boutiqaat Admin Team</div>
+                <div class="inv-admin">{{ __('marketer.admin_offers.admin_team') }}</div>
                 <div class="inv-meta">
                     <span class="type-chip">{{ $inv->campaign_type->label() }}</span>
                     <span class="commission-val">{{ number_format($inv->commission_rate_percent, 2) }}%</span>

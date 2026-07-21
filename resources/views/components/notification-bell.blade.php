@@ -78,21 +78,21 @@
 
         {{-- Header --}}
         <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h4 class="text-sm font-semibold text-gray-900">Notifications</h4>
+            <h4 class="text-sm font-semibold text-gray-900">{{ __('common.notifications') }}</h4>
             <button type="button"
                 @click="markAllRead()"
                 class="text-xs text-blue-600 hover:underline">
-                Mark all read
+                {{ __('common.mark_all_read') }}
             </button>
         </div>
 
         {{-- List --}}
         <div class="max-h-80 overflow-y-auto divide-y divide-gray-50">
             <template x-if="!loaded">
-                <div class="p-6 text-center text-sm text-gray-500">Loading…</div>
+                <div class="p-6 text-center text-sm text-gray-500">{{ __('common.loading') }}</div>
             </template>
             <template x-if="loaded && items.length === 0">
-                <div class="p-6 text-center text-sm text-gray-500">No notifications yet.</div>
+                <div class="p-6 text-center text-sm text-gray-500">{{ __('common.no_notifications_yet') }}</div>
             </template>
             <template x-for="item in items" :key="item.id">
                 <button type="button"
@@ -115,7 +115,7 @@
 
         {{-- Footer --}}
         <div class="px-4 py-2 border-t border-gray-100 text-center">
-            <a href="{{ $viewAllUrl }}" class="text-xs text-blue-600 hover:underline">View all notifications</a>
+            <a href="{{ $viewAllUrl }}" class="text-xs text-blue-600 hover:underline">{{ __('common.view_all_notifications') }}</a>
         </div>
     </div>
 </div>

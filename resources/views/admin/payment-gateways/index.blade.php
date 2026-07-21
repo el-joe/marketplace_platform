@@ -74,7 +74,7 @@
                                 <span class="font-mono text-xs {{ $method->settlement_currency ? 'text-amber-700 bg-amber-50 px-2 py-0.5 rounded' : 'text-gray-400' }}">
                                     {{ $method->effective_currency }}
                                     @if($method->settlement_currency)
-                                        <span title="Override — differs from country default">⚠</span>
+                                        <span title="{{ __('admin.payment_section.credentials_override') }}">⚠</span>
                                     @endif
                                 </span>
                             </td>
@@ -92,9 +92,9 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if($method->is_configured)
-                                    <span class="text-green-600 font-bold" title="Credentials set">✓</span>
+                                    <span class="text-green-600 font-bold" title="{{ __('admin.payment_section.credentials_set') }}">✓</span>
                                 @else
-                                    <span class="text-red-500" title="No credentials set">✗</span>
+                                    <span class="text-red-500" title="{{ __('admin.payment_section.credentials_not_set') }}">✗</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center text-xs text-gray-600">

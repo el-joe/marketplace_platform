@@ -44,7 +44,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_section.code_label') }}</label>
                         <input type="text" value="{{ $method->code }}" readonly disabled
                                class="block w-full rounded-lg border border-gray-200 bg-gray-50 py-2 px-3 text-sm text-gray-500 cursor-not-allowed" />
-                        <p class="text-xs text-gray-400 mt-1">Code is immutable after creation.</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ __('admin.shipping_section.code_immutable_notice') }}</p>
                     </div>
                     <div>
                         <x-form-input name="description" label="{{ __('admin.shipping_section.description_label') }}" :value="$method->description" />
@@ -56,37 +56,37 @@
                         <x-form-input name="max_delivery_days" type="number" label="{{ __('admin.shipping_section.max_days') }}" :value="$method->max_delivery_days" required />
                     </div>
                     <div>
-                        <x-form-input name="order_cutoff_time" type="time" label="Order cutoff time" :value="$method->order_cutoff_time ? substr($method->order_cutoff_time, 0, 5) : ''"
-                                      help-text="Orders placed before this time qualify for this method's minimum delivery window." />
+                        <x-form-input name="order_cutoff_time" type="time" label="{{ __('admin.shipping_section.order_cutoff_time') }}" :value="$method->order_cutoff_time ? substr($method->order_cutoff_time, 0, 5) : ''"
+                                      help-text="{{ __('admin.shipping_section.order_cutoff_time_help') }}" />
                     </div>
                     <div>
-                        <x-form-input name="handling_time_hours" type="number" min="0" label="Handling time (hours)" :value="$method->handling_time_hours" />
+                        <x-form-input name="handling_time_hours" type="number" min="0" label="{{ __('admin.shipping_section.handling_time_hours') }}" :value="$method->handling_time_hours" />
                     </div>
                     <div>
-                        <x-form-input name="display_priority" type="number" min="0" label="Display priority" :value="$method->display_priority" help-text="Lower numbers appear first." />
+                        <x-form-input name="display_priority" type="number" min="0" label="{{ __('admin.shipping_section.display_priority') }}" :value="$method->display_priority" help-text="{{ __('admin.shipping_section.display_priority_help') }}" />
                     </div>
                     <div class="flex items-center gap-6">
-                        <x-form-toggle name="is_express_type" label="Express type" :checked="$method->is_express_type" />
-                        <x-form-toggle name="show_estimated_price" label="Show estimated price" :checked="$method->show_estimated_price" />
+                        <x-form-toggle name="is_express_type" label="{{ __('admin.shipping_section.express_type') }}" :checked="$method->is_express_type" />
+                        <x-form-toggle name="show_estimated_price" label="{{ __('admin.shipping_section.show_estimated_price') }}" :checked="$method->show_estimated_price" />
                     </div>
 
                     <div class="sm:col-span-2 lg:col-span-3 border-t border-gray-100 pt-4">
-                        <p class="text-sm font-semibold text-gray-700 mb-3">Badge</p>
+                        <p class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.shipping_section.badge_label') }}</p>
                     </div>
                     <div>
-                        <x-form-input name="badge_label_en" x-model="badgeLabel" label="Badge label (EN)" :value="$method->badge_label_en" placeholder="Express" />
+                        <x-form-input name="badge_label_en" x-model="badgeLabel" label="{{ __('admin.shipping_section.badge_label_en') }}" :value="$method->badge_label_en" placeholder="Express" />
                     </div>
                     <div>
-                        <x-form-input name="badge_label_ar" label="Badge label (AR)" :value="$method->badge_label_ar" placeholder="سريع" dir="rtl" />
+                        <x-form-input name="badge_label_ar" label="{{ __('admin.shipping_section.badge_label_ar') }}" :value="$method->badge_label_ar" placeholder="سريع" dir="rtl" />
                     </div>
                     <div class="flex items-end gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Badge color</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_section.badge_color') }}</label>
                             <input type="color" name="badge_color_hex" x-model="badgeColor" value="{{ $method->badge_color_hex ?? '#e5e7eb' }}"
                                    class="h-9 w-16 rounded border border-gray-300 p-0.5 cursor-pointer" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Text color</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_section.text_color') }}</label>
                             <input type="color" name="badge_text_color_hex" x-model="badgeTextColor" value="{{ $method->badge_text_color_hex ?? '#111827' }}"
                                    class="h-9 w-16 rounded border border-gray-300 p-0.5 cursor-pointer" />
                         </div>
@@ -94,21 +94,21 @@
 
                     {{-- Live badge preview — mirrors exactly how the badge renders on a product listing card --}}
                     <div class="sm:col-span-2 lg:col-span-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Preview</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_section.preview') }}</label>
                         <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 flex items-center">
                             <span x-show="badgeLabel"
                                   x-text="badgeLabel"
                                   :style="`background-color: ${badgeColor}; color: ${badgeTextColor};`"
                                   class="rounded-full px-2 py-0.5 text-xs font-semibold"></span>
-                            <span x-show="!badgeLabel" class="text-xs text-gray-400">No badge configured</span>
+                            <span x-show="!badgeLabel" class="text-xs text-gray-400">{{ __('admin.shipping_section.no_badge_configured') }}</span>
                         </div>
                     </div>
 
                     <div>
-                        <x-form-input name="delivery_label_en" label="Delivery panel label (EN)" :value="$method->delivery_label_en" placeholder="Delivered within 2-4 days" />
+                        <x-form-input name="delivery_label_en" label="{{ __('admin.shipping_section.delivery_panel_label_en') }}" :value="$method->delivery_label_en" placeholder="Delivered within 2-4 days" />
                     </div>
                     <div>
-                        <x-form-input name="delivery_label_ar" label="Delivery panel label (AR)" :value="$method->delivery_label_ar" placeholder="يتم التوصيل خلال 2-4 أيام" dir="rtl" />
+                        <x-form-input name="delivery_label_ar" label="{{ __('admin.shipping_section.delivery_panel_label_ar') }}" :value="$method->delivery_label_ar" placeholder="يتم التوصيل خلال 2-4 أيام" dir="rtl" />
                     </div>
 
                     <div class="sm:col-span-2 lg:col-span-3">
@@ -126,11 +126,11 @@
     {{-- ─── Shipping Rates Sub-table ───────────────────────────────────────────── --}}
     <div class="mt-6">
         <div class="mb-4 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">Shipping Rates</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('admin.shipping_section.shipping_rates') }}</h2>
             <button type="button" id="btn-add-rate"
                     class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
                 <x-heroicon name="plus" class="w-4 h-4" />
-                New Rate
+                {{ __('admin.shipping_section.new_rate') }}
             </button>
         </div>
 
@@ -138,13 +138,13 @@
             <table class="table-base w-full">
                 <thead>
                     <tr>
-                        <th>Origin Zone</th>
-                        <th>Destination Zone</th>
-                        <th class="text-end">Base Fee</th>
-                        <th class="text-end">Rate/kg</th>
-                        <th class="text-end">Free Threshold</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center w-20">Actions</th>
+                        <th>{{ __('admin.shipping_section.origin_zone_col') }}</th>
+                        <th>{{ __('admin.shipping_section.destination_zone_col') }}</th>
+                        <th class="text-end">{{ __('admin.shipping_section.base_fee_col') }}</th>
+                        <th class="text-end">{{ __('admin.shipping_section.per_kg_col') }}</th>
+                        <th class="text-end">{{ __('admin.shipping_section.free_threshold_col') }}</th>
+                        <th class="text-center">{{ __('admin.shipping_section.status_col') }}</th>
+                        <th class="text-center w-20">{{ __('admin.shipping_section.actions_col') }}</th>
                     </tr>
                 </thead>
                 <tbody id="method-rates-tbody">
@@ -183,7 +183,7 @@
                     @empty
                         <tr id="method-rates-empty-row">
                             <td colspan="7">
-                                <x-empty-state title="No shipping rates" description="Add a rate to price this method for a zone." />
+                                <x-empty-state title="{{ __('admin.shipping_section.no_shipping_rates_title') }}" description="{{ __('admin.shipping_section.no_shipping_rates_desc') }}" />
                             </td>
                         </tr>
                     @endforelse

@@ -43,7 +43,7 @@ class AssignmentService
     public function accept(DeliveryAssignment $assignment, DeliveryAgent $agent): void
     {
         if ($assignment->status !== DeliveryAssignment::STATUS_ASSIGNED) {
-            throw new \DomainException('Assignment is not in assigned state.');
+            throw new \DomainException(__('common.exceptions.delivery.not_assigned_state'));
         }
 
         $hasActive = DeliveryAssignment::where('agent_id', $agent->id)
@@ -68,7 +68,7 @@ class AssignmentService
     public function pickup(DeliveryAssignment $assignment, float $latitude, float $longitude): void
     {
         if ($assignment->status !== DeliveryAssignment::STATUS_ACCEPTED) {
-            throw new \DomainException('Assignment is not in accepted state.');
+            throw new \DomainException(__('common.exceptions.delivery.not_accepted_state'));
         }
 
         DB::transaction(function () use ($assignment, $latitude, $longitude) {
@@ -109,7 +109,7 @@ class AssignmentService
     public function verifyOtp(DeliveryAssignment $assignment, string $code): bool
     {
         if ($assignment->status !== DeliveryAssignment::STATUS_PICKED_UP) {
-            throw new \DomainException('Assignment is not in picked_up state.');
+            throw new \DomainException(__('common.exceptions.delivery.not_picked_up_state'));
         }
 
         if ($this->otpService->isLocked($assignment)) {
@@ -141,7 +141,7 @@ class AssignmentService
         ?string            $discrepancyNote = null,
     ): void {
         if ($assignment->status !== DeliveryAssignment::STATUS_PICKED_UP) {
-            throw new \DomainException('Assignment is not in picked_up state.');
+            throw new \DomainException(__('common.exceptions.delivery.not_picked_up_state'));
         }
 
         // Re-validate OTP (do not rely on the earlier /verify-otp call alone).
@@ -271,7 +271,7 @@ class AssignmentService
             DeliveryAssignment::STATUS_ACCEPTED,
             DeliveryAssignment::STATUS_PICKED_UP,
         ], true)) {
-            throw new \DomainException('Assignment cannot be failed in its current state.');
+            throw new \DomainException(__('common.exceptions.delivery.cannot_be_failed'));
         }
 
         if ($failureReason === 'customer_refused') {

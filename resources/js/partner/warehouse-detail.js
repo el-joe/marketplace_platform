@@ -62,7 +62,7 @@ async function loadInventory(page = 1) {
         renderPagination();
     } catch {
         loading?.classList.add('hidden');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-red-500 text-sm">Failed to load inventory.</td></tr>';
+        if (tbody) tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-red-500 text-sm">${t('partner.warehouse.failed_to_load_inventory')}</td></tr>`;
     }
 }
 
@@ -74,11 +74,11 @@ function buildInventoryRow(row) {
 
     let statusBadge = '';
     if (row.is_out_of_stock) {
-        statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">Out of stock</span>';
+        statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">${t('partner.warehouse.out_of_stock')}</span>`;
     } else if (row.is_low_stock) {
-        statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Low stock</span>';
+        statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">${t('partner.warehouse.low_stock')}</span>`;
     } else {
-        statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">OK</span>';
+        statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">${t('partner.warehouse.in_stock_ok')}</span>`;
     }
 
     const adjustCell = isOwned
@@ -136,15 +136,15 @@ function renderPagination() {
     const to   = Math.min(inventoryPage * 20, inventoryMeta.total);
 
     el.innerHTML = `
-        <span class="text-xs text-gray-500">${inventoryMeta.total > 0 ? `Showing ${from}–${to} of ${inventoryMeta.total}` : 'No results'}</span>
+        <span class="text-xs text-gray-500">${inventoryMeta.total > 0 ? t('partner.warehouse.showing_range', { from, to, total: inventoryMeta.total }) : t('partner.warehouse.no_results')}</span>
         <div class="flex gap-2">
             <button id="prev-page-btn" ${inventoryPage <= 1 ? 'disabled' : ''}
                 class="px-3 py-1 text-xs border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">
-                ← Prev
+                ${t('partner.warehouse.prev')}
             </button>
             <button id="next-page-btn" ${inventoryPage >= inventoryMeta.last_page ? 'disabled' : ''}
                 class="px-3 py-1 text-xs border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50">
-                Next →
+                ${t('partner.warehouse.next')}
             </button>
         </div>`;
 
@@ -217,7 +217,7 @@ function initAdjustModal() {
         errEl?.classList.add('hidden');
 
         if (!reason) {
-            errEl.textContent = 'Please provide a reason.';
+            errEl.textContent = t('partner.warehouse.provide_reason');
             errEl.classList.remove('hidden');
             return;
         }
@@ -231,11 +231,11 @@ function initAdjustModal() {
         });
 
         if (ok && data.success) {
-            toast('Stock adjusted successfully.');
+            toast(t('partner.warehouse.stock_adjusted'));
             hideModal('adjust-modal');
             loadInventory(inventoryPage);
         } else {
-            errEl.textContent = data.message || 'Failed to adjust stock.';
+            errEl.textContent = data.message || t('partner.warehouse.adjust_failed');
             errEl.classList.remove('hidden');
         }
 
@@ -269,25 +269,25 @@ function initEditWarehouse() {
         const { ok, data } = await putJson(`/partner/warehouses/${window.WAREHOUSE_ID}`, payload);
 
         if (ok && data.success) {
-            toast('Warehouse updated.');
+            toast(t('partner.warehouse.warehouse_updated'));
             setTimeout(() => location.reload(), 600);
         } else {
-            errEl.textContent = data.message || 'Failed to update warehouse.';
+            errEl.textContent = data.message || t('partner.warehouse.update_failed');
             errEl.classList.remove('hidden');
             btn.disabled = false;
         }
     });
 
     document.getElementById('deactivate-btn')?.addEventListener('click', async () => {
-        if (!confirm('Are you sure?')) return;
+        if (!confirm(t('shared.confirm_title'))) return;
 
         const { ok, data } = await postJson(`/partner/warehouses/${window.WAREHOUSE_ID}/deactivate`);
 
         if (ok && data.success) {
-            toast('Warehouse status updated.');
+            toast(t('partner.warehouse.status_updated'));
             setTimeout(() => location.reload(), 600);
         } else {
-            toast(data.message || 'Operation failed.', 'error');
+            toast(data.message || t('partner.warehouse.operation_failed'), 'error');
         }
     });
 }

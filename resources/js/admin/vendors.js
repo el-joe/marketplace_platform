@@ -230,10 +230,10 @@ $(function () {
             $.post('/vendors/' + vendorId + '/suspend', { _token: csrfToken(), reason })
                 .done(function (res) {
                     closeModal('suspend-modal');
-                    Toast.success((vendorName ? vendorName + ' suspended.' : res.message));
+                    Toast.success((vendorName ? t('admin.vendors.suspended_success', { name: vendorName }) : res.message));
                     if (dt) dt.ajax.reload();
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Suspension failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.suspension_failed')); })
         );
     });
 
@@ -244,10 +244,10 @@ $(function () {
             $.post('/vendors/' + vendorId + '/approve', { _token: csrfToken() })
                 .done(function (res) {
                     closeModal('approve-modal');
-                    Toast.success((vendorName ? vendorName + ' approved.' : res.message));
+                    Toast.success((vendorName ? t('admin.vendors.approved_success', { name: vendorName }) : res.message));
                     if (dt) dt.ajax.reload();
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Approval failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.approval_failed')); })
         );
     });
 
@@ -263,10 +263,10 @@ $(function () {
             $.post('/vendors/' + vendorId + '/reject', { _token: csrfToken(), reason })
                 .done(function (res) {
                     closeModal('reject-modal');
-                    Toast.success((vendorName ? vendorName + ' rejected.' : res.message));
+                    Toast.success((vendorName ? t('admin.vendors.rejected_success', { name: vendorName }) : res.message));
                     if (dt) dt.ajax.reload();
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Rejection failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.rejection_failed')); })
         );
     });
 
@@ -277,10 +277,10 @@ $(function () {
             $.post('/vendors/' + vendorId + '/reactivate', { _token: csrfToken() })
                 .done(function (res) {
                     closeModal('reactivate-modal');
-                    Toast.success((vendorName ? vendorName + ' reactivated.' : res.message));
+                    Toast.success((vendorName ? t('admin.vendors.reactivated_success', { name: vendorName }) : res.message));
                     if (dt) dt.ajax.reload();
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Reactivation failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.reactivation_failed')); })
         );
     });
 
@@ -346,7 +346,7 @@ $(function () {
                     if (dt) dt.ajax.reload();
                     clearSelection();
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Bulk suspension failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.bulk_suspension_failed')); })
         );
     });
 
@@ -368,7 +368,7 @@ $(function () {
                     if (dt) dt.ajax.reload();
                     clearSelection();
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Bulk reactivation failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.bulk_reactivation_failed')); })
         );
     });
 
@@ -402,7 +402,7 @@ $(function () {
                     if (dt) dt.ajax.reload();
                     clearSelection();
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Bulk action failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.bulk_action_failed')); })
         );
     });
 
@@ -413,7 +413,7 @@ $(function () {
     // Quick approve on queue card
     $(document).on('click', '[data-approve-vendor]', function () {
         const vendorId = $(this).data('approve-vendor');
-        if (!confirm('Approve this vendor account?')) return;
+        if (!confirm(t('admin.vendors.approve_confirm'))) return;
 
         withLoading(this,
             $.post('/vendors/' + vendorId + '/approve', { _token: csrfToken() })
@@ -421,7 +421,7 @@ $(function () {
                     Toast.success(res.message);
                     setTimeout(function () { location.reload(); }, 700);
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Approval failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.approval_failed')); })
         );
     });
 
@@ -445,7 +445,7 @@ $(function () {
                     Toast.success(res.message);
                     setTimeout(function () { location.reload(); }, 700);
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Rejection failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.rejection_failed')); })
         );
     });
 
@@ -473,19 +473,19 @@ $(function () {
     // ── Reactivate vendor ─────────────────────────────────────────────────────
     $(document).on('click', '[data-reactivate-vendor]', function () {
         const vendorId = $(this).data('reactivate-vendor');
-        if (!confirm('Reactivate this vendor?')) return;
+        if (!confirm(t('admin.vendors.reactivate_confirm'))) return;
 
         withLoading(this,
             $.post('/vendors/' + vendorId + '/reactivate', { _token: csrfToken() })
                 .done(function (res) { Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function () { Toast.error('Reactivation failed.'); })
+                .fail(function () { Toast.error(t('admin.vendors.reactivation_failed')); })
         );
     });
 
     // ── Team: open deactivate modal with member context ──────────────────────
     $(document).on('click', '[data-modal-open="deactivate-team-modal"]', function () {
         $('#deactivate-team-member-id').val($(this).data('team-member-id'));
-        $('#deactivate-team-member-notice').text('Deactivate ' + $(this).data('team-member-name') + '? They will lose portal access until reactivated.');
+        $('#deactivate-team-member-notice').text(t('admin.vendors.deactivate_team_notice', { name: $(this).data('team-member-name') }));
     });
 
     // ── Team: deactivate form submit ──────────────────────────────────────────
@@ -497,7 +497,7 @@ $(function () {
         withLoading('#deactivate-team-form [type=submit]',
             $.post('/vendors/' + vendorId + '/team/' + memberId + '/deactivate', $(this).serialize())
                 .done(function (res) { closeModal('deactivate-team-modal'); Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('shared.failed_generic')); })
         );
     });
 
@@ -505,12 +505,12 @@ $(function () {
     $(document).on('click', '[data-reactivate-team-member]', function () {
         const memberId = $(this).data('reactivate-team-member');
         const vendorId = $(this).data('vendor-id');
-        if (!confirm('Reactivate this team member?')) return;
+        if (!confirm(t('admin.vendors.reactivate_team_member_confirm'))) return;
 
         withLoading(this,
             $.post('/vendors/' + vendorId + '/team/' + memberId + '/reactivate', { _token: csrfToken() })
                 .done(function (res) { Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function () { Toast.error('Reactivation failed.'); })
+                .fail(function () { Toast.error(t('admin.vendors.reactivation_failed')); })
         );
     });
 
@@ -522,7 +522,7 @@ $(function () {
         withLoading('#suspend-form [type=submit]',
             $.post('/vendors/' + vendorId + '/suspend', $(this).serialize())
                 .done(function (res) { closeModal('suspend-modal'); Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('shared.failed_generic')); })
         );
     });
 
@@ -534,7 +534,7 @@ $(function () {
         withLoading('#reject-form [type=submit]',
             $.post('/vendors/' + vendorId + '/reject', $(this).serialize())
                 .done(function (res) { closeModal('reject-modal'); Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('shared.failed_generic')); })
         );
     });
 
@@ -546,7 +546,7 @@ $(function () {
         withLoading('#blacklist-form [type=submit]',
             $.post('/vendors/' + vendorId + '/blacklist', $(this).serialize())
                 .done(function (res) { closeModal('blacklist-modal'); Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('shared.failed_generic')); })
         );
     });
 
@@ -562,11 +562,11 @@ $(function () {
                     Toast.success(res.message);
                     $('#active-strikes-count').text(res.data.active_count);
                     if (res.data.auto_suspended) {
-                        Toast.warning('Vendor auto-suspended: 3 active strikes or critical strike issued.');
+                        Toast.warning(t('admin.vendors.auto_suspended_warning'));
                     }
                     setTimeout(function () { location.reload(); }, 1200);
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Strike failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.strike_failed')); })
         );
     });
 
@@ -575,7 +575,7 @@ $(function () {
         const isCritical = $(this).val() === 'critical';
         $('#strike-expiry-field').toggleClass('hidden', isCritical);
         if (isCritical) {
-            $('#strike-warning').text('Critical strike will auto-suspend the vendor immediately.').removeClass('hidden');
+            $('#strike-warning').text(t('admin.vendors.critical_strike_warning')).removeClass('hidden');
         } else {
             $('#strike-warning').addClass('hidden');
         }
@@ -589,18 +589,18 @@ $(function () {
         withLoading('#hold-form [type=submit]',
             $.post('/vendors/' + vendorId + '/hold', $(this).serialize())
                 .done(function (res) { closeModal('place-hold-modal'); Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('shared.failed_generic')); })
         );
     });
 
     $(document).on('click', '[data-release-hold]', function () {
         const vendorId = $(this).data('release-hold');
-        if (!confirm('Release payout hold?')) return;
+        if (!confirm(t('admin.vendors.release_hold_confirm'))) return;
 
         withLoading(this,
             $.post('/vendors/' + vendorId + '/release-hold', { _token: csrfToken() })
                 .done(function (res) { Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function () { Toast.error('Failed to release hold.'); })
+                .fail(function () { Toast.error(t('admin.vendors.failed_to_release_hold')); })
         );
     });
 
@@ -616,7 +616,7 @@ $(function () {
                 data: $(this).serialize(),
             })
                 .done(function (res) { closeModal('assign-manager-modal'); Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('shared.failed_generic')); })
         );
     });
 
@@ -639,20 +639,20 @@ $(function () {
 
         withLoading('#profile-edit-form [type=submit]',
             $.ajax({ url: '/vendors/' + vendorId, method: 'PUT', data: $(this).serialize() })
-                .done(function (res) { Toast.success(res.message ?? 'Profile updated.'); setTimeout(function () { location.reload(); }, 700); })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Update failed.'); })
+                .done(function (res) { Toast.success(res.message ?? t('admin.vendors.profile_updated')); setTimeout(function () { location.reload(); }, 700); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.update_failed')); })
         );
     });
 
     // ── Document verify ───────────────────────────────────────────────────────
     $(document).on('click', '[data-verify-doc]', function () {
         const docId = $(this).data('verify-doc');
-        if (!confirm('Verify this document?')) return;
+        if (!confirm(t('admin.vendors.verify_document_confirm'))) return;
 
         withLoading(this,
             $.post('/vendors/documents/' + docId + '/verify', { _token: csrfToken() })
-                .done(function () { Toast.success('Document verified.'); updateDocRow(docId, 'verified'); })
-                .fail(function () { Toast.error('Verification failed.'); })
+                .done(function () { Toast.success(t('admin.vendors.document_verified')); updateDocRow(docId, 'verified'); })
+                .fail(function () { Toast.error(t('admin.vendors.verification_failed')); })
         );
     });
 
@@ -667,8 +667,8 @@ $(function () {
 
         withLoading('#reject-doc-form [type=submit]',
             $.post('/vendors/documents/' + docId + '/reject', $(this).serialize())
-                .done(function () { closeModal('reject-document-modal'); Toast.success('Document rejected.'); updateDocRow(docId, 'rejected'); })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed.'); })
+                .done(function () { closeModal('reject-document-modal'); Toast.success(t('admin.vendors.document_rejected')); updateDocRow(docId, 'rejected'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('shared.failed_generic')); })
         );
     });
 
@@ -685,12 +685,12 @@ $(function () {
     $(document).on('click', '[data-verify-bank]', function () {
         const accountId = $(this).data('verify-bank');
         const vendorId = $(this).data('vendor-id');
-        if (!confirm('Verify this bank account?')) return;
+        if (!confirm(t('admin.vendors.verify_bank_confirm'))) return;
 
         withLoading(this,
             $.post('/vendors/' + vendorId + '/bank-accounts/' + accountId + '/verify', { _token: csrfToken() })
                 .done(function (res) { Toast.success(res.message); setTimeout(function () { location.reload(); }, 600); })
-                .fail(function () { Toast.error('Verification failed.'); })
+                .fail(function () { Toast.error(t('admin.vendors.verification_failed')); })
         );
     });
 
@@ -701,7 +701,7 @@ $(function () {
         const checked = $(this).find('input[type=checkbox]:checked');
 
         if (!checked.length) {
-            Toast.error('Please select at least one document type.');
+            Toast.error(t('admin.vendors.select_one_document_type'));
             return;
         }
 
@@ -710,9 +710,9 @@ $(function () {
                 .done(function (res) {
                     closeModal('request-doc-modal');
                     $('#request-doc-form input[type=checkbox]').prop('checked', false);
-                    Toast.success(res.message ?? 'Document request sent.');
+                    Toast.success(res.message ?? t('admin.vendors.document_request_sent'));
                 })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed to send request.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.failed_to_send_request')); })
         );
     });
 
@@ -724,7 +724,7 @@ $(function () {
         withLoading('#send-notification-form [type=submit]',
             $.post('/vendors/' + vendorId + '/notify', $(this).serialize())
                 .done(function (res) { closeModal('send-notification-modal'); Toast.success(res.message); })
-                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? 'Failed to send.'); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('admin.vendors.failed_to_send')); })
         );
     });
 
@@ -846,11 +846,11 @@ function renderActions(data) {
     const { id, store_name, global_status } = data;
     const name = escHtml(store_name ?? '');
     return `<div class="flex items-center justify-end gap-2 text-xs">
-        <a href="/vendors/${id}" class="text-primary-600 hover:underline">View</a>
+        <a href="/vendors/${id}" class="text-primary-600 hover:underline">${t('admin.vendors.view_label')}</a>
         <button type="button"
             class="vendor-dots-btn p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
             data-id="${id}" data-name="${name}" data-status="${global_status}"
-            title="More actions">
+            title="${t('admin.vendors.more_actions_label')}">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
             </svg>

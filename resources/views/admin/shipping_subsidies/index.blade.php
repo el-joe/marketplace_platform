@@ -4,19 +4,19 @@
     @vite(['resources/js/components/datatable.js', 'resources/js/components/select2.js'])
 @endpush
 
-@section('title', 'Shipping Subsidies')
+@section('title', __('admin.shipping_subsidies_section.page_title'))
 
 @section('content')
 
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Platform Shipping Subsidies</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Configure how much the platform contributes toward delivery fees per zone and method.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.shipping_subsidies_section.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.shipping_subsidies_section.subtitle') }}</p>
         </div>
         <button type="button" id="btn-add-subsidy"
                 class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
             <x-heroicon name="plus" class="w-4 h-4" />
-            Create New Subsidy
+            {{ __('admin.shipping_subsidies_section.create_new_subsidy') }}
         </button>
     </div>
 
@@ -24,13 +24,13 @@
         <table id="shipping-subsidies-table" class="table-base w-full">
             <thead>
                 <tr>
-                    <th>Zone</th>
-                    <th>Country</th>
-                    <th>Method</th>
-                    <th class="text-end">Subsidy Cap</th>
-                    <th class="text-end">Max Subsidy Weight</th>
-                    <th>Currency</th>
-                    <th class="text-center">Status</th>
+                    <th>{{ __('admin.shipping_subsidies_section.zone_col') }}</th>
+                    <th>{{ __('admin.shipping_subsidies_section.country_col') }}</th>
+                    <th>{{ __('admin.shipping_subsidies_section.method_col') }}</th>
+                    <th class="text-end">{{ __('admin.shipping_subsidies_section.subsidy_cap_col') }}</th>
+                    <th class="text-end">{{ __('admin.shipping_subsidies_section.max_subsidy_weight_col') }}</th>
+                    <th>{{ __('admin.shipping_subsidies_section.currency_col') }}</th>
+                    <th class="text-center">{{ __('admin.shipping_subsidies_section.status_col') }}</th>
                     <th class="text-center w-20">{{ __('common.actions') }}</th>
                 </tr>
             </thead>
@@ -38,15 +38,15 @@
         </table>
     </x-card>
 
-    <x-modal id="shipping-subsidy-modal" title="Subsidy Configuration" size="md">
+    <x-modal id="shipping-subsidy-modal" title="{{ __('admin.shipping_subsidies_section.subsidy_configuration') }}" size="md">
         <form id="shipping-subsidy-form" novalidate>
             @csrf
             <input type="hidden" id="subsidy-id">
 
             <div class="grid grid-cols-1 gap-4">
-                <x-form.select name="shipping_zone_id" label="Zone" :select2="true" required>
-                    <option value="">Select a zone…</option>
-                    @foreach($zones->groupBy(fn($z) => $z->country?->name_en ?? 'Other') as $countryName => $zonesInCountry)
+                <x-form.select name="shipping_zone_id" label="{{ __('admin.shipping_subsidies_section.zone_label') }}" :select2="true" required>
+                    <option value="">{{ __('admin.shipping_subsidies_section.select_zone_placeholder') }}</option>
+                    @foreach($zones->groupBy(fn($z) => $z->country?->name_en ?? __('admin.shipping_subsidies_section.other_country')) as $countryName => $zonesInCountry)
                         <optgroup label="{{ $countryName }}">
                             @foreach($zonesInCountry as $zone)
                                 <option value="{{ $zone->id }}">{{ $zone->name }}</option>
@@ -55,36 +55,36 @@
                     @endforeach
                 </x-form.select>
 
-                <x-form.select name="shipping_method_id" label="Method" :select2="true" required>
-                    <option value="">Select a method…</option>
+                <x-form.select name="shipping_method_id" label="{{ __('admin.shipping_subsidies_section.method_label') }}" :select2="true" required>
+                    <option value="">{{ __('admin.shipping_subsidies_section.select_method_placeholder') }}</option>
                     @foreach($methods as $method)
                         <option value="{{ $method->id }}">{{ $method->name }}</option>
                     @endforeach
                 </x-form.select>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Subsidy Cap <span class="text-danger-500">*</span></label>
-                    <input type="number" name="subsidy_cap" step="1" min="0" placeholder="e.g. 200 for 2 OMR"
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_subsidies_section.subsidy_cap_label') }} <span class="text-danger-500">*</span></label>
+                    <input type="number" name="subsidy_cap" step="1" min="0" placeholder="{{ __('admin.shipping_subsidies_section.subsidy_cap_placeholder') }}"
                            class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
-                    <p id="subsidy-cap-hint" class="text-xs text-gray-500 mt-1">Max amount the platform covers per delivery, in the smallest currency unit.</p>
+                    <p id="subsidy-cap-hint" class="text-xs text-gray-500 mt-1">{{ __('admin.shipping_subsidies_section.subsidy_cap_hint') }}</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Max Subsidy Weight (grams)</label>
-                    <input type="number" name="max_subsidy_weight_grams" step="1" min="0" placeholder="e.g. 2000 for 2kg. Leave empty = no weight cap"
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_subsidies_section.max_subsidy_weight_label') }}</label>
+                    <input type="number" name="max_subsidy_weight_grams" step="1" min="0" placeholder="{{ __('admin.shipping_subsidies_section.max_subsidy_weight_placeholder') }}"
                            class="block w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500" />
-                    <p class="text-xs text-gray-500 mt-1">Use our calculator: L × W × H ÷ 5 = volumetric weight in grams.</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ __('admin.shipping_subsidies_section.volumetric_hint') }}</p>
                 </div>
 
-                <x-form.select name="currency" label="Currency" required>
-                    <option value="">Select currency…</option>
+                <x-form.select name="currency" label="{{ __('admin.shipping_subsidies_section.currency_label') }}" required>
+                    <option value="">{{ __('admin.shipping_subsidies_section.select_currency_placeholder') }}</option>
                     @foreach($currencies as $currency)
                         <option value="{{ $currency->code }}">{{ $currency->code }} — {{ $currency->name }}</option>
                     @endforeach
                 </x-form.select>
 
                 <div class="flex items-center justify-between">
-                    <label class="text-sm font-medium text-gray-700">Active</label>
+                    <label class="text-sm font-medium text-gray-700">{{ __('admin.shipping_subsidies_section.active_label') }}</label>
                     <input type="checkbox" name="is_active" value="1" checked
                            class="h-5 w-9 rounded-full appearance-none bg-gray-300 checked:bg-primary-600 relative transition-colors cursor-pointer" />
                 </div>

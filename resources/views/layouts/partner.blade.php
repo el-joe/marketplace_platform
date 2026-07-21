@@ -10,6 +10,23 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700,800&display=swap" rel="stylesheet" />
 
+    <script>
+    window.trans = @json(__('js'));
+    window.t = window.t || function (path, vars) {
+        const parts = String(path).split('.');
+        let cur = window.trans || {};
+        for (const part of parts) {
+            cur = cur == null ? undefined : cur[part];
+            if (cur === undefined) return path;
+        }
+        if (typeof cur === 'string' && vars) {
+            return cur.replace(/\{(\w+)\}/g, (_, key) => (vars[key] ?? ''));
+        }
+        return cur;
+    };
+    </script>
+
+
     @vite(['resources/css/app.css', 'resources/js/partner/app.js'])
     @stack('head')
     @stack('styles')

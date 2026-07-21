@@ -86,12 +86,12 @@ function initShowPage() {
     document.getElementById('start-review-btn')?.addEventListener('click', async function () {
         try {
             const res = await postJson(window.vendorApp.startReviewUrl, {});
-            window.Toast?.success(res.message ?? 'Status updated.');
+            window.Toast?.success(res.message ?? t('admin.vendor_applications.status_updated'));
             // Update badge in header
             const badges = document.querySelectorAll('.inline-flex.items-center.rounded-full');
             badges.forEach(b => {
                 if (b.textContent.trim().toLowerCase().includes('pending')) {
-                    b.textContent = 'Under Review';
+                    b.textContent = t('admin.vendor_applications.under_review_label');
                     b.className = b.className
                         .replace(/bg-\w+-100/, 'bg-primary-100')
                         .replace(/text-\w+-700/, 'text-primary-700');
@@ -99,7 +99,7 @@ function initShowPage() {
             });
             this.classList.add('hidden');
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Request failed.');
+            window.Toast?.error(e.message ?? t('shared.request_failed'));
         }
     });
 
@@ -107,9 +107,9 @@ function initShowPage() {
     document.getElementById('assign-me-btn')?.addEventListener('click', async function () {
         try {
             const res = await postJson(window.vendorApp.assignMeUrl, {});
-            window.Toast?.success(res.message ?? 'Assigned.');
+            window.Toast?.success(res.message ?? t('admin.vendor_applications.assigned'));
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Request failed.');
+            window.Toast?.error(e.message ?? t('shared.request_failed'));
         }
     });
 
@@ -169,11 +169,11 @@ function initShowPage() {
     async function handleDocVerify(url, docId) {
         try {
             const res = await postJson(url, {});
-            window.Toast?.success('Document verified.');
+            window.Toast?.success(t('admin.vendors.document_verified'));
             updateDocRow(docId, 'verified');
             refreshChecklist();
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Could not verify document.');
+            window.Toast?.error(e.message ?? t('admin.vendor_applications.could_not_verify_document'));
         }
     }
 
@@ -200,12 +200,12 @@ function initShowPage() {
         if (!activeDocRejectUrl) return;
         try {
             await postJson(activeDocRejectUrl, { rejection_reason: reason });
-            window.Toast?.success('Document rejected.');
+            window.Toast?.success(t('admin.vendors.document_rejected'));
             updateDocRow(activeDocId, 'rejected');
             refreshChecklist();
             $('#reject-doc-modal').modal('close');
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Could not reject document.');
+            window.Toast?.error(e.message ?? t('admin.vendor_applications.could_not_reject_document'));
         }
     });
 
@@ -259,9 +259,9 @@ function initShowPage() {
 
     function docTypeLabel(type) {
         const map = {
-            business_license: 'Business License',
-            tax_certificate: 'Tax Certificate',
-            owner_id: 'Owner ID',
+            business_license: t('admin.vendor_applications.business_license'),
+            tax_certificate: t('admin.vendor_applications.tax_certificate'),
+            owner_id: t('admin.vendor_applications.owner_id'),
         };
         return map[type] ?? type.replace(/_/g, ' ');
     }
@@ -282,17 +282,17 @@ function initShowPage() {
 
         const btn = document.getElementById('confirm-approve-btn');
         btn.disabled = true;
-        btn.textContent = 'Approving…';
+        btn.textContent = t('admin.vendor_applications.approving');
 
         try {
             const res = await postJson(window.vendorApp.approveUrl, payload);
-            window.Toast?.success(res.message ?? 'Vendor approved.');
+            window.Toast?.success(res.message ?? t('admin.vendor_applications.vendor_approved'));
             $('#approve-modal').modal('close');
             setTimeout(() => window.location.reload(), 1200);
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Approval failed.');
+            window.Toast?.error(e.message ?? t('admin.vendor_applications.approval_failed'));
             btn.disabled = false;
-            btn.textContent = 'Confirm Approval';
+            btn.textContent = t('admin.vendor_applications.confirm_approval_label');
         }
     });
 
@@ -317,20 +317,20 @@ function initShowPage() {
 
         const btn = document.getElementById('confirm-reject-btn');
         btn.disabled = true;
-        btn.textContent = 'Rejecting…';
+        btn.textContent = t('admin.vendor_applications.rejecting');
 
         try {
             const res = await postJson(window.vendorApp.rejectUrl, {
                 rejection_reason: reason,
                 rejection_codes: codes,
             });
-            window.Toast?.success(res.message ?? 'Application rejected.');
+            window.Toast?.success(res.message ?? t('admin.vendor_applications.application_rejected'));
             $('#reject-modal').modal('close');
             setTimeout(() => window.location.reload(), 1200);
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Rejection failed.');
+            window.Toast?.error(e.message ?? t('admin.vendor_applications.rejection_failed'));
             btn.disabled = false;
-            btn.textContent = 'Reject Application';
+            btn.textContent = t('admin.vendor_applications.reject_application_label');
         }
     });
 
@@ -354,20 +354,20 @@ function initShowPage() {
         const msg = document.getElementById('request-info-message').value.trim();
         const btn = this;
         btn.disabled = true;
-        btn.textContent = 'Sending…';
+        btn.textContent = t('admin.vendor_applications.sending');
 
         try {
             const res = await postJson(window.vendorApp.requestInfoUrl, {
                 required_document_types: selectedDocs,
                 message: msg || null,
             });
-            window.Toast?.success(res.message ?? 'Request sent.');
+            window.Toast?.success(res.message ?? t('admin.vendor_applications.request_sent'));
             $('#request-info-modal').modal('close');
             setTimeout(() => window.location.reload(), 1000);
         } catch (e) {
-            window.Toast?.error(e.message ?? 'Request failed.');
+            window.Toast?.error(e.message ?? t('shared.request_failed'));
             btn.disabled = false;
-            btn.textContent = 'Send Request';
+            btn.textContent = t('admin.vendor_applications.send_request_label');
         }
     });
 }

@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'bar',
             data: {
                 labels: rows.map((r) => r.day),
-                datasets: [{ label: 'Bookings', data: rows.map((r) => r.cnt), backgroundColor: PALETTE[0] }],
+                datasets: [{ label: t('travel_agency.reports.bookings_label'), data: rows.map((r) => r.cnt), backgroundColor: PALETTE[0] }],
             },
             options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } },
         });

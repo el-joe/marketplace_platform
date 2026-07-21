@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $marketer->public_name }} — Creator Profile</title>
+    <title>{{ __('marketer.boutiqaat.page_title', ['name' => $marketer->public_name]) }}</title>
     @vite(['resources/css/app.css'])
     <style>
         body { background: #f1f5f9; font-family: 'Inter', sans-serif; }
@@ -50,7 +50,7 @@
 
 @if($isPreview ?? false)
     <div style="background:#fef9c3; color:#854d0e; text-align:center; padding:0.6rem 1rem; font-size:0.85rem; font-weight:600;">
-        This is how your profile appears to vendors and customers.
+        {{ __('marketer.boutiqaat.preview_banner') }}
     </div>
 @endif
 
@@ -79,7 +79,7 @@
         <div class="flex items-center justify-center gap-2 mt-1 flex-wrap">
             <span class="text-xs font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full
                 {{ $marketer->type?->value === 'influencer' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">
-                {{ ucfirst($marketer->type?->value ?? 'Creator') }}
+                {{ $marketer->type?->value ? ucfirst($marketer->type->value) : __('marketer.boutiqaat.creator_type_fallback') }}
             </span>
             @if($marketer->niche)
                 <span class="text-xs font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
@@ -95,12 +95,12 @@
 
         <div class="flex items-center justify-center gap-4 mt-4 text-sm text-gray-500">
             @if($marketer->followers_count)
-                <span><strong class="text-gray-800">{{ number_format($marketer->followers_count) }}</strong> followers</span>
+                <span><strong class="text-gray-800">{{ number_format($marketer->followers_count) }}</strong> {{ __('marketer.boutiqaat.followers') }}</span>
             @endif
             @if($marketer->engagement_rate)
-                <span><strong class="text-gray-800">{{ $marketer->engagement_rate }}%</strong> engagement</span>
+                <span><strong class="text-gray-800">{{ $marketer->engagement_rate }}%</strong> {{ __('marketer.boutiqaat.engagement') }}</span>
             @endif
-            <span><strong class="text-gray-800">{{ $activeCampaignsCount ?? $campaigns->count() }}</strong> active campaigns</span>
+            <span><strong class="text-gray-800">{{ $activeCampaignsCount ?? $campaigns->count() }}</strong> {{ __('marketer.boutiqaat.active_campaigns') }}</span>
         </div>
 
         {{-- Social Links --}}
@@ -132,7 +132,7 @@
                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $marketer->whatsapp_number) }}"
                    target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-semibold text-sm rounded-xl px-5 py-2.5 transition-colors">
-                    📱 Contact on WhatsApp
+                    {{ __('marketer.boutiqaat.contact_whatsapp') }}
                 </a>
             </div>
         @endif
@@ -140,10 +140,10 @@
         {{-- Work with me CTA (only when accepting new campaigns) --}}
         @if($marketer->accept_new_campaigns && $marketer->whatsapp_number)
             <div class="mt-3">
-                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $marketer->whatsapp_number) }}?text=Hi%2C%20I%27d%20like%20to%20work%20with%20you"
+                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $marketer->whatsapp_number) }}?text={{ rawurlencode(__('marketer.boutiqaat.work_with_me_message')) }}"
                    target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-xl px-5 py-2.5 transition-colors">
-                    🤝 Work with me
+                    {{ __('marketer.boutiqaat.work_with_me') }}
                 </a>
             </div>
         @endif
@@ -152,7 +152,7 @@
     {{-- Promo Content --}}
     @if($marketer->promo_content)
         <div class="bg-white rounded-2xl border border-gray-200 p-5 mt-5">
-            <h2 class="font-bold text-gray-800 mb-2">About</h2>
+            <h2 class="font-bold text-gray-800 mb-2">{{ __('marketer.boutiqaat.about') }}</h2>
             <div class="text-sm text-gray-600 leading-relaxed">{{ $marketer->promo_content }}</div>
         </div>
     @endif
@@ -160,7 +160,7 @@
     {{-- Video --}}
     @if($marketer->profile_video_url)
         <div class="bg-white rounded-2xl border border-gray-200 p-5 mt-5">
-            <h2 class="font-bold text-gray-800 mb-3">Featured Video</h2>
+            <h2 class="font-bold text-gray-800 mb-3">{{ __('marketer.boutiqaat.featured_video') }}</h2>
             @php
                 // Convert YouTube watch URL to embed URL
                 $videoUrl = $marketer->profile_video_url;
@@ -179,7 +179,7 @@
     {{-- Featured Products --}}
     @if($campaigns->isNotEmpty())
         <div class="mt-5 mb-10">
-            <h2 class="font-bold text-gray-800 mb-4 text-lg">Featured Products</h2>
+            <h2 class="font-bold text-gray-800 mb-4 text-lg">{{ __('marketer.boutiqaat.featured_products') }}</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 @foreach($campaigns as $campaign)
                     @foreach($campaign->products->take(6) as $cp)

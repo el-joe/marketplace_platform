@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrier Portal Invitation</title>
+    <title>{{ __('mail.carrier_supervisor_invite.title') }}</title>
     <style>
         body { font-family: Arial, Helvetica, sans-serif; background: #f9fafb; margin: 0; padding: 0; }
         .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
@@ -19,23 +19,22 @@
 <body>
 <div class="wrapper">
     <div class="header">
-        <h1>You've been invited to {{ $company->name }}</h1>
+        <h1>{{ __('mail.carrier_supervisor_invite.header', ['company' => $company->name]) }}</h1>
     </div>
     <div class="body">
-        <p>Hi {{ $supervisor->name }},</p>
+        <p>{{ __('mail.carrier_supervisor_invite.greeting', ['name' => $supervisor->name]) }}</p>
         <p>
-            You have been added as a supervisor for <strong>{{ $company->name }}</strong>
-            on the carrier portal. Use the credentials below to log in.
+            {!! __('mail.carrier_supervisor_invite.body', ['company' => $company->name]) !!}
         </p>
         <div class="cred-box">
-            <p><strong>Email:</strong> {{ $supervisor->email }}</p>
-            <p><strong>Temporary Password:</strong> {{ $temporaryPassword }}</p>
+            <p><strong>{{ __('mail.carrier_supervisor_invite.email_label') }}</strong> {{ $supervisor->email }}</p>
+            <p><strong>{{ __('mail.carrier_supervisor_invite.password_label') }}</strong> {{ $temporaryPassword }}</p>
         </div>
-        <p>Please change your password after your first login.</p>
-        <p>If you did not expect this invitation, please ignore this email or contact platform support.</p>
+        <p>{{ __('mail.carrier_supervisor_invite.change_password') }}</p>
+        <p>{{ __('mail.carrier_supervisor_invite.footer_disclaimer') }}</p>
     </div>
     <div class="footer">
-        &copy; {{ date('Y') }} Platform. All rights reserved.
+        {!! __('mail.carrier_supervisor_invite.footer_copyright', ['year' => date('Y')]) !!}
     </div>
 </div>
 </body>

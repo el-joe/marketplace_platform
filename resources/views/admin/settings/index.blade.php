@@ -46,7 +46,7 @@
 
     {{-- ─── URL-based Tab Navigation ─────────────────────────────────────────── --}}
     <div class="border-b border-gray-200 mb-6">
-        <nav class="-mb-px flex gap-0 overflow-x-auto" aria-label="Settings categories">
+        <nav class="-mb-px flex gap-0 overflow-x-auto" aria-label="{{ __('admin.settings_section.categories_nav') }}">
 
             @php
                 $tabIcons = [

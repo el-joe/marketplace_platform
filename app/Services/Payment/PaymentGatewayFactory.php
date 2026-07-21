@@ -39,7 +39,7 @@ class PaymentGatewayFactory
     public function make(string $providerCode): PaymentGatewayInterface
     {
         if (!isset($this->gateways[$providerCode])) {
-            throw new InvalidArgumentException("Unknown payment gateway: {$providerCode}");
+            throw new InvalidArgumentException(__('common.exceptions.payment.unknown_gateway', ['code' => $providerCode]));
         }
 
         return $this->gateways[$providerCode];

@@ -111,19 +111,19 @@
             <a href="{{ route('admin.admin-product-listings.categories') }}"
                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
                 <x-heroicon name="squares-2x2" class="w-4 h-4" />
-                Sidebar Categories
+                {{ __('admin.admin_product_listings.sidebar_categories') }}
             </a>
         </div>
 
         {{-- Quick stats --}}
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div class="bg-white rounded-xl border border-gray-200 p-4">
-                <p class="text-xs font-medium text-gray-500">Total Active Listings</p>
+                <p class="text-xs font-medium text-gray-500">{{ __('admin.admin_product_listings.total_active_listings') }}</p>
                 <p class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($stats['active_listings']) }}</p>
             </div>
 
             <div class="bg-white rounded-xl border border-gray-200 p-4">
-                <p class="text-xs font-medium text-gray-500">Revenue from Admin Listings</p>
+                <p class="text-xs font-medium text-gray-500">{{ __('admin.admin_product_listings.revenue_from_admin_listings') }}</p>
                 @forelse($stats['revenue_by_currency'] as $row)
                     <p class="mt-1 text-lg font-bold text-gray-900">{{ number_format($row->total, 2) }} {{ $row->currency }}</p>
                 @empty
@@ -132,17 +132,17 @@
             </div>
 
             <div class="bg-white rounded-xl border border-gray-200 p-4">
-                <p class="text-xs font-medium text-gray-500">Top Selling Admin Product</p>
+                <p class="text-xs font-medium text-gray-500">{{ __('admin.admin_product_listings.top_selling_admin_product') }}</p>
                 @if($stats['top_selling'])
                     <p class="mt-1 text-sm font-bold text-gray-900 truncate" title="{{ $stats['top_selling']->name_en }}">{{ $stats['top_selling']->name_en }}</p>
-                    <p class="text-xs text-gray-500">{{ number_format($stats['top_selling']->units_sold) }} units sold</p>
+                    <p class="text-xs text-gray-500">{{ __('admin.admin_product_listings.units_sold', ['count' => number_format($stats['top_selling']->units_sold)]) }}</p>
                 @else
                     <p class="mt-1 text-2xl font-bold text-gray-900">—</p>
                 @endif
             </div>
 
             <div class="bg-white rounded-xl border border-gray-200 p-4">
-                <p class="text-xs font-medium text-gray-500">Countries Active</p>
+                <p class="text-xs font-medium text-gray-500">{{ __('admin.admin_product_listings.countries_active') }}</p>
                 <p class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($stats['countries_active']) }}</p>
             </div>
         </div>
@@ -161,6 +161,9 @@
             archiveListingQuestion: @json(__('admin.admin_product_listings.remove_listing_confirm')),
             listingArchived: @json(__('admin.admin_product_listings.listing_archived')),
             archiveFailed: @json(__('admin.admin_product_listings.archive_failed')),
+            featuredInNawyNow: @json(__('admin.admin_product_listings.featured_in_nawy_now')),
+            removedFromNawyNow: @json(__('admin.admin_product_listings.removed_from_nawy_now')),
+            failedToUpdate: @json(__('admin.admin_product_listings.failed_to_update')),
         });
 
         document.addEventListener('click', function (e) {
@@ -175,10 +178,10 @@
                     const knob = btn.querySelector('span');
                     knob.classList.toggle('translate-x-4', res.featured_in_nawy);
                     knob.classList.toggle('translate-x-1', !res.featured_in_nawy);
-                    window.Toast && window.Toast.success(res.featured_in_nawy ? 'Featured in Nawy Now.' : 'Removed from Nawy Now.');
+                    window.Toast && window.Toast.success(res.featured_in_nawy ? window.TRANSLATIONS.featuredInNawyNow : window.TRANSLATIONS.removedFromNawyNow);
                 })
                 .fail(function () {
-                    window.Toast && window.Toast.error('Failed to update.');
+                    window.Toast && window.Toast.error(window.TRANSLATIONS.failedToUpdate);
                 })
                 .always(function () {
                     btn.disabled = false;

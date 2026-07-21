@@ -33,7 +33,7 @@ class VendorChangeRequestService
             ->exists();
 
         if ($hasPending) {
-            throw new \RuntimeException('A pending request already exists for this section');
+            throw new \RuntimeException(__('common.exceptions.change_request.pending_exists'));
         }
 
         $request = VendorChangeRequest::query()->create([
@@ -114,7 +114,7 @@ class VendorChangeRequestService
     public function cancelRequest(VendorChangeRequest $request, VendorAdmin $cancelledBy): void
     {
         if (! $request->isPending() || $request->vendor_id !== $cancelledBy->vendor_id) {
-            throw new \RuntimeException('This request cannot be cancelled');
+            throw new \RuntimeException(__('common.exceptions.change_request.cannot_be_cancelled'));
         }
 
         $request->update(['status' => 'cancelled']);

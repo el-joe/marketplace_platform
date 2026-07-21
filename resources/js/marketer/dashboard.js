@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [
                     {
                         type: 'bar',
-                        label: 'Clicks',
+                        label: t('marketer.dashboard.clicks_label'),
                         data: clicksData ?? [],
                         backgroundColor: 'rgba(59,130,246,0.35)',
                         borderRadius: 4,
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     {
                         type: 'line',
-                        label: 'Earnings (SAR)',
+                        label: t('marketer.dashboard.earnings_label'),
                         data: revenueData ?? [],
                         borderColor: '#facc15',
                         backgroundColor: 'rgba(250,204,21,0.08)',
@@ -49,13 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         position: 'left',
                         ticks: { font: { size: 10 } },
                         grid: { color: '#f1f5f9' },
-                        title: { display: true, text: 'Earnings (SAR)', font: { size: 10 } },
+                        title: { display: true, text: t('marketer.dashboard.earnings_label'), font: { size: 10 } },
                     },
                     yClicks: {
                         position: 'right',
                         ticks: { font: { size: 10 } },
                         grid: { drawOnChartArea: false },
-                        title: { display: true, text: 'Clicks', font: { size: 10 } },
+                        title: { display: true, text: t('marketer.dashboard.clicks_label'), font: { size: 10 } },
                     },
                 },
                 plugins: {
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!url) return;
             navigator.clipboard.writeText(url).then(() => {
                 const original = btn.textContent;
-                btn.textContent = '✓ Copied!';
+                btn.textContent = t('marketer.dashboard.copied');
                 setTimeout(() => { btn.textContent = original; }, 2000);
             });
         });

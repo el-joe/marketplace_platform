@@ -139,15 +139,15 @@ class GiftCardService
             $locked = GiftCard::where('id', $card->id)->lockForUpdate()->first();
 
             if (! $locked || $locked->status !== 'active') {
-                throw new \DomainException('Gift card is not active.');
+                throw new \DomainException(__('common.exceptions.gift_card.not_active'));
             }
 
             if (! $locked->expires_at || $locked->expires_at->isPast()) {
-                throw new \DomainException('Gift card has expired.');
+                throw new \DomainException(__('common.exceptions.gift_card.expired'));
             }
 
             if ($locked->balance < $amountCents) {
-                throw new \DomainException('Gift card has insufficient balance.');
+                throw new \DomainException(__('common.exceptions.gift_card.insufficient_balance'));
             }
 
             $newBalance = $locked->balance - $amountCents;

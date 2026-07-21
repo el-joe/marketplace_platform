@@ -156,7 +156,7 @@ function loadPage(pageId) {
         return;
     }
 
-    setSaveStatus(window.TRANSLATIONS?.loading || 'Loading…', 'saving');
+    setSaveStatus(window.TRANSLATIONS?.loading || t('admin.page_builder.loading'), 'saving');
     return ajax({
         url: ROUTES.load,
         method: 'GET',
@@ -481,7 +481,7 @@ $('#close-config-btn').on('click', closeConfigPanel);
 function openConfigPanel(blockId) {
     $('#config-empty').addClass('hidden');
     $('#config-panel').removeClass('hidden').addClass('flex');
-    $('#config-form-body').html('<div class="text-sm text-gray-400 text-center py-8">Loading…</div>');
+    $('#config-form-body').html(`<div class="text-sm text-gray-400 text-center py-8">${t('admin.page_builder.loading')}</div>`);
     $('#config-save-status').text('');
 
     const $card = $(`.block-card[data-block-id="${blockId}"]`);
@@ -602,7 +602,7 @@ $(document).on('input', Object.values(PICKER_CONFIG).map((c) => c.searchInputSel
         ajax({ url: cfg.searchUrl, method: 'GET', data: { q } }).done((res) => {
             const rows = res.results || [];
             if (!rows.length) {
-                $results.removeClass('hidden').html('<div class="px-3 py-2 text-gray-400">No results.</div>');
+                $results.removeClass('hidden').html(`<div class="px-3 py-2 text-gray-400">${t('admin.page_builder.no_results')}</div>`);
                 return;
             }
             $results.removeClass('hidden').html(rows.map((row) => `
@@ -628,7 +628,7 @@ $(document).on('click', '[data-action="add-picker-item"]', function () {
         $(`#config-form-body ${cfg.resultsSelector}[data-block-id="${blockId}"]`).addClass('hidden').empty();
         $(`#config-form-body ${cfg.searchInputSelector}[data-block-id="${blockId}"]`).val('');
         loadPickerList(kind, blockId);
-    }).fail((xhr) => Toast.error(xhr.responseJSON?.message || 'Could not add item.'));
+    }).fail((xhr) => Toast.error(xhr.responseJSON?.message || t('admin.page_builder.could_not_add_item')));
 });
 
 $(document).on('click', '[data-action="remove-picker-item"]', function () {
@@ -640,7 +640,7 @@ $(document).on('click', '[data-action="remove-picker-item"]', function () {
 
     ajax({ url: cfg.removeUrl(itemId), method: 'DELETE' }).done(() => {
         loadPickerList(kind, blockId);
-    }).fail(() => Toast.error('Could not remove item.'));
+    }).fail(() => Toast.error(t('admin.page_builder.could_not_remove_item')));
 });
 
 function getBlockTypeOf(blockId) {
@@ -700,7 +700,7 @@ function saveConfig() {
         data: JSON.stringify({ config, change_type: 'config_updated' }),
         contentType: 'application/json',
     }).done((res) => {
-        $('#config-save-status').text(`Saved (rev #${res.revision_number})`).removeClass('text-blue-600 text-rose-600').addClass('text-emerald-600');
+        $('#config-save-status').text(t('admin.page_builder.saved_revision', { revision: res.revision_number })).removeClass('text-blue-600 text-rose-600').addClass('text-emerald-600');
         const $card = $(`.block-card[data-block-id="${blockId}"]`);
         if (res.preview_text != null) $card.find('[data-preview]').text(res.preview_text);
     }).fail(() => {
@@ -750,15 +750,15 @@ function loadSlidesList(blockId) {
         .done((res) => {
             const slides = res.slides || [];
             if (!slides.length) {
-                $container.html('<div class="text-xs text-gray-400 px-2 py-3 text-center">No slides yet. Click "Add slide" above.</div>');
+                $container.html(`<div class="text-xs text-gray-400 px-2 py-3 text-center">${t('admin.page_builder.no_slides_yet')}</div>`);
                 return;
             }
             const html = slides.map((s) => `
                 <div class="flex items-center gap-2 px-2 py-1.5 border border-gray-100 rounded hover:bg-gray-50" data-slide-id="${s.id}">
                     <span class="text-xs text-gray-400">#${s.position + 1}</span>
                     <span class="flex-1 truncate text-sm text-gray-700">${escapeHtml(s.title_en || s.cta_label_en || 'Slide')}</span>
-                    <button type="button" class="text-xs text-gray-500 hover:text-gray-900" data-action="edit-slide" data-slide-id="${s.id}" data-block-id="${blockId}">Edit</button>
-                    <button type="button" class="text-xs text-rose-500 hover:text-rose-700" data-action="delete-slide" data-slide-id="${s.id}">Delete</button>
+                    <button type="button" class="text-xs text-gray-500 hover:text-gray-900" data-action="edit-slide" data-slide-id="${s.id}" data-block-id="${blockId}">${t('admin.page_builder.edit_label')}</button>
+                    <button type="button" class="text-xs text-rose-500 hover:text-rose-700" data-action="delete-slide" data-slide-id="${s.id}">${t('admin.page_builder.delete_label')}</button>
                 </div>
             `).join('');
             $container.html(html);
@@ -887,7 +887,7 @@ $('#slide-form').on('submit', function (e) {
             $('#slide-modal').modal('close');
             loadSlidesList(blockId);
             // Trigger preview refresh on block card
-            $(`.block-card[data-block-id="${blockId}"] [data-preview]`).text('Slider — updated');
+            $(`.block-card[data-block-id="${blockId}"] [data-preview]`).text(t('admin.page_builder.slider_updated'));
         })
         .fail((xhr) => Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS?.couldNotSaveSlide || 'Could not save slide.'));
 });

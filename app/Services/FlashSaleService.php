@@ -185,7 +185,7 @@ class FlashSaleService
         Admin $admin
     ): FlashSaleSubmission {
         if (!in_array($decision, ['approved', 'rejected'], true)) {
-            throw new \InvalidArgumentException("Decision must be 'approved' or 'rejected'.");
+            throw new \InvalidArgumentException(__('admin.flash_sales.decision_invalid'));
         }
 
         $flashSale = $submission->flashSale;
@@ -217,7 +217,7 @@ class FlashSaleService
                 SubmissionApprovedNotificationJob::dispatch($submission->id);
             } else {
                 if (empty($data['rejection_code'])) {
-                    throw new \InvalidArgumentException('rejection_code is required when rejecting a submission.');
+                    throw new \InvalidArgumentException(__('admin.flash_sales.rejection_code_required'));
                 }
 
                 $submission->update([
@@ -273,11 +273,11 @@ class FlashSaleService
     private function validateTimeline(array $data): void
     {
         $fields = [
-            'submission_opens_at' => 'Submission opens',
-            'submission_closes_at' => 'Submission closes',
-            'review_deadline_at' => 'Review deadline',
-            'sale_starts_at' => 'Sale starts',
-            'sale_ends_at' => 'Sale ends',
+            'submission_opens_at' => __('admin.flash_sales.timeline_fields.submission_opens_at'),
+            'submission_closes_at' => __('admin.flash_sales.timeline_fields.submission_closes_at'),
+            'review_deadline_at' => __('admin.flash_sales.timeline_fields.review_deadline_at'),
+            'sale_starts_at' => __('admin.flash_sales.timeline_fields.sale_starts_at'),
+            'sale_ends_at' => __('admin.flash_sales.timeline_fields.sale_ends_at'),
         ];
 
         $timestamps = array_map(
@@ -291,7 +291,10 @@ class FlashSaleService
         for ($i = 0; $i < count($keys) - 1; $i++) {
             if ($values[$i] !== null && $values[$i + 1] !== null && $values[$i] >= $values[$i + 1]) {
                 throw new \InvalidArgumentException(
-                    array_values($fields)[$i] . ' must be before ' . array_values($fields)[$i + 1]
+                    __('admin.flash_sales.timeline_order_invalid', [
+                        'first' => array_values($fields)[$i],
+                        'second' => array_values($fields)[$i + 1],
+                    ])
                 );
             }
         }

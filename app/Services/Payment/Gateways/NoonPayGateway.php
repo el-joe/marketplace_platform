@@ -93,7 +93,7 @@ class NoonPayGateway implements PaymentGatewayInterface
 
             return PaymentResult::failure(
                 code: $body['resultCode'] ?? 'noon_error',
-                message: $body['message'] ?? 'NoonPay payment failed',
+                message: $body['message'] ?? __('common.exceptions.payment.noonpay_payment_failed'),
                 raw: $body,
             );
         } catch (\Exception $e) {
@@ -134,7 +134,7 @@ class NoonPayGateway implements PaymentGatewayInterface
 
             return RefundResult::failure(
                 code: $body['resultCode'] ?? 'refund_error',
-                message: $body['message'] ?? 'Refund failed',
+                message: $body['message'] ?? __('common.exceptions.payment.refund_failed'),
                 currency: $transaction->currency,
                 raw: $body,
             );
@@ -164,7 +164,7 @@ class NoonPayGateway implements PaymentGatewayInterface
                 );
             }
 
-            return PaymentResult::failure($body['resultCode'] ?? 'error', $body['message'] ?? 'Void failed', $body);
+            return PaymentResult::failure($body['resultCode'] ?? 'error', $body['message'] ?? __('common.exceptions.payment.void_failed'), $body);
         } catch (\Exception $e) {
             return PaymentResult::failure('exception', $e->getMessage());
         }

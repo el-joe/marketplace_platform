@@ -130,7 +130,7 @@ class TabbyGateway implements PaymentGatewayInterface
                 );
             }
 
-            return RefundResult::failure('tabby_refund_error', $body['message'] ?? 'Refund failed', $transaction->currency, $body);
+            return RefundResult::failure('tabby_refund_error', $body['message'] ?? __('common.exceptions.payment.refund_failed'), $transaction->currency, $body);
         } catch (\Exception $e) {
             return RefundResult::failure('exception', $e->getMessage(), $transaction->currency ?? '');
         }

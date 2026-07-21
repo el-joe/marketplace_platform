@@ -13,7 +13,7 @@
     </button>
 
     {{-- Breadcrumb --}}
-    <nav aria-label="Breadcrumb" class="hidden sm:flex items-center text-sm min-w-0">
+    <nav aria-label="{{ __('common.breadcrumb') }}" class="hidden sm:flex items-center text-sm min-w-0">
         <ol class="flex items-center gap-1 text-gray-500 truncate">
             <li>
                 <a href="{{ \Illuminate\Support\Facades\Route::has('admin.dashboard') ? route('admin.dashboard') : '/' }}"

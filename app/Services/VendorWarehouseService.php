@@ -93,7 +93,7 @@ class VendorWarehouseService
 
         if ($stockCount > 0) {
             throw ValidationException::withMessages([
-                'warehouse' => ["Cannot deactivate — {$stockCount} listings still have stock here."],
+                'warehouse' => [__('common.exceptions.warehouse.cannot_deactivate_has_stock', ['count' => $stockCount])],
             ]);
         }
 
@@ -110,7 +110,7 @@ class VendorWarehouseService
         VendorAdmin $vendorAdmin
     ): WarehouseInventory {
         if ($inventory->warehouse->owner_vendor_id !== $vendorAdmin->vendor_id) {
-            throw new AuthorizationException('You are not authorised to adjust this inventory.');
+            throw new AuthorizationException(__('common.exceptions.warehouse.not_authorised_inventory_adjustment'));
         }
 
         return DB::transaction(function () use ($inventory, $adjustment, $reason, $movementType, $vendorAdmin) {
@@ -120,7 +120,7 @@ class VendorWarehouseService
 
             if ($newOnHand < 0) {
                 throw ValidationException::withMessages([
-                    'adjustment' => ['Stock cannot go below zero.'],
+                    'adjustment' => [__('common.exceptions.warehouse.stock_below_zero')],
                 ]);
             }
 
@@ -168,7 +168,7 @@ class VendorWarehouseService
         $source = Warehouse::findOrFail($data['source_warehouse_id']);
 
         if ($source->owner_vendor_id !== $vendor->id) {
-            throw new AuthorizationException('Source warehouse does not belong to your account.');
+            throw new AuthorizationException(__('common.exceptions.warehouse.source_warehouse_not_owned'));
         }
 
         return DB::transaction(function () use ($data, $vendor, $vendorAdmin) {
@@ -202,11 +202,11 @@ class VendorWarehouseService
     public function shipTransfer(InventoryTransfer $transfer, array $data, Vendor $vendor): InventoryTransfer
     {
         if ($transfer->vendor_id !== $vendor->id) {
-            throw new AuthorizationException('Transfer does not belong to your account.');
+            throw new AuthorizationException(__('common.exceptions.warehouse.transfer_not_owned'));
         }
 
         if ($transfer->status !== InventoryTransferStatus::Draft) {
-            throw ValidationException::withMessages(['status' => ['Transfer is not in draft status.']]);
+            throw ValidationException::withMessages(['status' => [__('common.exceptions.warehouse.transfer_not_draft')]]);
         }
 
         return DB::transaction(function () use ($transfer, $data) {
@@ -218,7 +218,7 @@ class VendorWarehouseService
 
                 if ($sourceInv->quantity_on_hand < $item->quantity_requested) {
                     throw ValidationException::withMessages([
-                        'items' => ['Insufficient stock for one or more items.'],
+                        'items' => [__('common.exceptions.warehouse.insufficient_stock_items')],
                     ]);
                 }
 
@@ -253,11 +253,11 @@ class VendorWarehouseService
     public function cancelTransfer(InventoryTransfer $transfer, Vendor $vendor): InventoryTransfer
     {
         if ($transfer->vendor_id !== $vendor->id) {
-            throw new AuthorizationException('Transfer does not belong to your account.');
+            throw new AuthorizationException(__('common.exceptions.warehouse.transfer_not_owned'));
         }
 
         if (!in_array($transfer->status, [InventoryTransferStatus::Draft, InventoryTransferStatus::InTransit])) {
-            throw ValidationException::withMessages(['status' => ['Transfer cannot be cancelled in its current state.']]);
+            throw ValidationException::withMessages(['status' => [__('common.exceptions.warehouse.transfer_cannot_be_cancelled')]]);
         }
 
         DB::transaction(function () use ($transfer) {
@@ -327,7 +327,7 @@ class VendorWarehouseService
     private function assertOwnership(Warehouse $warehouse, Vendor $vendor): void
     {
         if ($warehouse->owner_vendor_id !== $vendor->id) {
-            throw new AuthorizationException('This warehouse does not belong to your account.');
+            throw new AuthorizationException(__('common.exceptions.warehouse.warehouse_not_owned'));
         }
     }
 

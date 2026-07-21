@@ -105,7 +105,7 @@ function setButtonLoading($btn, loading) {
             .html('<svg class="w-4 h-4 animate-spin mr-1 inline-block" fill="none" viewBox="0 0 24 24">'
                 + '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>'
                 + '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>'
-                + '</svg> Loading…');
+                + `</svg> ${t('shared.loading')}`);
     } else {
         $btn.prop('disabled', false)
             .html($btn.data('original-text') || $btn.html());
@@ -174,9 +174,9 @@ function initAjaxForms($scope) {
                         window.Toast && window.Toast.error(resp.message);
                     }
                 } else if (xhr.status === 403) {
-                    window.Toast && window.Toast.error('You are not authorised to do this.');
+                    window.Toast && window.Toast.error(t('shared.form.not_authorised'));
                 } else {
-                    const msg = xhr.responseJSON?.message || 'Something went wrong. Please try again.';
+                    const msg = xhr.responseJSON?.message || t('shared.something_went_wrong');
                     window.Toast && window.Toast.error(msg);
                 }
             })

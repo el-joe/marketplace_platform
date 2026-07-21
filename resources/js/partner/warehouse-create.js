@@ -19,7 +19,7 @@ function initWarehouseCreate() {
         const errEl = document.getElementById('wh-error');
         errEl.classList.add('hidden');
         btn.disabled = true;
-        btn.textContent = 'Registering…';
+        btn.textContent = t('partner.warehouse.registering');
 
         const payload = {
             name:               document.getElementById('wh-name')?.value,
@@ -33,16 +33,16 @@ function initWarehouseCreate() {
         const { ok, data } = await postJson(cfg.storeUrl, payload);
 
         if (ok && data.success) {
-            toast('Warehouse registered successfully.');
+            toast(t('partner.warehouse.registered_success'));
             setTimeout(() => window.location.href = `/warehouses/${data.data.id}`, 600);
         } else {
             const msg = data.errors
                 ? Object.values(data.errors).flat().join(' ')
-                : (data.message || 'Failed to register warehouse.');
+                : (data.message || t('partner.warehouse.register_failed'));
             errEl.textContent = msg;
             errEl.classList.remove('hidden');
             btn.disabled = false;
-            btn.textContent = 'Register warehouse';
+            btn.textContent = t('partner.warehouse.register_label');
         }
     });
 }
@@ -126,7 +126,7 @@ function initTransferCreate() {
         if (q.length < 2) { resultsEl.innerHTML = ''; return; }
 
         searchTimer = setTimeout(async () => {
-            resultsEl.innerHTML = '<p class="text-xs text-gray-400 p-2">Searching…</p>';
+            resultsEl.innerHTML = `<p class="text-xs text-gray-400 p-2">${t('shared.searching')}</p>`;
             try {
                 const res = await fetch(`/partner/listings?search=${encodeURIComponent(q)}&format=json`, {
                     headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
@@ -136,7 +136,7 @@ function initTransferCreate() {
 
                 resultsEl.innerHTML = '';
                 if (!items.length) {
-                    resultsEl.innerHTML = '<p class="text-xs text-gray-400 p-2">No products found.</p>';
+                    resultsEl.innerHTML = `<p class="text-xs text-gray-400 p-2">${t('shared.no_products_found')}</p>`;
                     return;
                 }
 
@@ -158,7 +158,7 @@ function initTransferCreate() {
                     resultsEl.appendChild(div);
                 });
             } catch {
-                resultsEl.innerHTML = '<p class="text-xs text-red-500 p-2">Search failed.</p>';
+                resultsEl.innerHTML = `<p class="text-xs text-red-500 p-2">${t('shared.search_failed')}</p>`;
             }
         }, 300);
     });
@@ -170,7 +170,7 @@ function initTransferCreate() {
 
         // Prevent duplicates
         if (transferItems.some(i => i.vendor_listing_id === listingId)) {
-            toast('This product is already in the list.', 'error');
+            toast(t('partner.warehouse.already_in_list'), 'error');
             return;
         }
 
@@ -194,13 +194,13 @@ function initTransferCreate() {
         errEl.classList.add('hidden');
 
         if (transferItems.length === 0) {
-            errEl.textContent = 'Please add at least one item.';
+            errEl.textContent = t('partner.warehouse.add_item_first');
             errEl.classList.remove('hidden');
             return;
         }
 
         btn.disabled = true;
-        btn.textContent = 'Creating…';
+        btn.textContent = t('partner.warehouse.creating');
 
         const payload = {
             source_warehouse_id:      document.getElementById('source-warehouse-select')?.value,
@@ -221,13 +221,13 @@ function initTransferCreate() {
         const data = await res.json();
 
         if (res.ok && data.success) {
-            toast('Transfer created successfully.');
+            toast(t('partner.warehouse.transfer_created'));
             setTimeout(() => window.location.href = `/partner/warehouses/transfers/${data.data.id}`, 600);
         } else {
-            errEl.textContent = data.message || 'Failed to create transfer.';
+            errEl.textContent = data.message || t('partner.warehouse.transfer_create_failed');
             errEl.classList.remove('hidden');
             btn.disabled = false;
-            btn.textContent = 'Create transfer';
+            btn.textContent = t('partner.warehouse.create_transfer_label');
         }
     });
 }

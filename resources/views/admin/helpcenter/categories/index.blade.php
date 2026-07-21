@@ -67,7 +67,7 @@
                                 <button type="button" dir="ltr"
                                         class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $root->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
                                         data-id="{{ $root->id }}" data-active="{{ $root->is_active ? '1' : '0' }}"
-                                        aria-label="Toggle active">
+                                        aria-label="{{ __('common.toggle_active') }}">
                                     <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $root->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
                                 </button>
                             </td>
@@ -98,7 +98,7 @@
                                 <button type="button" dir="ltr"
                                         class="btn-toggle-active relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $child->is_active ? 'bg-emerald-500' : 'bg-gray-200' }}"
                                         data-id="{{ $child->id }}" data-active="{{ $child->is_active ? '1' : '0' }}"
-                                        aria-label="Toggle active">
+                                        aria-label="{{ __('common.toggle_active') }}">
                                     <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $child->is_active ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
                                 </button>
                             </td>

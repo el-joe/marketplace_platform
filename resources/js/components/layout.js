@@ -103,7 +103,7 @@ $(function () {
             .done(function () { window.location.reload(); })
             .fail(function (xhr) {
                 xhr.handled = true;
-                window.Toast && window.Toast.error('Could not switch language.');
+                window.Toast && window.Toast.error(t('shared.layout.could_not_switch_language'));
             });
     });
 
@@ -119,7 +119,7 @@ $(function () {
             .fail(function (xhr) {
                 if (xhr.status >= 500) return; // global handler shows toast
                 xhr.handled = true;
-                window.Toast && window.Toast.error('Could not switch country.');
+                window.Toast && window.Toast.error(t('shared.layout.could_not_switch_country'));
             });
     });
 

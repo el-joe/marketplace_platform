@@ -30,12 +30,12 @@ $(function () {
             contentType: false,
             headers: ajaxHeaders(),
         }).done(function (response) {
-            window.Toast.success(response.message || 'Saved.');
+            window.Toast.success(response.message || t('shared.saved'));
         }).fail(function (xhr) {
             if (xhr.status === 422) {
                 window.injectValidationErrors($form, xhr.responseJSON.errors);
             } else {
-                window.Toast.error('Failed to save.');
+                window.Toast.error(t('admin.app_contexts.failed_to_save'));
             }
         });
     });
@@ -59,9 +59,9 @@ $(function () {
             },
             headers: ajaxHeaders(),
         }).done(function (response) {
-            window.Toast.success(response.message || 'Saved.');
+            window.Toast.success(response.message || t('shared.saved'));
         }).fail(function () {
-            window.Toast.error('Failed to save country assignment.');
+            window.Toast.error(t('admin.app_contexts.failed_to_save_country_assignment'));
         });
     });
 
@@ -116,13 +116,13 @@ $(function () {
             data: payload,
             headers: ajaxHeaders(),
         }).done(function () {
-            window.Toast.success('Navigation item saved.');
+            window.Toast.success(t('admin.app_contexts.navigation_item_saved'));
             window.location.reload();
         }).fail(function (xhr) {
             if (xhr.status === 422) {
                 window.injectValidationErrors($navForm, xhr.responseJSON.errors);
             } else {
-                window.Toast.error('Failed to save navigation item.');
+                window.Toast.error(t('admin.app_contexts.failed_to_save_navigation_item'));
             }
         });
     });

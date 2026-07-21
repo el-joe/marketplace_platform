@@ -37,7 +37,7 @@ class WalletService
         ?string $performedByAdminId = null
     ): WalletTransaction {
         if ($wallet->is_frozen) {
-            throw new \RuntimeException('Wallet is frozen: ' . ($wallet->frozen_reason ?? 'no reason given'));
+            throw new \RuntimeException(__('common.exceptions.wallet.frozen', ['reason' => $wallet->frozen_reason ?? 'no reason given']));
         }
 
         return DB::transaction(function () use ($wallet, $amountCents, $sourceType, $sourceId, $description, $performedByAdminId) {
@@ -68,7 +68,7 @@ class WalletService
         ?string $performedByAdminId = null
     ): WalletTransaction {
         if ($wallet->is_frozen) {
-            throw new \RuntimeException('Wallet is frozen: ' . ($wallet->frozen_reason ?? 'no reason given'));
+            throw new \RuntimeException(__('common.exceptions.wallet.frozen', ['reason' => $wallet->frozen_reason ?? 'no reason given']));
         }
 
         return DB::transaction(function () use ($wallet, $amountCents, $sourceType, $sourceId, $description, $performedByAdminId) {

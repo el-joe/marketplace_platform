@@ -88,7 +88,7 @@
                 <h3 class="text-lg font-semibold text-gray-900">{{ __('admin.marketers.generate_payout_btn') }}</h3>
                 <p class="text-sm text-gray-500 mt-1">{{ __('admin.marketers.generate_payout_desc') }}</p>
             </div>
-            <button type="button" id="cancel-generate-payout" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200" aria-label="Close modal">
+            <button type="button" id="cancel-generate-payout" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200" aria-label="{{ __('common.close_modal') }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>

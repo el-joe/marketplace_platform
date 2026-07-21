@@ -16,6 +16,26 @@ window.Toastify = Toastify;
 window.Alpine = Alpine;
 window.Swal = Swal;
 
+/* ---------- i18n bridge ----------
+ * window.trans is populated per-layout from lang/{en,ar}/js.php via
+ * `window.trans = @json(__('js'));` (see resources/views/layouts/*.blade.php),
+ * which also defines window.t inline (so it's available even before this
+ * module executes). Defined again here only as a safety net for any page
+ * that somehow loads app.js without going through one of those layouts.
+ */
+window.t = window.t || function (path, vars) {
+    const parts = String(path).split('.');
+    let cur = window.trans || {};
+    for (const part of parts) {
+        cur = cur == null ? undefined : cur[part];
+        if (cur === undefined) return path;
+    }
+    if (typeof cur === 'string' && vars) {
+        return cur.replace(/\{(\w+)\}/g, (_, key) => (vars[key] ?? ''));
+    }
+    return cur;
+};
+
 /* ---------- Global AJAX setup ---------- */
 $.ajaxSetup({
     headers: {
@@ -34,18 +54,18 @@ $(document).ajaxError(function (event, xhr) {
         return;
     }
     if (xhr.status === 403) {
-        window.Toast && window.Toast.error('You are not allowed to perform this action.');
+        window.Toast && window.Toast.error(t('shared.not_allowed_action'));
         return;
     }
     if (xhr.status === 419) {
-        window.Toast && window.Toast.error('Your session has expired. Please refresh the page.');
+        window.Toast && window.Toast.error(t('shared.session_expired'));
         return;
     }
     if (xhr.status === 422) {
         return;
     }
     if (xhr.status >= 500) {
-        window.Toast && window.Toast.error('Something went wrong. Please try again.');
+        window.Toast && window.Toast.error(t('shared.something_went_wrong'));
     }
 });
 
@@ -87,11 +107,11 @@ const swalBaseConfirm = {
 window.confirmDialog = async function (options = {}) {
     const merged = {
         ...swalBaseConfirm,
-        title: 'Are you sure?',
+        title: t('shared.confirm_title'),
         text: '',
         icon: 'question',
-        confirmButtonText: 'Confirm',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: t('shared.confirm_button'),
+        cancelButtonText: t('shared.cancel_button'),
         ...options,
         customClass: {
             ...swalBaseConfirm.customClass,
@@ -105,16 +125,16 @@ window.confirmDialog = async function (options = {}) {
     }
 
     const fallbackText = [merged.title, merged.text].filter(Boolean).join('\n\n');
-    return window.confirm(fallbackText || 'Are you sure?');
+    return window.confirm(fallbackText || t('shared.confirm_title'));
 };
 
 window.confirmDelete = function (message, options = {}) {
     return window.confirmDialog({
-        title: options.title || 'Delete item?',
-        text: message || 'This action cannot be undone.',
+        title: options.title || t('shared.delete_item_title'),
+        text: message || t('shared.delete_item_text'),
         icon: 'warning',
-        confirmButtonText: options.confirmButtonText || 'Yes, delete',
-        cancelButtonText: options.cancelButtonText || 'Cancel',
+        confirmButtonText: options.confirmButtonText || t('shared.yes_delete'),
+        cancelButtonText: options.cancelButtonText || t('shared.cancel_button'),
         customClass: {
             confirmButton: 'inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors',
         },
@@ -123,15 +143,15 @@ window.confirmDelete = function (message, options = {}) {
 
 window.confirmBulkAction = function (message, count, options = {}) {
     const destructive = !!options.destructive;
-    const title = options.title || (destructive ? 'Delete selected items?' : 'Confirm bulk action?');
-    const actionText = `${message}\n\n${count} item(s) will be affected.`;
+    const title = options.title || (destructive ? t('shared.delete_selected_title') : t('shared.confirm_bulk_action_title'));
+    const actionText = t('shared.bulk_action_impact', { message, count });
 
     return window.confirmDialog({
         title,
         text: actionText,
         icon: destructive ? 'warning' : 'question',
-        confirmButtonText: destructive ? 'Yes, continue' : 'Continue',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: destructive ? t('shared.yes_continue') : t('shared.continue_action'),
+        cancelButtonText: t('shared.cancel_button'),
         customClass: destructive
             ? {
                 confirmButton: 'inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors',

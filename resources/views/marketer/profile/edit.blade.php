@@ -131,7 +131,7 @@
                 <input type="text" name="boutiqaat_style_slug" id="slug-input"
                     value="{{ old('boutiqaat_style_slug', $marketer->boutiqaat_style_slug) }}"
                     class="form-input flex-1 text-sm py-2 font-mono"
-                    placeholder="{{ __('marketer.profile.slug_placeholder') }}" pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, hyphens">
+                    placeholder="{{ __('marketer.profile.slug_placeholder') }}" pattern="[a-z0-9\-]+" title="{{ __('marketer.profile.slug_pattern_hint') }}">
             </div>
             <a id="slug-preview-link" href="#" target="_blank"
                class="text-xs text-blue-600 hover:underline mt-2 inline-block"

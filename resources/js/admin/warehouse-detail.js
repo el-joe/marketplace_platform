@@ -93,7 +93,7 @@ function initToggleActive() {
             window.Toast?.success(json.message);
             setTimeout(() => location.reload(), 800);
         } catch (err) {
-            window.Toast?.error(err.message ?? (window.TRANSLATIONS?.requestFailed || 'Request failed.'));
+            window.Toast?.error(err.message ?? (window.TRANSLATIONS?.requestFailed || t('shared.request_failed')));
         }
     });
 }
@@ -154,19 +154,19 @@ function initAdjustModal() {
             const json = await res.json();
 
             if (!res.ok) {
-                errorEl.textContent = json.message ?? 'Adjustment failed.';
+                errorEl.textContent = json.message ?? t('admin.warehouse_detail.adjustment_failed');
                 errorEl.classList.remove('hidden');
                 return;
             }
 
-            window.Toast?.success(json.message ?? 'Inventory adjusted.');
+            window.Toast?.success(json.message ?? t('admin.warehouse_detail.inventory_adjusted'));
             closeModal();
 
             // Refresh the DataTable
             const dt = DataTable.instances.find(i => i.table().node().id === 'inventory-table');
             dt?.draw(false);
         } catch (err) {
-            errorEl.textContent = err.message ?? 'Network error.';
+            errorEl.textContent = err.message ?? t('admin.warehouse_detail.network_error');
             errorEl.classList.remove('hidden');
         }
     });
@@ -243,16 +243,16 @@ function initVendorLimitModal() {
 
             if (!res.ok) {
                 const firstError = json.errors ? Object.values(json.errors)[0]?.[0] : null;
-                errorEl.textContent = firstError ?? json.message ?? 'Save failed.';
+                errorEl.textContent = firstError ?? json.message ?? t('admin.warehouse_detail.save_failed');
                 errorEl.classList.remove('hidden');
                 return;
             }
 
-            window.Toast?.success(json.message ?? 'Vendor limit saved.');
+            window.Toast?.success(json.message ?? t('admin.warehouse_detail.vendor_limit_saved'));
             closeModal();
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            errorEl.textContent = err.message ?? 'Network error.';
+            errorEl.textContent = err.message ?? t('admin.warehouse_detail.network_error');
             errorEl.classList.remove('hidden');
         }
     });
@@ -261,7 +261,7 @@ function initVendorLimitModal() {
         const btn = e.target.closest('.js-delete-vendor-limit');
         if (!btn) return;
 
-        if (!confirm('Remove this vendor storage limit?')) return;
+        if (!confirm(t('admin.warehouse_detail.remove_vendor_limit_confirm'))) return;
 
         try {
             const res = await fetch(btn.dataset.url, {
@@ -273,10 +273,10 @@ function initVendorLimitModal() {
             });
             const json = await res.json();
             if (!res.ok) throw json;
-            window.Toast?.success(json.message ?? 'Vendor limit removed.');
+            window.Toast?.success(json.message ?? t('admin.warehouse_detail.vendor_limit_removed'));
             setTimeout(() => location.reload(), 600);
         } catch (err) {
-            window.Toast?.error(err.message ?? 'Request failed.');
+            window.Toast?.error(err.message ?? t('shared.request_failed'));
         }
     });
 }

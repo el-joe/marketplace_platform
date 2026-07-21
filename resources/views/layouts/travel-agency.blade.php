@@ -6,6 +6,22 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'بوابة شركات السفر') | بوابة شركات السفر</title>
     <link href="https://fonts.bunny.net/css?family=cairo:400,600,700,800&display=swap" rel="stylesheet">
+    <script>
+    window.trans = @json(__('js'));
+    window.t = window.t || function (path, vars) {
+        const parts = String(path).split('.');
+        let cur = window.trans || {};
+        for (const part of parts) {
+            cur = cur == null ? undefined : cur[part];
+            if (cur === undefined) return path;
+        }
+        if (typeof cur === 'string' && vars) {
+            return cur.replace(/\{(\w+)\}/g, (_, key) => (vars[key] ?? ''));
+        }
+        return cur;
+    };
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/portal/app.js'])
     <style>
         [x-cloak] { display: none !important; }

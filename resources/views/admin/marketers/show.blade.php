@@ -82,7 +82,7 @@
 
         <div class="mt-2">
             <button type="button" class="btn btn-primary btn-sm w-full" id="btn-send-invitation">
-                📣 Send Campaign Invitation
+                📣 {{ __('admin.marketer_show_section.send_campaign_invitation') }}
             </button>
         </div>
     </div>
@@ -128,15 +128,15 @@
         ? [
             'overview'    => '📋 ' . __('admin.marketers.tab_overview'),
             'campaigns'   => __('admin.marketers.tab_campaigns'),
-            'promo_codes' => '🏷️ Promo Codes',
+            'promo_codes' => '🏷️ ' . __('admin.marketer_show_section.tab_promo_codes'),
             'conversions' => __('admin.marketers.tab_conversions'),
             'payouts'     => '💳 ' . __('admin.marketers.tab_payouts'),
         ]
         : [
             'overview'     => '📋 ' . __('admin.marketers.tab_overview'),
-            'deals'        => '🤝 Deals',
-            'deliverables' => '📄 Deliverables',
-            'media_kit'    => '🪪 Media Kit',
+            'deals'        => '🤝 ' . __('admin.marketer_show_section.tab_deals'),
+            'deliverables' => '📄 ' . __('admin.marketer_show_section.tab_deliverables'),
+            'media_kit'    => '🪪 ' . __('admin.marketer_show_section.tab_media_kit'),
             'payouts'      => '💳 ' . __('admin.marketers.tab_payouts'),
         ];
 @endphp
@@ -215,16 +215,16 @@
             </div>
 
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">📣 Admin Campaign Invitations</h3>
+                <h3 class="text-lg font-bold text-gray-800 mb-4">📣 {{ __('admin.marketer_show_section.admin_campaign_invitations') }}</h3>
                 <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="text-left text-gray-400 text-xs uppercase">
-                            <th class="pb-2">Title</th>
-                            <th class="pb-2">Type</th>
-                            <th class="pb-2">Rate</th>
-                            <th class="pb-2">Status</th>
-                            <th class="pb-2">Sent At</th>
+                            <th class="pb-2">{{ __('admin.marketer_show_section.title_col') }}</th>
+                            <th class="pb-2">{{ __('admin.marketer_show_section.type_col') }}</th>
+                            <th class="pb-2">{{ __('admin.marketer_show_section.rate_col') }}</th>
+                            <th class="pb-2">{{ __('admin.marketer_show_section.status_col') }}</th>
+                            <th class="pb-2">{{ __('admin.marketer_show_section.sent_at_col') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -243,7 +243,7 @@
                                 <td class="py-2 text-gray-500">{{ $inv->created_at->format('d M Y') }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="py-4 text-center text-gray-400 italic">No invitations sent yet.</td></tr>
+                            <tr><td colspan="5" class="py-4 text-center text-gray-400 italic">{{ __('admin.marketer_show_section.no_invitations_sent') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -259,12 +259,12 @@
             <table id="marketer-payouts-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
-                        <th>{{ __('admin.marketers.payout_number') ?? 'Payout #' }}</th>
-                        <th>{{ __('admin.marketers.period') ?? 'Period' }}</th>
+                        <th>{{ __('admin.marketer_show_section.payout_number') }}</th>
+                        <th>{{ __('admin.marketer_show_section.period') }}</th>
                         <th>{{ __('admin.marketers.conv') }}</th>
-                        <th>{{ __('admin.marketers.net_amount') ?? 'Net Amount' }}</th>
+                        <th>{{ __('admin.marketer_show_section.net_amount') }}</th>
                         <th>{{ __('admin.status') }}</th>
-                        <th>{{ __('admin.marketers.processed_at') ?? 'Processed' }}</th>
+                        <th>{{ __('admin.marketer_show_section.processed_at') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -322,22 +322,22 @@
 
     <div x-show="tab === 'promo_codes'">
         <div class="flex justify-end mb-3">
-            <button type="button" id="create-marketer-promo-btn" class="btn btn-primary btn-sm">Create Promo Code</button>
+            <button type="button" id="create-marketer-promo-btn" class="btn btn-primary btn-sm">{{ __('admin.marketer_show_section.create_promo_code') }}</button>
         </div>
         <x-card>
             <div class="overflow-x-auto">
             <table id="marketer-promo-codes-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Code</th>
-                        <th>Marketer</th>
-                        <th>Discount</th>
-                        <th>Uses</th>
-                        <th>Revenue Generated</th>
-                        <th>Commission Earned</th>
-                        <th>Status</th>
-                        <th>Valid Until</th>
-                        <th>Actions</th>
+                        <th>{{ __('admin.marketer_show_section.code_col') }}</th>
+                        <th>{{ __('admin.marketer_show_section.marketer_col') }}</th>
+                        <th>{{ __('admin.marketer_show_section.discount_col') }}</th>
+                        <th>{{ __('admin.marketer_show_section.uses_col') }}</th>
+                        <th>{{ __('admin.marketer_show_section.revenue_generated_col') }}</th>
+                        <th>{{ __('admin.marketer_show_section.commission_earned_col') }}</th>
+                        <th>{{ __('admin.status') }}</th>
+                        <th>{{ __('admin.marketer_show_section.valid_until_col') }}</th>
+                        <th>{{ __('admin.marketer_show_section.actions_col') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -350,52 +350,52 @@
     <div id="create-marketer-promo-modal" class="modal-backdrop hidden">
         <div class="modal-box max-w-xl">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-lg font-semibold text-gray-900">Create Promo Code for {{ $marketer->name }}</h3>
+                <h3 class="text-lg font-semibold text-gray-900">{{ __('admin.marketer_show_section.create_promo_code_for', ['name' => $marketer->name]) }}</h3>
                 <button type="button" data-modal-close class="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1">&times;</button>
             </div>
             <form id="create-marketer-promo-form">
                 <input type="hidden" name="marketer_id" value="{{ $marketer->id }}">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
-                        <label class="form-label">Code</label>
-                        <input type="text" name="code" class="form-input w-full" placeholder="Leave blank to auto-generate (AFF-XX-XXXXXX)">
+                        <label class="form-label">{{ __('admin.marketer_show_section.code_label') }}</label>
+                        <input type="text" name="code" class="form-input w-full" placeholder="{{ __('admin.marketer_show_section.code_placeholder') }}">
                     </div>
                     <div>
-                        <label class="form-label">Discount Type <span class="text-red-500">*</span></label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.discount_type') }} <span class="text-red-500">*</span></label>
                         <select name="discount_type" class="form-input w-full" required>
-                            <option value="percentage">Percentage</option>
-                            <option value="fixed_amount">Fixed Amount</option>
-                            <option value="free_shipping">Free Shipping</option>
+                            <option value="percentage">{{ __('admin.marketer_show_section.discount_type_percentage') }}</option>
+                            <option value="fixed_amount">{{ __('admin.marketer_show_section.discount_type_fixed_amount') }}</option>
+                            <option value="free_shipping">{{ __('admin.marketer_show_section.discount_type_free_shipping') }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Discount Value <span class="text-red-500">*</span></label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.discount_value') }} <span class="text-red-500">*</span></label>
                         <input type="number" name="discount_value" class="form-input w-full" step="0.01" min="0" required>
                     </div>
                     <div>
-                        <label class="form-label">Currency</label>
-                        <input type="text" name="currency" class="form-input w-full" maxlength="3" placeholder="e.g. SAR">
+                        <label class="form-label">{{ __('admin.marketer_show_section.currency_label') }}</label>
+                        <input type="text" name="currency" class="form-input w-full" maxlength="3" placeholder="{{ __('admin.marketer_show_section.currency_placeholder') }}">
                     </div>
                     <div>
-                        <label class="form-label">Max Uses</label>
-                        <input type="number" name="max_uses" class="form-input w-full" min="1" placeholder="Unlimited">
+                        <label class="form-label">{{ __('admin.marketer_show_section.max_uses') }}</label>
+                        <input type="number" name="max_uses" class="form-input w-full" min="1" placeholder="{{ __('admin.marketer_show_section.max_uses_placeholder') }}">
                     </div>
                     <div>
-                        <label class="form-label">Min Order Amount</label>
-                        <input type="number" name="min_order_amount" class="form-input w-full" min="0" placeholder="No minimum">
+                        <label class="form-label">{{ __('admin.marketer_show_section.min_order_amount') }}</label>
+                        <input type="number" name="min_order_amount" class="form-input w-full" min="0" placeholder="{{ __('admin.marketer_show_section.min_order_amount_placeholder') }}">
                     </div>
                     <div>
-                        <label class="form-label">Valid From <span class="text-red-500">*</span></label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.valid_from') }} <span class="text-red-500">*</span></label>
                         <input type="date" name="valid_from" class="form-input w-full" required>
                     </div>
                     <div class="col-span-2">
-                        <label class="form-label">Valid Until <span class="text-red-500">*</span></label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.valid_until') }} <span class="text-red-500">*</span></label>
                         <input type="date" name="valid_until" class="form-input w-full" required>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-gray-100">
-                    <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-sm">Create Promo Code</button>
+                    <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.marketer_show_section.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.marketer_show_section.create_promo_code') }}</button>
                 </div>
             </form>
         </div>
@@ -406,21 +406,21 @@
     <div id="send-invitation-modal" class="modal-backdrop hidden">
         <div class="modal-box max-w-xl">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-lg font-semibold text-gray-900">Send Campaign Invitation to {{ $marketer->name }}</h3>
+                <h3 class="text-lg font-semibold text-gray-900">{{ __('admin.marketer_show_section.send_invitation_to', ['name' => $marketer->name]) }}</h3>
                 <button type="button" data-modal-close class="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1">&times;</button>
             </div>
             <form id="send-invitation-form">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
-                        <label class="form-label">Title <span class="text-red-500">*</span></label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.title_field') }} <span class="text-red-500">*</span></label>
                         <input type="text" name="title" class="form-input w-full" maxlength="255" required>
                     </div>
                     <div class="col-span-2">
-                        <label class="form-label">Description</label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.description_field') }}</label>
                         <textarea name="description" class="form-input w-full" rows="3"></textarea>
                     </div>
                     <div>
-                        <label class="form-label">Campaign Type <span class="text-red-500">*</span></label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.campaign_type_field') }} <span class="text-red-500">*</span></label>
                         <select name="campaign_type" class="form-input w-full" required>
                             @foreach($campaignTypeOptions as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
@@ -428,7 +428,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Commission Type <span class="text-red-500">*</span></label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.commission_type_field') }} <span class="text-red-500">*</span></label>
                         <select name="commission_type" class="form-input w-full" required>
                             @foreach($commissionTypeOptions as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
@@ -436,16 +436,16 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Commission Rate (%) <span class="text-red-500">*</span></label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.commission_rate_field') }} <span class="text-red-500">*</span></label>
                         <input type="number" name="offered_commission_rate_pct" class="form-input w-full" step="0.01" min="0.01" max="100" required
-                               placeholder="e.g. 5 for 5%">
+                               placeholder="{{ __('admin.marketer_show_section.commission_rate_placeholder') }}">
                     </div>
                     <div>
-                        <label class="form-label">Budget</label>
-                        <input type="number" name="budget" class="form-input w-full" min="0" placeholder="Optional">
+                        <label class="form-label">{{ __('admin.marketer_show_section.budget_field') }}</label>
+                        <input type="number" name="budget" class="form-input w-full" min="0" placeholder="{{ __('admin.marketer_show_section.budget_optional') }}">
                     </div>
                     <div>
-                        <label class="form-label">Budget Currency</label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.budget_currency_field') }}</label>
                         <select name="budget_currency" class="form-input w-full">
                             <option value="">—</option>
                             @foreach($currencies as $code)
@@ -454,21 +454,21 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Starts At</label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.starts_at_field') }}</label>
                         <input type="date" name="starts_at" class="form-input w-full">
                     </div>
                     <div>
-                        <label class="form-label">Ends At</label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.ends_at_field') }}</label>
                         <input type="date" name="ends_at" class="form-input w-full">
                     </div>
                     <div class="col-span-2">
-                        <label class="form-label">Response Deadline</label>
+                        <label class="form-label">{{ __('admin.marketer_show_section.response_deadline_field') }}</label>
                         <input type="date" name="expires_at" class="form-input w-full">
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-gray-100">
-                    <button type="button" data-modal-close class="btn btn-ghost btn-sm">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-sm">Send Invitation</button>
+                    <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.marketer_show_section.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary btn-sm">{{ __('admin.marketer_show_section.send_invitation') }}</button>
                 </div>
             </form>
         </div>
@@ -478,7 +478,7 @@
     @if($marketer->isInfluencer())
     <div x-show="tab === 'deals'">
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Deals</h3>
+            <h3 class="text-lg font-bold text-gray-800 mb-4">{{ __('admin.marketer_show_section.tab_deals') }}</h3>
             @forelse($marketer->deals as $deal)
                 <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200 mb-2">
                     <div>
@@ -488,9 +488,9 @@
                     <span class="badge badge-secondary">{{ ucfirst($deal->status) }}</span>
                 </div>
             @empty
-                <p class="text-sm text-gray-400 italic">No deals yet.</p>
+                <p class="text-sm text-gray-400 italic">{{ __('admin.marketer_show_section.no_deals_yet') }}</p>
             @endforelse
-            <a href="{{ route('admin.influencer-deals.index') }}?filter_marketer={{ $marketer->id }}" class="text-sm text-primary-600 hover:underline mt-3 inline-block">View all deals →</a>
+            <a href="{{ route('admin.influencer-deals.index') }}?filter_marketer={{ $marketer->id }}" class="text-sm text-primary-600 hover:underline mt-3 inline-block">{{ __('admin.marketer_show_section.view_all_deals') }}</a>
         </div>
     </div>
 
@@ -500,11 +500,11 @@
             <table id="marketer-deliverables-table" class="w-full text-sm" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Deal</th>
-                        <th>Platform</th>
-                        <th>Content Type</th>
+                        <th>{{ __('admin.marketer_show_section.deal_col') }}</th>
+                        <th>{{ __('admin.marketer_show_section.platform_col') }}</th>
+                        <th>{{ __('admin.marketer_show_section.content_type_col') }}</th>
                         <th>{{ __('admin.status') }}</th>
-                        <th>Due</th>
+                        <th>{{ __('admin.marketer_show_section.due_col') }}</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -515,16 +515,16 @@
 
     <div x-show="tab === 'media_kit'">
         <div class="bg-white rounded-2xl border border-gray-200 p-6 max-w-lg">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Media Kit</h3>
+            <h3 class="text-lg font-bold text-gray-800 mb-4">{{ __('admin.marketer_show_section.media_kit_title') }}</h3>
             @if($marketer->mediaKit)
                 <div class="space-y-2 text-sm">
                     <p class="font-semibold">{{ $marketer->mediaKit->headline }}</p>
-                    <div class="flex justify-between"><span class="text-gray-400">Avg. Post Reach</span><span class="font-medium">{{ number_format($marketer->mediaKit->avg_post_reach ?? 0) }}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Rate / Post</span><span class="font-medium">{{ $marketer->mediaKit->rate_per_post ? number_format($marketer->mediaKit->rate_per_post / 100, 2) . ' ' . $marketer->mediaKit->rate_currency : '—' }}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Visible to Vendors</span><span class="font-medium">{{ $marketer->mediaKit->is_visible_to_vendors ? 'Yes' : 'No' }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">{{ __('admin.marketer_show_section.avg_post_reach') }}</span><span class="font-medium">{{ number_format($marketer->mediaKit->avg_post_reach ?? 0) }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">{{ __('admin.marketer_show_section.rate_per_post') }}</span><span class="font-medium">{{ $marketer->mediaKit->rate_per_post ? number_format($marketer->mediaKit->rate_per_post / 100, 2) . ' ' . $marketer->mediaKit->rate_currency : '—' }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">{{ __('admin.marketer_show_section.visible_to_vendors') }}</span><span class="font-medium">{{ $marketer->mediaKit->is_visible_to_vendors ? __('admin.marketer_show_section.yes') : __('admin.marketer_show_section.no') }}</span></div>
                 </div>
             @else
-                <p class="text-sm text-gray-400 italic">No media kit on file.</p>
+                <p class="text-sm text-gray-400 italic">{{ __('admin.marketer_show_section.no_media_kit') }}</p>
             @endif
         </div>
     </div>
@@ -684,7 +684,7 @@ $(function () {
 
     $(document).on('click', '.btn-disable-promo', function () {
         const id = $(this).data('id');
-        window.confirmDialog({ title: 'Disable this promo code?', onConfirm: () => {
+        window.confirmDialog({ title: window.TRANSLATIONS.disablePromoConfirm, onConfirm: () => {
             $.ajax({
                 url: '{{ url('affiliate-promo-codes') }}/' + id,
                 method: 'DELETE',

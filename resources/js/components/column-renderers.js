@@ -228,8 +228,8 @@ window.Renderers = {
      * Renders a yes/no badge for boolean columns.
      */
     boolean(trueLabel, falseLabel) {
-        trueLabel = trueLabel || 'Yes';
-        falseLabel = falseLabel || 'No';
+        trueLabel = trueLabel || (window.t ? t('shared.yes') : 'Yes');
+        falseLabel = falseLabel || (window.t ? t('shared.no') : 'No');
         return function (data) {
             const on = data === true || data === 1 || data === '1';
             return on

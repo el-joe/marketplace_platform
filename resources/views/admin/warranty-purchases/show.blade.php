@@ -46,7 +46,7 @@
                 </div>
                 @if($warrantyPurchase->order)
                     <div class="flex justify-between py-2">
-                        <dt class="text-gray-500">Order</dt>
+                        <dt class="text-gray-500">{{ __('admin.warranty_purchases_section.order_col') }}</dt>
                         <dd class="font-medium font-mono text-xs">{{ $warrantyPurchase->order->order_number }}</dd>
                     </div>
                 @endif
@@ -67,7 +67,7 @@
                 </div>
                 @if(!empty($snapshot['features_en']))
                     <div class="py-2">
-                        <dt class="text-gray-500 mb-1">Features</dt>
+                        <dt class="text-gray-500 mb-1">{{ __('admin.warranty_purchases_section.features_label') }}</dt>
                         <dd>
                             <ul class="list-disc ps-5 text-gray-700 space-y-0.5">
                                 @foreach($snapshot['features_en'] as $feature)
@@ -85,7 +85,7 @@
             <h2 class="text-sm font-semibold text-gray-700 mb-4">{{ __('admin.warranty_purchases_section.customer_info') }}</h2>
             <dl class="text-sm divide-y divide-gray-100">
                 <div class="flex justify-between py-2">
-                    <dt class="text-gray-500">Name</dt>
+                    <dt class="text-gray-500">{{ __('admin.warranty_purchases_section.name_label') }}</dt>
                     <dd class="font-medium">{{ $warrantyPurchase->customer?->name ?? '—' }}</dd>
                 </div>
                 <div class="flex justify-between py-2">

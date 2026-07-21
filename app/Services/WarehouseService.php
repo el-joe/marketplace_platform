@@ -55,7 +55,7 @@ class WarehouseService
             $newQty = $inventory->quantity_on_hand + $delta;
 
             if ($newQty < 0) {
-                throw new \RuntimeException("Adjustment would result in negative quantity_on_hand ({$newQty}).");
+                throw new \RuntimeException(__('common.exceptions.warehouse.negative_quantity_on_hand', ['qty' => $newQty]));
             }
 
             // Only write quantity_on_hand — quantity_available is VIRTUAL
@@ -109,7 +109,7 @@ class WarehouseService
             $locked = WarehouseInventory::lockForUpdate()->findOrFail($inventory->id);
 
             if ($quantity > $locked->quantity_on_hand) {
-                throw new \RuntimeException("Cannot mark {$quantity} units as damaged; only {$locked->quantity_on_hand} on hand.");
+                throw new \RuntimeException(__('common.exceptions.warehouse.damaged_exceeds_on_hand', ['qty' => $quantity, 'available' => $locked->quantity_on_hand]));
             }
 
             $newQty = $locked->quantity_on_hand - $quantity;
@@ -208,7 +208,7 @@ class WarehouseService
     public function shipTransfer(InventoryTransfer $transfer, array $data, string $adminId): InventoryTransfer
     {
         if ($transfer->status !== InventoryTransferStatus::Draft) {
-            throw new \RuntimeException("Only draft transfers can be shipped.");
+            throw new \RuntimeException(__('common.exceptions.warehouse.only_draft_can_be_shipped'));
         }
 
         return DB::transaction(function () use ($transfer, $data, $adminId) {
@@ -249,7 +249,7 @@ class WarehouseService
     public function receiveTransfer(InventoryTransfer $transfer, array $receivedItems, string $adminId): InventoryTransfer
     {
         if ($transfer->status !== InventoryTransferStatus::InTransit) {
-            throw new \RuntimeException("Only in-transit transfers can be received.");
+            throw new \RuntimeException(__('common.exceptions.warehouse.only_in_transit_can_be_received'));
         }
 
         return DB::transaction(function () use ($transfer, $receivedItems, $adminId) {
@@ -325,7 +325,7 @@ class WarehouseService
     public function cancelTransfer(InventoryTransfer $transfer): InventoryTransfer
     {
         if ($transfer->status !== InventoryTransferStatus::Draft) {
-            throw new \RuntimeException("Only draft transfers can be cancelled.");
+            throw new \RuntimeException(__('common.exceptions.warehouse.only_draft_can_be_cancelled'));
         }
 
         $transfer->update(['status' => InventoryTransferStatus::Cancelled->value]);

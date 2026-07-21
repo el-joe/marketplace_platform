@@ -6,6 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', __('marketer.nav.subtitle')) — Noon</title>
+    <script>
+    window.trans = @json(__('js'));
+    window.t = window.t || function (path, vars) {
+        const parts = String(path).split('.');
+        let cur = window.trans || {};
+        for (const part of parts) {
+            cur = cur == null ? undefined : cur[part];
+            if (cur === undefined) return path;
+        }
+        if (typeof cur === 'string' && vars) {
+            return cur.replace(/\{(\w+)\}/g, (_, key) => (vars[key] ?? ''));
+        }
+        return cur;
+    };
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/marketer/app.js'])
     <style>
         /* Prevent Alpine.js elements from flashing */
@@ -383,7 +399,7 @@
         <div class="sidebar-footer">
             @auth('marketer')
                 <p style="color:#64748b; font-size:0.7rem; margin-bottom:4px;">{{ __('marketer.nav.referral_code') }}</p>
-                <div class="referral-chip" onclick="copyReferral()" title="Click to copy">
+                <div class="referral-chip" onclick="copyReferral()" title="{{ __('marketer.nav.click_to_copy') }}">
                     <span>{{ auth()->guard('marketer')->user()->referral_code }}</span>
                     <span class="copy-icon">📋</span>
                 </div>

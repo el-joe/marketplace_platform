@@ -1,22 +1,22 @@
 @extends($layout)
 
-@section('title', 'Notifications')
-@section('page-title', 'Notifications')
+@section('title', __('common.notifications_page.title'))
+@section('page-title', __('common.notifications_page.title'))
 
 @section('content')
 <div class="p-6 max-w-3xl mx-auto">
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h1 class="text-lg font-semibold text-gray-900">All Notifications</h1>
+            <h1 class="text-lg font-semibold text-gray-900">{{ __('common.notifications_page.all_notifications') }}</h1>
             @if($notifications->isNotEmpty())
                 <button id="mark-all-read-btn"
-                    class="text-sm text-primary-600 hover:underline">Mark all read</button>
+                    class="text-sm text-primary-600 hover:underline">{{ __('common.notifications_page.mark_all_read') }}</button>
             @endif
         </div>
 
         @if($notifications->isEmpty())
             <div class="px-6 py-16 text-center text-gray-500 text-sm">
-                No notifications yet.
+                {{ __('common.no_notifications_yet') }}
             </div>
         @else
             <ul class="divide-y divide-gray-100">

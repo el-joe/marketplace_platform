@@ -115,7 +115,7 @@ class CartService
 
         $available = $listing->warehouseInventories->sum('quantity_available');
         if ($available < $quantity) {
-            throw new \DomainException("Insufficient stock. Only {$available} unit(s) available.");
+            throw new \DomainException(__('common.exceptions.cart.insufficient_stock', ['available' => $available]));
         }
 
         $currentCount = $cart->items()->count();
@@ -125,16 +125,16 @@ class CartService
         if ($existingItem) {
             $newQty = $existingItem->quantity + $quantity;
             if ($newQty > ($listing->max_order_quantity ?? PHP_INT_MAX)) {
-                throw new \DomainException('Exceeds maximum order quantity for this listing.');
+                throw new \DomainException(__('common.exceptions.cart.exceeds_max_order_quantity'));
             }
             if ($available < $newQty) {
-                throw new \DomainException("Insufficient stock. Only {$available} unit(s) available.");
+                throw new \DomainException(__('common.exceptions.cart.insufficient_stock', ['available' => $available]));
             }
             $existingItem->update(['quantity' => $newQty]);
             $item = $existingItem;
         } else {
             if ($currentCount >= self::MAX_ITEMS) {
-                throw new \DomainException('Cart cannot exceed ' . self::MAX_ITEMS . ' items.');
+                throw new \DomainException(__('common.exceptions.cart.max_items', ['max' => self::MAX_ITEMS]));
             }
             $item = $cart->items()->create([
                 'vendor_listing_id' => $vendorListingId,
@@ -171,10 +171,10 @@ class CartService
 
         $available = $listing->warehouseInventories->sum('quantity_available');
         if ($available < $quantity) {
-            throw new \DomainException("Insufficient stock. Only {$available} unit(s) available.");
+            throw new \DomainException(__('common.exceptions.cart.insufficient_stock', ['available' => $available]));
         }
         if ($quantity > ($listing->max_order_quantity ?? PHP_INT_MAX)) {
-            throw new \DomainException('Exceeds maximum order quantity for this listing.');
+            throw new \DomainException(__('common.exceptions.cart.exceeds_max_order_quantity'));
         }
 
         $item->update(['quantity' => $quantity]);
@@ -205,7 +205,7 @@ class CartService
             ->firstOrFail();
 
         if ($coupon->usage_limit_total !== null && $coupon->times_used >= $coupon->usage_limit_total) {
-            throw new \DomainException('This coupon has reached its total usage limit.');
+            throw new \DomainException(__('common.exceptions.cart.coupon_usage_limit_reached'));
         }
 
         $customerUsageCount = CouponUsage::where('coupon_id', $coupon->id)
@@ -213,14 +213,14 @@ class CartService
             ->count();
 
         if ($customerUsageCount >= $coupon->usage_limit_per_customer) {
-            throw new \DomainException('You have already used this coupon the maximum number of times.');
+            throw new \DomainException(__('common.exceptions.cart.coupon_customer_limit_reached'));
         }
 
         $subtotal = (int) $cart->items()->get()->sum(fn (CartItem $item) => $item->unit_price * $item->quantity);
 
         if ($coupon->min_order_amount !== null && $subtotal < $coupon->min_order_amount) {
             $minFormatted = number_format($coupon->min_order_amount / 100, 2);
-            throw new \DomainException("A minimum order of {$minFormatted} {$cart->currency} is required for this coupon.");
+            throw new \DomainException(__('common.exceptions.cart.coupon_min_order_required', ['amount' => $minFormatted, 'currency' => $cart->currency]));
         }
 
         $cart->update(['coupon_id' => $coupon->id]);

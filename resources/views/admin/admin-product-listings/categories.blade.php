@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Nawy Now Sidebar Categories')
+@section('title', __('admin.product_listing_categories.title'))
 
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
@@ -11,10 +11,10 @@
 
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl font-bold text-gray-900">Nawy Now Sidebar Categories</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Drag to reorder, set an icon, and pin categories to the top of the Nawy Now sidebar. Only categories with at least one active listing appear here.</p>
+            <h1 class="text-xl font-bold text-gray-900">{{ __('admin.product_listing_categories.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.product_listing_categories.subtitle') }}</p>
         </div>
-        <a href="{{ route('admin.admin-product-listings.index') }}" class="text-sm text-primary-600 hover:underline">&larr; Back to Listings</a>
+        <a href="{{ route('admin.admin-product-listings.index') }}" class="text-sm text-primary-600 hover:underline">{!! __('admin.product_listing_categories.back_to_listings') !!}</a>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -23,11 +23,11 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="w-8 px-3 py-3"></th>
-                        <th class="px-4 py-3 text-start font-semibold text-gray-700">Category</th>
-                        <th class="px-4 py-3 text-center font-semibold text-gray-700">Products</th>
-                        <th class="px-4 py-3 text-center font-semibold text-gray-700">Nawy Icon</th>
-                        <th class="px-4 py-3 text-center font-semibold text-gray-700">Featured</th>
-                        <th class="px-4 py-3 text-center font-semibold text-gray-700">Sort Order</th>
+                        <th class="px-4 py-3 text-start font-semibold text-gray-700">{{ __('admin.product_listing_categories.col_category') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.product_listing_categories.col_products') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.product_listing_categories.col_nawy_icon') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.product_listing_categories.col_featured') }}</th>
+                        <th class="px-4 py-3 text-center font-semibold text-gray-700">{{ __('admin.product_listing_categories.col_sort_order') }}</th>
                     </tr>
                 </thead>
                 <tbody id="nawy-category-tree" class="divide-y divide-gray-100">
@@ -55,7 +55,7 @@
                                 <button type="button" dir="ltr"
                                         class="nawy-featured-toggle relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $category->nawy_is_featured ? 'bg-primary-600' : 'bg-gray-200' }}"
                                         data-url="{{ route('admin.admin-product-listings.categories.toggle-featured', $category->id) }}"
-                                        aria-label="Toggle featured">
+                                        aria-label="{{ __('admin.product_listing_categories.toggle_featured') }}">
                                     <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $category->nawy_is_featured ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
                                 </button>
                             </td>
@@ -63,7 +63,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-10 text-center text-gray-400">No categories with active Nawy Now listings yet.</td>
+                            <td colspan="6" class="px-4 py-10 text-center text-gray-400">{{ __('admin.product_listing_categories.empty_state') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -75,6 +75,15 @@
 
 @push('scripts')
 <script>
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    orderSaved: @json(__('admin.product_listing_categories.order_saved')),
+    orderSaveFailed: @json(__('admin.product_listing_categories.order_save_failed')),
+    updateFailed: @json(__('admin.product_listing_categories.update_failed')),
+    iconUpdated: @json(__('admin.product_listing_categories.icon_updated')),
+    iconUploadFailed: @json(__('admin.product_listing_categories.icon_upload_failed')),
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
@@ -97,9 +106,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         body: JSON.stringify({ ids }),
                     });
                     if (!res.ok) throw new Error();
-                    window.Toast && window.Toast.success('Order saved.');
+                    window.Toast && window.Toast.success(window.TRANSLATIONS.orderSaved);
                 } catch (e) {
-                    window.Toast && window.Toast.error('Failed to save order.');
+                    window.Toast && window.Toast.error(window.TRANSLATIONS.orderSaveFailed);
                 }
             },
         });
@@ -122,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 knob.classList.toggle('translate-x-4', res.nawy_is_featured);
                 knob.classList.toggle('translate-x-0.5', !res.nawy_is_featured);
             })
-            .catch(() => window.Toast && window.Toast.error('Failed to update.'))
+            .catch(() => window.Toast && window.Toast.error(window.TRANSLATIONS.updateFailed))
             .finally(() => { btn.disabled = false; });
     });
 
@@ -146,9 +155,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     const preview = input.closest('td').querySelector('.nawy-icon-preview');
                     preview.src = res.icon_url;
                     preview.classList.remove('hidden');
-                    window.Toast && window.Toast.success('Icon updated.');
+                    window.Toast && window.Toast.success(window.TRANSLATIONS.iconUpdated);
                 })
-                .catch(() => window.Toast && window.Toast.error('Failed to upload icon.'));
+                .catch(() => window.Toast && window.Toast.error(window.TRANSLATIONS.iconUploadFailed));
         });
     });
 });

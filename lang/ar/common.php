@@ -19,6 +19,10 @@ return [
     'confirm'         => 'تأكيد',
     'back'            => 'رجوع',
     'close'           => 'إغلاق',
+    'dismiss'         => 'إغلاق',
+    'close_modal'     => 'إغلاق النافذة',
+    'breadcrumb'      => 'مسار التنقل',
+    'toggle_active'   => 'تبديل التفعيل',
     'loading'         => 'جاري التحميل...',
     'no_data'         => 'لا توجد بيانات',
     'all'             => 'الكل',
@@ -133,4 +137,106 @@ return [
     ],
     'all_rights_reserved' => 'جميع الحقوق محفوظة.',
     'remove' => 'إزالة',
+    'portal_content' => 'محتوى البوابة',
+    'no_notifications_yet' => 'لا توجد إشعارات حتى الآن.',
+    'view_all_notifications' => 'عرض جميع الإشعارات',
+
+    'welcome' => [
+        'dashboard'    => 'لوحة التحكم',
+        'log_in'       => 'تسجيل الدخول',
+        'register'     => 'إنشاء حساب',
+        'get_started'  => 'لنبدأ',
+        'options_intro'=> 'نظراً لتعدد الخيارات المتاحة لك،<br /> ننصحك بالبدء بما يلي:',
+        'read_the'     => 'اطّلع على',
+        'documentation'=> 'التوثيق',
+        'watch_videos_at' => 'شاهد دروس فيديو على',
+        'deploy_now'   => 'انشر الآن',
+        'view_changelog' => 'عرض سجل التغييرات',
+    ],
+
+    'notifications_page' => [
+        'title' => 'الإشعارات',
+        'all_notifications' => 'جميع الإشعارات',
+        'mark_all_read' => 'وضع علامة مقروء على الكل',
+    ],
+
+    'exceptions' => [
+        'warehouse' => [
+            'not_authorised_inventory_adjustment' => 'غير مصرح لك بتعديل هذا المخزون.',
+            'source_warehouse_not_owned'          => 'المستودع المصدر لا ينتمي إلى حسابك.',
+            'transfer_not_owned'                  => 'عملية النقل لا تنتمي إلى حسابك.',
+            'warehouse_not_owned'                 => 'هذا المستودع لا ينتمي إلى حسابك.',
+            'cannot_deactivate_has_stock'          => 'لا يمكن التعطيل — لا يزال هناك :count عنصر (عناصر) بها مخزون في هذا المستودع.',
+            'stock_below_zero'                     => 'لا يمكن أن يقل المخزون عن صفر.',
+            'transfer_not_draft'                   => 'عملية النقل ليست في حالة مسودة.',
+            'insufficient_stock_items'              => 'المخزون غير كافٍ لعنصر واحد أو أكثر.',
+            'transfer_cannot_be_cancelled'          => 'لا يمكن إلغاء عملية النقل في حالتها الحالية.',
+            'negative_quantity_on_hand'             => 'سيؤدي هذا التعديل إلى كمية سالبة في المخزون (:qty).',
+            'damaged_exceeds_on_hand'                => 'لا يمكن تحديد :qty وحدة كتالفة؛ يوجد فقط :available في المخزون.',
+            'only_draft_can_be_shipped'              => 'يمكن شحن عمليات النقل في حالة المسودة فقط.',
+            'only_in_transit_can_be_received'        => 'يمكن استلام عمليات النقل قيد الشحن فقط.',
+            'only_draft_can_be_cancelled'             => 'يمكن إلغاء عمليات النقل في حالة المسودة فقط.',
+        ],
+
+        'onboarding' => [
+            'incomplete' => 'لم تكتمل جميع خطوات التسجيل بعد.',
+        ],
+
+        'gift_card' => [
+            'not_active'           => 'بطاقة الهدايا غير نشطة.',
+            'expired'              => 'انتهت صلاحية بطاقة الهدايا.',
+            'insufficient_balance' => 'رصيد بطاقة الهدايا غير كافٍ.',
+        ],
+
+        'change_request' => [
+            'pending_exists'    => 'يوجد بالفعل طلب معلّق لهذا القسم.',
+            'cannot_be_cancelled' => 'لا يمكن إلغاء هذا الطلب.',
+        ],
+
+        'delivery' => [
+            'not_assigned_state'        => 'المهمة ليست في حالة الإسناد.',
+            'not_accepted_state'        => 'المهمة ليست في حالة القبول.',
+            'not_picked_up_state'       => 'المهمة ليست في حالة الاستلام.',
+            'cannot_be_failed'          => 'لا يمكن تعليم المهمة كفاشلة في حالتها الحالية.',
+            'already_on_shift'          => 'أنت بالفعل في نوبة عمل.',
+            'location_required'        => 'يجب إرسال موقعك الحالي قبل بدء نوبة العمل.',
+            'not_on_shift'              => 'أنت لست في نوبة عمل حاليًا.',
+            'active_delivery_in_progress' => 'لديك عملية توصيل نشطة قيد التنفيذ. أكملها أو أبلغ عن فشلها قبل إنهاء نوبة عملك.',
+        ],
+
+        'cart' => [
+            'insufficient_stock'         => 'المخزون غير كافٍ. يتوفر فقط :available وحدة.',
+            'exceeds_max_order_quantity' => 'تتجاوز الحد الأقصى للكمية المسموح بها لهذا العرض.',
+            'max_items'                  => 'لا يمكن أن تتجاوز السلة :max عنصر.',
+            'coupon_usage_limit_reached'  => 'وصل هذا الكوبون إلى حد الاستخدام الإجمالي.',
+            'coupon_customer_limit_reached' => 'لقد استخدمت هذا الكوبون بالفعل الحد الأقصى لعدد المرات المسموح بها.',
+            'coupon_min_order_required'   => 'يتطلب هذا الكوبون حدًا أدنى للطلب قدره :amount :currency.',
+        ],
+
+        'browse' => [
+            'unknown_type' => 'نوع تصفح غير معروف: :type.',
+        ],
+
+        'wallet' => [
+            'frozen' => 'المحفظة مجمّدة: :reason',
+        ],
+
+        'payment' => [
+            'unknown_gateway'         => 'بوابة دفع غير معروفة: :code.',
+            'refund_failed'           => 'فشل الاسترداد.',
+            'noonpay_payment_failed'  => 'فشلت عملية الدفع عبر NoonPay.',
+            'void_failed'             => 'فشل الإلغاء.',
+        ],
+
+        'listing' => [
+            'unknown_type'                => 'نوع إعلان غير معروف.',
+            'not_found'                   => 'الإعلان غير موجود أو لم يعد نشطًا.',
+            'travel_package_not_found_expired' => 'الباقة السياحية غير موجودة أو منتهية الصلاحية أو لم تعد نشطة.',
+            'travel_package_not_found'    => 'الباقة السياحية غير موجودة.',
+            'inquiry_submitted'           => 'تم إرسال الاستفسار.',
+            'booking_submitted'          => 'تم إرسال الحجز.',
+            'booking_pending_review'     => 'حجزك قيد مراجعة المستندات من قبل الوكالة قبل التأكيد.',
+            'contract_signed'            => 'تم توقيع العقد بنجاح.',
+        ],
+    ],
 ];

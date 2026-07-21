@@ -25,10 +25,10 @@ function initTransfersDatatable() {
         order: [[4, 'desc']],
         searchInputId: 'transfers-search',
         language: {
-            emptyTable:  'No transfers found.',
-            info:        'Showing _START_–_END_ of _TOTAL_ transfers',
-            infoEmpty:   'No transfers',
-            zeroRecords: 'No transfers match your search.',
+            emptyTable:  t('partner.warehouses.no_transfers_found'),
+            info:        t('partner.warehouses.showing_range_transfers'),
+            infoEmpty:   t('partner.warehouses.no_transfers'),
+            zeroRecords: t('partner.warehouses.no_transfers_match_search'),
             processing:  '<div class="flex justify-center py-8"><div class="w-6 h-6 border-2 border-primary-400 border-t-transparent rounded-full animate-spin"></div></div>',
         },
     });
@@ -60,10 +60,10 @@ function initTransferShow() {
             });
 
             if (ok && data.success) {
-                toast('Transfer marked as shipped.');
+                toast(t('partner.warehouses.transfer_shipped'));
                 setTimeout(() => location.reload(), 800);
             } else {
-                errEl.textContent = data.message || 'Failed to update transfer.';
+                errEl.textContent = data.message || t('partner.warehouses.failed_update_transfer');
                 errEl.classList.remove('hidden');
                 confirmShipBtn.disabled = false;
             }
@@ -72,15 +72,15 @@ function initTransferShow() {
 
     if (cancelBtn) {
         cancelBtn.addEventListener('click', async () => {
-            if (!confirm('Are you sure you want to cancel this transfer?')) return;
+            if (!confirm(t('partner.warehouses.cancel_transfer_confirm'))) return;
             cancelBtn.disabled = true;
 
             const { ok, data } = await postJson(cfg.cancelUrl);
             if (ok && data.success) {
-                toast('Transfer cancelled.');
+                toast(t('partner.warehouses.transfer_cancelled'));
                 setTimeout(() => location.reload(), 800);
             } else {
-                toast(data.message || 'Failed to cancel transfer.', 'error');
+                toast(data.message || t('partner.warehouses.failed_cancel_transfer'), 'error');
                 cancelBtn.disabled = false;
             }
         });

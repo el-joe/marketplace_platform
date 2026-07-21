@@ -136,7 +136,7 @@ textarea.note-input {
         </div>
         <div class="flex-1 min-w-0">
             <h1 class="text-lg font-bold text-gray-800">{{ $invitation->title }}</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Boutiqaat Admin Team</p>
+            <p class="text-sm text-gray-500 mt-0.5">{{ __('marketer.admin_offers.admin_team') }}</p>
             <div class="flex flex-wrap gap-2 mt-2 items-center">
                 <span class="text-xs font-600 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ $invitation->campaign_type->label() }}</span>
                 @if($invitation->starts_at && $invitation->ends_at)

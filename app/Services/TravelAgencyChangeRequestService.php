@@ -33,7 +33,7 @@ class TravelAgencyChangeRequestService
             ->exists();
 
         if ($hasPending) {
-            throw new \RuntimeException('A pending request already exists for this section');
+            throw new \RuntimeException(__('common.exceptions.change_request.pending_exists'));
         }
 
         $request = TravelAgencyChangeRequest::query()->create([
@@ -117,7 +117,7 @@ class TravelAgencyChangeRequestService
     public function cancelRequest(TravelAgencyChangeRequest $request, TravelAgencyMember $cancelledBy): void
     {
         if (! $request->isPending() || $request->travel_agency_id !== $cancelledBy->travel_agency_id) {
-            throw new \RuntimeException('This request cannot be cancelled');
+            throw new \RuntimeException(__('common.exceptions.change_request.cannot_be_cancelled'));
         }
 
         $request->update(['status' => 'cancelled']);

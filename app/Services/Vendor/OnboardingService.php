@@ -111,7 +111,7 @@ class OnboardingService
         $status = $this->getStatus($vendor);
 
         if (!$status['all_complete']) {
-            throw new \RuntimeException('Not all onboarding steps are complete.');
+            throw new \RuntimeException(__('common.exceptions.onboarding.incomplete'));
         }
 
         $vendor->update(['onboarding_completed_at' => now()]);

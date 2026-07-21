@@ -20,19 +20,19 @@
 {{-- ─── Page Header ─────────────────────────────────────────────────────────── --}}
 <div class="mb-6 flex items-center justify-between gap-4">
     <div>
-        <a href="{{ route('admin.influencer-deals.index') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Influencer Deals</a>
+        <a href="{{ route('admin.influencer-deals.index') }}" class="text-sm text-gray-500 hover:text-gray-700">{!! __('admin.influencer_deal_show_section.back_to_deals') !!}</a>
         <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ $deal->deal_name }}</h1>
         <span class="badge badge-{{ $statusColor }} mt-1">{{ ucfirst(str_replace('_', ' ', $deal->status?->value ?? $deal->status)) }}</span>
     </div>
     <div class="flex gap-2" id="deal-actions">
         @if(($deal->status?->value ?? $deal->status) === 'content_submitted')
-            <button type="button" id="approve-deal-btn" class="btn btn-success btn-sm">Approve Deal</button>
+            <button type="button" id="approve-deal-btn" class="btn btn-success btn-sm">{{ __('admin.influencer_deal_show_section.approve_deal') }}</button>
         @endif
         @if(($deal->status?->value ?? $deal->status) === 'approved')
-            <button type="button" id="initiate-payment-btn" class="btn btn-primary btn-sm">Initiate Payment</button>
+            <button type="button" id="initiate-payment-btn" class="btn btn-primary btn-sm">{{ __('admin.influencer_deal_show_section.initiate_payment') }}</button>
         @endif
         @if(!in_array($deal->status?->value ?? $deal->status, ['paid', 'cancelled', 'rejected'], true))
-            <button type="button" id="cancel-deal-btn" class="btn btn-danger btn-sm">Cancel</button>
+            <button type="button" id="cancel-deal-btn" class="btn btn-danger btn-sm">{{ __('admin.influencer_deal_show_section.cancel') }}</button>
         @endif
     </div>
 </div>
@@ -53,48 +53,48 @@
 <div class="grid grid-cols-3 gap-5">
     {{-- ─── Deal Details ───────────────────────────────────────────────────── --}}
     <x-card class="col-span-1">
-        <h3 class="font-semibold text-gray-900 mb-4">Deal Details</h3>
+        <h3 class="font-semibold text-gray-900 mb-4">{{ __('admin.influencer_deal_show_section.deal_details') }}</h3>
         <dl class="space-y-3 text-sm">
-            <div><dt class="text-gray-500">Marketer</dt><dd class="font-medium">{{ $deal->marketer->name }} <span class="badge badge-primary">{{ ucfirst(str_replace('_',' ', $deal->marketer->type?->value ?? $deal->marketer->type)) }}</span></dd></div>
-            <div><dt class="text-gray-500">Vendor</dt><dd class="font-medium">{{ $deal->vendor->store_name ?? '—' }}</dd></div>
-            <div><dt class="text-gray-500">Deal Type</dt><dd class="font-medium">{{ ucfirst(str_replace('_',' ', $deal->deal_type?->value ?? $deal->deal_type)) }}</dd></div>
-            <div><dt class="text-gray-500">Flat Fee</dt><dd class="font-medium">{{ number_format($deal->flat_fee_amount) }} {{ $deal->currency }}</dd></div>
+            <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.marketer_label') }}</dt><dd class="font-medium">{{ $deal->marketer->name }} <span class="badge badge-primary">{{ ucfirst(str_replace('_',' ', $deal->marketer->type?->value ?? $deal->marketer->type)) }}</span></dd></div>
+            <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.vendor_label') }}</dt><dd class="font-medium">{{ $deal->vendor->store_name ?? '—' }}</dd></div>
+            <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.deal_type_label') }}</dt><dd class="font-medium">{{ ucfirst(str_replace('_',' ', $deal->deal_type?->value ?? $deal->deal_type)) }}</dd></div>
+            <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.flat_fee_label') }}</dt><dd class="font-medium">{{ number_format($deal->flat_fee_amount) }} {{ $deal->currency }}</dd></div>
             @if($deal->hybrid_commission_rate)
-                <div><dt class="text-gray-500">Hybrid Commission Rate</dt><dd class="font-medium">{{ $deal->hybrid_commission_rate }}%</dd></div>
+                <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.hybrid_commission_rate_label') }}</dt><dd class="font-medium">{{ $deal->hybrid_commission_rate }}%</dd></div>
             @endif
-            <div><dt class="text-gray-500">Proposed By</dt><dd class="font-medium">{{ ucfirst($deal->proposed_by) }}</dd></div>
-            <div><dt class="text-gray-500">Content Due</dt><dd class="font-medium">{{ $deal->content_due_at?->format('Y-m-d') ?? '—' }}</dd></div>
-            <div><dt class="text-gray-500">Payment Due</dt><dd class="font-medium">{{ $deal->payment_due_at?->format('Y-m-d') ?? '—' }}</dd></div>
+            <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.proposed_by_label') }}</dt><dd class="font-medium">{{ ucfirst($deal->proposed_by) }}</dd></div>
+            <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.content_due_label') }}</dt><dd class="font-medium">{{ $deal->content_due_at?->format('Y-m-d') ?? '—' }}</dd></div>
+            <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.payment_due_label') }}</dt><dd class="font-medium">{{ $deal->payment_due_at?->format('Y-m-d') ?? '—' }}</dd></div>
             @if($deal->paid_at)
-                <div><dt class="text-gray-500">Paid At</dt><dd class="font-medium">{{ $deal->paid_at->format('Y-m-d H:i') }}</dd></div>
+                <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.paid_at_label') }}</dt><dd class="font-medium">{{ $deal->paid_at->format('Y-m-d H:i') }}</dd></div>
             @endif
             @if($deal->approvedByAdmin)
-                <div><dt class="text-gray-500">Approved By</dt><dd class="font-medium">{{ $deal->approvedByAdmin->name }}</dd></div>
+                <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.approved_by_label') }}</dt><dd class="font-medium">{{ $deal->approvedByAdmin->name }}</dd></div>
             @endif
             @if($deal->cancellation_reason)
-                <div><dt class="text-gray-500">Cancellation Reason</dt><dd class="font-medium text-red-600">{{ $deal->cancellation_reason }}</dd></div>
+                <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.cancellation_reason_label') }}</dt><dd class="font-medium text-red-600">{{ $deal->cancellation_reason }}</dd></div>
             @endif
             @if($deal->description)
-                <div><dt class="text-gray-500">Description</dt><dd>{{ $deal->description }}</dd></div>
+                <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.description_label') }}</dt><dd>{{ $deal->description }}</dd></div>
             @endif
             @if($deal->negotiation_notes)
-                <div><dt class="text-gray-500">Negotiation Notes</dt><dd>{{ $deal->negotiation_notes }}</dd></div>
+                <div><dt class="text-gray-500">{{ __('admin.influencer_deal_show_section.negotiation_notes_label') }}</dt><dd>{{ $deal->negotiation_notes }}</dd></div>
             @endif
         </dl>
     </x-card>
 
     {{-- ─── Deliverables ───────────────────────────────────────────────────── --}}
     <x-card class="col-span-2">
-        <h3 class="font-semibold text-gray-900 mb-4">Deliverables</h3>
+        <h3 class="font-semibold text-gray-900 mb-4">{{ __('admin.influencer_deal_show_section.deliverables_title') }}</h3>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-gray-500 text-xs uppercase">
-                        <th class="pb-2">Platform</th>
-                        <th class="pb-2">Content Type</th>
-                        <th class="pb-2">Status</th>
-                        <th class="pb-2">Submitted URL</th>
-                        <th class="pb-2">Actions</th>
+                        <th class="pb-2">{{ __('admin.influencer_deal_show_section.platform_col') }}</th>
+                        <th class="pb-2">{{ __('admin.influencer_deal_show_section.content_type_col') }}</th>
+                        <th class="pb-2">{{ __('admin.influencer_deal_show_section.status_col') }}</th>
+                        <th class="pb-2">{{ __('admin.influencer_deal_show_section.submitted_url_col') }}</th>
+                        <th class="pb-2">{{ __('admin.influencer_deal_show_section.actions_col') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -113,7 +113,7 @@
                             </td>
                             <td class="py-2">
                                 @if($deliverable->content_url)
-                                    <a href="{{ $deliverable->content_url }}" target="_blank" class="text-primary-600 hover:underline text-xs">View</a>
+                                    <a href="{{ $deliverable->content_url }}" target="_blank" class="text-primary-600 hover:underline text-xs">{{ __('admin.influencer_deal_show_section.view') }}</a>
                                 @else
                                     —
                                 @endif
@@ -121,14 +121,14 @@
                             <td class="py-2">
                                 @if(($deliverable->status?->value ?? $deliverable->status) === 'submitted')
                                     <div class="flex gap-1">
-                                        <button type="button" class="btn btn-xs btn-success btn-approve-deliverable" data-id="{{ $deliverable->id }}">Approve</button>
-                                        <button type="button" class="btn btn-xs btn-danger btn-reject-deliverable" data-id="{{ $deliverable->id }}">Reject</button>
+                                        <button type="button" class="btn btn-xs btn-success btn-approve-deliverable" data-id="{{ $deliverable->id }}">{{ __('admin.influencer_deal_show_section.approve') }}</button>
+                                        <button type="button" class="btn btn-xs btn-danger btn-reject-deliverable" data-id="{{ $deliverable->id }}">{{ __('admin.influencer_deal_show_section.reject') }}</button>
                                     </div>
                                 @endif
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="py-4 text-center text-gray-400">No deliverables yet.</td></tr>
+                        <tr><td colspan="5" class="py-4 text-center text-gray-400">{{ __('admin.influencer_deal_show_section.no_deliverables_yet') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -139,14 +139,14 @@
 {{-- ─── Cancel Modal ────────────────────────────────────────────────────────── --}}
 <div id="cancel-deal-modal" class="modal" style="display:none;">
     <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">Cancel Deal</h3>
+        <h3 class="font-bold text-lg mb-4">{{ __('admin.influencer_deal_show_section.cancel_deal_title') }}</h3>
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Reason</label>
-            <textarea id="cancel-reason" rows="3" class="form-input w-full text-sm" placeholder="Reason for cancellation"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.influencer_deal_show_section.reason_label') }}</label>
+            <textarea id="cancel-reason" rows="3" class="form-input w-full text-sm" placeholder="{{ __('admin.influencer_deal_show_section.cancellation_reason_placeholder') }}"></textarea>
         </div>
         <div class="flex gap-3 justify-end">
-            <button type="button" id="cancel-cancel-deal" class="btn btn-ghost btn-sm">Close</button>
-            <button type="button" id="confirm-cancel-deal" class="btn btn-danger btn-sm">Cancel Deal</button>
+            <button type="button" id="cancel-cancel-deal" class="btn btn-ghost btn-sm">{{ __('admin.influencer_deal_show_section.close') }}</button>
+            <button type="button" id="confirm-cancel-deal" class="btn btn-danger btn-sm">{{ __('admin.influencer_deal_show_section.cancel_deal') }}</button>
         </div>
     </div>
 </div>
@@ -154,15 +154,15 @@
 {{-- ─── Reject Deliverable Modal ───────────────────────────────────────────── --}}
 <div id="reject-deliverable-modal" class="modal" style="display:none;">
     <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">Reject Deliverable</h3>
+        <h3 class="font-bold text-lg mb-4">{{ __('admin.influencer_deal_show_section.reject_deliverable_title') }}</h3>
         <input type="hidden" id="reject-deliverable-id">
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Reason</label>
-            <textarea id="reject-deliverable-reason" rows="3" class="form-input w-full text-sm" placeholder="Reason for rejection"></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.influencer_deal_show_section.reason_label') }}</label>
+            <textarea id="reject-deliverable-reason" rows="3" class="form-input w-full text-sm" placeholder="{{ __('admin.influencer_deal_show_section.rejection_reason_placeholder') }}"></textarea>
         </div>
         <div class="flex gap-3 justify-end">
-            <button type="button" id="cancel-reject-deliverable" class="btn btn-ghost btn-sm">Close</button>
-            <button type="button" id="confirm-reject-deliverable" class="btn btn-danger btn-sm">Reject</button>
+            <button type="button" id="cancel-reject-deliverable" class="btn btn-ghost btn-sm">{{ __('admin.influencer_deal_show_section.close') }}</button>
+            <button type="button" id="confirm-reject-deliverable" class="btn btn-danger btn-sm">{{ __('admin.influencer_deal_show_section.reject') }}</button>
         </div>
     </div>
 </div>
@@ -171,27 +171,39 @@
 
 @push('scripts')
 <script type="module">
+window.TRANSLATIONS = window.TRANSLATIONS || {};
+Object.assign(window.TRANSLATIONS, {
+    approveDealConfirmTitle: @json(__('admin.influencer_deal_show_section.approve_deal_confirm_title')),
+    approveDealConfirmText: @json(__('admin.influencer_deal_show_section.approve_deal_confirm_text')),
+    approve: @json(__('admin.influencer_deal_show_section.approve')),
+    initiatePaymentConfirmTitle: @json(__('admin.influencer_deal_show_section.initiate_payment_confirm_title')),
+    initiatePaymentConfirmText: @json(__('admin.influencer_deal_show_section.initiate_payment_confirm_text')),
+    initiate: @json(__('admin.influencer_deal_show_section.initiate')),
+    pleaseEnterReason: @json(__('admin.influencer_deal_show_section.please_enter_reason')),
+    somethingWentWrong: @json(__('admin.influencer_deal_show_section.something_went_wrong')),
+});
+
 $(function () {
     const dealId = '{{ $deal->id }}';
     const csrf = '{{ csrf_token() }}';
 
     $('#approve-deal-btn').on('click', function () {
-        window.confirmDialog({ title: 'Approve Deal', text: 'All deliverables must be approved.', confirmButtonText: 'Approve' })
+        window.confirmDialog({ title: window.TRANSLATIONS.approveDealConfirmTitle, text: window.TRANSLATIONS.approveDealConfirmText, confirmButtonText: window.TRANSLATIONS.approve })
             .then(confirmed => {
                 if (!confirmed) return;
                 $.post(`{{ url('/influencer-deals') }}/${dealId}/approve`, { _token: csrf })
                     .done(r => { window.Toast.success(r.message); window.location.reload(); })
-                    .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Something went wrong.'));
+                    .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
             });
     });
 
     $('#initiate-payment-btn').on('click', function () {
-        window.confirmDialog({ title: 'Initiate Payment', text: 'This will create a payout for this deal.', confirmButtonText: 'Initiate' })
+        window.confirmDialog({ title: window.TRANSLATIONS.initiatePaymentConfirmTitle, text: window.TRANSLATIONS.initiatePaymentConfirmText, confirmButtonText: window.TRANSLATIONS.initiate })
             .then(confirmed => {
                 if (!confirmed) return;
                 $.post(`{{ url('/influencer-deals') }}/${dealId}/payment`, { _token: csrf })
                     .done(r => { window.Toast.success(r.message); window.location.reload(); })
-                    .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Something went wrong.'));
+                    .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
             });
     });
 
@@ -199,17 +211,17 @@ $(function () {
     $('#cancel-cancel-deal').on('click', () => $('#cancel-deal-modal').hide());
     $('#confirm-cancel-deal').on('click', function () {
         const reason = $('#cancel-reason').val().trim();
-        if (!reason) { window.Toast.warning('Please enter a reason.'); return; }
+        if (!reason) { window.Toast.warning(window.TRANSLATIONS.pleaseEnterReason); return; }
         $.post(`{{ url('/influencer-deals') }}/${dealId}/cancel`, { _token: csrf, reason })
             .done(r => { window.Toast.success(r.message); window.location.reload(); })
-            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Something went wrong.'));
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
     });
 
     $(document).on('click', '.btn-approve-deliverable', function () {
         const deliverableId = $(this).data('id');
         $.post(`{{ url('/influencer-deals') }}/${dealId}/deliverables/${deliverableId}/approve`, { _token: csrf })
             .done(r => { window.Toast.success(r.message); window.location.reload(); })
-            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Something went wrong.'));
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
     });
 
     $(document).on('click', '.btn-reject-deliverable', function () {
@@ -221,10 +233,10 @@ $(function () {
     $('#confirm-reject-deliverable').on('click', function () {
         const deliverableId = $('#reject-deliverable-id').val();
         const reason = $('#reject-deliverable-reason').val().trim();
-        if (!reason) { window.Toast.warning('Please enter a reason.'); return; }
+        if (!reason) { window.Toast.warning(window.TRANSLATIONS.pleaseEnterReason); return; }
         $.post(`{{ url('/influencer-deals') }}/${dealId}/deliverables/${deliverableId}/reject`, { _token: csrf, reason })
             .done(r => { window.Toast.success(r.message); window.location.reload(); })
-            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || 'Something went wrong.'));
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
     });
 });
 </script>

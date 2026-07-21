@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketer Login — Noon</title>
+    <title>{{ __('marketer.login.page_title') }}</title>
     @vite(['resources/css/app.css'])
     <style>
         body {
@@ -67,7 +67,7 @@
     <div class="login-card">
         <div class="text-center mb-8">
             <h1 style="font-size:1.75rem;font-weight:900;color:#facc15;letter-spacing:-1px;">noon</h1>
-            <p style="color:#94a3b8;font-size:0.8rem;margin-top:2px;">Marketer &amp; Influencer Portal</p>
+            <p style="color:#94a3b8;font-size:0.8rem;margin-top:2px;">{{ __('marketer.login.subtitle') }}</p>
         </div>
 
         <form method="POST" action="{{ route('marketer.login.post') }}">
@@ -82,7 +82,7 @@
 
             <div class="mb-4">
                 <label style="display:block;font-size:0.75rem;font-weight:600;color:#94a3b8;margin-bottom:0.4rem;">
-                    Email Address
+                    {{ __('marketer.login.email') }}
                 </label>
                 <input type="email" name="email" value="{{ old('email') }}" class="form-input-dark"
                     placeholder="you@example.com" required autofocus>
@@ -90,7 +90,7 @@
 
             <div class="mb-5">
                 <label style="display:block;font-size:0.75rem;font-weight:600;color:#94a3b8;margin-bottom:0.4rem;">
-                    Password
+                    {{ __('marketer.login.password') }}
                 </label>
                 <input type="password" name="password" class="form-input-dark" placeholder="••••••••" required>
             </div>
@@ -98,15 +98,15 @@
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
                 <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
                     <input type="checkbox" name="remember" style="accent-color:#facc15;">
-                    <span style="font-size:0.8rem;color:#94a3b8;">Keep me signed in</span>
+                    <span style="font-size:0.8rem;color:#94a3b8;">{{ __('marketer.login.keep_signed_in') }}</span>
                 </label>
             </div>
 
-            <button type="submit" class="btn-primary-yellow">Sign In</button>
+            <button type="submit" class="btn-primary-yellow">{{ __('marketer.login.sign_in') }}</button>
         </form>
 
         <p style="text-align:center;font-size:0.75rem;color:#475569;margin-top:1.5rem;">
-            Not a marketer yet? Contact <a href="mailto:partners@noon.com" style="color:#facc15;">partners@noon.com</a>
+            {!! __('marketer.login.not_marketer', ['email' => '<a href="mailto:partners@noon.com" style="color:#facc15;">partners@noon.com</a>']) !!}
         </p>
     </div>
 </body>

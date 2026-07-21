@@ -35,7 +35,7 @@ class BrowseService
             'product'    => $this->browseProducts($slug, $country, $request),
             'classified' => $this->browseClassifieds($slug, $country, $request),
             'travel'     => $this->browseTravel($slug, $country, $request),
-            default      => throw new NotFoundHttpException("Unknown browse type: {$type}"),
+            default      => throw new NotFoundHttpException(__('common.exceptions.browse.unknown_type', ['type' => $type])),
         };
     }
 

@@ -22,6 +22,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <script>
+    window.trans = @json(__('js'));
+    window.t = window.t || function (path, vars) {
+        const parts = String(path).split('.');
+        let cur = window.trans || {};
+        for (const part of parts) {
+            cur = cur == null ? undefined : cur[part];
+            if (cur === undefined) return path;
+        }
+        if (typeof cur === 'string' && vars) {
+            return cur.replace(/\{(\w+)\}/g, (_, key) => (vars[key] ?? ''));
+        }
+        return cur;
+    };
+    </script>
+
+
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/components/layout.js'])
 
     @stack('styles')

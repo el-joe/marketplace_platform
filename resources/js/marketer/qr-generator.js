@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!url) return;
 
             btn.disabled = true;
-            btn.textContent = 'Generating…';
+            btn.textContent = t('marketer.qr_generator.generating');
 
             try {
                 const payload = Object.fromEntries(new FormData(form));
@@ -40,13 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         resultBox.classList.remove('hidden');
                     }
                 } else {
-                    alert(data.message || 'Could not generate QR');
+                    alert(data.message || t('marketer.qr_generator.could_not_generate'));
                 }
             } catch {
-                alert('Network error — please try again');
+                alert(t('marketer.qr_generator.network_error'));
             } finally {
                 btn.disabled = false;
-                btn.textContent = btn.dataset.label ?? 'Generate';
+                btn.textContent = btn.dataset.label ?? t('marketer.qr_generator.generate_label');
             }
         });
     });
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             const url = btn.dataset.whatsappShare;
             if (!url) return;
-            const text = btn.dataset.shareText ?? 'Check this out!';
+            const text = btn.dataset.shareText ?? t('marketer.qr_generator.share_default_text');
             window.open('https://wa.me/?text=' + encodeURIComponent(text + ' ' + url), '_blank');
         });
     });
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!value) return;
             navigator.clipboard.writeText(value).then(() => {
                 const original = btn.textContent;
-                btn.textContent = '✓ Copied!';
+                btn.textContent = t('marketer.qr_generator.copied');
                 setTimeout(() => { btn.textContent = original; }, 2000);
             });
         });

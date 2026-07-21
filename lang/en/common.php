@@ -23,6 +23,10 @@ return [
     'confirm'         => 'Confirm',
     'back'            => 'Back',
     'close'           => 'Close',
+    'dismiss'         => 'Dismiss',
+    'close_modal'     => 'Close modal',
+    'breadcrumb'      => 'Breadcrumb',
+    'toggle_active'   => 'Toggle active',
     'loading'         => 'Loading...',
     'no_data'         => 'No data available',
     'all'             => 'All',
@@ -133,4 +137,106 @@ return [
     ],
     'all_rights_reserved' => 'All rights reserved.',
     'remove' => 'Remove',
+    'portal_content' => 'Portal Content',
+    'no_notifications_yet' => 'No notifications yet.',
+    'view_all_notifications' => 'View all notifications',
+
+    'welcome' => [
+        'dashboard'    => 'Dashboard',
+        'log_in'       => 'Log in',
+        'register'     => 'Register',
+        'get_started'  => "Let's get started",
+        'options_intro'=> 'With so many options available to you,<br /> we suggest you start with the following:',
+        'read_the'     => 'Read the',
+        'documentation'=> 'Documentation',
+        'watch_videos_at' => 'Watch video tutorials at',
+        'deploy_now'   => 'Deploy now',
+        'view_changelog' => 'View changelog',
+    ],
+
+    'notifications_page' => [
+        'title' => 'Notifications',
+        'all_notifications' => 'All Notifications',
+        'mark_all_read' => 'Mark all read',
+    ],
+
+    'exceptions' => [
+        'warehouse' => [
+            'not_authorised_inventory_adjustment' => 'You are not authorised to adjust this inventory.',
+            'source_warehouse_not_owned'          => 'Source warehouse does not belong to your account.',
+            'transfer_not_owned'                  => 'Transfer does not belong to your account.',
+            'warehouse_not_owned'                 => 'This warehouse does not belong to your account.',
+            'cannot_deactivate_has_stock'          => 'Cannot deactivate — :count listing(s) still have stock here.',
+            'stock_below_zero'                     => 'Stock cannot go below zero.',
+            'transfer_not_draft'                   => 'Transfer is not in draft status.',
+            'insufficient_stock_items'              => 'Insufficient stock for one or more items.',
+            'transfer_cannot_be_cancelled'          => 'Transfer cannot be cancelled in its current state.',
+            'negative_quantity_on_hand'             => 'Adjustment would result in negative quantity on hand (:qty).',
+            'damaged_exceeds_on_hand'                => 'Cannot mark :qty unit(s) as damaged; only :available on hand.',
+            'only_draft_can_be_shipped'              => 'Only draft transfers can be shipped.',
+            'only_in_transit_can_be_received'        => 'Only in-transit transfers can be received.',
+            'only_draft_can_be_cancelled'             => 'Only draft transfers can be cancelled.',
+        ],
+
+        'onboarding' => [
+            'incomplete' => 'Not all onboarding steps are complete.',
+        ],
+
+        'gift_card' => [
+            'not_active'           => 'Gift card is not active.',
+            'expired'              => 'Gift card has expired.',
+            'insufficient_balance' => 'Gift card has insufficient balance.',
+        ],
+
+        'change_request' => [
+            'pending_exists'    => 'A pending request already exists for this section.',
+            'cannot_be_cancelled' => 'This request cannot be cancelled.',
+        ],
+
+        'delivery' => [
+            'not_assigned_state'        => 'Assignment is not in assigned state.',
+            'not_accepted_state'        => 'Assignment is not in accepted state.',
+            'not_picked_up_state'       => 'Assignment is not in picked-up state.',
+            'cannot_be_failed'          => 'Assignment cannot be failed in its current state.',
+            'already_on_shift'          => 'You are already on shift.',
+            'location_required'        => 'You must send your current location before starting a shift.',
+            'not_on_shift'              => 'You are not currently on shift.',
+            'active_delivery_in_progress' => 'You have an active delivery in progress. Complete or fail it before ending your shift.',
+        ],
+
+        'cart' => [
+            'insufficient_stock'         => 'Insufficient stock. Only :available unit(s) available.',
+            'exceeds_max_order_quantity' => 'Exceeds maximum order quantity for this listing.',
+            'max_items'                  => 'Cart cannot exceed :max items.',
+            'coupon_usage_limit_reached'  => 'This coupon has reached its total usage limit.',
+            'coupon_customer_limit_reached' => 'You have already used this coupon the maximum number of times.',
+            'coupon_min_order_required'   => 'A minimum order of :amount :currency is required for this coupon.',
+        ],
+
+        'browse' => [
+            'unknown_type' => 'Unknown browse type: :type.',
+        ],
+
+        'wallet' => [
+            'frozen' => 'Wallet is frozen: :reason',
+        ],
+
+        'payment' => [
+            'unknown_gateway'         => 'Unknown payment gateway: :code.',
+            'refund_failed'           => 'Refund failed.',
+            'noonpay_payment_failed'  => 'NoonPay payment failed.',
+            'void_failed'             => 'Void failed.',
+        ],
+
+        'listing' => [
+            'unknown_type'                => 'Unknown listing type.',
+            'not_found'                   => 'Listing not found or no longer active.',
+            'travel_package_not_found_expired' => 'Travel package not found, expired, or no longer active.',
+            'travel_package_not_found'    => 'Travel package not found.',
+            'inquiry_submitted'           => 'Inquiry submitted.',
+            'booking_submitted'          => 'Booking submitted.',
+            'booking_pending_review'     => 'Your booking is pending document review by the agency before confirmation.',
+            'contract_signed'            => 'Contract signed successfully.',
+        ],
+    ],
 ];

@@ -72,7 +72,7 @@
         <a href="{{ \Illuminate\Support\Facades\Route::has('admin.portal-content.index') ? route('admin.portal-content.index') : '#' }}"
             class="nav-item {{ request()->routeIs('admin.portal-content.*') ? 'is-active' : '' }}">
             <x-heroicon name="document-text" class="nav-item-icon" />
-            <span class="sidebar-label">Portal Content</span>
+            <span class="sidebar-label">{{ __('common.portal_content') }}</span>
         </a>
         <a href="{{ \Illuminate\Support\Facades\Route::has('admin.profile.edit') ? route('admin.profile.edit') : '#' }}"
             class="nav-item">

@@ -82,14 +82,14 @@ function initAddModal() {
         const { ok, data } = await sendRequest('POST', cfg().storeUrl, payload);
         if (ok && data.success) {
             hideModal('add-account-modal');
-            toast(data.message ?? 'Submitted.');
+            toast(data.message ?? t('travel_agency.bank_accounts.submitted'));
             if (data.pending_review) {
                 setTimeout(() => window.location.reload(), 1200);
                 return;
             }
             window.location.reload();
         } else {
-            showError('account-form-error', data.message ?? 'Something went wrong. Please check the form.');
+            showError('account-form-error', data.message ?? t('travel_agency.bank_accounts.generic_form_error'));
         }
         submitBtn.disabled = false;
     });
@@ -110,10 +110,10 @@ function initSetPrimary() {
 
         const { ok, data } = await sendRequest('POST', url);
         if (ok && data.success) {
-            toast(data.message ?? 'Submitted.');
+            toast(data.message ?? t('travel_agency.bank_accounts.submitted'));
             window.location.reload();
         } else {
-            toast(data.message ?? 'Something went wrong.', false);
+            toast(data.message ?? t('shared.something_went_wrong'), false);
             btn.disabled = false;
         }
     });
@@ -128,7 +128,7 @@ function initDelete() {
         const btn = e.target.closest('.btn-delete-account');
         if (!btn) return;
 
-        if (!window.confirm('Delete this bank account?')) return;
+        if (!window.confirm(t('travel_agency.bank_accounts.delete_confirm'))) return;
 
         const id = btn.dataset.id;
         const url = `${cfg().deleteUrl}/${id}`;
@@ -136,10 +136,10 @@ function initDelete() {
 
         const { ok, data } = await sendRequest('DELETE', url);
         if (ok && data.success) {
-            toast(data.message ?? 'Submitted.');
+            toast(data.message ?? t('travel_agency.bank_accounts.submitted'));
             window.location.reload();
         } else {
-            toast(data.message ?? 'This account cannot be deleted.', false);
+            toast(data.message ?? t('travel_agency.bank_accounts.cannot_delete'), false);
             btn.disabled = false;
         }
     });

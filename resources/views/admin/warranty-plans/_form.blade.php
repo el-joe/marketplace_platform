@@ -48,7 +48,7 @@
         <div class="space-y-4">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">English</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.warranty_plans.english_label') }}</h2>
                 </div>
                 <div class="px-5 py-5 space-y-4">
 
@@ -94,7 +94,7 @@
         <div class="space-y-4">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100" dir="rtl">
-                    <h2 class="text-sm font-semibold text-gray-900">عربي</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.warranty_plans.arabic_label') }}</h2>
                 </div>
                 <div class="px-5 py-5 space-y-4">
 
@@ -144,7 +144,7 @@
         <div class="lg:col-span-2 space-y-4">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Plan Details</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.warranty_plans.plan_details') }}</h2>
                 </div>
                 <div class="px-5 py-5 space-y-4">
 
@@ -240,7 +240,7 @@
 
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div class="px-5 py-4 border-b border-gray-100">
-                    <h2 class="text-sm font-semibold text-gray-900">Save</h2>
+                    <h2 class="text-sm font-semibold text-gray-900">{{ __('admin.warranty_plans.save_label') }}</h2>
                 </div>
                 <div class="px-5 py-5 space-y-3">
                     <button type="submit" class="btn btn-primary w-full">

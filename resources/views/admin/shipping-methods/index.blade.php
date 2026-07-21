@@ -20,7 +20,7 @@
     <div x-data="{ activeTab: window.location.hash.replace('#','') || 'methods' }">
 
         <div class="border-b border-gray-200 mb-6">
-            <nav class="-mb-px flex gap-0 overflow-x-auto" aria-label="Shipping tabs">
+            <nav class="-mb-px flex gap-0 overflow-x-auto" aria-label="{{ __('admin.shipping_section.shipping_tabs_aria_label') }}">
                 @foreach([
                     ['key' => 'methods',  'icon' => 'truck',           'label' => __('admin.shipping_section.shipping_methods_tab')],
                     ['key' => 'carriers', 'icon' => 'building-office',  'label' => __('admin.shipping_section.carriers_tab')],
@@ -275,7 +275,7 @@
                                                        data-country-id="{{ $country->id }}"
                                                        data-method-id="{{ $method->id }}"
                                                        value="{{ $setting->free_shipping_threshold ? number_format($setting->free_shipping_threshold, 2) : '' }}"
-                                                       title="Free shipping threshold in currency units" />
+                                                       title="{{ __('admin.shipping_section.free_shipping_threshold_currency_units') }}" />
                                             </div>
                                         @endif
                                     </td>
@@ -312,7 +312,7 @@
                 <div>
                     <x-form-input name="code" label="{{ __('admin.shipping_section.code_label') }}" placeholder="{{ __('admin.shipping_section.code_placeholder_method') }}" required />
                     <p class="text-xs text-gray-400 mt-1" data-code-locked-note style="display:none">
-                        {{ __('admin.shipping_section.code_immutable_note') ?? 'Code cannot be changed after creation.' }}
+                        {{ __('admin.shipping_section.code_immutable_note') }}
                     </p>
                 </div>
                 <div>
@@ -325,58 +325,58 @@
                     <x-form-input name="max_delivery_days" label="{{ __('admin.shipping_section.max_days') }}" type="number" placeholder="5" required />
                 </div>
                 <div>
-                    <x-form-input name="order_cutoff_time" type="time" label="Order cutoff time"
-                                  help-text="Orders placed before this time qualify for this method's minimum delivery window." />
+                    <x-form-input name="order_cutoff_time" type="time" label="{{ __('admin.shipping_section.order_cutoff_time') }}"
+                                  help-text="{{ __('admin.shipping_section.order_cutoff_time_help') }}" />
                 </div>
                 <div>
-                    <x-form-input name="handling_time_hours" type="number" min="0" label="Handling time (hours)" placeholder="24" />
+                    <x-form-input name="handling_time_hours" type="number" min="0" label="{{ __('admin.shipping_section.handling_time_hours') }}" placeholder="24" />
                 </div>
                 <div>
-                    <x-form-input name="display_priority" type="number" min="0" label="Display priority" placeholder="0"
-                                  help-text="Lower numbers appear first." />
+                    <x-form-input name="display_priority" type="number" min="0" label="{{ __('admin.shipping_section.display_priority') }}" placeholder="0"
+                                  help-text="{{ __('admin.shipping_section.display_priority_help') }}" />
                 </div>
                 <div class="flex items-center gap-6">
-                    <x-form-toggle name="is_express_type" label="Express type" />
-                    <x-form-toggle name="show_estimated_price" label="Show estimated price" />
+                    <x-form-toggle name="is_express_type" label="{{ __('admin.shipping_section.express_type') }}" />
+                    <x-form-toggle name="show_estimated_price" label="{{ __('admin.shipping_section.show_estimated_price') }}" />
                 </div>
 
                 <div class="sm:col-span-2 border-t border-gray-100 pt-4">
-                    <p class="text-sm font-semibold text-gray-700 mb-3">Badge</p>
+                    <p class="text-sm font-semibold text-gray-700 mb-3">{{ __('admin.shipping_section.badge_label') }}</p>
                 </div>
                 <div>
-                    <x-form-input name="badge_label_en" x-model="badgeLabel" label="Badge label (EN)" placeholder="Express" />
+                    <x-form-input name="badge_label_en" x-model="badgeLabel" label="{{ __('admin.shipping_section.badge_label_en') }}" placeholder="Express" />
                 </div>
                 <div>
-                    <x-form-input name="badge_label_ar" label="Badge label (AR)" placeholder="سريع" dir="rtl" />
+                    <x-form-input name="badge_label_ar" label="{{ __('admin.shipping_section.badge_label_ar') }}" placeholder="سريع" dir="rtl" />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Badge color</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_section.badge_color') }}</label>
                     <input type="color" name="badge_color_hex" x-model="badgeColor"
                            class="h-9 w-16 rounded border border-gray-300 p-0.5 cursor-pointer" />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Badge text color</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_section.badge_text_color') }}</label>
                     <input type="color" name="badge_text_color_hex" x-model="badgeTextColor"
                            class="h-9 w-16 rounded border border-gray-300 p-0.5 cursor-pointer" />
                 </div>
 
                 {{-- Live badge preview — reflects exactly how the badge appears on a product listing card --}}
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Preview</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_section.preview') }}</label>
                     <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 flex items-center">
                         <span x-show="badgeLabel"
                               x-text="badgeLabel"
                               :style="`background-color: ${badgeColor}; color: ${badgeTextColor};`"
                               class="rounded-full px-2 py-0.5 text-xs font-semibold"></span>
-                        <span x-show="!badgeLabel" class="text-xs text-gray-400">No badge configured</span>
+                        <span x-show="!badgeLabel" class="text-xs text-gray-400">{{ __('admin.shipping_section.no_badge_configured') }}</span>
                     </div>
                 </div>
 
                 <div>
-                    <x-form-input name="delivery_label_en" label="Delivery panel label (EN)" placeholder="Delivered within 2-4 days" />
+                    <x-form-input name="delivery_label_en" label="{{ __('admin.shipping_section.delivery_panel_label_en') }}" placeholder="Delivered within 2-4 days" />
                 </div>
                 <div>
-                    <x-form-input name="delivery_label_ar" label="Delivery panel label (AR)" placeholder="يتم التوصيل خلال 2-4 أيام" dir="rtl" />
+                    <x-form-input name="delivery_label_ar" label="{{ __('admin.shipping_section.delivery_panel_label_ar') }}" placeholder="يتم التوصيل خلال 2-4 أيام" dir="rtl" />
                 </div>
 
                 <div class="sm:col-span-2">

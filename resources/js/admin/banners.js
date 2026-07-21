@@ -82,22 +82,22 @@ function initDataTable() {
                     return `<img src="${data}" class="w-14 h-9 rounded object-cover border border-gray-200" alt="">`;
                 },
             },
-            { data: 'name', title: 'Name' },
-            { data: 'placement_code', title: 'Placement', orderable: true },
-            { data: 'country', title: 'Country', orderable: false },
-            { data: 'status', title: 'Status', orderable: true },
-            { data: 'device_target', title: 'Device', orderable: true },
-            { data: 'audience', title: 'Audience', orderable: true },
-            { data: 'date_range', title: 'Dates', orderable: false },
-            { data: 'impressions', title: 'Impr.', orderable: true },
-            { data: 'clicks', title: 'Clicks', orderable: true },
-            { data: 'ctr', title: 'CTR', orderable: false },
-            { data: 'priority', title: 'Priority', orderable: true },
-            { data: 'actions', title: '', orderable: false, searchable: false },
+            { data: 'name', orderable: true },
+            { data: 'placement_code', orderable: true },
+            { data: 'country', orderable: false },
+            { data: 'status', orderable: true },
+            { data: 'device_target', orderable: true },
+            { data: 'audience', orderable: true },
+            { data: 'date_range', orderable: false },
+            { data: 'impressions', orderable: true },
+            { data: 'clicks', orderable: true },
+            { data: 'ctr', orderable: false },
+            { data: 'priority', orderable: true },
+            { data: 'actions', orderable: false, searchable: false },
         ],
         order: [[11, 'desc']], // priority desc
         pageLength: 25,
-        language: { processing: '<div class="text-sm text-gray-500 py-4">Loading…</div>' },
+        language: { processing: `<div class="text-sm text-gray-500 py-4">${t('shared.loading')}</div>` },
     });
 }
 
@@ -142,7 +142,7 @@ function initDeleteModal() {
     $('#confirm-delete-btn').on('click', function () {
         if (!pendingDeleteUrl) return;
         const btn = $(this);
-        btn.prop('disabled', true).text('Deleting…');
+        btn.prop('disabled', true).text(t('admin.banners.deleting'));
 
         $.ajax({
             url: pendingDeleteUrl,
@@ -150,12 +150,12 @@ function initDeleteModal() {
             headers: { 'X-CSRF-TOKEN': csrfToken() },
         })
             .done((res) => {
-                window.Toast.success(res.message || 'Banner deleted.');
+                window.Toast.success(res.message || t('admin.banners.deleted'));
                 closeModalById('delete-modal');
                 bannersTable.ajax.reload(null, false);
             })
-            .fail(() => window.Toast.error('Failed to delete banner.'))
-            .always(() => btn.prop('disabled', false).text('Delete'));
+            .fail(() => window.Toast.error(t('admin.banners.delete_failed')))
+            .always(() => btn.prop('disabled', false).text(t('admin.banners.delete_label')));
     });
 }
 
@@ -173,19 +173,19 @@ function initDuplicateModal() {
     $('#confirm-duplicate-btn').on('click', function () {
         if (!pendingDuplicateUrl) return;
         const btn = $(this);
-        btn.prop('disabled', true).text('Duplicating…');
+        btn.prop('disabled', true).text(t('admin.banners.duplicating'));
 
         $.ajax({ url: pendingDuplicateUrl, method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken() } })
             .done((res) => {
-                window.Toast.success(res.message || 'Banner duplicated.');
+                window.Toast.success(res.message || t('admin.banners.duplicated'));
                 if (res.redirect) window.location.href = res.redirect;
                 else {
                     closeModalById('duplicate-modal');
                     bannersTable.ajax.reload(null, false);
                 }
             })
-            .fail(() => window.Toast.error('Failed to duplicate banner.'))
-            .always(() => btn.prop('disabled', false).text('Duplicate'));
+            .fail(() => window.Toast.error(t('admin.banners.duplicate_failed')))
+            .always(() => btn.prop('disabled', false).text(t('admin.banners.duplicate_label')));
     });
 }
 
@@ -223,7 +223,7 @@ function initImageRemoval() {
         const deleteUrl = btn.data('delete-url');
         const slot = btn.data('slot');
 
-        if (!confirm('Remove this image?')) return;
+        if (!confirm(t('admin.banners.remove_image_confirm'))) return;
 
         $.ajax({
             url: deleteUrl,
@@ -232,7 +232,7 @@ function initImageRemoval() {
             data: { file_id: fileId },
         })
             .done(() => {
-                window.Toast.success('Image removed.');
+                window.Toast.success(t('admin.banners.image_removed'));
                 if (slot === 'desktop') {
                     $('#desktop-preview-img').attr('src', '').addClass('hidden');
                     $('#desktop-upload-placeholder').removeClass('hidden');
@@ -242,7 +242,7 @@ function initImageRemoval() {
                 }
                 btn.remove();
             })
-            .fail(() => window.Toast.error('Failed to remove image.'));
+            .fail(() => window.Toast.error(t('admin.banners.image_remove_failed')));
     });
 }
 
@@ -258,12 +258,12 @@ function initDates() {
         if (s && e) {
             const valid = new Date(e) > new Date(s);
             $('#date-error').toggleClass('hidden', valid);
-            $endsAt[0]?.setCustomValidity(valid ? '' : 'End must be after start');
+            $endsAt[0]?.setCustomValidity(valid ? '' : t('admin.banners.end_after_start'));
 
             if (valid) {
                 const diffMs = new Date(e) - new Date(s);
                 const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-                $('#duration-preview').text(`Duration: ${diffDays} day${diffDays !== 1 ? 's' : ''}`);
+                $('#duration-preview').text(t('admin.banners.duration_label', { days: diffDays }));
             } else {
                 $('#duration-preview').text('—');
             }
@@ -286,11 +286,11 @@ function initFormSubmit() {
         // Check date validity
         const $endsAt = $('[name="ends_at"]');
         if ($endsAt[0] && $endsAt[0].validationMessage) {
-            window.Toast.error('Please fix date errors before saving.');
+            window.Toast.error(t('admin.banners.fix_date_errors'));
             return;
         }
 
-        btn.prop('disabled', true).text('Saving…');
+        btn.prop('disabled', true).text(t('shared.saving'));
 
         const fd = new FormData(form);
 
@@ -302,7 +302,7 @@ function initFormSubmit() {
             contentType: false,
         })
             .done((res) => {
-                window.Toast.success(res.message || 'Saved.');
+                window.Toast.success(res.message || t('shared.saved'));
                 if (res.redirect) window.location.href = res.redirect;
             })
             .fail((xhr) => {
@@ -311,7 +311,7 @@ function initFormSubmit() {
                     const firstErr = Object.values(body.errors)[0];
                     window.Toast.error(Array.isArray(firstErr) ? firstErr[0] : firstErr);
                 } else {
-                    window.Toast.error(body?.message || 'Something went wrong.');
+                    window.Toast.error(body?.message || t('shared.something_went_wrong'));
                 }
             })
             .always(() => btn.prop('disabled', false).text(origTxt));

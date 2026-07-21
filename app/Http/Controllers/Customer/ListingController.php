@@ -46,7 +46,7 @@ class ListingController extends Controller
             'product'    => $this->showProduct($request, $country, $slug),
             'classified' => $this->showClassified($request, $country, $slug),
             'travel'     => $this->showTravel($request, $country, $slug),
-            default      => throw new NotFoundHttpException('Unknown listing type.'),
+            default      => throw new NotFoundHttpException(__('common.exceptions.listing.unknown_type')),
         };
     }
 
@@ -58,7 +58,7 @@ class ListingController extends Controller
         $country = $request->attributes->get('country');
         $listing = $this->classifiedDetail->findActive($slug, $country);
 
-        abort_if(! $listing, 404, 'Listing not found or no longer active.');
+        abort_if(! $listing, 404, __('common.exceptions.listing.not_found'));
 
         /** @var \App\Models\Customer $customer */
         $customer = auth('customer')->user();
@@ -69,7 +69,7 @@ class ListingController extends Controller
             'listing_slug' => $slug,
             'status'     => $inquiry->status?->value,
             'created_at' => $inquiry->created_at->toIso8601String(),
-        ], 'Inquiry submitted.', 201);
+        ], __('common.exceptions.listing.inquiry_submitted'), 201);
     }
 
     public function createBooking(
@@ -81,7 +81,7 @@ class ListingController extends Controller
         $package = $this->travelDetail->findActive($slug);
 
         if (! $package) {
-            abort(404, 'Travel package not found, expired, or no longer active.');
+            abort(404, __('common.exceptions.listing.travel_package_not_found_expired'));
         }
 
         /** @var \App\Models\Customer $customer */
@@ -96,8 +96,8 @@ class ListingController extends Controller
             'total_price' => $booking->total_price,
             'currency'          => $package->currency,
             'created_at'        => $booking->created_at->toIso8601String(),
-            'message'           => 'Your booking is pending document review by the agency before confirmation.',
-        ], 'Booking submitted.', 201);
+            'message'           => __('common.exceptions.listing.booking_pending_review'),
+        ], __('common.exceptions.listing.booking_submitted'), 201);
     }
 
     public function signContract(
@@ -109,7 +109,7 @@ class ListingController extends Controller
         $_country = $request->attributes->get('country');
         // Verify the package still exists (even if expired — contract signing can happen post-departure)
         $packageExists = \App\Models\TravelPackage::where('slug', $slug)->exists();
-        abort_if(! $packageExists, 404, 'Travel package not found.');
+        abort_if(! $packageExists, 404, __('common.exceptions.listing.travel_package_not_found'));
 
         /** @var \App\Models\Customer $customer */
         $customer = auth('customer')->user();
@@ -120,7 +120,7 @@ class ListingController extends Controller
             'booking_number'      => $booking->booking_number,
             'contract_signed_at'  => $booking->contract_signed_at?->toIso8601String(),
             'status'              => $booking->status?->value,
-        ], 'Contract signed successfully.');
+        ], __('common.exceptions.listing.contract_signed'));
     }
 
     // ── Private branch methods ────────────────────────────────────────────────
@@ -236,7 +236,7 @@ class ListingController extends Controller
 
         $listing = $this->classifiedDetail->findActive($listingNumber, $country);
 
-        abort_if(! $listing, 404, 'Listing not found or no longer active.');
+        abort_if(! $listing, 404, __('common.exceptions.listing.not_found'));
 
         $this->classifiedDetail->incrementViews($listing);
 
@@ -250,7 +250,7 @@ class ListingController extends Controller
     {
         $package = $this->travelDetail->findActive($id);
 
-        abort_if(! $package, 404, 'Travel package not found, expired, or no longer active.');
+        abort_if(! $package, 404, __('common.exceptions.listing.travel_package_not_found_expired'));
 
         return ApiResponse::success((new TravelPackageDetailResource($package))->toArray($request));
     }
