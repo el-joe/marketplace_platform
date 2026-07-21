@@ -53,7 +53,8 @@ class PortalContentSeeder extends Seeder
         $rows[] = ['nav', 'link_how_it_works', 'label', 'text', 'Getting Started', 'البدء', null, 2];
         $rows[] = ['nav', 'link_fulfillment', 'label', 'text', 'Shipping & Fulfilment', 'الشحن والتوصيل', null, 3];
         $rows[] = ['nav', 'link_smart_tools', 'label', 'text', 'Grow Smarter', 'نمّي بذكاء', null, 4];
-        $rows[] = ['nav', 'language_toggle', 'label', 'text', 'English', 'العربية', null, 5];
+        $rows[] = ['nav', 'link_blog', 'label', 'text', 'Blog', 'المدونة', null, 5];
+        $rows[] = ['nav', 'language_toggle', 'label', 'text', 'English', 'العربية', null, 6];
 
         // advertise-nav.blade.php labels (kept under page_key='nav' with a distinct block prefix)
         $rows[] = ['nav', 'advertise_nav', 'sellers', 'text', 'Sellers', 'البائعين', null, 10];
@@ -71,7 +72,10 @@ class PortalContentSeeder extends Seeder
         $rows[] = ['cta_footer', 'main', 'copyright', 'text', 'noon. All rights reserved', 'نون. جميع الحقوق محفوظة', null, 5];
 
         // ─── page_key = 'home' ──────────────────────────────────────────────
-        $rows[] = ['home', 'hero', 'title', 'text', 'Start selling on noon today!', 'ابدأ البيع على نون اليوم!', null, 1];
+        // NOTE: partials/hero.blade.php renders the headline as two separate
+        // lines for its typewriter animation, so it reads title_line1/title_line2.
+        $rows[] = ['home', 'hero', 'title_line1', 'text', 'Start selling on', 'ابدأ البيع على', null, 1];
+        $rows[] = ['home', 'hero', 'title_line2', 'text', 'noon today!', 'نون اليوم!', null, 2];
         $rows[] = ['home', 'hero', 'cta_button', 'link', 'Register now', 'سجل الآن', '/register', 2];
 
         // ─── page_key = 'faq' ───────────────────────────────────────────────
