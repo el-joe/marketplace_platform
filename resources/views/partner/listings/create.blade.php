@@ -283,7 +283,7 @@
                                         {{ $warehouse->name }}
                                         @if($warehouse->code) ({{ $warehouse->code }}) @endif
                                         —
-                                        {{ match ($warehouse->type?->value) { 'vendor' => __('partner.listings.vendor_warehouse_type'), 'platform' => __('partner.listings.platform_warehouse_type'), default => $warehouse->type?->value} }}
+                                        {{ match ($warehouse->type?->value) { 'seller_owned' => __('partner.listings.vendor_warehouse_type'), 'platform_fbn' => __('partner.listings.platform_warehouse_type'), default => $warehouse->type?->value} }}
                                     </option>
                                 @endforeach
                             </select>

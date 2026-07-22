@@ -377,7 +377,7 @@ function initChangeProduct() {
 // Create Form Submit (create page)
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function loadWarehousesByCountry(countryId) {
+async function loadWarehousesByCountry(countryId, fulfillmentModel) {
     const cfg = window.LISTINGS_CREATE;
     const select = document.querySelector('select[name="warehouse_id"]');
     if (!select || !cfg) return;
@@ -392,14 +392,17 @@ async function loadWarehousesByCountry(countryId) {
     }
 
     try {
-        const res = await fetch(`${cfg.warehousesByCountryUrl}?country_id=${encodeURIComponent(countryId)}`, {
+        const params = new URLSearchParams({ country_id: countryId });
+        if (fulfillmentModel) params.set('fulfillment_model', fulfillmentModel);
+
+        const res = await fetch(`${cfg.warehousesByCountryUrl}?${params.toString()}`, {
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
         });
         const warehouses = await res.json();
         if (!warehouses.length) {
-            select.innerHTML = '<option value="">لا توجد مستودعات في هذا البلد</option>';
+            select.innerHTML = '<option value="">لا توجد مستودعات مطابقة</option>';
         } else {
-            const typeLabel = (t) => t === 'vendor' ? 'مستودع خاص' : t === 'platform' ? 'مستودع المنصة' : t;
+            const typeLabel = (t) => t === 'seller_owned' ? 'مستودع خاص' : t === 'platform_fbn' ? 'مستودع المنصة' : t === 'third_party' ? 'مستودع طرف ثالث' : t;
             select.innerHTML = '<option value="">اختر المستودع...</option>' +
                 warehouses.map(w =>
                     `<option value="${w.id}">${escapeHtml(w.name)}${w.code ? ` (${escapeHtml(w.code)})` : ''} — ${typeLabel(w.type)}</option>`
@@ -416,13 +419,19 @@ function initCreateForm() {
     const cfg = window.LISTINGS_CREATE;
     if (!form || !cfg) return;
 
-    // Reload warehouses when country changes
     const countrySelect = form.querySelector('select[name="country_id"]');
-    if (countrySelect) {
-        countrySelect.addEventListener('change', () => loadWarehousesByCountry(countrySelect.value));
-        // Trigger immediately to populate for the pre-selected vendor country
-        if (countrySelect.value) loadWarehousesByCountry(countrySelect.value);
-    }
+    const fulfillmentSelect = form.querySelector('select[name="fulfillment_model"]');
+
+    const reloadWarehouses = () => {
+        loadWarehousesByCountry(countrySelect?.value, fulfillmentSelect?.value);
+    };
+
+    // Reload warehouses when country or fulfillment model changes
+    if (countrySelect) countrySelect.addEventListener('change', reloadWarehouses);
+    if (fulfillmentSelect) fulfillmentSelect.addEventListener('change', reloadWarehouses);
+
+    // Trigger immediately to populate for the pre-selected vendor country
+    if (countrySelect?.value) reloadWarehouses();
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();

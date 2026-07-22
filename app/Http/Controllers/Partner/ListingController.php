@@ -6,6 +6,7 @@ use App\Enums\InventoryMovementReferenceType;
 use App\Enums\InventoryMovementType;
 use App\Enums\ProductStatus;
 use App\Enums\VendorListingStatus;
+use App\Enums\WarehouseType;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Country;
@@ -264,9 +265,22 @@ class ListingController extends Controller
     // Warehouses by Country (AJAX — for create form)
     // ─────────────────────────────────────────────────────────────────────────
 
+    private function warehouseMatchesFulfillmentModel(Warehouse $warehouse, string $fulfillmentModel, $vendor): bool
+    {
+        return match ($fulfillmentModel) {
+            'fbm' => $warehouse->type === WarehouseType::SellerOwned && $warehouse->owner_vendor_id === $vendor->id,
+            'fbn' => $warehouse->type === WarehouseType::PlatformFbn,
+            'cross_dock' => $warehouse->type === WarehouseType::ThirdParty,
+            default => false,
+        };
+    }
+
     public function warehousesByCountry(Request $request): JsonResponse
     {
-        $request->validate(['country_id' => ['required', 'exists:countries,id']]);
+        $request->validate([
+            'country_id' => ['required', 'exists:countries,id'],
+            'fulfillment_model' => ['nullable', 'in:fbm,fbn,cross_dock'],
+        ]);
 
         $vendor = $this->vendor();
 
@@ -275,6 +289,14 @@ class ListingController extends Controller
             ->where(function ($q) use ($vendor) {
                 $q->whereNull('owner_vendor_id')
                     ->orWhere('owner_vendor_id', $vendor->id);
+            })
+            ->when($request->fulfillment_model, function ($q) use ($request, $vendor) {
+                match ($request->fulfillment_model) {
+                    'fbm' => $q->where('type', WarehouseType::SellerOwned)
+                        ->where('owner_vendor_id', $vendor->id),
+                    'fbn' => $q->where('type', WarehouseType::PlatformFbn),
+                    'cross_dock' => $q->where('type', WarehouseType::ThirdParty),
+                };
             })
             ->orderBy('name')
             ->get(['id', 'name', 'code', 'type']);
@@ -367,6 +389,8 @@ class ListingController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $vendor = $this->vendor();
+
         $request->validate([
             'product_variant_id' => ['nullable', 'required_without:product_id', 'uuid', 'exists:product_variants,id'],
             'product_id' => ['nullable', 'required_without:product_variant_id', 'uuid', 'exists:products,id'],
@@ -391,6 +415,14 @@ class ListingController extends Controller
             'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
             'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
         ]);
+
+        $warehouse = Warehouse::findOrFail($request->warehouse_id);
+        if (!$this->warehouseMatchesFulfillmentModel($warehouse, $request->fulfillment_model, $vendor)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المستودع المختار غير متوافق مع نموذج التنفيذ المحدد.',
+            ], 422);
+        }
 
         // Resolve product_variant_id — either sent directly (has_variants=1) or resolved
         // from the product's sole default variant (has_variants=0).
@@ -432,8 +464,6 @@ class ListingController extends Controller
                 'message' => 'لديك بالفعل قائمة نشطة لهذا المنتج في هذا البلد.',
             ], 422);
         }
-
-        $vendor = $this->vendor();
 
         // Established vendor (> 10 orders) gets active status directly
         $status = ($vendor->total_orders >= 10) ? VendorListingStatus::Active->value : VendorListingStatus::PendingReview->value;
