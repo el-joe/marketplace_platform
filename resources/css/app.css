@@ -117,6 +117,10 @@ body {
     font-family: 'Figtree', ui-sans-serif, system-ui, sans-serif;
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 #app-layout {
     display: flex;
     min-height: 100vh;

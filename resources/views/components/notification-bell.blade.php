@@ -46,10 +46,10 @@
         : '/notifications';
 @endphp
 
-<div x-data="notificationBell('{{ $echoChannel }}')" class="relative">
+<div x-data="notificationBell('{{ $echoChannel }}')" class="relative" @dropdown-opened.window="if ($event.detail?.source !== $el) open = false">
     {{-- Bell button --}}
     <button type="button"
-        @click="open = !open; if (open && !loaded) fetchRecent()"
+        @click="open = !open; if (open && !loaded) fetchRecent(); if (open) $dispatch('dropdown-opened', { source: $event.currentTarget.closest('[x-data]') })"
         class="relative p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
