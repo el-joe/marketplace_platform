@@ -6,11 +6,14 @@ use App\Http\Controllers\TravelAgencyPortal\BookingController;
 use App\Http\Controllers\TravelAgencyPortal\CampaignController;
 use App\Http\Controllers\TravelAgencyPortal\ChangeRequestController;
 use App\Http\Controllers\TravelAgencyPortal\DashboardController;
+use App\Http\Controllers\TravelAgencyPortal\FinanceController;
 use App\Http\Controllers\TravelAgencyPortal\PackageController;
 use App\Http\Controllers\TravelAgencyPortal\PackageInquiryController;
+use App\Http\Controllers\TravelAgencyPortal\PerformanceController;
 use App\Http\Controllers\TravelAgencyPortal\ProfileController;
 use App\Http\Controllers\TravelAgencyPortal\ReportController;
 use App\Http\Controllers\TravelAgencyPortal\RoleController;
+use App\Http\Controllers\TravelAgencyPortal\SupportController;
 use App\Http\Controllers\TravelAgencyPortal\TeamController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
@@ -151,6 +154,31 @@ Route::name('travel-agency.')
                     Route::get('/revenue/export', 'exportRevenue')->name('revenue.export');
                     Route::get('/bookings/export', 'exportBookings')->name('bookings.export');
                 });
+
+            // Finance
+            Route::prefix('finance')->name('finance.')->controller(FinanceController::class)->group(function () {
+                Route::get('/revenue', 'revenue')->name('revenue')->middleware('travel_agency.can:reports.view');
+                Route::get('/payouts', 'payouts')->name('payouts')->middleware('travel_agency.can:reports.view');
+                Route::get('/wallet', 'wallet')->name('wallet')->middleware('travel_agency.can:bank_accounts.view');
+                Route::post('/wallet/withdraw', 'requestWithdrawal')->name('wallet.withdraw')->middleware('travel_agency.can:bank_accounts.view');
+                Route::get('/sales-report', 'salesReport')->name('sales-report')->middleware('travel_agency.can:reports.view');
+                Route::get('/sales-report/export', 'exportSalesReport')->name('sales-report.export')->middleware('travel_agency.can:reports.export');
+            });
+
+            // Support tickets
+            Route::prefix('support')->name('support.')->controller(SupportController::class)->group(function () {
+                Route::get('/tickets', 'index')->name('index')->middleware('travel_agency.can:support.view');
+                Route::get('/tickets/create', 'create')->name('create')->middleware('travel_agency.can:support.create');
+                Route::post('/tickets', 'store')->name('store')->middleware('travel_agency.can:support.create');
+                Route::get('/tickets/{ticketNumber}', 'show')->name('show')->middleware('travel_agency.can:support.view');
+                Route::post('/tickets/{ticketNumber}/reply', 'reply')->name('reply')->middleware('travel_agency.can:support.create');
+            });
+
+            // Performance
+            Route::prefix('performance')->name('performance.')->controller(PerformanceController::class)->group(function () {
+                Route::get('/', 'index')->name('index')->middleware('travel_agency.can:reports.view');
+                Route::get('/stats', 'stats')->name('stats')->middleware('travel_agency.can:reports.view');
+            });
 
             // Roles & permissions
             Route::prefix('roles')->name('roles.')->controller(RoleController::class)->group(function () {

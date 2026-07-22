@@ -73,8 +73,11 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use App\Enums\SupportTicketRequesterRole;
+use App\Enums\SupportTicketStatus;
 use App\Enums\TravelBookingStatus;
 use App\Enums\TravelPackageInquiryStatus;
+use App\Models\SupportTicket;
 use App\Models\TravelBooking;
 use App\Models\TravelPackageInquiry;
 use App\Auth\TravelAgencyUserProvider;
@@ -192,7 +195,7 @@ class AppServiceProvider extends ServiceProvider
             $agencyId = Auth::guard('travel_agency')->id();
 
             if (!$agencyId) {
-                $view->with(['pendingBookingsCount' => 0, 'newInquiriesCount' => 0]);
+                $view->with(['pendingBookingsCount' => 0, 'newInquiriesCount' => 0, 'openTicketsCount' => 0]);
                 return;
             }
 
@@ -210,7 +213,15 @@ class AppServiceProvider extends ServiceProvider
                     ->count();
             });
 
-            $view->with(compact('pendingBookingsCount', 'newInquiriesCount'));
+            $openTicketsCount = Cache::remember("travel-agency.{$agencyId}.open-tickets-count", 60, function () use ($agencyId) {
+                return SupportTicket::query()
+                    ->where('requester_user_id', $agencyId)
+                    ->where('requester_role', SupportTicketRequesterRole::TravelAgency)
+                    ->whereNotIn('status', [SupportTicketStatus::Resolved, SupportTicketStatus::Closed])
+                    ->count();
+            });
+
+            $view->with(compact('pendingBookingsCount', 'newInquiriesCount', 'openTicketsCount'));
         });
 
         View::composer('layouts.marketer', MarketerSidebarComposer::class);

@@ -8,7 +8,14 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class TicketAttachment extends Model
 {
+    public $incrementing = false;
+
+    public $timestamps = false;
+
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'id',
         'ticket_message_id',
     ];
 

@@ -13,4 +13,5 @@ enum SupportTicketRequesterRole: string
     case Marketer = 'marketer';
     case DeliveryAgent = 'delivery_agent';
     case ShippingSupervisor = 'shipping_supervisor';
+    case TravelAgency = 'travel_agency';
 }

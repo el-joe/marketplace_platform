@@ -9,9 +9,17 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class TicketMessage extends Model
 {
+    public $incrementing = false;
+
+    public $timestamps = false;
+
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'id',
         'ticket_id',
-        'sender',
+        'sender_type',
+        'sender_id',
         'message',
         'is_internal_note',
         'is_ai_generated',

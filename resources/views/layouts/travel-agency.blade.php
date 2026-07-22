@@ -251,6 +251,65 @@
                     </svg>
                     {{ __('travel.nav.reports_packages') }}
                 </a>
+
+                <a href="{{ route('travel-agency.performance.index') }}"
+                    class="{{ request()->routeIs('travel-agency.performance.*') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 16l3-3 3 3 5-6" />
+                        <circle cx="18" cy="10" r="1.5" />
+                    </svg>
+                    {{ __('travel.nav.performance') }}
+                </a>
+            @endif
+
+            @if (auth()->guard('travel_agency')->user()?->can('support.view'))
+                <a href="{{ route('travel-agency.support.index') }}"
+                    class="{{ request()->routeIs('travel-agency.support.*') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M18 10a6 6 0 00-12 0v4a2 2 0 002 2h1v-6H6v6a2 2 0 002 2h8a2 2 0 002-2v-6h-3v6h1a2 2 0 002-2v-4z" />
+                    </svg>
+                    {{ __('travel.nav.support') }}
+                    @if(($openTicketsCount ?? 0) > 0)
+                        <span class="nav-badge">{{ $openTicketsCount > 99 ? '99+' : $openTicketsCount }}</span>
+                    @endif
+                </a>
+            @endif
+
+            @if (auth()->guard('travel_agency')->user()?->can('reports.view'))
+                <a href="{{ route('travel-agency.finance.revenue') }}"
+                    class="{{ request()->routeIs('travel-agency.finance.revenue') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 10v2m9-6a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {{ __('travel.nav.finance_revenue') }}
+                </a>
+
+                <a href="{{ route('travel-agency.finance.payouts') }}"
+                    class="{{ request()->routeIs('travel-agency.finance.payouts') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a4 4 0 00-8 0v2M5 9h14l1 11H4L5 9z" />
+                    </svg>
+                    {{ __('travel.nav.finance_payouts') }}
+                </a>
+
+                <a href="{{ route('travel-agency.finance.sales-report') }}"
+                    class="{{ request()->routeIs('travel-agency.finance.sales-report') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V9m3 8V5m3 12v-4M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    {{ __('travel.nav.finance_sales_report') }}
+                </a>
+            @endif
+
+            @if (auth()->guard('travel_agency')->user()?->can('bank_accounts.view'))
+                <a href="{{ route('travel-agency.finance.wallet') }}"
+                    class="{{ request()->routeIs('travel-agency.finance.wallet') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12V7H5a2 2 0 010-4h14v4M3 5v14a2 2 0 002 2h16v-5M18 12a2 2 0 000 4h4v-4h-4z" />
+                    </svg>
+                    {{ __('travel.nav.finance_wallet') }}
+                </a>
             @endif
 
             <a href="{{ route('travel-agency.profile.edit') }}"

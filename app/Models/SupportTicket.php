@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class SupportTicket extends Model
 {
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
     protected function casts(): array
     {
         return [
@@ -20,6 +24,7 @@ class SupportTicket extends Model
     }
 
     protected $fillable = [
+        'id',
         'ticket_number',
         'requester_user_id',
         'requester_role',
@@ -50,6 +55,11 @@ class SupportTicket extends Model
     public function requesterVendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class, 'requester_user_id');
+    }
+
+    public function requesterTravelAgency(): BelongsTo
+    {
+        return $this->belongsTo(TravelAgency::class, 'requester_user_id');
     }
 
     public function assignedToAdmin(): BelongsTo
