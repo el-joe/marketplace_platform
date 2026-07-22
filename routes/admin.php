@@ -1503,5 +1503,43 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::put('/{context}/nav/{item}', [\App\Http\Controllers\Admin\AppContextController::class, 'updateNavItem'])->name('nav.update');
     });
 
+    // ─── Documentation ────────────────────────────────────────────────────────
+    Route::prefix('docs')->name('docs.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\DocsController::class, 'index'])->name('index');
+
+        // Panels
+        Route::get('/panels/admin', [\App\Http\Controllers\Admin\DocsController::class, 'adminPanel'])->name('panels.admin');
+        Route::get('/panels/partner', [\App\Http\Controllers\Admin\DocsController::class, 'partnerPanel'])->name('panels.partner');
+        Route::get('/panels/marketer', [\App\Http\Controllers\Admin\DocsController::class, 'marketerPanel'])->name('panels.marketer');
+        Route::get('/panels/travel', [\App\Http\Controllers\Admin\DocsController::class, 'travelPanel'])->name('panels.travel');
+        Route::get('/panels/delivery', [\App\Http\Controllers\Admin\DocsController::class, 'deliveryPanel'])->name('panels.delivery');
+        Route::get('/panels/carrier', [\App\Http\Controllers\Admin\DocsController::class, 'carrierPanel'])->name('panels.carrier');
+
+        // Features
+        Route::get('/features/order-lifecycle', [\App\Http\Controllers\Admin\DocsController::class, 'orderLifecycle'])->name('features.order-lifecycle');
+        Route::get('/features/shipping', [\App\Http\Controllers\Admin\DocsController::class, 'shipping'])->name('features.shipping');
+        Route::get('/features/warehouses', [\App\Http\Controllers\Admin\DocsController::class, 'warehouses'])->name('features.warehouses');
+        Route::get('/features/payments', [\App\Http\Controllers\Admin\DocsController::class, 'payments'])->name('features.payments');
+        Route::get('/features/page-builder', [\App\Http\Controllers\Admin\DocsController::class, 'pageBuilder'])->name('features.page-builder');
+        Route::get('/features/banners', [\App\Http\Controllers\Admin\DocsController::class, 'banners'])->name('features.banners');
+        Route::get('/features/ad-campaigns', [\App\Http\Controllers\Admin\DocsController::class, 'adCampaigns'])->name('features.ad-campaigns');
+        Route::get('/features/marketer-campaigns', [\App\Http\Controllers\Admin\DocsController::class, 'marketerCampaigns'])->name('features.marketer-campaigns');
+        Route::get('/features/vendor-campaigns', [\App\Http\Controllers\Admin\DocsController::class, 'vendorCampaigns'])->name('features.vendor-campaigns');
+        Route::get('/features/influencer-deals', [\App\Http\Controllers\Admin\DocsController::class, 'influencerDeals'])->name('features.influencer-deals');
+        Route::get('/features/secret-promotions', [\App\Http\Controllers\Admin\DocsController::class, 'secretPromotions'])->name('features.secret-promotions');
+        Route::get('/features/affiliate-codes', [\App\Http\Controllers\Admin\DocsController::class, 'affiliateCodes'])->name('features.affiliate-codes');
+        Route::get('/features/flash-sales', [\App\Http\Controllers\Admin\DocsController::class, 'flashSales'])->name('features.flash-sales');
+        Route::get('/features/finance', [\App\Http\Controllers\Admin\DocsController::class, 'finance'])->name('features.finance');
+        Route::get('/features/subsidy', [\App\Http\Controllers\Admin\DocsController::class, 'subsidy'])->name('features.subsidy');
+        Route::get('/features/packaging', [\App\Http\Controllers\Admin\DocsController::class, 'packaging'])->name('features.packaging');
+        Route::get('/features/content-pages', [\App\Http\Controllers\Admin\DocsController::class, 'contentPages'])->name('features.content-pages');
+        Route::get('/features/system-pages', [\App\Http\Controllers\Admin\DocsController::class, 'systemPages'])->name('features.system-pages');
+        Route::get('/features/roles', [\App\Http\Controllers\Admin\DocsController::class, 'roles'])->name('features.roles');
+        Route::get('/features/warranties', [\App\Http\Controllers\Admin\DocsController::class, 'warranties'])->name('features.warranties');
+        Route::get('/features/classifieds', [\App\Http\Controllers\Admin\DocsController::class, 'classifieds'])->name('features.classifieds');
+        Route::get('/features/travel', [\App\Http\Controllers\Admin\DocsController::class, 'travelFeature'])->name('features.travel');
+        Route::get('/features/radio', [\App\Http\Controllers\Admin\DocsController::class, 'radioFeature'])->name('features.radio');
+    });
+
 }); // end auth.admin middleware group
 
