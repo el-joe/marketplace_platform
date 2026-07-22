@@ -68,8 +68,8 @@
         </div>--}}
 
         {{-- Language / direction switcher --}}
-        <div class="relative" x-data="{ open: false }">
-            <button type="button" @click="open = !open" 
+        <div class="relative" x-data="{ open: false }" @dropdown-opened.window="if ($event.detail?.source !== $el) open = false">
+            <button type="button" @click="open = !open; if (open) $dispatch('dropdown-opened', { source: $event.currentTarget.closest('[x-data]') })"
                 class="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-sm font-medium
                        text-gray-700 bg-white border border-gray-200 shadow-sm hover:shadow hover:bg-gray-50 hover:border-gray-300
                        transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
@@ -78,7 +78,7 @@
                 <span class="hidden sm:inline">{{ app()->getLocale() === 'en' ? 'English' : 'العربية' }}</span>
                 <x-heroicon name="chevron-down" class="w-3.5 h-3.5 text-gray-400 transition-transform duration-300" x-bind:class="open ? 'rotate-180' : ''" />
             </button>
-            
+
             <div x-show="open" @click.outside="open = false" x-cloak
                 x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 scale-95 translate-y-1"
@@ -87,7 +87,7 @@
                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                 x-transition:leave-end="opacity-0 scale-95 translate-y-1"
                 class="absolute end-0 mt-2.5 w-48 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-100 z-50 p-1.5 ring-1 ring-black/5">
-                
+
                 <form method="POST" action="{{ url('/locale/switch') }}">
                     @csrf
                     <input type="hidden" name="locale" value="en">
@@ -108,7 +108,7 @@
                         @endif
                     </button>
                 </form>
-                
+
                 <form method="POST" action="{{ url('/locale/switch') }}" class="mt-1">
                     @csrf
                     <input type="hidden" name="locale" value="ar">
@@ -133,8 +133,8 @@
         </div>
 
         {{-- User dropdown --}}
-        <div class="relative" x-data="{ open: false }">
-            <button type="button" @click="open = !open"
+        <div class="relative" x-data="{ open: false }" @dropdown-opened.window="if ($event.detail?.source !== $el) open = false">
+            <button type="button" @click="open = !open; if (open) $dispatch('dropdown-opened', { source: $event.currentTarget.closest('[x-data]') })"
                 class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100">
                 @if($user && $user->avatar_url)
                     <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}"
