@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\GiftCardController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\DisputeController;
+use App\Http\Controllers\Admin\ReturnController;
 use App\Http\Controllers\Admin\WarrantyClaimController;
 use App\Http\Controllers\Admin\WarrantyPurchaseController;
 use App\Http\Controllers\Admin\CurrencyController;
@@ -284,6 +285,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{id}', [OrderController::class, 'show'])->name('show');
         Route::post('/{id}/force-cancel', [OrderController::class, 'forceCancel'])->name('force-cancel');
+        Route::post('/{id}/cancel-items', [OrderController::class, 'cancelItems'])->name('cancel-items');
         Route::post('/{id}/refund', [OrderController::class, 'processRefund'])->name('refund');
         Route::post('/{id}/dispute', [OrderController::class, 'escalateDispute'])->name('dispute');
         Route::post('/{id}/flag-fraud', [OrderController::class, 'flagFraud'])->name('flag-fraud');
@@ -577,6 +579,18 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/{dispute}/assign-me', [DisputeController::class, 'assignMe'])->name('assign-me');
         Route::post('/{dispute}/update-status', [DisputeController::class, 'updateStatus'])->name('update-status');
         Route::post('/{dispute}/resolve', [DisputeController::class, 'resolve'])->name('resolve');
+    });
+
+    // ─── Returns ─────────────────────────────────────────────────────────────────
+    Route::prefix('returns')->name('returns.')->middleware('admin.permission:returns.view')->group(function () {
+        Route::post('/datatable', [ReturnController::class, 'datatable'])->name('datatable');
+        Route::get('/', [ReturnController::class, 'index'])->name('index');
+        Route::get('/{returnRequest}', [ReturnController::class, 'show'])->name('show');
+        Route::post('/{returnRequest}/approve', [ReturnController::class, 'approve'])->name('approve');
+        Route::post('/{returnRequest}/schedule-pickup', [ReturnController::class, 'schedulePickup'])->name('schedule-pickup');
+        Route::post('/{returnRequest}/mark-received', [ReturnController::class, 'markReceived'])->name('mark-received');
+        Route::post('/{returnRequest}/inspect', [ReturnController::class, 'inspect'])->name('inspect');
+        Route::post('/{returnRequest}/reject', [ReturnController::class, 'reject'])->name('reject');
     });
 
     // ─── Warranty Claims ─────────────────────────────────────────────────────────

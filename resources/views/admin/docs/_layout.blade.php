@@ -39,7 +39,7 @@
     {{-- Navigation footer --}}
     <div class="mt-12 pt-6 border-t border-gray-200 flex justify-between text-sm text-gray-400">
         <span>{{ __('admin.nav.documentation') }}</span>
-        <a href="{{ route('admin.docs.index') }}" class="text-primary-500 hover:underline">&larr; Back to overview</a>
+        <a href="{{ route('admin.docs.index') }}" class="text-primary-500 hover:underline">&larr; {{ __('docs/layout.back_to_overview') }}</a>
     </div>
 </div>
 @endsection

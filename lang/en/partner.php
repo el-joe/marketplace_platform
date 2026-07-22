@@ -79,6 +79,7 @@ return [
         'claims'               => 'Carrier Claims',
         'change_requests'      => 'Change Requests',
         'packaging_supplies'   => 'Packaging Supplies',
+        'exceptional_zones'    => 'Exceptional Zones',
         'layout_default'       => 'Default Layout',
         'layout_compact'       => 'Compact Layout',
     ],
@@ -1275,8 +1276,10 @@ return [
     'returns' => [
         'title' => 'Returns',
         'return_reason' => 'Return Reason',
+        'review_this_request' => 'Review This Request',
         'approve_return' => 'Approve Return',
         'reject_return' => 'Reject Return',
+        'cancel' => 'Cancel',
         'no_returns' => 'No returns found',
         'status_requested' => 'Requested',
         'status_approved' => 'Approved',
@@ -1943,6 +1946,8 @@ return [
         'generic_error' => 'An error occurred',
         'inventory_updated' => 'Inventory updated.',
         'cancel_request_confirm' => 'Are you sure you want to cancel this request?',
+        'tracking_placeholder' => 'Tracking number',
+        'save_tracking' => 'Save Tracking',
     ],
 
     'suspended' => [
@@ -2077,6 +2082,20 @@ return [
             'cancel' => 'Cancel',
             'save' => 'Save',
         ],
+    ],
+
+    'exceptional_zones' => [
+        'title' => 'Exceptional Zones',
+        'heading' => 'Exceptional Shipping Zones',
+        'subtitle' => 'Opt in to zones where customers get free delivery, with the cost split between you and the platform.',
+        'info_banner' => 'When you opt into an exceptional zone, customers in that area see FREE DELIVERY. The delivery cost is split between you and the platform per the rates shown below.',
+        'subsidy_split' => 'Platform covers up to :admin_amount :currency per shipment (fully covered if delivery cost is :threshold_amount :currency or less).',
+        'subsidy_unavailable' => 'Contact admin for subsidy details',
+        'status' => [
+            'active' => 'Active',
+            'inactive' => 'Inactive',
+        ],
+        'no_zones' => 'No active shipping zones are available yet.',
     ],
 
     'weight_calculator' => [

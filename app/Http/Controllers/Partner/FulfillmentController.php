@@ -7,14 +7,20 @@ use App\Enums\WarehouseType;
 use App\Http\Controllers\Controller;
 use App\Models\FbnInboundRequest;
 use App\Models\FbnStorageFee;
+use App\Models\Admin;
 use App\Models\MarketplaceShippingRule;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
+use App\Notifications\Admin\InboundTrackingAddedNotification;
+use App\Services\ActivityLoggerService;
 use App\Services\WarehouseVendorLimitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class FulfillmentController extends Controller
@@ -162,6 +168,49 @@ class FulfillmentController extends Controller
         $inboundRequest->update(['status' => 'rejected', 'rejection_reason' => 'Cancelled by vendor']);
 
         return response()->json(['success' => true, 'message' => 'Inbound request cancelled.']);
+    }
+
+    // ── FBN: vendor adds tracking number ──────────────────────────────────────
+
+    public function updateInboundTracking(Request $request, FbnInboundRequest $inboundRequest): JsonResponse
+    {
+        $vendor = $this->vendor();
+
+        if ($inboundRequest->vendor_id !== $vendor->id) {
+            abort(403);
+        }
+
+        if (!in_array($inboundRequest->status->value, ['approved', 'submitted'], true)) {
+            return response()->json(['success' => false, 'message' => 'Cannot update tracking at this stage.'], 422);
+        }
+
+        $data = $request->validate([
+            'tracking_number' => 'required|string|max:100',
+        ]);
+
+        DB::transaction(function () use ($inboundRequest, $data) {
+            $inboundRequest->update(['tracking_number' => $data['tracking_number']]);
+
+            app(ActivityLoggerService::class)->log(
+                'Tracking number added to inbound request ' . $inboundRequest->request_number,
+                $inboundRequest,
+                Auth::guard('vendor')->user(),
+                ['tracking_number' => $data['tracking_number']],
+                'fulfillment',
+                'updated'
+            );
+
+            try {
+                Notification::send(
+                    Admin::where('status', 'active')->get(),
+                    new InboundTrackingAddedNotification($inboundRequest),
+                );
+            } catch (\Throwable $e) {
+                Log::warning('InboundTrackingAddedNotification failed: ' . $e->getMessage());
+            }
+        });
+
+        return response()->json(['success' => true, 'message' => 'Tracking number saved.']);
     }
 
     // ── FBP: inventory overview ───────────────────────────────────────────────

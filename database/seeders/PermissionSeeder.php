@@ -116,6 +116,9 @@ class PermissionSeeder extends Seeder
             // Disputes
             'disputes.view',
             'disputes.resolve',
+            // Returns
+            'returns.view',
+            'returns.manage',
             // Carrier Claims
             'carrier-claims.view',
             'carrier-claims.resolve',

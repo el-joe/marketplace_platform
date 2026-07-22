@@ -58,8 +58,10 @@ class PayoutCalculationService
             })
             ->where(function ($q) {
                 // COD sub_orders are blocked until cash has been remitted by the delivery agent.
-                // Non-COD sub_orders are always eligible (cod_remittance_confirmed backfilled to true).
-                $q->where('sub_orders.cod_remittance_confirmed', true);
+                // Non-COD sub_orders are always eligible regardless of the flag, since nothing
+                // sets cod_remittance_confirmed=true for non-COD orders after creation.
+                $q->whereHas('order', fn($q) => $q->where('payment_method', '!=', 'cod'))
+                  ->orWhere('sub_orders.cod_remittance_confirmed', true);
             })
             ->join('orders', 'orders.id', '=', 'sub_orders.order_id')
             ->selectRaw('

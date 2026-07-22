@@ -7,6 +7,7 @@ use App\Enums\InventoryMovementType;
 use App\Enums\ProductStatus;
 use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Country;
 use App\Models\InventoryMovement;
 use App\Models\Product;
@@ -16,14 +17,17 @@ use App\Models\Warehouse;
 use App\Models\WarehouseInventory;
 use App\Models\PlatformShippingSubsidy;
 use App\Models\ShippingZone;
+use App\Notifications\Admin\ListingResubmittedNotification;
 use App\Services\ListingShippingResolver;
 use App\Services\ShippingWeightService;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -516,6 +520,129 @@ class ListingController extends Controller
             'message' => $status === VendorListingStatus::Active->value ? 'تم إنشاء القائمة بنجاح وهي نشطة الآن.' : 'تم إنشاء القائمة وهي قيد المراجعة.',
             'redirect' => Route::has('partner.listings.show') ? route('partner.listings.show', $listing->id) : route('partner.listings.index'),
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Edit
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function edit(VendorListing $listing): View
+    {
+        $this->authoriseListing($listing);
+
+        $listing->load([
+            'productVariant.product.category',
+            'productVariant.product.images',
+            'warehouseInventories.warehouse',
+            'country',
+        ]);
+
+        $fulfillmentModels = [
+            'fbm' => 'FBM — الشحن الذاتي',
+            'fbn' => 'FBN — التخزين في مستودعاتنا',
+            'cross_dock' => 'Cross Dock — شحن جزئي',
+        ];
+
+        $conditions = [
+            'new' => 'جديد',
+            'like_new' => 'كالجديد',
+            'good' => 'جيد',
+            'acceptable' => 'مقبول',
+            'refurbished' => 'مُجدَّد',
+        ];
+
+        return view('partner.listings.edit', compact('listing', 'fulfillmentModels', 'conditions'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Update
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function update(Request $request, VendorListing $listing): RedirectResponse
+    {
+        $this->authoriseListing($listing);
+
+        if ($listing->status === VendorListingStatus::Active) {
+            return back()->withErrors(['status' => 'يرجى إيقاف القائمة مؤقتاً قبل تعديلها.'])->withInput();
+        }
+
+        $validated = $request->validate([
+            'price' => ['required', 'numeric', 'min:0.01', 'max:999999'],
+            'condition' => ['required', 'in:new,like_new,good,acceptable,refurbished'],
+            'fulfillment_model' => ['required', 'in:fbm,fbn,cross_dock'],
+            'vendor_sku' => ['nullable', 'string', 'max:100'],
+            'vendor_notes' => ['nullable', 'string', 'max:1000'],
+            'max_order_quantity' => ['nullable', 'integer', 'min:1', 'max:9999'],
+            'low_stock_threshold' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'vendor_covers_delivery' => ['nullable', 'boolean'],
+            'influencer_commission_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'affiliate_commission_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'influencer_sample_quota' => ['nullable', 'integer', 'min:0', 'max:9999', 'required_with:influencer_commission_percentage'],
+            'affiliate_sample_quota' => ['nullable', 'integer', 'min:0', 'max:9999', 'required_with:affiliate_commission_percentage'],
+            'declared_weight_grams' => ['required', 'integer', 'min:1'],
+            'declared_length_cm' => ['nullable', 'numeric', 'min:0.1'],
+            'declared_width_cm' => ['nullable', 'numeric', 'min:0.1'],
+            'declared_height_cm' => ['nullable', 'numeric', 'min:0.1'],
+            'handling_class' => ['required', 'in:' . implode(',', self::HANDLING_CLASSES)],
+        ]);
+
+        $billable = $this->weightService->billableWeightGrams(
+            (int) $validated['declared_weight_grams'],
+            isset($validated['declared_length_cm']) ? (float) $validated['declared_length_cm'] : null,
+            isset($validated['declared_width_cm']) ? (float) $validated['declared_width_cm'] : null,
+            isset($validated['declared_height_cm']) ? (float) $validated['declared_height_cm'] : null,
+        );
+        $weightClass = $this->weightService->classifyWeight($billable);
+
+        DB::transaction(function () use ($listing, $validated, $request, $weightClass) {
+            $listing->update([
+                'price' => (int) round((float) $validated['price'] * 100),
+                'condition' => $validated['condition'],
+                'fulfillment_model' => $validated['fulfillment_model'],
+                'vendor_sku' => $validated['vendor_sku'] ?? null,
+                'vendor_notes' => $validated['vendor_notes'] ?? null,
+                'max_order_quantity' => $validated['max_order_quantity'] ?? null,
+                'low_stock_threshold' => $validated['low_stock_threshold'] ?? 5,
+                'vendor_covers_delivery' => $request->boolean('vendor_covers_delivery'),
+                'influencer_commission_percentage' => $validated['influencer_commission_percentage'] ?? null,
+                'affiliate_commission_percentage' => $validated['affiliate_commission_percentage'] ?? null,
+                'influencer_sample_quota' => $validated['influencer_sample_quota'] ?? null,
+                'affiliate_sample_quota' => $validated['affiliate_sample_quota'] ?? null,
+                'declared_weight_grams' => (int) $validated['declared_weight_grams'],
+                'declared_length_cm' => $validated['declared_length_cm'] ?? null,
+                'declared_width_cm' => $validated['declared_width_cm'] ?? null,
+                'declared_height_cm' => $validated['declared_height_cm'] ?? null,
+                'handling_class' => $validated['handling_class'],
+                'weight_class' => $weightClass,
+            ]);
+        });
+
+        return redirect()->route('partner.listings.show', $listing)->with('success', 'تم تحديث القائمة بنجاح.');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Resubmit (after rejection)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function resubmit(VendorListing $listing): RedirectResponse
+    {
+        $this->authoriseListing($listing);
+
+        if ($listing->status !== VendorListingStatus::Rejected) {
+            return back()->withErrors(['status' => 'لا يمكن إعادة تقديم هذه القائمة.']);
+        }
+
+        $listing->update([
+            'status' => VendorListingStatus::PendingReview,
+            'rejection_reason' => null,
+        ]);
+
+        Notification::send(
+            Admin::where('status', 'active')->get(),
+            new ListingResubmittedNotification($listing),
+        );
+
+        return redirect()->route('partner.listings.show', $listing)->with('success', 'تم إعادة تقديم القائمة للمراجعة.');
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -100,6 +100,13 @@ $(function () {
         });
     });
 
+    $('#cancel-items-form').on('submit', function (e) {
+        e.preventDefault();
+        submitOrderAction('cancel-items-form', '/orders/' + orderId + '/cancel-items', function () {
+            location.reload();
+        });
+    });
+
     $('#dispute-form').on('submit', function (e) {
         e.preventDefault();
         submitOrderAction('dispute-form', '/orders/' + orderId + '/dispute', function () {

@@ -1,97 +1,97 @@
 @extends('layouts.admin')
 
-@section('title', 'Travel Agency Panel')
+@section('title', __('docs/panels/travel.title'))
 
 @section('content')
     <div class="mb-6">
         <a href="{{ route('admin.docs.index') }}" class="text-sm text-primary-600 hover:underline">&larr; {{ __('admin.nav.documentation') }}</a>
         <div class="flex items-center gap-3 mt-2">
             <span class="text-3xl">✈️</span>
-            <h1 class="text-2xl font-bold text-gray-900">Travel Agency Panel</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('docs/panels/travel.title') }}</h1>
         </div>
         <p class="text-sm text-gray-500 mt-2">
-            URL: <code>travel-agency.{domain}</code> &middot; Guard: <code>travel_agency</code> (single-model — the TravelAgency row itself is the owner)
+            {!! __('docs/panels/travel.meta_guard') !!}
         </p>
-        <p class="text-sm text-gray-500 mt-1">Team members: <code>TravelAgencyMember</code> (separate table, same guard via custom UserProvider)</p>
+        <p class="text-sm text-gray-500 mt-1">{!! __('docs/panels/travel.meta_team') !!}</p>
     </div>
 
     <div class="space-y-8">
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Dashboard</h2>
-            <p class="text-sm text-gray-700">Bookings today, revenue this month, pending inquiries, packages in review</p>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.dashboard.title') }}</h2>
+            <p class="text-sm text-gray-700">{{ __('docs/panels/travel.dashboard.summary') }}</p>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Travel Packages</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.packages.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/packages</code> — CRUD for travel packages</li>
-                <li>Create: destination, dates, price, inclusions, media gallery, itinerary</li>
-                <li>Submit for review &rarr; Admin approves &rarr; Package goes live on storefront</li>
-                <li>Withdraw: pause a live package</li>
+                <li><code>/packages</code> — {{ __('docs/panels/travel.packages.crud') }}</li>
+                <li>{{ __('docs/panels/travel.packages.create') }}</li>
+                <li>{!! __('docs/panels/travel.packages.submit') !!}</li>
+                <li>{{ __('docs/panels/travel.packages.withdraw') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Bookings</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.bookings.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/bookings</code> — All bookings for this agency's packages</li>
-                <li>Update status: pending_documents &rarr; confirmed &rarr; completed | cancelled</li>
-                <li>Create bookings manually on behalf of customers</li>
+                <li><code>/bookings</code> — {{ __('docs/panels/travel.bookings.all') }}</li>
+                <li>{!! __('docs/panels/travel.bookings.status') !!}</li>
+                <li>{{ __('docs/panels/travel.bookings.manual') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Inquiries</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.inquiries.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/inquiries</code> — Customer inquiries from the storefront travel pages</li>
-                <li>Mark as contacted, convert to booking, close</li>
+                <li><code>/inquiries</code> — {{ __('docs/panels/travel.inquiries.inquiries') }}</li>
+                <li>{{ __('docs/panels/travel.inquiries.actions') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Marketer Campaigns</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.marketer_campaigns.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/campaigns</code> — Create and manage campaigns to promote packages via marketer network</li>
-                <li>Invite specific marketers to campaigns; revoke invitations</li>
+                <li><code>/campaigns</code> — {{ __('docs/panels/travel.marketer_campaigns.campaigns') }}</li>
+                <li>{{ __('docs/panels/travel.marketer_campaigns.invite') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Reports</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.reports.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/reports/revenue</code> — Revenue by period, grouped by currency</li>
-                <li><code>/reports/bookings</code> — Booking counts, status breakdown, filters</li>
-                <li><code>/reports/packages</code> — Package-level conversion and revenue stats</li>
+                <li><code>/reports/revenue</code> — {{ __('docs/panels/travel.reports.revenue') }}</li>
+                <li><code>/reports/bookings</code> — {{ __('docs/panels/travel.reports.bookings') }}</li>
+                <li><code>/reports/packages</code> — {{ __('docs/panels/travel.reports.packages') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Team</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.team.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/team</code> — Manage staff members with role-based access</li>
+                <li><code>/team</code> — {{ __('docs/panels/travel.team.team') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Roles</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.roles.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/roles</code> — Create custom roles scoped to this agency</li>
-                <li>System roles: <code>agency_owner</code> (all permissions), <code>agency_manager</code>, <code>agency_staff</code></li>
+                <li><code>/roles</code> — {{ __('docs/panels/travel.roles.roles') }}</li>
+                <li>{!! __('docs/panels/travel.roles.system_roles') !!}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Bank Accounts</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.bank_accounts.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/bank-accounts</code> — Feature-flagged (hidden until enabled in .env)</li>
+                <li><code>/bank-accounts</code> — {{ __('docs/panels/travel.bank_accounts.flagged') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Profile</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/travel.profile.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/profile</code> — Agency name, logo, contact info, password</li>
+                <li><code>/profile</code> — {{ __('docs/panels/travel.profile.profile') }}</li>
             </ul>
         </section>
 

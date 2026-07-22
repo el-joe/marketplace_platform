@@ -262,6 +262,46 @@ class OrderController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Cancel specific items (partial cancellation)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function cancelItems(Request $request, string $id): JsonResponse
+    {
+        $order = Order::with('subOrders')->findOrFail($id);
+
+        $request->validate([
+            'item_ids' => 'required|array|min:1',
+            'item_ids.*' => 'uuid|exists:order_items,id',
+            'cancel_reason' => 'required|string|max:500',
+        ]);
+
+        $items = OrderItem::whereIn('id', $request->item_ids)
+            ->where('order_id', $order->id)
+            ->whereNotIn('fulfillment_status', ['cancelled', 'returned'])
+            ->get();
+
+        if ($items->count() !== count($request->item_ids)) {
+            return response()->json(['success' => false, 'message' => __('admin.orders.invalid_items_selected')], 422);
+        }
+
+        try {
+            $this->interventionService->cancelItems(
+                $order,
+                $items,
+                $request->cancel_reason,
+                auth('admin')->id()
+            );
+
+            return response()->json(['success' => true, 'message' => __('admin.orders.items_cancelled_successfully')]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => collect($e->errors())->flatten()->first()], 422);
+        } catch (\Throwable $e) {
+            Log::error('Partial item cancel failed', ['order' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['message' => __('admin.orders.cancel_failed')], 500);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Process refund
     // ─────────────────────────────────────────────────────────────────────────
 

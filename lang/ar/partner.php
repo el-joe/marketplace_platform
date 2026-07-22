@@ -79,6 +79,7 @@ return [
         'claims' => 'مطالبات الناقل',
         'change_requests' => 'طلبات التعديل',
         'packaging_supplies' => 'مستلزمات التغليف',
+        'exceptional_zones' => 'المناطق الاستثنائية',
         'layout_default' => 'التخطيط العادي',
         'layout_compact' => 'التخطيط المضغوط',
     ],
@@ -1275,8 +1276,10 @@ return [
     'returns' => [
         'title' => 'المرتجعات',
         'return_reason' => 'سبب الإرجاع',
+        'review_this_request' => 'مراجعة هذا الطلب',
         'approve_return' => 'الموافقة على الإرجاع',
         'reject_return' => 'رفض الإرجاع',
+        'cancel' => 'إلغاء',
         'no_returns' => 'لا توجد مرتجعات',
         'status_requested' => 'مطلوب',
         'status_approved' => 'مقبول',
@@ -1943,6 +1946,8 @@ return [
         'generic_error' => 'حدث خطأ',
         'inventory_updated' => 'المخزون محدّث.',
         'cancel_request_confirm' => 'هل أنت متأكد من إلغاء هذا الطلب؟',
+        'tracking_placeholder' => 'رقم التتبع',
+        'save_tracking' => 'حفظ رقم التتبع',
     ],
 
     'suspended' => [
@@ -2077,6 +2082,20 @@ return [
             'cancel' => 'إلغاء',
             'save' => 'حفظ',
         ],
+    ],
+
+    'exceptional_zones' => [
+        'title' => 'المناطق الاستثنائية',
+        'heading' => 'مناطق الشحن الاستثنائية',
+        'subtitle' => 'اشترك في المناطق التي يحصل فيها العملاء على توصيل مجاني، مع تقاسم التكلفة بينك وبين المنصة.',
+        'info_banner' => 'عند الاشتراك في منطقة استثنائية، يرى العملاء في تلك المنطقة توصيلاً مجانياً. يتم تقسيم تكلفة التوصيل بينك وبين المنصة وفق المعدلات الموضحة أدناه.',
+        'subsidy_split' => 'تغطي المنصة حتى :admin_amount :currency لكل شحنة (تغطية كاملة إذا كانت تكلفة التوصيل :threshold_amount :currency أو أقل).',
+        'subsidy_unavailable' => 'تواصل مع الإدارة لمعرفة تفاصيل الدعم',
+        'status' => [
+            'active' => 'نشط',
+            'inactive' => 'غير نشط',
+        ],
+        'no_zones' => 'لا توجد مناطق شحن نشطة متاحة حتى الآن.',
     ],
 
     'weight_calculator' => [

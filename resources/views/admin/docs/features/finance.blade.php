@@ -1,78 +1,78 @@
-@component('admin.docs._layout', ['title' => 'Finance & Payouts', 'icon' => '💰', 'breadcrumb' => 'Features'])
+@component('admin.docs._layout', ['title' => __('docs/features/finance.title'), 'icon' => '💰', 'breadcrumb' => __('docs/features/finance.breadcrumb')])
 
     <div class="prose prose-sm max-w-none space-y-10">
 
         {{-- What it is --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">What It Is</h2>
-            <p class="text-gray-600">The financial backbone of the platform: vendor/agent/marketer payouts, a double-entry ledger, raw transaction records, and vendor subscription billing.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/finance.what_it_is.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/finance.what_it_is.p1') }}</p>
         </section>
 
         {{-- Vendor Payouts --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">Vendor Payouts</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/finance.vendor_payouts.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li>Eligibility: <code>sub_order.status = 'completed'</code> + COD settlement gate passed</li>
-                <li><code>PayoutCalculationService</code> groups by vendor + currency &mdash; <strong>never sums across currencies</strong></li>
-                <li>Admin flow: <a href="{{ route('admin.payouts.index') }}" class="text-primary-600 hover:underline">approve &rarr; process</a> (process triggers the bank transfer)</li>
-                <li>Admin can also: <strong>hold</strong> (pending investigation) or <strong>recalculate</strong></li>
+                <li>{{ __('docs/features/finance.vendor_payouts.eligibility_label') }}: <code>sub_order.status = 'completed'</code> + {{ __('docs/features/finance.vendor_payouts.eligibility_desc') }}</li>
+                <li><code>PayoutCalculationService</code> {{ __('docs/features/finance.vendor_payouts.grouping') }}</li>
+                <li>{{ __('docs/features/finance.vendor_payouts.admin_flow_label') }}: <a href="{{ route('admin.payouts.index') }}" class="text-primary-600 hover:underline">{{ __('docs/features/finance.vendor_payouts.approve_process') }}</a> ({{ __('docs/features/finance.vendor_payouts.process_note') }})</li>
+                <li>{{ __('docs/features/finance.vendor_payouts.can_also_label') }}: <strong>{{ __('docs/features/finance.vendor_payouts.hold') }}</strong> ({{ __('docs/features/finance.vendor_payouts.hold_note') }}) {{ __('docs/features/finance.vendor_payouts.or') }} <strong>{{ __('docs/features/finance.vendor_payouts.recalculate') }}</strong></li>
             </ul>
         </section>
 
         {{-- COD Gate --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">COD Settlement Gate</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/finance.cod_gate.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><code>sub_order.cod_remittance_confirmed</code> must be <code>true</code> before a COD sub-order can be paid out</li>
-                <li>Set automatically when an admin marks a COD settlement as settled</li>
+                <li><code>sub_order.cod_remittance_confirmed</code> {{ __('docs/features/finance.cod_gate.must_be') }} <code>true</code> {{ __('docs/features/finance.cod_gate.p1') }}</li>
+                <li>{{ __('docs/features/finance.cod_gate.p2') }}</li>
             </ul>
             <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2 text-amber-800 text-sm">
-                Vendors see an amber notice in the partner panel while COD funds have not yet been remitted.
+                {{ __('docs/features/finance.cod_gate.notice') }}
             </div>
         </section>
 
         {{-- Delivery Agent Payouts --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">Delivery Agent Payouts</h2>
-            <p class="text-gray-600"><a href="{{ route('admin.delivery.payouts.index') }}" class="text-primary-600 hover:underline">admin/delivery/payouts</a>: <strong>generate &rarr; approve &rarr; process</strong>, based on per-delivery earning rates plus bonuses.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/finance.delivery_payouts.heading') }}</h2>
+            <p class="text-gray-600"><a href="{{ route('admin.delivery.payouts.index') }}" class="text-primary-600 hover:underline">admin/delivery/payouts</a>: <strong>{{ __('docs/features/finance.delivery_payouts.flow') }}</strong>, {{ __('docs/features/finance.delivery_payouts.p1') }}</p>
         </section>
 
         {{-- Marketer Payouts --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">Marketer Payouts</h2>
-            <p class="text-gray-600"><a href="{{ route('admin.marketers.payouts.index') }}" class="text-primary-600 hover:underline">admin/marketer-payouts</a>: <strong>generate &rarr; approve &rarr; process</strong>, based on approved <code>marketer_conversions</code> in the period.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/finance.marketer_payouts.heading') }}</h2>
+            <p class="text-gray-600"><a href="{{ route('admin.marketers.payouts.index') }}" class="text-primary-600 hover:underline">admin/marketer-payouts</a>: <strong>{{ __('docs/features/finance.marketer_payouts.flow') }}</strong>, {{ __('docs/features/finance.marketer_payouts.p1') }} <code>marketer_conversions</code> {{ __('docs/features/finance.marketer_payouts.p2') }}</p>
         </section>
 
         {{-- Ledger --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">Ledger</h2>
-            <p class="text-gray-600">Double-entry ledger at <a href="{{ route('admin.ledger.index') }}" class="text-primary-600 hover:underline">admin/ledger</a>. Every financial event writes a debit row and a credit row; transaction groups link related ledger rows together.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/finance.ledger.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/finance.ledger.p1') }} <a href="{{ route('admin.ledger.index') }}" class="text-primary-600 hover:underline">admin/ledger</a>. {{ __('docs/features/finance.ledger.p2') }}</p>
         </section>
 
         {{-- Transactions --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">Transactions</h2>
-            <p class="text-gray-600">Raw transaction log at <a href="{{ route('admin.transactions.index') }}" class="text-primary-600 hover:underline">admin/transactions</a>, one level above the ledger's debit/credit rows.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/finance.transactions.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/finance.transactions.p1') }} <a href="{{ route('admin.transactions.index') }}" class="text-primary-600 hover:underline">admin/transactions</a>, {{ __('docs/features/finance.transactions.p2') }}</p>
         </section>
 
         {{-- Subscriptions --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">Subscriptions (Vendor Plans)</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/finance.subscriptions.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><a href="{{ route('admin.subscriptions.index') }}" class="text-primary-600 hover:underline">admin/subscriptions</a>: view active vendor subscriptions</li>
-                <li>Plans: create monthly/annual plans, priced per country</li>
-                <li>Invoices: monthly invoices generated per vendor</li>
-                <li>Admin can manually subscribe a vendor or cancel their subscription</li>
+                <li><a href="{{ route('admin.subscriptions.index') }}" class="text-primary-600 hover:underline">admin/subscriptions</a>: {{ __('docs/features/finance.subscriptions.item1') }}</li>
+                <li>{{ __('docs/features/finance.subscriptions.plans_label') }}: {{ __('docs/features/finance.subscriptions.plans_desc') }}</li>
+                <li>{{ __('docs/features/finance.subscriptions.invoices_label') }}: {{ __('docs/features/finance.subscriptions.invoices_desc') }}</li>
+                <li>{{ __('docs/features/finance.subscriptions.item4') }}</li>
             </ul>
         </section>
 
         {{-- Who / rules --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">Who Uses It & Key Rules</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/finance.who_rules.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><strong>Admins</strong> run and approve every payout flow; no payout is auto-processed without an approval step</li>
-                <li><strong>Vendors</strong> only see payout status and COD notices, never raw ledger entries</li>
-                <li>Currency mixing across a single payout is a hard invariant &mdash; the calculation service enforces per-currency grouping</li>
+                <li><strong>{{ __('docs/features/finance.who_rules.admins_label') }}</strong> {{ __('docs/features/finance.who_rules.admins_desc') }}</li>
+                <li><strong>{{ __('docs/features/finance.who_rules.vendors_label') }}</strong> {{ __('docs/features/finance.who_rules.vendors_desc') }}</li>
+                <li>{{ __('docs/features/finance.who_rules.currency_rule') }}</li>
             </ul>
         </section>
 

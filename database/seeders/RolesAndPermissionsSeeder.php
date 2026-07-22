@@ -50,6 +50,7 @@ class RolesAndPermissionsSeeder extends Seeder
                     'dashboard.view', 'orders.view', 'orders.edit', 'orders.cancel',
                     'vendors.view', 'delivery.view', 'delivery.edit',
                     'warehouses.view', 'warehouses.edit', 'packaging.manage',
+                    'returns.view', 'returns.manage',
                 ],
             ],
             [

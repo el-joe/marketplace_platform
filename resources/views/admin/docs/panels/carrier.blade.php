@@ -1,50 +1,50 @@
 @extends('layouts.admin')
 
-@section('title', 'Carrier Panel')
+@section('title', __('docs/panels/carrier.title'))
 
 @section('content')
     <div class="mb-6">
         <a href="{{ route('admin.docs.index') }}" class="text-sm text-primary-600 hover:underline">&larr; {{ __('admin.nav.documentation') }}</a>
         <div class="flex items-center gap-3 mt-2">
             <span class="text-3xl">🚚</span>
-            <h1 class="text-2xl font-bold text-gray-900">Carrier (Shipping Supervisor) Panel</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('docs/panels/carrier.title') }}</h1>
         </div>
         <p class="text-sm text-gray-500 mt-2">
-            URL: <code>carrier.{domain}</code> &middot; Guard: <code>shipping_company_supervisors</code> &middot; Belongs to: <code>shipping_companies</code>
+            {!! __('docs/panels/carrier.meta') !!}
         </p>
     </div>
 
     <div class="space-y-8">
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Dashboard</h2>
-            <p class="text-sm text-gray-700">Active deliveries, agent count, SLA metrics</p>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/carrier.dashboard.title') }}</h2>
+            <p class="text-sm text-gray-700">{{ __('docs/panels/carrier.dashboard.summary') }}</p>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Agents</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/carrier.agents.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/agents</code> — Create/manage delivery agents for this carrier</li>
-                <li>Unlimited agents — no cap enforced</li>
-                <li>Suspend/activate agents</li>
+                <li><code>/agents</code> — {{ __('docs/panels/carrier.agents.agents') }}</li>
+                <li>{{ __('docs/panels/carrier.agents.unlimited') }}</li>
+                <li>{{ __('docs/panels/carrier.agents.toggle') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Supervisors</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/carrier.supervisors.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/supervisors</code> — Manage supervisors within the same shipping company</li>
-                <li>Only owner-level supervisor can create other supervisors (gated in controller)</li>
+                <li><code>/supervisors</code> — {{ __('docs/panels/carrier.supervisors.supervisors') }}</li>
+                <li>{{ __('docs/panels/carrier.supervisors.owner_only') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Assignments</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/carrier.assignments.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/assignments/unassigned</code> — Orders not yet assigned to an agent</li>
-                <li>Assign shipments to agents; reassign if needed</li>
-                <li><code>/assignments</code> — All assignments with status tracking</li>
-                <li><code>/assignments/{id}</code> — Detail view per assignment</li>
+                <li><code>/assignments/unassigned</code> — {{ __('docs/panels/carrier.assignments.unassigned') }}</li>
+                <li>{{ __('docs/panels/carrier.assignments.assign') }}</li>
+                <li><code>/assignments</code> — {{ __('docs/panels/carrier.assignments.all') }}</li>
+                <li><code>/assignments/{id}</code> — {{ __('docs/panels/carrier.assignments.detail') }}</li>
             </ul>
         </section>
 

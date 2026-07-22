@@ -1,0 +1,232 @@
+@extends('layouts.partner')
+
+@php
+    $product = $listing->productVariant->product;
+    $variant = $listing->productVariant;
+    $primaryImg = $product->images->where('is_primary', true)->first() ?? $product->images->first();
+@endphp
+
+@section('title', 'تعديل القائمة')
+@section('page-title', 'تعديل القائمة')
+
+@section('content')
+
+    <div class="mb-4">
+        <a href="{{ route('partner.listings.show', $listing) }}"
+            class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 w-fit">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            العودة إلى القائمة
+        </a>
+    </div>
+
+    @if($listing->status->value === 'rejected' && $listing->rejection_reason)
+        <div class="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded mb-4">
+            <strong>سبب الرفض / Rejection Reason:</strong> {{ $listing->rejection_reason }}
+            <p class="mt-1 text-sm">Fix the issue above, then save and resubmit.</p>
+        </div>
+    @endif
+
+    @if($listing->status->value === 'active')
+        <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 px-4 py-3 rounded mb-4">
+            هذه القائمة نشطة حالياً. يجب إيقافها مؤقتاً قبل التعديل.
+        </div>
+    @endif
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {{-- LEFT: Product info (read-only) --}}
+        <div class="lg:col-span-5">
+            <div class="bg-white rounded-2xl border border-gray-200 p-6 sticky top-6">
+                <h3 class="font-semibold text-gray-800 mb-4">المنتج</h3>
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-xl border border-gray-100 bg-gray-50 overflow-hidden shrink-0 flex items-center justify-center">
+                        @if($primaryImg)
+                            <img src="{{ \Illuminate\Support\Facades\Storage::disk($primaryImg->disk ?? 'public')->url($primaryImg->path) }}" class="w-full h-full object-cover">
+                        @else
+                            <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0v10l-8 4m-8-4V7m8 4v10" />
+                            </svg>
+                        @endif
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-gray-900 text-sm">{{ $product->name_ar ?: $product->name_en }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ $variant->variant_name ?: 'النسخة الافتراضية' }}</p>
+                        <p class="text-xs font-mono text-gray-400 mt-0.5">{{ $variant->sku }}</p>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 mt-4">البلد: {{ $listing->country?->name_ar ?: $listing->country?->name_en }} ({{ $listing->currency }})</p>
+            </div>
+        </div>
+
+        {{-- RIGHT: Editable form --}}
+        <div class="lg:col-span-7">
+            <form method="POST" action="{{ route('partner.listings.update', $listing) }}" class="space-y-5">
+                @csrf
+                @method('PUT')
+
+                @if ($errors->any())
+                    <div class="text-sm text-red-600 bg-red-50 rounded-lg p-4">
+                        <ul class="list-disc pr-5">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+                    <h4 class="font-semibold text-gray-800 text-sm mb-2">بيانات القائمة</h4>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('common.price') }} <span class="text-red-500">*</span></label>
+                            <input type="number" name="price" step="0.01" min="0.01" required
+                                value="{{ old('price', number_format($listing->price / 100, 2, '.', '')) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">الحالة <span class="text-red-500">*</span></label>
+                            <select name="condition" required
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                                @foreach($conditions as $key => $label)
+                                    <option value="{{ $key }}" {{ old('condition', $listing->condition) === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">نموذج التنفيذ <span class="text-red-500">*</span></label>
+                            <select name="fulfillment_model" required
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                                @foreach($fulfillmentModels as $key => $label)
+                                    <option value="{{ $key }}" {{ old('fulfillment_model', $listing->fulfillment_model) === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">SKU الخاص بالبائع</label>
+                            <input type="text" name="vendor_sku" maxlength="100" value="{{ old('vendor_sku', $listing->vendor_sku) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">الحد الأقصى للطلب</label>
+                            <input type="number" name="max_order_quantity" min="1" max="9999" value="{{ old('max_order_quantity', $listing->max_order_quantity) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">حد المخزون المنخفض</label>
+                            <input type="number" name="low_stock_threshold" min="0" value="{{ old('low_stock_threshold', $listing->low_stock_threshold) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('common.notes') }}</label>
+                        <textarea name="vendor_notes" rows="2" maxlength="1000"
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40 resize-none">{{ old('vendor_notes', $listing->vendor_notes) }}</textarea>
+                    </div>
+
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" name="vendor_covers_delivery" value="1" {{ old('vendor_covers_delivery', $listing->vendor_covers_delivery) ? 'checked' : '' }}
+                            class="mt-1 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400/40">
+                        <span class="text-sm text-gray-700">أتحمل تكاليف التوصيل المتبقية / I cover remaining delivery costs</span>
+                    </label>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+                    <h4 class="font-semibold text-gray-800 text-sm mb-1">الشحن والأبعاد</h4>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">وزن المنتج (جرام) <span class="text-red-500">*</span></label>
+                        <input type="number" name="declared_weight_grams" min="1" step="1" required
+                            value="{{ old('declared_weight_grams', $listing->declared_weight_grams) }}"
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">أبعاد التغليف (سم)</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <input type="number" name="declared_length_cm" min="0.1" step="0.1" placeholder="L"
+                                value="{{ old('declared_length_cm', $listing->declared_length_cm) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                            <input type="number" name="declared_width_cm" min="0.1" step="0.1" placeholder="W"
+                                value="{{ old('declared_width_cm', $listing->declared_width_cm) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                            <input type="number" name="declared_height_cm" min="0.1" step="0.1" placeholder="H"
+                                value="{{ old('declared_height_cm', $listing->declared_height_cm) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">فئة المناولة <span class="text-red-500">*</span></label>
+                        <select name="handling_class" required
+                            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                            <option value="standard" {{ old('handling_class', $listing->handling_class) === 'standard' ? 'selected' : '' }}>عادي / Standard</option>
+                            <option value="refrigerated" {{ old('handling_class', $listing->handling_class) === 'refrigerated' ? 'selected' : '' }}>يحتاج تبريد / Requires Refrigeration</option>
+                            <option value="fragile" {{ old('handling_class', $listing->handling_class) === 'fragile' ? 'selected' : '' }}>هش - يحتاج حرص / Fragile</option>
+                            <option value="special_tech" {{ old('handling_class', $listing->handling_class) === 'special_tech' ? 'selected' : '' }}>يحتاج تقنية خاصة / Special Handling</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+                    <h4 class="font-semibold text-gray-800 text-sm mb-1">عمولات التسويق</h4>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">نسبة عمولة المؤثرين</label>
+                            <input type="number" name="influencer_commission_percentage" step="0.01" min="0" max="100"
+                                value="{{ old('influencer_commission_percentage', $listing->influencer_commission_percentage) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">حصة عينات المؤثرين</label>
+                            <input type="number" name="influencer_sample_quota" min="0" max="9999"
+                                value="{{ old('influencer_sample_quota', $listing->influencer_sample_quota) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">نسبة عمولة الشركاء</label>
+                            <input type="number" name="affiliate_commission_percentage" step="0.01" min="0" max="100"
+                                value="{{ old('affiliate_commission_percentage', $listing->affiliate_commission_percentage) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">حصة عينات الشركاء</label>
+                            <input type="number" name="affiliate_sample_quota" min="0" max="9999"
+                                value="{{ old('affiliate_sample_quota', $listing->affiliate_sample_quota) }}"
+                                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold py-3 rounded-xl transition-colors text-sm">
+                    حفظ التعديلات
+                </button>
+            </form>
+
+            @if($listing->status->value === 'rejected')
+                <form method="POST" action="{{ route('partner.listings.resubmit', $listing) }}" class="mt-3">
+                    @csrf
+                    <button type="submit"
+                        class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 rounded-xl transition-colors text-sm">
+                        Save &amp; Resubmit for Review
+                    </button>
+                </form>
+            @endif
+        </div>
+    </div>
+
+@endsection

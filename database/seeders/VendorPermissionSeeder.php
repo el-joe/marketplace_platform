@@ -67,7 +67,7 @@ class VendorPermissionSeeder extends Seeder
         $managerPermissions = [
             'listings.view', 'listings.create', 'listings.edit', 'listings.stock.edit',
             'orders.view', 'orders.process', 'orders.export',
-            'returns.view', 'disputes.view', 'disputes.respond',
+            'returns.view', 'returns.process', 'disputes.view', 'disputes.respond',
             'finance.view', 'finance.invoices.view',
             'campaigns.view', 'campaigns.create', 'campaigns.edit', 'campaigns.manage_marketers',
             'promotions.view', 'promotions.create',

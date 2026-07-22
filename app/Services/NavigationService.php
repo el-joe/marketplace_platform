@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ClassifiedListingStatus;
 use App\Enums\DisputeStatus;
+use App\Enums\ReturnRequestStatus;
 use App\Enums\MarketerStatus;
 use App\Enums\SupportTicketStatus;
 use App\Enums\TravelPackageStatus;
@@ -133,6 +134,13 @@ class NavigationService
                         'icon' => 'exclamation-triangle',
                         'permission' => 'disputes.view',
                         'badge' => $this->cachedBadge('open_disputes', fn() => $this->countOpenDisputes()),
+                    ],
+                    [
+                        'label' => __('admin.nav.returns'),
+                        'route' => 'admin.returns.index',
+                        'icon' => 'arrow-uturn-left',
+                        'permission' => 'returns.view',
+                        'badge' => $this->cachedBadge('pending_returns', fn() => $this->countPendingReturns()),
                     ],
                     [
                         'label' => __('admin.nav.warranty_claims'),
@@ -945,6 +953,20 @@ class NavigationService
         }
         try {
             return (int) \App\Models\Dispute::query()->where('status', DisputeStatus::Open->value)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingReturns(): int
+    {
+        if (!class_exists(\App\Models\ReturnRequest::class)) {
+            return 0;
+        }
+        try {
+            return (int) \App\Models\ReturnRequest::query()
+                ->where('status', ReturnRequestStatus::Requested->value)
+                ->count();
         } catch (\Throwable) {
             return 0;
         }

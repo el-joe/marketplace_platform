@@ -1,36 +1,36 @@
-@component('admin.docs._layout', ['title' => 'Marketer Campaigns', 'icon' => '📣', 'breadcrumb' => 'Features'])
+@component('admin.docs._layout', ['title' => __('docs/features/marketer-campaigns.title'), 'icon' => '📣', 'breadcrumb' => __('admin.features')])
 
     <div class="prose prose-sm max-w-none space-y-10">
 
         {{-- 1. What It Is --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">1. What It Is</h2>
-            <p class="text-gray-600">Marketers (affiliates or influencers) create campaigns to promote platform products, classifieds, or travel packages and earn commissions on resulting sales.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/marketer-campaigns.what_it_is.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/marketer-campaigns.what_it_is.body') }}</p>
         </section>
 
         {{-- 2. Commission Types --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">2. Commission Types</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/marketer-campaigns.commission_types.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><code>percentage</code>: <code>FLOOR(order_value &times; rate / 100)</code> &mdash; rounded down</li>
-                <li><code>flat_per_conversion</code>: <code>ROUND(flat_amount)</code> &mdash; per completed order</li>
-                <li><code>flat_per_click</code>: paid per click (rare, usually for influencers)</li>
+                <li><code>percentage</code>: <code>FLOOR(order_value &times; rate / 100)</code> &mdash; {{ __('docs/features/marketer-campaigns.commission_types.percentage') }}</li>
+                <li><code>flat_per_conversion</code>: <code>ROUND(flat_amount)</code> &mdash; {{ __('docs/features/marketer-campaigns.commission_types.flat_per_conversion') }}</li>
+                <li><code>flat_per_click</code>: {{ __('docs/features/marketer-campaigns.commission_types.flat_per_click') }}</li>
             </ul>
         </section>
 
         {{-- 3. Attribution Models --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">3. Attribution Models</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/marketer-campaigns.attribution.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><code>last_click</code>: last marketer link clicked before purchase gets 100% credit</li>
-                <li><code>first_click</code>: first marketer link clicked in session gets 100% credit</li>
-                <li><code>linear</code>: credit split equally among all marketer touchpoints (remainder to last)</li>
+                <li><code>last_click</code>: {{ __('docs/features/marketer-campaigns.attribution.last_click') }}</li>
+                <li><code>first_click</code>: {{ __('docs/features/marketer-campaigns.attribution.first_click') }}</li>
+                <li><code>linear</code>: {{ __('docs/features/marketer-campaigns.attribution.linear') }}</li>
             </ul>
         </section>
 
         {{-- 4. Conversion Lifecycle --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">4. Conversion Lifecycle</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/marketer-campaigns.conversion_lifecycle.heading') }}</h2>
             <div class="flex flex-wrap items-center gap-2 mb-3">
                 @foreach (['pending', 'approved'] as $status)
                     <span class="px-3 py-1.5 rounded-full bg-green-50 text-green-700 text-xs font-medium border border-green-200">{{ $status }}</span>
@@ -42,51 +42,51 @@
                 <span class="px-3 py-1.5 rounded-full bg-red-50 text-red-700 text-xs font-medium border border-red-200">reversed</span>
             </div>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li>Order placed via marketer link &rarr; <code>conversion.status = 'pending'</code></li>
-                <li>Return window passes &rarr; <code>conversion.status = 'approved'</code></li>
-                <li><code>sub_order</code> completed &rarr; marketer payout generated</li>
-                <li>If order refunded &rarr; <code>conversion.status = 'reversed'</code>, earnings decremented</li>
+                <li>{{ __('docs/features/marketer-campaigns.conversion_lifecycle.placed') }}</li>
+                <li>{{ __('docs/features/marketer-campaigns.conversion_lifecycle.approved') }}</li>
+                <li>{{ __('docs/features/marketer-campaigns.conversion_lifecycle.payout') }}</li>
+                <li>{{ __('docs/features/marketer-campaigns.conversion_lifecycle.reversed') }}</li>
             </ul>
         </section>
 
         {{-- 5. Budget Exhaustion Guard --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">5. Budget Exhaustion Guard</h2>
-            <p class="text-gray-600"><code>marketer_campaigns.budget</code> (if set) checked with <code>lockForUpdate()</code> before each conversion.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/marketer-campaigns.budget_guard.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/marketer-campaigns.budget_guard.body') }}</p>
             <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2 text-amber-800 text-sm">
-                If budget exhausted &rarr; campaign pauses automatically, no new conversions recorded.
+                {{ __('docs/features/marketer-campaigns.budget_guard.note') }}
             </div>
         </section>
 
         {{-- 6. Campaign Types Available --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">6. Campaign Types Available</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/marketer-campaigns.campaign_types.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><strong>product campaigns:</strong> promote specific vendor_listings</li>
-                <li><strong>classified campaigns:</strong> promote classified ad listings</li>
-                <li><strong>travel campaigns:</strong> promote travel packages</li>
+                <li><strong>{{ __('docs/features/marketer-campaigns.campaign_types.product_label') }}</strong> {{ __('docs/features/marketer-campaigns.campaign_types.product') }}</li>
+                <li><strong>{{ __('docs/features/marketer-campaigns.campaign_types.classified_label') }}</strong> {{ __('docs/features/marketer-campaigns.campaign_types.classified') }}</li>
+                <li><strong>{{ __('docs/features/marketer-campaigns.campaign_types.travel_label') }}</strong> {{ __('docs/features/marketer-campaigns.campaign_types.travel') }}</li>
             </ul>
         </section>
 
         {{-- 7. Admin Actions --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">7. Admin Actions at /admin/marketer-campaigns</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/marketer-campaigns.admin_actions.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><strong>approve:</strong> campaign goes live</li>
-                <li><strong>reject:</strong> with reason (marketer can edit and resubmit)</li>
-                <li><strong>approve pause request:</strong> when active marketer requests pause</li>
-                <li><strong>dismiss pause request:</strong> if request is not valid</li>
+                <li><strong>{{ __('docs/features/marketer-campaigns.admin_actions.approve_label') }}</strong> {{ __('docs/features/marketer-campaigns.admin_actions.approve') }}</li>
+                <li><strong>{{ __('docs/features/marketer-campaigns.admin_actions.reject_label') }}</strong> {{ __('docs/features/marketer-campaigns.admin_actions.reject') }}</li>
+                <li><strong>{{ __('docs/features/marketer-campaigns.admin_actions.approve_pause_label') }}</strong> {{ __('docs/features/marketer-campaigns.admin_actions.approve_pause') }}</li>
+                <li><strong>{{ __('docs/features/marketer-campaigns.admin_actions.dismiss_pause_label') }}</strong> {{ __('docs/features/marketer-campaigns.admin_actions.dismiss_pause') }}</li>
             </ul>
         </section>
 
         {{-- 8. Payout Calculation --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">8. Payout Calculation</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/marketer-campaigns.payout_calc.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><code>gross</code> = sum of approved conversions in period</li>
-                <li><code>net</code> = gross - platform_share (if applicable) - tax</li>
+                <li><code>gross</code> = {{ __('docs/features/marketer-campaigns.payout_calc.gross') }}</li>
+                <li><code>net</code> = {{ __('docs/features/marketer-campaigns.payout_calc.net') }}</li>
             </ul>
-            <p class="text-gray-600">Payouts grouped by currency &mdash; never summed across currencies.</p>
+            <p class="text-gray-600">{{ __('docs/features/marketer-campaigns.payout_calc.grouping') }}</p>
         </section>
 
     </div>

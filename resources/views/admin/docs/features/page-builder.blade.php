@@ -1,50 +1,50 @@
-@component('admin.docs._layout', ['title' => 'Page Builder', 'icon' => '🏗️', 'breadcrumb' => 'Features'])
+@component('admin.docs._layout', ['title' => __('docs/features/page-builder.title'), 'icon' => '🏗️', 'breadcrumb' => __('admin.features')])
 
     <div class="prose prose-sm max-w-none space-y-10">
 
         {{-- 1. What It Is --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">1. What It Is</h2>
-            <p class="text-gray-600">A drag-and-drop visual builder for storefront pages. Admin creates pages, adds blocks, configures each block's content, and publishes.</p>
-            <p class="text-gray-600">Revisions are tracked &mdash; any block or page version can be restored. Blocks are append-only models (<code>PageBlockRevision</code>, <code>PageRevision</code>) &mdash; updates create new revisions.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/page-builder.what_it_is.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/page-builder.what_it_is.body1') }}</p>
+            <p class="text-gray-600">{{ __('docs/features/page-builder.what_it_is.body2') }}</p>
         </section>
 
         {{-- 2. How It Works --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">2. How It Works</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/page-builder.how_it_works.heading') }}</h2>
             <ol class="list-decimal list-inside text-gray-600 space-y-1">
-                <li>Admin opens <code>/admin/page-builder</code></li>
-                <li>Selects or creates a page (home, category landing, promo page, etc.)</li>
-                <li>Adds blocks to the page (each block has a type)</li>
-                <li>Configures each block via the config panel (slides, products, categories, etc.)</li>
-                <li>Publishes the page &rarr; storefront immediately reflects changes</li>
+                <li>{{ __('docs/features/page-builder.how_it_works.open') }}</li>
+                <li>{{ __('docs/features/page-builder.how_it_works.select') }}</li>
+                <li>{{ __('docs/features/page-builder.how_it_works.add_blocks') }}</li>
+                <li>{{ __('docs/features/page-builder.how_it_works.configure') }}</li>
+                <li>{{ __('docs/features/page-builder.how_it_works.publish') }}</li>
             </ol>
         </section>
 
         {{-- 3. Block Types --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">3. Block Types and What They Do</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/page-builder.block_types.heading') }}</h2>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm text-left text-gray-600 border border-gray-200 rounded-lg overflow-hidden">
                     <thead class="bg-gray-50 text-gray-700">
                         <tr>
-                            <th class="px-4 py-2 font-medium">Block Type</th>
-                            <th class="px-4 py-2 font-medium">Purpose</th>
-                            <th class="px-4 py-2 font-medium">Content Sources</th>
+                            <th class="px-4 py-2 font-medium">{{ __('docs/features/page-builder.block_types.block_type') }}</th>
+                            <th class="px-4 py-2 font-medium">{{ __('docs/features/page-builder.block_types.purpose') }}</th>
+                            <th class="px-4 py-2 font-medium">{{ __('docs/features/page-builder.block_types.content_sources') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        <tr><td class="px-4 py-2"><code>hero_slider</code></td><td class="px-4 py-2">Full-width image carousel at top of page</td><td class="px-4 py-2">Slides with image, title, CTA URL</td></tr>
-                        <tr><td class="px-4 py-2"><code>ad_images</code></td><td class="px-4 py-2">Grid of promotional banner images</td><td class="px-4 py-2">Ad images with links</td></tr>
-                        <tr><td class="px-4 py-2"><code>category_pills</code></td><td class="px-4 py-2">Horizontal scrollable category chips</td><td class="px-4 py-2">Categories from catalog</td></tr>
-                        <tr><td class="px-4 py-2"><code>brand_strip</code></td><td class="px-4 py-2">Horizontal brand logo row</td><td class="px-4 py-2">Brands/Sellers</td></tr>
-                        <tr><td class="px-4 py-2"><code>product_grid</code></td><td class="px-4 py-2">Manual product selection grid</td><td class="px-4 py-2">Products (manually picked)</td></tr>
-                        <tr><td class="px-4 py-2"><code>product_carousel</code></td><td class="px-4 py-2">Auto or manual product carousel</td><td class="px-4 py-2">Products or dynamic source</td></tr>
-                        <tr><td class="px-4 py-2"><code>flash_sale_timer</code></td><td class="px-4 py-2">Countdown clock tied to a flash sale event</td><td class="px-4 py-2">Links to flash_sale</td></tr>
-                        <tr><td class="px-4 py-2"><code>featured_vendor</code></td><td class="px-4 py-2">Vendor spotlight block</td><td class="px-4 py-2">Single vendor</td></tr>
-                        <tr><td class="px-4 py-2"><code>custom_html</code></td><td class="px-4 py-2">Raw HTML block for one-offs</td><td class="px-4 py-2">Inline HTML</td></tr>
-                        <tr><td class="px-4 py-2"><code>banner_single</code></td><td class="px-4 py-2">Single full-width promo banner</td><td class="px-4 py-2">Banner image + URL</td></tr>
-                        <tr><td class="px-4 py-2"><code>now_nawy_feed</code></td><td class="px-4 py-2">Admin product listings (Nawy Now)</td><td class="px-4 py-2">admin_product_listings</td></tr>
+                        <tr><td class="px-4 py-2"><code>hero_slider</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.hero_slider_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.hero_slider_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>ad_images</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.ad_images_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.ad_images_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>category_pills</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.category_pills_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.category_pills_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>brand_strip</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.brand_strip_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.brand_strip_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>product_grid</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.product_grid_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.product_grid_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>product_carousel</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.product_carousel_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.product_carousel_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>flash_sale_timer</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.flash_sale_timer_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.flash_sale_timer_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>featured_vendor</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.featured_vendor_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.featured_vendor_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>custom_html</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.custom_html_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.custom_html_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>banner_single</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.banner_single_purpose') }}</td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.banner_single_sources') }}</td></tr>
+                        <tr><td class="px-4 py-2"><code>now_nawy_feed</code></td><td class="px-4 py-2">{{ __('docs/features/page-builder.block_types.now_nawy_feed_purpose') }}</td><td class="px-4 py-2">admin_product_listings</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -52,42 +52,42 @@
 
         {{-- 4. Slides Management --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">4. Slides Management</h2>
-            <p class="text-gray-600">Each <code>hero_slider</code> block has slides. Admin can add, reorder (drag), and delete slides.</p>
-            <p class="text-gray-600">Each slide: image (FilePond upload), <code>title_en</code>, <code>title_ar</code>, subtitle, CTA URL, CTA text.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/page-builder.slides.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/page-builder.slides.body1') }}</p>
+            <p class="text-gray-600">{{ __('docs/features/page-builder.slides.body2') }}</p>
         </section>
 
         {{-- 5. Ad Images --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">5. Ad Images</h2>
-            <p class="text-gray-600">Each <code>ad_images</code> block has ad images. Used for promotional grid (like Noon's category banners). Each: image, click URL, alt text, sort order.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/page-builder.ad_images.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/page-builder.ad_images.body') }}</p>
         </section>
 
         {{-- 6. Product Pickers --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">6. Product Pickers</h2>
-            <p class="text-gray-600"><code>product_grid</code> and <code>product_carousel</code> blocks let admin search and pin specific products. Search by name/SKU &rarr; add to block &rarr; reorder via drag.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/page-builder.product_pickers.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/page-builder.product_pickers.body') }}</p>
         </section>
 
         {{-- 7. Revisions & Restore --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">7. Revisions & Restore</h2>
-            <p class="text-gray-600">Every block config save creates a <code>PageBlockRevision</code> row. Every page publish creates a <code>PageRevision</code> row.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/page-builder.revisions.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/page-builder.revisions.body') }}</p>
             <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2 text-amber-800 text-sm">
-                Both are <strong>APPEND-ONLY</strong> &mdash; no updates or deletes on revision models. Admin can view revision history and restore any prior version.
+                {{ __('docs/features/page-builder.revisions.note') }}
             </div>
         </section>
 
         {{-- 8. Block Visibility --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">8. Block Visibility</h2>
-            <p class="text-gray-600">Each block can be toggled visible/hidden without deleting it. Useful for seasonal content (e.g. hide Ramadan block after Eid).</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/page-builder.visibility.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/page-builder.visibility.body') }}</p>
         </section>
 
         {{-- 9. Block Analytics --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">9. Block Analytics</h2>
-            <p class="text-gray-600"><code>/admin/page-builder/blocks/{block}/analytics</code> &mdash; Impressions, clicks, and CTR per block (if tracking is wired in storefront JS).</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/page-builder.analytics.heading') }}</h2>
+            <p class="text-gray-600"><code>/admin/page-builder/blocks/{block}/analytics</code> &mdash; {{ __('docs/features/page-builder.analytics.body') }}</p>
         </section>
 
     </div>

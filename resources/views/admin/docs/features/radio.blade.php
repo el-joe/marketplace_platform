@@ -1,46 +1,46 @@
-@component('admin.docs._layout', ['title' => 'Radio Channels', 'icon' => '📻', 'breadcrumb' => 'Features'])
+@component('admin.docs._layout', ['title' => __('docs/features/radio.title'), 'icon' => '📻', 'breadcrumb' => __('docs/features/radio.breadcrumb')])
 
     <div class="prose prose-sm max-w-none space-y-10">
 
         {{-- What it is --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">1. What It Is</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/radio.what_it_is.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li>Online radio streams embedded in the storefront, creating an ambient shopping experience</li>
-                <li>Each channel has a live audio stream URL</li>
-                <li>Admin schedules programming slots</li>
+                <li>{{ __('docs/features/radio.what_it_is.embedded') }}</li>
+                <li>{{ __('docs/features/radio.what_it_is.stream_url') }}</li>
+                <li>{{ __('docs/features/radio.what_it_is.admin_schedules') }}</li>
             </ul>
         </section>
 
         {{-- How it works --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">2. How It Works</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/radio.how_it_works.heading') }}</h2>
             <ol class="list-decimal list-inside text-gray-600 space-y-1">
-                <li>Admin creates a channel &rarr; adds stream URL + cover image + description</li>
-                <li>Admin schedules slots (time-based programming schedule)</li>
-                <li>Customers listen at <code>{country}.domain/radio/{channel}</code></li>
-                <li>Session tracking: JS reports listen duration per session</li>
+                <li>{{ __('docs/features/radio.how_it_works.step1') }}</li>
+                <li>{{ __('docs/features/radio.how_it_works.step2') }}</li>
+                <li>{{ __('docs/features/radio.how_it_works.step3') }} <code>{country}.domain/radio/{channel}</code></li>
+                <li>{{ __('docs/features/radio.how_it_works.step4') }}</li>
             </ol>
         </section>
 
         {{-- Admin management --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">3. Admin Management</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/radio.admin_management.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><a href="{{ route('admin.radio.channels.index') }}" class="text-primary-600 hover:underline">admin/radio/channels</a>: channel CRUD</li>
-                <li>admin/radio/channels/{id}/schedule: view weekly programming schedule</li>
-                <li>admin/radio/channels/{id}/slots: add/edit/delete time slots</li>
-                <li>Schedule events returned as calendar-compatible JSON for frontend display</li>
+                <li><a href="{{ route('admin.radio.channels.index') }}" class="text-primary-600 hover:underline">admin/radio/channels</a>: {{ __('docs/features/radio.admin_management.channel_crud') }}</li>
+                <li>admin/radio/channels/{id}/schedule: {{ __('docs/features/radio.admin_management.view_schedule') }}</li>
+                <li>admin/radio/channels/{id}/slots: {{ __('docs/features/radio.admin_management.edit_slots') }}</li>
+                <li>{{ __('docs/features/radio.admin_management.calendar_json') }}</li>
             </ul>
         </section>
 
         {{-- Who uses it / rules --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">Who Uses It & Key Rules</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/radio.rules.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><strong>Admin</strong> is the only one who manages channels and slots; customers only listen</li>
-                <li>A channel's storefront route is per-country (<code>{country}.domain</code>), not global</li>
-                <li>Slot scheduling is time-based per channel, so overlapping slots on the same channel should be avoided in the schedule UI</li>
+                <li><strong>{{ __('docs/features/radio.rules.admin_label') }}</strong> {{ __('docs/features/radio.rules.only_manager') }}</li>
+                <li>{{ __('docs/features/radio.rules.per_country') }} (<code>{country}.domain</code>), {{ __('docs/features/radio.rules.not_global') }}</li>
+                <li>{{ __('docs/features/radio.rules.slot_scheduling') }}</li>
             </ul>
         </section>
 

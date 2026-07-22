@@ -49,6 +49,16 @@ class ShippingZone extends Model
         return $this->hasMany(ShippingRate::class, 'destination_zone_id');
     }
 
+    public function vendorExceptionalZones(): HasMany
+    {
+        return $this->hasMany(VendorExceptionalZone::class);
+    }
+
+    public function optedInByVendor(): HasMany
+    {
+        return $this->hasMany(VendorExceptionalZone::class);
+    }
+
     // ── Scopes ─────────────────────────────────────────────────────────────────
 
     public function scopeActive(Builder $query): Builder

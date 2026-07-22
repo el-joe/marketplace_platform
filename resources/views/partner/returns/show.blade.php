@@ -63,6 +63,56 @@
     [$statusCls, $statusLabel] = $statusMap[$return->status->value] ?? ['bg-gray-100 text-gray-500', $return->status->value];
 @endphp
 
+@if($return->status === \App\Enums\ReturnRequestStatus::Requested && auth('vendor')->user()->can('returns.process'))
+    @if($errors->has('status'))
+        <div class="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            {{ $errors->first('status') }}
+        </div>
+    @endif
+    <div class="mb-4 bg-white rounded-2xl border border-gray-200 p-5">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">{{ __('partner.returns.review_this_request') }}</h2>
+        <div class="flex flex-wrap gap-3">
+            <form method="POST" action="{{ route('partner.returns.approve', $return->return_number) }}">
+                @csrf
+                <button type="submit"
+                    class="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors">
+                    ✓ {{ __('partner.returns.approve_return') }}
+                </button>
+            </form>
+            <button type="button" onclick="document.getElementById('reject-modal').classList.remove('hidden')"
+                class="inline-flex items-center gap-2 rounded-lg bg-white border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 transition-colors">
+                ✗ {{ __('partner.returns.reject_return') }}
+            </button>
+        </div>
+    </div>
+
+    {{-- Reject modal --}}
+    <div id="reject-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-5">
+            <h3 class="text-sm font-semibold text-gray-800 mb-3">{{ __('partner.returns.reject_return') }}</h3>
+            <form method="POST" action="{{ route('partner.returns.reject', $return->return_number) }}">
+                @csrf
+                <textarea name="rejection_reason" rows="4" required maxlength="500"
+                    placeholder="{{ __('partner.returns.rejection_reason') }}"
+                    class="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 resize-y mb-3">{{ old('rejection_reason') }}</textarea>
+                @error('rejection_reason')
+                    <p class="text-xs text-red-600 mb-3">{{ $message }}</p>
+                @enderror
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('reject-modal').classList.add('hidden')"
+                        class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100">
+                        {{ __('partner.returns.cancel') }}
+                    </button>
+                    <button type="submit"
+                        class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
+                        {{ __('partner.returns.reject_return') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endif
+
 {{-- Breadcrumb --}}
 <div class="mb-4 flex items-center gap-2 text-sm text-gray-500">
     <a href="{{ route('partner.returns.index') }}" class="hover:text-gray-700">{{ __('partner.returns.title') }}</a>

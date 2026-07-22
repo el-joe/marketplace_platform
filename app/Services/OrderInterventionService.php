@@ -5,10 +5,12 @@ namespace App\Services;
 use App\Enums\PaymentTransactionType;
 use App\Models\Admin;
 use App\Models\Dispute;
+use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Refund;
 use App\Models\SubOrder;
+use App\Models\WarehouseInventory;
 use App\Notifications\Admin\FraudPatternDetected;
 use App\Notifications\Customer\OrderCancelled as CustomerOrderCancelled;
 use App\Notifications\Customer\OrderConfirmed;
@@ -240,6 +242,88 @@ class OrderInterventionService
                 'changed_by_admin_id' => $adminId,
                 'reason' => '[Force Cancel] ' . $reason,
             ]);
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Cancel specific order items (partial cancellation)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Cancel a subset of an order's items, releasing their reserved inventory
+     * back to stock and issuing a partial refund for the cancelled value only.
+     * Remaining (non-cancelled) items continue their normal fulfillment.
+     *
+     * @param  Collection<int, \App\Models\OrderItem>  $items
+     */
+    public function cancelItems(
+        Order $order,
+        Collection $items,
+        string $reason,
+        string $adminId
+    ): Refund {
+        return DB::transaction(function () use ($order, $items, $reason, $adminId) {
+            foreach ($items as $item) {
+                $item->update(['fulfillment_status' => 'cancelled']);
+
+                $inventory = WarehouseInventory::where('vendor_listing_id', $item->vendor_listing_id)->first();
+
+                if ($inventory) {
+                    $inventory->increment('quantity_on_hand', $item->quantity);
+
+                    InventoryMovement::create([
+                        'warehouse_inventory_id' => $inventory->id,
+                        'movement_type' => 'return',
+                        'quantity_delta' => $item->quantity,
+                        'quantity_after' => $inventory->fresh()->quantity_on_hand,
+                        'reference_type' => 'order',
+                        'reference_id' => $order->id,
+                        'reason' => '[Partial Cancel] ' . $reason,
+                        'created_by_user_id' => $adminId,
+                    ]);
+                }
+            }
+
+            $refundAmountCents = (int) $items->sum('line_total');
+
+            $refund = $this->processRefund(
+                $order,
+                'partial',
+                $refundAmountCents / 100,
+                'customer_request',
+                $reason,
+                $items->first()?->sub_order_id,
+                false,
+                $adminId
+            );
+
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'sub_order_id' => null,
+                'from_status' => $order->status->value,
+                'to_status' => $order->status->value,
+                'changed_by_admin_id' => $adminId,
+                'reason' => '[Partial Cancel] ' . $reason,
+                'metadata' => [
+                    'action' => 'partial_item_cancellation',
+                    'item_ids' => $items->pluck('id')->all(),
+                    'refund_id' => $refund->id,
+                ],
+            ]);
+
+            $order->loadMissing('subOrders.vendor.vendorAdmins', 'customer');
+
+            $vendorIds = $items->pluck('vendor_id')->unique()->filter();
+            foreach ($vendorIds as $vendorId) {
+                $subOrder = $order->subOrders->firstWhere('vendor_id', $vendorId);
+
+                if ($subOrder) {
+                    Notification::send($subOrder->vendor->vendorAdmins, new OrderCancelledByAdmin($subOrder, $reason));
+                    $order->customer?->notify(new OrderRefunded($subOrder));
+                }
+            }
+
+            return $refund;
         });
     }
 

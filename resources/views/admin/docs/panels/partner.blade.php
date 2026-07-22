@@ -1,142 +1,142 @@
 @extends('layouts.admin')
 
-@section('title', 'Partner Panel')
+@section('title', __('docs/panels/partner.title'))
 
 @section('content')
     <div class="mb-6">
         <a href="{{ route('admin.docs.index') }}" class="text-sm text-primary-600 hover:underline">&larr; {{ __('admin.nav.documentation') }}</a>
         <div class="flex items-center gap-3 mt-2">
             <span class="text-3xl">🤝</span>
-            <h1 class="text-2xl font-bold text-gray-900">Partner (Vendor) Panel</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('docs/panels/partner.title') }}</h1>
         </div>
         <p class="text-sm text-gray-500 mt-2">
-            URL: <code>partner.{domain}</code> &middot; Access: <code>vendor_admins</code> table &middot; Guard: <code>vendor</code>
+            {!! __('docs/panels/partner.meta') !!}
         </p>
     </div>
 
     <div class="space-y-8">
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Authentication</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.auth.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li>Login at <code>partner.domain/login</code></li>
-                <li>Vendor account must be approved and active — suspended vendors see <code>/suspended</code> page</li>
-                <li>Password reset via email</li>
+                <li>{{ __('docs/panels/partner.auth.login') }} <code>partner.domain/login</code></li>
+                <li>{{ __('docs/panels/partner.auth.approval') }} <code>/suspended</code> {{ __('docs/panels/partner.auth.suspended_page') }}</li>
+                <li>{{ __('docs/panels/partner.auth.password_reset') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Dashboard</h2>
-            <p class="text-sm text-gray-700">Sales summary, orders chart, pending actions, low stock alerts, recent orders</p>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.dashboard.title') }}</h2>
+            <p class="text-sm text-gray-700">{{ __('docs/panels/partner.dashboard.summary') }}</p>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Orders</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.orders.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/orders</code> — Sub-orders assigned to this vendor</li>
-                <li>Actions: confirm &rarr; ship &rarr; out-for-delivery &rarr; deliver | cancel</li>
-                <li>Vendor sees ONLY their sub_orders — never other vendors' data</li>
+                <li><code>/orders</code> — {{ __('docs/panels/partner.orders.orders') }}</li>
+                <li>{!! __('docs/panels/partner.orders.actions') !!}</li>
+                <li>{{ __('docs/panels/partner.orders.scope') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Listings</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.listings.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/listings</code> — Vendor's product listings on the marketplace</li>
-                <li>Create: search existing product catalog &rarr; set price, fulfillment model, warehouse</li>
-                <li>Edit: update price, shipping, dimensions, adjust stock, toggle status</li>
-                <li>Shipping preview: see how shipping fee is calculated for a specific listing</li>
+                <li><code>/listings</code> — {{ __('docs/panels/partner.listings.listings') }}</li>
+                <li>{!! __('docs/panels/partner.listings.create') !!}</li>
+                <li>{{ __('docs/panels/partner.listings.edit') }}</li>
+                <li>{{ __('docs/panels/partner.listings.shipping_preview') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Inventory</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.inventory.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/inventory</code> — Stock levels across all listings</li>
-                <li>Low stock and out-of-stock filtered views</li>
-                <li>Movement history per listing (inbound, outbound, adjustments)</li>
+                <li><code>/inventory</code> — {{ __('docs/panels/partner.inventory.inventory') }}</li>
+                <li>{{ __('docs/panels/partner.inventory.filters') }}</li>
+                <li>{{ __('docs/panels/partner.inventory.movement') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Payouts</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.payouts.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/payouts</code> — Payout batches from platform settlements</li>
-                <li>Earnings summary: total earned, pending, commission deducted</li>
+                <li><code>/payouts</code> — {{ __('docs/panels/partner.payouts.payouts') }}</li>
+                <li>{{ __('docs/panels/partner.payouts.summary') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Coupons</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.coupons.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/coupons</code> — Vendor-specific coupons applied only to their sub_orders</li>
+                <li><code>/coupons</code> — {{ __('docs/panels/partner.coupons.coupons') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Flash Sales</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.flash_sales.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/flash-sales</code> — Platform flash sale events the vendor is invited to</li>
-                <li>Submit listing prices for flash sale inclusion</li>
-                <li>Live stats during active sales</li>
+                <li><code>/flash-sales</code> — {{ __('docs/panels/partner.flash_sales.events') }}</li>
+                <li>{{ __('docs/panels/partner.flash_sales.submit') }}</li>
+                <li>{{ __('docs/panels/partner.flash_sales.stats') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Bank Accounts</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.bank_accounts.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/bank-accounts</code> — Vendor's bank accounts for payout transfer</li>
-                <li>Set primary, delete (not editable — change request required for locked section)</li>
+                <li><code>/bank-accounts</code> — {{ __('docs/panels/partner.bank_accounts.accounts') }}</li>
+                <li>{{ __('docs/panels/partner.bank_accounts.set_primary') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">FBN (Fulfilled by Platform)</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.fbn.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/fbn/inbound</code> — Ship inventory to platform warehouses</li>
-                <li><code>/fbn/storage-fees</code> — View storage fee charges per listing</li>
-                <li><code>/fbn/warehouses</code> — View assigned platform warehouses</li>
+                <li><code>/fbn/inbound</code> — {{ __('docs/panels/partner.fbn.inbound') }}</li>
+                <li><code>/fbn/storage-fees</code> — {{ __('docs/panels/partner.fbn.storage_fees') }}</li>
+                <li><code>/fbn/warehouses</code> — {{ __('docs/panels/partner.fbn.warehouses') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Performance</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.performance.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/performance</code> — Vendor scorecard: order completion rate, cancellation rate, reviews, SLA</li>
+                <li><code>/performance</code> — {{ __('docs/panels/partner.performance.scorecard') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Exceptional Shipping Zones</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.exceptional_zones.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/exceptional-zones</code> — Opt into serving remote zones with delivery subsidy applied</li>
+                <li><code>/exceptional-zones</code> — {{ __('docs/panels/partner.exceptional_zones.opt_in') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Team Management</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.team.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/team</code> — Manage staff with role-based access</li>
-                <li><code>/roles</code> — Create custom permission roles scoped to this vendor</li>
+                <li><code>/team</code> — {{ __('docs/panels/partner.team.team') }}</li>
+                <li><code>/roles</code> — {{ __('docs/panels/partner.team.roles') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Profile &amp; Settings</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{!! __('docs/panels/partner.profile.title') !!}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/profile</code> — Agency info, logo, contact</li>
-                <li><code>/bank-accounts</code> — Bank account management</li>
-                <li><code>/change-requests</code> — View pending change requests for locked sections</li>
-                <li><code>/warehouse</code> — Register/manage vendor-owned warehouses</li>
+                <li><code>/profile</code> — {{ __('docs/panels/partner.profile.profile') }}</li>
+                <li><code>/bank-accounts</code> — {{ __('docs/panels/partner.profile.bank_accounts') }}</li>
+                <li><code>/change-requests</code> — {{ __('docs/panels/partner.profile.change_requests') }}</li>
+                <li><code>/warehouse</code> — {{ __('docs/panels/partner.profile.warehouse') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Packaging Supplies</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/partner.packaging.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/packaging/catalog</code> — Browse platform packaging items</li>
-                <li><code>/packaging/order</code> — Place packaging order (vendor bears delivery fee)</li>
-                <li><code>/packaging/requests</code> — View own packaging order history</li>
+                <li><code>/packaging/catalog</code> — {{ __('docs/panels/partner.packaging.catalog') }}</li>
+                <li><code>/packaging/order</code> — {{ __('docs/panels/partner.packaging.order') }}</li>
+                <li><code>/packaging/requests</code> — {{ __('docs/panels/partner.packaging.requests') }}</li>
             </ul>
         </section>
 

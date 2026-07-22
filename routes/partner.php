@@ -109,6 +109,9 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::post('/', 'store')->name('store')->middleware('vendor.can:listings.create');
         Route::get('/product-search', 'productSearch')->name('product-search')->middleware('vendor.can:listings.view');
         Route::get('/warehouses-by-country', 'warehousesByCountry')->name('warehouses-by-country')->middleware('vendor.can:listings.view');
+        Route::get('/{listing}/edit', 'edit')->name('edit')->middleware('vendor.can:listings.edit');
+        Route::put('/{listing}', 'update')->name('update')->middleware('vendor.can:listings.edit');
+        Route::post('/{listing}/resubmit', 'resubmit')->name('resubmit')->middleware('vendor.can:listings.create');
         Route::get('/{listing}', 'show')->name('show')->middleware('vendor.can:listings.view');
         Route::post('/{listing}/update-price', 'updatePrice')->name('update-price')->middleware('vendor.can:listings.pricing.edit');
         Route::post('/{listing}/update-shipping', 'updateShipping')->name('update-shipping')->middleware('vendor.can:listings.edit');
@@ -181,6 +184,14 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
             Route::post('/{surcharge}/toggle-active', 'toggleActive')->name('toggle-active');
         });
 
+    // ── Exceptional shipping zones (vendor opt-in) ───────────────────────────
+    Route::prefix('exceptional-zones')->name('exceptional-zones.')
+        ->controller(\App\Http\Controllers\Partner\ExceptionalZoneController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/{zone}/toggle', 'toggleZone')->name('toggle');
+        });
+
     // ── Profile & store settings ─────────────────────────────────────────────
     Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->group(function () {
         Route::get('/', 'index')->name('index')->middleware('vendor.can:settings.view');
@@ -244,6 +255,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::get('/fbn-requests', 'fbnRequests')->name('fbn.requests');
         Route::post('/fbn/submit', 'submitInboundRequest')->name('fbn.submit');
         Route::post('/fbn/{request}/cancel', 'cancelInboundRequest')->name('fbn.cancel');
+        Route::patch('/fbn/{request}/tracking', 'updateInboundTracking')->name('fbn.tracking');
         Route::get('/fbp-inventory', 'fbpInventory')->name('fbp.inventory');
         Route::get('/storage-fees', 'storageFees')->name('storage-fees');
     });
@@ -357,6 +369,8 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
     Route::prefix('returns')->name('returns.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Partner\ReturnController::class, 'index'])->name('index')->middleware('vendor.can:returns.view');
         Route::get('{returnNumber}', [\App\Http\Controllers\Partner\ReturnController::class, 'show'])->name('show')->middleware('vendor.can:returns.view');
+        Route::post('{returnNumber}/approve', [\App\Http\Controllers\Partner\ReturnController::class, 'approve'])->name('approve')->middleware('vendor.can:returns.process');
+        Route::post('{returnNumber}/reject', [\App\Http\Controllers\Partner\ReturnController::class, 'reject'])->name('reject')->middleware('vendor.can:returns.process');
     });
 
     // ─── Finance / Transactions ───────────────────────────────────────────────

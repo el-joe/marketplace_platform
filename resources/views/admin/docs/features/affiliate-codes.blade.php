@@ -1,41 +1,41 @@
-@component('admin.docs._layout', ['title' => 'Affiliate Promo Codes', 'icon' => '🏷️', 'breadcrumb' => 'Features'])
+@component('admin.docs._layout', ['title' => __('docs/features/affiliate-codes.title'), 'icon' => '🏷️', 'breadcrumb' => __('docs/features/affiliate-codes.breadcrumb')])
 
     <div class="prose prose-sm max-w-none space-y-10">
 
         {{-- 1. What It Is --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">1. What It Is</h2>
-            <p class="text-gray-600">Unique discount codes assigned to affiliate-type marketers. Customer enters code at checkout &rarr; discount applied &rarr; conversion attributed to marketer.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/affiliate-codes.what_it_is.heading') }}</h2>
+            <p class="text-gray-600">{{ __('docs/features/affiliate-codes.what_it_is.p1') }}</p>
         </section>
 
         {{-- 2. Difference from Coupons --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">2. Difference from Coupons</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/affiliate-codes.difference.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li><strong>Coupons:</strong> created by admin or vendor for general use, may be public</li>
-                <li><strong>Affiliate codes:</strong> tied to a specific marketer, tracked for commission</li>
+                <li><strong>{{ __('docs/features/affiliate-codes.difference.coupons_label') }}:</strong> {{ __('docs/features/affiliate-codes.difference.coupons_desc') }}</li>
+                <li><strong>{{ __('docs/features/affiliate-codes.difference.codes_label') }}:</strong> {{ __('docs/features/affiliate-codes.difference.codes_desc') }}</li>
             </ul>
         </section>
 
         {{-- 3. How It Works --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">3. How It Works</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/affiliate-codes.how_it_works.heading') }}</h2>
             <ol class="list-decimal list-inside text-gray-600 space-y-1">
-                <li>Affiliate marketer requests a code from their panel (<code>/promo-codes</code>)</li>
-                <li>Admin creates/assigns the code at <code>/admin/affiliate-promo-codes</code></li>
-                <li>Marketer shares the code publicly (social media, YouTube description, etc.)</li>
-                <li>Customer enters code at checkout &rarr; discount applied &rarr; code recorded on order</li>
-                <li><code>marketer_conversions</code> row created &rarr; commission earned by marketer</li>
+                <li>{{ __('docs/features/affiliate-codes.how_it_works.step1') }} (<code>/promo-codes</code>)</li>
+                <li>{{ __('docs/features/affiliate-codes.how_it_works.step2') }} <code>/admin/affiliate-promo-codes</code></li>
+                <li>{{ __('docs/features/affiliate-codes.how_it_works.step3') }}</li>
+                <li>{{ __('docs/features/affiliate-codes.how_it_works.step4') }}</li>
+                <li><code>marketer_conversions</code> {{ __('docs/features/affiliate-codes.how_it_works.step5') }}</li>
             </ol>
         </section>
 
         {{-- 4. Admin Controls --}}
         <section>
-            <h2 class="text-lg font-semibold text-gray-900">4. Admin Controls</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ __('docs/features/affiliate-codes.admin_controls.heading') }}</h2>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
-                <li>Toggle code active/inactive without deleting</li>
-                <li>Delete deactivated codes</li>
-                <li>View all active codes with their marketer linkage</li>
+                <li>{{ __('docs/features/affiliate-codes.admin_controls.item1') }}</li>
+                <li>{{ __('docs/features/affiliate-codes.admin_controls.item2') }}</li>
+                <li>{{ __('docs/features/affiliate-codes.admin_controls.item3') }}</li>
             </ul>
         </section>
 

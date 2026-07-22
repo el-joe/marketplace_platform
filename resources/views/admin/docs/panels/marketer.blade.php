@@ -1,122 +1,121 @@
 @extends('layouts.admin')
 
-@section('title', 'Marketer Panel')
+@section('title', __('docs/panels/marketer.title'))
 
 @section('content')
     <div class="mb-6">
         <a href="{{ route('admin.docs.index') }}" class="text-sm text-primary-600 hover:underline">&larr; {{ __('admin.nav.documentation') }}</a>
         <div class="flex items-center gap-3 mt-2">
             <span class="text-3xl">📣</span>
-            <h1 class="text-2xl font-bold text-gray-900">Marketer Panel</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('docs/panels/marketer.title') }}</h1>
         </div>
-        <p class="text-sm text-gray-500 mt-2">URL: <code>marketer.{domain}</code></p>
+        <p class="text-sm text-gray-500 mt-2">{!! __('docs/panels/marketer.meta_url') !!}</p>
         <p class="text-sm text-gray-500 mt-1">
-            Two marketer types: <strong>Affiliate</strong> — commission-based, uses promo codes and tracking links &middot;
-            <strong>Influencer</strong> — flat-fee deals with content deliverables
+            {!! __('docs/panels/marketer.meta_types') !!}
         </p>
     </div>
 
     <div class="space-y-8">
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Dashboard</h2>
-            <p class="text-sm text-gray-700">Earnings summary, active campaigns, recent conversions, pending invitations</p>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.dashboard.title') }}</h2>
+            <p class="text-sm text-gray-700">{{ __('docs/panels/marketer.dashboard.summary') }}</p>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Analytics</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.analytics.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/analytics</code> — Cross-campaign performance: clicks, conversions, earnings by date range</li>
+                <li><code>/analytics</code> — {{ __('docs/panels/marketer.analytics.analytics') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">My Store</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.store.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/store</code> — Public profile management: bio, social links, audience stats, cover image</li>
-                <li><code>/store/preview</code> — How vendors and customers see the profile</li>
-                <li>Public URL: <code>marketer.domain/p/{slug}</code></li>
+                <li><code>/store</code> — {{ __('docs/panels/marketer.store.store') }}</li>
+                <li><code>/store/preview</code> — {{ __('docs/panels/marketer.store.preview') }}</li>
+                <li>{{ __('docs/panels/marketer.store.public_url') }} <code>marketer.domain/p/{slug}</code></li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Campaigns</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.campaigns.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/campaigns</code> — Self-initiated campaigns to promote products/classifieds/travel packages</li>
-                <li>Create: choose campaign type, add products/travel packages, set attribution model</li>
-                <li>Track: clicks, conversions, earnings per campaign</li>
-                <li>Actions: pause, resume, cancel, resubmit after rejection</li>
+                <li><code>/campaigns</code> — {{ __('docs/panels/marketer.campaigns.campaigns') }}</li>
+                <li>{!! __('docs/panels/marketer.campaigns.create') !!}</li>
+                <li>{{ __('docs/panels/marketer.campaigns.track') }}</li>
+                <li>{{ __('docs/panels/marketer.campaigns.actions') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Vendor Invitations</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.invitations.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/invitations</code> — Vendors invite marketers to promote their campaigns</li>
-                <li>Accept or decline with optional note</li>
+                <li><code>/invitations</code> — {{ __('docs/panels/marketer.invitations.invitations') }}</li>
+                <li>{{ __('docs/panels/marketer.invitations.respond') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Admin Offers</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.admin_offers.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/admin-offers</code> — Admin sends direct campaign offers to specific marketers</li>
-                <li>Accept or decline with reason note</li>
+                <li><code>/admin-offers</code> — {{ __('docs/panels/marketer.admin_offers.offers') }}</li>
+                <li>{{ __('docs/panels/marketer.admin_offers.respond') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">QR Codes</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.qr_codes.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/qr-codes</code> — Generate trackable QR codes linking to campaigns</li>
-                <li>Download for offline marketing use</li>
+                <li><code>/qr-codes</code> — {{ __('docs/panels/marketer.qr_codes.qr_codes') }}</li>
+                <li>{{ __('docs/panels/marketer.qr_codes.download') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Promo Codes <span class="text-xs font-normal text-gray-400">(Affiliate only)</span></h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.promo_codes.title') }} <span class="text-xs font-normal text-gray-400">{{ __('docs/panels/marketer.promo_codes.affiliate_only') }}</span></h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/promo-codes</code> — Request platform-assigned affiliate codes</li>
-                <li>Used at customer checkout; attribution tied to this marketer</li>
+                <li><code>/promo-codes</code> — {{ __('docs/panels/marketer.promo_codes.request') }}</li>
+                <li>{{ __('docs/panels/marketer.promo_codes.usage') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Deals + Deliverables <span class="text-xs font-normal text-gray-400">(Influencer only)</span></h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.deals.title') }} <span class="text-xs font-normal text-gray-400">{{ __('docs/panels/marketer.deals.influencer_only') }}</span></h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/deals</code> — View flat-fee content deals proposed by admin</li>
-                <li>Accept/reject deals; submit content deliverables for review</li>
-                <li><code>/media-kit</code> — Manage media kit shown to potential partners</li>
+                <li><code>/deals</code> — {{ __('docs/panels/marketer.deals.view') }}</li>
+                <li>{{ __('docs/panels/marketer.deals.submit') }}</li>
+                <li><code>/media-kit</code> — {{ __('docs/panels/marketer.deals.media_kit') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Sample Requests</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.samples.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/samples</code> — Request product samples for review content creation</li>
+                <li><code>/samples</code> — {{ __('docs/panels/marketer.samples.samples') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Earnings</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.earnings.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/earnings</code> — Commission earnings history and breakdown</li>
-                <li><code>/earnings/summary</code> — Aggregated view by period and campaign</li>
+                <li><code>/earnings</code> — {{ __('docs/panels/marketer.earnings.history') }}</li>
+                <li><code>/earnings/summary</code> — {{ __('docs/panels/marketer.earnings.summary') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Wallet</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.wallet.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/wallet</code> — Platform wallet balance</li>
-                <li>Request withdrawal to bank account</li>
+                <li><code>/wallet</code> — {{ __('docs/panels/marketer.wallet.balance') }}</li>
+                <li>{{ __('docs/panels/marketer.wallet.withdraw') }}</li>
             </ul>
         </section>
 
         <section class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-3">Secret Promotions</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('docs/panels/marketer.secret_promotions.title') }}</h2>
             <ul class="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-                <li><code>/secret-promotions</code> — Exclusive promotions only visible to this marketer's audience</li>
+                <li><code>/secret-promotions</code> — {{ __('docs/panels/marketer.secret_promotions.promotions') }}</li>
             </ul>
         </section>
 

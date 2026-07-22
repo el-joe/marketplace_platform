@@ -361,6 +361,8 @@ Object.assign(window.PARTNER_TRANSLATIONS, {
         noStorageFees: @json(__('partner.fulfillment.no_storage_fees')),
         inventoryUpdated: @json(__('partner.fulfillment.inventory_updated')),
         cancelRequestConfirm: @json(__('partner.fulfillment.cancel_request_confirm')),
+        trackingPlaceholder: @json(__('partner.fulfillment.tracking_placeholder')),
+        saveTracking: @json(__('partner.fulfillment.save_tracking')),
     },
 });
 
@@ -412,7 +414,7 @@ function fulfillmentApp() {
                     <td class="px-3 py-2 text-right text-gray-500">${r.warehouse}</td>
                     <td class="px-3 py-2 text-center">${r.qty_requested} / <span class="text-green-600 font-bold">${r.qty_received}</span></td>
                     <td class="px-3 py-2 text-right"><span class="badge badge-${r.status_color} text-xs">${r.status_label}</span></td>
-                    <td class="px-3 py-2 text-right text-gray-400">${r.tracking_number ?? '—'}</td>
+                    <td class="px-3 py-2 text-right text-gray-400">${renderTrackingCell(r)}</td>
                     <td class="px-3 py-2 text-right text-gray-500">${r.expected_arrival ?? '—'}</td>
                     <td class="px-3 py-2">${cancelBtn}</td>
                 </tr>`;
@@ -476,6 +478,41 @@ function fulfillmentApp() {
             window.Toast.info(window.PARTNER_TRANSLATIONS.fulfillment.inventoryUpdated);
         },
     };
+}
+
+function renderTrackingCell(r) {
+    if (r.tracking_number) {
+        return r.tracking_number;
+    }
+    if (r.status === 'approved') {
+        return `<div class="flex items-center justify-end gap-1">
+            <input type="text" id="tracking-input-${r.id}" class="form-input text-xs py-1 w-28" placeholder="${window.PARTNER_TRANSLATIONS.fulfillment.trackingPlaceholder}">
+            <button class="btn btn-xs btn-primary" onclick="saveTrackingNumber('${r.id}')">${window.PARTNER_TRANSLATIONS.fulfillment.saveTracking}</button>
+        </div>`;
+    }
+    return '—';
+}
+
+async function saveTrackingNumber(id) {
+    const input = document.getElementById(`tracking-input-${id}`);
+    const trackingNumber = input?.value.trim();
+    if (!trackingNumber) {
+        window.Toast.error(window.PARTNER_TRANSLATIONS.fulfillment.fillAllFields);
+        return;
+    }
+
+    const res = await fetch(`{{ url('partner/fulfillment/fbn') }}/${id}/tracking`, {
+        method: 'PATCH',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tracking_number: trackingNumber }),
+    });
+    const data = await res.json();
+    if (data.success) {
+        window.Toast.success(data.message);
+        location.reload();
+    } else {
+        window.Toast.error(data.message ?? window.PARTNER_TRANSLATIONS.fulfillment.genericError);
+    }
 }
 
 async function cancelFbnRequest(id) {

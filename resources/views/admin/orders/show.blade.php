@@ -754,6 +754,12 @@
                             {{ __('admin.orders.force_cancel') }}
                         </button>
                     @endif
+                    @if(!in_array($order->status->value, ['shipped', 'delivered', 'completed', 'cancelled', 'refunded']))
+                        <button type="button" data-modal-open="cancel-items-modal" class="btn btn-ghost w-full justify-center text-danger-600 hover:bg-danger-50">
+                            <x-heroicon name="x-circle" class="w-4 h-4 mr-1.5" />
+                            {{ __('admin.orders.cancel_specific_items') }}
+                        </button>
+                    @endif
                     <button type="button" data-modal-open="dispute-modal" class="btn btn-ghost w-full justify-center">
                         <x-heroicon name="scale" class="w-4 h-4 mr-1.5" />
                         {{ __('admin.orders.escalate_dispute') }}
@@ -935,6 +941,49 @@
             <x-slot:footer>
                 <button type="button" data-modal-close class="btn btn-ghost">{{ __('admin.orders.abort') }}</button>
                 <button type="submit" form="force-cancel-form" class="btn btn-danger">{{ __('admin.orders.force_cancel') }}</button>
+            </x-slot:footer>
+        </form>
+    </x-modal>
+
+    {{-- 3b. Cancel Specific Items --}}
+    @php
+        $cancellableItems = $order->subOrders->flatMap->items->reject(
+            fn($item) => in_array($item->fulfillment_status->value, ['cancelled', 'returned'])
+        );
+    @endphp
+    <x-modal id="cancel-items-modal" title="{{ __('admin.orders.cancel_specific_items') }}" size="md">
+        <form id="cancel-items-form">
+            @csrf
+            <div class="space-y-4">
+                <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 flex items-start gap-2">
+                    <x-heroicon name="exclamation-triangle" class="w-5 h-5 flex-shrink-0 mt-0.5" />
+                    <span>{{ __('admin.orders.cancel_items_warning') }}</span>
+                </div>
+
+                <div>
+                    <label class="form-label">{{ __('admin.orders.select_items_to_cancel') }} <span class="text-danger-500">*</span></label>
+                    <div class="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                        @forelse($cancellableItems as $item)
+                            <label class="flex items-center gap-2 cursor-pointer text-sm">
+                                <input type="checkbox" name="item_ids[]" value="{{ $item->id }}" class="rounded text-primary-600 border-gray-300">
+                                <span>{{ $item->product_snapshot['name_en'] ?? $item->sku }} × {{ $item->quantity }} — {{ $fmt($item->line_total) }}</span>
+                            </label>
+                        @empty
+                            <p class="text-sm text-gray-400 italic">{{ __('admin.orders.no_cancellable_items') }}</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label">{{ __('admin.orders.cancel_reason') }} <span class="text-danger-500">*</span></label>
+                    <textarea name="cancel_reason" rows="3" class="form-textarea w-full"
+                        placeholder="{{ __('admin.orders.force_cancel_placeholder') }}"></textarea>
+                </div>
+            </div>
+
+            <x-slot:footer>
+                <button type="button" data-modal-close class="btn btn-ghost">{{ __('admin.orders.abort') }}</button>
+                <button type="submit" form="cancel-items-form" class="btn btn-danger">{{ __('admin.orders.cancel_specific_items') }}</button>
             </x-slot:footer>
         </form>
     </x-modal>

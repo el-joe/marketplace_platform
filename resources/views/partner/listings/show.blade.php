@@ -445,6 +445,12 @@
                 <h4 class="font-semibold text-gray-800 text-sm mb-3">{{ __('partner.listings.show.actions') }}</h4>
                 <div class="space-y-2">
 
+                    {{-- Edit Listing --}}
+                    <a href="{{ route('partner.listings.edit', $listing->id) }}"
+                        class="block w-full text-center border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold py-2.5 rounded-xl transition-colors">
+                        تعديل القائمة
+                    </a>
+
                     {{-- Update Price --}}
                     <button id="btn-update-price"
                         class="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-sm font-semibold py-2.5 rounded-xl transition-colors">
