@@ -82,6 +82,16 @@ class TravelAgency extends Authenticatable implements JWTSubject, TravelAgencyAu
         return $this->hasMany(TravelAgencyMember::class, 'travel_agency_id');
     }
 
+    public function ownerMember(): ?TravelAgencyMember
+    {
+        return $this->members()->where('is_owner', 1)->first();
+    }
+
+    public function activeMembers(): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->members()->where('is_active', 1)->get();
+    }
+
     public function bankAccounts(): HasMany
     {
         return $this->hasMany(TravelAgencyBankAccount::class);

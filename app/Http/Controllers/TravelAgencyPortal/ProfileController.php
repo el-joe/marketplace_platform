@@ -3,25 +3,28 @@
 namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    use ResolvesTravelAgency;
+
     public function edit(): View
     {
-        $agency = Auth::guard('travel_agency')->user()->travelAgency;
+        $agency = $this->agency();
 
         return view('travel-agency.profile.edit', compact('agency'));
     }
 
     public function update(Request $request): RedirectResponse
     {
-        $agency = Auth::guard('travel_agency')->user()->travelAgency;
+        $this->requireOwner();
+        $agency = $this->agency();
 
         $data = $request->validate([
             'name'           => ['required', 'string', 'max:255'],
@@ -46,7 +49,7 @@ class ProfileController extends Controller
 
     public function updatePassword(Request $request): RedirectResponse
     {
-        $member = Auth::guard('travel_agency')->user();
+        $member = $this->member();
 
         $validated = $request->validate([
             'current_password' => ['required', 'string'],

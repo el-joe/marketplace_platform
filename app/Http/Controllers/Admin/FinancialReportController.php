@@ -99,10 +99,17 @@ class FinancialReportController extends Controller
 
         $totalUsd = $rowsWithUsd->sum(fn($r) => $r['revenue_usd'] ?? 0);
 
+        $exceptionalZoneSummary  = $this->reports->exceptionalZoneSubsidySummaryByCurrency($from, $to);
+        $exceptionalZoneTopZones = $this->reports->exceptionalZoneSubsidyTopZones($from, $to, 5);
+
         return response()->json([
             'rows'      => $rowsWithUsd->values(),
             'total_usd' => round($totalUsd, 2),
             'as_of'     => now()->toIso8601String(),
+            'exceptional_zone_subsidies' => [
+                'by_currency' => $exceptionalZoneSummary->values(),
+                'top_zones'   => $exceptionalZoneTopZones->values(),
+            ],
         ]);
     }
 

@@ -125,6 +125,40 @@
     </div>
 </div>
 
+{{-- ─── Exceptional Zone Subsidies panel ───────────────────────────────────────── --}}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <h2 class="text-sm font-semibold text-gray-800">{{ __('admin.finance.exceptional_zone_subsidies') }}</h2>
+        <span class="text-xs text-gray-400">{{ __('admin.finance.exceptional_zone_subsidies_desc') }}</span>
+    </div>
+
+    <div id="exceptional-zone-empty" class="hidden py-10 text-center text-sm text-gray-400">
+        {{ __('admin.finance.no_data_for_period') }}
+    </div>
+
+    <div id="exceptional-zone-content">
+        <div id="exceptional-currency-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4"></div>
+
+        <div class="px-4 pb-2">
+            <h3 class="text-xs font-semibold text-gray-500 uppercase mb-2">{{ __('admin.finance.top_zones_by_admin_cost') }}</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-4 py-2.5 text-start font-semibold text-gray-600">{{ __('admin.finance.zone') }}</th>
+                        <th class="px-4 py-2.5 text-end font-semibold text-gray-600">{{ __('admin.finance.orders') }}</th>
+                        <th class="px-4 py-2.5 text-end font-semibold text-gray-600">{{ __('admin.finance.total_gap') }}</th>
+                        <th class="px-4 py-2.5 text-end font-semibold text-gray-600">{{ __('admin.finance.admin_absorbed') }}</th>
+                        <th class="px-4 py-2.5 text-end font-semibold text-gray-600">{{ __('admin.finance.vendor_contributed') }}</th>
+                    </tr>
+                </thead>
+                <tbody id="exceptional-zone-tbody" class="divide-y divide-gray-100"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 {{-- ─── Exchange Rates panel ─────────────────────────────────────────────────── --}}
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
@@ -191,6 +225,11 @@ window.TRANSLATIONS = window.TRANSLATIONS || {};
 Object.assign(window.TRANSLATIONS, {
     financeUnlaunched: @json(__('admin.finance.unlaunched')),
     financeFailedToLoadData: @json(__('admin.finance.failed_to_load_data')),
+    financeExceptionalOrders: @json(__('admin.finance.orders')),
+    financeTotalGap: @json(__('admin.finance.total_gap')),
+    financeAdminAbsorbed: @json(__('admin.finance.admin_absorbed')),
+    financeVendorContributed: @json(__('admin.finance.vendor_contributed')),
+    financeNoData: @json(__('admin.finance.no_data_for_period')),
 });
 
 (function () {
@@ -302,12 +341,63 @@ Object.assign(window.TRANSLATIONS, {
                 tableLoading.classList.add('hidden');
                 tableWrap.classList.remove('hidden');
                 render();
+                renderExceptionalZoneSubsidies(json.exceptional_zone_subsidies || { by_currency: [], top_zones: [] });
             })
             .catch(() => {
                 tableLoading.classList.add('hidden');
                 tableWrap.classList.remove('hidden');
                 tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-red-500 text-sm">${window.TRANSLATIONS.financeFailedToLoadData}</td></tr>`;
             });
+    }
+
+    // ── Exceptional Zone Subsidies ────────────────────────────────────────
+    const exceptionalEmpty   = document.getElementById('exceptional-zone-empty');
+    const exceptionalContent = document.getElementById('exceptional-zone-content');
+    const exceptionalCards   = document.getElementById('exceptional-currency-cards');
+    const exceptionalTbody   = document.getElementById('exceptional-zone-tbody');
+
+    function renderExceptionalZoneSubsidies(data) {
+        const byCurrency = data.by_currency || [];
+        const topZones    = data.top_zones || [];
+
+        if (byCurrency.length === 0) {
+            exceptionalEmpty.classList.remove('hidden');
+            exceptionalContent.classList.add('hidden');
+            return;
+        }
+        exceptionalEmpty.classList.add('hidden');
+        exceptionalContent.classList.remove('hidden');
+
+        // Grouped by currency — never summed across currencies.
+        exceptionalCards.innerHTML = byCurrency.map(row => `
+            <div class="border border-gray-200 rounded-lg p-4">
+                <p class="text-xs text-gray-500 mb-2">${row.currency_code} &middot; ${Number(row.exceptional_orders).toLocaleString()} ${window.TRANSLATIONS.financeExceptionalOrders || ''}</p>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-600">${window.TRANSLATIONS.financeTotalGap || ''}</span>
+                    <span class="font-medium text-gray-900">${fmt(row.total_gap)} ${row.currency_code}</span>
+                </div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-600">${window.TRANSLATIONS.financeAdminAbsorbed || ''}</span>
+                    <span class="font-medium text-green-700">${fmt(row.admin_absorbed)} ${row.currency_code}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">${window.TRANSLATIONS.financeVendorContributed || ''}</span>
+                    <span class="font-medium text-orange-700">${fmt(row.vendor_contributed)} ${row.currency_code}</span>
+                </div>
+            </div>
+        `).join('');
+
+        exceptionalTbody.innerHTML = topZones.length
+            ? topZones.map(z => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-2.5 font-medium text-gray-900">${z.zone_name}</td>
+                    <td class="px-4 py-2.5 text-end tabular-nums text-gray-700">${Number(z.exceptional_orders).toLocaleString()}</td>
+                    <td class="px-4 py-2.5 text-end tabular-nums text-gray-700">${fmt(z.total_gap)} ${z.currency_code}</td>
+                    <td class="px-4 py-2.5 text-end tabular-nums text-green-700">${fmt(z.admin_absorbed)} ${z.currency_code}</td>
+                    <td class="px-4 py-2.5 text-end tabular-nums text-orange-700">${fmt(z.vendor_contributed)} ${z.currency_code}</td>
+                </tr>
+            `).join('')
+            : `<tr><td colspan="5" class="px-4 py-6 text-center text-sm text-gray-400">${window.TRANSLATIONS.financeNoData || ''}</td></tr>`;
     }
 
     // ── Render ─────────────────────────────────────────────────────────────

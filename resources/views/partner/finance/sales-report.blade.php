@@ -39,6 +39,17 @@
             </div>
         @endif
 
+        @if($hasExceptionalDeduction)
+            <div class="bg-white rounded-2xl border border-orange-200 p-5">
+                <p class="text-xs text-gray-500 mb-1">{{ __('partner.finance.exceptional_zone_deduction') }}</p>
+                <p class="text-2xl font-bold text-orange-600">
+                    {{ number_format($exceptionalTotals->total_exceptional_deduction / 100, 2) }}
+                    <span class="text-sm font-normal text-gray-400">{{ $currency }}</span>
+                </p>
+                <p class="text-xs text-gray-400 mt-1">{{ __('partner.finance.exceptional_zone_deduction_desc') }}</p>
+            </div>
+        @endif
+
     </div>
 
     {{-- Shipments table --}}
@@ -47,7 +58,13 @@
         <div class="px-5 py-4 border-b border-gray-100">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <h2 class="font-semibold text-gray-800">{{ __('partner.finance.shipments') }}</h2>
-                <span class="text-xs text-gray-400">{{ $shipments->total() }}</span>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-gray-400">{{ $shipments->total() }}</span>
+                    <a href="{{ route('partner.finance.sales-report.export', request()->query()) }}"
+                       class="text-xs font-medium text-primary-600 hover:underline">
+                        {{ __('partner.finance.export') }}
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -67,6 +84,9 @@
                             <th class="py-3 px-4 text-left font-medium">{{ __('partner.finance.delivery_subsidy') }}</th>
                             @if($hasVendorContribution)
                                 <th class="py-3 px-4 text-left font-medium">{{ __('partner.finance.your_delivery_contribution') }}</th>
+                            @endif
+                            @if($hasExceptionalDeduction)
+                                <th class="py-3 px-4 text-left font-medium">{{ __('partner.finance.exceptional_zone_deduction') }}</th>
                             @endif
                         </tr>
                     </thead>
@@ -89,6 +109,15 @@
                                 @if($hasVendorContribution)
                                     <td class="py-3 px-4 text-left text-red-500 whitespace-nowrap">
                                         {{ number_format($shipment->vendor_contribution_amount / 100, 2) }} {{ $currency }}
+                                    </td>
+                                @endif
+                                @if($hasExceptionalDeduction)
+                                    <td class="py-3 px-4 text-left text-orange-600 whitespace-nowrap">
+                                        @if($shipment->shipping_gap > 0)
+                                            - {{ number_format($shipment->vendor_contribution_amount / 100, 2) }} {{ $currency }}
+                                        @else
+                                            —
+                                        @endif
                                     </td>
                                 @endif
                             </tr>

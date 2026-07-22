@@ -18,15 +18,14 @@ class ShippingWeightSlab extends Model
         'country_id',
         'min_weight_grams',
         'max_weight_grams',
-        'extra_fee',
+        'extra_fee_cents',
         'is_active',
     ];
 
-    /** @var int Base currency unit (BIGINT) for money fields renamed in this model */
     protected $casts = [
         'min_weight_grams' => 'integer',
         'max_weight_grams' => 'integer',
-        'extra_fee' => 'integer',
+        'extra_fee_cents' => 'integer',
         'is_active' => 'boolean',
     ];
 

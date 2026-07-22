@@ -125,7 +125,11 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('travel.packages.currency') }} *</label>
-            @php $selectedCurrency = old('currency', $pkg?->currency ?? auth()->guard('travel_agency')->user()?->country?->currency_code ?? ''); @endphp
+            @php
+                $authAgencyUser = auth()->guard('travel_agency')->user();
+                $authAgency = $authAgencyUser instanceof \App\Models\TravelAgency ? $authAgencyUser : $authAgencyUser?->travelAgency;
+                $selectedCurrency = old('currency', $pkg?->currency ?? $authAgency?->country?->currency_code ?? '');
+            @endphp
             <select name="currency" required
                     class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
                 <option value="">— {{ __('travel.packages.currency_placeholder') }} —</option>

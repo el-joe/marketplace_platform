@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,9 +11,12 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use App\Models\TravelAgencyMember;
 
 class AuthController extends Controller
 {
+    use ResolvesTravelAgency;
+
     private const MAX_ATTEMPTS   = 5;
     private const DECAY_SECONDS  = 900;
 
@@ -30,6 +34,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+
         $throttleKey = Str::lower($request->input('email')) . '|' . $request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, self::MAX_ATTEMPTS)) {
@@ -44,6 +49,15 @@ class AuthController extends Controller
             $request->boolean('remember')
         )) {
             RateLimiter::clear($throttleKey);
+
+            $user = Auth::guard('travel_agency')->user();
+            if ($user instanceof TravelAgencyMember) {
+                $user->update([
+                    'last_login_at' => now(),
+                    'last_login_ip' => $request->ip(),
+                ]);
+            }
+
             $request->session()->regenerate();
 
             return redirect()->intended(route('travel-agency.dashboard'));

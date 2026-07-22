@@ -152,6 +152,8 @@ return [
             'updated_success'         => 'Subsidy updated.',
             'created_success'         => 'Subsidy created.',
             'save_failed'             => 'Save failed.',
+            'split_vendor_label'      => 'vendor',
+            'split_admin_label'       => 'admin',
         ],
 
         'page_builder' => [

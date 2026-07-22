@@ -5,19 +5,21 @@ namespace App\Http\Controllers\TravelAgencyPortal;
 use App\Enums\TravelBookingStatus;
 use App\Enums\TravelPackageInquiryStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
 use App\Models\TravelPackageInquiry;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    use ResolvesTravelAgency;
+
     public function index(): View
     {
-        $agency = Auth::guard('travel_agency')->user()->travelAgency;
-        $agencyId = $agency->id;
+        $agency = $this->agency();
+        $agencyId = $this->agencyId();
 
         $packageCounts = TravelPackage::where('travel_agency_id', $agencyId)
             ->selectRaw('status, COUNT(*) as cnt')

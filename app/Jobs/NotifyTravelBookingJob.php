@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Notification;
 
 class NotifyTravelBookingJob implements ShouldQueue
 {
@@ -19,6 +20,6 @@ class NotifyTravelBookingJob implements ShouldQueue
     public function handle(): void
     {
         $this->booking->loadMissing('package.agency');
-        $this->booking->package->agency->notify(new NewBookingReceived($this->booking));
+        Notification::send($this->booking->package->agency->activeMembers(), new NewBookingReceived($this->booking));
     }
 }

@@ -14,10 +14,15 @@ class PlatformShippingSubsidy extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'warehouse_id',
         'shipping_zone_id',
         'shipping_method_id',
         'currency',
         'subsidy_cap',
+        'split_type',
+        'vendor_share_pct',
+        'vendor_fixed_amount',
+        'admin_fixed_amount',
         'max_subsidy_weight_grams',
         'is_active',
         'created_by_admin_id',
@@ -25,9 +30,17 @@ class PlatformShippingSubsidy extends Model
 
     protected $casts = [
         'subsidy_cap' => 'integer',
+        'vendor_share_pct' => 'integer',
+        'vendor_fixed_amount' => 'integer',
+        'admin_fixed_amount' => 'integer',
         'max_subsidy_weight_grams' => 'integer',
         'is_active' => 'boolean',
     ];
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
 
     public function shippingZone(): BelongsTo
     {

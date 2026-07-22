@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -48,7 +49,7 @@ class TravelBookingService
         $booking->update(['status' => TravelBookingStatus::Cancelled]);
 
         $booking->loadMissing('package.agency');
-        $booking->package->agency->notify(new BookingCancelled($booking, 'customer'));
+        Notification::send($booking->package->agency->activeMembers(), new BookingCancelled($booking, 'customer'));
         $customer->notify(new CustomerTravelBookingCancelled($booking, 'customer'));
 
         return $booking->fresh();

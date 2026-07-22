@@ -36,6 +36,7 @@ class VendorListing extends Model
         'vendor_id',
         'product_variant_id',
         'country_id',
+        'warehouse_id',
         'price',
         'compare_at_price',
         'cost_price',
@@ -96,6 +97,11 @@ class VendorListing extends Model
     public function approvedByAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'approved_by_admin_id');
+    }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 
     public function warehouseInventories(): HasMany

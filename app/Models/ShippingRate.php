@@ -19,6 +19,8 @@ class ShippingRate extends Model
         "shipping_method_id",
         "carrier_id",
         "base_fee",
+        "carrier_rate",
+        "carrier_rate_per_kg",
         "rate_per_kg",
         "min_weight_grams",
         "volumetric_divisor",
@@ -30,6 +32,8 @@ class ShippingRate extends Model
     protected $casts = [
         "is_active" => "boolean",
         "base_fee" => "integer",
+        "carrier_rate" => "integer",
+        "carrier_rate_per_kg" => "integer",
         "rate_per_kg" => "integer",
         "min_weight_grams" => "integer",
         "volumetric_divisor" => "integer",
@@ -77,6 +81,16 @@ class ShippingRate extends Model
         return $this->free_shipping_threshold
             ? number_format($this->free_shipping_threshold / 100, 2)
             : null;
+    }
+
+    public function getGapAttribute(): int
+    {
+        return max(0, $this->carrier_rate - $this->base_fee);
+    }
+
+    public function hasGap(): bool
+    {
+        return $this->gap > 0;
     }
 
     public function calculateCost(int $weightGrams, bool $isCod = false): int

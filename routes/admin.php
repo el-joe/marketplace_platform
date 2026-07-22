@@ -918,6 +918,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('edit');
         Route::put('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
         Route::post('/{warehouse}/toggle-active', [WarehouseController::class, 'toggleActive'])->name('toggle-active');
+        Route::post('/{warehouse}/exceptional-zones/{zone}/toggle', [WarehouseController::class, 'toggleExceptionalZone'])->name('exceptional-zones.toggle');
 
         // Inventory endpoints
         Route::post('/{warehouse}/inventory/datatable', [WarehouseController::class, 'inventoryDatatable'])->name('inventory.datatable');

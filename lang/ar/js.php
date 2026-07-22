@@ -137,6 +137,8 @@ return [
             'updated_success'         => 'تم تحديث الدعم.',
             'created_success'         => 'تم إنشاء الدعم.',
             'save_failed'             => 'فشل الحفظ.',
+            'split_vendor_label'      => 'التاجر',
+            'split_admin_label'       => 'الإدارة',
         ],
 
         'page_builder' => [

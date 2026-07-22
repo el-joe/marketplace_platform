@@ -4,24 +4,21 @@ namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Enums\TravelPackageInquiryStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\Customer;
 use App\Models\TravelPackage;
 use App\Models\TravelPackageInquiry;
 use App\Services\TravelAgency\BookingCreationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class PackageInquiryController extends Controller
 {
+    use ResolvesTravelAgency;
+
     public function __construct(private readonly BookingCreationService $bookingCreationService)
     {
-    }
-
-    private function agencyId(): string
-    {
-        return Auth::guard('travel_agency')->user()->travel_agency_id;
     }
 
     private function authorise(TravelPackageInquiry $inquiry): void

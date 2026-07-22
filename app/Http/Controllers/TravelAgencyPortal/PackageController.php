@@ -4,6 +4,7 @@ namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\Currency;
 use App\Models\TravelCity;
 use App\Models\TravelCountry;
@@ -12,16 +13,12 @@ use App\Models\TravelPackageMedia;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class PackageController extends Controller
 {
-    private function agencyId(): string
-    {
-        return Auth::guard('travel_agency')->user()->travel_agency_id;
-    }
+    use ResolvesTravelAgency;
 
     private function authorise(TravelPackage $package): void
     {

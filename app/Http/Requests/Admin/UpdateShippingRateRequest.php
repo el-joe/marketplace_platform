@@ -19,6 +19,8 @@ class UpdateShippingRateRequest extends FormRequest
             'carrier_id'                => ['nullable', 'exists:shipping_carriers,id'],
             'origin_zone_id'            => ['nullable', 'exists:shipping_zones,id'],
             'base_fee'                  => ['required', 'numeric', 'min:0'],
+            'carrier_rate'              => ['required', 'numeric', 'min:0'],
+            'carrier_rate_per_kg'       => ['required', 'numeric', 'min:0'],
             'rate_per_kg'               => ['numeric', 'min:0'],
             'min_weight_grams'          => ['integer', 'min:0'],
             'volumetric_divisor'        => ['integer', 'min:1', 'max:10000'],

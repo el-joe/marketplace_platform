@@ -56,7 +56,7 @@ Route::prefix('v1')->group(function (): void {
         });
 
         // ── Notifications ─────────────────────────────────────────────────────
-        Route::prefix('notifications')->name('marketer.notifications.')->group(function (): void {
+        Route::prefix('notifications')->name('marketer.api.notifications.')->group(function (): void {
             Route::get('/',              [NotificationController::class, 'index'])->name('index');
             Route::get('/unread-count',  [NotificationController::class, 'unreadCount'])->name('unread-count');
             Route::put('/read-all',      [NotificationController::class, 'markAllRead'])->name('read-all');

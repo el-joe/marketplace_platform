@@ -44,6 +44,7 @@ function initSubsidiesTable() {
         ajaxMethod: 'GET',
         order: [[0, 'asc']],
         columns: [
+            { data: 'warehouse_name' },
             { data: 'zone_name' },
             { data: 'country_name' },
             { data: 'method_name' },
@@ -54,6 +55,18 @@ function initSubsidiesTable() {
                 render: (value) => (value === null ? '—' : `${value.toLocaleString()} g`),
             },
             { data: 'currency' },
+            {
+                data: null,
+                orderable: false,
+                render(row) {
+                    if (row.split_type === 'fixed') {
+                        return `${row.vendor_fixed_amount ?? 0} ${t('admin.shipping_subsidies.split_vendor_label')} / ${row.admin_fixed_amount ?? 0} ${t('admin.shipping_subsidies.split_admin_label')}`;
+                    }
+                    const vendorPct = row.vendor_share_pct ?? 0;
+                    const adminPct = 100 - vendorPct;
+                    return `${vendorPct}% ${t('admin.shipping_subsidies.split_vendor_label')} / ${adminPct}% ${t('admin.shipping_subsidies.split_admin_label')}`;
+                },
+            },
             {
                 data: 'is_active',
                 className: 'text-center',
@@ -102,10 +115,15 @@ function initSubsidyModal() {
     $('#btn-add-subsidy').on('click', function () {
         $form[0].reset();
         $('#subsidy-id').val('');
+        $form.find('[name="warehouse_id"]').val('').trigger('change');
         $form.find('[name="shipping_zone_id"]').val('').trigger('change');
         $form.find('[name="shipping_method_id"]').val('').trigger('change');
         $form.find('[name="currency"]').val('').trigger('change');
         $form.find('[name="is_active"]').prop('checked', true);
+        $form.find('[name="split_type"][value="percentage"]').prop('checked', true).trigger('change');
+        $form.find('[name="vendor_share_pct"]').val(50).trigger('input');
+        $form.find('[name="vendor_fixed_amount"]').val(0).trigger('input');
+        $form.find('[name="admin_fixed_amount"]').val(0).trigger('input');
         updateCapHint();
         $modal.modal('open');
     });
@@ -117,12 +135,20 @@ function initSubsidyModal() {
 
         $form[0].reset();
         $('#subsidy-id').val(data.id);
+        $form.find('[name="warehouse_id"]').val(data.warehouse_id).trigger('change');
         $form.find('[name="shipping_zone_id"]').val(data.shipping_zone_id).trigger('change');
         $form.find('[name="shipping_method_id"]').val(data.shipping_method_id).trigger('change');
         $form.find('[name="subsidy_cap"]').val(data.subsidy_cap);
         $form.find('[name="max_subsidy_weight_grams"]').val(data.max_subsidy_weight_grams);
         $form.find('[name="currency"]').val(data.currency).trigger('change');
         $form.find('[name="is_active"]').prop('checked', !!data.is_active);
+
+        const splitType = data.split_type || 'percentage';
+        $form.find(`[name="split_type"][value="${splitType}"]`).prop('checked', true).trigger('change');
+        $form.find('[name="vendor_share_pct"]').val(data.vendor_share_pct ?? 50).trigger('input');
+        $form.find('[name="vendor_fixed_amount"]').val(data.vendor_fixed_amount ?? 0).trigger('input');
+        $form.find('[name="admin_fixed_amount"]').val(data.admin_fixed_amount ?? 0).trigger('input');
+
         updateCapHint();
 
         $modal.modal('open');
@@ -151,13 +177,26 @@ function initSubsidyModal() {
 
         const maxWeight = $form.find('[name="max_subsidy_weight_grams"]').val();
 
+        const splitType = $form.find('[name="split_type"]:checked').val() || 'percentage';
+
         const payload = {
+            warehouse_id: $form.find('[name="warehouse_id"]').val(),
             shipping_zone_id: $form.find('[name="shipping_zone_id"]').val(),
             shipping_method_id: $form.find('[name="shipping_method_id"]').val(),
             subsidy_cap: parseInt($form.find('[name="subsidy_cap"]').val(), 10) || 0,
             max_subsidy_weight_grams: maxWeight === '' ? null : parseInt(maxWeight, 10),
             currency: $form.find('[name="currency"]').val(),
             is_active: $form.find('[name="is_active"]').is(':checked'),
+            split_type: splitType,
+            vendor_share_pct: splitType === 'percentage'
+                ? (parseInt($form.find('[name="vendor_share_pct"]').val(), 10) || 0)
+                : null,
+            vendor_fixed_amount: splitType === 'fixed'
+                ? (parseInt($form.find('[name="vendor_fixed_amount"]').val(), 10) || 0)
+                : null,
+            admin_fixed_amount: splitType === 'fixed'
+                ? (parseInt($form.find('[name="admin_fixed_amount"]').val(), 10) || 0)
+                : null,
         };
 
         try {

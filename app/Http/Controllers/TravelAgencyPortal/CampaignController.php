@@ -5,6 +5,7 @@ namespace App\Http\Controllers\TravelAgencyPortal;
 use App\Enums\VendorCampaignInvitationStatus;
 use App\Enums\VendorCampaignOfferStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\Admin;
 use App\Models\Marketer;
 use App\Models\MarketerCampaign;
@@ -18,17 +19,13 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 class CampaignController extends Controller
 {
-    private function agencyId(): string
-    {
-        return Auth::guard('travel_agency')->user()->travel_agency_id;
-    }
+    use ResolvesTravelAgency;
 
     public function index(): View
     {

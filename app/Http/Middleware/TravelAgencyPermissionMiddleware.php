@@ -20,6 +20,10 @@ class TravelAgencyPermissionMiddleware
             return redirect()->route('travel-agency.login');
         }
 
+        if ($member->is_owner) {
+            return $next($request);
+        }
+
         if (!$member->can($permission)) {
             if ($request->expectsJson()) {
                 return response()->json([

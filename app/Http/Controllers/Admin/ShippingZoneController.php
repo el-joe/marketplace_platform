@@ -376,6 +376,8 @@ class ShippingZoneController extends Controller
             'carrier_id' => $rate->carrier_id,
             'base_fee' => $rate->base_fee / 100,
             'base_fee_formatted' => $rate->base_fee_formatted,
+            'carrier_rate' => $rate->carrier_rate !== null ? $rate->carrier_rate / 100 : null,
+            'carrier_rate_per_kg' => $rate->carrier_rate_per_kg !== null ? $rate->carrier_rate_per_kg / 100 : null,
             'rate_per_kg' => $rate->rate_per_kg / 100,
             'rate_per_kg_formatted' => $rate->rate_per_kg_formatted,
             'free_threshold' => $rate->free_shipping_threshold ? $rate->free_shipping_threshold / 100 : null,

@@ -69,6 +69,8 @@ class SubOrder extends Model
             'status' => SubOrderStatus::class,
             'admin_subsidy_amount' => 'integer',
             'vendor_contribution_amount' => 'integer',
+            'carrier_shipping_cost' => 'integer',
+            'shipping_gap' => 'integer',
             'billable_weight_grams' => 'integer',
             'subsidy_ledgered' => 'boolean',
         ];
@@ -84,6 +86,9 @@ class SubOrder extends Model
         'fulfillment_model',
         'subtotal',
         'shipping',
+        'carrier_shipping_cost',
+        'shipping_gap',
+        'exceptional_zone_subsidy_id',
         'admin_subsidy_amount',
         'vendor_contribution_amount',
         'billable_weight_grams',
@@ -131,6 +136,11 @@ class SubOrder extends Model
     public function carrier(): BelongsTo
     {
         return $this->belongsTo(ShippingCarrier::class, 'carrier_id');
+    }
+
+    public function exceptionalZoneSubsidy(): BelongsTo
+    {
+        return $this->belongsTo(PlatformShippingSubsidy::class, 'exceptional_zone_subsidy_id');
     }
 
     public function items(): HasMany

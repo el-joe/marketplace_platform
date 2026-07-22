@@ -89,6 +89,16 @@ class Warehouse extends Model
         return $this->hasMany(InventoryTransfer::class, 'destination_warehouse_id');
     }
 
+    public function exceptionalZones(): HasMany
+    {
+        return $this->hasMany(WarehouseExceptionalZone::class);
+    }
+
+    public function subsidyRules(): HasMany
+    {
+        return $this->hasMany(PlatformShippingSubsidy::class);
+    }
+
     // ─── Accessors ─────────────────────────────────────────────────────────────
 
     public function getStorageRateFormattedAttribute(): ?string
@@ -115,6 +125,11 @@ class Warehouse extends Model
     public function getTotalUnitsAttribute(): int
     {
         return $this->warehouseInventories()->sum('quantity_on_hand');
+    }
+
+    public function getShippingZoneIdAttribute(): ?string
+    {
+        return $this->address?->city?->shipping_zone_id;
     }
 
     public function getLowStockCountAttribute(): int

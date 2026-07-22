@@ -49,14 +49,9 @@ class ShippingZone extends Model
         return $this->hasMany(ShippingRate::class, 'destination_zone_id');
     }
 
-    public function vendorExceptionalZones(): HasMany
+    public function warehouseExceptionalZones(): HasMany
     {
-        return $this->hasMany(VendorExceptionalZone::class);
-    }
-
-    public function optedInByVendor(): HasMany
-    {
-        return $this->hasMany(VendorExceptionalZone::class);
+        return $this->hasMany(WarehouseExceptionalZone::class, 'destination_zone_id');
     }
 
     // ── Scopes ─────────────────────────────────────────────────────────────────
@@ -81,5 +76,10 @@ class ShippingZone extends Model
     public function getActiveRateCountAttribute(): int
     {
         return $this->destinationRates()->where('is_active', 1)->count();
+    }
+
+    public function hasGapRates(): bool
+    {
+        return $this->destinationRates()->whereColumn('carrier_rate', '>', 'base_fee')->exists();
     }
 }

@@ -12,7 +12,10 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\InventoryMovement;
 use App\Models\InventoryTransfer;
+use App\Models\PlatformShippingSubsidy;
+use App\Models\ShippingZone;
 use App\Models\Warehouse;
+use App\Models\WarehouseExceptionalZone;
 use App\Models\WarehouseInventory;
 use App\Services\VendorWarehouseService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -130,7 +133,69 @@ class WarehouseController extends Controller
         $warehouse->load(['country', 'address.country']);
         $usage = $this->service->getCapacityUsage($warehouse);
 
-        return view('partner.warehouses.show', compact('warehouse', 'usage'));
+        $exceptionalRoutes = collect();
+        if ($warehouse->type === WarehouseType::SellerOwned) {
+            $exceptionalRoutes = $this->buildExceptionalRoutes($warehouse);
+        }
+
+        return view('partner.warehouses.show', compact('warehouse', 'usage', 'exceptionalRoutes'));
+    }
+
+    /**
+     * For each destination zone in the warehouse's country that has a
+     * recorded carrier/customer rate gap, resolve whether this warehouse
+     * has opted in to serve it as an exceptional zone, and which subsidy
+     * rules (warehouse-specific or global) apply.
+     */
+    private function buildExceptionalRoutes(Warehouse $warehouse)
+    {
+        $zones = ShippingZone::where('country_id', $warehouse->country_id)
+            ->where('is_active', 1)
+            ->orderBy('name')
+            ->get()
+            ->filter(fn(ShippingZone $zone) => $zone->hasGapRates())
+            ->values();
+
+        $optedIn = WarehouseExceptionalZone::where('warehouse_id', $warehouse->id)
+            ->pluck('is_active', 'destination_zone_id');
+
+        $subsidyRules = PlatformShippingSubsidy::where('is_active', 1)
+            ->whereIn('shipping_zone_id', $zones->pluck('id'))
+            ->where(function ($query) use ($warehouse) {
+                $query->where('warehouse_id', $warehouse->id)
+                    ->orWhereNull('warehouse_id');
+            })
+            ->with('shippingMethod')
+            ->get()
+            ->groupBy('shipping_zone_id');
+
+        return $zones->map(fn(ShippingZone $zone) => [
+            'zone' => $zone,
+            'is_opted_in' => (bool) ($optedIn[$zone->id] ?? false),
+            'subsidy_rules' => $subsidyRules->get($zone->id, collect()),
+        ]);
+    }
+
+    // ─── Exceptional Zones (warehouse gap opt-in) ──────────────────────────────
+
+    public function toggleExceptionalZone(Request $request, Warehouse $warehouse, ShippingZone $zone): JsonResponse
+    {
+        abort_unless($warehouse->type === WarehouseType::SellerOwned, 403);
+
+        if ($warehouse->owner_vendor_id !== $this->vendorAdmin()->vendor_id) {
+            abort(403);
+        }
+
+        $exceptionalZone = WarehouseExceptionalZone::firstOrCreate(
+            ['warehouse_id' => $warehouse->id, 'destination_zone_id' => $zone->id],
+            ['is_active' => true]
+        );
+
+        if (!$exceptionalZone->wasRecentlyCreated) {
+            $exceptionalZone->update(['is_active' => !$exceptionalZone->is_active]);
+        }
+
+        return response()->json(['success' => true, 'is_active' => $exceptionalZone->is_active]);
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────

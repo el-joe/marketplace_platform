@@ -307,4 +307,98 @@
         </div>
     @endif
 
+    @if($warehouse->type === \App\Enums\WarehouseType::SellerOwned)
+        <div class="mt-6 bg-white rounded-2xl border border-gray-200 p-5">
+            <h3 class="text-base font-semibold text-gray-900">{{ __('partner.warehouses.exceptional_zones_title') }}</h3>
+            <p class="text-sm text-gray-500 mt-1">{{ __('partner.warehouses.exceptional_zones_hint') }}</p>
+
+            @if($exceptionalRoutes->isEmpty())
+                <p class="text-sm text-gray-500 mt-4">{{ __('partner.warehouses.no_gap_zones') }}</p>
+            @else
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
+                                <th class="pb-3 pr-4">{{ __('partner.warehouses.zone_column') }}</th>
+                                <th class="pb-3 pr-4">{{ __('partner.warehouses.subsidy_rules_column') }}</th>
+                                <th class="pb-3 pr-4 text-center">{{ __('partner.warehouses.opted_in_column') }}</th>
+                                <th class="pb-3 text-end">{{ __('common.actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($exceptionalRoutes as $route)
+                                <tr class="border-b border-gray-100" data-exceptional-zone-row data-zone-id="{{ $route['zone']->id }}">
+                                    <td class="py-3 pr-4 text-gray-800">{{ $route['zone']->name }}</td>
+                                    <td class="py-3 pr-4 text-xs text-gray-500">
+                                        @forelse($route['subsidy_rules'] as $rule)
+                                            <div>{{ $rule->shippingMethod?->name ?? '—' }}:
+                                                @if($rule->split_type === 'fixed')
+                                                    {{ $rule->vendor_fixed_amount }}/{{ $rule->admin_fixed_amount }}
+                                                @else
+                                                    {{ $rule->vendor_share_pct }}%/{{ 100 - $rule->vendor_share_pct }}%
+                                                @endif
+                                            </div>
+                                        @empty
+                                            <span class="text-gray-400">{{ __('partner.warehouses.no_subsidy_rule') }}</span>
+                                        @endforelse
+                                    </td>
+                                    <td class="py-3 pr-4 text-center">
+                                        <span data-exceptional-zone-status
+                                            class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $route['is_opted_in'] ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-500' }}">
+                                            {{ $route['is_opted_in'] ? __('common.active') : __('common.inactive') }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 text-end">
+                                        <button type="button" data-exceptional-zone-toggle
+                                            data-url="{{ route('partner.warehouses.exceptional-zones.toggle', [$warehouse->id, $route['zone']->id]) }}"
+                                            data-active="{{ $route['is_opted_in'] ? 1 : 0 }}"
+                                            class="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                                            {{ $route['is_opted_in'] ? __('partner.warehouses.opt_out') : __('partner.warehouses.opt_in') }}
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+
+        <script>
+            document.addEventListener('click', async function (e) {
+                const btn = e.target.closest('[data-exceptional-zone-toggle]');
+                if (!btn) return;
+
+                btn.disabled = true;
+                try {
+                    const res = await fetch(btn.dataset.url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        },
+                    });
+                    const json = await res.json();
+                    if (!res.ok || !json.success) throw new Error(json.message || 'Failed to toggle.');
+
+                    const row = btn.closest('[data-exceptional-zone-row]');
+                    const status = row.querySelector('[data-exceptional-zone-status]');
+                    const isActive = !!json.is_active;
+
+                    status.textContent = isActive ? '{{ __('common.active') }}' : '{{ __('common.inactive') }}';
+                    status.className = 'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ' +
+                        (isActive ? 'bg-success-50 text-success-700' : 'bg-gray-100 text-gray-500');
+
+                    btn.textContent = isActive ? '{{ __('partner.warehouses.opt_out') }}' : '{{ __('partner.warehouses.opt_in') }}';
+                    btn.dataset.active = isActive ? '1' : '0';
+                } catch (err) {
+                    alert(err.message || 'Failed to toggle.');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        </script>
+    @endif
+
 @endsection

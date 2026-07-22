@@ -231,6 +231,8 @@ $(function () {
         $('[name="rate_per_kg"]', '#rate-form').val('0');
         $('[name="cod_extra_fee"]', '#rate-form').val('0');
         $('[name="volumetric_divisor"]', '#rate-form').val('5000');
+        $('[name="carrier_rate"]', '#rate-form').val('');
+        $('[name="carrier_rate_per_kg"]', '#rate-form').val('');
         $('#rate-modal-title').text(window.TRANSLATIONS?.addShippingRateTitle || 'Add shipping rate');
         updateRatePreview();
         openModal('rate-modal');
@@ -244,6 +246,8 @@ $(function () {
         $('[name="carrier_id"]', '#rate-form').val(r.carrier_id || '');
         $('[name="origin_zone_id"]', '#rate-form').val(r.origin_zone_id || '');
         $('[name="base_fee"]', '#rate-form').val(r.base_fee);
+        $('[name="carrier_rate"]', '#rate-form').val(r.carrier_rate ?? '');
+        $('[name="carrier_rate_per_kg"]', '#rate-form').val(r.carrier_rate_per_kg ?? '');
         $('[name="rate_per_kg"]', '#rate-form').val(r.rate_per_kg);
         $('[name="cod_extra_fee"]', '#rate-form').val(r.cod_extra_fee);
         $('[name="free_shipping_threshold"]', '#rate-form').val(r.free_threshold || '');

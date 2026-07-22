@@ -15,9 +15,12 @@ use App\Models\FbnDailyOverageFee;
 use App\Models\InventoryMovement;
 use App\Models\InventoryTransfer;
 use App\Models\InventoryTransferItem;
+use App\Models\PlatformShippingSubsidy;
+use App\Models\ShippingZone;
 use App\Models\Vendor;
 use App\Models\VendorListing;
 use App\Models\Warehouse;
+use App\Models\WarehouseExceptionalZone;
 use App\Models\WarehouseInventory;
 use App\Models\WarehouseVendorLimit;
 use App\Services\WarehouseService;
@@ -193,6 +196,26 @@ class WarehouseController extends Controller
             $vendors = Vendor::/*where('global_status', 'approved')->*/orderBy('store_name')->pluck('store_name', 'id');
         }
 
+        $allZonesInCountry = ShippingZone::where('country_id', $warehouse->country_id)
+            ->where('is_active', 1)
+            ->orderBy('name')
+            ->get()
+            ->filter(fn(ShippingZone $zone) => $zone->hasGapRates())
+            ->values();
+
+        $exceptionalZones = WarehouseExceptionalZone::where('warehouse_id', $warehouse->id)
+            ->pluck('is_active', 'destination_zone_id');
+
+        $subsidyRules = PlatformShippingSubsidy::where('is_active', 1)
+            ->whereIn('shipping_zone_id', $allZonesInCountry->pluck('id'))
+            ->where(function ($query) use ($warehouse) {
+                $query->where('warehouse_id', $warehouse->id)
+                    ->orWhereNull('warehouse_id');
+            })
+            ->with('shippingMethod')
+            ->get()
+            ->groupBy('shipping_zone_id');
+
         return view('admin.warehouses.show', compact(
             'warehouse',
             'inventoryStats',
@@ -200,8 +223,29 @@ class WarehouseController extends Controller
             'transfers',
             'usedPct',
             'vendorLimits',
-            'vendors'
+            'vendors',
+            'allZonesInCountry',
+            'exceptionalZones',
+            'subsidyRules'
         ));
+    }
+
+    public function toggleExceptionalZone(Warehouse $warehouse, ShippingZone $zone): RedirectResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('warehouses.view'), 403);
+
+        $exceptionalZone = WarehouseExceptionalZone::firstOrCreate(
+            ['warehouse_id' => $warehouse->id, 'destination_zone_id' => $zone->id],
+            ['is_active' => true]
+        );
+
+        if (!$exceptionalZone->wasRecentlyCreated) {
+            $exceptionalZone->update(['is_active' => !$exceptionalZone->is_active]);
+        }
+
+        return redirect()->route('admin.warehouses.show', $warehouse->id)
+            ->with('success', 'Exceptional zone status updated.');
     }
 
     // ─── Daily Overage Fees (platform_fbn warehouses only) ──────────────────────

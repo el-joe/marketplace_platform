@@ -443,6 +443,7 @@
                     <x-form.textarea name="description" label="{{ __('admin.shipping_section.description_optional_zone') }}" :rows="2"
                         placeholder="{{ __('admin.shipping_section.description_placeholder_zone') }}" />
                     <x-form.toggle name="is_active" label="{{ __('common.active') }}" :checked="true" />
+
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" data-modal-close class="btn btn-ghost">{{ __('common.cancel') }}</button>
                         <button type="submit" id="zone-save-btn" class="btn btn-primary">{{ __('admin.shipping_section.save_zone') }}</button>
@@ -534,6 +535,47 @@
                                 <input type="number" name="cod_extra_fee" step="0.01" min="0" value="0"
                                     class="form-input w-full" />
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 rounded-lg border border-amber-200 p-4"
+                        x-data="{ customerRate: 0, carrierRate: 0, get gap() { return (this.carrierRate - this.customerRate).toFixed(2); } }"
+                        x-init="
+                            customerRate = parseFloat($el.closest('form').querySelector('[name=base_fee]')?.value) || 0;
+                            carrierRate = parseFloat($el.closest('form').querySelector('[name=carrier_rate]')?.value) || 0;
+                        "
+                        @input="
+                            customerRate = parseFloat($el.closest('form').querySelector('[name=base_fee]')?.value) || 0;
+                            carrierRate = parseFloat($el.closest('form').querySelector('[name=carrier_rate]')?.value) || 0;
+                        ">
+                        <p class="text-sm font-semibold text-amber-800 mb-1">{{ __('admin.shipping_section.carrier_cost_label') }}</p>
+                        <p class="text-xs text-amber-700 mb-3">{{ __('admin.shipping_section.carrier_cost_hint') }}</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_section.carrier_rate_label') }}</label>
+                                <div class="flex">
+                                    <input type="number" name="carrier_rate" id="rate-carrier-rate" step="0.01" min="0"
+                                        class="form-input rounded-r-none flex-1" />
+                                    <span
+                                        class="inline-flex items-center px-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-sm text-gray-500">
+                                        {{ $countries->firstWhere('id', $activeCountryId)?->currency_code ?? 'EGP' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.shipping_section.carrier_rate_per_kg_label') }}</label>
+                                <div class="flex">
+                                    <input type="number" name="carrier_rate_per_kg" id="rate-carrier-rate-per-kg" step="0.01" min="0"
+                                        class="form-input rounded-r-none flex-1" />
+                                    <span
+                                        class="inline-flex items-center px-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-sm text-gray-500">/kg</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-amber-200 text-xs text-amber-800 flex flex-wrap items-center gap-4">
+                            <span>{{ __('admin.shipping_section.gap_preview_customer') }}: <strong x-text="customerRate.toFixed(2)"></strong></span>
+                            <span>{{ __('admin.shipping_section.gap_preview_carrier') }}: <strong x-text="carrierRate.toFixed(2)"></strong></span>
+                            <span>{{ __('admin.shipping_section.gap_preview_gap') }}: <strong :class="gap > 0 ? 'text-amber-900' : 'text-gray-500'" x-text="gap"></strong></span>
                         </div>
                     </div>
 

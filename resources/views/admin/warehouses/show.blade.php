@@ -176,6 +176,11 @@
                     Daily Overage Fees
                 </button>
             @endif
+            <button @click="tab = 'exceptional-zones'"
+                :class="tab === 'exceptional-zones' ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors">
+                {{ __('admin.warehouses_section.tab_exceptional_zones') }}
+            </button>
         </div>
 
         {{-- ─── Inventory Tab ─────────────────────────────────────────────── --}}
@@ -435,6 +440,72 @@
                 </x-card>
             </div>
         @endif
+
+        {{-- ─── Exceptional (Gap) Zones Tab ──────────────────────────────────── --}}
+        <div x-show="tab === 'exceptional-zones'" x-cloak>
+            <x-card>
+                <div class="mb-4">
+                    <h3 class="text-sm font-semibold text-gray-800">{{ __('admin.warehouses_section.exceptional_zones_title') }}</h3>
+                    <p class="text-xs text-gray-500 mt-1">{{ __('admin.warehouses_section.exceptional_zones_hint') }}</p>
+                </div>
+
+                @if($allZonesInCountry->isEmpty())
+                    <p class="text-sm text-gray-500">{{ __('admin.warehouses_section.no_gap_zones') }}</p>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-start text-xs font-medium text-gray-500 border-b border-gray-200">
+                                    <th class="pb-3 pr-4">{{ __('admin.warehouses_section.zone_column') }}</th>
+                                    <th class="pb-3 pr-4">{{ __('admin.warehouses_section.subsidy_rules_column') }}</th>
+                                    <th class="pb-3 pr-4 text-center">{{ __('admin.warehouses_section.opted_in_column') }}</th>
+                                    <th class="pb-3 text-end">{{ __('common.actions') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($allZonesInCountry as $zone)
+                                    @php $isOptedIn = (bool) ($exceptionalZones[$zone->id] ?? false); @endphp
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-3 pr-4 text-gray-800">{{ $zone->name }}</td>
+                                        <td class="py-3 pr-4 text-xs text-gray-500">
+                                            @forelse($subsidyRules[$zone->id] ?? [] as $rule)
+                                                <div>{{ $rule->shippingMethod?->name ?? '—' }}:
+                                                    @if($rule->split_type === 'fixed')
+                                                        {{ $rule->vendor_fixed_amount }}/{{ $rule->admin_fixed_amount }} ({{ __('admin.warehouses_section.fixed_label') }})
+                                                    @else
+                                                        {{ $rule->vendor_share_pct }}%/{{ 100 - $rule->vendor_share_pct }}% ({{ __('admin.warehouses_section.percentage_label') }})
+                                                    @endif
+                                                    @if(!$rule->warehouse_id)
+                                                        <span class="text-gray-400">({{ __('admin.warehouses_section.global_rule_label') }})</span>
+                                                    @endif
+                                                </div>
+                                            @empty
+                                                <span class="text-gray-400">{{ __('admin.warehouses_section.no_subsidy_rule') }}</span>
+                                            @endforelse
+                                        </td>
+                                        <td class="py-3 pr-4 text-center">
+                                            @if($isOptedIn)
+                                                <span class="inline-flex items-center rounded-full bg-success-50 px-2 py-0.5 text-xs font-medium text-success-700">{{ __('common.active') }}</span>
+                                            @else
+                                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">{{ __('common.inactive') }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-3 text-end">
+                                            <form method="POST" action="{{ route('admin.warehouses.exceptional-zones.toggle', [$warehouse->id, $zone->id]) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-xs btn-ghost">
+                                                    {{ $isOptedIn ? __('admin.warehouses_section.opt_out') : __('admin.warehouses_section.opt_in') }}
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </x-card>
+        </div>
 
     </div>
 

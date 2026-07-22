@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Http\View\Composers\SettingsComposer;
 use App\Http\View\Composers\MarketerSidebarComposer;
+use App\Http\View\Composers\TravelAgencySidebarComposer;
 use App\View\Components\Form\AsyncSelect;
 use App\View\Components\Form\FileUpload;
 use App\View\Components\Form\Input;
@@ -72,14 +73,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use App\Enums\SupportTicketRequesterRole;
-use App\Enums\SupportTicketStatus;
-use App\Enums\TravelBookingStatus;
-use App\Enums\TravelPackageInquiryStatus;
-use App\Models\SupportTicket;
-use App\Models\TravelBooking;
-use App\Models\TravelPackageInquiry;
 use App\Auth\TravelAgencyUserProvider;
 use Illuminate\Support\ServiceProvider;
 
@@ -190,39 +183,12 @@ class AppServiceProvider extends ServiceProvider
             $view->with(compact('countries', 'currentCountry'));
         });
 
-        // Travel agency top nav: pending-bookings / new-inquiries badge counts, cached 60s per agency.
-        View::composer('layouts.travel-agency', function ($view): void {
-            $agencyId = Auth::guard('travel_agency')->id();
-
-            if (!$agencyId) {
-                $view->with(['pendingBookingsCount' => 0, 'newInquiriesCount' => 0, 'openTicketsCount' => 0]);
-                return;
-            }
-
-            $pendingBookingsCount = Cache::remember("travel-agency.{$agencyId}.pending-bookings-count", 60, function () use ($agencyId) {
-                return TravelBooking::query()
-                    ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
-                    ->where('status', TravelBookingStatus::PendingDocuments)
-                    ->count();
-            });
-
-            $newInquiriesCount = Cache::remember("travel-agency.{$agencyId}.new-inquiries-count", 60, function () use ($agencyId) {
-                return TravelPackageInquiry::query()
-                    ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $agencyId))
-                    ->where('status', TravelPackageInquiryStatus::New)
-                    ->count();
-            });
-
-            $openTicketsCount = Cache::remember("travel-agency.{$agencyId}.open-tickets-count", 60, function () use ($agencyId) {
-                return SupportTicket::query()
-                    ->where('requester_user_id', $agencyId)
-                    ->where('requester_role', SupportTicketRequesterRole::TravelAgency)
-                    ->whereNotIn('status', [SupportTicketStatus::Resolved, SupportTicketStatus::Closed])
-                    ->count();
-            });
-
-            $view->with(compact('pendingBookingsCount', 'newInquiriesCount', 'openTicketsCount'));
-        });
+        // Travel agency portal: shares the agency/owner-vs-member context and
+        // pending-bookings / new-inquiries / open-tickets badge counts (cached 60s
+        // per agency) with every view under the travel-agency.* namespace, including
+        // the layout's sidebar.
+        View::composer('travel-agency.*', TravelAgencySidebarComposer::class);
+        View::composer('layouts.travel-agency', TravelAgencySidebarComposer::class);
 
         View::composer('layouts.marketer', MarketerSidebarComposer::class);
 

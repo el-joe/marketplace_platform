@@ -22,6 +22,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class BookingController extends Controller
 {
@@ -160,7 +161,7 @@ class BookingController extends Controller
                 } elseif ($pkg->available_seats !== null) {
                     $remaining = $pkg->available_seats - $pkg->seats_booked;
                     if ($remaining > 0 && $remaining <= 3) {
-                        $pkg->agency->notify(new LowSeatsRemaining($pkg, $remaining));
+                        Notification::send($pkg->agency->activeMembers(), new LowSeatsRemaining($pkg, $remaining));
                     }
                 }
             }

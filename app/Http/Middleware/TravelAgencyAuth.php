@@ -19,16 +19,17 @@ class TravelAgencyAuth
             return redirect()->route('travel-agency.login');
         }
 
-        $member = auth()->guard('travel_agency')->user();
+        $user = auth()->guard('travel_agency')->user();
 
-        if (!$member->is_active) {
+        $isActive = $user->is_active;
+        $agency = $user->travelAgency;
+
+        if (!$isActive) {
             auth()->guard('travel_agency')->logout();
 
             return redirect()->route('travel-agency.login')
                 ->withErrors(['email' => 'Your account has been deactivated. Please contact your agency owner.']);
         }
-
-        $agency = $member->travelAgency;
 
         if ($agency->status === TravelAgencyStatus::Suspended) {
             auth()->guard('travel_agency')->logout();

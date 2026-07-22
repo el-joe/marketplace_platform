@@ -184,14 +184,6 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
             Route::post('/{surcharge}/toggle-active', 'toggleActive')->name('toggle-active');
         });
 
-    // ── Exceptional shipping zones (vendor opt-in) ───────────────────────────
-    Route::prefix('exceptional-zones')->name('exceptional-zones.')
-        ->controller(\App\Http\Controllers\Partner\ExceptionalZoneController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/{zone}/toggle', 'toggleZone')->name('toggle');
-        });
-
     // ── Profile & store settings ─────────────────────────────────────────────
     Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->group(function () {
         Route::get('/', 'index')->name('index')->middleware('vendor.can:settings.view');
@@ -349,6 +341,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
         Route::put('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
         Route::post('/{warehouse}/deactivate', [WarehouseController::class, 'deactivate'])->name('deactivate');
         Route::post('/{warehouse}/inventory', [WarehouseController::class, 'getInventory'])->name('inventory');
+        Route::post('/{warehouse}/exceptional-zones/{zone}/toggle', [WarehouseController::class, 'toggleExceptionalZone'])->name('exceptional-zones.toggle');
     });
 
     // ─── Delivery Ratings ─────────────────────────────────────────────────────
@@ -377,6 +370,7 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
     Route::prefix('finance')->name('finance.')->group(function () {
         Route::get('/transactions', [\App\Http\Controllers\Partner\FinanceController::class, 'transactions'])->name('transactions')->middleware('vendor.can:finance.view');
         Route::get('/sales-report', [\App\Http\Controllers\Partner\FinanceController::class, 'salesReport'])->name('sales-report')->middleware('vendor.can:finance.view');
+        Route::get('/sales-report/export', [\App\Http\Controllers\Partner\FinanceController::class, 'exportSalesReport'])->name('sales-report.export')->middleware('vendor.can:finance.view');
     });
 
     // ─── Campaign Offers (Vendor → Marketer) ─────────────────────────────────

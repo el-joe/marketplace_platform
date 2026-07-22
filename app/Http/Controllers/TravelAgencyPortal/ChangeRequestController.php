@@ -3,21 +3,17 @@
 namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\TravelAgencyChangeRequest;
-use App\Models\TravelAgencyMember;
 use App\Services\TravelAgencyChangeRequestService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class ChangeRequestController extends Controller
 {
-    public function __construct(private readonly TravelAgencyChangeRequestService $changeRequests) {}
+    use ResolvesTravelAgency;
 
-    private function member(): TravelAgencyMember
-    {
-        return Auth::guard('travel_agency')->user();
-    }
+    public function __construct(private readonly TravelAgencyChangeRequestService $changeRequests) {}
 
     public function index(): View
     {

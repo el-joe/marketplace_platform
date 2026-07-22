@@ -4,37 +4,28 @@ namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Enums\TravelAgencyBankAccountVerificationStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\TravelAgencyBankAccount;
-use App\Models\TravelAgencyMember;
 use App\Models\TravelAgencySectionLock;
 use App\Services\TravelAgencyChangeRequestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\View\View;
 
 class BankAccountController extends Controller
 {
+    use ResolvesTravelAgency;
+
     public function __construct(private readonly TravelAgencyChangeRequestService $changeRequests) {}
 
     // ─────────────────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function member(): TravelAgencyMember
-    {
-        return Auth::guard('travel_agency')->user();
-    }
-
-    private function travelAgencyId(): string
-    {
-        return $this->member()->travel_agency_id;
-    }
-
     private function authorise(TravelAgencyBankAccount $account): void
     {
-        if ($account->travel_agency_id !== $this->travelAgencyId()) {
+        if ($account->travel_agency_id !== $this->agencyId()) {
             abort(403);
         }
     }
@@ -72,8 +63,9 @@ class BankAccountController extends Controller
     public function index(): View
     {
         abort_unless(config('features.travel_agency_bank_accounts', false), 404);
+        $this->requireOwner();
 
-        $accounts = TravelAgencyBankAccount::where('travel_agency_id', $this->travelAgencyId())
+        $accounts = TravelAgencyBankAccount::where('travel_agency_id', $this->agencyId())
             ->orderByDesc('is_primary')
             ->orderBy('created_at')
             ->get();
@@ -93,6 +85,7 @@ class BankAccountController extends Controller
     public function store(Request $request): JsonResponse
     {
         abort_unless(config('features.travel_agency_bank_accounts', false), 404);
+        $this->requireOwner();
 
         $data = $request->validate([
             'account_holder_name' => ['required', 'string', 'max:100'],
@@ -139,6 +132,7 @@ class BankAccountController extends Controller
     public function setPrimary(TravelAgencyBankAccount $account): JsonResponse
     {
         abort_unless(config('features.travel_agency_bank_accounts', false), 404);
+        $this->requireOwner();
 
         $this->authorise($account);
 
@@ -180,6 +174,7 @@ class BankAccountController extends Controller
     public function destroy(TravelAgencyBankAccount $account): JsonResponse
     {
         abort_unless(config('features.travel_agency_bank_accounts', false), 404);
+        $this->requireOwner();
 
         $this->authorise($account);
 

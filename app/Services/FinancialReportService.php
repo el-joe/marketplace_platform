@@ -252,4 +252,61 @@ class FinancialReportService
                 $row->has_vat_discrepancy = abs($row->collected_vat - $row->expected_vat) > $tolerance;
             });
     }
+
+    /**
+     * Exceptional-zone shipping gap subsidies, grouped by currency.
+     *
+     * sub_orders carry no currency column; currency is resolved via the parent
+     * order's country, same as commissionByCountry()/gatewayFeeByCountry().
+     * NEVER sum across currencies — each row here is a distinct currency total.
+     */
+    public function exceptionalZoneSubsidySummaryByCurrency(Carbon $from, Carbon $to): Collection
+    {
+        return SubOrder::query()
+            ->where('sub_orders.shipping_gap', '>', 0)
+            ->join('orders', 'orders.id', '=', 'sub_orders.order_id')
+            ->whereNotNull('orders.country_id')
+            ->whereBetween('sub_orders.created_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->join('countries', 'countries.id', '=', 'orders.country_id')
+            ->groupBy('countries.currency_code')
+            ->selectRaw('
+                countries.currency_code                     AS currency_code,
+                SUM(sub_orders.shipping_gap)                AS total_gap,
+                SUM(sub_orders.admin_subsidy_amount)         AS admin_absorbed,
+                SUM(sub_orders.vendor_contribution_amount)   AS vendor_contributed,
+                COUNT(*)                                     AS exceptional_orders
+            ')
+            ->get();
+    }
+
+    /**
+     * Top zones by admin-absorbed cost for exceptional-zone deliveries in the period.
+     *
+     * Joins sub_orders.exceptional_zone_subsidy_id → platform_shipping_subsidies →
+     * shipping_zones to attribute the admin cost to the zone that generated it.
+     */
+    public function exceptionalZoneSubsidyTopZones(Carbon $from, Carbon $to, int $limit = 5): Collection
+    {
+        return SubOrder::query()
+            ->where('sub_orders.shipping_gap', '>', 0)
+            ->whereNotNull('sub_orders.exceptional_zone_subsidy_id')
+            ->whereBetween('sub_orders.created_at', [$from->startOfDay(), $to->copy()->endOfDay()])
+            ->join('platform_shipping_subsidies', 'platform_shipping_subsidies.id', '=', 'sub_orders.exceptional_zone_subsidy_id')
+            ->join('shipping_zones', 'shipping_zones.id', '=', 'platform_shipping_subsidies.shipping_zone_id')
+            ->join('orders', 'orders.id', '=', 'sub_orders.order_id')
+            ->join('countries', 'countries.id', '=', 'orders.country_id')
+            ->groupBy('shipping_zones.id', 'shipping_zones.name', 'countries.currency_code')
+            ->selectRaw('
+                shipping_zones.id                            AS zone_id,
+                shipping_zones.name                          AS zone_name,
+                countries.currency_code                      AS currency_code,
+                SUM(sub_orders.admin_subsidy_amount)         AS admin_absorbed,
+                SUM(sub_orders.vendor_contribution_amount)   AS vendor_contributed,
+                SUM(sub_orders.shipping_gap)                 AS total_gap,
+                COUNT(*)                                      AS exceptional_orders
+            ')
+            ->orderByDesc('admin_absorbed')
+            ->limit($limit)
+            ->get();
+    }
 }

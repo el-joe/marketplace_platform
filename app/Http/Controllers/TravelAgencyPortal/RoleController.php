@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\TravelAgencyMember;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
@@ -17,6 +17,8 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RoleController extends Controller
 {
+    use ResolvesTravelAgency;
+
     private const GUARD = 'travel_agency';
 
     private const SYSTEM_ROLES = ['travel_agency_owner', 'travel_agency_manager', 'travel_agency_staff'];
@@ -36,23 +38,13 @@ class RoleController extends Controller
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function member(): TravelAgencyMember
-    {
-        return Auth::guard(self::GUARD)->user();
-    }
-
-    private function travelAgencyId(): string
-    {
-        return $this->member()->travel_agency_id;
-    }
-
     /**
      * Custom roles are stored as "{travel_agency_id}::{slug}" so the physical
      * `name` column stays globally unique while the UI only ever shows `label`.
      */
     private function buildRoleName(string $slug): string
     {
-        return $this->travelAgencyId() . '::' . $slug;
+        return $this->agencyId() . '::' . $slug;
     }
 
     /**
@@ -61,7 +53,7 @@ class RoleController extends Controller
      */
     private function guardOwnCustomRole(Role $role): void
     {
-        if ($role->guard_name !== self::GUARD || $role->travel_agency_id !== $this->travelAgencyId()) {
+        if ($role->guard_name !== self::GUARD || $role->travel_agency_id !== $this->agencyId()) {
             abort(404);
         }
     }
@@ -75,7 +67,7 @@ class RoleController extends Controller
         $roles = Role::where('guard_name', self::GUARD)
             ->where(function ($query) {
                 $query->whereNull('travel_agency_id')
-                    ->orWhere('travel_agency_id', $this->travelAgencyId());
+                    ->orWhere('travel_agency_id', $this->agencyId());
             })
             ->withCount('permissions')
             ->orderByRaw('travel_agency_id is null desc')
@@ -133,7 +125,7 @@ class RoleController extends Controller
             $role = Role::create([
                 'name' => $this->buildRoleName($request->name),
                 'guard_name' => self::GUARD,
-                'travel_agency_id' => $this->travelAgencyId(),
+                'travel_agency_id' => $this->agencyId(),
                 'label' => $request->name,
             ]);
             $role->syncPermissions($permissions);

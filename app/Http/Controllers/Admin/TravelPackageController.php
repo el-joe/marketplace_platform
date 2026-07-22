@@ -205,7 +205,7 @@ class TravelPackageController extends Controller
             'rejection_reason' => null,
         ]);
 
-        $travelPackage->agency->notify(new PackageApproved($travelPackage));
+        $travelPackage->agency->ownerMember()?->notify(new PackageApproved($travelPackage));
 
         return response()->json(['message' => 'Package approved and is now live.']);
     }
@@ -229,7 +229,7 @@ class TravelPackageController extends Controller
             'rejection_reason' => $request->input('rejection_reason'),
         ]);
 
-        $travelPackage->agency->notify(new PackageRejected($travelPackage, $request->input('rejection_reason')));
+        $travelPackage->agency->ownerMember()?->notify(new PackageRejected($travelPackage, $request->input('rejection_reason')));
 
         return response()->json(['message' => 'Package returned to agency as draft with reason recorded.']);
     }

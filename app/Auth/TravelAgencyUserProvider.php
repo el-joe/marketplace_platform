@@ -15,6 +15,18 @@ use Illuminate\Support\Facades\Hash;
  */
 class TravelAgencyUserProvider extends EloquentUserProvider
 {
+    public function retrieveById($identifier): ?Authenticatable
+    {
+        $agency = TravelAgency::find($identifier);
+        if ($agency && $agency->isActive()) {
+            return $agency->ownerMember();
+        }
+
+        return TravelAgencyMember::where('id', $identifier)
+            ->where('is_active', true)
+            ->first();
+    }
+
     public function retrieveByCredentials(array $credentials): ?Authenticatable
     {
         if (empty($credentials['email'])) {
@@ -23,7 +35,7 @@ class TravelAgencyUserProvider extends EloquentUserProvider
 
         $agency = TravelAgency::where('email', $credentials['email'])->first();
         if ($agency && $agency->isActive()) {
-            return $agency;
+            return $agency->ownerMember();
         }
 
         $member = TravelAgencyMember::where('email', $credentials['email'])

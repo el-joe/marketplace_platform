@@ -66,7 +66,6 @@
             <x-partner-nav-item route="partner.warehouses.index" icon="building-storefront" label="{{ __('partner.nav.warehouses') }}" />
             <x-partner-nav-item route="partner.warehouses.transfers.index" icon="arrows-right-left" label="{{ __('partner.nav.transfers') }}" />
             <x-partner-nav-item route="partner.city-surcharges.index" icon="map-pin" label="City Shipping Surcharges" />
-            <x-partner-nav-item route="partner.exceptional-zones.index" icon="globe-alt" label="{{ __('partner.nav.exceptional_zones') }}" />
             <x-partner-nav-item route="partner.packaging-supplies.index" icon="archive-box" label="{{ __('partner.nav.packaging_supplies') }}" />
         </x-partner-nav-group>
 

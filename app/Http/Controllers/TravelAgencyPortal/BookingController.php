@@ -6,6 +6,7 @@ use App\Enums\TravelBookingStatus;
 use App\Enums\TravelPackageInquiryStatus;
 use App\Enums\TravelPackageStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\Activity;
 use App\Models\Customer;
 use App\Models\TravelAgency;
@@ -19,20 +20,17 @@ use App\Services\TravelAgency\BookingCreationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class BookingController extends Controller
 {
+    use ResolvesTravelAgency;
+
     public function __construct(private readonly BookingCreationService $bookingCreationService)
     {
-    }
-
-    private function agencyId(): string
-    {
-        return Auth::guard('travel_agency')->user()->travel_agency_id;
     }
 
     // ── Customer search (AJAX) ────────────────────────────────────────────────
@@ -208,7 +206,7 @@ class BookingController extends Controller
                 } elseif ($pkg->available_seats !== null) {
                     $remaining = $pkg->available_seats - $pkg->seats_booked;
                     if ($remaining > 0 && $remaining <= 3) {
-                        $pkg->agency->notify(new LowSeatsRemaining($pkg, $remaining));
+                        Notification::send($pkg->agency->activeMembers(), new LowSeatsRemaining($pkg, $remaining));
                     }
                 }
             }
@@ -226,7 +224,7 @@ class BookingController extends Controller
         $booking->loadMissing('customer');
 
         /** @var \App\Models\TravelAgencyMember $agencyMember */
-        $agencyMember = Auth::guard('travel_agency')->user();
+        $agencyMember = $this->member();
 
         if ($newStatus === TravelBookingStatus::Confirmed) {
             $booking->customer?->notify(new TravelBookingConfirmed($booking));

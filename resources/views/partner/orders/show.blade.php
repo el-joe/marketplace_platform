@@ -266,6 +266,30 @@
                             {{ $currency }}</span>
                     </div>
                 </div>
+
+                @if($subOrder->shipping_gap > 0)
+                    <div class="mt-3 p-3 bg-orange-50 border border-orange-200 rounded text-sm">
+                        <p class="font-semibold text-orange-800 mb-2">{{ __('partner.orders.exceptional_zone_delivery_cost') }}</p>
+                        <div class="space-y-1 text-orange-700">
+                            <div class="flex justify-between">
+                                <span>{{ __('partner.orders.customer_paid_for_shipping') }}</span>
+                                <span>{{ number_format($subOrder->shipping / 100, 2) }} {{ $currency }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>{{ __('partner.orders.carrier_actual_charge') }}</span>
+                                <span>{{ number_format($subOrder->carrier_shipping_cost / 100, 2) }} {{ $currency }}</span>
+                            </div>
+                            <div class="flex justify-between font-medium border-t border-orange-300 pt-1">
+                                <span>{{ __('partner.orders.gap') }}</span>
+                                <span>{{ number_format($subOrder->shipping_gap / 100, 2) }} {{ $currency }}</span>
+                            </div>
+                            <div class="flex justify-between text-red-700">
+                                <span>{{ __('partner.orders.your_share_of_gap') }}</span>
+                                <span>- {{ number_format($subOrder->vendor_contribution_amount / 100, 2) }} {{ $currency }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             @if(!$subOrder->cod_remittance_confirmed && $order->payment_method === 'cod')

@@ -179,6 +179,16 @@ class FinanceController extends Controller
             ->where('vendor_covers_delivery', true)
             ->exists();
 
+        $exceptionalTotals = (clone $baseQuery)
+            ->where('shipping_gap', '>', 0)
+            ->selectRaw('
+                COALESCE(SUM(vendor_contribution_amount), 0) as total_exceptional_deduction,
+                COUNT(*) as exceptional_orders
+            ')
+            ->first();
+
+        $hasExceptionalDeduction = $exceptionalTotals->exceptional_orders > 0;
+
         $shipments = (clone $baseQuery)
             ->with('order:id,order_number')
             ->orderByDesc('created_at')
@@ -191,8 +201,69 @@ class FinanceController extends Controller
             'totals',
             'shipments',
             'hasVendorContribution',
+            'exceptionalTotals',
+            'hasExceptionalDeduction',
             'dateFrom',
             'dateTo',
         ));
+    }
+
+    public function exportSalesReport(Request $request)
+    {
+        $vendorAdmin = Auth::guard('vendor')->user();
+        $vendor      = $vendorAdmin->vendor;
+        $vendorId    = $vendor->id;
+        $currency    = $vendor->country?->currency_code ?? '';
+
+        $dateFrom = $request->input('date_from')
+            ? \Carbon\Carbon::parse($request->input('date_from'))->startOfDay()
+            : now()->startOfMonth();
+
+        $dateTo = $request->input('date_to')
+            ? \Carbon\Carbon::parse($request->input('date_to'))->endOfDay()
+            : now()->endOfDay();
+
+        $shipments = SubOrder::where('vendor_id', $vendorId)
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->with('order:id,order_number')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $handle = fopen('php://temp', 'r+');
+
+        fputcsv($handle, [
+            'Date', 'Sub-order Number', 'Order Number',
+            'Shipping Charged', 'Delivery Subsidy', 'Your Delivery Contribution',
+            'Exceptional Zone Deduction', 'Currency',
+        ]);
+
+        foreach ($shipments as $shipment) {
+            fputcsv($handle, [
+                $shipment->created_at->format('Y-m-d'),
+                $shipment->sub_order_number,
+                $shipment->order?->order_number,
+                number_format($shipment->shipping / 100, 2, '.', ''),
+                number_format($shipment->admin_subsidy_amount / 100, 2, '.', ''),
+                number_format($shipment->vendor_contribution_amount / 100, 2, '.', ''),
+                $shipment->shipping_gap > 0 ? number_format($shipment->vendor_contribution_amount / 100, 2, '.', '') : '',
+                $currency,
+            ]);
+        }
+
+        $totalExceptionalDeduction = $shipments->where('shipping_gap', '>', 0)->sum('vendor_contribution_amount');
+        fputcsv($handle, []);
+        fputcsv($handle, ['', '', '', '', '', '', 'Exceptional Zone Deduction Subtotal (' . $currency . ')', number_format($totalExceptionalDeduction / 100, 2, '.', '')]);
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        $filename = 'sales-report-' . $dateFrom->toDateString() . '-to-' . $dateTo->toDateString() . '.csv';
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 }

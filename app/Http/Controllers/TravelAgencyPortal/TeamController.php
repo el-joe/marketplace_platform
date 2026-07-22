@@ -4,7 +4,7 @@ namespace App\Http\Controllers\TravelAgencyPortal;
 
 use App\Contracts\TravelAgencyAuthUser;
 use App\Http\Controllers\Controller;
-use App\Models\TravelAgency;
+use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\TravelAgencyMember;
 use App\Notifications\TravelAgencyMemberPasswordReset;
 use App\Notifications\TravelAgencyMemberWelcome;
@@ -24,6 +24,7 @@ use Spatie\Permission\Models\Role;
 class TeamController extends Controller
 {
     use HasDataTable;
+    use ResolvesTravelAgency;
 
     private const GUARD = 'travel_agency';
 
@@ -41,28 +42,12 @@ class TeamController extends Controller
     }
 
     /**
-     * Resolve the owning agency's id regardless of whether the authenticated
-     * principal is the TravelAgency (uses its own `id`) or a
-     * TravelAgencyMember (uses its `travel_agency_id` column).
-     */
-    private function getAgencyId(): string
-    {
-        $user = $this->authUser();
-
-        if ($user instanceof TravelAgency) {
-            return $user->id;
-        }
-
-        return $user->travel_agency_id;
-    }
-
-    /**
      * Roles assignable within this agency: the shared system roles plus any
      * custom roles owned by this agency (scoped via `roles.travel_agency_id`).
      */
     private function scopedRoles()
     {
-        $agencyId = $this->getAgencyId();
+        $agencyId = $this->agencyId();
 
         return Role::where('guard_name', self::GUARD)
             ->where(function ($query) use ($agencyId) {
@@ -77,19 +62,19 @@ class TeamController extends Controller
      */
     private function roleBelongsToAgency(Role $role): bool
     {
-        return $role->travel_agency_id === null || $role->travel_agency_id === $this->getAgencyId();
+        return $role->travel_agency_id === null || $role->travel_agency_id === $this->agencyId();
     }
 
     private function authorizeMemberAccess(TravelAgencyMember $member): void
     {
-        if ($member->travel_agency_id !== $this->getAgencyId()) {
+        if ($member->travel_agency_id !== $this->agencyId()) {
             abort(403);
         }
     }
 
     private function forgetSidebarCache(): void
     {
-        Cache::forget('ta_sidebar_' . $this->getAgencyId());
+        Cache::forget('ta_sidebar_' . $this->agencyId());
     }
 
     private function roleDisplayLabel(?Role $role): ?string
@@ -112,7 +97,7 @@ class TeamController extends Controller
         // Resolving the agency id also validates the auth guard is set up
         // correctly for this request; the id itself isn't needed by the view
         // since all data is fetched client-side via the datatable() endpoint.
-        $this->getAgencyId();
+        $this->agencyId();
 
         $user = $this->authUser();
         $canInvite = $user->can('team.invite');
@@ -123,7 +108,7 @@ class TeamController extends Controller
 
     public function datatable(Request $request): JsonResponse
     {
-        $agencyId = $this->getAgencyId();
+        $agencyId = $this->agencyId();
 
         $query = TravelAgencyMember::query()
             ->where('travel_agency_id', $agencyId)
@@ -175,6 +160,8 @@ class TeamController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->requireOwner();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:travel_agency_members,email',
@@ -188,7 +175,7 @@ class TeamController extends Controller
             abort(403);
         }
 
-        $agencyId = $this->getAgencyId();
+        $agencyId = $this->agencyId();
         $plainPassword = $validated['password'];
 
         $member = DB::transaction(function () use ($validated, $role, $agencyId, $plainPassword) {
@@ -302,6 +289,7 @@ class TeamController extends Controller
 
     public function destroy(TravelAgencyMember $member): RedirectResponse
     {
+        $this->requireOwner();
         $this->authorizeMemberAccess($member);
 
         if ($member->id === $this->authUser()->getAuthIdentifier()) {
