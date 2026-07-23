@@ -11,6 +11,7 @@ use App\Notifications\Vendor\PackagingOrderDelivered;
 use App\Notifications\Vendor\PackagingOrderRejected;
 use App\Notifications\Vendor\PackagingOrderShipped;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,7 @@ use Illuminate\View\View;
 class PackagingSupplyController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     private const CURRENCIES = ['AED', 'SAR', 'EGP', 'KWD', 'OMR', 'QAR', 'BHD', 'JOD'];
     private const TYPES = ['box', 'bag', 'tape', 'label', 'bubble_wrap', 'other'];
@@ -190,8 +192,12 @@ class PackagingSupplyController extends Controller
 
     // ── Requests queue ─────────────────────────────────────────────────────
 
-    public function requests(): View
+    public function requests(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportRequests($request);
+        }
+
         $pending = PackagingSupplyRequest::where('status', 'pending')->count();
         $inTransit = PackagingSupplyRequest::whereIn('status', ['approved', 'shipped'])->count();
         $deliveredThisMonth = PackagingSupplyRequest::where('status', 'delivered')
@@ -221,14 +227,7 @@ class PackagingSupplyController extends Controller
 
     public function datatableRequests(Request $request): JsonResponse
     {
-        $query = PackagingSupplyRequest::with('vendor');
-
-        $query = $this->applyFilters($query, $request, [
-            'status' => fn ($q, $v) => $q->where('status', $v),
-            'vendor_id' => fn ($q, $v) => $q->where('vendor_id', $v),
-            'date_from' => fn ($q, $v) => $q->whereDate('created_at', '>=', $v),
-            'date_to' => fn ($q, $v) => $q->whereDate('created_at', '<=', $v),
-        ]);
+        $query = $this->buildRequestsQuery($request);
 
         $columns = [
             ['searchable_columns' => ['request_number'], 'orderable_column' => 'request_number'],
@@ -273,6 +272,48 @@ class PackagingSupplyController extends Controller
                 'actions' => $actionsHtml,
             ];
         });
+    }
+
+    private function buildRequestsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = PackagingSupplyRequest::with('vendor');
+
+        $query = $this->applyFilters($query, $request, [
+            'search' => fn ($q, $v) => $q->where(function ($qq) use ($v) {
+                $qq->where('request_number', 'like', '%' . $v . '%')
+                    ->orWhereHas('vendor', fn ($vq) => $vq->where('store_name', 'like', '%' . $v . '%'));
+            }),
+            'status' => fn ($q, $v) => $q->where('status', $v),
+            'vendor_id' => fn ($q, $v) => $q->where('vendor_id', $v),
+            'date_from' => fn ($q, $v) => $q->whereDate('created_at', '>=', $v),
+            'date_to' => fn ($q, $v) => $q->whereDate('created_at', '<=', $v),
+        ]);
+
+        return $query;
+    }
+
+    private function exportRequests(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $requests = $this->buildRequestsQuery($request)->with('items')->orderByDesc('created_at')->get();
+
+        $headers = ['Request #', 'Vendor', 'Items', 'Total', 'Currency', 'Status', 'Date'];
+
+        $rows = $requests->map(fn ($req) => [
+            $req->request_number,
+            $req->vendor?->store_name,
+            $req->items->count(),
+            number_format($req->grand_total / 100, 2),
+            $req->currency,
+            $req->status?->value,
+            optional($req->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('packaging_requests', $headers, $rows),
+            'csv' => $this->exportCsv('packaging_requests', $headers, $rows),
+            'word' => $this->exportWord('packaging_requests', 'Packaging Supply Requests', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function showRequest(PackagingSupplyRequest $request): View

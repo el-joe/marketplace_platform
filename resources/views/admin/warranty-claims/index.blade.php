@@ -13,6 +13,7 @@
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.warranty_claims_section.title') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.warranty_claims_section.subtitle') }}</p>
         </div>
+        <x-export-dropdown />
     </div>
 
     {{-- ─── Stats ───────────────────────────────────────────────────────────── --}}

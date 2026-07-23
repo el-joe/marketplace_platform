@@ -76,6 +76,7 @@
             </p>
         </div>
         <div class="flex items-center gap-2">
+            <x-export-dropdown />
             <button id="open-add-zone-btn" class="btn btn-primary btn-sm">
                 {{ __('admin.shipping_section.add_zone') }}
             </button>
@@ -84,6 +85,19 @@
             </button>
         </div>
     </div>
+
+    {{-- Search filter --}}
+    <form method="GET" action="{{ route('admin.shipping-zones.index') }}" class="flex items-end gap-3 mb-4">
+        <input type="hidden" name="country" value="{{ $activeCountryId }}">
+        <div class="space-y-1">
+            <label for="zone-search" class="block text-xs font-medium text-gray-600 uppercase tracking-wide">
+                {{ __('common.search') }}
+            </label>
+            <input type="text" id="zone-search" name="search" value="{{ request('search') }}"
+                placeholder="{{ __('admin.shipping_section.zones_label') }}" class="form-input text-sm w-64">
+        </div>
+        <button type="submit" class="btn btn-secondary btn-sm">{{ __('common.search') }}</button>
+    </form>
 
     {{-- Country tab switcher --}}
     <div class="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto">

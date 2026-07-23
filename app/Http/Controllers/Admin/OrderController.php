@@ -83,7 +83,13 @@ class OrderController extends Controller
             ]);
 
         return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where(function ($sub) use ($v) {
+                $sub->where('orders.order_number', 'like', "%{$v}%")
+                    ->orWhere('c.name', 'like', "%{$v}%")
+                    ->orWhere('c.email', 'like', "%{$v}%");
+            }),
             'status' => fn($q, $v) => $q->where('orders.status', $v),
+            'payment_method' => fn($q, $v) => $q->where('orders.payment_method', $v),
             'payment_status' => fn($q, $v) => $q->where('orders.payment_status', $v),
             'country_id' => fn($q, $v) => $q->where('c.country_id', $v),
             'date_from' => fn($q, $v) => $q->whereDate('orders.placed_at', '>=', $v),
@@ -98,16 +104,16 @@ class OrderController extends Controller
     {
         $orders = $this->buildOrdersQuery($request)->orderByDesc('orders.placed_at')->get();
 
-        $headers = ['Order #', 'Customer', 'Items', 'Total', 'Payment Method', 'Payment Status', 'Status', 'Placed At'];
+        $headers = ['Order #', 'Customer', 'Status', 'Payment', 'Items', 'Total', 'Currency', 'Date'];
 
         $rows = $orders->map(fn($row) => [
             $row->order_number,
             $row->customer_name,
-            (int) $row->items_count,
-            strtoupper($row->currency) . ' ' . number_format($row->total / 100, 2),
-            $row->payment_method,
-            $row->payment_status?->value,
             $row->status?->value,
+            $row->payment_method,
+            (int) $row->items_count,
+            number_format($row->total / 100, 2),
+            strtoupper($row->currency),
             optional($row->placed_at)->format('d M Y H:i'),
         ]);
 

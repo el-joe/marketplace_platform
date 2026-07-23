@@ -15,12 +15,17 @@ use App\Models\ShippingRate;
 use App\Models\ShippingZone;
 use App\Services\Shipping\ShippingRateService;
 use App\Services\Shipping\ShippingZoneService;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class ShippingZoneController extends Controller
 {
+    use HasDataTable;
+    use HasExport;
+
     public function __construct(
         private readonly ShippingZoneService $zoneService,
         private readonly ShippingRateService $rateService
@@ -31,14 +36,17 @@ class ShippingZoneController extends Controller
     // Pages
     // ═══════════════════════════════════════════════════════════════════════
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportZones($request);
+        }
+
         $countries = Country::where('is_active', 1)->orderBy('name_en')->get();
 
         $activeCountryId = request('country', $countries->first()?->id);
 
-        $zones = ShippingZone::withCount(['cities'])
-            ->with('country')
+        $zones = $this->buildZonesQuery($request)
             ->forCountry($activeCountryId)
             ->orderBy('name')
             ->get();
@@ -354,6 +362,39 @@ class ShippingZoneController extends Controller
             'success' => true,
             'data' => $result,
         ]);
+    }
+
+    private function buildZonesQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = ShippingZone::withCount(['cities'])->with('country');
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where('shipping_zones.name', 'like', '%' . $v . '%'),
+            'country_id' => fn($q, $v) => $q->where('shipping_zones.country_id', $v),
+        ]);
+    }
+
+    private function exportZones(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $zones = $this->buildZonesQuery($request)->orderBy('name')->get();
+        $zones->each(fn($z) => $z->append(['active_rate_count']));
+
+        $headers = ['Zone Name', 'Country', 'Cities Count', 'Active', 'Created'];
+
+        $rows = $zones->map(fn($zone) => [
+            $zone->name,
+            $zone->country?->name_en,
+            (int) $zone->cities_count,
+            $zone->is_active ? 'Yes' : 'No',
+            optional($zone->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('shipping_zones', $headers, $rows),
+            'csv' => $this->exportCsv('shipping_zones', $headers, $rows),
+            'word' => $this->exportWord('shipping_zones', 'Shipping Zones', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ═══════════════════════════════════════════════════════════════════════

@@ -15,7 +15,10 @@
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.packaging_requests_section.title') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.packaging_requests_section.subtitle') }}</p>
         </div>
-        <a href="{{ route('admin.packaging.catalog') }}" class="btn btn-secondary text-sm">{{ __('admin.packaging_requests_section.manage_catalog') }}</a>
+        <div class="flex items-center gap-2">
+            <x-export-dropdown />
+            <a href="{{ route('admin.packaging.catalog') }}" class="btn btn-secondary text-sm">{{ __('admin.packaging_requests_section.manage_catalog') }}</a>
+        </div>
     </div>
 
     {{-- Stats --}}

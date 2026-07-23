@@ -22,6 +22,7 @@ use App\Notifications\Admin\ListingResubmittedNotification;
 use App\Services\ListingShippingResolver;
 use App\Services\ShippingWeightService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,7 @@ use Illuminate\View\View;
 class ListingController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(
         private readonly ListingShippingResolver $shippingResolver,
@@ -71,8 +73,12 @@ class ListingController extends Controller
     // Index
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportListings($request);
+        }
+
         $vendorId = $this->vendorId();
 
         $counts = VendorListing::where('vendor_id', $vendorId)
@@ -93,10 +99,10 @@ class ListingController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // DataTable
+    // Shared query builder
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function datatable(Request $request): JsonResponse
+    private function buildListingsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $vendorId = $this->vendorId();
 
@@ -107,9 +113,12 @@ class ListingController extends Controller
                 'vendor_listings.id',
                 'vendor_listings.status',
                 'vendor_listings.price',
+                'vendor_listings.currency',
+                'vendor_listings.fulfillment_model',
                 'vendor_listings.total_sold',
                 'vendor_listings.rating_avg',
                 'vendor_listings.low_stock_threshold',
+                'vendor_listings.created_at',
                 'pv.id as variant_id',
                 'pv.variant_name',
                 'pv.sku',
@@ -136,14 +145,58 @@ class ListingController extends Controller
             'status' => fn($q, $v) => $v === 'low_stock'
                 ? $q->whereRaw('vendor_listings.id IN (SELECT vendor_listing_id FROM warehouse_inventories WHERE quantity_on_hand - quantity_reserved <= vendor_listings.low_stock_threshold AND quantity_on_hand > 0)')
                 : $q->where('vendor_listings.status', $v),
-            'search' => fn($q, $v) => $q->where(function ($sq) use ($v) {
-                $v = $v['value'] ?? '';
-                $sq->where('p.name_en', 'like', '%' . $v . '%')
-                    ->orWhere('p.name_ar', 'like', '%' . $v . '%')
-                    ->orWhere('pv.sku', 'like', '%' . $v . '%')
-                    ->orWhere('vendor_listings.vendor_sku', 'like', '%' . $v . '%');
-            }),
+            'date_from' => fn($q, $v) => $q->whereDate('vendor_listings.created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('vendor_listings.created_at', '<=', $v),
         ]);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($sq) use ($search) {
+                $sq->where('p.name_en', 'like', "%{$search}%")
+                    ->orWhere('p.name_ar', 'like', "%{$search}%")
+                    ->orWhere('pv.sku', 'like', "%{$search}%")
+                    ->orWhere('vendor_listings.vendor_sku', 'like', "%{$search}%");
+            });
+        }
+
+        return $query;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function exportListings(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $items = $this->buildListingsQuery($request)->orderByDesc('vendor_listings.created_at')->get();
+
+        $headers = ['SKU', 'Name', 'Price', 'Currency', 'Fulfillment', 'Status', 'Stock'];
+
+        $rows = $items->map(fn($row) => [
+            $row->sku,
+            $row->name_en,
+            number_format($row->price / 100, 2),
+            $row->currency,
+            $row->fulfillment_model instanceof \BackedEnum ? $row->fulfillment_model->value : $row->fulfillment_model,
+            $row->status instanceof VendorListingStatus ? $row->status->value : $row->status,
+            (int) $row->available_stock,
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('listings', $headers, $rows),
+            'csv' => $this->exportCsv('listings', $headers, $rows),
+            'word' => $this->exportWord('listings', 'Listings', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DataTable
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $query = $this->buildListingsQuery($request);
 
         $columns = [
             ['searchable_columns' => ['p.name_en', 'p.name_ar', 'pv.sku']],

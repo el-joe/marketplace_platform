@@ -123,6 +123,18 @@
             ],
             [
                 'type' => 'select',
+                'name' => 'payment_method',
+                'label' => __('admin.orders.payment_method'),
+                'options' => [
+                    'card' => __('admin.orders.payment_card'),
+                    'wallet' => __('admin.orders.payment_wallet'),
+                    'cod' => __('admin.orders.payment_cod'),
+                    'bnpl' => __('admin.orders.payment_bnpl'),
+                    'bank_transfer' => __('admin.orders.payment_bank_transfer'),
+                ],
+            ],
+            [
+                'type' => 'select',
                 'name' => 'payment_status',
                 'label' => __('admin.orders.payment_status'),
                 'options' => [

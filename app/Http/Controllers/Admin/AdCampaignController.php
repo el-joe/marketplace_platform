@@ -13,6 +13,7 @@ use App\Models\AdFraudPattern;
 use App\Models\Country;
 use App\Models\Vendor;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,13 +21,18 @@ use Illuminate\Http\Request;
 class AdCampaignController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ─── Index ────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportCampaigns($request);
+        }
 
         $today = today();
 
@@ -44,24 +50,66 @@ class AdCampaignController extends Controller
 
     // ─── DataTable ────────────────────────────────────────────────────────────
 
-    public function datatable(Request $request): JsonResponse
+    /**
+     * Shared base query for the datatable and export, with request-driven filters applied.
+     * Search matches the campaign name and the joined vendor's store name.
+     */
+    private function buildCampaignsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $admin = auth('admin')->user();
-        abort_unless($admin->hasPermissionTo('ad_campaigns.view'), 403);
-
         $query = AdCampaign::query()
             ->select('ad_campaigns.*')
             ->with(['vendor', 'country'])
             ->join('vendors', 'vendors.id', '=', 'ad_campaigns.vendor_id');
 
-        $query = $this->applyFilters($query, $request, [
+        return $this->applyFilters($query, $request, [
             'status' => fn($q, $v) => $q->where('ad_campaigns.status', $v),
             'type' => fn($q, $v) => $q->where('ad_campaigns.type', $v),
             'vendor_id' => fn($q, $v) => $q->where('ad_campaigns.vendor_id', $v),
             'country_id' => fn($q, $v) => $q->where('ad_campaigns.country_id', $v),
             'date_from' => fn($q, $v) => $q->whereDate('ad_campaigns.starts_at', '>=', $v),
             'date_to' => fn($q, $v) => $q->whereDate('ad_campaigns.ends_at', '<=', $v),
+            'search' => fn($q, $v) => $q->where(function ($sub) use ($v) {
+                $sub->where('ad_campaigns.name', 'like', "%{$v}%")
+                    ->orWhere('vendors.store_name', 'like', "%{$v}%");
+            }),
         ]);
+    }
+
+    /**
+     * Note: `ad_campaigns` has no `currency` column; budgets are stored as bigint minor-unit
+     * amounts in the campaign's country currency. The country's `currency_code` is used as the
+     * "Currency" column, and amounts are never summed across rows/currencies.
+     */
+    private function exportCampaigns(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $campaigns = $this->buildCampaignsQuery($request)->orderByDesc('ad_campaigns.starts_at')->get();
+
+        $headers = ['Campaign', 'Vendor', 'Status', 'Budget', 'Currency', 'Start', 'End'];
+
+        $rows = $campaigns->map(fn(AdCampaign $row) => [
+            $row->name,
+            $row->vendor?->store_name,
+            $row->status?->value,
+            number_format($row->budget_total / 100, 2),
+            $row->country?->currency_code,
+            optional($row->starts_at)->format('d M Y H:i'),
+            $row->ends_at ? Carbon::parse($row->ends_at)->format('d M Y H:i') : null,
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('ad-campaigns', $headers, $rows),
+            'csv' => $this->exportCsv('ad-campaigns', $headers, $rows),
+            'word' => $this->exportWord('ad-campaigns', 'Ad Campaigns', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('ad_campaigns.view'), 403);
+
+        $query = $this->buildCampaignsQuery($request);
 
         $columns = [
             ['searchable_columns' => ['vendors.store_name'], 'orderable_column' => 'vendors.store_name'],

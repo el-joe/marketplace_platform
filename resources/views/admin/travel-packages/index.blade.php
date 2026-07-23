@@ -14,6 +14,7 @@
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.travel.packages_desc') }}</p>
         </div>
         <div class="flex items-center gap-2">
+            <x-export-dropdown />
             <a href="{{ route('admin.travel.agencies.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.travel.agencies') }}</a>
             <a href="{{ route('admin.travel.bookings.index') }}" class="btn btn-primary btn-sm">{{ __('admin.travel.bookings') }}</a>
         </div>

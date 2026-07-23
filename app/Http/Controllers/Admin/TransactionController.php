@@ -8,19 +8,26 @@ use App\Jobs\RefundProcessingJob;
 use App\Models\PaymentTransaction;
 use App\Models\Refund;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TransactionController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ─── Transactions ─────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('transactions.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportTransactions($request);
+        }
 
         $today = today();
 
@@ -42,22 +49,33 @@ class TransactionController extends Controller
         return view('admin.transactions.index', compact('stats', 'gateways'));
     }
 
-    public function datatable(Request $request): JsonResponse
+    /**
+     * Base query for the transactions listing, shared by datatable() and export.
+     *
+     * Note: payment_transactions has no `payment_method` or `reference_number` column.
+     * We join payment_methods (pm.type) as the real-world equivalent of "payment method",
+     * and use gateway_transaction_id / idempotency_key as the reference identifiers.
+     */
+    private function buildTransactionsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $admin = auth('admin')->user();
-        abort_unless($admin->hasPermissionTo('transactions.view'), 403);
-
         $query = PaymentTransaction::query()
             ->leftJoin('orders', 'orders.id', '=', 'payment_transactions.order_id')
             ->leftJoin('customers', 'customers.id', '=', 'payment_transactions.customer_id')
+            ->leftJoin('payment_methods as pm', 'pm.id', '=', 'payment_transactions.payment_method_id')
             ->select(
                 'payment_transactions.*',
                 'orders.order_number',
-                'customers.name as customer_name'
+                'customers.name as customer_name',
+                'pm.type as payment_method_type'
             );
 
-        $query = $this->applyFilters($query, $request, [
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where(function ($sub) use ($v) {
+                $sub->where('payment_transactions.gateway_transaction_id', 'like', "%{$v}%")
+                    ->orWhere('payment_transactions.idempotency_key', 'like', "%{$v}%");
+            }),
             'type' => fn($q, $v) => $q->where('payment_transactions.type', $v),
+            'payment_method' => fn($q, $v) => $q->where('pm.type', $v),
             'status' => fn($q, $v) => $q->where('payment_transactions.status', $v),
             'gateway' => fn($q, $v) => $q->where('payment_transactions.gateway', $v),
             'date_from' => fn($q, $v) => $q->whereDate('payment_transactions.created_at', '>=', $v),
@@ -65,6 +83,44 @@ class TransactionController extends Controller
             'amount_min' => fn($q, $v) => $q->where('payment_transactions.amount', '>=', (int) round($v * 100)),
             'amount_max' => fn($q, $v) => $q->where('payment_transactions.amount', '<=', (int) round($v * 100)),
         ]);
+    }
+
+    /**
+     * Excel export of transactions matching current filters.
+     * Amounts are exported per-row with their own currency — never summed across currencies.
+     */
+    private function exportTransactions(Request $request): StreamedResponse
+    {
+        $transactions = $this->buildTransactionsQuery($request)
+            ->orderByDesc('payment_transactions.created_at')
+            ->get();
+
+        $headers = ['Reference', 'Method', 'Amount', 'Currency', 'Status', 'Gateway', 'Date'];
+
+        $rows = $transactions->map(fn($tx) => [
+            $tx->gateway_transaction_id,
+            $tx->payment_method_type?->value ?? $tx->payment_method_type,
+            number_format($tx->amount / 100, 2),
+            strtoupper($tx->currency),
+            $tx->status?->value,
+            $tx->gateway,
+            optional($tx->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('transactions', $headers, $rows),
+            'csv' => $this->exportCsv('transactions', $headers, $rows),
+            'word' => $this->exportWord('transactions', 'Transactions', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('transactions.view'), 403);
+
+        $query = $this->buildTransactionsQuery($request);
 
         $columns = [
             0 => ['searchable_columns' => ['payment_transactions.gateway_transaction_id'], 'orderable_column' => 'payment_transactions.gateway_transaction_id'],

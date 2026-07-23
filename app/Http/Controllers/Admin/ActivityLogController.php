@@ -13,6 +13,7 @@ use App\Models\Vendor;
 use App\Models\VendorAdmin;
 use App\Models\VendorListing;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -23,6 +24,7 @@ use Illuminate\Support\Str;
 class ActivityLogController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     /** causer_type => [label, badge class, table] */
     private const CAUSER_MAP = [
@@ -50,9 +52,13 @@ class ActivityLogController extends Controller
 
     // ─── Index ────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $this->authorizeView();
+
+        if ($request->filled('export')) {
+            return $this->exportActivityLog($request);
+        }
 
         $today = Carbon::today();
         $lastAt = Activity::max('created_at');
@@ -79,37 +85,7 @@ class ActivityLogController extends Controller
     {
         $this->authorizeView();
 
-        $query = DB::table('activity_log as al')
-            ->leftJoin('admins as a', function ($j) {
-                $j->on('al.causer_id', '=', 'a.id')
-                    ->where('al.causer_type', '=', Admin::class);
-            })
-            ->leftJoin('vendor_admins as va', function ($j) {
-                $j->on('al.causer_id', '=', 'va.id')
-                    ->where('al.causer_type', '=', VendorAdmin::class);
-            })
-            ->leftJoin('customers as c', function ($j) {
-                $j->on('al.causer_id', '=', 'c.id')
-                    ->where('al.causer_type', '=', Customer::class);
-            })
-            ->select([
-                'al.*',
-                DB::raw('COALESCE(a.name, va.name, c.name) as causer_name'),
-                DB::raw('COALESCE(a.email, va.email, c.email) as causer_email'),
-            ]);
-
-        $query = $this->applyFilters($query, $request, [
-            'log_name' => fn($q, $v) => $q->where('al.log_name', 'like', "%{$v}%"),
-            'event' => fn($q, $v) => $q->where('al.event', $v),
-            'causer_type' => fn($q, $v) => $v === 'system'
-                ? $q->whereNull('al.causer_type')
-                : $q->where('al.causer_type', $v),
-            'subject_type' => fn($q, $v) => $q->where('al.subject_type', $v),
-            'causer_id' => fn($q, $v) => $q->where('al.causer_id', $v),
-            'date_from' => fn($q, $v) => $q->whereDate('al.created_at', '>=', $v),
-            'date_to' => fn($q, $v) => $q->whereDate('al.created_at', '<=', $v),
-            'ip_address' => fn($q, $v) => $q->where('al.ip_address', 'like', "%{$v}%"),
-        ]);
+        $query = $this->buildActivityLogQuery($request);
 
         $columns = [
             0 => ['orderable_column' => 'al.created_at'],
@@ -152,6 +128,76 @@ class ActivityLogController extends Controller
                 'ip_address' => $row->ip_address,
             ];
         });
+    }
+
+    private function buildActivityLogQuery(Request $request): \Illuminate\Database\Query\Builder
+    {
+        $query = DB::table('activity_log as al')
+            ->leftJoin('admins as a', function ($j) {
+                $j->on('al.causer_id', '=', 'a.id')
+                    ->where('al.causer_type', '=', Admin::class);
+            })
+            ->leftJoin('vendor_admins as va', function ($j) {
+                $j->on('al.causer_id', '=', 'va.id')
+                    ->where('al.causer_type', '=', VendorAdmin::class);
+            })
+            ->leftJoin('customers as c', function ($j) {
+                $j->on('al.causer_id', '=', 'c.id')
+                    ->where('al.causer_type', '=', Customer::class);
+            })
+            ->select([
+                'al.*',
+                DB::raw('COALESCE(a.name, va.name, c.name) as causer_name'),
+                DB::raw('COALESCE(a.email, va.email, c.email) as causer_email'),
+            ]);
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where(function ($qq) use ($v) {
+                $qq->where('al.description', 'like', "%{$v}%")
+                    ->orWhere('al.subject_type', 'like', "%{$v}%");
+            }),
+            'log_name' => fn($q, $v) => $q->where('al.log_name', 'like', "%{$v}%"),
+            'event' => fn($q, $v) => $q->where('al.event', $v),
+            'causer_type' => fn($q, $v) => $v === 'system'
+                ? $q->whereNull('al.causer_type')
+                : $q->where('al.causer_type', $v),
+            'subject_type' => fn($q, $v) => $q->where('al.subject_type', $v),
+            'causer_id' => fn($q, $v) => $q->where('al.causer_id', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('al.created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('al.created_at', '<=', $v),
+            'ip_address' => fn($q, $v) => $q->where('al.ip_address', 'like', "%{$v}%"),
+        ]);
+    }
+
+    private function exportActivityLog(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $entries = $this->buildActivityLogQuery($request)->orderByDesc('al.created_at')->limit(10000)->get();
+
+        $headers = ['Event', 'Description', 'Admin', 'Subject', 'Date'];
+
+        $rows = $entries->map(function ($row) {
+            $causerInfo = self::CAUSER_MAP[$row->causer_type] ?? null;
+            $causerLabel = $row->causer_name ?? ($causerInfo['label'] ?? ($row->causer_type ? class_basename($row->causer_type) : 'System'));
+
+            $subjectLabel = $row->subject_type
+                ? (self::SUBJECT_LABELS[$row->subject_type] ?? class_basename($row->subject_type))
+                : null;
+
+            return [
+                $row->event,
+                $row->description,
+                $causerLabel,
+                $subjectLabel,
+                Carbon::parse($row->created_at)->format('d M Y H:i'),
+            ];
+        });
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('activity_log', $headers, $rows),
+            'csv' => $this->exportCsv('activity_log', $headers, $rows),
+            'word' => $this->exportWord('activity_log', 'Activity Log', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     /**

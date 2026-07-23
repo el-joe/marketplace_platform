@@ -99,33 +99,51 @@ class MarketerController extends Controller
     private function exportMarketers(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         $query = Marketer::query()->leftJoin('countries', 'countries.id', '=', 'marketers.country_id')
-            ->select(['marketers.name', 'marketers.email', 'marketers.type', 'marketers.status',
+            ->select(['marketers.id', 'marketers.name', 'marketers.email', 'marketers.type', 'marketers.status',
                 'marketers.total_clicks', 'marketers.total_conversions', 'marketers.total_earnings',
-                'countries.name_en as country_name']);
+                'marketers.created_at', 'countries.name_en as country_name'])
+            ->addSelect([
+                'deals_count' => InfluencerDeal::selectRaw('count(*)')
+                    ->whereColumn('marketer_id', 'marketers.id'),
+            ]);
 
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('marketers.name', 'like', "%{$search}%")
+                    ->orWhere('marketers.email', 'like', "%{$search}%");
+            });
+        }
         if ($type = $request->input('type') ?: $request->input('filter_type')) {
             $query->where('marketers.type', $type);
         }
-        if ($status = $request->input('filter_status')) {
+        if ($status = $request->input('filter_status') ?: $request->input('status')) {
             $query->where('marketers.status', $status);
         }
-        if ($country = $request->input('filter_country')) {
+        if ($country = $request->input('filter_country') ?: $request->input('country_id')) {
             $query->where('marketers.country_id', $country);
+        }
+        if ($dateFrom = $request->input('date_from')) {
+            $query->whereDate('marketers.created_at', '>=', $dateFrom);
+        }
+        if ($dateTo = $request->input('date_to')) {
+            $query->whereDate('marketers.created_at', '<=', $dateTo);
         }
 
         $marketers = $query->get();
 
-        $headers = ['Name', 'Email', 'Country', 'Type', 'Clicks', 'Conversions', 'Earnings', 'Status'];
+        $headers = ['Name', 'Email', 'Type', 'Status', 'Campaigns', 'Earnings', 'Joined'];
 
         $rows = $marketers->map(fn($m) => [
             $m->name,
             $m->email,
-            $m->country_name ?? '—',
             $m->type?->value,
-            number_format($m->total_clicks),
-            number_format($m->total_conversions),
-            number_format($m->total_earnings / 100, 2),
             $m->status?->value,
+            // "Campaigns" = number of influencer deals for influencer-type marketers,
+            // total_clicks-driven affiliate campaigns aren't modeled as discrete rows,
+            // so deals_count is used uniformly here (0 for pure affiliates).
+            number_format($m->deals_count ?? 0),
+            number_format($m->total_earnings / 100, 2),
+            $m->created_at?->format('d M Y'),
         ]);
 
         return match ($request->input('export')) {
@@ -229,6 +247,12 @@ class MarketerController extends Controller
         }
         if ($country = $request->input('filter_country')) {
             $query->where('marketers.country_id', $country);
+        }
+        if ($dateFrom = $request->input('date_from')) {
+            $query->whereDate('marketers.created_at', '>=', $dateFrom);
+        }
+        if ($dateTo = $request->input('date_to')) {
+            $query->whereDate('marketers.created_at', '<=', $dateTo);
         }
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) use ($viewMode) {

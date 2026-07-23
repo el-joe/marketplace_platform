@@ -116,6 +116,10 @@
         ];
     @endphp
 
+    <div class="flex items-center justify-end mb-3">
+        <x-export-dropdown />
+    </div>
+
     <x-table.datatable id="payouts-table" url="{{ route('admin.payouts.datatable') }}" :columns="$columns"
         :filters="$filters" :page-length="25" :order="[[7, 'desc']]" />
 @endsection

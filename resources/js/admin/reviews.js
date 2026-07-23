@@ -57,6 +57,7 @@ function initIndexPage() {
                 d.verified_only = document.getElementById('filter-verified')?.checked ? 1 : 0;
                 d.ai_flagged = document.getElementById('filter-ai-flagged')?.checked ? 1 : 0;
                 d.rating = getSelectedRatings();
+                d.search = document.getElementById('search-input')?.value ?? '';
             },
         },
         columns: [

@@ -73,6 +73,7 @@
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.ad_campaigns.manage_desc') }}</p>
         </div>
         <div class="flex items-center gap-2">
+            <x-export-dropdown />
             <a href="{{ route('admin.ad-campaigns.fraud') }}" class="btn btn-secondary btn-sm">{{ __('admin.ad_campaigns.fraud_alerts') }}</a>
             <a href="{{ route('admin.ad-slots.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.ad_campaigns.ad_slots') }}</a>
             <a href="{{ route('admin.paid-ad-bookings.index') }}" class="btn btn-primary btn-sm">{{ __('admin.ad_campaigns.paid_bookings') }}</a>

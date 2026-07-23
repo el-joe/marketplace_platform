@@ -14,6 +14,7 @@ use App\Models\VendorAdmin;
 use App\Models\VendorDocument;
 use App\Services\VendorApprovalService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ use Illuminate\Support\Str;
 class VendorApplicationController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     /** Required document types that must be verified before approval */
     private const REQUIRED_DOC_TYPES = ['business_license', 'tax_certificate', 'owner_id'];
@@ -34,10 +36,14 @@ class VendorApplicationController extends Controller
 
     // ─── Index ────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('vendors.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportApplications($request);
+        }
 
         $stats = [
             'pending' => Vendor::where('global_status', VendorGlobalStatus::Pending->value)
@@ -59,23 +65,65 @@ class VendorApplicationController extends Controller
 
     // ─── DataTable ────────────────────────────────────────────────────────────
 
+    private function buildApplicationsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Vendor::query()
+            ->with(['country', 'documents', 'bankAccounts'])
+            // Base queue is pending/under_review; 'rejected' is included so the
+            // status filter (which supports pending/rejected/under_review, per
+            // spec) can also surface previously rejected applications.
+            ->whereIn('global_status', [
+                VendorGlobalStatus::Pending->value,
+                VendorGlobalStatus::UnderReview->value,
+                VendorGlobalStatus::Rejected->value,
+            ])
+            ->whereNotNull('onboarding_completed_at')
+            ->select('vendors.*');
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where(function ($qq) use ($v) {
+                $qq->where('vendors.name', 'like', "%{$v}%")
+                    ->orWhere('vendors.email', 'like', "%{$v}%")
+                    ->orWhere('vendors.store_name', 'like', "%{$v}%");
+            }),
+            'country_id' => fn($q, $v) => $q->where('country_id', $v),
+            'status' => fn($q, $v) => $q->where('global_status', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+            'days_min' => fn($q, $v) => $q->where('onboarding_completed_at', '<=', now()->subDays((int) $v)),
+            'days_max' => fn($q, $v) => $q->where('onboarding_completed_at', '>=', now()->subDays((int) $v)),
+        ]);
+    }
+
+    private function exportApplications(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $applications = $this->buildApplicationsQuery($request)->latest('created_at')->get();
+
+        $headers = ['Applicant', 'Email', 'Store', 'Country', 'Status', 'Applied At'];
+
+        $rows = $applications->map(fn(Vendor $vendor) => [
+            $vendor->name,
+            $vendor->email,
+            $vendor->store_name,
+            $vendor->country?->name_en ?? '—',
+            $vendor->global_status?->value,
+            $vendor->created_at->format('d M Y'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('vendor_applications', $headers, $rows),
+            'csv' => $this->exportCsv('vendor_applications', $headers, $rows),
+            'word' => $this->exportWord('vendor_applications', 'Vendor Applications', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
     public function datatable(Request $request): JsonResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('vendors.view'), 403);
 
-        $query = Vendor::query()
-            ->with(['country', 'documents', 'bankAccounts'])
-            ->whereIn('global_status', [VendorGlobalStatus::Pending->value, VendorGlobalStatus::UnderReview->value])
-            ->whereNotNull('onboarding_completed_at')
-            ->select('vendors.*');
-
-        $query = $this->applyFilters($query, $request, [
-            'country_id' => fn($q, $v) => $q->where('country_id', $v),
-            'status' => fn($q, $v) => $q->where('global_status', $v),
-            'days_min' => fn($q, $v) => $q->where('onboarding_completed_at', '<=', now()->subDays((int) $v)),
-            'days_max' => fn($q, $v) => $q->where('onboarding_completed_at', '>=', now()->subDays((int) $v)),
-        ]);
+        $query = $this->buildApplicationsQuery($request);
 
         $columns = [
             ['searchable_columns' => ['vendors.store_name', 'vendors.business_name'], 'orderable_column' => 'vendors.store_name'],

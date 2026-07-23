@@ -17,6 +17,7 @@ use App\Notifications\Vendor\ReturnApprovedForVendorNotification;
 use App\Notifications\Vendor\ReturnInspectedNotification;
 use App\Services\OrderInterventionService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,7 @@ use Illuminate\View\View;
 class ReturnController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(private readonly OrderInterventionService $interventionService)
     {
@@ -35,10 +37,14 @@ class ReturnController extends Controller
     // Index
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('returns.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportReturns($request);
+        }
 
         $stats = [
             'pending' => ReturnRequest::where('status', ReturnRequestStatus::Requested->value)->count(),
@@ -63,24 +69,7 @@ class ReturnController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('returns.view'), 403);
 
-        $query = ReturnRequest::query()
-            ->leftJoin('orders', 'orders.id', '=', 'return_requests.order_id')
-            ->leftJoin('customers', 'customers.id', '=', 'return_requests.customer_id')
-            ->leftJoin('vendors', 'vendors.id', '=', 'return_requests.vendor_id')
-            ->withCount('items')
-            ->select(
-                'return_requests.*',
-                'orders.order_number as order_number',
-                'customers.name as customer_name',
-                'vendors.store_name as vendor_store_name'
-            );
-
-        $query = $this->applyFilters($query, $request, [
-            'status' => fn ($q, $v) => $q->where('return_requests.status', $v),
-            'vendor_id' => fn ($q, $v) => $q->where('return_requests.vendor_id', $v),
-            'date_from' => fn ($q, $v) => $q->whereDate('return_requests.created_at', '>=', $v),
-            'date_to' => fn ($q, $v) => $q->whereDate('return_requests.created_at', '<=', $v),
-        ]);
+        $query = $this->buildReturnsQuery($request);
 
         $columns = [
             0 => ['searchable_columns' => ['return_requests.return_number'], 'orderable_column' => 'return_requests.return_number'],
@@ -118,6 +107,59 @@ class ReturnController extends Controller
                 'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-secondary">' . e(__('common.view')) . '</a>',
             ];
         });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Query builder (shared by datatable + export)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildReturnsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = ReturnRequest::query()
+            ->leftJoin('orders', 'orders.id', '=', 'return_requests.order_id')
+            ->leftJoin('customers', 'customers.id', '=', 'return_requests.customer_id')
+            ->leftJoin('vendors', 'vendors.id', '=', 'return_requests.vendor_id')
+            ->withCount('items')
+            ->select(
+                'return_requests.*',
+                'orders.order_number as order_number',
+                'customers.name as customer_name',
+                'vendors.store_name as vendor_store_name'
+            );
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn ($q, $v) => $q->where('return_requests.return_number', 'like', '%' . $v . '%'),
+            'status' => fn ($q, $v) => $q->where('return_requests.status', $v),
+            'vendor_id' => fn ($q, $v) => $q->where('return_requests.vendor_id', $v),
+            'date_from' => fn ($q, $v) => $q->whereDate('return_requests.created_at', '>=', $v),
+            'date_to' => fn ($q, $v) => $q->whereDate('return_requests.created_at', '<=', $v),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function exportReturns(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $returns = $this->buildReturnsQuery($request)->orderByDesc('return_requests.created_at')->get();
+
+        $headers = ['Return #', 'Order #', 'Reason', 'Status', 'Date'];
+
+        $rows = $returns->map(fn($r) => [
+            $r->return_number,
+            $r->order_number,
+            $r->reason?->value,
+            $r->status?->value,
+            optional($r->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('returns', $headers, $rows),
+            'csv' => $this->exportCsv('returns', $headers, $rows),
+            'word' => $this->exportWord('returns', 'Returns', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ─────────────────────────────────────────────────────────────────────────

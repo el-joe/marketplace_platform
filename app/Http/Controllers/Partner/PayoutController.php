@@ -5,12 +5,18 @@ namespace App\Http\Controllers\Partner;
 use App\Http\Controllers\Controller;
 use App\Models\Payout;
 use App\Models\SubOrder;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class PayoutController extends Controller
 {
+    use HasDataTable;
+    use HasExport;
+
     // ─────────────────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
@@ -24,11 +30,16 @@ class PayoutController extends Controller
     // Index
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
-        $payouts = Payout::where('vendor_id', $this->vendorId())
+        if ($request->filled('export')) {
+            return $this->exportPayouts($request);
+        }
+
+        $payouts = $this->buildPayoutsQuery($request)
             ->orderByDesc('period_end')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         $now = now();
         $startOfMonth = $now->copy()->startOfMonth();
@@ -53,6 +64,46 @@ class PayoutController extends Controller
             'pendingAmount',
             'lastPayout',
         ));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildPayoutsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Payout::where('vendor_id', $this->vendorId());
+
+        $query = $this->applyFilters($query, $request, [
+            'status' => fn($q, $v) => $q->where('status', $v),
+            'currency' => fn($q, $v) => $q->where('currency', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('period_end', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('period_end', '<=', $v),
+        ]);
+
+        return $query;
+    }
+
+    private function exportPayouts(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $payouts = $this->buildPayoutsQuery($request)->orderByDesc('period_end')->get();
+
+        $headers = ['Batch #', 'Amount', 'Currency', 'Status', 'Date'];
+
+        $rows = $payouts->map(fn($row) => [
+            $row->payout_number,
+            number_format($row->net_amount / 100, 2),
+            $row->currency,
+            $row->status instanceof \BackedEnum ? $row->status->value : $row->status,
+            optional($row->period_end)->format('Y-m-d'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('payouts', $headers, $rows),
+            'csv' => $this->exportCsv('payouts', $headers, $rows),
+            'word' => $this->exportWord('payouts', 'Payouts', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ─────────────────────────────────────────────────────────────────────────

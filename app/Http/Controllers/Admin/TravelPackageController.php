@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Notifications\TravelAgency\PackageApproved;
 use App\Notifications\TravelAgency\PackageRejected;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,13 +19,18 @@ use Illuminate\Http\Request;
 class TravelPackageController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ── Index ─────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('travel.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportPackages($request);
+        }
 
         $urgencyThreshold = now()->addDays(7);
 
@@ -52,18 +58,7 @@ class TravelPackageController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('travel.view'), 403);
 
-        $query = TravelPackage::query()
-            ->select('travel_packages.*')
-            ->with(['agency', 'destinationCountry', 'media'])
-            ->join('travel_agencies', 'travel_agencies.id', '=', 'travel_packages.travel_agency_id');
-
-        $query = $this->applyFilters($query, $request, [
-            'status' => fn($q, $v) => $q->where('travel_packages.status', $v),
-            'destination_travel_country_id' => fn($q, $v) => $q->where('travel_packages.destination_travel_country_id', $v),
-            'agency_id' => fn($q, $v) => $q->where('travel_packages.travel_agency_id', $v),
-            'departure_from' => fn($q, $v) => $q->whereDate('travel_packages.departure_date', '>=', $v),
-            'departure_to' => fn($q, $v) => $q->whereDate('travel_packages.departure_date', '<=', $v),
-        ]);
+        $query = $this->buildPackagesQuery($request);
 
         $columns = [
             ['searchable_columns' => ['travel_packages.title_en', 'travel_packages.title_ar'], 'orderable_column' => 'travel_packages.title_en'],
@@ -138,6 +133,49 @@ class TravelPackageController extends Controller
                 'DT_RowData' => ['id' => $row->id, 'status' => $row->status?->value],
             ];
         });
+    }
+
+    // ── Query building / Export ──────────────────────────────────────────────
+
+    private function buildPackagesQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = TravelPackage::query()
+            ->select('travel_packages.*')
+            ->with(['agency', 'destinationCountry', 'media'])
+            ->join('travel_agencies', 'travel_agencies.id', '=', 'travel_packages.travel_agency_id');
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where('travel_packages.title_en', 'like', '%' . $v . '%'),
+            'status' => fn($q, $v) => $q->where('travel_packages.status', $v),
+            'destination_travel_country_id' => fn($q, $v) => $q->where('travel_packages.destination_travel_country_id', $v),
+            'agency_id' => fn($q, $v) => $q->where('travel_packages.travel_agency_id', $v),
+            'departure_from' => fn($q, $v) => $q->whereDate('travel_packages.departure_date', '>=', $v),
+            'departure_to' => fn($q, $v) => $q->whereDate('travel_packages.departure_date', '<=', $v),
+        ]);
+    }
+
+    private function exportPackages(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $packages = $this->buildPackagesQuery($request)->orderByDesc('travel_packages.departure_date')->get();
+
+        $headers = ['Package', 'Agency', 'Destination', 'Price', 'Currency', 'Status', 'Date'];
+
+        $rows = $packages->map(fn($pkg) => [
+            $pkg->title_en,
+            $pkg->agency?->name,
+            $pkg->destinationCountry?->name_en ?? $pkg->destination_country,
+            number_format($pkg->price / 100, 2),
+            $pkg->currency,
+            $pkg->status?->value,
+            optional($pkg->departure_date)->format('d M Y'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('travel_packages', $headers, $rows),
+            'csv' => $this->exportCsv('travel_packages', $headers, $rows),
+            'word' => $this->exportWord('travel_packages', 'Travel Packages', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ── Show ──────────────────────────────────────────────────────────────────

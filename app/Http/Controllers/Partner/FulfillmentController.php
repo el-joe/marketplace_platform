@@ -15,6 +15,8 @@ use App\Models\WarehouseInventory;
 use App\Notifications\Admin\InboundTrackingAddedNotification;
 use App\Services\ActivityLoggerService;
 use App\Services\WarehouseVendorLimitService;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +27,9 @@ use Illuminate\View\View;
 
 class FulfillmentController extends Controller
 {
+    use HasDataTable;
+    use HasExport;
+
     public function __construct(private readonly WarehouseVendorLimitService $limitService) {}
 
     private function vendor()
@@ -247,11 +252,13 @@ class FulfillmentController extends Controller
 
     // ── Storage fees (vendor's own) ───────────────────────────────────────────
 
-    public function storageFees(): JsonResponse
+    public function storageFees(Request $request): JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
     {
-        $vendor = $this->vendor();
+        if ($request->filled('export')) {
+            return $this->exportStorageFees($request);
+        }
 
-        $fees = FbnStorageFee::where('vendor_id', $vendor->id)
+        $fees = $this->buildStorageFeesQuery($request)
             ->orderByDesc('month')
             ->limit(24)
             ->get()
@@ -264,5 +271,54 @@ class FulfillmentController extends Controller
             ]);
 
         return response()->json(['success' => true, 'data' => $fees]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Storage Fees — shared query builder / export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildStorageFeesQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $vendor = $this->vendor();
+
+        $query = FbnStorageFee::where('vendor_id', $vendor->id)
+            ->with('warehouseInventory.vendorListing.productVariant.product');
+
+        $query = $this->applyFilters($query, $request, [
+            'status' => fn($q, $v) => $q->where('status', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('month', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('month', '<=', $v),
+        ]);
+
+        return $query;
+    }
+
+    private function exportStorageFees(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $fees = $this->buildStorageFeesQuery($request)->orderByDesc('month')->get();
+
+        $headers = ['Listing', 'Month', 'Units', 'Fee/Unit', 'Total', 'Currency', 'Status'];
+
+        $rows = $fees->map(function ($f) {
+            $listing = $f->warehouseInventory?->vendorListing;
+            $product = $listing?->productVariant?->product;
+
+            return [
+                $product?->name_en ?? '—',
+                $f->monthLabel(),
+                $f->units_stored,
+                number_format($f->rate_per_unit / 100, 2),
+                number_format($f->total_fee / 100, 2),
+                $f->currency,
+                $f->status->value,
+            ];
+        });
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('storage-fees', $headers, $rows),
+            'csv' => $this->exportCsv('storage-fees', $headers, $rows),
+            'word' => $this->exportWord('storage-fees', 'Storage Fees', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 }

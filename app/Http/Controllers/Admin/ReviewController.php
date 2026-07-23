@@ -10,6 +10,7 @@ use App\Models\Review;
 use App\Models\ReviewVendorReply;
 use App\Services\ReviewModerationService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 class ReviewController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(private readonly ReviewModerationService $moderationService)
     {
@@ -24,10 +26,14 @@ class ReviewController extends Controller
 
     // ─── Index ────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('reviews.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportReviews($request);
+        }
 
         $stats = [
             'pending' => Review::where('status', ReviewStatus::Pending)->count(),
@@ -50,11 +56,12 @@ class ReviewController extends Controller
 
     // ─── DataTable ────────────────────────────────────────────────────────────
 
-    public function datatable(Request $request): JsonResponse
+    /**
+     * Shared base query for the datatable and export, with request-driven filters applied.
+     * Search matches the joined product's name (no dedicated search column on `reviews`).
+     */
+    private function buildReviewsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $admin = auth('admin')->user();
-        abort_unless($admin->hasPermissionTo('reviews.view'), 403);
-
         $query = Review::query()
             ->with(['product.primaryImage', 'customer', 'country'])
             ->join('products', 'products.id', '=', 'reviews.product_id')
@@ -68,12 +75,52 @@ class ReviewController extends Controller
             'ai_flagged' => fn($q, $v) => $v ? $q->whereIn('reviews.status', [ReviewStatus::Flagged, ReviewStatus::AutoFlagged])->orWhereNotNull('reviews.ai_flag_reason') : $q,
             'date_from' => fn($q, $v) => $q->whereDate('reviews.created_at', '>=', $v),
             'date_to' => fn($q, $v) => $q->whereDate('reviews.created_at', '<=', $v),
+            // Scalar single-rating filter (1-5). The pre-existing multi-select checkbox filter
+            // below sends `rating` as an array and is handled separately since applyFilters()
+            // ignores array values.
+            'rating' => fn($q, $v) => $q->where('reviews.rating', (int) $v),
+            'search' => fn($q, $v) => $q->where('products.name_en', 'like', "%{$v}%"),
         ]);
 
         // Multi-select rating filter
         if ($request->filled('rating') && is_array($request->input('rating'))) {
             $query->whereIn('reviews.rating', array_map('intval', $request->input('rating')));
         }
+
+        return $query;
+    }
+
+    private function exportReviews(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $reviews = $this->buildReviewsQuery($request)
+            ->with('customer')
+            ->orderByDesc('reviews.created_at')
+            ->get();
+
+        $headers = ['Product', 'Customer', 'Rating', 'Status', 'Date'];
+
+        $rows = $reviews->map(fn(Review $review) => [
+            $review->product?->name_en,
+            $review->customer?->name ?? 'Guest',
+            (int) $review->rating,
+            $review->status?->value,
+            optional($review->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('reviews', $headers, $rows),
+            'csv' => $this->exportCsv('reviews', $headers, $rows),
+            'word' => $this->exportWord('reviews', 'Reviews', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('reviews.view'), 403);
+
+        $query = $this->buildReviewsQuery($request);
 
         $columns = [
             ['searchable_columns' => [], 'orderable_column' => null],                      // 0: checkbox

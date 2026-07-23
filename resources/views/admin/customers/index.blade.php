@@ -14,7 +14,7 @@
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.customers_section.manage_subtitle') }}</p>
         </div>
         <div class="flex items-center gap-3">
-            <button type="button" id="export-all-btn" class="btn btn-secondary btn-sm">{{ __('admin.customers_section.export_csv') }}</button>
+            <x-export-dropdown />
         </div>
     </div>
 

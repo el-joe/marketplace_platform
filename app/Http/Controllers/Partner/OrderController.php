@@ -114,6 +114,9 @@ class OrderController extends Controller
             ]);
 
         // Filters
+        if ($request->filled('search')) {
+            $query->where('sub_orders.sub_order_number', 'like', '%' . $request->input('search') . '%');
+        }
         if ($request->filled('status') && $request->input('status') !== 'all') {
             if ($request->input('status') === 'sla_urgent') {
                 $query->where('sub_orders.sla_ship_deadline', '<=', now()->addHours(2))

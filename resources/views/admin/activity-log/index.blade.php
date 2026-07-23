@@ -27,6 +27,7 @@
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.activity_log_section.title') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.activity_log_section.description') }}</p>
         </div>
+        <x-export-dropdown />
     </div>
 
     {{-- ─── Stats ─────────────────────────────────────────────────────────── --}}
@@ -40,6 +41,11 @@
     {{-- ─── Filters ───────────────────────────────────────────────────────── --}}
     <x-card class="mb-5">
         <form id="activity-filter-form" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.search') }}</label>
+                <input type="text" name="search" class="form-input w-full text-sm" placeholder="{{ __('admin.activity_log_section.description') }}">
+            </div>
 
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.activity_log_section.log_name') }}</label>

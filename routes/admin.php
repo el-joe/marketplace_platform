@@ -1404,6 +1404,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
     // ─── Wallets ──────────────────────────────────────────────────────────────
     Route::prefix('wallets')->name('wallets.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\WalletController::class, 'index'])->name('index');
+        Route::post('/datatable', [\App\Http\Controllers\Admin\WalletController::class, 'datatable'])->name('datatable');
         Route::get('/{wallet}', [\App\Http\Controllers\Admin\WalletController::class, 'show'])->name('show');
         Route::post('/{wallet}/adjust', [\App\Http\Controllers\Admin\WalletController::class, 'adjustBalance'])->name('adjust');
         Route::patch('/{wallet}/freeze', [\App\Http\Controllers\Admin\WalletController::class, 'freezeWallet'])->name('freeze');

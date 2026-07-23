@@ -12,6 +12,7 @@ use App\Enums\ClassifiedListingStatus;
 use App\Notifications\Admin\NewClassifiedListingPendingReview;
 use App\Services\Shared\ClassifiedListingService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,7 @@ use Illuminate\View\View;
 class ClassifiedListingController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     private function vendor(): Vendor
     {
@@ -39,10 +41,70 @@ class ClassifiedListingController extends Controller
 
     // ── Pages ─────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportClassifieds($request);
+        }
+
         $countries = Country::where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'name_ar']);
         return view('partner.classifieds.index', compact('countries'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Shared query builder
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildClassifiedsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = ClassifiedListing::forVendors()
+            ->where('seller_id', $this->vendor()->id)
+            ->with(['images', 'classifiedCategory']);
+
+        if ($request->filled('search_term') || $request->filled('search')) {
+            $term = $request->input('search_term', $request->input('search'));
+            $query->where(fn ($q) => $q->where('title_ar', 'like', "%{$term}%")
+                                       ->orWhere('title_en', 'like', "%{$term}%"));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('classified_listings.created_at', '>=', $request->input('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('classified_listings.created_at', '<=', $request->input('date_to'));
+        }
+
+        return $query;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function exportClassifieds(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $items = $this->buildClassifiedsQuery($request)->orderByDesc('created_at')->get();
+
+        $headers = ['Listing #', 'Title', 'Status', 'Date'];
+
+        $rows = $items->map(fn($row) => [
+            $row->listing_number,
+            $row->title_ar ?: $row->title_en,
+            $row->status->value,
+            $row->created_at->format('Y-m-d H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('classifieds', $headers, $rows),
+            'csv' => $this->exportCsv('classifieds', $headers, $rows),
+            'word' => $this->exportWord('classifieds', 'Classified Listings', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function show(string $id): View
@@ -69,19 +131,7 @@ class ClassifiedListingController extends Controller
             [],
         ];
 
-        $query = ClassifiedListing::forVendors()
-            ->where('seller_id', $this->vendor()->id)
-            ->with(['images', 'classifiedCategory']);
-
-        if ($request->filled('search_term')) {
-            $term = $request->input('search_term');
-            $query->where(fn ($q) => $q->where('title_ar', 'like', "%{$term}%")
-                                       ->orWhere('title_en', 'like', "%{$term}%"));
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->input('status'));
-        }
+        $query = $this->buildClassifiedsQuery($request);
 
         return $this->dataTableResponse($request, $query, $columns, fn (ClassifiedListing $l) => [
             'id'               => $l->id,

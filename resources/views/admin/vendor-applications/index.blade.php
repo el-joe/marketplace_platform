@@ -13,10 +13,13 @@
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.vendor_applications.title') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.vendor_applications.review_subtitle') }}</p>
         </div>
-        <button type="button" id="assign-me-btn" class="btn btn-secondary btn-sm"
-            title="{{ __('admin.vendor_applications.auto_assign_title') }}">
-            {{ __('admin.vendor_applications.auto_assign_to_me') }}
-        </button>
+        <div class="flex items-center gap-3">
+            <button type="button" id="assign-me-btn" class="btn btn-secondary btn-sm"
+                title="{{ __('admin.vendor_applications.auto_assign_title') }}">
+                {{ __('admin.vendor_applications.auto_assign_to_me') }}
+            </button>
+            <x-export-dropdown />
+        </div>
     </div>
 
     {{-- ─── Stats ──────────────────────────────────────────────────────────────── --}}
@@ -42,6 +45,7 @@
                     <option value="">{{ __('admin.vendor_applications.all') }}</option>
                     <option value="pending">{{ __('admin.vendor_applications.pending') }}</option>
                     <option value="under_review">{{ __('admin.vendor_applications.under_review') }}</option>
+                    <option value="rejected">{{ __('admin.vendor_applications.global_status_rejected') }}</option>
                 </select>
             </div>
             <div class="w-44">
@@ -56,6 +60,14 @@
             <div class="w-36">
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.vendor_applications.waiting_days_min') }}</label>
                 <input type="number" id="filter-days-min" class="form-input w-full text-sm" placeholder="{{ __('admin.vendor_applications.waiting_days_placeholder') }}" min="0">
+            </div>
+            <div class="w-36">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.from') }}</label>
+                <input type="date" id="filter-date-from" class="form-input w-full text-sm">
+            </div>
+            <div class="w-36">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.to') }}</label>
+                <input type="date" id="filter-date-to" class="form-input w-full text-sm">
             </div>
             <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('admin.vendor_applications.reset') }}</button>
         </div>

@@ -80,6 +80,11 @@ class VendorController extends Controller
         }
 
         return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where(function ($qq) use ($v) {
+                $qq->where('vendors.name', 'like', "%{$v}%")
+                    ->orWhere('vendors.store_name', 'like', "%{$v}%")
+                    ->orWhere('vendors.email', 'like', "%{$v}%");
+            }),
             'global_status' => fn($q, $v) => $q->where('global_status', $v),
             'country_id' => fn($q, $v) => $q->where('country_id', $v),
             'account_manager_admin_id' => fn($q, $v) => $q->where('account_manager_admin_id', $v),
@@ -90,21 +95,34 @@ class VendorController extends Controller
 
     private function exportVendors(Request $request)
     {
+        $isScopedAdmin = (bool) $request->attributes->get('is_scoped_admin');
+
         $vendors = $this->buildVendorsQuery($request)->latest('created_at')->get();
 
-        $headers = ['Store Name', 'Owner', 'Email', 'GMV', 'Orders', 'Rating', 'Status', 'Manager', 'Joined'];
+        // Financial / payout columns are omitted for account managers scoped to
+        // their assigned vendor(s), matching the same gating used in datatable().
+        $headers = ['ID', 'Store Name', 'Email', 'Country', 'Status', 'Orders', 'Joined'];
+        if (!$isScopedAdmin) {
+            $headers[] = 'GMV';
+        }
 
-        $rows = $vendors->map(fn(Vendor $vendor) => [
-            $vendor->store_name,
-            $vendor->name,
-            $vendor->email,
-            number_format($vendor->total_sales, 2),
-            $vendor->total_orders,
-            number_format($vendor->store_rating_avg, 1),
-            $vendor->global_status?->value,
-            $vendor->accountManagerAdmin?->name ?? '—',
-            $vendor->created_at->format('d M Y'),
-        ]);
+        $rows = $vendors->map(function (Vendor $vendor) use ($isScopedAdmin) {
+            $row = [
+                $vendor->id,
+                $vendor->store_name,
+                $vendor->email,
+                $vendor->country?->name_en ?? '—',
+                $vendor->global_status?->value,
+                $vendor->total_orders,
+                $vendor->created_at->format('d M Y'),
+            ];
+
+            if (!$isScopedAdmin) {
+                $row[] = number_format($vendor->total_sales, 2);
+            }
+
+            return $row;
+        });
 
         return match ($request->input('export')) {
             'excel' => $this->exportExcel('vendors', $headers, $rows),

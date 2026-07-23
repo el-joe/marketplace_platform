@@ -11,6 +11,7 @@ use App\Models\BannerPlacementDefinition;
 use App\Models\Country;
 use App\Services\BannerService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ use Illuminate\Http\Request;
 class BannerController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(private readonly BannerService $bannerService)
     {
@@ -25,10 +27,14 @@ class BannerController extends Controller
 
     // ─── Index ────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('banners.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportBanners($request);
+        }
 
         $now = now();
 
@@ -47,21 +53,62 @@ class BannerController extends Controller
 
     // ─── DataTable ────────────────────────────────────────────────────────────
 
-    public function datatable(Request $request): JsonResponse
+    /**
+     * Shared base query for the datatable and export, with request-driven filters applied.
+     *
+     * Note: `banners` has no `is_active` column — "active" is expressed via the `status`
+     * string column (active|inactive|scheduled|expired), used for the is_active substitution
+     * below. The view's search box currently posts as `search_value`; both param names are
+     * accepted here so existing and new callers both work.
+     */
+    private function buildBannersQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $admin = auth('admin')->user();
-        abort_unless($admin->hasPermissionTo('banners.view'), 403);
-
         $query = Banner::query()->with(['country', 'files']);
 
-        $query = $this->applyFilters($query, $request, [
+        return $this->applyFilters($query, $request, [
             'status' => fn($q, $v) => $q->where('status', $v),
             'placement_code' => fn($q, $v) => $q->where('placement_code', $v),
             'country_id' => fn($q, $v) => $q->where('country_id', $v),
             'device_target' => fn($q, $v) => $q->where('device_target', $v),
             'date_from' => fn($q, $v) => $q->whereDate('starts_at', '>=', $v),
             'date_to' => fn($q, $v) => $q->whereDate('ends_at', '<=', $v),
+            // Substitution: no banners.is_active column exists; "active" maps to status = active.
+            'is_active' => fn($q, $v) => $v
+                ? $q->where('banners.status', 'active')
+                : $q->where('banners.status', '!=', 'active'),
+            'search' => fn($q, $v) => $q->where('banners.name', 'like', "%{$v}%"),
+            'search_value' => fn($q, $v) => $q->where('banners.name', 'like', "%{$v}%"),
         ]);
+    }
+
+    private function exportBanners(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $banners = $this->buildBannersQuery($request)->orderByDesc('starts_at')->get();
+
+        $headers = ['Name', 'Placement', 'Active', 'Start', 'End'];
+
+        $rows = $banners->map(fn(Banner $row) => [
+            $row->name,
+            $row->placement_code,
+            $row->status?->value === 'active' ? 'Yes' : 'No',
+            optional($row->starts_at)->format('d M Y H:i'),
+            optional($row->ends_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('banners', $headers, $rows),
+            'csv' => $this->exportCsv('banners', $headers, $rows),
+            'word' => $this->exportWord('banners', 'Banners', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('banners.view'), 403);
+
+        $query = $this->buildBannersQuery($request);
 
         $columns = [
             ['searchable_columns' => [], 'orderable_column' => null],  // image

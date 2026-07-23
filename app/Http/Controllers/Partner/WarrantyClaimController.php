@@ -7,6 +7,8 @@ use App\Models\Admin;
 use App\Models\WarrantyClaim;
 use App\Models\WarrantyClaimMessage;
 use App\Notifications\Admin\WarrantyClaimVendorRepliedNotification;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,22 +17,74 @@ use Illuminate\View\View;
 
 class WarrantyClaimController extends Controller
 {
+    use HasDataTable;
+    use HasExport;
+
     private function vendorId(): string
     {
         return Auth::guard('vendor')->user()->vendor_id;
     }
 
-    public function index(Request $request): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
-        $claims = WarrantyClaim::where('vendor_id', $this->vendorId())
-            ->where('listing_type', WarrantyClaim::LISTING_TYPE_VENDOR)
-            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->query('status')))
+        if ($request->filled('export')) {
+            return $this->exportClaims($request);
+        }
+
+        $claims = $this->buildClaimsQuery($request)
             ->with(['customer:id,name', 'product:id,name'])
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
         return view('partner.warranty-claims.index', compact('claims'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildClaimsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = WarrantyClaim::where('vendor_id', $this->vendorId())
+            ->where('listing_type', WarrantyClaim::LISTING_TYPE_VENDOR);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('claim_number', 'like', "%{$search}%");
+        }
+
+        $query = $this->applyFilters($query, $request, [
+            'status' => fn($q, $v) => $q->where('status', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+        ]);
+
+        return $query;
+    }
+
+    private function exportClaims(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $claims = $this->buildClaimsQuery($request)
+            ->with('orderItem.subOrder:id,sub_order_number')
+            ->latest()
+            ->get();
+
+        $headers = ['Claim #', 'Order #', 'Status', 'Date'];
+
+        $rows = $claims->map(fn($row) => [
+            $row->claim_number,
+            $row->orderItem?->subOrder?->sub_order_number ?? '—',
+            is_object($row->status) ? $row->status->value ?? (string) $row->status : $row->status,
+            $row->created_at->format('Y-m-d H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('warranty-claims', $headers, $rows),
+            'csv' => $this->exportCsv('warranty-claims', $headers, $rows),
+            'word' => $this->exportWord('warranty-claims', 'Warranty Claims', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function show(WarrantyClaim $claim): View

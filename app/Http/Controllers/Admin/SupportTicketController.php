@@ -9,6 +9,7 @@ use App\Models\Admin;
 use App\Models\SupportTicket;
 use App\Models\TicketMessage;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,15 +18,20 @@ use Illuminate\Validation\Rule;
 class SupportTicketController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Index
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('support.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportTickets($request);
+        }
 
         $stats = [
             'open' => SupportTicket::where('status', SupportTicketStatus::Open)->count(),
@@ -51,20 +57,7 @@ class SupportTicketController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('support.view'), 403);
 
-        $query = SupportTicket::query()
-            ->leftJoin('admins', 'admins.id', '=', 'support_tickets.assigned_to_admin_id')
-            ->select('support_tickets.*', 'admins.name as assigned_admin_name');
-
-        $query = $this->applyFilters($query, $request, [
-            'status' => fn($q, $v) => $q->where('support_tickets.status', $v),
-            'category' => fn($q, $v) => $q->where('support_tickets.category', $v),
-            'priority' => fn($q, $v) => $q->where('support_tickets.priority', $v),
-            'assigned_to_admin_id' => fn($q, $v) => $q->where('support_tickets.assigned_to_admin_id', $v),
-            'requester_role' => fn($q, $v) => $q->where('support_tickets.requester_role', $v),
-            'unassigned' => fn($q, $v) => $v ? $q->whereNull('support_tickets.assigned_to_admin_id') : $q,
-            'date_from' => fn($q, $v) => $q->whereDate('support_tickets.created_at', '>=', $v),
-            'date_to' => fn($q, $v) => $q->whereDate('support_tickets.created_at', '<=', $v),
-        ]);
+        $query = $this->buildTicketsQuery($request);
 
         $columns = [
             0 => ['searchable_columns' => ['support_tickets.ticket_number'], 'orderable_column' => 'support_tickets.ticket_number'],
@@ -128,6 +121,61 @@ class SupportTicketController extends Controller
                 'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-secondary">' . e(__('admin.view')) . '</a>',
             ];
         });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Query builder (shared by datatable + export)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildTicketsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = SupportTicket::query()
+            ->leftJoin('admins', 'admins.id', '=', 'support_tickets.assigned_to_admin_id')
+            ->select('support_tickets.*', 'admins.name as assigned_admin_name')
+            ->addSelect(['last_reply_at' => TicketMessage::selectRaw('MAX(created_at)')
+                ->whereColumn('ticket_id', 'support_tickets.id')]);
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where(function ($qq) use ($v) {
+                $qq->where('support_tickets.ticket_number', 'like', '%' . $v . '%')
+                    ->orWhere('support_tickets.subject', 'like', '%' . $v . '%');
+            }),
+            'status' => fn($q, $v) => $q->where('support_tickets.status', $v),
+            'category' => fn($q, $v) => $q->where('support_tickets.category', $v),
+            'priority' => fn($q, $v) => $q->where('support_tickets.priority', $v),
+            'assigned_to_admin_id' => fn($q, $v) => $q->where('support_tickets.assigned_to_admin_id', $v),
+            'requester_role' => fn($q, $v) => $q->where('support_tickets.requester_role', $v),
+            'unassigned' => fn($q, $v) => $v ? $q->whereNull('support_tickets.assigned_to_admin_id') : $q,
+            'date_from' => fn($q, $v) => $q->whereDate('support_tickets.created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('support_tickets.created_at', '<=', $v),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function exportTickets(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $tickets = $this->buildTicketsQuery($request)->orderByDesc('support_tickets.created_at')->get();
+
+        $headers = ['Ticket #', 'Subject', 'Status', 'Priority', 'Created', 'Last Reply'];
+
+        $rows = $tickets->map(fn($t) => [
+            $t->ticket_number,
+            $t->subject,
+            $t->status?->value,
+            $t->priority,
+            optional($t->created_at)->format('d M Y H:i'),
+            $t->last_reply_at ? \Carbon\Carbon::parse($t->last_reply_at)->format('d M Y H:i') : '',
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('support-tickets', $headers, $rows),
+            'csv' => $this->exportCsv('support-tickets', $headers, $rows),
+            'word' => $this->exportWord('support-tickets', 'Support Tickets', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -15,6 +15,7 @@ use App\Models\FlashSaleVendorInvitition;
 use App\Services\FakeDiscountDetectionService;
 use App\Services\FlashSaleService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ use Illuminate\View\View;
 class FlashSaleController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(
         private readonly FlashSaleService $flashSaleService,
@@ -34,8 +36,12 @@ class FlashSaleController extends Controller
     // Index / Listing
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportFlashSales($request);
+        }
+
         $countries = Country::orderBy('name_en')
             // ->where('is_launched', true)
             ->get(['id', 'name_en']);
@@ -50,7 +56,14 @@ class FlashSaleController extends Controller
         return view('admin.flash-sales.index', compact('countries', 'stats'));
     }
 
-    public function datatable(Request $request): JsonResponse
+    /**
+     * Shared base query for the datatable and export, with request-driven filters applied.
+     *
+     * Note: `flash_sales` has no plain `name` column — it has bilingual `name_en`/`name_ar`.
+     * Search matches both. Likewise there is no generic `starts_at`; the real column is
+     * `sale_starts_at` (submission windows are separate), used below for date_from/date_to.
+     */
+    private function buildFlashSalesQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $query = FlashSale::query()
             ->leftJoin('countries as c', 'c.id', '=', 'flash_sales.country_id')
@@ -76,12 +89,50 @@ class FlashSaleController extends Controller
                 DB::raw('COALESCE(fsa.total_units, 0) as units_sold'),
             ]);
 
-        $query = $this->applyFilters($query, $request, [
+        return $this->applyFilters($query, $request, [
             'status' => fn($q, $v) => $q->where('flash_sales.status', $v),
             'country_id' => fn($q, $v) => $q->where('flash_sales.country_id', $v),
             'date_from' => fn($q, $v) => $q->whereDate('flash_sales.sale_starts_at', '>=', $v),
             'date_to' => fn($q, $v) => $q->whereDate('flash_sales.sale_ends_at', '<=', $v),
+            'search' => fn($q, $v) => $q->where(function ($sub) use ($v) {
+                $sub->where('flash_sales.name_en', 'like', "%{$v}%")
+                    ->orWhere('flash_sales.name_ar', 'like', "%{$v}%");
+            }),
         ]);
+    }
+
+    private function exportFlashSales(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $sales = $this->buildFlashSalesQuery($request)->orderByDesc('flash_sales.sale_starts_at')->get();
+
+        $saleIds = $sales->pluck('id');
+        $submissionCounts = FlashSaleSubmission::whereIn('flash_sale_id', $saleIds)
+            ->selectRaw('flash_sale_id, COUNT(*) as cnt')
+            ->groupBy('flash_sale_id')
+            ->pluck('cnt', 'flash_sale_id');
+
+        $headers = ['Name', 'Status', 'Start', 'End', 'Submissions', 'Active Listings'];
+
+        $rows = $sales->map(fn($row) => [
+            $row->name_en,
+            $row->status?->value,
+            optional($row->sale_starts_at)->format('d M Y H:i'),
+            optional($row->sale_ends_at)->format('d M Y H:i'),
+            (int) ($submissionCounts[$row->id] ?? 0),
+            (int) $row->approved_slots_count,
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('flash-sales', $headers, $rows),
+            'csv' => $this->exportCsv('flash-sales', $headers, $rows),
+            'word' => $this->exportWord('flash-sales', 'Flash Sales', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $query = $this->buildFlashSalesQuery($request);
 
         return $this->dataTableResponse($request, $query, $this->indexColumns(), function ($row) {
             $submissionPeriod = $row->submission_opens_at && $row->submission_closes_at

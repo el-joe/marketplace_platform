@@ -13,7 +13,10 @@
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.travel.title_bookings') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.travel.bookings_desc') }}</p>
         </div>
-        <a href="{{ route('admin.travel.packages.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.travel.back_to_packages') }}</a>
+        <div class="flex items-center gap-2">
+            <x-export-dropdown />
+            <a href="{{ route('admin.travel.packages.index') }}" class="btn btn-secondary btn-sm">{{ __('admin.travel.back_to_packages') }}</a>
+        </div>
     </div>
 
     {{-- ─── Stats ────────────────────────────────────────────────────────────────── --}}

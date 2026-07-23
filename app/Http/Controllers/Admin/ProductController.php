@@ -20,6 +20,7 @@ use App\Models\ProductVariantAttribute;
 use App\Models\VendorListing;
 use App\Services\ProductService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,6 +34,7 @@ use Illuminate\View\View;
 class ProductController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(private readonly ProductService $productService)
     {
@@ -42,8 +44,12 @@ class ProductController extends Controller
     // Index / Listing
     // ──────────────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportProducts($request);
+        }
+
         $categories = Category::query()
             ->where('is_active', true)
             ->orderBy('name_en')
@@ -64,10 +70,15 @@ class ProductController extends Controller
         ]);
     }
 
-    public function datatable(Request $request): JsonResponse
+    /**
+     * Shared base query for the datatable and export, with request-driven filters applied.
+     *
+     * Note: `products` has no `sku` or `is_active` column (see migrations). `sku` lives on the
+     * default `product_variants` row, and "active" is expressed via the `status` enum
+     * (draft|active|discontinued|restricted). Both are substituted accordingly below.
+     */
+    private function buildProductsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $columns = $this->columnDefinitions();
-
         $query = Product::query()
             ->leftJoin('categories as c', 'c.id', '=', 'products.category_id')
             ->leftJoin('brands as b', 'b.id', '=', 'products.brand_id')
@@ -99,13 +110,68 @@ class ProductController extends Controller
                     ->whereColumn('product_variants.product_id', 'products.id')
                     ->where('vendor_listings.status', 'active')
                     ->whereNull('vendor_listings.deleted_at'),
+                'sku' => ProductVariant::select('sku')
+                    ->whereColumn('product_id', 'products.id')
+                    ->whereNull('deleted_at')
+                    ->orderByDesc('is_default')
+                    ->orderBy('position')
+                    ->limit(1),
             ]);
 
         $query = $this->applyFilters($query, $request, [
             'status' => fn($q, $v) => $q->where('products.status', $v),
             'category_id' => fn($q, $v) => $q->where('products.category_id', $v),
             'brand_id' => fn($q, $v) => $q->where('products.brand_id', $v),
+            // Substitution: no products.is_active column exists; "active" maps to status = active.
+            'is_active' => fn($q, $v) => $v
+                ? $q->where('products.status', 'active')
+                : $q->where('products.status', '!=', 'active'),
+            'search' => fn($q, $v) => $q->where(function ($sub) use ($v) {
+                $sub->where('products.name_en', 'like', "%{$v}%")
+                    ->orWhere('products.name_ar', 'like', "%{$v}%")
+                    ->orWhereExists(function ($existsQuery) use ($v) {
+                        $existsQuery->select(DB::raw(1))
+                            ->from('product_variants')
+                            ->whereColumn('product_variants.product_id', 'products.id')
+                            ->whereNull('product_variants.deleted_at')
+                            ->where('product_variants.sku', 'like', "%{$v}%");
+                    });
+            }),
         ]);
+
+        return $query;
+    }
+
+    private function exportProducts(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $products = $this->buildProductsQuery($request)->orderByDesc('products.created_at')->get();
+
+        $headers = ['ID', 'Name EN', 'Name AR', 'SKU', 'Category', 'Brand', 'Active', 'Created'];
+
+        $rows = $products->map(fn($row) => [
+            $row->id,
+            $row->name_en,
+            $row->name_ar,
+            $row->sku,
+            $row->category_name,
+            $row->brand_name,
+            $row->status?->value === 'active' ? 'Yes' : 'No',
+            optional($row->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('products', $headers, $rows),
+            'csv' => $this->exportCsv('products', $headers, $rows),
+            'word' => $this->exportWord('products', 'Products', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $columns = $this->columnDefinitions();
+
+        $query = $this->buildProductsQuery($request);
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
             return [

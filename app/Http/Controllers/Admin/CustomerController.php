@@ -9,6 +9,7 @@ use App\Models\Country;
 use App\Models\Customer;
 use App\Models\Notification;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -17,13 +18,18 @@ use Illuminate\Validation\Rule;
 class CustomerController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ─── Index ────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('customers.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportCustomers($request);
+        }
 
         $stats = [
             'total' => Customer::count(),
@@ -40,14 +46,16 @@ class CustomerController extends Controller
 
     // ─── DataTable ────────────────────────────────────────────────────────────
 
-    public function datatable(Request $request): JsonResponse
+    private function buildCustomersQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $admin = auth('admin')->user();
-        abort_unless($admin->hasPermissionTo('customers.view'), 403);
-
         $query = Customer::query()->with('country');
 
-        $query = $this->applyFilters($query, $request, [
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where(function ($qq) use ($v) {
+                $qq->where('customers.name', 'like', "%{$v}%")
+                    ->orWhere('customers.email', 'like', "%{$v}%")
+                    ->orWhere('customers.phone', 'like', "%{$v}%");
+            }),
             'status' => fn($q, $v) => $q->where('status', $v),
             'country_id' => fn($q, $v) => $q->where('country_id', $v),
             'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
@@ -55,6 +63,48 @@ class CustomerController extends Controller
             'min_orders' => fn($q, $v) => $q->where('total_orders', '>=', (int) $v),
             'verified_only' => fn($q, $v) => $v ? $q->whereNotNull('email_verified_at') : $q,
         ]);
+    }
+
+    private function exportCustomers(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $customers = $this->buildCustomersQuery($request)->latest('created_at')->get();
+
+        $headers = ['Name', 'Email', 'Phone', 'Country', 'Orders', 'Wallet Balance', 'Joined'];
+
+        $rows = $customers->map(function (Customer $customer) {
+            // Wallets may span multiple currencies — never sum across them.
+            // Show each currency's balance separately, e.g. "120.00 EGP, 40.00 USD".
+            $walletBalance = $customer->wallets()
+                ->get()
+                ->groupBy('currency')
+                ->map(fn($wallets, $currency) => number_format($wallets->sum('balance') / 100, 2) . ' ' . $currency)
+                ->implode(', ') ?: '—';
+
+            return [
+                $customer->name,
+                $customer->email,
+                $customer->phone ?? '—',
+                $customer->country?->name_en ?? '—',
+                $customer->total_orders,
+                $walletBalance,
+                $customer->created_at->format('d M Y'),
+            ];
+        });
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('customers', $headers, $rows),
+            'csv' => $this->exportCsv('customers', $headers, $rows),
+            'word' => $this->exportWord('customers', 'Customers', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('customers.view'), 403);
+
+        $query = $this->buildCustomersQuery($request);
 
         $columns = [
             ['searchable_columns' => ['customers.name'], 'orderable_column' => 'name'],

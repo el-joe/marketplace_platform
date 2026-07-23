@@ -6,6 +6,7 @@ use App\Enums\TravelBookingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\TravelBooking;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,13 +14,18 @@ use Illuminate\Http\Request;
 class TravelBookingController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ── Index ─────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('travel.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportBookings($request);
+        }
 
         $thisMonthStart = now()->startOfMonth();
 
@@ -53,18 +59,7 @@ class TravelBookingController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('travel.view'), 403);
 
-        $query = TravelBooking::query()
-            ->select('travel_bookings.*')
-            ->with(['package', 'customer'])
-            ->join('travel_packages', 'travel_packages.id', '=', 'travel_bookings.travel_package_id')
-            ->join('customers', 'customers.id', '=', 'travel_bookings.customer_id');
-
-        $query = $this->applyFilters($query, $request, [
-            'status'     => fn($q, $v) => $q->where('travel_bookings.status', $v),
-            'package_id' => fn($q, $v) => $q->where('travel_bookings.travel_package_id', $v),
-            'date_from'  => fn($q, $v) => $q->whereDate('travel_bookings.created_at', '>=', $v),
-            'date_to'    => fn($q, $v) => $q->whereDate('travel_bookings.created_at', '<=', $v),
-        ]);
+        $query = $this->buildBookingsQuery($request);
 
         $columns = [
             ['searchable_columns' => ['travel_bookings.booking_number'], 'orderable_column' => 'travel_bookings.booking_number'],
@@ -108,6 +103,49 @@ class TravelBookingController extends Controller
                 'DT_RowData'     => ['id' => $row->id],
             ];
         });
+    }
+
+    // ── Query building / Export ──────────────────────────────────────────────
+
+    private function buildBookingsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = TravelBooking::query()
+            ->select('travel_bookings.*')
+            ->with(['package.agency', 'customer'])
+            ->join('travel_packages', 'travel_packages.id', '=', 'travel_bookings.travel_package_id')
+            ->join('customers', 'customers.id', '=', 'travel_bookings.customer_id');
+
+        return $this->applyFilters($query, $request, [
+            'search'     => fn($q, $v) => $q->where('travel_bookings.booking_number', 'like', '%' . $v . '%'),
+            'status'     => fn($q, $v) => $q->where('travel_bookings.status', $v),
+            'package_id' => fn($q, $v) => $q->where('travel_bookings.travel_package_id', $v),
+            'date_from'  => fn($q, $v) => $q->whereDate('travel_bookings.created_at', '>=', $v),
+            'date_to'    => fn($q, $v) => $q->whereDate('travel_bookings.created_at', '<=', $v),
+        ]);
+    }
+
+    private function exportBookings(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $bookings = $this->buildBookingsQuery($request)->orderByDesc('travel_bookings.created_at')->get();
+
+        $headers = ['Booking Ref', 'Package', 'Agency', 'Status', 'Price', 'Currency', 'Date'];
+
+        $rows = $bookings->map(fn($booking) => [
+            $booking->booking_number,
+            $booking->package?->title_en,
+            $booking->package?->agency?->name,
+            $booking->status?->value,
+            number_format($booking->total_price / 100, 2),
+            $booking->package?->currency,
+            optional($booking->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('travel_bookings', $headers, $rows),
+            'csv' => $this->exportCsv('travel_bookings', $headers, $rows),
+            'word' => $this->exportWord('travel_bookings', 'Travel Bookings', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ── Show ──────────────────────────────────────────────────────────────────

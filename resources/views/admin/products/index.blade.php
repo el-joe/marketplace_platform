@@ -81,6 +81,12 @@
                 'param' => 'q',
                 'placeholder' => __('admin.products.all_brands')
             ],
+            [
+                'type' => 'select',
+                'name' => 'is_active',
+                'label' => __('common.status'),
+                'options' => ['1' => __('admin.products.active_status'), '0' => __('admin.products.draft_status')]
+            ],
             ['type' => 'date_range', 'name' => 'date', 'label' => __('admin.products.created_column')],
         ];
 
@@ -91,6 +97,10 @@
             ['id' => 'delete', 'label' => __('common.delete'), 'class' => 'btn-danger', 'confirmMessage' => __('admin.products.confirm_delete_selected')],
         ];
     @endphp
+    <div class="flex items-center justify-end mb-3">
+        <x-export-dropdown />
+    </div>
+
     <x-table.datatable id="products-table" url="{{ route('admin.products.datatable') }}" :columns="$columns"
         :filters="$filters" :bulk-actions="$bulkActions"
         :create-action="['url' => route('admin.products.create'), 'label' => __('admin.products.add_product')]" :selectable="true"

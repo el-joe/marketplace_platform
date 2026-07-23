@@ -9,6 +9,7 @@ use App\Models\Payout;
 use App\Services\LedgerService;
 use App\Services\PayoutCalculationService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Notifications\Vendor\PayoutProcessed;
@@ -16,10 +17,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PayoutController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(
         private readonly PayoutCalculationService $calculationService,
@@ -30,8 +33,12 @@ class PayoutController extends Controller
     // Index / Listing
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportPayouts($request);
+        }
+
         return view('admin.payouts.index', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
@@ -40,10 +47,8 @@ class PayoutController extends Controller
         ]);
     }
 
-    public function datatable(Request $request): JsonResponse
+    private function buildPayoutsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $columns = $this->columnDefinitions();
-
         $query = Payout::query()
             ->leftJoin('vendors as v', 'v.id', '=', 'payouts.vendor_id')
             ->select([
@@ -58,18 +63,57 @@ class PayoutController extends Controller
                 'payouts.period_start',
                 'payouts.period_end',
                 'payouts.processed_at',
+                'payouts.created_at',
                 'v.store_name as vendor_name',
                 'v.id as v_id',
             ]);
 
-        $query = $this->applyFilters($query, $request, [
+        return $this->applyFilters($query, $request, [
+            'search'     => fn ($q, $v) => $q->where(function ($sub) use ($v) {
+                $sub->where('v.store_name', 'like', "%{$v}%")
+                    ->orWhere('payouts.payout_number', 'like', "%{$v}%");
+            }),
             'status'     => fn ($q, $v) => $q->where('payouts.status', $v),
             'vendor_id'  => fn ($q, $v) => $q->where('payouts.vendor_id', $v),
             'currency'   => fn ($q, $v) => $q->where('payouts.currency', $v),
-            'date_from'  => fn ($q, $v) => $q->whereDate('payouts.period_start', '>=', $v),
-            'date_to'    => fn ($q, $v) => $q->whereDate('payouts.period_end', '<=', $v),
+            'date_from'  => fn ($q, $v) => $q->whereDate('payouts.created_at', '>=', $v),
+            'date_to'    => fn ($q, $v) => $q->whereDate('payouts.created_at', '<=', $v),
             'min_amount' => fn ($q, $v) => $q->where('payouts.net_amount', '>=', (int) round((float) $v * 100)),
         ]);
+    }
+
+    /**
+     * Excel export of payouts matching the current filters.
+     * Rows keep each payout's own currency — amounts are never summed across currencies.
+     */
+    private function exportPayouts(Request $request): StreamedResponse
+    {
+        $payouts = $this->buildPayoutsQuery($request)->orderByDesc('payouts.created_at')->get();
+
+        $headers = ['Batch #', 'Vendor', 'Amount', 'Currency', 'Status', 'Date'];
+
+        $rows = $payouts->map(fn ($row) => [
+            $row->payout_number,
+            $row->vendor_name,
+            number_format($row->net_amount / 100, 2),
+            strtoupper($row->currency),
+            $row->status?->value,
+            optional($row->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('payouts', $headers, $rows),
+            'csv' => $this->exportCsv('payouts', $headers, $rows),
+            'word' => $this->exportWord('payouts', 'Payouts', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $columns = $this->columnDefinitions();
+
+        $query = $this->buildPayoutsQuery($request);
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
             return [

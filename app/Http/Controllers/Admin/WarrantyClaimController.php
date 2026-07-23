@@ -11,6 +11,7 @@ use App\Notifications\Customer\WarrantyClaimResolvedNotification;
 use App\Notifications\Customer\WarrantyClaimStatusChanged;
 use App\Services\WalletService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,15 +20,20 @@ use Illuminate\Validation\Rule;
 class WarrantyClaimController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Index
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('warranty_claims.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportClaims($request);
+        }
 
         $stats = [
             'submitted' => WarrantyClaim::where('status', WarrantyClaim::STATUS_SUBMITTED)->count(),
@@ -49,24 +55,7 @@ class WarrantyClaimController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('warranty_claims.view'), 403);
 
-        $query = WarrantyClaim::query()
-            ->leftJoin('customers', 'customers.id', '=', 'warranty_claims.customer_id')
-            ->leftJoin('products', 'products.id', '=', 'warranty_claims.product_id')
-            ->leftJoin('vendors', 'vendors.id', '=', 'warranty_claims.vendor_id')
-            ->select(
-                'warranty_claims.*',
-                'customers.name as customer_name',
-                'products.name_en as product_name',
-                'vendors.store_name as vendor_store_name'
-            );
-
-        $query = $this->applyFilters($query, $request, [
-            'status' => fn($q, $v) => $q->where('warranty_claims.status', $v),
-            'vendor_id' => fn($q, $v) => $q->where('warranty_claims.vendor_id', $v),
-            'listing_type' => fn($q, $v) => $q->where('warranty_claims.listing_type', $v),
-            'date_from' => fn($q, $v) => $q->whereDate('warranty_claims.created_at', '>=', $v),
-            'date_to' => fn($q, $v) => $q->whereDate('warranty_claims.created_at', '<=', $v),
-        ]);
+        $query = $this->buildClaimsQuery($request);
 
         $columns = [
             0 => ['searchable_columns' => ['warranty_claims.claim_number'], 'orderable_column' => 'warranty_claims.claim_number'],
@@ -98,6 +87,65 @@ class WarrantyClaimController extends Controller
                 'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-secondary">' . e(__('common.view')) . '</a>',
             ];
         });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Query builder (shared by datatable + export)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildClaimsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        // WarrantyClaim has no direct order relation; it links to an order via
+        // order_items.order_id, so we join through order_items -> orders for the
+        // "Order #" export column.
+        $query = WarrantyClaim::query()
+            ->leftJoin('customers', 'customers.id', '=', 'warranty_claims.customer_id')
+            ->leftJoin('products', 'products.id', '=', 'warranty_claims.product_id')
+            ->leftJoin('vendors', 'vendors.id', '=', 'warranty_claims.vendor_id')
+            ->leftJoin('order_items', 'order_items.id', '=', 'warranty_claims.order_item_id')
+            ->leftJoin('orders', 'orders.id', '=', 'order_items.order_id')
+            ->select(
+                'warranty_claims.*',
+                'customers.name as customer_name',
+                'products.name_en as product_name',
+                'vendors.store_name as vendor_store_name',
+                'orders.order_number as order_number'
+            );
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where('warranty_claims.claim_number', 'like', '%' . $v . '%'),
+            'status' => fn($q, $v) => $q->where('warranty_claims.status', $v),
+            'vendor_id' => fn($q, $v) => $q->where('warranty_claims.vendor_id', $v),
+            'listing_type' => fn($q, $v) => $q->where('warranty_claims.listing_type', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('warranty_claims.created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('warranty_claims.created_at', '<=', $v),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function exportClaims(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $claims = $this->buildClaimsQuery($request)->orderByDesc('warranty_claims.created_at')->get();
+
+        $headers = ['Claim #', 'Order #', 'Issue Type', 'Status', 'Date'];
+
+        $rows = $claims->map(fn($w) => [
+            $w->claim_number,
+            $w->order_number,
+            $w->issue_type,
+            $w->status,
+            optional($w->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('warranty-claims', $headers, $rows),
+            'csv' => $this->exportCsv('warranty-claims', $headers, $rows),
+            'word' => $this->exportWord('warranty-claims', 'Warranty Claims', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ─────────────────────────────────────────────────────────────────────────

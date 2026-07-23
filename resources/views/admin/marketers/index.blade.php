@@ -73,6 +73,14 @@
                 @endforeach
             </select>
         </div>
+        <div class="w-36">
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.from') }}</label>
+            <input type="date" id="filter-date-from" class="form-input w-full text-sm">
+        </div>
+        <div class="w-36">
+            <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.to') }}</label>
+            <input type="date" id="filter-date-to" class="form-input w-full text-sm">
+        </div>
         <button type="button" id="clear-filters" class="btn btn-ghost btn-sm self-end">{{ __('admin.marketers.reset') }}</button>
     </form>
 </x-card>
@@ -275,6 +283,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     d.filter_type    = currentType;
                     d.filter_status  = $('#filter-status').val();
                     d.filter_country = $('#filter-country').val();
+                    d.date_from      = $('#filter-date-from').val();
+                    d.date_to        = $('#filter-date-to').val();
                     d.search         = { value: $('#search-input').val() };
                 }
             },
@@ -303,10 +313,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Filters
     $('#search-input').on('keyup', debounce(() => table.ajax.reload(), 350));
-    $('#filter-status, #filter-country').on('change', () => table.ajax.reload());
+    $('#filter-status, #filter-country, #filter-date-from, #filter-date-to').on('change', () => table.ajax.reload());
     $('#clear-filters').on('click', function () {
         $('#search-input').val('');
         $('#filter-status, #filter-country').val('');
+        $('#filter-date-from, #filter-date-to').val('');
         currentType = '';
         $('.type-tab[data-type=""]').click();
         buildTable('all');

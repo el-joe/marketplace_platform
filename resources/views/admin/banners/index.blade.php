@@ -13,11 +13,14 @@
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.banners.title') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.banners.manage_desc') }}</p>
         </div>
-        @if(auth('admin')->user()->can('create', App\Models\Banner::class))
-            <a href="{{ route('admin.banners.create') }}" class="btn btn-primary">
-                {{ __('admin.banners.new_banner') }}
-            </a>
-        @endif
+        <div class="flex items-center gap-2">
+            <x-export-dropdown />
+            @if(auth('admin')->user()->can('create', App\Models\Banner::class))
+                <a href="{{ route('admin.banners.create') }}" class="btn btn-primary">
+                    {{ __('admin.banners.new_banner') }}
+                </a>
+            @endif
+        </div>
     </div>
 
     {{-- ─── Stats ────────────────────────────────────────────────────────────────── --}}

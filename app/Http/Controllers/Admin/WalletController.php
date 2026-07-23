@@ -12,24 +12,132 @@ use App\Models\DeliveryAgentCodSettlement;
 use App\Models\Wallet;
 use App\Models\WalletWithdrawalRequest;
 use App\Services\WalletService;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class WalletController extends Controller
 {
+    use HasDataTable;
+    use HasExport;
+
     public function __construct(private WalletService $walletService) {}
 
-    public function index(Request $request)
+    public function index(Request $request): \Illuminate\View\View|StreamedResponse
     {
-        $wallets = Wallet::query()
-            ->when($request->owner_type, fn($q, $t) => $q->where('owner_type', $t))
-            ->when($request->currency, fn($q, $c) => $q->where('currency', $c))
-            ->when($request->frozen, fn($q) => $q->where('is_frozen', true))
-            ->latest()
-            ->paginate(25);
+        if ($request->filled('export')) {
+            return $this->exportWallets($request);
+        }
 
-        return view('admin.wallets.index', compact('wallets'));
+        return view('admin.wallets.index');
+    }
+
+    /**
+     * Base query for the wallets listing.
+     *
+     * Wallet.owner is polymorphic (owner_type/owner_id, resolved via a manual
+     * accessor, not an Eloquent relation) so we left-join customers directly
+     * for search/display when owner_type = customer. Other owner types show
+     * their raw owner_id since wallets aren't limited to customers.
+     */
+    private function buildWalletsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Wallet::query()
+            ->leftJoin('customers', function ($join) {
+                $join->on('customers.id', '=', 'wallets.owner_id')
+                    ->where('wallets.owner_type', '=', 'customer');
+            })
+            ->select([
+                'wallets.id',
+                'wallets.owner_type',
+                'wallets.owner_id',
+                'wallets.balance',
+                'wallets.pending_balance',
+                'wallets.currency',
+                'wallets.is_frozen',
+                'wallets.frozen_reason',
+                'wallets.created_at',
+                'customers.name as customer_name',
+                'customers.email as customer_email',
+            ]);
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where(function ($sub) use ($v) {
+                $sub->where('customers.name', 'like', "%{$v}%")
+                    ->orWhere('customers.email', 'like', "%{$v}%");
+            }),
+            'owner_type' => fn($q, $v) => $q->where('wallets.owner_type', $v),
+            'currency' => fn($q, $v) => $q->where('wallets.currency', $v),
+            'status' => fn($q, $v) => $v === 'frozen'
+                ? $q->where('wallets.is_frozen', true)
+                : $q->where('wallets.is_frozen', false),
+            'date_from' => fn($q, $v) => $q->whereDate('wallets.created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('wallets.created_at', '<=', $v),
+        ]);
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $columns = [
+            0 => ['searchable_columns' => ['customers.name', 'customers.email'], 'orderable_column' => 'customers.name'],
+            1 => ['orderable_column' => 'wallets.owner_type'],
+            2 => ['orderable_column' => 'wallets.balance'],
+            3 => ['orderable_column' => 'wallets.pending_balance'],
+            4 => ['orderable_column' => 'wallets.currency'],
+            5 => ['orderable_column' => 'wallets.is_frozen'],
+            6 => [],
+        ];
+
+        $query = $this->buildWalletsQuery($request);
+
+        return $this->dataTableResponse($request, $query, $columns, function ($row) {
+            return [
+                'id' => $row->id,
+                'owner' => e($row->customer_name ?? $row->owner_id),
+                'owner_type' => $row->owner_type->value,
+                'balance' => number_format($row->balance, 2),
+                'pending_balance' => number_format($row->pending_balance, 2),
+                'currency' => strtoupper($row->currency),
+                'status' => $row->is_frozen ? 'frozen' : 'active',
+                'show_url' => route('admin.wallets.show', $row->id),
+            ];
+        });
+    }
+
+    /**
+     * Excel export of wallets matching current filters.
+     *
+     * Balances are grouped/exported by currency — NEVER summed across
+     * currencies. Rows are ordered by currency so a spreadsheet reader can
+     * visually group each currency's wallets together.
+     */
+    private function exportWallets(Request $request): StreamedResponse
+    {
+        $wallets = $this->buildWalletsQuery($request)
+            ->orderBy('wallets.currency')
+            ->orderByDesc('wallets.created_at')
+            ->get();
+
+        $headers = ['Customer', 'Email', 'Balance', 'Currency', 'Status'];
+
+        $rows = $wallets->map(fn($row) => [
+            $row->customer_name ?? $row->owner_id,
+            $row->customer_email ?? '',
+            number_format($row->balance, 2),
+            strtoupper($row->currency),
+            $row->is_frozen ? 'Frozen' : 'Active',
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('wallets', $headers, $rows),
+            'csv' => $this->exportCsv('wallets', $headers, $rows),
+            'word' => $this->exportWord('wallets', 'Wallets', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function show(Wallet $wallet)

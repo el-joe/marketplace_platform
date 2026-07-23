@@ -39,6 +39,8 @@ function initIndexPage() {
                 d.status = document.getElementById('filter-status')?.value ?? '';
                 d.country_id = document.getElementById('filter-country')?.value ?? '';
                 d.days_min = document.getElementById('filter-days-min')?.value ?? '';
+                d.date_from = document.getElementById('filter-date-from')?.value ?? '';
+                d.date_to = document.getElementById('filter-date-to')?.value ?? '';
                 d.search = { value: document.getElementById('search-input')?.value ?? '' };
             },
         },
@@ -58,7 +60,7 @@ function initIndexPage() {
     });
 
     // Filter wiring
-    ['filter-status', 'filter-country', 'filter-days-min'].forEach(id => {
+    ['filter-status', 'filter-country', 'filter-days-min', 'filter-date-from', 'filter-date-to'].forEach(id => {
         document.getElementById(id)?.addEventListener('change', () => dt.ajax.reload());
     });
 
@@ -73,6 +75,8 @@ function initIndexPage() {
         document.getElementById('filter-status').value = '';
         document.getElementById('filter-country').value = '';
         document.getElementById('filter-days-min').value = '';
+        document.getElementById('filter-date-from').value = '';
+        document.getElementById('filter-date-to').value = '';
         dt.ajax.reload();
     });
 }

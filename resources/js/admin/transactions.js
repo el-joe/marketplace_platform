@@ -54,6 +54,7 @@ function initTransactionsIndex() {
                 d.type = document.getElementById('filter-type')?.value ?? '';
                 d.status = document.getElementById('filter-status')?.value ?? '';
                 d.gateway = document.getElementById('filter-gateway')?.value ?? '';
+                d.payment_method = document.getElementById('filter-payment-method')?.value ?? '';
                 d.date_from = document.getElementById('filter-date-from')?.value ?? '';
                 d.date_to = document.getElementById('filter-date-to')?.value ?? '';
                 d.amount_min = document.getElementById('filter-amount-min')?.value ?? '';
@@ -79,7 +80,7 @@ function initTransactionsIndex() {
     });
 
     // Filters
-    ['filter-type', 'filter-status', 'filter-gateway', 'filter-date-from', 'filter-date-to'].forEach(id => {
+    ['filter-type', 'filter-status', 'filter-gateway', 'filter-payment-method', 'filter-date-from', 'filter-date-to'].forEach(id => {
         document.getElementById(id)?.addEventListener('change', () => dt.ajax.reload());
     });
 
@@ -98,7 +99,7 @@ function initTransactionsIndex() {
     });
 
     document.getElementById('clear-filters')?.addEventListener('click', () => {
-        ['filter-type', 'filter-status', 'filter-gateway', 'filter-date-from', 'filter-date-to', 'filter-amount-min', 'filter-amount-max'].forEach(id => {
+        ['filter-type', 'filter-status', 'filter-gateway', 'filter-payment-method', 'filter-date-from', 'filter-date-to', 'filter-amount-min', 'filter-amount-max'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });

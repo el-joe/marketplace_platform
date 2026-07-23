@@ -11,6 +11,8 @@ use App\Models\PackagingSupplyRequestItem;
 use App\Models\Setting;
 use App\Models\Warehouse;
 use App\Notifications\Admin\NewPackagingOrderReceived;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,6 +22,9 @@ use Illuminate\View\View;
 
 class PackagingSupplyController extends Controller
 {
+    use HasDataTable;
+    use HasExport;
+
     public function index(): View
     {
         $supplies = PackagingSupply::where('is_active', true)
@@ -118,16 +123,66 @@ class PackagingSupplyController extends Controller
             ->with('success', "Request #{$supplyRequest->request_number} submitted successfully.");
     }
 
-    public function myRequests(): View
+    public function myRequests(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        if ($request->filled('export')) {
+            return $this->exportMyRequests($request);
+        }
+
+        $vendor = auth('vendor')->user();
+
+        $supplyRequests = $this->buildMyRequestsQuery($request)
+            ->with('items.supply')
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('partner.packaging-supplies.my-requests', compact('supplyRequests'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildMyRequestsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $vendor = auth('vendor')->user();
 
-        $supplyRequests = PackagingSupplyRequest::where('vendor_id', $vendor->vendor_id)
-            ->with('items.supply')
-            ->latest()
-            ->paginate(20);
+        $query = PackagingSupplyRequest::where('vendor_id', $vendor->vendor_id);
 
-        return view('partner.packaging-supplies.my-requests', compact('supplyRequests'));
+        $query = $this->applyFilters($query, $request, [
+            'status' => fn($q, $v) => $q->where('status', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+        ]);
+
+        return $query;
+    }
+
+    private function exportMyRequests(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $requests = $this->buildMyRequestsQuery($request)
+            ->withCount('items')
+            ->latest()
+            ->get();
+
+        $headers = ['Request #', 'Items', 'Total', 'Currency', 'Status', 'Date'];
+
+        $rows = $requests->map(fn($row) => [
+            $row->request_number,
+            $row->items_count,
+            number_format($row->total_cost / 100, 2),
+            $row->currency,
+            $row->status instanceof PackagingSupplyRequestStatus ? $row->status->value : $row->status,
+            $row->created_at->format('Y-m-d H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('packaging-supply-requests', $headers, $rows),
+            'csv' => $this->exportCsv('packaging-supply-requests', $headers, $rows),
+            'word' => $this->exportWord('packaging-supply-requests', 'Packaging Supply Requests', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function showRequest(PackagingSupplyRequest $packagingSupplyRequest): View

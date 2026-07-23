@@ -10,6 +10,7 @@ use App\Models\Dispute;
 use App\Models\DisputeMessage;
 use App\Notifications\Customer\DisputeStatusChanged;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,15 +19,20 @@ use Illuminate\Validation\Rule;
 class DisputeController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Index
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('disputes.view'), 403);
+
+        if ($request->filled('export')) {
+            return $this->exportDisputes($request);
+        }
 
         $stats = [
             'open' => Dispute::where('status', 'open')->count(),
@@ -55,28 +61,7 @@ class DisputeController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('disputes.view'), 403);
 
-        $query = Dispute::query()
-            ->leftJoin('admins', 'admins.id', '=', 'disputes.assigned_to_admin_id')
-            ->leftJoin('orders', 'orders.id', '=', 'disputes.order_id')
-            ->leftJoin('customers', 'customers.id', '=', 'disputes.customer_id')
-            ->leftJoin('vendors', 'vendors.id', '=', 'disputes.vendor_id')
-            ->select(
-                'disputes.*',
-                'admins.name as assigned_admin_name',
-                'orders.order_number as order_number',
-                'customers.name as customer_name',
-                'vendors.store_name as vendor_store_name'
-            );
-
-        $query = $this->applyFilters($query, $request, [
-            'status' => fn($q, $v) => $q->where('disputes.status', $v),
-            'reason' => fn($q, $v) => $q->where('disputes.reason', $v),
-            'resolution' => fn($q, $v) => $q->where('disputes.resolution', $v),
-            'assigned_to_admin_id' => fn($q, $v) => $q->where('disputes.assigned_to_admin_id', $v),
-            'unassigned' => fn($q, $v) => $v ? $q->whereNull('disputes.assigned_to_admin_id') : $q,
-            'date_from' => fn($q, $v) => $q->whereDate('disputes.created_at', '>=', $v),
-            'date_to' => fn($q, $v) => $q->whereDate('disputes.created_at', '<=', $v),
-        ]);
+        $query = $this->buildDisputesQuery($request);
 
         $columns = [
             0 => ['searchable_columns' => ['disputes.dispute_number'], 'orderable_column' => 'disputes.dispute_number'],
@@ -120,6 +105,63 @@ class DisputeController extends Controller
                 'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-secondary">' . e(__('common.view')) . '</a>',
             ];
         });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Query builder (shared by datatable + export)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildDisputesQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Dispute::query()
+            ->leftJoin('admins', 'admins.id', '=', 'disputes.assigned_to_admin_id')
+            ->leftJoin('orders', 'orders.id', '=', 'disputes.order_id')
+            ->leftJoin('customers', 'customers.id', '=', 'disputes.customer_id')
+            ->leftJoin('vendors', 'vendors.id', '=', 'disputes.vendor_id')
+            ->select(
+                'disputes.*',
+                'admins.name as assigned_admin_name',
+                'orders.order_number as order_number',
+                'customers.name as customer_name',
+                'vendors.store_name as vendor_store_name'
+            );
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where('disputes.dispute_number', 'like', '%' . $v . '%'),
+            'status' => fn($q, $v) => $q->where('disputes.status', $v),
+            'reason' => fn($q, $v) => $q->where('disputes.reason', $v),
+            'resolution' => fn($q, $v) => $q->where('disputes.resolution', $v),
+            'assigned_to_admin_id' => fn($q, $v) => $q->where('disputes.assigned_to_admin_id', $v),
+            'unassigned' => fn($q, $v) => $v ? $q->whereNull('disputes.assigned_to_admin_id') : $q,
+            'date_from' => fn($q, $v) => $q->whereDate('disputes.created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('disputes.created_at', '<=', $v),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function exportDisputes(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $disputes = $this->buildDisputesQuery($request)->orderByDesc('disputes.created_at')->get();
+
+        $headers = ['Dispute #', 'Order #', 'Status', 'Reason', 'Date'];
+
+        $rows = $disputes->map(fn($d) => [
+            $d->dispute_number,
+            $d->order_number,
+            $d->status?->value,
+            $d->reason?->value,
+            optional($d->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('disputes', $headers, $rows),
+            'csv' => $this->exportCsv('disputes', $headers, $rows),
+            'word' => $this->exportWord('disputes', 'Disputes', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ─────────────────────────────────────────────────────────────────────────

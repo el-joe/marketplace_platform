@@ -13,6 +13,8 @@ use App\Models\VendorCampaignInvitation;
 use App\Models\VendorCampaignOffer;
 use App\Models\VendorCampaignOfferProduct;
 use App\Models\VendorListing;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -26,16 +28,23 @@ use Illuminate\Support\Facades\Storage;
 
 class CampaignOfferController extends Controller
 {
+    use HasDataTable;
+    use HasExport;
+
     private function vendorId(): string
     {
         return Auth::guard('vendor')->user()->vendor_id;
     }
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportOffers($request);
+        }
+
         $vendorId = $this->vendorId();
 
-        $offers = VendorCampaignOffer::where('vendor_id', $vendorId)
+        $offers = $this->buildOffersQuery($request)
             ->withCount(['invitations', 'invitations as accepted_count' => fn($q) => $q->where('status', VendorCampaignInvitationStatus::Accepted->value)])
             ->latest()
             ->get();
@@ -53,6 +62,55 @@ class CampaignOfferController extends Controller
         ];
 
         return view('partner.campaign-offers.index', compact('offers', 'stats'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildOffersQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = VendorCampaignOffer::where('vendor_id', $this->vendorId());
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $query = $this->applyFilters($query, $request, [
+            'status' => fn($q, $v) => $q->where('status', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('starts_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('ends_at', '<=', $v),
+        ]);
+
+        return $query;
+    }
+
+    private function exportOffers(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $offers = $this->buildOffersQuery($request)
+            ->withCount(['invitations', 'invitations as accepted_count' => fn($q) => $q->where('status', VendorCampaignInvitationStatus::Accepted->value)])
+            ->latest()
+            ->get();
+
+        $headers = ['Campaign', 'Type', 'Commission', 'Marketers', 'Status', 'Start', 'End'];
+
+        $rows = $offers->map(fn($row) => [
+            $row->name,
+            $row->campaign_type instanceof \BackedEnum ? $row->campaign_type->value : $row->campaign_type,
+            $row->offered_commission_rate,
+            $row->accepted_count,
+            $row->status instanceof VendorCampaignOfferStatus ? $row->status->value : $row->status,
+            optional($row->starts_at)->format('Y-m-d'),
+            optional($row->ends_at)->format('Y-m-d'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('campaign-offers', $headers, $rows),
+            'csv' => $this->exportCsv('campaign-offers', $headers, $rows),
+            'word' => $this->exportWord('campaign-offers', 'Campaign Offers', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function create(): View

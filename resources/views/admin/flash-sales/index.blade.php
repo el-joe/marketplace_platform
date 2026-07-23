@@ -35,15 +35,19 @@
                 @endforeach
             </div>
 
-            @if(auth('admin')->user()->can('flash_sales.create', \App\Models\FlashSale::class))
-                <a href="{{ route('admin.flash-sales.create') }}" class="btn btn-primary btn-sm">
-                    + {{ __('admin.flash_sales.new_flash_sale') }}
-                </a>
-            @endif
+            <div class="flex items-center gap-2">
+                <x-export-dropdown />
+                @if(auth('admin')->user()->can('flash_sales.create', \App\Models\FlashSale::class))
+                    <a href="{{ route('admin.flash-sales.create') }}" class="btn btn-primary btn-sm">
+                        + {{ __('admin.flash_sales.new_flash_sale') }}
+                    </a>
+                @endif
+            </div>
         </div>
 
         {{-- Filters --}}
         <div class="flex flex-wrap gap-3 mb-4" id="table-filters">
+            <input type="text" id="filter-search" class="form-input form-input-sm w-48" placeholder="{{ __('admin.flash_sales.name') }}">
             <select id="filter-country" class="form-select form-select-sm w-44">
                 <option value="">{{ __('admin.flash_sales.all_countries') }}</option>
                 @foreach($countries as $c)
@@ -186,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
             { data: 'units_sold',        title: window.TRANSLATIONS.unitsSold },
         ],
         serverSideFilters: {
+            search:     () => $('#filter-search').val(),
             country_id: () => $('#filter-country').val(),
             date_from:  () => $('#filter-date-from').val(),
             date_to:    () => $('#filter-date-to').val(),
@@ -196,6 +201,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if ($.fn.DataTable.isDataTable('#flash-sales-table')) {
             $('#flash-sales-table').DataTable().ajax.reload();
         }
+    });
+
+    let flashSaleSearchTimer;
+    $('#filter-search').on('input', function () {
+        clearTimeout(flashSaleSearchTimer);
+        flashSaleSearchTimer = setTimeout(function () {
+            if ($.fn.DataTable.isDataTable('#flash-sales-table')) {
+                $('#flash-sales-table').DataTable().ajax.reload();
+            }
+        }, 350);
     });
 }, { once: true });
 </script>

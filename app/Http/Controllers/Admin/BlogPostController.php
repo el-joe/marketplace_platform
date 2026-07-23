@@ -10,6 +10,7 @@ use App\Models\BlogPost;
 use App\Models\Country;
 use App\Models\File;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,13 +22,18 @@ use Illuminate\View\View;
 class BlogPostController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Index
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportPosts($request);
+        }
+
         $stats = [
             'published' => BlogPost::where('status', 'published')->count(),
             'draft' => BlogPost::where('status', 'draft')->count(),
@@ -65,19 +71,7 @@ class BlogPostController extends Controller
 
     public function datatable(Request $request): JsonResponse
     {
-        $query = BlogPost::query()
-            ->select('blog_posts.*')
-            ->with(['category', 'country', 'author'])
-            ->withoutTrashed();
-
-        $query = $this->applyFilters($query, $request, [
-            'status' => fn($q, $v) => $q->where('blog_posts.status', $v),
-            'blog_category_id' => fn($q, $v) => $q->where('blog_posts.blog_category_id', $v),
-            'country_id' => fn($q, $v) => $q->where('blog_posts.country_id', $v),
-            'author_admin_id' => fn($q, $v) => $q->where('blog_posts.author_admin_id', $v),
-            'date_from' => fn($q, $v) => $q->whereDate('blog_posts.published_at', '>=', $v),
-            'date_to' => fn($q, $v) => $q->whereDate('blog_posts.published_at', '<=', $v),
-        ]);
+        $query = $this->buildPostsQuery($request);
 
         $columns = [
             ['searchable_columns' => [], 'orderable_column' => null], // image
@@ -372,6 +366,59 @@ class BlogPostController extends Controller
         DB::table('blog_posts')->where('id', $post->id)->increment('views_count');
 
         return response()->json(['success' => true]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Query building / Export
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildPostsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = BlogPost::query()
+            ->select('blog_posts.*')
+            ->with(['category', 'country', 'author'])
+            ->withoutTrashed();
+
+        return $this->applyFilters($query, $request, [
+            'search' => fn($q, $v) => $q->where(function ($qq) use ($v) {
+                $qq->where('blog_posts.title_en', 'like', '%' . $v . '%')
+                    ->orWhere('blog_posts.slug', 'like', '%' . $v . '%');
+            }),
+            'status' => fn($q, $v) => $q->where('blog_posts.status', $v),
+            'category_id' => fn($q, $v) => $q->where('blog_posts.blog_category_id', $v),
+            'blog_category_id' => fn($q, $v) => $q->where('blog_posts.blog_category_id', $v),
+            'country_id' => fn($q, $v) => $q->where('blog_posts.country_id', $v),
+            'author_admin_id' => fn($q, $v) => $q->where('blog_posts.author_admin_id', $v),
+            'is_published' => fn($q, $v) => $q->when(
+                (bool) $v,
+                fn($qq) => $qq->whereNotNull('blog_posts.published_at'),
+                fn($qq) => $qq->whereNull('blog_posts.published_at')
+            ),
+            'date_from' => fn($q, $v) => $q->whereDate('blog_posts.published_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('blog_posts.published_at', '<=', $v),
+        ]);
+    }
+
+    private function exportPosts(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $posts = $this->buildPostsQuery($request)->orderByDesc('blog_posts.published_at')->get();
+
+        $headers = ['Title', 'Category', 'Published', 'Views', 'Date'];
+
+        $rows = $posts->map(fn($post) => [
+            $post->title_en,
+            $post->category?->name_en,
+            $post->published_at ? 'Yes' : 'No',
+            (int) $post->views_count,
+            optional($post->published_at ?? $post->created_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('blog_posts', $headers, $rows),
+            'csv' => $this->exportCsv('blog_posts', $headers, $rows),
+            'word' => $this->exportWord('blog_posts', 'Blog Posts', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ─────────────────────────────────────────────────────────────────────────

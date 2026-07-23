@@ -31,13 +31,16 @@ Object.assign(window.TRANSLATIONS, {
             <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.transactions.title') }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.transactions.subtitle') }}</p>
         </div>
-        <a href="{{ route('admin.transactions.refunds.index') }}" class="btn btn-secondary btn-sm">
-            {{ __('admin.transactions.refund_queue') }}
-            @if($stats['pending_refunds'] > 0)
-                <span
-                    class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-warning-100 text-warning-700">{{ $stats['pending_refunds'] }}</span>
-            @endif
-        </a>
+        <div class="flex items-center gap-2">
+            <x-export-dropdown />
+            <a href="{{ route('admin.transactions.refunds.index') }}" class="btn btn-secondary btn-sm">
+                {{ __('admin.transactions.refund_queue') }}
+                @if($stats['pending_refunds'] > 0)
+                    <span
+                        class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-warning-100 text-warning-700">{{ $stats['pending_refunds'] }}</span>
+                @endif
+            </a>
+        </div>
     </div>
 
     {{-- ─── Stats ──────────────────────────────────────────────────────────────── --}}
@@ -106,6 +109,15 @@ Object.assign(window.TRANSLATIONS, {
                     @foreach($gateways as $gw)
                         <option value="{{ $gw }}">{{ $gw }}</option>
                     @endforeach
+                </select>
+            </div>
+            <div class="w-36">
+                <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('admin.transactions.payment_method') ?? 'Method' }}</label>
+                <select id="filter-payment-method" class="form-input w-full text-sm">
+                    <option value="">{{ __('admin.all') }}</option>
+                    <option value="card">{{ __('admin.orders.payment_card') }}</option>
+                    <option value="wallet">{{ __('admin.orders.payment_wallet') }}</option>
+                    <option value="bank">{{ __('admin.orders.payment_bank_transfer') }}</option>
                 </select>
             </div>
             <div class="w-36">
