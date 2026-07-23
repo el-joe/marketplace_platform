@@ -39,6 +39,7 @@
                     <option value="">{{ __('admin.admin_product_listings.select_country') }}</option>
                     @foreach($countries as $country)
                         <option value="{{ $country->id }}"
+                                data-currency-code="{{ $country->currency_code }}"
                                 {{ $val('country_id') === $country->id ? 'selected' : '' }}>
                             {{ $country->name_en }}
                         </option>
@@ -67,11 +68,11 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.currency_required') }} <span class="text-red-500">*</span></label>
-                <input type="text" name="currency" maxlength="3" required dir="ltr"
-                       value="{{ $val('currency', $isEdit ? ($listing->country?->currency_code ?? '') : '') }}"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary-500">
-                @error('currency')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.admin_product_listings.currency_required') }}</label>
+                <input type="text" id="currency-display" readonly disabled dir="ltr"
+                       value="{{ $isEdit ? ($listing->country?->currency_code ?? '') : '' }}"
+                       placeholder="{{ __('admin.admin_product_listings.select_country') }}"
+                       class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm font-mono uppercase text-gray-500 focus:outline-none">
             </div>
 
             <div>
@@ -203,3 +204,22 @@
     </div>
 
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var countrySelect = document.querySelector('[name="country_id"]');
+        var currencyDisplay = document.getElementById('currency-display');
+        if (!countrySelect || !currencyDisplay) return;
+
+        function syncCurrency() {
+            var option = countrySelect.options[countrySelect.selectedIndex];
+            currencyDisplay.value = (option && option.dataset.currencyCode) || '';
+        }
+
+        countrySelect.addEventListener('change', syncCurrency);
+        // select2 (data-select2-init) fires jQuery 'change', not native DOM 'change'
+        if (window.jQuery) {
+            jQuery(countrySelect).on('change', syncCurrency);
+        }
+    });
+</script>

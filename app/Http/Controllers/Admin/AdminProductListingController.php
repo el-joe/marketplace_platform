@@ -163,6 +163,7 @@ class AdminProductListingController extends Controller
         $data = $request->validate($this->rules());
         $data['id'] = Str::uuid()->toString();
         $data['created_by_admin_id'] = auth('admin')->id();
+        $data['currency'] = Country::findOrFail($data['country_id'])->currency_code;
 
         AdminProductListing::create($data);
 
@@ -189,6 +190,7 @@ class AdminProductListingController extends Controller
     public function update(Request $request, AdminProductListing $adminProductListing): RedirectResponse
     {
         $data = $request->validate($this->rules($adminProductListing));
+        $data['currency'] = Country::findOrFail($data['country_id'])->currency_code;
         $adminProductListing->update($data);
 
         return redirect()
@@ -434,7 +436,6 @@ class AdminProductListingController extends Controller
             'cost_price'     => ['nullable', 'integer', 'min:0'],
             'commission_type'      => ['required', Rule::enum(AdminProductListingCommissionType::class)],
             'commission_value'     => ['required', 'numeric', 'min:0'],
-            'currency'             => ['required', 'string', 'size:3'],
             'payment_options'      => ['required', Rule::in(['cod_only', 'electronic_only', 'both'])],
             'fulfillment_type'     => ['required', Rule::in(['express', 'global', 'mixed'])],
             'featured_in_nawy'     => ['boolean'],
