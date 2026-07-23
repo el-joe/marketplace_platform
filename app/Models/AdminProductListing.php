@@ -73,7 +73,7 @@ class AdminProductListing extends Model
     /** Price in major currency unit (for display). */
     public function getPriceAttribute(): float
     {
-        return $this->price / 100;
+        return $this->attributes['price'] / 100;
     }
 
     /** Whether COD is an allowed payment method for this listing. */
