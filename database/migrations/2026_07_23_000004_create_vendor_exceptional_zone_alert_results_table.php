@@ -19,14 +19,14 @@ return new class extends Migration {
                 ->constrained('vendor_exceptional_zone_alerts')->cascadeOnDelete();
 
             $table->foreignUuid('shipping_zone_id')
-                ->constrained('shipping_zones', indexName: 'vezar_shipping_zone_id_foreign')->cascadeOnDelete()
+                ->constrained('shipping_zones')->cascadeOnDelete()
                 ->comment('Zone admin selected when resolving this alert');
 
             $table->foreignUuid('shipping_method_id')
-                ->constrained('shipping_methods', indexName: 'vezar_shipping_method_id_foreign')->cascadeOnDelete();
+                ->constrained('shipping_methods')->cascadeOnDelete();
 
             $table->foreignUuid('created_subsidy_id')->nullable()
-                ->constrained('platform_shipping_subsidies', indexName: 'vezar_created_subsidy_id_foreign')->nullOnDelete();
+                ->constrained('platform_shipping_subsidies')->nullOnDelete();
 
             $table->foreignUuid('created_exceptional_zone_id')->nullable()
                 ->constrained('warehouse_exceptional_zones', indexName: 'vezar_created_exceptional_zone_id_foreign')->nullOnDelete();
