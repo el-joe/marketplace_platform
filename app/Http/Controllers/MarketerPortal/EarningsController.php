@@ -4,6 +4,7 @@ namespace App\Http\Controllers\MarketerPortal;
 
 use App\Http\Controllers\Controller;
 use App\Models\MarketerConversion;
+use App\Traits\HasDataTable;
 use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use Illuminate\View\View;
 
 class EarningsController extends Controller
 {
+    use HasDataTable;
     use HasExport;
 
     public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
@@ -23,17 +25,22 @@ class EarningsController extends Controller
             return $this->exportEarnings($request, $marketer);
         }
 
-        $pending = $marketer->conversions()
-            ->where('status', 'pending')
-            ->with('campaign:id,name')
-            ->latest()
-            ->paginate(15, ['*'], 'pending_page');
+        $dateFilters = [
+            'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+        ];
 
-        $approved = $marketer->conversions()
-            ->where('status', 'approved')
+        $pending = $this->applyFilters($marketer->conversions()->where('status', 'pending'), $request, $dateFilters)
             ->with('campaign:id,name')
             ->latest()
-            ->paginate(15, ['*'], 'approved_page');
+            ->paginate(15, ['*'], 'pending_page')
+            ->withQueryString();
+
+        $approved = $this->applyFilters($marketer->conversions()->where('status', 'approved'), $request, $dateFilters)
+            ->with('campaign:id,name')
+            ->latest()
+            ->paginate(15, ['*'], 'approved_page')
+            ->withQueryString();
 
         $payouts = $marketer->payouts()
             ->orderByDesc('created_at')
@@ -61,18 +68,23 @@ class EarningsController extends Controller
 
     private function exportEarnings(Request $request, $marketer): \Symfony\Component\HttpFoundation\StreamedResponse
     {
-        $conversions = $marketer->conversions()
-            ->with('campaign:id,name')
+        $conversions = $this->applyFilters($marketer->conversions(), $request, [
+            'status' => fn($q, $v) => $q->where('status', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+        ])
+            ->with(['campaign:id,name', 'order:id,order_number'])
             ->latest()
             ->get();
 
-        $headers = ['Campaign', 'Status', 'Commission', 'Currency', 'Date'];
+        $headers = ['Order Ref', 'Campaign', 'Commission', 'Currency', 'Status', 'Date'];
 
         $rows = $conversions->map(fn($c) => [
+            $this->maskOrderRef((string) ($c->order?->order_number ?? $c->order_id ?? '')),
             $c->campaign?->name ?? '—',
-            $c->status?->value,
             number_format($c->commission_amount / 100, 2),
             $c->currency,
+            $c->status?->value,
             $c->created_at->format('Y-m-d'),
         ]);
 
@@ -82,6 +94,13 @@ class EarningsController extends Controller
             'word' => $this->exportWord('earnings', 'Earnings', $rows),
             default => abort(400, 'Invalid export format.'),
         };
+    }
+
+    private function maskOrderRef(string $orderRef): string
+    {
+        return strlen($orderRef) > 8
+            ? substr($orderRef, 0, 4) . str_repeat('•', max(0, strlen($orderRef) - 8)) . substr($orderRef, -4)
+            : $orderRef;
     }
 
     public function summary(): JsonResponse

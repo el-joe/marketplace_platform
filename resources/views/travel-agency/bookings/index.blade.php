@@ -33,11 +33,28 @@
         @endforeach
     </div>
 
-    {{-- Date range filter --}}
+    {{-- Search + date range filter --}}
     <form method="GET" action="{{ route('travel-agency.bookings.index') }}" class="flex items-end gap-3 flex-wrap">
         @if($current)
         <input type="hidden" name="status" value="{{ $current }}">
         @endif
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('common.search') }}</label>
+            <input type="text" name="search" value="{{ request('search') }}"
+                   placeholder="{{ __('travel.bookings.booking_number') }}"
+                   class="rounded-lg border-gray-300 text-sm">
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('travel.packages.title') }}</label>
+            <select name="package_id" class="rounded-lg border-gray-300 text-sm">
+                <option value="">{{ __('travel.inquiries.all_packages') }}</option>
+                @foreach($packages as $pkg)
+                <option value="{{ $pkg->id }}" {{ request('package_id') === $pkg->id ? 'selected' : '' }}>
+                    {{ $pkg->title_ar ?: $pkg->title_en }}
+                </option>
+                @endforeach
+            </select>
+        </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('travel.bookings.date_from') }}</label>
             <input type="date" name="date_from" value="{{ request('date_from') }}"
@@ -51,6 +68,11 @@
         <button type="submit" class="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-700">
             {{ __('travel.bookings.filter') }}
         </button>
+        <div class="ms-auto flex gap-2 text-xs">
+            <a href="{{ route('travel-agency.bookings.export', request()->query()) }}" class="text-blue-600 hover:underline">{{ __('travel.reports.export_csv') }}</a>
+            <a href="{{ route('travel-agency.bookings.export', array_merge(request()->query(), ['format' => 'excel'])) }}" class="text-blue-600 hover:underline">{{ __('common.export_excel') }}</a>
+            <a href="{{ route('travel-agency.bookings.export', array_merge(request()->query(), ['format' => 'word'])) }}" class="text-blue-600 hover:underline">{{ __('common.export_word') }}</a>
+        </div>
     </form>
 
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">

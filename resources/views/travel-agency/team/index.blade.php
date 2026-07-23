@@ -17,11 +17,19 @@
                 <p class="mt-1 text-sm text-gray-500">{{ __('travel.team.manage_team_subtitle') }}</p>
             </div>
             <div class="flex items-center gap-3">
+                <input type="text" id="team-search" placeholder="{{ __('common.search') }}"
+                    class="rounded-lg border-gray-300 text-sm">
+                <select id="team-is-active" class="rounded-lg border-gray-300 text-sm">
+                    <option value="">{{ __('travel.team.status') }}</option>
+                    <option value="1">{{ __('travel.team.active') }}</option>
+                    <option value="0">{{ __('travel.team.inactive') }}</option>
+                </select>
                 <label class="inline-flex items-center gap-2 text-sm text-gray-600 select-none">
                     <input type="checkbox" id="team-show-deleted"
                         class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                     {{ __('travel.team.show_deleted') }}
                 </label>
+                <a id="team-export" href="#" class="text-xs text-blue-600 hover:underline">{{ __('travel.reports.export_csv') }}</a>
                 @if ($canInvite)
                     <a href="{{ route('travel-agency.team.create') }}"
                         class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 transition-colors">
@@ -59,6 +67,7 @@
     <script>
         window.TEAM_ROUTES = {
             datatable: '{{ route('travel-agency.team.datatable') }}',
+            export: '{{ route('travel-agency.team.export') }}',
         };
         window.TEAM_CAN_MANAGE = @json($canManage);
         window.TEAM_LABELS = {

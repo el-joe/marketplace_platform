@@ -8,6 +8,8 @@ use App\Models\AdminMarketerInvitation;
 use App\Models\MarketerCampaign;
 use App\Notifications\Admin\AdminMarketerInvitationAccepted;
 use App\Notifications\Admin\AdminMarketerInvitationDeclined;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,10 +21,17 @@ use Illuminate\View\View;
 
 class AdminOfferController extends Controller
 {
-    public function index(): View
+    use HasDataTable;
+    use HasExport;
+
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
+
+        if ($request->filled('export')) {
+            return $this->exportOffers($request, $marketer);
+        }
 
         $pendingCount = AdminMarketerInvitation::where('marketer_id', $marketer->id)
             ->where('status', AdminMarketerInvitationStatus::Pending)
@@ -38,11 +47,12 @@ class AdminOfferController extends Controller
             ->where('marketer_conversions.status', '!=', 'reversed')
             ->sum('marketer_conversions.commission_amount');
 
-        $invitations = AdminMarketerInvitation::where('marketer_id', $marketer->id)
+        $invitations = $this->filteredOffersQuery($marketer, $request)
             ->with('admin:id,name')
             ->orderByRaw("FIELD(status, 'pending', 'accepted', 'declined', 'expired', 'revoked')")
             ->orderByDesc('created_at')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return view('marketer.admin-offers.index', [
             'marketer' => $marketer,
@@ -51,6 +61,43 @@ class AdminOfferController extends Controller
             'acceptedCount' => $acceptedCount,
             'totalEarnedFromAdminCampaigns' => $totalEarnedFromAdminCampaigns,
         ]);
+    }
+
+    private function filteredOffersQuery($marketer, Request $request)
+    {
+        return $this->applyFilters(
+            AdminMarketerInvitation::where('marketer_id', $marketer->id),
+            $request,
+            [
+                'status' => fn($q, $v) => $q->where('status', $v),
+                'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
+                'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+            ]
+        );
+    }
+
+    private function exportOffers(Request $request, $marketer): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $invitations = $this->filteredOffersQuery($marketer, $request)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $headers = ['Offer Title', 'Type', 'Commission', 'Status', 'Date'];
+
+        $rows = $invitations->map(fn($i) => [
+            $i->title,
+            $i->campaign_type?->value,
+            number_format($i->commission_rate_percent, 2),
+            $i->status?->value,
+            $i->created_at->format('Y-m-d'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('admin-offers', $headers, $rows),
+            'csv' => $this->exportCsv('admin-offers', $headers, $rows),
+            'word' => $this->exportWord('admin-offers', 'Admin Offers', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function show(AdminMarketerInvitation $invitation): View

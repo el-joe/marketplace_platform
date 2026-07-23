@@ -10,26 +10,36 @@ use App\Models\DeliveryAssignment;
 use App\Models\DeliveryAgentEarning;
 use App\Models\PaymentTransaction;
 use App\Services\FileService;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AssignmentController extends Controller
 {
+    use HasDataTable;
+    use HasExport;
+
     public function __construct(private readonly FileService $fileService)
     {
     }
 
-    /** Today's assignments grouped by status. */
-    public function index(): View
+    /** Today's assignments grouped by status (or filtered range when status/date filters are given). */
+    public function index(Request $request): View|StreamedResponse
     {
         /** @var DeliveryAgent $agent */
         $agent = Auth::guard('delivery')->user();
 
-        $assignments = DeliveryAssignment::where('agent_id', $agent->id)
-            ->whereDate('assigned_at', today())
+        if ($request->filled('export')) {
+            return $this->exportAssignments($request, $agent);
+        }
+
+        $assignments = $this->buildAssignmentsQuery($request, $agent)
             ->with(['subOrder.order', 'subOrder.items', 'shipment'])
             ->orderByRaw("FIELD(status, 'assigned','accepted','picked_up','delivered','failed')")
             ->get();
@@ -43,6 +53,48 @@ class AssignmentController extends Controller
         $failed = $assignments->where('status', DeliveryAssignment::STATUS_FAILED);
 
         return view('delivery.assignments.index', compact('pending', 'completed', 'failed'));
+    }
+
+    /** Shared query for the index view and the export, scoped to the authenticated agent. */
+    private function buildAssignmentsQuery(Request $request, DeliveryAgent $agent): Builder
+    {
+        $query = DeliveryAssignment::where('agent_id', $agent->id);
+
+        // Default to "today" only when no explicit status/date range was requested.
+        if (!$request->filled('status') && !$request->filled('date_from') && !$request->filled('date_to')) {
+            $query->whereDate('assigned_at', today());
+        }
+
+        return $this->applyFilters($query, $request, [
+            'status' => fn ($q, $v) => $q->where('status', $v),
+            'date_from' => fn ($q, $v) => $q->whereDate('assigned_at', '>=', $v),
+            'date_to' => fn ($q, $v) => $q->whereDate('assigned_at', '<=', $v),
+        ]);
+    }
+
+    private function exportAssignments(Request $request, DeliveryAgent $agent): StreamedResponse
+    {
+        $assignments = $this->buildAssignmentsQuery($request, $agent)
+            ->with(['subOrder.order', 'agent.zone'])
+            ->orderByDesc('assigned_at')
+            ->get();
+
+        $headers = ['Assignment #', 'Order #', 'Status', 'Zone', 'Date'];
+
+        $rows = $assignments->map(fn (DeliveryAssignment $a) => [
+            $a->id,
+            $a->subOrder?->order?->order_number ?? $a->subOrder?->sub_order_number ?? '—',
+            $a->status?->value,
+            $a->agent?->zone?->name ?? '—',
+            $a->assigned_at?->format('Y-m-d H:i') ?? '—',
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('delivery-assignments', $headers, $rows),
+            'csv' => $this->exportCsv('delivery-assignments', $headers, $rows),
+            'word' => $this->exportWord('delivery-assignments', 'Delivery Assignments', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     /** Full order details for one assignment. */

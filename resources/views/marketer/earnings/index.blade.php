@@ -43,9 +43,20 @@
     </div>
 </div>
 
-<div class="flex justify-end mb-4">
-    <x-export-dropdown />
-</div>
+<form method="GET" action="{{ route('marketer.earnings.index') }}" class="flex flex-wrap items-end gap-3 mb-4 bg-white rounded-2xl border border-gray-100 p-4">
+    <div>
+        <label class="text-xs text-gray-400 font-semibold">{{ __('common.date_from') }}</label>
+        <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full rounded-lg border-gray-200 text-sm mt-1">
+    </div>
+    <div>
+        <label class="text-xs text-gray-400 font-semibold">{{ __('common.date_to') }}</label>
+        <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full rounded-lg border-gray-200 text-sm mt-1">
+    </div>
+    <button type="submit" class="bg-slate-800 text-white text-sm font-semibold rounded-lg px-4 py-2">{{ __('common.filter') }}</button>
+    <div class="ml-auto">
+        <x-export-dropdown />
+    </div>
+</form>
 
 {{-- ── Tabs ─────────────────────────────────────────────────────────────────── --}}
 <div x-data="{ tab: 'pending' }">

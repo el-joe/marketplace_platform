@@ -5,20 +5,76 @@ namespace App\Http\Controllers\CarrierPortal;
 use App\Enums\DeliveryAgentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AgentController extends Controller
 {
-    public function index(): View
+    use HasDataTable;
+    use HasExport;
+
+    public function index(Request $request): View|StreamedResponse
     {
         $supervisor = auth('shipping_supervisor')->user();
-        $agents = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+
+        if ($request->filled('export')) {
+            return $this->exportAgents($request, $supervisor);
+        }
+
+        $agents = $this->buildAgentsQuery($request, $supervisor)
+            ->withCount('assignments')
             ->latest()
             ->paginate(20);
 
         return view('carrier.agents.index', compact('agents'));
+    }
+
+    /** Shared query for the index view and the export, scoped to the supervisor's company. */
+    private function buildAgentsQuery(Request $request, $supervisor): Builder
+    {
+        $query = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
+
+        return $this->applyFilters($query, $request, [
+            'status' => fn ($q, $v) => $q->where('status', $v),
+        ]);
+    }
+
+    private function exportAgents(Request $request, $supervisor): StreamedResponse
+    {
+        $agents = $this->buildAgentsQuery($request, $supervisor)
+            ->withCount('assignments')
+            ->latest()
+            ->get();
+
+        $headers = ['Name', 'Email', 'Status', 'Assignments', 'Joined'];
+
+        $rows = $agents->map(fn (DeliveryAgent $agent) => [
+            $agent->name,
+            $agent->email,
+            $agent->status?->value,
+            (int) $agent->assignments_count,
+            $agent->created_at?->format('Y-m-d') ?? '—',
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('carrier-agents', $headers, $rows),
+            'csv' => $this->exportCsv('carrier-agents', $headers, $rows),
+            'word' => $this->exportWord('carrier-agents', 'Carrier Agents', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function create(): View

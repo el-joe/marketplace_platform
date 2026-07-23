@@ -9,6 +9,8 @@ use App\Models\MarketerCampaignProduct;
 use App\Models\VendorCampaignInvitation;
 use App\Notifications\Vendor\MarketerAcceptedInvitation;
 use App\Notifications\Vendor\MarketerDeclinedInvitation;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,10 +22,17 @@ use Illuminate\View\View;
 
 class InvitationController extends Controller
 {
-    public function index(): View
+    use HasDataTable;
+    use HasExport;
+
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
+
+        if ($request->filled('export')) {
+            return $this->exportInvitations($request, $marketer);
+        }
 
         $pendingCount = VendorCampaignInvitation::where('marketer_id', $marketer->id)
             ->where('status', VendorCampaignInvitationStatus::Pending)
@@ -36,13 +45,52 @@ class InvitationController extends Controller
             ->whereYear('responded_at', now()->year)
             ->count();
 
-        $invitations = VendorCampaignInvitation::where('marketer_id', $marketer->id)
+        $invitations = $this->filteredInvitationsQuery($marketer, $request)
             ->with(['offer.vendor', 'offer.products.vendorListing.product'])
             ->orderByRaw("FIELD(status, 'pending', 'accepted', 'declined', 'expired', 'revoked')")
             ->orderByDesc('created_at')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return view('marketer.invitations.index', compact('marketer', 'invitations', 'pendingCount', 'acceptedThisMonth'));
+    }
+
+    private function filteredInvitationsQuery($marketer, Request $request)
+    {
+        return $this->applyFilters(
+            VendorCampaignInvitation::where('marketer_id', $marketer->id),
+            $request,
+            [
+                'status' => fn($q, $v) => $q->where('status', $v),
+                'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
+                'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+            ]
+        );
+    }
+
+    private function exportInvitations(Request $request, $marketer): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $invitations = $this->filteredInvitationsQuery($marketer, $request)
+            ->with('offer.vendor')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $headers = ['Vendor', 'Campaign Type', 'Commission', 'Status', 'Date'];
+
+        $rows = $invitations->map(fn($i) => [
+            $i->offer?->vendor?->store_name ?? '—',
+            $i->offer?->campaign_type?->value,
+            $i->offer !== null ? number_format($i->offer->offered_commission_rate, 2) : '—',
+            $i->status?->value,
+            $i->created_at->format('Y-m-d'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('invitations', $headers, $rows),
+            'csv' => $this->exportCsv('invitations', $headers, $rows),
+            'word' => $this->exportWord('invitations', 'Invitations', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function show(VendorCampaignInvitation $invitation): View

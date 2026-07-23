@@ -8,25 +8,32 @@ use App\Models\DeliveryAssignment;
 use App\Models\Shipment;
 use App\Notifications\DeliveryAgent\DeliveryReassigned;
 use App\Notifications\DeliveryAgent\NewDeliveryAssigned;
+use App\Traits\HasDataTable;
+use App\Traits\HasExport;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AssignmentController extends Controller
 {
-    public function index(Request $request): View
+    use HasDataTable;
+    use HasExport;
+
+    public function index(Request $request): View|StreamedResponse
     {
         $supervisor = auth('shipping_supervisor')->user();
 
         abort_unless($supervisor->hasPermission('view_orders'), 403, 'ليس لديك صلاحية لعرض الطلبات.');
 
-        $agentIds = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
-            ->pluck('id');
+        if ($request->filled('export')) {
+            return $this->exportAssignments($request, $supervisor);
+        }
 
-        $assignments = DeliveryAssignment::whereIn('agent_id', $agentIds)
+        $assignments = $this->buildAssignmentsQuery($request, $supervisor)
             ->with('agent')
-            ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->latest('assigned_at')
             ->paginate(25);
 
@@ -35,6 +42,50 @@ class AssignmentController extends Controller
             ->get(['id', 'name', 'vehicle_type', 'rating_avg']);
 
         return view('carrier.assignments.index', compact('assignments', 'agents'));
+    }
+
+    /** Shared query for the index view and the export, scoped to the supervisor's company. */
+    private function buildAssignmentsQuery(Request $request, $supervisor): Builder
+    {
+        $agentIds = DeliveryAgent::where('shipping_company_id', $supervisor->shipping_company_id)
+            ->pluck('id');
+
+        $query = DeliveryAssignment::whereIn('agent_id', $agentIds);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->whereHas('agent', fn ($q) => $q->where('name', 'like', '%' . $search . '%'));
+        }
+
+        return $this->applyFilters($query, $request, [
+            'status' => fn ($q, $v) => $q->where('status', $v),
+            'date_from' => fn ($q, $v) => $q->whereDate('assigned_at', '>=', $v),
+            'date_to' => fn ($q, $v) => $q->whereDate('assigned_at', '<=', $v),
+        ]);
+    }
+
+    private function exportAssignments(Request $request, $supervisor): StreamedResponse
+    {
+        $assignments = $this->buildAssignmentsQuery($request, $supervisor)
+            ->with('agent')
+            ->latest('assigned_at')
+            ->get();
+
+        $headers = ['Assignment #', 'Agent', 'Status', 'Date'];
+
+        $rows = $assignments->map(fn (DeliveryAssignment $a) => [
+            $a->id,
+            $a->agent?->name ?? '—',
+            $a->status?->value,
+            $a->assigned_at?->format('Y-m-d H:i') ?? '—',
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('carrier-assignments', $headers, $rows),
+            'csv' => $this->exportCsv('carrier-assignments', $headers, $rows),
+            'word' => $this->exportWord('carrier-assignments', 'Carrier Assignments', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function show(string $assignmentId): View

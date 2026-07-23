@@ -17,17 +17,21 @@ use App\Notifications\Customer\TravelBookingCancelled as CustomerTravelBookingCa
 use App\Notifications\Customer\TravelBookingConfirmed;
 use App\Notifications\TravelAgency\LowSeatsRemaining;
 use App\Services\TravelAgency\BookingCreationService;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookingController extends Controller
 {
     use ResolvesTravelAgency;
+    use HasExport;
 
     public function __construct(private readonly BookingCreationService $bookingCreationService)
     {
@@ -124,14 +128,21 @@ class BookingController extends Controller
 
     // ── Index ─────────────────────────────────────────────────────────────────
 
-    public function index(Request $request): View
+    private function filteredBookingsQuery(Request $request)
     {
         $query = TravelBooking::query()
-            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $this->agencyId()))
-            ->with(['package', 'customer']);
+            ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $this->agencyId()));
+
+        if ($search = $request->query('search')) {
+            $query->where('booking_number', 'like', "%{$search}%");
+        }
 
         if ($status = $request->query('status')) {
             $query->where('status', TravelBookingStatus::from($status));
+        }
+
+        if ($packageId = $request->query('package_id')) {
+            $query->where('travel_package_id', $packageId);
         }
 
         if ($dateFrom = $request->query('date_from')) {
@@ -142,9 +153,52 @@ class BookingController extends Controller
             $query->whereDate('created_at', '<=', $dateTo);
         }
 
-        $bookings = $query->latest()->paginate(25)->withQueryString();
+        return $query;
+    }
 
-        return view('travel-agency.bookings.index', compact('bookings'));
+    public function index(Request $request): View
+    {
+        $bookings = $this->filteredBookingsQuery($request)
+            ->with(['package', 'customer'])
+            ->latest()
+            ->paginate(25)
+            ->withQueryString();
+
+        $packages = TravelPackage::where('travel_agency_id', $this->agencyId())
+            ->orderBy('title_en')
+            ->get(['id', 'title_ar', 'title_en']);
+
+        return view('travel-agency.bookings.index', compact('bookings', 'packages'));
+    }
+
+    public function export(Request $request): Response|StreamedResponse
+    {
+        $bookings = $this->filteredBookingsQuery($request)
+            ->with(['package', 'customer'])
+            ->latest()
+            ->get();
+
+        $headers = ['Ref', 'Package', 'Travelers', 'Total', 'Currency', 'Status', 'Date'];
+
+        $rows = $bookings->map(fn (TravelBooking $booking) => [
+            $booking->booking_number,
+            $booking->package->title_en ?? '',
+            $booking->travelers_count,
+            $booking->total_price,
+            $booking->package->currency ?? '',
+            $booking->status->value,
+            $booking->created_at?->toDateString(),
+        ]);
+
+        $filename = 'bookings-' . now()->toDateString();
+        $format = $request->input('format', 'csv');
+
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word'  => $this->exportWord($filename, 'Bookings', $rows),
+            'csv'   => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ── Show ──────────────────────────────────────────────────────────────────

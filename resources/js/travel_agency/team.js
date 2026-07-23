@@ -169,6 +169,8 @@ function initTable() {
         order: [[0, 'asc']],
         serverSideFilters: {
             show_deleted: () => (document.getElementById('team-show-deleted')?.checked ? 1 : 0),
+            is_active: () => document.getElementById('team-is-active')?.value ?? '',
+            search: () => document.getElementById('team-search')?.value ?? '',
         },
         columns: [
             { data: 'name' },
@@ -183,6 +185,26 @@ function initTable() {
 
     document.getElementById('team-show-deleted')?.addEventListener('change', () => {
         $('#team-table').DataTable().ajax.reload();
+    });
+
+    document.getElementById('team-is-active')?.addEventListener('change', () => {
+        $('#team-table').DataTable().ajax.reload();
+    });
+
+    let searchTimer;
+    document.getElementById('team-search')?.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => $('#team-table').DataTable().ajax.reload(), 300);
+    });
+
+    document.getElementById('team-export')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const params = new URLSearchParams({
+            search: document.getElementById('team-search')?.value ?? '',
+            is_active: document.getElementById('team-is-active')?.value ?? '',
+            show_deleted: document.getElementById('team-show-deleted')?.checked ? 1 : 0,
+        });
+        window.location.href = `${routes.export}?${params.toString()}`;
     });
 }
 

@@ -74,6 +74,31 @@
     <div class="mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{{ session('error') }}</div>
 @endif
 
+<div class="flex justify-end mb-4">
+    <x-export-dropdown />
+</div>
+
+<form method="GET" action="{{ route('marketer.admin-offers.index') }}" class="flex flex-wrap items-end gap-3 mb-4 bg-white rounded-2xl border border-gray-100 p-4">
+    <div>
+        <label class="text-xs text-gray-400 font-semibold">{{ __('common.status') }}</label>
+        <select name="status" class="w-full rounded-lg border-gray-200 text-sm mt-1">
+            <option value="">{{ __('common.all') }}</option>
+            @foreach(\App\Enums\AdminMarketerInvitationStatus::cases() as $status)
+                <option value="{{ $status->value }}" @selected(request('status') === $status->value)>{{ $status->label() }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div>
+        <label class="text-xs text-gray-400 font-semibold">{{ __('common.date_from') }}</label>
+        <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full rounded-lg border-gray-200 text-sm mt-1">
+    </div>
+    <div>
+        <label class="text-xs text-gray-400 font-semibold">{{ __('common.date_to') }}</label>
+        <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full rounded-lg border-gray-200 text-sm mt-1">
+    </div>
+    <button type="submit" class="bg-slate-800 text-white text-sm font-semibold rounded-lg px-4 py-2">{{ __('common.filter') }}</button>
+</form>
+
 <div class="inv-stats">
     <div class="inv-stat-card">
         <div class="label">{{ __('marketer.admin_offers.pending') }}</div>

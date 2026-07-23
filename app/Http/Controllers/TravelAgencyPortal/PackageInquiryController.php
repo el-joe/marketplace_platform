@@ -9,13 +9,17 @@ use App\Models\Customer;
 use App\Models\TravelPackage;
 use App\Models\TravelPackageInquiry;
 use App\Services\TravelAgency\BookingCreationService;
+use App\Traits\HasExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PackageInquiryController extends Controller
 {
     use ResolvesTravelAgency;
+    use HasExport;
 
     public function __construct(private readonly BookingCreationService $bookingCreationService)
     {
@@ -30,12 +34,19 @@ class PackageInquiryController extends Controller
 
     // ── Index — all inquiries across the agency's packages ───────────────────
 
-    public function index(Request $request): View
+    private function filteredInquiriesQuery(Request $request)
     {
         $query = TravelPackageInquiry::query()
             ->whereHas('package', fn ($q) => $q->where('travel_agency_id', $this->agencyId()))
-            ->with('package')
             ->latest();
+
+        if ($search = $request->query('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
 
         if ($status = $request->query('status')) {
             $query->where('status', TravelPackageInquiryStatus::from($status));
@@ -45,13 +56,55 @@ class PackageInquiryController extends Controller
             $query->where('travel_package_id', $packageId);
         }
 
-        $inquiries = $query->paginate(30)->withQueryString();
+        if ($dateFrom = $request->query('date_from')) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo = $request->query('date_to')) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+
+        return $query;
+    }
+
+    public function index(Request $request): View
+    {
+        $inquiries = $this->filteredInquiriesQuery($request)
+            ->with('package')
+            ->paginate(30)
+            ->withQueryString();
 
         $packages = TravelPackage::where('travel_agency_id', $this->agencyId())
             ->orderBy('title_ar')
             ->get(['id', 'title_ar', 'title_en']);
 
         return view('travel-agency.inquiries.index', compact('inquiries', 'packages'));
+    }
+
+    public function export(Request $request): Response|StreamedResponse
+    {
+        $inquiries = $this->filteredInquiriesQuery($request)
+            ->with('package')
+            ->get();
+
+        $headers = ['Inquirer', 'Package', 'Status', 'Date'];
+
+        $rows = $inquiries->map(fn (TravelPackageInquiry $inquiry) => [
+            $inquiry->name,
+            $inquiry->package->title_en ?? '',
+            $inquiry->status->value,
+            $inquiry->created_at?->toDateString(),
+        ]);
+
+        $filename = 'inquiries-' . now()->toDateString();
+        $format = $request->input('format', 'csv');
+
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word'  => $this->exportWord($filename, 'Inquiries', $rows),
+            'csv'   => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ── Mark Contacted ───────────────────────────────────────────────────────

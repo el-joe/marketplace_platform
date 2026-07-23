@@ -9,9 +9,11 @@ use App\Models\TravelAgencyMember;
 use App\Notifications\TravelAgencyMemberPasswordReset;
 use App\Notifications\TravelAgencyMemberWelcome;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -20,11 +22,13 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TeamController extends Controller
 {
     use HasDataTable;
     use ResolvesTravelAgency;
+    use HasExport;
 
     private const GUARD = 'travel_agency';
 
@@ -106,17 +110,59 @@ class TeamController extends Controller
         return view('travel-agency.team.index', compact('canInvite', 'canManage'));
     }
 
-    public function datatable(Request $request): JsonResponse
+    private function filteredMembersQuery(Request $request)
     {
-        $agencyId = $this->agencyId();
-
         $query = TravelAgencyMember::query()
-            ->where('travel_agency_id', $agencyId)
+            ->where('travel_agency_id', $this->agencyId())
             ->with('roles');
 
         if ($request->boolean('show_deleted')) {
             $query->withTrashed();
         }
+
+        if ($request->filled('search')) {
+            $search = $request->query('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->query('is_active') !== null && $request->query('is_active') !== '') {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        return $query;
+    }
+
+    public function export(Request $request): Response|StreamedResponse
+    {
+        $members = $this->filteredMembersQuery($request)->get();
+
+        $headers = ['Name', 'Email', 'Role', 'Active', 'Last Login'];
+
+        $rows = $members->map(fn (TravelAgencyMember $member) => [
+            $member->name,
+            $member->email,
+            $this->roleDisplayLabel($member->roles->first()) ?? '—',
+            $member->is_active ? 'Yes' : 'No',
+            $member->last_login_at?->toDateTimeString() ?? '',
+        ]);
+
+        $filename = 'team-' . now()->toDateString();
+        $format = $request->input('format', 'csv');
+
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word'  => $this->exportWord($filename, 'Team', $rows),
+            'csv'   => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $query = $this->filteredMembersQuery($request);
 
         $columns = [
             ['orderable_column' => 'name', 'searchable_columns' => ['name', 'email']],

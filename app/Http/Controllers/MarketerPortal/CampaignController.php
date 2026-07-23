@@ -17,6 +17,7 @@ use App\Notifications\Admin\SampleRequestSubmitted;
 use App\Services\MarketerService;
 use App\Services\SampleQuotaResolver;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,20 +28,24 @@ use Illuminate\View\View;
 class CampaignController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(private readonly MarketerService $service)
     {
     }
-    public function index(Request $request): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
 
+        if ($request->filled('export')) {
+            return $this->exportCampaigns($request, $marketer);
+        }
+
         $statusFilter = $request->input('status');
 
-        $campaigns = $marketer->campaigns()
+        $campaigns = $this->filteredCampaignsQuery($marketer, $request)
             ->withCount('products')
-            ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
             ->orderByDesc('created_at')
             ->paginate(12)
             ->withQueryString();
@@ -62,6 +67,43 @@ class CampaignController extends Controller
             'tabs' => $tabs,
             'totalCount' => (int) $statusCounts->sum(),
         ]);
+    }
+
+    private function filteredCampaignsQuery($marketer, Request $request)
+    {
+        return $this->applyFilters($marketer->campaigns(), $request, [
+            'search' => fn($q, $v) => $q->where('name', 'like', '%' . $v . '%'),
+            'status' => fn($q, $v) => $q->where('status', $v),
+            'type' => fn($q, $v) => $q->where('campaign_type', $v),
+            'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
+            'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
+        ]);
+    }
+
+    private function exportCampaigns(Request $request, $marketer): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $campaigns = $this->filteredCampaignsQuery($marketer, $request)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $headers = ['Campaign', 'Type', 'Status', 'Clicks', 'Conversions', 'Earned', 'Currency'];
+
+        $rows = $campaigns->map(fn($c) => [
+            $c->name,
+            $c->campaign_type?->value,
+            $c->status?->value,
+            (int) $c->total_clicks,
+            (int) $c->total_conversions,
+            number_format($c->total_revenue / 100, 2),
+            $c->conversions()->value('currency') ?? env('DEFAULT_CURRENCY', 'SAR'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('campaigns', $headers, $rows),
+            'csv' => $this->exportCsv('campaigns', $headers, $rows),
+            'word' => $this->exportWord('campaigns', 'Campaigns', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function create(): View

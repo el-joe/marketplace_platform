@@ -65,6 +65,7 @@ Route::name('travel-agency.')
             // Packages
             Route::prefix('packages')->name('packages.')->group(function () {
                 Route::get('/', [PackageController::class, 'index'])->name('index')->middleware('travel_agency.can:packages.view');
+                Route::get('/export', [PackageController::class, 'export'])->name('export')->middleware('travel_agency.can:packages.view');
                 Route::get('/create', [PackageController::class, 'create'])->name('create')->middleware('travel_agency.can:packages.create');
                 Route::post('/', [PackageController::class, 'store'])->name('store')->middleware('travel_agency.can:packages.create');
                 Route::get('/cities-for-country/{travelCountryId}', [PackageController::class, 'citiesForCountry'])->name('cities-for-country')->middleware('travel_agency.can:packages.view');
@@ -80,6 +81,7 @@ Route::name('travel-agency.')
             // Bookings
             Route::prefix('bookings')->name('bookings.')->group(function () {
                 Route::get('/', [BookingController::class, 'index'])->name('index')->middleware('travel_agency.can:bookings.view');
+                Route::get('/export', [BookingController::class, 'export'])->name('export')->middleware('travel_agency.can:bookings.view');
                 Route::get('/create', [BookingController::class, 'create'])->name('create')->middleware('travel_agency.can:bookings.create');
                 Route::post('/', [BookingController::class, 'store'])->name('store')->middleware('travel_agency.can:bookings.create');
                 Route::get('/customer-search', [BookingController::class, 'customerSearch'])->name('customer-search')->middleware('travel_agency.can:bookings.create');
@@ -90,6 +92,7 @@ Route::name('travel-agency.')
             // Campaign Offers
             Route::prefix('campaigns')->name('campaigns.')->group(function () {
                 Route::get('/',                                   [CampaignController::class, 'index'])->name('index')->middleware('travel_agency.can:campaigns.view');
+                Route::get('/export',                              [CampaignController::class, 'export'])->name('export')->middleware('travel_agency.can:campaigns.view');
                 Route::get('/create',                              [CampaignController::class, 'create'])->name('create')->middleware('travel_agency.can:campaigns.create');
                 Route::post('/',                                   [CampaignController::class, 'store'])->name('store')->middleware('travel_agency.can:campaigns.create');
                 Route::get('/marketers/search',                    [CampaignController::class, 'searchMarketers'])->name('marketers.search')->middleware('travel_agency.can:campaigns.create');
@@ -106,6 +109,7 @@ Route::name('travel-agency.')
             // Package Inquiries (lead management)
             Route::prefix('inquiries')->name('inquiries.')->group(function () {
                 Route::get('/', [PackageInquiryController::class, 'index'])->name('index')->middleware('travel_agency.can:inquiries.view');
+                Route::get('/export', [PackageInquiryController::class, 'export'])->name('export')->middleware('travel_agency.can:inquiries.view');
                 Route::post('/{inquiry}/contacted', [PackageInquiryController::class, 'markContacted'])->name('contacted')->middleware('travel_agency.can:inquiries.manage');
                 Route::post('/{inquiry}/convert', [PackageInquiryController::class, 'convertToBooking'])->name('convert')->middleware('travel_agency.can:inquiries.manage');
                 Route::post('/{inquiry}/close', [PackageInquiryController::class, 'close'])->name('close')->middleware('travel_agency.can:inquiries.close');
@@ -119,6 +123,7 @@ Route::name('travel-agency.')
             // Team management
             Route::prefix('team')->name('team.')->controller(TeamController::class)->group(function () {
                 Route::get('/', 'index')->name('index')->middleware('travel_agency.can:team.view');
+                Route::get('/export', 'export')->name('export')->middleware('travel_agency.can:team.view');
                 Route::get('/datatable', 'datatable')->name('datatable')->middleware('travel_agency.can:team.view');
                 Route::get('/create', 'create')->name('create')->middleware('travel_agency.can:team.invite');
                 Route::post('/', 'store')->name('store')->middleware('travel_agency.can:team.invite');

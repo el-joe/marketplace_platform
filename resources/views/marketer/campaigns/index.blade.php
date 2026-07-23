@@ -10,11 +10,44 @@
             <h2 class="text-lg font-bold text-gray-800">{{ __('marketer.campaigns.title') }}</h2>
             <p class="text-sm text-gray-500">{{ __('marketer.campaigns.total_campaigns', ['count' => $campaigns->total()]) }}</p>
         </div>
-        <a href="{{ route('marketer.campaigns.create') }}"
-            class="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold text-sm rounded-xl px-4 py-2.5 transition-colors">
-            {{ __('marketer.campaigns.create_campaign') }}
-        </a>
+        <div class="flex items-center gap-2">
+            <x-export-dropdown />
+            <a href="{{ route('marketer.campaigns.create') }}"
+                class="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold text-sm rounded-xl px-4 py-2.5 transition-colors">
+                {{ __('marketer.campaigns.create_campaign') }}
+            </a>
+        </div>
     </div>
+
+    {{-- Filters --}}
+    <form method="GET" action="{{ route('marketer.campaigns.index') }}" class="flex flex-wrap items-end gap-3 mb-4 bg-white rounded-2xl border border-gray-100 p-4">
+        @if($statusFilter)
+            <input type="hidden" name="status" value="{{ $statusFilter }}">
+        @endif
+        <div class="flex-1 min-w-[160px]">
+            <label class="text-xs text-gray-400 font-semibold">{{ __('common.search') }}</label>
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('marketer.campaigns.title') }}"
+                class="w-full rounded-lg border-gray-200 text-sm mt-1">
+        </div>
+        <div>
+            <label class="text-xs text-gray-400 font-semibold">{{ __('common.type') }}</label>
+            <select name="type" class="w-full rounded-lg border-gray-200 text-sm mt-1">
+                <option value="">{{ __('common.all') }}</option>
+                @foreach(\App\Enums\CampaignType::cases() as $type)
+                    <option value="{{ $type->value }}" @selected(request('type') === $type->value)>{{ $type->label() }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label class="text-xs text-gray-400 font-semibold">{{ __('common.date_from') }}</label>
+            <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full rounded-lg border-gray-200 text-sm mt-1">
+        </div>
+        <div>
+            <label class="text-xs text-gray-400 font-semibold">{{ __('common.date_to') }}</label>
+            <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full rounded-lg border-gray-200 text-sm mt-1">
+        </div>
+        <button type="submit" class="bg-slate-800 text-white text-sm font-semibold rounded-lg px-4 py-2">{{ __('common.filter') }}</button>
+    </form>
 
     {{-- Status filter tabs --}}
     @php
@@ -35,7 +68,7 @@
                 $count = $value === null ? $totalCount : ($tabs[$value] ?? 0);
                 $isCurrent = $statusFilter === $value;
             @endphp
-            <a href="{{ route('marketer.campaigns.index', $value ? ['status' => $value] : []) }}"
+            <a href="{{ route('marketer.campaigns.index', array_filter(array_merge(request()->except('status', 'page'), ['status' => $value]))) }}"
                 class="text-xs font-semibold rounded-full px-3 py-1.5 transition-colors {{ $isCurrent ? 'bg-slate-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
                 {{ $label }}
                 <span class="ml-1 opacity-70">{{ $count }}</span>

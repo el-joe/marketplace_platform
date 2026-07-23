@@ -10,15 +10,19 @@ use App\Models\TravelCity;
 use App\Models\TravelCountry;
 use App\Models\TravelPackage;
 use App\Models\TravelPackageMedia;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PackageController extends Controller
 {
     use ResolvesTravelAgency;
+    use HasExport;
 
     private function authorise(TravelPackage $package): void
     {
@@ -29,14 +33,73 @@ class PackageController extends Controller
 
     // ── Index ─────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    private function filteredPackagesQuery(Request $request)
     {
-        $packages = TravelPackage::where('travel_agency_id', $this->agencyId())
+        $query = TravelPackage::where('travel_agency_id', $this->agencyId());
+
+        if ($search = $request->query('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title_en', 'like', "%{$search}%")
+                    ->orWhere('title_ar', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status = $request->query('status')) {
+            $query->where('status', TravelPackageStatus::from($status));
+        }
+
+        if ($dateFrom = $request->query('date_from')) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo = $request->query('date_to')) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+
+        return $query;
+    }
+
+    public function index(Request $request): View
+    {
+        $packages = $this->filteredPackagesQuery($request)
+            ->withCount('bookings')
             ->with(['media', 'destinationCountry', 'destinationCity'])
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return view('travel-agency.packages.index', compact('packages'));
+    }
+
+    public function export(Request $request): Response|StreamedResponse
+    {
+        $packages = $this->filteredPackagesQuery($request)
+            ->withCount('bookings')
+            ->with(['destinationCountry', 'destinationCity'])
+            ->latest()
+            ->get();
+
+        $headers = ['Package', 'Destination', 'Price', 'Currency', 'Status', 'Bookings', 'Date'];
+
+        $rows = $packages->map(fn (TravelPackage $package) => [
+            $package->title_en,
+            trim(($package->destinationCity->name_en ?? '') . ' ' . ($package->destinationCountry->name_en ?? '')),
+            $package->price,
+            $package->currency,
+            $package->status->value ?? $package->status,
+            $package->bookings_count,
+            $package->created_at?->toDateString(),
+        ]);
+
+        $filename = 'packages-' . now()->toDateString();
+        $format = $request->input('format', 'csv');
+
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word'  => $this->exportWord($filename, 'Packages', $rows),
+            'csv'   => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ── Create / Store ────────────────────────────────────────────────────────

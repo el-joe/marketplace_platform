@@ -19,32 +19,12 @@ $(function () {
     });
 
     /* ---------- Sidebar group dropdowns ---------- */
-    const NAV_GROUPS_KEY = 'sidebar_open_groups';
-
-    function getOpenGroups() {
-        try {
-            return JSON.parse(localStorage.getItem(NAV_GROUPS_KEY)) || [];
-        } catch (e) {
-            return [];
-        }
-    }
-
-    // Restore previously opened groups (in addition to the group containing the active page).
-    getOpenGroups().forEach(function (id) {
-        $('.nav-group[data-group-id="' + id + '"]').addClass('is-open')
-            .children('.nav-group-header').attr('aria-expanded', 'true');
-    });
-
+    // Only the group containing the active route starts open (server-rendered);
+    // toggling here is session-only and never persisted to storage.
     $('#sidebar-nav').off('click.navgroup').on('click.navgroup', '.nav-group-header', function () {
         const $group = $(this).closest('.nav-group');
         const isOpen = $group.toggleClass('is-open').hasClass('is-open');
         $(this).attr('aria-expanded', isOpen ? 'true' : 'false');
-
-        const openIds = [];
-        $('.nav-group.is-open').each(function () {
-            openIds.push($(this).data('group-id'));
-        });
-        localStorage.setItem(NAV_GROUPS_KEY, JSON.stringify(openIds));
     });
 
     /* ---------- Mobile sidebar ---------- */

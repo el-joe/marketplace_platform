@@ -15,23 +15,50 @@ use App\Models\TravelAgencyCampaignOfferPackage;
 use App\Models\TravelPackage;
 use App\Notifications\Admin\TravelAgencyCampaignOfferSubmitted;
 use App\Notifications\Marketer\TravelAgencyCampaignInvitationReceived;
+use App\Traits\HasExport;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CampaignController extends Controller
 {
     use ResolvesTravelAgency;
+    use HasExport;
 
-    public function index(): View
+    private function filteredOffersQuery(Request $request)
+    {
+        $query = TravelAgencyCampaignOffer::where('travel_agency_id', $this->agencyId());
+
+        if ($search = $request->query('search')) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        if ($dateFrom = $request->query('date_from')) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo = $request->query('date_to')) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+
+        return $query;
+    }
+
+    public function index(Request $request): View
     {
         $agencyId = $this->agencyId();
 
-        $offers = TravelAgencyCampaignOffer::where('travel_agency_id', $agencyId)
+        $offers = $this->filteredOffersQuery($request)
             ->withCount(['invitations', 'invitations as accepted_count' => fn($q) => $q->where('status', VendorCampaignInvitationStatus::Accepted->value)])
             ->latest()
             ->get();
@@ -49,6 +76,35 @@ class CampaignController extends Controller
         ];
 
         return view('travel-agency.campaigns.index', compact('offers', 'stats'));
+    }
+
+    public function export(Request $request): Response|StreamedResponse
+    {
+        $offers = $this->filteredOffersQuery($request)
+            ->withCount('invitations')
+            ->latest()
+            ->get();
+
+        $headers = ['Campaign', 'Type', 'Marketers', 'Status', 'Start', 'End'];
+
+        $rows = $offers->map(fn (TravelAgencyCampaignOffer $offer) => [
+            $offer->name,
+            $offer->campaign_type->value ?? $offer->campaign_type,
+            $offer->invitations_count,
+            $offer->status->value ?? $offer->status,
+            $offer->starts_at?->toDateString(),
+            $offer->ends_at?->toDateString(),
+        ]);
+
+        $filename = 'campaigns-' . now()->toDateString();
+        $format = $request->input('format', 'csv');
+
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word'  => $this->exportWord($filename, 'Campaigns', $rows),
+            'csv'   => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function create(): View
