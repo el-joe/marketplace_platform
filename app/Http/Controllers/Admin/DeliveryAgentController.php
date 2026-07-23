@@ -13,6 +13,7 @@ use App\Models\DeliveryAgent;
 use App\Models\DeliveryAgentDocument;
 use App\Models\DeliveryZone;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,11 +25,16 @@ use Illuminate\View\View;
 class DeliveryAgentController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ── Index ─────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportDeliveryAgents($request);
+        }
+
         $countries = Country::orderBy('name_en')->get(['id', 'name_en']);
         $zones = DeliveryZone::where('is_active', true)->orderBy('name')->get(['id', 'name', 'country_id']);
 
@@ -51,24 +57,10 @@ class DeliveryAgentController extends Controller
         ]);
     }
 
-    // ── DataTable ─────────────────────────────────────────────────────────────
+    // ── Export ────────────────────────────────────────────────────────────────
 
-    public function datatable(Request $request): JsonResponse
+    private function buildDeliveryAgentsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $columns = [
-            ['searchable_columns' => ['delivery_agents.name'], 'orderable_column' => 'delivery_agents.name'],
-            ['searchable_columns' => ['delivery_agents.phone'], 'orderable_column' => 'delivery_agents.phone'],
-            ['orderable_column' => 'countries.name_en'],
-            ['orderable_column' => 'delivery_zones.name'],
-            ['orderable_column' => 'delivery_agents.agent_type'],
-            ['orderable_column' => 'delivery_agents.status'],
-            ['orderable_column' => 'delivery_agents.rating_avg'],
-            ['orderable_column' => 'delivery_agents.total_deliveries'],
-            ['orderable_column' => 'delivery_agents.is_available'],
-            ['orderable_column' => 'delivery_agents.last_login_at'],
-            [],
-        ];
-
         $query = DeliveryAgent::query()
             ->leftJoin('countries', 'countries.id', '=', 'delivery_agents.country_id')
             ->leftJoin('delivery_zones', 'delivery_zones.id', '=', 'delivery_agents.zone_id')
@@ -93,12 +85,59 @@ class DeliveryAgentController extends Controller
                 'delivery_zones.name as zone_name',
             ]);
 
-        $query = $this->applyFilters($query, $request, [
+        return $this->applyFilters($query, $request, [
             'country_id' => fn($q, $v) => $q->where('delivery_agents.country_id', $v),
             'zone_id' => fn($q, $v) => $q->where('delivery_agents.zone_id', $v),
             'status' => fn($q, $v) => $q->where('delivery_agents.status', $v),
             'agent_type' => fn($q, $v) => $q->where('delivery_agents.agent_type', $v),
         ]);
+    }
+
+    private function exportDeliveryAgents(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $agents = $this->buildDeliveryAgentsQuery($request)->get();
+
+        $headers = ['Name', 'Email', 'Phone', 'Country', 'Zone', 'Type', 'Status', 'Rating', 'Total Deliveries'];
+
+        $rows = $agents->map(fn(DeliveryAgent $agent) => [
+            $agent->name,
+            $agent->email,
+            $agent->phone,
+            $agent->country_name ?? '—',
+            $agent->zone_name ?? '—',
+            $agent->agent_type?->value,
+            $agent->status->value,
+            $agent->rating_avg ? number_format((float) $agent->rating_avg, 1) : '—',
+            (int) $agent->total_deliveries,
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('delivery-agents', $headers, $rows),
+            'csv' => $this->exportCsv('delivery-agents', $headers, $rows),
+            'word' => $this->exportWord('delivery-agents', 'Delivery Agents', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    // ── DataTable ─────────────────────────────────────────────────────────────
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $columns = [
+            ['searchable_columns' => ['delivery_agents.name'], 'orderable_column' => 'delivery_agents.name'],
+            ['searchable_columns' => ['delivery_agents.phone'], 'orderable_column' => 'delivery_agents.phone'],
+            ['orderable_column' => 'countries.name_en'],
+            ['orderable_column' => 'delivery_zones.name'],
+            ['orderable_column' => 'delivery_agents.agent_type'],
+            ['orderable_column' => 'delivery_agents.status'],
+            ['orderable_column' => 'delivery_agents.rating_avg'],
+            ['orderable_column' => 'delivery_agents.total_deliveries'],
+            ['orderable_column' => 'delivery_agents.is_available'],
+            ['orderable_column' => 'delivery_agents.last_login_at'],
+            [],
+        ];
+
+        $query = $this->buildDeliveryAgentsQuery($request);
 
         return $this->dataTableResponse($request, $query, $columns, function (DeliveryAgent $agent) {
             return [

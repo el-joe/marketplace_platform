@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Payout;
 use App\Models\Refund;
 use App\Models\SubOrder;
+use App\Traits\HasExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FinanceController extends Controller
 {
+    use HasExport;
+
     public function transactions(Request $request)
     {
         $vendorAdmin = Auth::guard('vendor')->user();
@@ -230,40 +233,34 @@ class FinanceController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $handle = fopen('php://temp', 'r+');
-
-        fputcsv($handle, [
+        $headers = [
             'Date', 'Sub-order Number', 'Order Number',
             'Shipping Charged', 'Delivery Subsidy', 'Your Delivery Contribution',
             'Exceptional Zone Deduction', 'Currency',
-        ]);
+        ];
 
-        foreach ($shipments as $shipment) {
-            fputcsv($handle, [
-                $shipment->created_at->format('Y-m-d'),
-                $shipment->sub_order_number,
-                $shipment->order?->order_number,
-                number_format($shipment->shipping / 100, 2, '.', ''),
-                number_format($shipment->admin_subsidy_amount / 100, 2, '.', ''),
-                number_format($shipment->vendor_contribution_amount / 100, 2, '.', ''),
-                $shipment->shipping_gap > 0 ? number_format($shipment->vendor_contribution_amount / 100, 2, '.', '') : '',
-                $currency,
-            ]);
-        }
+        $rows = $shipments->map(fn($shipment) => [
+            $shipment->created_at->format('Y-m-d'),
+            $shipment->sub_order_number,
+            $shipment->order?->order_number,
+            number_format($shipment->shipping / 100, 2, '.', ''),
+            number_format($shipment->admin_subsidy_amount / 100, 2, '.', ''),
+            number_format($shipment->vendor_contribution_amount / 100, 2, '.', ''),
+            $shipment->shipping_gap > 0 ? number_format($shipment->vendor_contribution_amount / 100, 2, '.', '') : '',
+            $currency,
+        ]);
 
         $totalExceptionalDeduction = $shipments->where('shipping_gap', '>', 0)->sum('vendor_contribution_amount');
-        fputcsv($handle, []);
-        fputcsv($handle, ['', '', '', '', '', '', 'Exceptional Zone Deduction Subtotal (' . $currency . ')', number_format($totalExceptionalDeduction / 100, 2, '.', '')]);
+        $rows->push(['', '', '', '', '', '', 'Exceptional Zone Deduction Subtotal (' . $currency . ')', number_format($totalExceptionalDeduction / 100, 2, '.', '')]);
 
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
+        $filename = 'sales-report-' . $dateFrom->toDateString() . '-to-' . $dateTo->toDateString();
+        $format = $request->input('format', 'csv');
 
-        $filename = 'sales-report-' . $dateFrom->toDateString() . '-to-' . $dateTo->toDateString() . '.csv';
-
-        return response($csv, 200, [
-            'Content-Type'        => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ]);
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word' => $this->exportWord($filename, 'Sales Report', $rows),
+            'csv' => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 }

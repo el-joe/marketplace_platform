@@ -136,6 +136,11 @@ class Marketer extends Authenticatable implements JWTSubject
         return $this->hasMany(MarketerCampaign::class);
     }
 
+    public function products(): HasMany
+    {
+        return $this->hasMany(MarketerProduct::class);
+    }
+
     public function clicks(): HasMany
     {
         return $this->hasMany(MarketerClick::class);

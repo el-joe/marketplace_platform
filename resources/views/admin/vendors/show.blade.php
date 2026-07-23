@@ -784,6 +784,42 @@
             </div>
         </x-card>
 
+        <x-card title="{{ __('admin.vendors.acquisition_agent') }}">
+            @php($acquisitionCommission = $vendor->acquisitionCommissions->first())
+            @if($acquisitionCommission)
+                <dl class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">{{ __('admin.vendors.agent') }}</dt>
+                        <dd class="font-medium text-gray-900">{{ $acquisitionCommission->admin?->name }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">{{ __('admin.vendors.commission_rate') }}</dt>
+                        <dd class="font-medium text-gray-900">{{ number_format($acquisitionCommission->commission_rate / 100, 2) }}%</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">{{ __('admin.vendors.total_earned') }}</dt>
+                        <dd class="font-medium text-gray-900">{{ number_format($acquisitionCommission->total_earned) }} {{ $acquisitionCommission->currency }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">{{ __('admin.vendors.expires_on') }}</dt>
+                        <dd class="font-medium text-gray-900">{{ $acquisitionCommission->valid_until->format('d M Y') }}</dd>
+                    </div>
+                </dl>
+                <div class="mt-4 pt-4 border-t border-gray-100 flex gap-2">
+                    <a href="{{ route('admin.vendors.acquisition-agent.show', $vendor) }}" class="w-full btn btn-ghost btn-sm text-xs text-center">
+                        {{ __('admin.vendors.view_earnings') }}
+                    </a>
+                    <button type="button" data-revoke-acquisition-agent="{{ $acquisitionCommission->id }}" data-vendor-id="{{ $vendor->id }}" class="w-full btn btn-danger btn-sm text-xs">
+                        {{ __('admin.vendors.revoke') }}
+                    </button>
+                </div>
+            @else
+                <button type="button" data-modal-open="assign-acquisition-agent-modal" class="w-full btn btn-ghost btn-sm text-xs">
+                    {{ __('admin.vendors.assign_acquisition_agent') }}
+                </button>
+            @endif
+        </x-card>
+
         <x-card title="{{ __('admin.vendors.quick_actions') }}">
             <div class="space-y-2">
                 @if($vendor->global_status === \App\Enums\VendorGlobalStatus::Active)
@@ -943,6 +979,50 @@
         <x-slot name="footer">
             <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.vendors.cancel') }}</button>
             <button type="submit" form="assign-manager-form" class="btn btn-primary btn-sm">{{ __('admin.vendors.assign') }}</button>
+        </x-slot>
+    </form>
+</x-modal>
+
+{{-- Assign Acquisition Agent --}}
+<x-modal id="assign-acquisition-agent-modal" title="{{ __('admin.vendors.assign_acquisition_agent') }}" size="md">
+    <form id="assign-acquisition-agent-form" data-vendor-id="{{ $vendor->id }}">
+        @csrf
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendors.select_admin_staff') }} <span class="text-danger-500">*</span></label>
+                <select name="admin_id" class="form-input w-full" data-select2-init required>
+                    <option value="">{{ __('admin.vendors.select_admin_placeholder') }}</option>
+                    @foreach($accountManagerCandidates as $admin)
+                        <option value="{{ $admin->id }}">{{ $admin->name }} ({{ $admin->email }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendors.commission_rate_pct') }} <span class="text-danger-500">*</span></label>
+                    <input type="number" name="commission_rate_pct" step="0.01" min="0.01" max="100" class="form-input w-full" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendors.duration_months') }} <span class="text-danger-500">*</span></label>
+                    <input type="number" name="duration_months" value="12" min="1" max="60" class="form-input w-full" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendors.monthly_min_sales') }} <span class="text-danger-500">*</span></label>
+                    <input type="number" name="monthly_min_sales" value="60" min="0" class="form-input w-full" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.vendors.monthly_max_sales') }} <span class="text-danger-500">*</span></label>
+                    <input type="number" name="monthly_max_sales" value="100" min="0" class="form-input w-full" required>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('common.notes') }}</label>
+                <textarea name="notes" rows="3" class="form-input w-full"></textarea>
+            </div>
+        </div>
+        <x-slot name="footer">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ __('admin.vendors.cancel') }}</button>
+            <button type="submit" form="assign-acquisition-agent-form" class="btn btn-primary btn-sm">{{ __('admin.vendors.assign') }}</button>
         </x-slot>
     </form>
 </x-modal>

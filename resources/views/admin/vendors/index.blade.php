@@ -23,12 +23,16 @@
                 </a>
             @endif
             <button type="button" id="export-btn" class="btn btn-secondary btn-sm">{{ __('admin.vendors.export') }}</button>
+            <x-export-dropdown />
         </div>
     </div>
 
     {{-- ─── Filters ─────────────────────────────────────────────────────────────── --}}
     <x-card class="mb-5">
         <form id="filter-form" class="flex flex-wrap gap-3 items-end">
+            <div class="w-full">
+                <x-date-range-filter />
+            </div>
             <div class="flex-1 min-w-[180px]">
                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ __('common.search') }}</label>
                 <input type="text" id="search-input" class="form-input w-full text-sm" placeholder="{{ __('admin.vendors.search_placeholder') }}">

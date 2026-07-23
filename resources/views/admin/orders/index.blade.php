@@ -152,6 +152,10 @@
         ];
     @endphp
 
+    <div class="flex items-center justify-end mb-3">
+        <x-export-dropdown />
+    </div>
+
     <x-table.datatable id="orders-table" url="{{ route('admin.orders.datatable') }}" :columns="$columns" :filters="$filters"
         :page-length="25" :order="[[7, 'desc']]" />
 @endsection

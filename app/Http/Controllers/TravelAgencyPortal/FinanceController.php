@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
 use App\Services\WalletService;
+use App\Traits\HasExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -17,6 +18,8 @@ use Illuminate\View\View;
 
 class FinanceController extends Controller
 {
+    use HasExport;
+
     public function __construct(private WalletService $walletService) {}
 
     private function agencyId(): string
@@ -225,19 +228,18 @@ class FinanceController extends Controller
         return view('travel-agency.finance.sales-report', compact('bookings', 'packages'));
     }
 
-    public function exportSalesReport(Request $request): Response
+    public function exportSalesReport(Request $request): Response|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         [$query, $rate] = $this->salesReportQuery($request);
 
         $bookings = $query->latest()->get();
 
-        $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, ['Booking Ref', 'Package', 'Customer', 'Travelers', 'Price', 'Commission', 'Net Revenue', 'Currency', 'Date', 'Status']);
+        $headers = ['Booking Ref', 'Package', 'Customer', 'Travelers', 'Price', 'Commission', 'Net Revenue', 'Currency', 'Date', 'Status'];
 
-        foreach ($bookings as $booking) {
+        $rows = $bookings->map(function (TravelBooking $booking) use ($rate) {
             $commission = (int) round($booking->total_price * $rate);
 
-            fputcsv($handle, [
+            return [
                 $booking->booking_number,
                 $booking->package->title_en ?? '',
                 $this->maskName($booking->customer->name ?? ''),
@@ -248,16 +250,17 @@ class FinanceController extends Controller
                 $booking->package->currency ?? '',
                 $booking->created_at->toDateString(),
                 $booking->status->value,
-            ]);
-        }
+            ];
+        });
 
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
+        $filename = 'sales-report-' . now()->toDateString();
+        $format = $request->input('format', 'csv');
 
-        return response($csv, 200, [
-            'Content-Type'        => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="sales-report-' . now()->toDateString() . '.csv"',
-        ]);
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word' => $this->exportWord($filename, 'Sales Report', $rows),
+            'csv' => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 }

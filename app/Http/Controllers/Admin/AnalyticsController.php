@@ -5,24 +5,56 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Services\AnalyticsService;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AnalyticsController extends Controller
 {
+    use HasExport;
+
     public function __construct(protected AnalyticsService $analytics)
     {
     }
 
     // ── Page ──────────────────────────────────────────────────────────────────
 
-    public function index(): \Illuminate\View\View
+    public function index(Request $request): \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportOverview($request);
+        }
+
         $countries = Country::where('is_active', true)
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'iso_code_2']);
 
         return view('admin.analytics.index', compact('countries'));
+    }
+
+    // ── Export ────────────────────────────────────────────────────────────────
+    // NOTE: this page is a metrics dashboard, not a row-listing table — there is
+    // no underlying "listing" datatable to reuse. We export the same overview
+    // summary metrics the page's AJAX overview() endpoint returns, flattened
+    // into label/value rows.
+
+    private function exportOverview(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $overview = $this->analytics->overview($request);
+
+        $rows = collect($overview)->map(fn($value, $key) => [
+            'Metric' => $key,
+            'Value' => is_scalar($value) ? $value : json_encode($value),
+        ])->values();
+
+        $headers = ['Metric', 'Value'];
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('analytics-overview', $headers, $rows),
+            'csv' => $this->exportCsv('analytics-overview', $headers, $rows),
+            'word' => $this->exportWord('analytics-overview', 'Analytics Overview', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ── AJAX endpoints ────────────────────────────────────────────────────────

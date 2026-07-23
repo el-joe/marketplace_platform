@@ -18,6 +18,7 @@ use App\Enums\RefundType;
 use App\Services\OrderInterventionService;
 use Illuminate\Validation\Rule;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,7 @@ use Illuminate\View\View;
 class OrderController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(private readonly OrderInterventionService $interventionService)
     {
@@ -36,8 +38,12 @@ class OrderController extends Controller
     // Index / Listing
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportOrders($request);
+        }
+
         $countries = Country::query()
             ->where('is_active', true)
             ->orderBy('name_en')
@@ -52,10 +58,8 @@ class OrderController extends Controller
         ]);
     }
 
-    public function datatable(Request $request): JsonResponse
+    private function buildOrdersQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
-        $columns = $this->columnDefinitions();
-
         $query = Order::query()
             ->leftJoin('customers as c', 'c.id', '=', 'orders.customer_id')
             ->whereNull('orders.deleted_at')
@@ -78,7 +82,7 @@ class OrderController extends Controller
                     ->whereColumn('order_id', 'orders.id'),
             ]);
 
-        $query = $this->applyFilters($query, $request, [
+        return $this->applyFilters($query, $request, [
             'status' => fn($q, $v) => $q->where('orders.status', $v),
             'payment_status' => fn($q, $v) => $q->where('orders.payment_status', $v),
             'country_id' => fn($q, $v) => $q->where('c.country_id', $v),
@@ -88,6 +92,38 @@ class OrderController extends Controller
             'max_total' => fn($q, $v) => $q->where('orders.total', '<=', (int) round((float) $v * 100)),
             'risk_score_min' => fn($q, $v) => $q->where('orders.risk_score', '>=', (float) $v),
         ]);
+    }
+
+    private function exportOrders(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $orders = $this->buildOrdersQuery($request)->orderByDesc('orders.placed_at')->get();
+
+        $headers = ['Order #', 'Customer', 'Items', 'Total', 'Payment Method', 'Payment Status', 'Status', 'Placed At'];
+
+        $rows = $orders->map(fn($row) => [
+            $row->order_number,
+            $row->customer_name,
+            (int) $row->items_count,
+            strtoupper($row->currency) . ' ' . number_format($row->total / 100, 2),
+            $row->payment_method,
+            $row->payment_status?->value,
+            $row->status?->value,
+            optional($row->placed_at)->format('d M Y H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('orders', $headers, $rows),
+            'csv' => $this->exportCsv('orders', $headers, $rows),
+            'word' => $this->exportWord('orders', 'Orders', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $columns = $this->columnDefinitions();
+
+        $query = $this->buildOrdersQuery($request);
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
             $addr = is_string($row->shipping_address_snapshot)

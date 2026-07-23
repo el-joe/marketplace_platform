@@ -13,6 +13,7 @@ use App\Models\VendorListing;
 use App\Models\WarehouseInventory;
 use App\Notifications\Carrier\NewUnassignedShipmentArrived;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +26,7 @@ use Illuminate\View\View;
 class OrderController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Helpers
@@ -63,8 +65,12 @@ class OrderController extends Controller
     // Index
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(Request $request): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportOrders($request);
+        }
+
         $statuses = ['placed', 'confirmed', 'processing', 'packed', 'shipped', 'delivered', 'completed', 'cancelled'];
 
         // Status counts for filter tabs
@@ -82,10 +88,10 @@ class OrderController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // DataTable
+    // Export
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function datatable(Request $request): JsonResponse
+    private function buildOrdersQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $vendorId = $this->vendorId();
 
@@ -122,6 +128,40 @@ class OrderController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('sub_orders.created_at', '<=', $request->input('date_to'));
         }
+
+        return $query;
+    }
+
+    private function exportOrders(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $orders = $this->buildOrdersQuery($request)->orderByDesc('sub_orders.created_at')->get();
+
+        $headers = ['Sub-order Number', 'Status', 'Payout', 'Items', 'SLA Ship Deadline', 'Placed At'];
+
+        $rows = $orders->map(fn($row) => [
+            $row->sub_order_number,
+            $row->status->value,
+            number_format($row->vendor_payout / 100, 2),
+            $row->item_count,
+            optional($row->sla_ship_deadline)->format('Y-m-d H:i'),
+            $row->created_at->format('Y-m-d H:i'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('orders', $headers, $rows),
+            'csv' => $this->exportCsv('orders', $headers, $rows),
+            'word' => $this->exportWord('orders', 'Orders', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DataTable
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $query = $this->buildOrdersQuery($request);
 
         $columns = [
             ['searchable_columns' => ['sub_orders.sub_order_number']],

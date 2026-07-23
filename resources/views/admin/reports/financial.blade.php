@@ -21,6 +21,8 @@
             </svg>
             {{ __('admin.finance.export_csv') }}
         </button>
+        <button id="btn-export-excel" type="button" class="btn btn-secondary btn-sm">{{ __('common.export_excel') }}</button>
+        <button id="btn-export-word" type="button" class="btn btn-secondary btn-sm">{{ __('common.export_word') }}</button>
     </div>
 </div>
 
@@ -458,14 +460,18 @@ Object.assign(window.TRANSLATIONS, {
     }
 
     // ── Export ─────────────────────────────────────────────────────────────
-    btnExport.addEventListener('click', () => {
+    function exportReport(format) {
         const params = new URLSearchParams({
             from: filterFrom.value,
             to:   filterTo.value,
             include_unlaunched: filterUnlaunched.checked ? '1' : '0',
+            format,
         });
         window.location.href = `{{ route('admin.reports.financial.export') }}?${params}`;
-    });
+    }
+    btnExport.addEventListener('click', () => exportReport('csv'));
+    document.getElementById('btn-export-excel').addEventListener('click', () => exportReport('excel'));
+    document.getElementById('btn-export-word').addEventListener('click', () => exportReport('word'));
 
     // ── Initial load ───────────────────────────────────────────────────────
     load();

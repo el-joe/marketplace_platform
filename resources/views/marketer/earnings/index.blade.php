@@ -43,6 +43,10 @@
     </div>
 </div>
 
+<div class="flex justify-end mb-4">
+    <x-export-dropdown />
+</div>
+
 {{-- ── Tabs ─────────────────────────────────────────────────────────────────── --}}
 <div x-data="{ tab: 'pending' }">
 

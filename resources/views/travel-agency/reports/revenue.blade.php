@@ -7,10 +7,20 @@
 <div class="space-y-5">
     <div class="flex items-center justify-between flex-wrap gap-3">
         <h1 class="text-2xl font-black text-gray-900">{{ __('travel.reports.revenue_title') }}</h1>
-        <a href="{{ route('travel-agency.reports.revenue.export', request()->query()) }}"
-           class="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-700">
-            {{ __('travel.reports.export_csv') }}
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('travel-agency.reports.revenue.export', request()->query()) }}"
+               class="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-700">
+                {{ __('travel.reports.export_csv') }}
+            </a>
+            <a href="{{ route('travel-agency.reports.revenue.export', array_merge(request()->query(), ['format' => 'excel'])) }}"
+               class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200">
+                {{ __('common.export_excel') }}
+            </a>
+            <a href="{{ route('travel-agency.reports.revenue.export', array_merge(request()->query(), ['format' => 'word'])) }}"
+               class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200">
+                {{ __('common.export_word') }}
+            </a>
+        </div>
     </div>
 
     {{-- Date range filter --}}

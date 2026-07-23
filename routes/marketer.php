@@ -13,6 +13,7 @@ use App\Http\Controllers\MarketerPortal\MediaKitController;
 use App\Http\Controllers\MarketerPortal\ProfileController;
 use App\Http\Controllers\MarketerPortal\QrCodeController;
 use App\Http\Controllers\MarketerPortal\SampleRequestController;
+use App\Http\Controllers\MarketerPortal\StoreProductController;
 use App\Http\Controllers\MarketerPortal\TrackingController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Broadcast;
@@ -141,6 +142,17 @@ Route::domain('marketer.' . env('APP_DOMAIN', 'localhost'))
                 Route::get('/{invitation}', [AdminOfferController::class, 'show'])->name('show');
                 Route::post('/{invitation}/accept', [AdminOfferController::class, 'accept'])->name('accept');
                 Route::post('/{invitation}/decline', [AdminOfferController::class, 'decline'])->name('decline');
+            });
+
+            // My Store Products (own branded products, all marketer types)
+            Route::prefix('store-products')->name('store-products.')->group(function () {
+                Route::get('/', [StoreProductController::class, 'index'])->name('index');
+                Route::get('/create', [StoreProductController::class, 'create'])->name('create');
+                Route::post('/', [StoreProductController::class, 'store'])->name('store');
+                Route::get('/{product}/edit', [StoreProductController::class, 'edit'])->name('edit');
+                Route::put('/{product}', [StoreProductController::class, 'update'])->name('update');
+                Route::post('/{product}/submit', [StoreProductController::class, 'submitForReview'])->name('submit');
+                Route::delete('/{product}', [StoreProductController::class, 'destroy'])->name('destroy');
             });
 
             // ── Affiliate only: Promo Codes ───────────────────────────────────────

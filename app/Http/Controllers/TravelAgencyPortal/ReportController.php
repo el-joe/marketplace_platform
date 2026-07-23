@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\TravelAgencyPortal\Concerns\ResolvesTravelAgency;
 use App\Models\TravelBooking;
 use App\Models\TravelPackage;
+use App\Traits\HasExport;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
@@ -17,6 +18,7 @@ use Illuminate\View\View;
 class ReportController extends Controller
 {
     use ResolvesTravelAgency;
+    use HasExport;
 
     private function dateRange(Request $request): array
     {
@@ -110,7 +112,7 @@ class ReportController extends Controller
         ));
     }
 
-    public function exportRevenue(Request $request): Response
+    public function exportRevenue(Request $request): Response|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $agencyId = $this->agencyId();
         [$from, $to] = $this->dateRange($request);
@@ -130,31 +132,29 @@ class ReportController extends Controller
             ->orderByDesc('month')
             ->get();
 
-        $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, ['Month', 'Bookings Count', 'Revenue', 'Commission', 'Net', 'Currency']);
+        $headers = ['Month', 'Bookings Count', 'Revenue', 'Commission', 'Net', 'Currency'];
 
-        foreach ($monthlyBreakdown as $row) {
+        $rows = $monthlyBreakdown->map(function ($row) use ($rate) {
             $commission = (int) round($row->revenue * $rate);
-            fputcsv($handle, [
+            return [
                 $row->month,
                 (int) $row->bookings_count,
                 (int) $row->revenue,
                 $commission,
                 (int) $row->revenue - $commission,
                 $row->currency,
-            ]);
-        }
+            ];
+        });
 
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
+        $filename = 'revenue-report-' . $from->toDateString() . '-to-' . $to->toDateString();
+        $format = $request->input('format', 'csv');
 
-        $filename = 'revenue-report-' . $from->toDateString() . '-to-' . $to->toDateString() . '.csv';
-
-        return response($csv, 200, [
-            'Content-Type'        => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ]);
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word' => $this->exportWord($filename, 'Revenue Report', $rows),
+            'csv' => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ── Report 2: Bookings ─────────────────────────────────────────────────────
@@ -227,7 +227,7 @@ class ReportController extends Controller
         ));
     }
 
-    public function exportBookings(Request $request): Response
+    public function exportBookings(Request $request): Response|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $agencyId = $this->agencyId();
 
@@ -256,29 +256,27 @@ class ReportController extends Controller
 
         $bookings = $query->with(['package', 'customer'])->latest()->get();
 
-        $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, ['Booking Ref', 'Customer Name', 'Package', 'Travel Date', 'Price', 'Currency', 'Status']);
+        $headers = ['Booking Ref', 'Customer Name', 'Package', 'Travel Date', 'Price', 'Currency', 'Status'];
 
-        foreach ($bookings as $bk) {
-            fputcsv($handle, [
-                $bk->booking_number,
-                $bk->customer->name ?? '',
-                $bk->package->title_en ?? '',
-                $bk->package->departure_date?->toDateString() ?? '',
-                $bk->total_price,
-                $bk->package->currency ?? '',
-                $bk->status->value,
-            ]);
-        }
-
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
-
-        return response($csv, 200, [
-            'Content-Type'        => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="bookings-report-' . now()->toDateString() . '.csv"',
+        $rows = $bookings->map(fn($bk) => [
+            $bk->booking_number,
+            $bk->customer->name ?? '',
+            $bk->package->title_en ?? '',
+            $bk->package->departure_date?->toDateString() ?? '',
+            $bk->total_price,
+            $bk->package->currency ?? '',
+            $bk->status->value,
         ]);
+
+        $filename = 'bookings-report-' . now()->toDateString();
+        $format = $request->input('format', 'csv');
+
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word' => $this->exportWord($filename, 'Bookings Report', $rows),
+            'csv' => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     // ── Report 3: Packages Performance ─────────────────────────────────────────

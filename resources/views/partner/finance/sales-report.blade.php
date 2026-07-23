@@ -64,6 +64,10 @@
                        class="text-xs font-medium text-primary-600 hover:underline">
                         {{ __('partner.finance.export') }}
                     </a>
+                    <a href="{{ route('partner.finance.sales-report.export', array_merge(request()->query(), ['format' => 'excel'])) }}"
+                       class="text-xs font-medium text-primary-600 hover:underline">{{ __('common.export_excel') }}</a>
+                    <a href="{{ route('partner.finance.sales-report.export', array_merge(request()->query(), ['format' => 'word'])) }}"
+                       class="text-xs font-medium text-primary-600 hover:underline">{{ __('common.export_word') }}</a>
                 </div>
             </div>
         </div>

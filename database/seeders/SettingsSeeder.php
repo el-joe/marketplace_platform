@@ -64,6 +64,7 @@ class SettingsSeeder extends Seeder
             ['key' => 'min_influencer_sample_quota', 'value' => 1, 'category' => 'vendors', 'description' => 'Minimum number of free samples a vendor must allocate for influencer promotion'],
             ['key' => 'min_affiliate_sample_quota', 'value' => 1, 'category' => 'vendors', 'description' => 'Minimum number of free samples a vendor must allocate for affiliate promotion'],
             ['key' => 'admin_mandated_sample_quota', 'value' => 0, 'category' => 'vendors', 'description' => 'Additional samples auto-reserved for admin use on top of vendor-provided influencer/affiliate samples'],
+            ['key' => 'min_marketer_product_commission_rate', 'value' => 500, 'category' => 'vendors', 'description' => 'Minimum platform commission (basis points, e.g. 500 = 5.00%) a marketer must declare when selling their own branded products'],
 
             // ─── customers ────────────────────────────────────────────────────
             ['key' => 'loyalty_points_per_100_egp', 'value' => 1, 'category' => 'customers', 'description' => 'Loyalty points earned per 100 EGP spent'],

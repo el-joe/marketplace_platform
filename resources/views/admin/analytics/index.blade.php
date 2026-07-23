@@ -78,6 +78,8 @@
                 <input type="date" id="date-to" class="form-input py-1.5 text-sm w-36" />
                 <button id="apply-custom" type="button" class="btn btn-primary btn-sm">{{ __('admin.analytics.apply') }}</button>
             </div>
+
+            <x-export-dropdown />
         </div>
     </div>
 

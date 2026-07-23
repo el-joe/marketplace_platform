@@ -267,6 +267,19 @@ class NavigationService
                         'badge' => $this->cachedBadge('pending_vendor_change_requests', fn() => $this->countPendingVendorChangeRequests()),
                     ],
                     [
+                        'label' => __('admin.nav.acquisition_commissions'),
+                        'route' => 'admin.acquisition-commissions.index',
+                        'icon' => 'user-plus',
+                        'permission' => 'vendors.view',
+                        'badge' => null,
+                    ],
+                    ...($this->hasActiveAcquisitionCommissions() ? [[
+                        'label' => __('admin.nav.my_acquisition_commissions'),
+                        'route' => 'admin.my-acquisition-commissions.index',
+                        'icon' => 'banknotes',
+                        'badge' => null,
+                    ]] : []),
+                    [
                         'label' => __('admin.nav.admins'),
                         'route' => 'admin.admins.index',
                         'icon' => 'shield-check',
@@ -321,6 +334,13 @@ class NavigationService
                         'icon' => 'inbox-stack',
                         'permission' => 'marketers.samples.view',
                         'badge' => $this->cachedBadge('pending_marketer_samples', fn() => $this->countPendingMarketerSamples()),
+                    ],
+                    [
+                        'label' => __('admin.nav.marketer_products'),
+                        'route' => 'admin.marketer-products.index',
+                        'icon' => 'shopping-bag',
+                        'permission' => 'marketers.products.view',
+                        'badge' => $this->cachedBadge('pending_marketer_products', fn() => $this->countPendingMarketerProducts()),
                     ],
                     [
                         'label' => __('admin.nav.influencer_deals'),
@@ -993,6 +1013,19 @@ class NavigationService
         }
     }
 
+    protected function hasActiveAcquisitionCommissions(): bool
+    {
+        $adminId = Auth::guard('admin')->id();
+
+        if (!$adminId) {
+            return false;
+        }
+
+        return \App\Models\VendorAcquisitionCommission::where('admin_id', $adminId)
+            ->where('status', 'active')
+            ->exists();
+    }
+
     protected function countPendingVendors(): int
     {
         if (!class_exists(\App\Models\Vendor::class)) {
@@ -1048,6 +1081,15 @@ class NavigationService
     {
         try {
             return (int) \App\Models\InfluencerDeal::query()->where('status', 'content_submitted')->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countPendingMarketerProducts(): int
+    {
+        try {
+            return (int) \App\Models\MarketerProduct::query()->where('status', 'pending_review')->count();
         } catch (\Throwable) {
             return 0;
         }

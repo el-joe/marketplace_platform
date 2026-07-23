@@ -19,6 +19,7 @@ return [
         'media_kit'        => 'الملف الإعلامي',
         'profile'          => 'الملف الشخصي',
         'store'            => 'متجري',
+        'store_products'   => 'منتجاتي',
         'referral_code'    => 'كود الإحالة',
         'sign_out'         => 'تسجيل الخروج',
         'toggle_menu'      => 'تبديل القائمة',

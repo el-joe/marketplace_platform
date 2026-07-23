@@ -24,12 +24,14 @@ use App\Models\VendorDocument;
 use App\Services\ActivityLoggerService;
 use App\Services\VendorApprovalService;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class VendorController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     public function __construct(
         private VendorApprovalService $approvalService,
@@ -41,6 +43,10 @@ class VendorController extends Controller
 
     public function index(Request $request)
     {
+        if ($request->filled('export')) {
+            return $this->exportVendors($request);
+        }
+
         $isScopedAdmin = (bool) $request->attributes->get('is_scoped_admin');
         $scopedVendorIds = $request->attributes->get('scoped_vendor_ids');
 
@@ -56,9 +62,9 @@ class VendorController extends Controller
         return view('admin.vendors.index', compact('pendingCount', 'admins', 'countries', 'isScopedAdmin'));
     }
 
-    // ── DataTable ─────────────────────────────────────────────────────────────
+    // ── Export ────────────────────────────────────────────────────────────────
 
-    public function datatable(Request $request): JsonResponse
+    private function buildVendorsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $isScopedAdmin = (bool) $request->attributes->get('is_scoped_admin');
         $scopedVendorIds = $request->attributes->get('scoped_vendor_ids');
@@ -73,13 +79,48 @@ class VendorController extends Controller
             $query->withCount('bankAccounts');
         }
 
-        $query = $this->applyFilters($query, $request, [
+        return $this->applyFilters($query, $request, [
             'global_status' => fn($q, $v) => $q->where('global_status', $v),
             'country_id' => fn($q, $v) => $q->where('country_id', $v),
             'account_manager_admin_id' => fn($q, $v) => $q->where('account_manager_admin_id', $v),
             'date_from' => fn($q, $v) => $q->whereDate('created_at', '>=', $v),
             'date_to' => fn($q, $v) => $q->whereDate('created_at', '<=', $v),
         ]);
+    }
+
+    private function exportVendors(Request $request)
+    {
+        $vendors = $this->buildVendorsQuery($request)->latest('created_at')->get();
+
+        $headers = ['Store Name', 'Owner', 'Email', 'GMV', 'Orders', 'Rating', 'Status', 'Manager', 'Joined'];
+
+        $rows = $vendors->map(fn(Vendor $vendor) => [
+            $vendor->store_name,
+            $vendor->name,
+            $vendor->email,
+            number_format($vendor->total_sales, 2),
+            $vendor->total_orders,
+            number_format($vendor->store_rating_avg, 1),
+            $vendor->global_status?->value,
+            $vendor->accountManagerAdmin?->name ?? '—',
+            $vendor->created_at->format('d M Y'),
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('vendors', $headers, $rows),
+            'csv' => $this->exportCsv('vendors', $headers, $rows),
+            'word' => $this->exportWord('vendors', 'Vendors', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    // ── DataTable ─────────────────────────────────────────────────────────────
+
+    public function datatable(Request $request): JsonResponse
+    {
+        $isScopedAdmin = (bool) $request->attributes->get('is_scoped_admin');
+
+        $query = $this->buildVendorsQuery($request);
 
         $columns = [
             ['searchable_columns' => ['vendors.store_name', 'vendors.business_name'], 'orderable_column' => 'vendors.store_name'],
@@ -161,6 +202,9 @@ class VendorController extends Controller
             },
             'sectionLocks.lockedByAdmin',
             'sectionLocks.unlockedByAdmin',
+            'acquisitionCommissions' => function ($q) {
+                $q->where('status', 'active')->with('admin')->latest('created_at');
+            },
         ]);
 
         $sectionLocks = $vendor->sectionLocks->keyBy('section');

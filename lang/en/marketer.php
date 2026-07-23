@@ -19,6 +19,7 @@ return [
         'media_kit'        => 'Media Kit',
         'profile'          => 'Profile',
         'store'            => 'My Store',
+        'store_products'   => 'My Products',
         'referral_code'    => 'Referral Code',
         'sign_out'         => 'Sign out',
         'toggle_menu'      => 'Toggle menu',

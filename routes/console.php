@@ -14,6 +14,7 @@ use App\Jobs\GenerateFbnStorageFeesJob;
 use App\Jobs\FbnInboundReminderJob;
 use App\Jobs\PublishScheduledBlogPostsJob;
 use App\Jobs\RecalculateBestSellerRankingsJob;
+use App\Jobs\ProcessAcquisitionCommissionsJob;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -34,6 +35,9 @@ Schedule::job(new PublishScheduledBlogPostsJob)->everyFiveMinutes()->name('publi
 
 // Auto-approve marketer commissions after 14-day return window
 Schedule::job(new ApproveMarketerCommissionsJob)->dailyAt('03:00')->name('marketer-approve-commissions');
+
+// Process vendor acquisition agent commissions for the previous month
+Schedule::job(new ProcessAcquisitionCommissionsJob)->monthlyOn(1, '02:00')->name('process-acquisition-commissions');
 
 // Generate vendor payouts every Monday at 06:00 for the previous week (Mon–Sun)
 Schedule::call(function () {

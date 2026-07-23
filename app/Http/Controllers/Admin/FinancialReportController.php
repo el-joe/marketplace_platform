@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\Currency;
 use App\Services\FinancialReportService;
+use App\Traits\HasExport;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,8 @@ use Illuminate\Support\Collection;
 
 class FinancialReportController extends Controller
 {
+    use HasExport;
+
     public function __construct(protected FinancialReportService $reports)
     {
     }
@@ -113,7 +116,7 @@ class FinancialReportController extends Controller
         ]);
     }
 
-    public function export(Request $request): Response
+    public function export(Request $request): Response|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $request->validate([
             'from'             => ['required', 'date'],
@@ -140,9 +143,7 @@ class FinancialReportController extends Controller
 
         $rates = Currency::pluck('exchange_rate_to_base', 'code');
 
-        $handle = fopen('php://temp', 'r+');
-
-        fputcsv($handle, [
+        $headers = [
             'Country', 'ISO', 'Currency', 'Status',
             'Orders',
             'Revenue', 'Revenue (USD est.)',
@@ -152,9 +153,11 @@ class FinancialReportController extends Controller
             'Marketer Payouts (net)', 'Marketer Payouts (USD est.)',
             'Ad Revenue', 'Ad Revenue (USD est.)',
             'Period From', 'Period To', 'Export Note',
-        ]);
+        ];
 
         $note = 'USD estimates use current stored exchange rates and are indicative only — not accounting-grade conversions.';
+
+        $rows = collect();
 
         foreach ($countries as $country) {
             $rev  = $revenue->firstWhere('country_id', $country->id);
@@ -183,7 +186,7 @@ class FinancialReportController extends Controller
             $mktCents = $mkt ? (int) $mkt->net : 0;
             $adCents  = $ad ? (int) $ad->spend : 0;
 
-            fputcsv($handle, [
+            $rows->push([
                 $country->name_en,
                 $country->iso_code_2,
                 $ccy,
@@ -208,15 +211,14 @@ class FinancialReportController extends Controller
             ]);
         }
 
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
+        $filename = 'financial-report-' . $from->toDateString() . '-to-' . $to->toDateString();
+        $format = $request->input('format', 'csv');
 
-        $filename = 'financial-report-' . $from->toDateString() . '-to-' . $to->toDateString() . '.csv';
-
-        return response($csv, 200, [
-            'Content-Type'        => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ]);
+        return match ($format) {
+            'excel' => $this->exportExcel($filename, $headers, $rows),
+            'word' => $this->exportWord($filename, 'Financial Report', $rows),
+            'csv' => $this->exportCsv($filename, $headers, $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 }

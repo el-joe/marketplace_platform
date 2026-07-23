@@ -45,6 +45,7 @@ use App\Notifications\Marketer\SampleRequestRejected as MarketerSampleRequestRej
 use App\Services\ActivityLoggerService;
 use App\Services\SampleQuotaResolver;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -58,13 +59,18 @@ use Illuminate\View\View;
 class MarketerController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     // ════════════════════════════════════════════════════════════════════════
     //  MARKETERS
     // ════════════════════════════════════════════════════════════════════════
 
-    public function index(): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportMarketers($request);
+        }
+
         $stats = [
             'total' => Marketer::count(),
             'active' => Marketer::where('status', 'active')->count(),
@@ -88,6 +94,46 @@ class MarketerController extends Controller
             'stats' => $stats,
             'countries' => $countries,
         ]);
+    }
+
+    private function exportMarketers(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $query = Marketer::query()->leftJoin('countries', 'countries.id', '=', 'marketers.country_id')
+            ->select(['marketers.name', 'marketers.email', 'marketers.type', 'marketers.status',
+                'marketers.total_clicks', 'marketers.total_conversions', 'marketers.total_earnings',
+                'countries.name_en as country_name']);
+
+        if ($type = $request->input('type') ?: $request->input('filter_type')) {
+            $query->where('marketers.type', $type);
+        }
+        if ($status = $request->input('filter_status')) {
+            $query->where('marketers.status', $status);
+        }
+        if ($country = $request->input('filter_country')) {
+            $query->where('marketers.country_id', $country);
+        }
+
+        $marketers = $query->get();
+
+        $headers = ['Name', 'Email', 'Country', 'Type', 'Clicks', 'Conversions', 'Earnings', 'Status'];
+
+        $rows = $marketers->map(fn($m) => [
+            $m->name,
+            $m->email,
+            $m->country_name ?? '—',
+            $m->type?->value,
+            number_format($m->total_clicks),
+            number_format($m->total_conversions),
+            number_format($m->total_earnings / 100, 2),
+            $m->status?->value,
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('marketers', $headers, $rows),
+            'csv' => $this->exportCsv('marketers', $headers, $rows),
+            'word' => $this->exportWord('marketers', 'Marketers', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     public function datatable(Request $request): JsonResponse

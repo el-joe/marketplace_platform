@@ -177,6 +177,9 @@ class PermissionSeeder extends Seeder
             'marketers.samples.view',
             'marketers.samples.approve',
             'marketers.samples.dispatch',
+            'marketers.products.view',
+            'marketers.products.approve',
+            'marketers.products.reject',
             // Travel
             'travel.view',
             'travel.approve',

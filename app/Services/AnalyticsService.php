@@ -376,14 +376,23 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
+            $countryId = $request->input('country_id');
+            $countryJoin = $countryId ? 'JOIN customers c ON c.id = o.customer_id' : '';
+            $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [$r['from']->toDateTimeString(), $r['to']->toDateTimeString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
 
             $rows = DB::select("
-                SELECT status, COUNT(*) AS cnt
-                FROM orders
-                WHERE placed_at >= ? AND placed_at <= ? AND deleted_at IS NULL
-                GROUP BY status
+                SELECT o.status, COUNT(*) AS cnt
+                FROM orders o
+                {$countryJoin}
+                WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                {$countryWhere}
+                GROUP BY o.status
                 ORDER BY cnt DESC
-            ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
+            ", $bindings);
 
             $colorMap = [
                 'placed' => '#6366f1',
@@ -418,19 +427,28 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
+            $countryId = $request->input('country_id');
+            $countryJoin = $countryId ? 'JOIN customers c ON c.id = o.customer_id' : '';
+            $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [$r['from']->toDateTimeString(), $r['to']->toDateTimeString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
 
             // FIX extra SUM(total) by payment method: group by (payment_method, currency).
             $rows = DB::select("
                 SELECT
-                    payment_method,
-                    currency,
+                    o.payment_method,
+                    o.currency,
                     COUNT(*) AS orders_count,
-                    COALESCE(SUM(total), 0) AS total_amount
-                FROM orders
-                WHERE placed_at >= ? AND placed_at <= ? AND deleted_at IS NULL
-                GROUP BY payment_method, currency
+                    COALESCE(SUM(o.total), 0) AS total_amount
+                FROM orders o
+                {$countryJoin}
+                WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                {$countryWhere}
+                GROUP BY o.payment_method, o.currency
                 ORDER BY total_amount DESC
-            ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
+            ", $bindings);
 
             // Collapse by payment_method, keeping per-currency revenue breakdown.
             $byMethod = [];
@@ -474,6 +492,13 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
+            $countryId = $request->input('country_id');
+            $countryJoin = $countryId ? 'JOIN customers c ON c.id = o.customer_id' : '';
+            $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [$r['from']->toDateTimeString(), $r['to']->toDateTimeString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
 
             // FIX lines 355-356: GROUP BY (product, o.currency) — never blend revenue across currencies.
             $rows = DB::select("
@@ -496,10 +521,12 @@ class AnalyticsService
                     GROUP BY product_variant_id, vendor_id
                 ) vl ON vl.product_variant_id = oi.product_variant_id AND vl.vendor_id = oi.vendor_id
                 JOIN orders o            ON o.id  = oi.order_id
+                {$countryJoin}
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                {$countryWhere}
                 GROUP BY p.id, p.name_en, o.currency
                 ORDER BY p.id ASC
-            ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
+            ", $bindings);
 
             // Collapse per-product, accumulate revenue_by_currency.
             $products = [];
@@ -537,6 +564,13 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
+            $countryId = $request->input('country_id');
+            $countryJoin = $countryId ? 'JOIN customers c ON c.id = o.customer_id' : '';
+            $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [$r['from']->toDateTimeString(), $r['to']->toDateTimeString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
 
             // FIX lines 401-402: GROUP BY (vendor, o.currency) — vendors on a multi-country
             // platform could theoretically have orders in different currencies; the raw SUM
@@ -553,10 +587,12 @@ class AnalyticsService
                 FROM sub_orders so
                 JOIN vendors v  ON v.id  = so.vendor_id
                 JOIN orders o   ON o.id  = so.order_id
+                {$countryJoin}
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                {$countryWhere}
                 GROUP BY v.id, v.store_name, v.store_rating_avg, o.currency
                 ORDER BY v.id ASC
-            ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
+            ", $bindings);
 
             // Collapse per-vendor, accumulate per-currency GMV/commission.
             $vendors = [];
@@ -606,6 +642,13 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
+            $countryId = $request->input('country_id');
+            $countryJoin = $countryId ? 'JOIN customers c ON c.id = o.customer_id' : '';
+            $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [$r['from']->toDateTimeString(), $r['to']->toDateTimeString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
 
             // FIX lines 437-438: GROUP BY (category, o.currency) — mirrors the topProducts fix.
             // NOTE: this is a SEPARATE code path from topProducts (categories vs products);
@@ -623,10 +666,12 @@ class AnalyticsService
                 JOIN products p          ON p.id  = pv.product_id
                 JOIN categories cat      ON cat.id = p.category_id
                 JOIN orders o            ON o.id  = oi.order_id
+                {$countryJoin}
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                {$countryWhere}
                 GROUP BY cat.id, cat.name_en, o.currency
                 ORDER BY cat.id ASC
-            ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
+            ", $bindings);
 
             // Collapse per-category, accumulate revenue_by_currency; rank by USD equivalent.
             $categories = [];
@@ -674,17 +719,26 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
+            $countryId = $request->input('country_id');
+            $countryWhere = $countryId ? ' AND country_id = ?' : '';
+            $bindings = fn($from, $to) => array_values(array_filter(
+                [$from->toDateTimeString(), $to->toDateTimeString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
 
             // Daily new customers chart
             $acqRows = DB::select("
                 SELECT DATE(created_at) AS date, COUNT(*) AS cnt
                 FROM customers
                 WHERE created_at >= ? AND created_at <= ?
+                {$countryWhere}
                 GROUP BY DATE(created_at)
                 ORDER BY date ASC
-            ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
+            ", $bindings($r['from'], $r['to']));
 
             // Returning vs new (placed orders in period)
+            $countryJoin = $countryId ? 'JOIN customers c ON c.id = o.customer_id' : '';
+            $ordersCountryWhere = $countryId ? ' AND c.country_id = ?' : '';
             $rvn = DB::selectOne("
                 SELECT
                     SUM(CASE WHEN o.customer_order_rank = 1 THEN 1 ELSE 0 END) AS new_buyers,
@@ -693,9 +747,11 @@ class AnalyticsService
                     SELECT o.customer_id,
                            ROW_NUMBER() OVER (PARTITION BY o.customer_id ORDER BY o.placed_at ASC) AS customer_order_rank
                     FROM orders o
+                    {$countryJoin}
                     WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                    {$ordersCountryWhere}
                 ) o
-            ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
+            ", $bindings($r['from'], $r['to']));
 
             // Top countries by new customers
             $topCountries = DB::select("
@@ -705,10 +761,11 @@ class AnalyticsService
                 FROM customers c
                 JOIN countries co ON co.id = c.country_id
                 WHERE c.created_at >= ? AND c.created_at <= ?
+                {$countryWhere}
                 GROUP BY co.name_en
                 ORDER BY cnt DESC
                 LIMIT 10
-            ", [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()]);
+            ", $bindings($r['from'], $r['to']));
 
             return [
                 'acquisition_chart' => [
@@ -881,7 +938,13 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
-            $bindings = [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()];
+            $countryId = $request->input('country_id');
+            $countryJoin = $countryId ? 'JOIN customers c ON c.id = o.customer_id' : '';
+            $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [$r['from']->toDateTimeString(), $r['to']->toDateTimeString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
 
             $overall = DB::selectOne("
                 SELECT
@@ -895,7 +958,9 @@ class AnalyticsService
                     END), 2) AS avg_delivery_hours
                 FROM sub_orders so
                 JOIN orders o ON o.id = so.order_id
+                {$countryJoin}
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                {$countryWhere}
             ", $bindings);
 
             $byVendor = DB::select("
@@ -907,7 +972,9 @@ class AnalyticsService
                 FROM sub_orders so
                 JOIN vendors v  ON v.id  = so.vendor_id
                 JOIN orders o   ON o.id  = so.order_id
+                {$countryJoin}
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                {$countryWhere}
                 GROUP BY v.id, v.store_name
                 HAVING total > 0
                 ORDER BY breach_rate DESC
@@ -920,7 +987,9 @@ class AnalyticsService
                     ROUND(SUM(CASE WHEN so.sla_breached = 1 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(so.id), 0), 2) AS breach_rate
                 FROM sub_orders so
                 JOIN orders o ON o.id = so.order_id
+                {$countryJoin}
                 WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                {$countryWhere}
                 GROUP BY DATE(o.placed_at)
                 ORDER BY date ASC
             ", $bindings);
@@ -1115,20 +1184,28 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
+            $countryId = $request->input('country_id');
+
+            $scopeCountry = function ($query) use ($countryId) {
+                if ($countryId) {
+                    $query->whereHas('vendor', fn($q) => $q->where('country_id', $countryId));
+                }
+                return $query;
+            };
 
             // FIX lines 844-845: flash_sale_analytics already has a currency column written
             // correctly by FlashSaleAnalyticsJob. The read-side just needs GROUP BY currency.
             // Use sumByCurrency() from the trait for the per-currency revenue breakdown.
             $revenueByMoneyCol = $this->sumByCurrency(
-                FlashSaleAnalytic::query()
+                $scopeCountry(FlashSaleAnalytic::query()
                     ->where('date', '>=', $r['from']->toDateString())
-                    ->where('date', '<=', $r['to']->toDateString()),
+                    ->where('date', '<=', $r['to']->toDateString())),
                 'gross_revenue'
             );
             $discountByMoneyCol = $this->sumByCurrency(
-                FlashSaleAnalytic::query()
+                $scopeCountry(FlashSaleAnalytic::query()
                     ->where('date', '>=', $r['from']->toDateString())
-                    ->where('date', '<=', $r['to']->toDateString()),
+                    ->where('date', '<=', $r['to']->toDateString())),
                 'discount_given'
             );
 
@@ -1145,14 +1222,23 @@ class AnalyticsService
                 'discount' => round($r->total / 100, 2),
             ])->values()->all();
 
+            $countryJoin = $countryId ? 'JOIN vendors v ON v.id = fsa.vendor_id' : '';
+            $countryWhere = $countryId ? ' AND v.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [$r['from']->toDateString(), $r['to']->toDateString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
+
             $scalars = DB::selectOne("
                 SELECT
-                    COALESCE(SUM(units_sold), 0)             AS total_units,
-                    ROUND(AVG(conversion_rate) * 100, 4)     AS avg_conversion_rate,
-                    COUNT(DISTINCT flash_sale_id)             AS total_flash_sales
-                FROM flash_sale_analytics
-                WHERE date >= ? AND date <= ?
-            ", [$r['from']->toDateString(), $r['to']->toDateString()]);
+                    COALESCE(SUM(fsa.units_sold), 0)             AS total_units,
+                    ROUND(AVG(fsa.conversion_rate) * 100, 4)     AS avg_conversion_rate,
+                    COUNT(DISTINCT fsa.flash_sale_id)             AS total_flash_sales
+                FROM flash_sale_analytics fsa
+                {$countryJoin}
+                WHERE fsa.date >= ? AND fsa.date <= ?
+                {$countryWhere}
+            ", $bindings);
 
             $topSales = DB::select("
                 SELECT
@@ -1163,11 +1249,13 @@ class AnalyticsService
                     ROUND(AVG(fsa.conversion_rate) * 100, 2) AS avg_cvr
                 FROM flash_sale_analytics fsa
                 JOIN flash_sales fs ON fs.id = fsa.flash_sale_id
+                {$countryJoin}
                 WHERE fsa.date >= ? AND fsa.date <= ?
+                {$countryWhere}
                 GROUP BY fs.id, fs.title, fsa.currency
                 ORDER BY revenue DESC
                 LIMIT 10
-            ", [$r['from']->toDateString(), $r['to']->toDateString()]);
+            ", $bindings);
 
             $topVendors = DB::select("
                 SELECT
@@ -1178,10 +1266,11 @@ class AnalyticsService
                 FROM flash_sale_analytics fsa
                 JOIN vendors v ON v.id = fsa.vendor_id
                 WHERE fsa.date >= ? AND fsa.date <= ?
+                {$countryWhere}
                 GROUP BY v.id, v.store_name, fsa.currency
                 ORDER BY revenue DESC
                 LIMIT 10
-            ", [$r['from']->toDateString(), $r['to']->toDateString()]);
+            ", $bindings);
 
             return [
                 'total_units_sold'       => (int) $scalars->total_units,
@@ -1217,13 +1306,21 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
-            $bindings = [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()];
+            $countryId = $request->input('country_id');
+            $countryJoin = $countryId ? 'JOIN customers c ON c.id = rr.customer_id' : '';
+            $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [$r['from']->toDateTimeString(), $r['to']->toDateTimeString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
 
             $byReason = DB::select("
-                SELECT reason, COUNT(*) AS cnt
-                FROM return_requests
-                WHERE created_at >= ? AND created_at <= ?
-                GROUP BY reason
+                SELECT rr.reason, COUNT(*) AS cnt
+                FROM return_requests rr
+                {$countryJoin}
+                WHERE rr.created_at >= ? AND rr.created_at <= ?
+                {$countryWhere}
+                GROUP BY rr.reason
                 ORDER BY cnt DESC
             ", $bindings);
 
@@ -1231,7 +1328,9 @@ class AnalyticsService
                 SELECT v.store_name, COUNT(rr.id) AS returns_count
                 FROM return_requests rr
                 JOIN vendors v ON v.id = rr.vendor_id
+                {$countryJoin}
                 WHERE rr.created_at >= ? AND rr.created_at <= ?
+                {$countryWhere}
                 GROUP BY v.id, v.store_name
                 ORDER BY returns_count DESC
                 LIMIT 15
@@ -1239,35 +1338,49 @@ class AnalyticsService
 
             $byLiability = DB::select("
                 SELECT
-                    COALESCE(liability, 'unresolved') AS liability,
+                    COALESCE(rr.liability, 'unresolved') AS liability,
                     COUNT(*) AS cnt
-                FROM return_requests
-                WHERE created_at >= ? AND created_at <= ?
+                FROM return_requests rr
+                {$countryJoin}
+                WHERE rr.created_at >= ? AND rr.created_at <= ?
+                {$countryWhere}
                 GROUP BY liability
                 ORDER BY cnt DESC
             ", $bindings);
 
             $monthlyTrend = DB::select("
-                SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) AS cnt
-                FROM return_requests
-                WHERE created_at >= ? AND created_at <= ?
+                SELECT DATE_FORMAT(rr.created_at, '%Y-%m') AS month, COUNT(*) AS cnt
+                FROM return_requests rr
+                {$countryJoin}
+                WHERE rr.created_at >= ? AND rr.created_at <= ?
+                {$countryWhere}
                 GROUP BY month
                 ORDER BY month ASC
             ", $bindings);
 
+            $ordersCountryJoin = $countryId ? 'JOIN customers c ON c.id = o.customer_id' : '';
             $totals = DB::selectOne("
                 SELECT
                     COUNT(*) AS total_returns,
-                    (SELECT COUNT(DISTINCT id) FROM orders
-                     WHERE placed_at >= ? AND placed_at <= ? AND deleted_at IS NULL) AS total_orders
-                FROM return_requests
-                WHERE created_at >= ? AND created_at <= ?
-            ", [
-                $r['from']->toDateTimeString(),
-                $r['to']->toDateTimeString(),
-                $r['from']->toDateTimeString(),
-                $r['to']->toDateTimeString(),
-            ]);
+                    (SELECT COUNT(DISTINCT o.id) FROM orders o
+                     {$ordersCountryJoin}
+                     WHERE o.placed_at >= ? AND o.placed_at <= ? AND o.deleted_at IS NULL
+                     {$countryWhere}) AS total_orders
+                FROM return_requests rr
+                {$countryJoin}
+                WHERE rr.created_at >= ? AND rr.created_at <= ?
+                {$countryWhere}
+            ", array_values(array_filter(
+                [
+                    $r['from']->toDateTimeString(),
+                    $r['to']->toDateTimeString(),
+                    $countryId ?: null,
+                    $r['from']->toDateTimeString(),
+                    $r['to']->toDateTimeString(),
+                    $countryId ?: null,
+                ],
+                fn($v) => $v !== null
+            )));
 
             $retRate = $totals->total_orders > 0
                 ? round($totals->total_returns / $totals->total_orders * 100, 2)
@@ -1305,45 +1418,63 @@ class AnalyticsService
 
         return Cache::remember($key, $ttl, function () use ($request) {
             $r = $this->dateRange($request);
-            $bindings = [$r['from']->toDateTimeString(), $r['to']->toDateTimeString()];
+            $countryId = $request->input('country_id');
+            // requester_user_id is polymorphic (customer or seller); scope to customer-origin
+            // tickets whose customer belongs to the filtered country.
+            $countryJoin = $countryId
+                ? "JOIN customers c ON c.id = st.requester_user_id AND st.requester_role = 'customer'"
+                : '';
+            $countryWhere = $countryId ? ' AND c.country_id = ?' : '';
+            $bindings = array_values(array_filter(
+                [$r['from']->toDateTimeString(), $r['to']->toDateTimeString(), $countryId ?: null],
+                fn($v) => $v !== null
+            ));
 
             $totals = DB::selectOne("
                 SELECT
                     COUNT(*) AS total,
-                    SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) AS open_tickets,
-                    ROUND(AVG(CASE WHEN first_response_at IS NOT NULL
-                        THEN TIMESTAMPDIFF(MINUTE, created_at, first_response_at)
+                    SUM(CASE WHEN st.status = 'open' THEN 1 ELSE 0 END) AS open_tickets,
+                    ROUND(AVG(CASE WHEN st.first_response_at IS NOT NULL
+                        THEN TIMESTAMPDIFF(MINUTE, st.created_at, st.first_response_at)
                     END) / 60.0, 2) AS avg_first_response_hours,
-                    ROUND(AVG(CASE WHEN resolved_at IS NOT NULL
-                        THEN TIMESTAMPDIFF(MINUTE, created_at, resolved_at)
+                    ROUND(AVG(CASE WHEN st.resolved_at IS NOT NULL
+                        THEN TIMESTAMPDIFF(MINUTE, st.created_at, st.resolved_at)
                     END) / 60.0, 2) AS avg_resolution_hours,
-                    ROUND(AVG(satisfaction_rating), 2) AS avg_satisfaction
-                FROM support_tickets
-                WHERE created_at >= ? AND created_at <= ?
+                    ROUND(AVG(st.satisfaction_rating), 2) AS avg_satisfaction
+                FROM support_tickets st
+                {$countryJoin}
+                WHERE st.created_at >= ? AND st.created_at <= ?
+                {$countryWhere}
             ", $bindings);
 
             $byCategory = DB::select("
-                SELECT category, COUNT(*) AS cnt
-                FROM support_tickets
-                WHERE created_at >= ? AND created_at <= ?
-                GROUP BY category
+                SELECT st.category, COUNT(*) AS cnt
+                FROM support_tickets st
+                {$countryJoin}
+                WHERE st.created_at >= ? AND st.created_at <= ?
+                {$countryWhere}
+                GROUP BY st.category
                 ORDER BY cnt DESC
             ", $bindings);
 
             $byPriority = DB::select("
-                SELECT priority, COUNT(*) AS cnt
-                FROM support_tickets
-                WHERE created_at >= ? AND created_at <= ?
-                GROUP BY priority
-                ORDER BY FIELD(priority, 'urgent', 'high', 'normal', 'low')
+                SELECT st.priority, COUNT(*) AS cnt
+                FROM support_tickets st
+                {$countryJoin}
+                WHERE st.created_at >= ? AND st.created_at <= ?
+                {$countryWhere}
+                GROUP BY st.priority
+                ORDER BY FIELD(st.priority, 'urgent', 'high', 'normal', 'low')
             ", $bindings);
 
             $trend = DB::select("
-                SELECT DATE(created_at) AS date, COUNT(*) AS created,
-                       SUM(CASE WHEN resolved_at IS NOT NULL AND DATE(resolved_at) = DATE(created_at) THEN 1 ELSE 0 END) AS resolved
-                FROM support_tickets
-                WHERE created_at >= ? AND created_at <= ?
-                GROUP BY DATE(created_at)
+                SELECT DATE(st.created_at) AS date, COUNT(*) AS created,
+                       SUM(CASE WHEN st.resolved_at IS NOT NULL AND DATE(st.resolved_at) = DATE(st.created_at) THEN 1 ELSE 0 END) AS resolved
+                FROM support_tickets st
+                {$countryJoin}
+                WHERE st.created_at >= ? AND st.created_at <= ?
+                {$countryWhere}
+                GROUP BY DATE(st.created_at)
                 ORDER BY date ASC
             ", $bindings);
 

@@ -35,6 +35,10 @@
     </div>
 </form>
 
+<div class="flex justify-end mb-4">
+    <x-export-dropdown />
+</div>
+
 {{-- ── Summary Cards ────────────────────────────────────────────────────────── --}}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
     @if($hasClicksTable)

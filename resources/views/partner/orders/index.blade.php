@@ -98,6 +98,9 @@
             class="border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-medium px-4 py-1.5 rounded-lg transition-colors">
             {{ __('common.reset') }}
         </button>
+        <div class="ms-auto">
+            <x-export-dropdown />
+        </div>
     </div>
 
     {{-- DataTable --}}

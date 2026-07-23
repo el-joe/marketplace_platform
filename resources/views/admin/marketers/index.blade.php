@@ -14,9 +14,12 @@
         <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.marketers.marketers_influencers') }}</h1>
         <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.marketers.manage_desc') }}</p>
     </div>
-    <button type="button" id="create-marketer-btn" class="btn btn-primary btn-sm">
-        {{ __('admin.marketers.add_new_marketer') }}
-    </button>
+    <div class="flex items-center gap-2">
+        <x-export-dropdown />
+        <button type="button" id="create-marketer-btn" class="btn btn-primary btn-sm">
+            {{ __('admin.marketers.add_new_marketer') }}
+        </button>
+    </div>
 </div>
 
 {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}

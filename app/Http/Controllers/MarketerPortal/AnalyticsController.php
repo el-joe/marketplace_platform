@@ -5,6 +5,7 @@ namespace App\Http\Controllers\MarketerPortal;
 use App\Http\Controllers\Controller;
 use App\Enums\MarketerCampaignStatus;
 use App\Enums\MarketerTrackingStatus;
+use App\Traits\HasExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -13,12 +14,18 @@ use Illuminate\View\View;
 
 class AnalyticsController extends Controller
 {
-    public function index(Request $request): View
+    use HasExport;
+
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         /** @var \App\Models\Marketer $marketer */
         $marketer = Auth::guard('marketer')->user();
 
         [$from, $to, $range] = $this->resolveDateRange($request);
+
+        if ($request->filled('export')) {
+            return $this->exportCampaignBreakdown($request, $marketer, $from, $to);
+        }
 
         $hasClicksTable = Schema::hasTable('marketer_clicks');
 
@@ -93,7 +100,31 @@ class AnalyticsController extends Controller
             ->pluck('cnt', 'type');
 
         // ── Per-campaign breakdown table ──────────────────────────────────────
-        $campaignBreakdown = $marketer->campaigns()
+        $campaignBreakdown = $this->buildCampaignBreakdown($marketer, $from, $to, $hasClicksTable);
+
+        return view('marketer.analytics.index', [
+            'marketer' => $marketer,
+            'range' => $range,
+            'from' => $from,
+            'to' => $to,
+            'hasClicksTable' => $hasClicksTable,
+            'totalClicks' => $totalClicks,
+            'totalConversions' => $totalConversions,
+            'conversionRate' => $conversionRate,
+            'earnedByCurrency' => $earnedByCurrency,
+            'activeCampaignsCount' => $activeCampaignsCount,
+            'bestCampaign' => $bestCampaign,
+            'lineLabels' => $lineLabels,
+            'lineData' => $lineData,
+            'earningsPerCampaign' => $earningsPerCampaign,
+            'conversionsByType' => $conversionsByType,
+            'campaignBreakdown' => $campaignBreakdown,
+        ]);
+    }
+
+    private function buildCampaignBreakdown($marketer, Carbon $from, Carbon $to, bool $hasClicksTable)
+    {
+        return $marketer->campaigns()
             ->select('marketer_campaigns.*')
             ->selectSub(
                 fn ($q) => $q->selectRaw('COUNT(*)')
@@ -137,25 +168,30 @@ class AnalyticsController extends Controller
                     : null;
                 return $campaign;
             });
+    }
 
-        return view('marketer.analytics.index', [
-            'marketer' => $marketer,
-            'range' => $range,
-            'from' => $from,
-            'to' => $to,
-            'hasClicksTable' => $hasClicksTable,
-            'totalClicks' => $totalClicks,
-            'totalConversions' => $totalConversions,
-            'conversionRate' => $conversionRate,
-            'earnedByCurrency' => $earnedByCurrency,
-            'activeCampaignsCount' => $activeCampaignsCount,
-            'bestCampaign' => $bestCampaign,
-            'lineLabels' => $lineLabels,
-            'lineData' => $lineData,
-            'earningsPerCampaign' => $earningsPerCampaign,
-            'conversionsByType' => $conversionsByType,
-            'campaignBreakdown' => $campaignBreakdown,
+    private function exportCampaignBreakdown(Request $request, $marketer, Carbon $from, Carbon $to): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $hasClicksTable = Schema::hasTable('marketer_clicks');
+        $campaignBreakdown = $this->buildCampaignBreakdown($marketer, $from, $to, $hasClicksTable);
+
+        $headers = ['Campaign', 'Clicks', 'Conversions', 'Conv. Rate', 'Earned', 'Currency'];
+
+        $rows = $campaignBreakdown->map(fn($c) => [
+            $c->name,
+            $c->period_clicks ?? '—',
+            $c->period_conversions,
+            $c->conv_rate !== null ? $c->conv_rate . '%' : '—',
+            number_format($c->period_earned / 100, 2),
+            $c->period_currency ?? '—',
         ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('marketer-analytics', $headers, $rows),
+            'csv' => $this->exportCsv('marketer-analytics', $headers, $rows),
+            'word' => $this->exportWord('marketer-analytics', 'Campaign Analytics', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
     }
 
     /**

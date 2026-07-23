@@ -387,12 +387,29 @@
             </a>
 
             <a href="{{ route('marketer.store.edit') }}"
-                class="{{ Str::startsWith($route, 'marketer.store') ? 'active' : '' }}">
+                class="{{ Str::startsWith($route, 'marketer.store.') ? 'active' : '' }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M3 9.5L4.5 4h15L21 9.5M3 9.5V19a1 1 0 001 1h16a1 1 0 001-1V9.5M3 9.5h18M9 21v-6h6v6" />
                 </svg>
                 {{ __('marketer.nav.store') }}
+            </a>
+
+            <a href="{{ route('marketer.store-products.index') }}"
+                class="{{ Str::startsWith($route, 'marketer.store-products.') ? 'active' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                {{ __('marketer.nav.store_products') }}
+                @auth('marketer')
+                    @php($pendingProductsCount = auth()->guard('marketer')->user()->products()->where('status', 'pending_review')->count())
+                    @if($pendingProductsCount > 0)
+                        <span style="background:#f59e0b; color:#fff; border-radius:999px; padding:1px 7px; font-size:0.7rem; margin-left:6px;">
+                            {{ $pendingProductsCount > 99 ? '99+' : $pendingProductsCount }}
+                        </span>
+                    @endif
+                @endauth
             </a>
         </nav>
 

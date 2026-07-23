@@ -37,6 +37,7 @@ use App\Http\Controllers\Admin\VendorCampaignOfferController;
 use App\Http\Controllers\Admin\AdSlotController;
 use App\Http\Controllers\Admin\PaidAdBookingController;
 use App\Http\Controllers\Admin\VendorApplicationController;
+use App\Http\Controllers\Admin\VendorAcquisitionController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\LedgerController;
@@ -60,6 +61,7 @@ use App\Http\Controllers\Admin\DeliveryAssignmentController;
 use App\Http\Controllers\Admin\DeliveryPayoutController;
 use App\Http\Controllers\Admin\AffiliatePromoCodeController;
 use App\Http\Controllers\Admin\MarketerController;
+use App\Http\Controllers\Admin\MarketerProductController;
 use App\Http\Controllers\Admin\InfluencerDealController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\FbnController;
@@ -466,6 +468,23 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
 
         Route::post('/{vendor}/lock', [VendorSectionLockController::class, 'lock'])->name('lock');
         Route::post('/{vendor}/unlock', [VendorSectionLockController::class, 'unlock'])->name('unlock');
+
+        Route::get('/{vendor}/acquisition-agent', [VendorAcquisitionController::class, 'show'])->name('acquisition-agent.show');
+        Route::post('/{vendor}/acquisition-agent', [VendorAcquisitionController::class, 'store'])->name('acquisition-agent.store');
+        Route::put('/{vendor}/acquisition-agent/{commission}', [VendorAcquisitionController::class, 'update'])->name('acquisition-agent.update');
+        Route::post('/{vendor}/acquisition-agent/{commission}/revoke', [VendorAcquisitionController::class, 'revoke'])->name('acquisition-agent.revoke');
+    });
+
+    // ─── Vendor Acquisition Commissions ───────────────────────────────────────────
+    Route::prefix('acquisition-commissions')->name('acquisition-commissions.')->middleware('admin.permission:vendors.view')->group(function () {
+        Route::post('/datatable', [VendorAcquisitionController::class, 'datatable'])->name('datatable');
+        Route::get('/', [VendorAcquisitionController::class, 'index'])->name('index');
+    });
+
+    // ─── My Acquisition Commissions (agent self-view) ─────────────────────────────
+    Route::prefix('my-acquisition-commissions')->name('my-acquisition-commissions.')->group(function () {
+        Route::get('/', [VendorAcquisitionController::class, 'myCommissions'])->name('index');
+        Route::get('/datatable', [VendorAcquisitionController::class, 'myDatatable'])->name('datatable');
     });
 
     // ─── Vendor Change Requests ────────────────────────────────────────────────
@@ -1101,6 +1120,15 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/{marketer}/tiers', [MarketerController::class, 'tiersShow'])->name('tiers.show');
         Route::post('/{marketer}/tiers', [MarketerController::class, 'storeTiers'])->name('tiers.store');
         Route::post('/{marketer}/invite', [MarketerController::class, 'sendInvitation'])->name('invite');
+    });
+
+    // ── Marketer Products (own store) ─────────────────────────────────────────────
+    Route::prefix('marketer-products')->name('marketer-products.')->group(function () {
+        Route::get('/', [MarketerProductController::class, 'index'])->name('index');
+        Route::post('/datatable', [MarketerProductController::class, 'datatable'])->name('datatable');
+        Route::get('/{product}', [MarketerProductController::class, 'show'])->name('show');
+        Route::post('/{product}/approve', [MarketerProductController::class, 'approve'])->name('approve');
+        Route::post('/{product}/reject', [MarketerProductController::class, 'reject'])->name('reject');
     });
 
     // ── Affiliate Promo Codes ────────────────────────────────────────────────────

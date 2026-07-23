@@ -143,6 +143,11 @@ class Vendor extends Model
         return $this->hasMany(\App\Models\SubOrder::class);
     }
 
+    public function acquisitionCommissions(): HasMany
+    {
+        return $this->hasMany(VendorAcquisitionCommission::class);
+    }
+
     public function warehouses(): HasMany
     {
         return $this->hasMany(Warehouse::class, 'owner_vendor_id');

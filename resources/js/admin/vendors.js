@@ -596,6 +596,37 @@ $(function () {
         );
     });
 
+    // ── Assign Acquisition Agent form ─────────────────────────────────────────
+    $('#assign-acquisition-agent-form').on('submit', function (e) {
+        e.preventDefault();
+        const vendorId = $(this).data('vendor-id');
+        const data = $(this).serializeArray();
+        const ratePct = parseFloat($(this).find('[name=commission_rate_pct]').val()) || 0;
+        const payload = {};
+        data.forEach(function (field) {
+            if (field.name !== 'commission_rate_pct') payload[field.name] = field.value;
+        });
+        payload.commission_rate = Math.round(ratePct * 100);
+
+        withLoading('#assign-acquisition-agent-form [type=submit]',
+            $.post('/vendors/' + vendorId + '/acquisition-agent', payload)
+                .done(function (res) { closeModal('assign-acquisition-agent-modal'); Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('shared.failed_generic')); })
+        );
+    });
+
+    $(document).on('click', '[data-revoke-acquisition-agent]', function () {
+        const commissionId = $(this).data('revoke-acquisition-agent');
+        const vendorId = $(this).data('vendor-id');
+        if (!confirm(t('admin.vendors.revoke_acquisition_agent_confirm'))) return;
+
+        withLoading(this,
+            $.post('/vendors/' + vendorId + '/acquisition-agent/' + commissionId + '/revoke', { _token: csrfToken() })
+                .done(function (res) { Toast.success(res.message); setTimeout(function () { location.reload(); }, 700); })
+                .fail(function (xhr) { Toast.error(xhr.responseJSON?.message ?? t('shared.failed_generic')); })
+        );
+    });
+
     // ── Profile inline edit ───────────────────────────────────────────────────
     $('#edit-profile-btn').on('click', function () {
         $('#profile-view').addClass('hidden');

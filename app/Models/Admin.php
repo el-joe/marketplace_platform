@@ -59,6 +59,11 @@ class Admin extends Authenticatable
         return $this->morphMany(File::class, 'model');
     }
 
+    public function acquisitionCommissions(): HasMany
+    {
+        return $this->hasMany(VendorAcquisitionCommission::class, 'admin_id');
+    }
+
     public function notifications(): MorphMany
     {
         return $this->morphMany(Notification::class, 'notifiable');

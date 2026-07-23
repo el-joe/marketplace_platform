@@ -14,9 +14,12 @@
         <h1 class="text-2xl font-bold text-gray-900">{{ __('admin.delivery_section.agents') }}</h1>
         <p class="text-sm text-gray-500 mt-0.5">{{ __('admin.delivery_section.agents_desc') }}</p>
     </div>
-    <button type="button" id="add-agent-btn" class="btn btn-primary btn-sm">
-        {{ __('admin.delivery_section.add_agent') }}
-    </button>
+    <div class="flex items-center gap-2">
+        <x-export-dropdown />
+        <button type="button" id="add-agent-btn" class="btn btn-primary btn-sm">
+            {{ __('admin.delivery_section.add_agent') }}
+        </button>
+    </div>
 </div>
 
 {{-- ─── Stats Row ───────────────────────────────────────────────────────────── --}}

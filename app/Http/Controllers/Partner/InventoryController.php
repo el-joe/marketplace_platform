@@ -8,6 +8,7 @@ use App\Models\ProductImage;
 use App\Models\VendorListing;
 use App\Models\WarehouseInventory;
 use App\Traits\HasDataTable;
+use App\Traits\HasExport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,7 @@ use Illuminate\View\View;
 class InventoryController extends Controller
 {
     use HasDataTable;
+    use HasExport;
 
     private function vendorId(): string
     {
@@ -34,8 +36,12 @@ class InventoryController extends Controller
     // Index — all inventory rows for vendor
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function index(Request $request): View
+    public function index(Request $request): View|\Symfony\Component\HttpFoundation\StreamedResponse
     {
+        if ($request->filled('export')) {
+            return $this->exportInventory($request);
+        }
+
         $vendorId = $this->vendorId();
 
         // Summary stats
@@ -64,10 +70,10 @@ class InventoryController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Inventory DataTable
+    // Export
     // ─────────────────────────────────────────────────────────────────────────
 
-    public function datatable(Request $request): JsonResponse
+    private function buildInventoryQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $vendorId = $this->vendorId();
 
@@ -121,6 +127,41 @@ class InventoryController extends Controller
             },
         ]);
 
+        return $query;
+    }
+
+    private function exportInventory(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $items = $this->buildInventoryQuery($request)->get();
+
+        $headers = ['Product', 'Variant', 'SKU', 'Warehouse', 'On Hand', 'Reserved', 'Available', 'Inbound', 'Damaged'];
+
+        $rows = $items->map(fn($row) => [
+            $row->name_en,
+            $row->variant_name ?: '—',
+            $row->sku,
+            $row->warehouse_name,
+            $row->quantity_on_hand,
+            $row->quantity_reserved,
+            $row->quantity_on_hand - $row->quantity_reserved,
+            $row->quantity_inbound ?? 0,
+            $row->quantity_damaged ?? 0,
+        ]);
+
+        return match ($request->input('export')) {
+            'excel' => $this->exportExcel('inventory', $headers, $rows),
+            'csv' => $this->exportCsv('inventory', $headers, $rows),
+            'word' => $this->exportWord('inventory', 'Inventory', $rows),
+            default => abort(400, 'Invalid export format.'),
+        };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Inventory DataTable
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function datatable(Request $request): JsonResponse
+    {
         $columns = [
             ['searchable_columns' => ['p.name_en', 'p.name_ar', 'pv.sku']],
             ['orderable_column' => 'pv.variant_name'],
@@ -132,6 +173,8 @@ class InventoryController extends Controller
             ['orderable_column' => 'warehouse_inventories.quantity_damaged'],
             [],
         ];
+
+        $query = $this->buildInventoryQuery($request);
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
             $imageUrl = null;

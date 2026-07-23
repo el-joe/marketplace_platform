@@ -75,6 +75,14 @@
            class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500">
             {{ __('travel.reports.export_csv') }}
         </a>
+        <a href="{{ route('travel-agency.reports.bookings.export', array_merge(request()->query(), ['format' => 'excel'])) }}"
+           class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200">
+            {{ __('common.export_excel') }}
+        </a>
+        <a href="{{ route('travel-agency.reports.bookings.export', array_merge(request()->query(), ['format' => 'word'])) }}"
+           class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200">
+            {{ __('common.export_word') }}
+        </a>
     </form>
 
     {{-- Charts --}}
