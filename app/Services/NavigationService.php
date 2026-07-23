@@ -757,6 +757,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.vendor_zone_alerts'),
+                        'route' => 'admin.shipping-subsidies.alerts.index',
+                        'icon' => 'exclamation-triangle',
+                        'permission' => 'settings.view',
+                        'badge' => $this->cachedBadge('pending_zone_alerts', fn() => \App\Models\VendorExceptionalZoneAlert::where('status', 'pending')->count()),
+                    ],
+                    [
                         'label' => __('admin.nav.warehouses'),
                         'route' => 'admin.warehouses.index',
                         'icon' => 'building-office-2',

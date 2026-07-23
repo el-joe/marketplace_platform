@@ -878,6 +878,12 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             Route::put('/{subsidy}', [ShippingSubsidyController::class, 'update'])->name('update');
             Route::delete('/{subsidy}', [ShippingSubsidyController::class, 'destroy'])->name('destroy');
         });
+
+        Route::get('/vendor-alerts', [ShippingSubsidyController::class, 'vendorAlerts'])->name('alerts.index');
+        Route::middleware('admin.permission:settings.edit')->group(function () {
+            Route::post('/vendor-alerts/{alert}/accept', [ShippingSubsidyController::class, 'acceptAlert'])->name('alerts.accept');
+            Route::post('/vendor-alerts/{alert}/reject', [ShippingSubsidyController::class, 'rejectAlert'])->name('alerts.reject');
+        });
     });
 
     // ─── Warehouses ───────────────────────────────────────────────────────────

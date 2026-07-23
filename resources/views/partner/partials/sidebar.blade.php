@@ -11,6 +11,9 @@
         'under_review' => __('partner.nav.status_under_review'),
         default => __('partner.nav.status_suspended'),
     };
+    $pendingZoneAlerts = $vendor
+        ? \App\Models\VendorExceptionalZoneAlert::where('vendor_id', $vendor->id)->where('status', 'pending')->count()
+        : 0;
 @endphp
 
 {{-- Sidebar: 240px, dark --}}
@@ -65,7 +68,8 @@
             <x-partner-nav-item route="partner.fulfillment.index" icon="truck" label="{{ __('partner.nav.fulfillment') }}" />
             <x-partner-nav-item route="partner.warehouses.index" icon="building-storefront" label="{{ __('partner.nav.warehouses') }}" />
             <x-partner-nav-item route="partner.warehouses.transfers.index" icon="arrows-right-left" label="{{ __('partner.nav.transfers') }}" />
-            <x-partner-nav-item route="partner.city-surcharges.index" icon="map-pin" label="City Shipping Surcharges" />
+            {{-- <x-partner-nav-item route="partner.city-surcharges.index" icon="map-pin" label="City Shipping Surcharges" /> --}}
+            <x-partner-nav-item route="partner.exceptional-zone-alerts.index" icon="exclamation-triangle" label="Exceptional Zones" :badge="$pendingZoneAlerts ?: null" />
             <x-partner-nav-item route="partner.packaging-supplies.index" icon="archive-box" label="{{ __('partner.nav.packaging_supplies') }}" />
         </x-partner-nav-group>
 

@@ -359,6 +359,7 @@ return [
         'shipping_companies'    => 'Shipping Companies',
         'shipping_weight_slabs' => 'Weight Slabs',
         'shipping_subsidies' => 'Shipping Subsidies',
+        'vendor_zone_alerts' => 'Vendor Zone Alerts',
         'subscription_plans'    => 'Subscription Plans',
         'subscription_invoices' => 'Subscription Invoices',
         'travel_inquiries'      => 'Travel Inquiries',

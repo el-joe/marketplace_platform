@@ -184,6 +184,16 @@ Route::middleware(['vendor.auth', 'vendor.active'])->group(function () {
             Route::post('/{surcharge}/toggle-active', 'toggleActive')->name('toggle-active');
         });
 
+    // ── Exceptional shipping zone alerts ─────────────────────────────────────
+    Route::prefix('exceptional-zone-alerts')->name('exceptional-zone-alerts.')
+        ->controller(\App\Http\Controllers\Partner\ExceptionalZoneAlertController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/cities-for-warehouse', 'citiesForWarehouse')->name('cities-for-warehouse');
+            Route::post('/', 'store')->name('store');
+            Route::post('/{alert}/cancel', 'cancel')->name('cancel');
+        });
+
     // ── Profile & store settings ─────────────────────────────────────────────
     Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->group(function () {
         Route::get('/', 'index')->name('index')->middleware('vendor.can:settings.view');

@@ -359,6 +359,7 @@ return [
         'shipping_companies'    => 'شركات الشحن',
         'shipping_weight_slabs' => 'شرائح الوزن',
         'shipping_subsidies' => 'دعم الشحن',
+        'vendor_zone_alerts' => 'تنبيهات مناطق البائعين',
         'subscription_plans'    => 'خطط الاشتراك',
         'subscription_invoices' => 'فواتير الاشتراك',
         'travel_inquiries'      => 'استفسارات السفر',

@@ -16,7 +16,9 @@ class WarehouseExceptionalZone extends Model
     protected $fillable = [
         'warehouse_id',
         'destination_zone_id',
+        'carrier_id',
         'is_active',
+        'source_alert_id',
     ];
 
     protected $casts = [
@@ -31,5 +33,15 @@ class WarehouseExceptionalZone extends Model
     public function destinationZone(): BelongsTo
     {
         return $this->belongsTo(ShippingZone::class, 'destination_zone_id');
+    }
+
+    public function carrier(): BelongsTo
+    {
+        return $this->belongsTo(ShippingCarrier::class, 'carrier_id');
+    }
+
+    public function sourceAlert(): BelongsTo
+    {
+        return $this->belongsTo(VendorExceptionalZoneAlert::class, 'source_alert_id');
     }
 }

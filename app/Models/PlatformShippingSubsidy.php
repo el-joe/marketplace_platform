@@ -15,6 +15,7 @@ class PlatformShippingSubsidy extends Model
 
     protected $fillable = [
         'warehouse_id',
+        'carrier_id',
         'shipping_zone_id',
         'shipping_method_id',
         'currency',
@@ -40,6 +41,11 @@ class PlatformShippingSubsidy extends Model
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function carrier(): BelongsTo
+    {
+        return $this->belongsTo(ShippingCarrier::class, 'carrier_id');
     }
 
     public function shippingZone(): BelongsTo
