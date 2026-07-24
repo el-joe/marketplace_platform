@@ -37,6 +37,7 @@ export default defineConfig({
                 'resources/js/admin/page-builder.js',
                 'resources/js/admin/coupons.js',
                 'resources/js/admin/coupons-show.js',
+                'resources/js/admin/cart-card-offers.js',
                 'resources/js/admin/admins.js',
                 'resources/js/admin/customers.js',
                 'resources/js/admin/disputes.js',

@@ -191,6 +191,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.cart_card_offers'),
+                        'route' => 'admin.cart-card-offers.index',
+                        'icon' => 'credit-card',
+                        'permission' => 'cart_card_offers.view',
+                        'badge' => $this->cachedBadge('active_cart_card_offers', fn() => $this->countActiveCartCardOffers()),
+                    ],
+                    [
                         'label' => __('admin.nav.ad_campaigns'),
                         'route' => 'admin.ad-campaigns.index',
                         'icon' => 'megaphone',
@@ -1063,6 +1070,18 @@ class NavigationService
     {
         try {
             return (int) \App\Models\VendorCampaignOffer::query()->where('status', VendorCampaignOfferStatus::PendingAdmin->value)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    protected function countActiveCartCardOffers(): int
+    {
+        if (!class_exists(\App\Models\CartCardOffer::class)) {
+            return 0;
+        }
+        try {
+            return (int) \App\Models\CartCardOffer::query()->active()->count();
         } catch (\Throwable) {
             return 0;
         }

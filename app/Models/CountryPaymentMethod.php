@@ -36,6 +36,11 @@ class CountryPaymentMethod extends Model
         'settlement_currency',
         'environment',
         'sort_order',
+        'installments_count',
+        'installment_label_en',
+        'installment_label_ar',
+        'provider_logo_path',
+        'learn_more_url',
         'last_verified_at',
         'last_verification_status',
         'last_verification_message',
@@ -55,6 +60,7 @@ class CountryPaymentMethod extends Model
         'min_order'           => 'integer',
         'max_order'           => 'integer',
         'sort_order'                => 'integer',
+        'installments_count'        => 'integer',
         'environment'               => CountryPaymentMethodEnvironment::class,
         'last_verified_at'          => 'datetime',
         'last_verification_status' => CountryPaymentMethodVerificationStatus::class,
@@ -126,6 +132,11 @@ class CountryPaymentMethod extends Model
     public function getIsConfiguredAttribute(): bool
     {
         return !empty($this->getCredentials());
+    }
+
+    public function getIsInstallmentEnabledAttribute(): bool
+    {
+        return $this->installments_count > 1;
     }
 
     // ── Formatted helpers ─────────────────────────────────────────────────────

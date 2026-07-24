@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\VendorChangeRequestController;
 use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\CartCardOfferController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\GiftCardController;
 use App\Http\Controllers\Admin\SupportTicketController;
@@ -562,6 +563,17 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::put('/{coupon}', [CouponController::class, 'update'])->name('update');
         Route::put('/{coupon}/toggle-active', [CouponController::class, 'toggleActive'])->name('toggle-active');
         Route::delete('/{coupon}', [CouponController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Cart Card Offers ──────────────────────────────────────────────────────────
+    Route::prefix('cart-card-offers')->name('cart-card-offers.')->middleware('admin.permission:cart_card_offers.view')->group(function () {
+        Route::get('/create', [CartCardOfferController::class, 'create'])->name('create');
+        Route::post('/datatable', [CartCardOfferController::class, 'datatable'])->name('datatable');
+        Route::get('/', [CartCardOfferController::class, 'index'])->name('index');
+        Route::post('/', [CartCardOfferController::class, 'store'])->name('store');
+        Route::get('/{cartCardOffer}/edit', [CartCardOfferController::class, 'edit'])->name('edit');
+        Route::put('/{cartCardOffer}', [CartCardOfferController::class, 'update'])->name('update');
+        Route::delete('/{cartCardOffer}', [CartCardOfferController::class, 'destroy'])->name('destroy');
     });
 
     // ─── Gift Cards ──────────────────────────────────────────────────────────────

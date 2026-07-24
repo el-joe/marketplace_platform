@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,8 +33,20 @@ class CartCardOffer extends Model
         'valid_until'           => 'datetime',
     ];
 
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true)
+            ->where(fn (Builder $q) => $q->whereNull('valid_from')->orWhere('valid_from', '<=', now()))
+            ->where(fn (Builder $q) => $q->whereNull('valid_until')->orWhere('valid_until', '>=', now()));
+    }
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function createdByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'created_by_admin_id');
     }
 }
