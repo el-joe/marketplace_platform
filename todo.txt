@@ -21,3 +21,7 @@ STEP 8: Warranty If customer selected warranty plan: warranty_total = SUM(warran
 4.5 Exceptional Shipping Zones
 
 Some zones are "exceptional" — expensive or remote. The platform offers free delivery to customers in these zones, but costs are absorbed by vendor + platform.
+
+
+
+php artisan db:seed --class=CartCardOfferSeeder

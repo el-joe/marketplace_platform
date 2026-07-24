@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\CountryController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CartCardOfferController;
+use App\Http\Controllers\Admin\FbtController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\GiftCardController;
 use App\Http\Controllers\Admin\SupportTicketController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\Admin\WarrantyPurchaseController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\WishlistOverviewController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\AdCampaignController;
@@ -168,6 +170,12 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/{productHighlight}/edit', [ProductHighlightController::class, 'edit'])->name('edit');
         Route::patch('/{productHighlight}', [ProductHighlightController::class, 'update'])->name('update');
         Route::delete('/{productHighlight}', [ProductHighlightController::class, 'destroy'])->name('destroy');
+    });
+
+    // ─── Product Relations / Frequently Bought Together (overview) ─────────────
+    Route::prefix('fbt')->name('fbt.')->middleware('admin.permission:products.view')->group(function () {
+        Route::post('/datatable', [FbtController::class, 'datatable'])->name('datatable');
+        Route::get('/', [FbtController::class, 'index'])->name('index');
     });
 
     // ─── Bestseller Rankings (read-only) ────────────────────────────────────────
@@ -693,6 +701,13 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
             ->middleware('admin.permission:notifications.view');
         Route::post('/{customer}/devices/revoke-all', [CustomerController::class, 'revokeAllDevices'])->name('devices.revoke-all')
             ->middleware('admin.permission:customers.edit');
+    });
+
+    // ─── Wishlist Overview (read-only) ────────────────────────────────────────
+    Route::prefix('wishlist')->name('wishlist.')->middleware('admin.permission:wishlists.view')->group(function () {
+        Route::post('/datatable', [WishlistOverviewController::class, 'datatable'])->name('datatable');
+        Route::get('/', [WishlistOverviewController::class, 'index'])->name('index');
+        Route::get('/groups/{groupId}', [WishlistOverviewController::class, 'show'])->name('show');
     });
 
     // ─── Notification Management (platform-wide) ─────────────────────────────

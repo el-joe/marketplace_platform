@@ -59,6 +59,9 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             AdminRoleAssignmentSeeder::class,
 
+                // ── Cart card cashback offers (needs countries + admins) ────────
+            CartCardOfferSeeder::class,
+
                 // ── All guard user accounts ────────────────────────────────────
             VendorSeeder::class,
 

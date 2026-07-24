@@ -81,6 +81,13 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
+                        'label' => __('admin.nav.product_relations'),
+                        'route' => 'admin.fbt.index',
+                        'icon' => 'link',
+                        'permission' => 'products.view',
+                        'badge' => null,
+                    ],
+                    [
                         'label' => __('admin.nav.brands'),
                         'route' => 'admin.brands.index',
                         'icon' => 'tag',
@@ -244,6 +251,13 @@ class NavigationService
                         'icon' => 'user-group',
                         'permission' => 'customers.view',
                         'badge' => null,
+                    ],
+                    [
+                        'label' => __('admin.nav.wishlists'),
+                        'route' => 'admin.wishlist.index',
+                        'icon' => 'heart',
+                        'permission' => 'wishlists.view',
+                        'badge' => $this->cachedBadge('public_wishlist_groups', fn() => $this->countPublicWishlistGroups()),
                     ],
                     [
                         'label' => __('admin.nav.notifications'),
@@ -756,7 +770,7 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
-                        'label' => __('admin.nav.payment_methods'),
+                        'label' => __('admin.nav.payment_methods') . ($this->hasInstallmentPaymentMethods() ? ' (' . __('admin.nav.installments') . ')' : ''),
                         'route' => 'admin.payment-methods.index',
                         'icon' => 'credit-card',
                         'permission' => 'settings.view',
@@ -1033,6 +1047,18 @@ class NavigationService
             ->exists();
     }
 
+    protected function countPublicWishlistGroups(): int
+    {
+        if (!class_exists(\App\Models\WishlistGroup::class)) {
+            return 0;
+        }
+        try {
+            return (int) \App\Models\WishlistGroup::query()->where('is_public', true)->count();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
     protected function countPendingVendors(): int
     {
         if (!class_exists(\App\Models\Vendor::class)) {
@@ -1129,6 +1155,20 @@ class NavigationService
             return (int) \App\Models\ClassifiedListing::query()->where('status', ClassifiedListingStatus::PendingReview->value)->count();
         } catch (\Throwable) {
             return 0;
+        }
+    }
+
+    protected function hasInstallmentPaymentMethods(): bool
+    {
+        if (!class_exists(\App\Models\CountryPaymentMethod::class)) {
+            return false;
+        }
+        try {
+            return Cache::remember('nav.badge.installment_payment_methods', self::BADGE_CACHE_TTL, function () {
+                return \App\Models\CountryPaymentMethod::query()->where('installments_count', '>', 1)->exists();
+            });
+        } catch (\Throwable) {
+            return false;
         }
     }
 
