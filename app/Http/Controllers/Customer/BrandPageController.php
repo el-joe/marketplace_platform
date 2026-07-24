@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\BrandResource;
 use App\Models\Brand;
 use App\Models\Country;
 use App\Models\VendorListing;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Shared\PageBuilderService;
-use App\Support\Bilingual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class BrandPageController extends Controller
 {
@@ -73,7 +72,7 @@ class BrandPageController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'brand' => $this->brandPayload($brand),
+                'brand' => new BrandResource($brand),
                 'page_builder' => $pageBuilder,
                 'listings' => [
                     'items' => $items,
@@ -86,26 +85,5 @@ class BrandPageController extends Controller
                 ],
             ],
         ]);
-    }
-
-    private function brandPayload(Brand $brand): array
-    {
-        return [
-            'id' => $brand->id,
-            'name' => Bilingual::pair($brand, 'name'),
-            'slug' => $brand->slug,
-            'logo_url' => $this->resolveLogoUrl($brand->logo_media_id),
-            'description' => Bilingual::pair($brand, 'description'),
-            'is_verified' => $brand->is_verified,
-        ];
-    }
-
-    private function resolveLogoUrl(?string $logoMediaId): ?string
-    {
-        if ($logoMediaId === null) {
-            return null;
-        }
-
-        return str_contains($logoMediaId, '/') ? Storage::url($logoMediaId) : $logoMediaId;
     }
 }

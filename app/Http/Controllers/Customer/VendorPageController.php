@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\VendorPageVendorResource;
+use App\Http\Responses\ApiResponse;
 use App\Models\Country;
 use App\Models\Vendor;
 use App\Models\VendorListing;
 use App\Services\Customer\ListingQueryService;
 use App\Services\Shared\PageBuilderService;
-use App\Support\Bilingual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -65,32 +66,18 @@ class VendorPageController extends Controller
             );
         })->toArray();
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'vendor' => $this->vendorPayload($vendor),
-                'page_builder' => $pageBuilder,
-                'listings' => [
-                    'items' => $items,
-                    'meta' => [
-                        'current_page' => $paginator->currentPage(),
-                        'last_page' => $paginator->lastPage(),
-                        'per_page' => $paginator->perPage(),
-                        'total' => $paginator->total(),
-                    ],
+        return ApiResponse::success([
+            'vendor' => (new VendorPageVendorResource($vendor))->toArray($request),
+            'page_builder' => $pageBuilder,
+            'listings' => [
+                'items' => $items,
+                'meta' => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
                 ],
             ],
         ]);
-    }
-
-    private function vendorPayload(Vendor $vendor): array
-    {
-        return [
-            'id' => $vendor->id,
-            'store_name' => $vendor->store_name,
-            'store_rating_avg' => $vendor->store_rating_avg,
-            'store_rating_count' => $vendor->store_rating_count,
-            'country' => $vendor->country ? Bilingual::pair($vendor->country, 'name') : null,
-        ];
     }
 }

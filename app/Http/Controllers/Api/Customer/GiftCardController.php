@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\Customer\CustomerGiftCardResource;
+use App\Http\Resources\Api\Customer\GiftCardValidationResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\GiftCard;
 use Illuminate\Http\JsonResponse;
@@ -29,13 +31,7 @@ class GiftCardController extends Controller
             return ApiResponse::error('Gift card is invalid, expired, or not usable in this currency.', [], 422);
         }
 
-        return ApiResponse::success([
-            'valid' => true,
-            'balance' => $giftCard->getRawOriginal('balance'),
-            'currency' => $giftCard->currency,
-            'recipient_name' => $giftCard->recipient_name,
-            'expires_at' => $giftCard->expires_at?->toIso8601String(),
-        ]);
+        return ApiResponse::success((new GiftCardValidationResource($giftCard))->toArray($request));
     }
 
     public function mine(Request $request): JsonResponse
@@ -44,19 +40,8 @@ class GiftCardController extends Controller
 
         $giftCards = GiftCard::where('purchased_by_customer_id', $customer->id)
             ->orderByDesc('created_at')
-            ->get()
-            ->map(fn (GiftCard $giftCard) => [
-                'id' => $giftCard->id,
-                'code' => $giftCard->code,
-                'denomination' => $giftCard->getRawOriginal('denomination'),
-                'balance' => $giftCard->getRawOriginal('balance'),
-                'currency' => $giftCard->currency,
-                'status' => $giftCard->status,
-                'recipient_email' => $giftCard->recipient_email,
-                'expires_at' => $giftCard->expires_at?->toIso8601String(),
-            ])
-            ->values();
+            ->get();
 
-        return ApiResponse::success($giftCards);
+        return ApiResponse::success(CustomerGiftCardResource::collection($giftCards));
     }
 }

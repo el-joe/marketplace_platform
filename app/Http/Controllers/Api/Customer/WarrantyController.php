@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Customer\WarrantyClaimMessageRequest;
 use App\Http\Requests\Api\Customer\WarrantyClaimStoreRequest;
+use App\Http\Resources\Api\Customer\WarrantyPlanResource;
+use App\Http\Resources\Customer\WarrantyClaimMessageResource;
 use App\Http\Resources\Customer\WarrantyClaimResource;
 use App\Http\Resources\Customer\WarrantyPurchaseResource;
 use App\Http\Responses\ApiResponse;
@@ -52,7 +54,7 @@ class WarrantyController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return ApiResponse::success($plans, 'Warranty plans retrieved.');
+        return ApiResponse::success(WarrantyPlanResource::collection($plans), 'Warranty plans retrieved.');
     }
 
     public function purchases(): JsonResponse
@@ -184,11 +186,6 @@ class WarrantyController extends Controller
             'is_internal_note' => false,
         ]);
 
-        return ApiResponse::success([
-            'id' => $message->id,
-            'sender_role' => $message->sender_role,
-            'message' => $message->message,
-            'created_at' => $message->created_at?->toIso8601String(),
-        ], 'Message sent.', 201);
+        return ApiResponse::success(new WarrantyClaimMessageResource($message), 'Message sent.', 201);
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\PageResource;
+use App\Http\Responses\ApiResponse;
 use App\Models\BlockClickEvent;
 use App\Models\PageBlock;
 use App\Services\Customer\PageRendererService;
@@ -26,10 +28,10 @@ class PageController extends Controller
         $result = $this->renderer->render($type, $slug ?: null, $country, $customer, (string) $sessionId);
 
         if (empty($result)) {
-            return response()->json(['success' => false, 'message' => 'Page not found.'], 404);
+            return ApiResponse::error('Page not found.', [], 404);
         }
 
-        return response()->json(['success' => true, 'data' => $result]);
+        return ApiResponse::success(new PageResource($result));
     }
 
     /**

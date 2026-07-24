@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\HomeResource;
+use App\Http\Responses\ApiResponse;
 use App\Models\Country;
 use App\Services\Customer\HomeService;
 use App\Services\Shared\PageBuilderService;
@@ -27,6 +29,6 @@ class HomeController extends Controller
 
         $data = $this->home->getHomeData($country, $customer, $deviceTarget, $audience);
 
-        return response()->json(['success' => true, 'data' => $data]);
+        return ApiResponse::success(new HomeResource($data));
     }
 }

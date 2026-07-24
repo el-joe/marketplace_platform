@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api\Customer;
 use App\Enums\WalletOwnerType;
 use App\Enums\WalletWithdrawalRequestStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\Customer\CustomerWalletResource;
+use App\Http\Resources\Api\Customer\WalletTransactionResource;
+use App\Http\Resources\Api\Customer\WalletWithdrawalRequestResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Wallet;
 use Illuminate\Http\JsonResponse;
@@ -18,18 +21,9 @@ class WalletController extends Controller
 
         $wallets = Wallet::where('owner_type', WalletOwnerType::Customer)
             ->where('owner_id', $customer->id)
-            ->get()
-            ->map(fn (Wallet $wallet) => [
-                'id' => $wallet->id,
-                'balance' => $wallet->getRawOriginal('balance'),
-                'pending_balance' => $wallet->getRawOriginal('pending_balance'),
-                'currency' => $wallet->currency,
-                'is_frozen' => $wallet->is_frozen,
-                'frozen_reason' => $wallet->frozen_reason,
-            ])
-            ->values();
+            ->get();
 
-        return ApiResponse::success($wallets);
+        return ApiResponse::success(CustomerWalletResource::collection($wallets));
     }
 
     public function transactions(Request $request): JsonResponse
@@ -49,14 +43,7 @@ class WalletController extends Controller
             ->orderByDesc('created_at')
             ->paginate(15);
 
-        $items = collect($paginator->items())->map(fn ($transaction) => [
-            'type' => $transaction->type,
-            'amount' => $transaction->getRawOriginal('amount'),
-            'balance_after' => $transaction->getRawOriginal('balance_after'),
-            'source_type' => $transaction->source_type,
-            'description' => $transaction->description,
-            'created_at' => $transaction->created_at?->toIso8601String(),
-        ])->values();
+        $items = WalletTransactionResource::collection(collect($paginator->items()));
 
         return ApiResponse::success([
             'items' => $items,
@@ -114,13 +101,10 @@ class WalletController extends Controller
             'status' => WalletWithdrawalRequestStatus::Pending,
         ]);
 
-        return ApiResponse::success([
-            'id' => $withdrawalRequest->id,
-            'amount' => $withdrawalRequest->getRawOriginal('amount'),
-            'currency' => $withdrawalRequest->currency,
-            'bank_name' => $withdrawalRequest->bank_name,
-            'bank_iban' => $withdrawalRequest->bank_iban,
-            'status' => $withdrawalRequest->status,
-        ], 'Withdrawal request submitted successfully.', 201);
+        return ApiResponse::success(
+            new WalletWithdrawalRequestResource($withdrawalRequest),
+            'Withdrawal request submitted successfully.',
+            201,
+        );
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Customer\ReturnRequestMessageRequest;
 use App\Http\Requests\Api\Customer\ReturnRequestStoreRequest;
+use App\Http\Resources\Customer\ReturnRequestMessageResource;
 use App\Http\Resources\Customer\ReturnRequestResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Customer;
@@ -116,11 +117,6 @@ class ReturnRequestController extends Controller
             'created_at' => now(),
         ]);
 
-        return ApiResponse::success([
-            'id' => $message->id,
-            'sender_role' => $message->sender_role?->value,
-            'message' => $message->message,
-            'created_at' => $message->created_at?->toIso8601String(),
-        ], 'Message sent.', 201);
+        return ApiResponse::success(new ReturnRequestMessageResource($message), 'Message sent.', 201);
     }
 }

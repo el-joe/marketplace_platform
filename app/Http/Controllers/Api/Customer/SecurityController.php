@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\Customer\DeviceSessionResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Customer;
 use App\Models\CustomerOtpToken;
@@ -182,18 +183,14 @@ class SecurityController extends Controller
         /** @var Customer $customer */
         $customer = auth('customer')->user();
 
-        $devices = DeviceToken::query()
-            ->where('tokenable_type', $customer::class)
-            ->where('tokenable_id', $customer->getKey())
-            ->where('is_active', true)
-            ->orderByDesc('last_used_at')
-            ->get()
-            ->map(fn (DeviceToken $device) => [
-                'id' => $device->id,
-                'platform' => $device->platform,
-                'last_used_at' => $device->last_used_at,
-                'token_masked' => '••••••' . substr($device->token, -6),
-            ]);
+        $devices = DeviceSessionResource::collection(
+            DeviceToken::query()
+                ->where('tokenable_type', $customer::class)
+                ->where('tokenable_id', $customer->getKey())
+                ->where('is_active', true)
+                ->orderByDesc('last_used_at')
+                ->get()
+        );
 
         $sessionCount = DB::table('sessions')
             ->where('user_id', $customer->getKey())

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\Support\SupportTicketMessageRequest;
 use App\Http\Requests\Customer\Support\SupportTicketRateRequest;
 use App\Http\Requests\Customer\Support\SupportTicketStoreRequest;
+use App\Http\Resources\Customer\SupportTicketMessageResource;
 use App\Http\Resources\Customer\SupportTicketResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\SupportTicket;
@@ -55,11 +56,7 @@ class SupportTicketController extends Controller
 
         $message = $this->ticketService->addMessage($customer, $ticket, $request->validated());
 
-        return ApiResponse::success([
-            'id'         => $message->id,
-            'message'    => $message->message,
-            'created_at' => $message->created_at?->toIso8601String(),
-        ], 'Message sent.', 201);
+        return ApiResponse::success(new SupportTicketMessageResource($message), 'Message sent.', 201);
     }
 
     public function rate(SupportTicketRateRequest $request, string $country, string $ticketNumber): JsonResponse

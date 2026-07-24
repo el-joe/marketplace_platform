@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\StoreWarrantyClaimRequest;
 use App\Http\Requests\Customer\WarrantyClaimMessageRequest;
+use App\Http\Resources\Customer\WarrantyClaimMessageResource;
 use App\Http\Resources\Customer\WarrantyClaimResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Admin;
@@ -143,11 +144,6 @@ class WarrantyClaimController extends Controller
             'is_internal_note' => false,
         ]);
 
-        return ApiResponse::success([
-            'id' => $message->id,
-            'sender_role' => $message->sender_role,
-            'message' => $message->message,
-            'created_at' => $message->created_at?->toIso8601String(),
-        ], 'Message sent.', 201);
+        return ApiResponse::success(new WarrantyClaimMessageResource($message), 'Message sent.', 201);
     }
 }

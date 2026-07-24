@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\AppConfigResource;
+use App\Http\Responses\ApiResponse;
 use App\Models\AppContextCountry;
 use App\Models\Page;
 use App\Services\Customer\PageRendererService;
@@ -75,7 +77,7 @@ class AppConfigController extends Controller
             ];
         });
 
-        return response()->json(['success' => true, 'data' => $data]);
+        return ApiResponse::success(new AppConfigResource($data));
     }
 
     public function homePage(Request $request): JsonResponse

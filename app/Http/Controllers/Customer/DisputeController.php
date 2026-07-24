@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\Dispute\DisputeMessageRequest;
 use App\Http\Requests\Customer\Dispute\DisputeStoreRequest;
+use App\Http\Resources\Customer\DisputeMessageResource;
 use App\Http\Resources\Customer\DisputeResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Admin;
@@ -130,10 +131,6 @@ class DisputeController extends Controller
             ]);
         }
 
-        return ApiResponse::success([
-            'id'         => $message->id,
-            'message'    => $message->message,
-            'created_at' => $message->created_at?->toIso8601String(),
-        ], 'Message sent.', 201);
+        return ApiResponse::success(new DisputeMessageResource($message), 'Message sent.', 201);
     }
 }

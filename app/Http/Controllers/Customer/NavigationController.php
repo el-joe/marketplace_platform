@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\NavSectionResource;
+use App\Http\Responses\ApiResponse;
 use App\Models\Country;
 use App\Services\Customer\UnifiedCategoryService;
 use Illuminate\Http\JsonResponse;
@@ -46,11 +48,8 @@ class NavigationController extends Controller
             );
         }, $tree);
 
-        return response()->json([
-            'success' => true,
-            'data'    => [
-                'nav' => $nav,
-            ],
+        return ApiResponse::success([
+            'nav' => NavSectionResource::collection($nav),
         ]);
     }
 }

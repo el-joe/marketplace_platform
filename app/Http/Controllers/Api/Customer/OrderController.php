@@ -3,19 +3,21 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\Customer\OrderDetailResource;
+use App\Http\Resources\Api\Customer\OrderInvoiceResource;
+use App\Http\Resources\Api\Customer\OrderListItemResource;
+use App\Http\Resources\Api\Customer\OrderTrackingResource;
+use App\Http\Resources\Api\Customer\SubOrderDetailResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Customer;
 use App\Models\GiftCard;
 use App\Models\GiftCardTransaction;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
-use App\Models\Shipment;
 use App\Models\SubOrder;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Models\WarehouseInventory;
-use App\Models\WarrantyPurchase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -43,15 +45,7 @@ class OrderController extends Controller
         $paginator = $query->paginate(15);
 
         return ApiResponse::success([
-            'items' => collect($paginator->items())->map(fn (Order $order) => [
-                'order_number' => $order->order_number,
-                'status' => $order->status?->value,
-                'payment_status' => $order->payment_status?->value,
-                'currency' => $order->currency,
-                'total' => $order->total,
-                'sub_orders_count' => $order->sub_orders_count,
-                'placed_at' => $order->placed_at?->toIso8601String(),
-            ]),
+            'items' => OrderListItemResource::collection(collect($paginator->items())),
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),
@@ -98,7 +92,7 @@ class OrderController extends Controller
             return ApiResponse::error('Sub-order not found.', [], 404);
         }
 
-        return ApiResponse::success($this->buildSubOrderDetail($subOrder), 'Sub-order retrieved');
+        return ApiResponse::success((new SubOrderDetailResource($subOrder))->toArray($request), 'Sub-order retrieved');
     }
 
     public function tracking(Request $request, string $orderNumber): JsonResponse
@@ -112,38 +106,7 @@ class OrderController extends Controller
 
         $order->load(['subOrders.carrier', 'subOrders.shipments.trackingEvents']);
 
-        $subOrders = $order->subOrders->mapWithKeys(fn (SubOrder $subOrder) => [
-            $subOrder->sub_order_number => [
-                'status' => $subOrder->status?->value,
-                'carrier' => $subOrder->carrier?->name,
-                'tracking_number' => $subOrder->tracking_number,
-                'estimated_delivery_date' => $subOrder->estimated_delivery_date?->toDateString(),
-                'shipped_at' => $subOrder->shipped_at?->toIso8601String(),
-                'delivered_at' => $subOrder->delivered_at?->toIso8601String(),
-                'shipments' => $subOrder->shipments->map(fn (Shipment $shipment) => [
-                    'carrier_id' => $shipment->carrier_id,
-                    'tracking_number' => $shipment->tracking_number,
-                    'awb_label_url' => $shipment->awb_label_url,
-                    'status' => $shipment->status?->value,
-                    'picked_up_at' => $shipment->picked_up_at?->toIso8601String(),
-                    'delivered_at' => $shipment->delivered_at?->toIso8601String(),
-                    'events' => $shipment->trackingEvents
-                        ->sortBy('occurred_at')
-                        ->values()
-                        ->map(fn ($event) => [
-                            'status' => $event->status?->value,
-                            'description' => $event->description,
-                            'location' => $event->location,
-                            'occurred_at' => $event->occurred_at?->toIso8601String(),
-                        ]),
-                ]),
-            ],
-        ]);
-
-        return ApiResponse::success([
-            'order_number' => $order->order_number,
-            'sub_orders' => $subOrders,
-        ], 'Tracking retrieved');
+        return ApiResponse::success((new OrderTrackingResource($order))->toArray($request), 'Tracking retrieved');
     }
 
     public function cancel(Request $request, string $orderNumber): JsonResponse
@@ -256,42 +219,7 @@ class OrderController extends Controller
 
         $order->load(['subOrders.items', 'subOrders.vendor:id,store_name']);
 
-        return ApiResponse::success([
-            'order_number' => $order->order_number,
-            'placed_at' => $order->placed_at?->toIso8601String(),
-            'currency' => $order->currency,
-            'payment_method' => $order->payment_method,
-            'payment_status' => $order->payment_status?->value,
-            'shipping_address' => $order->shipping_address_snapshot,
-            'summary' => [
-                'subtotal' => $order->subtotal,
-                'discount' => $order->discount,
-                'shipping' => $order->shipping,
-                'tax' => $order->tax,
-                'cod_fee' => $order->cod_fee,
-                'warranty_total' => $order->warranty_total,
-                'total' => $order->total,
-                'coupon_code_used' => $order->coupon_code_used,
-            ],
-            'sub_orders' => $order->subOrders->map(fn (SubOrder $subOrder) => [
-                'sub_order_number' => $subOrder->sub_order_number,
-                'vendor_name' => $subOrder->vendor?->store_name,
-                'subtotal' => $subOrder->subtotal,
-                'shipping' => $subOrder->shipping,
-                'tax' => $subOrder->tax,
-                'items' => $subOrder->items->map(fn (OrderItem $item) => [
-                    'sku' => $item->sku,
-                    'name_en' => $item->product_snapshot['name_en'] ?? null,
-                    'name_ar' => $item->product_snapshot['name_ar'] ?? null,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'line_subtotal' => $item->line_subtotal,
-                    'line_discount' => $item->line_discount,
-                    'line_tax' => $item->line_tax,
-                    'line_total' => $item->line_total,
-                ]),
-            ]),
-        ], 'Invoice data retrieved');
+        return ApiResponse::success((new OrderInvoiceResource($order))->toArray($request), 'Invoice data retrieved');
     }
 
     private function findOrder(Customer $customer, string $orderNumber): ?Order
@@ -303,106 +231,6 @@ class OrderController extends Controller
 
     private function buildOrderDetail(Order $order): array
     {
-        return [
-            'order_number' => $order->order_number,
-            'status' => $order->status?->value,
-            'payment_method' => $order->payment_method,
-            'payment_status' => $order->payment_status?->value,
-            'currency' => $order->currency,
-            'placed_at' => $order->placed_at?->toIso8601String(),
-            'completed_at' => $order->completed_at?->toIso8601String(),
-            'cancelled_at' => $order->cancelled_at?->toIso8601String(),
-            'summary' => [
-                'subtotal' => $order->subtotal,
-                'discount' => $order->discount,
-                'shipping' => $order->shipping,
-                'tax' => $order->tax,
-                'cod_fee' => $order->cod_fee,
-                'warranty_total' => $order->warranty_total,
-                'total' => $order->total,
-                'coupon_code_used' => $order->coupon_code_used,
-            ],
-            'shipping_address' => $order->shipping_address_snapshot,
-            'sub_orders' => $order->subOrders->map(fn (SubOrder $subOrder) => $this->buildSubOrderDetail($subOrder)),
-            'status_history' => $order->statusHistories->map(fn (OrderStatusHistory $history) => [
-                'from_status' => $history->from_status,
-                'to_status' => $history->to_status,
-                'reason' => $history->reason,
-                'created_at' => $history->created_at?->toIso8601String(),
-            ]),
-        ];
-    }
-
-    private function buildSubOrderDetail(SubOrder $subOrder): array
-    {
-        return [
-            'sub_order_number' => $subOrder->sub_order_number,
-            'status' => $subOrder->status?->value,
-            'fulfillment_model' => $subOrder->fulfillment_model,
-            'vendor' => [
-                'id' => $subOrder->vendor?->id,
-                'store_name' => $subOrder->vendor?->store_name,
-            ],
-            'subtotal' => $subOrder->subtotal,
-            'shipping' => $subOrder->shipping,
-            'tax' => $subOrder->tax,
-            'is_exceptional_zone' => (int) ($subOrder->shipping_gap ?? 0) > 0,
-            'carrier' => $subOrder->carrier?->name,
-            'tracking_number' => $subOrder->tracking_number,
-            'estimated_delivery_date' => $subOrder->estimated_delivery_date?->toDateString(),
-            'shipped_at' => $subOrder->shipped_at?->toIso8601String(),
-            'delivered_at' => $subOrder->delivered_at?->toIso8601String(),
-            'items' => $subOrder->items->map(fn (OrderItem $item) => [
-                'id' => $item->id,
-                'sku' => $item->sku,
-                'name_en' => $item->product_snapshot['name_en'] ?? null,
-                'name_ar' => $item->product_snapshot['name_ar'] ?? null,
-                'quantity' => $item->quantity,
-                'unit_price' => $item->unit_price,
-                'line_subtotal' => $item->line_subtotal,
-                'line_discount' => $item->line_discount,
-                'line_tax' => $item->line_tax,
-                'line_total' => $item->line_total,
-                'fulfillment_status' => $item->fulfillment_status?->value,
-                'warranty' => $item->warrantyPurchase ? $this->buildWarranty($item->warrantyPurchase) : null,
-            ]),
-            'shipments' => $subOrder->relationLoaded('shipments')
-                ? $subOrder->shipments->map(fn (Shipment $shipment) => $this->buildShipment($shipment))
-                : [],
-        ];
-    }
-
-    private function buildShipment(Shipment $shipment): array
-    {
-        return [
-            'carrier_id' => $shipment->carrier_id,
-            'tracking_number' => $shipment->tracking_number,
-            'awb_label_url' => $shipment->awb_label_url,
-            'weight_grams' => $shipment->weight_grams,
-            'status' => $shipment->status?->value,
-            'picked_up_at' => $shipment->picked_up_at?->toIso8601String(),
-            'delivered_at' => $shipment->delivered_at?->toIso8601String(),
-            'events' => $shipment->relationLoaded('trackingEvents')
-                ? $shipment->trackingEvents->sortBy('occurred_at')->values()->map(fn ($event) => [
-                    'status' => $event->status?->value,
-                    'description' => $event->description,
-                    'location' => $event->location,
-                    'occurred_at' => $event->occurred_at?->toIso8601String(),
-                ])
-                : [],
-        ];
-    }
-
-    private function buildWarranty(WarrantyPurchase $warranty): array
-    {
-        return [
-            'id' => $warranty->id,
-            'plan_snapshot' => $warranty->plan_snapshot,
-            'price_paid' => $warranty->price_paid,
-            'currency' => $warranty->currency,
-            'status' => $warranty->status,
-            'coverage_starts_at' => $warranty->coverage_starts_at?->toDateString(),
-            'coverage_ends_at' => $warranty->coverage_ends_at?->toDateString(),
-        ];
+        return (new OrderDetailResource($order))->toArray(request());
     }
 }

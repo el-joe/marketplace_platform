@@ -7,6 +7,9 @@ use App\Http\Requests\Customer\Classified\CreateInquiryRequest;
 use App\Http\Requests\Customer\Travel\CreateBookingRequest;
 use App\Http\Requests\Customer\Travel\SignContractRequest;
 use App\Http\Resources\Customer\ClassifiedListingDetailResource;
+use App\Http\Resources\Customer\ListingInquiryResource;
+use App\Http\Resources\Customer\TravelBookingSubmittedResource;
+use App\Http\Resources\Customer\TravelContractResource;
 use App\Http\Resources\Customer\TravelPackageDetailResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Country;
@@ -64,12 +67,10 @@ class ListingController extends Controller
         $customer = auth('customer')->user();
         $inquiry  = $this->inquiryService->create($listing, $customer, $request->validated());
 
-        return ApiResponse::success([
-            'id'         => $inquiry->id,
-            'listing_slug' => $slug,
-            'status'     => $inquiry->status?->value,
-            'created_at' => $inquiry->created_at->toIso8601String(),
-        ], __('common.exceptions.listing.inquiry_submitted'), 201);
+        $resource = new ListingInquiryResource($inquiry);
+        $resource->listingSlug = $slug;
+
+        return ApiResponse::success($resource, __('common.exceptions.listing.inquiry_submitted'), 201);
     }
 
     public function createBooking(
@@ -88,16 +89,11 @@ class ListingController extends Controller
         $customer = auth('customer')->user();
         $booking  = $this->bookingService->book($package, $customer, $request->validated());
 
-        return ApiResponse::success([
-            'id'                => $booking->id,
-            'booking_number'    => $booking->booking_number,
-            'status'            => $booking->status?->value,
-            'travelers_count'   => $booking->travelers_count,
-            'total_price' => $booking->total_price,
-            'currency'          => $package->currency,
-            'created_at'        => $booking->created_at->toIso8601String(),
-            'message'           => __('common.exceptions.listing.booking_pending_review'),
-        ], __('common.exceptions.listing.booking_submitted'), 201);
+        $resource = new TravelBookingSubmittedResource($booking);
+        $resource->currency = $package->currency;
+        $resource->pendingMessage = __('common.exceptions.listing.booking_pending_review');
+
+        return ApiResponse::success($resource, __('common.exceptions.listing.booking_submitted'), 201);
     }
 
     public function signContract(
@@ -115,12 +111,7 @@ class ListingController extends Controller
         $customer = auth('customer')->user();
         $booking  = $this->bookingService->signContract($customer, $bookingNumber, $request->validated()['signature_data']);
 
-        return ApiResponse::success([
-            'id'                  => $booking->id,
-            'booking_number'      => $booking->booking_number,
-            'contract_signed_at'  => $booking->contract_signed_at?->toIso8601String(),
-            'status'              => $booking->status?->value,
-        ], __('common.exceptions.listing.contract_signed'));
+        return ApiResponse::success(new TravelContractResource($booking), __('common.exceptions.listing.contract_signed'));
     }
 
     // ── Private branch methods ────────────────────────────────────────────────

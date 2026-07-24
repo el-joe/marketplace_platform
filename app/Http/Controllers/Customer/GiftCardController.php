@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\GiftCardBalanceResource;
 use App\Http\Resources\Customer\GiftCardResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\GiftCard;
@@ -27,12 +28,7 @@ class GiftCardController extends Controller
             return ApiResponse::error('Gift card not found or inactive.', [], 404);
         }
 
-        return ApiResponse::success([
-            'balance' => $giftCard->balance,
-            'currency' => $giftCard->currency,
-            'status' => $giftCard->status,
-            'expires_at' => $giftCard->expires_at?->toIso8601String(),
-        ]);
+        return ApiResponse::success(new GiftCardBalanceResource($giftCard));
     }
 
     public function myCodes(Request $request, string $country): JsonResponse

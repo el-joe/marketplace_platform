@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\NawyCategoryResource;
+use App\Http\Resources\Customer\NawyListingResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\AdminProductListing;
 use App\Models\Category;
@@ -44,18 +46,7 @@ class NawyController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'items' => collect($listings->items())->map(fn (AdminProductListing $listing) => $this->itemShape($listing))->values()->all(),
-                'meta' => [
-                    'current_page' => $listings->currentPage(),
-                    'last_page' => $listings->lastPage(),
-                    'per_page' => $listings->perPage(),
-                    'total' => $listings->total(),
-                ],
-            ],
-        ]);
+        return ApiResponse::paginated($listings, NawyListingResource::class);
     }
 
     /**
@@ -80,15 +71,7 @@ class NawyController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return ApiResponse::success(
-            $categories->map(fn (Category $category) => [
-                'id' => $category->id,
-                'name_en' => $category->name_en,
-                'name_ar' => $category->name_ar,
-                'slug' => $category->slug,
-                'sort_order' => $category->sort_order,
-            ])->values()->all()
-        );
+        return ApiResponse::success(NawyCategoryResource::collection($categories));
     }
 
     /**
@@ -113,54 +96,7 @@ class NawyController extends Controller
         }
 
         return ApiResponse::success([
-            'listing' => $this->itemShape($listing),
+            'listing' => new NawyListingResource($listing),
         ]);
-    }
-
-    private function itemShape(AdminProductListing $listing): array
-    {
-        $product = $listing->productVariant->product;
-        $primaryImage = $product->images->firstWhere('is_primary', true) ?? $product->images->first();
-
-        return [
-            'id' => $listing->id,
-            'price' => $listing->price,
-            'currency' => $listing->currency,
-            'payment_options' => $listing->payment_options,
-            'fulfillment_type' => $listing->fulfillment_type,
-            'is_exclusive' => (bool) $listing->is_exclusive,
-            'rating_avg' => (float) $listing->rating_avg,
-            'rating_count' => (int) $listing->rating_count,
-            'product' => [
-                'name_en' => $product->name_en,
-                'name_ar' => $product->name_ar,
-                'slug' => $product->slug,
-                'primary_image_url' => $primaryImage?->url,
-            ],
-            'variant' => [
-                'attributes' => $listing->productVariant->attributeValues->map(fn ($av) => [
-                    'name_en' => $av->attribute?->name_en,
-                    'name_ar' => $av->attribute?->name_ar,
-                    'value_en' => $av->value_en,
-                    'value_ar' => $av->value_ar,
-                ])->values()->all(),
-            ],
-            'category' => $listing->nawyCategory ? [
-                'id' => $listing->nawyCategory->id,
-                'name_en' => $listing->nawyCategory->name_en,
-                'name_ar' => $listing->nawyCategory->name_ar,
-            ] : null,
-            'fulfillment_badge' => $this->fulfillmentBadge($listing->fulfillment_type),
-        ];
-    }
-
-    private function fulfillmentBadge(?string $fulfillmentType): array
-    {
-        return match ($fulfillmentType) {
-            'express' => ['label_en' => 'Express', 'label_ar' => 'إكسبريس', 'color' => 'green'],
-            'global' => ['label_en' => 'Global', 'label_ar' => 'عالمي', 'color' => 'blue'],
-            'mixed' => ['label_en' => 'Express & Global', 'label_ar' => 'إكسبريس وعالمي', 'color' => 'purple'],
-            default => ['label_en' => 'Global', 'label_ar' => 'عالمي', 'color' => 'blue'],
-        };
     }
 }

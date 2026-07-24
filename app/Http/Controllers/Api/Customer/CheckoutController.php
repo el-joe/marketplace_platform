@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\Customer\CheckoutOrderResource;
+use App\Http\Resources\Api\Customer\CouponValidationResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Address;
 use App\Models\Coupon;
@@ -90,14 +92,10 @@ class CheckoutController extends Controller
             return ApiResponse::error('Coupon currency does not match your country.', [], 422);
         }
 
-        return ApiResponse::success([
-            'valid' => true,
-            'discount_type' => $coupon->type?->value,
-            'discount_value' => $coupon->value,
-            'max_discount' => $coupon->max_discount,
-            'min_order_amount' => $coupon->min_order_amount,
-            'description' => $coupon->description,
-        ], 'Coupon is valid');
+        return ApiResponse::success(
+            (new CouponValidationResource($coupon))->toArray($request),
+            'Coupon is valid',
+        );
     }
 
     public function place(Request $request): JsonResponse
@@ -352,25 +350,11 @@ class CheckoutController extends Controller
 
         $this->clearCustomerCart($customer);
 
-        return ApiResponse::success([
-            'order_number' => $order->order_number,
-            'status' => $order->status?->value,
-            'payment_status' => $order->payment_status?->value,
-            'total' => $order->total,
-            'currency' => $order->currency,
-            'placed_at' => $order->placed_at?->toIso8601String(),
-            'sub_orders' => $order->subOrders->map(fn (SubOrder $so) => [
-                'sub_order_number' => $so->sub_order_number,
-                'status' => $so->status?->value ?? $so->status,
-                'shipping' => $so->shipping,
-                'items' => $so->items->map(fn (OrderItem $item) => [
-                    'sku' => $item->sku,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'line_total' => $item->line_total,
-                ]),
-            ]),
-        ], 'Order placed successfully', 201);
+        return ApiResponse::success(
+            (new CheckoutOrderResource($order))->toArray($request),
+            'Order placed successfully',
+            201,
+        );
     }
 
     /**

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Customer;
 use App\Enums\AdminProductListingStatus;
 use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\Customer\AdminListingResource;
+use App\Http\Resources\Api\Customer\VendorListingResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Address;
 use App\Models\AdminProductListing;
@@ -386,82 +388,12 @@ class ListingController extends Controller
 
     private function vendorListingShape(VendorListing $listing, Country $country): array
     {
-        $product = $listing->productVariant->product;
-
-        return [
-            'listing_id' => $listing->id,
-            'listing_ref' => $this->identifiers->buildListingRef($listing),
-            'price' => (int) $listing->price,
-            'compare_at_price' => $listing->compare_at_price !== null ? (int) $listing->compare_at_price : null,
-            'currency' => $listing->currency ?? $country->currency_code,
-            'condition' => $listing->condition,
-            'global_system_type' => $listing->global_system_type?->value,
-            'status' => $listing->status?->value,
-            'rating_avg' => (float) $listing->rating_avg,
-            'rating_count' => (int) $listing->rating_count,
-            'total_sold' => (int) $listing->total_sold,
-            'score' => $listing->score,
-            'vendor_covers_delivery' => (bool) $listing->vendor_covers_delivery,
-            'product' => [
-                'id' => $product->id,
-                'slug' => $product->slug,
-                'name_ar' => $product->name_ar,
-                'name_en' => $product->name_en,
-                'category' => $product->category ? [
-                    'id' => $product->category->id,
-                    'name_ar' => $product->category->name_ar,
-                    'name_en' => $product->category->name_en,
-                ] : null,
-                'images' => $product->images->map(fn ($image) => [
-                    'url' => $image->url,
-                    'is_primary' => (bool) $image->is_primary,
-                ])->values()->all(),
-            ],
-            'variant' => [
-                'id' => $listing->productVariant->id,
-                'sku' => $listing->productVariant->sku,
-                'name_ar' => $listing->productVariant->name_ar,
-                'name_en' => $listing->productVariant->name_en,
-            ],
-        ];
+        return (new VendorListingResource($listing, $country))->toArray(request());
     }
 
     private function adminListingShape(AdminProductListing $listing, Country $country): array
     {
-        $product = $listing->productVariant->product;
-
-        return [
-            'listing_id' => $listing->id,
-            'price' => (int) $listing->getRawOriginal('price'),
-            'currency' => $listing->currency ?? $country->currency_code,
-            'payment_options' => $listing->payment_options,
-            'fulfillment_type' => $listing->fulfillment_type,
-            'is_exclusive' => (bool) $listing->is_exclusive,
-            'status' => $listing->status?->value,
-            'rating_avg' => (float) $listing->rating_avg,
-            'rating_count' => (int) $listing->rating_count,
-            'product' => [
-                'id' => $product->id,
-                'slug' => $product->slug,
-                'name_ar' => $product->name_ar,
-                'name_en' => $product->name_en,
-                'category' => $product->category ? [
-                    'id' => $product->category->id,
-                    'name_ar' => $product->category->name_ar,
-                    'name_en' => $product->category->name_en,
-                ] : null,
-                'images' => $product->images->map(fn ($image) => [
-                    'url' => $image->url,
-                    'is_primary' => (bool) $image->is_primary,
-                ])->values()->all(),
-            ],
-            'variant' => [
-                'id' => $listing->productVariant->id,
-                'sku' => $listing->productVariant->sku,
-                'name_ar' => $listing->productVariant->name_ar,
-                'name_en' => $listing->productVariant->name_en,
-            ],
-        ];
+        return (new AdminListingResource($listing, $country))->toArray(request());
     }
 
     // ── Shared helpers ───────────────────────────────────────────────────────

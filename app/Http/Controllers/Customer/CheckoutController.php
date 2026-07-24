@@ -9,7 +9,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\CheckoutPrepareRequest;
 use App\Http\Requests\Customer\PlaceOrderRequest;
 use App\Http\Requests\Customer\ShippingMethodsRequest;
+use App\Http\Resources\Customer\CheckoutAddressResource;
+use App\Http\Resources\Customer\CheckoutItemResource;
+use App\Http\Resources\Customer\CheckoutShippingMethodResource;
 use App\Http\Resources\Customer\OrderResource;
+use App\Http\Resources\Customer\PlaceOrderResultResource;
 use App\Http\Responses\ApiResponse;
 use App\Jobs\AutoAssignShippingMethodJob;
 use App\Jobs\FraudDetectionJob;
@@ -78,21 +82,12 @@ class CheckoutController extends Controller
                 ->get();
 
             return ApiResponse::success([
-                'shipping_methods' => $methods->map(fn (ShippingMethod $method) => [
-                    'id' => $method->id,
-                    'code' => $method->code,
-                    'name' => $method->name,
-                    'badge_label_en' => $method->badge_label_en,
-                    'badge_label_ar' => $method->badge_label_ar,
-                    'badge_color_hex' => $method->badge_color_hex,
-                    'badge_text_color_hex' => $method->badge_text_color_hex,
-                    'delivery_days_min' => $method->min_delivery_days,
-                    'delivery_days_max' => $method->max_delivery_days,
+                'shipping_methods' => $methods->map(fn (ShippingMethod $method) => new CheckoutShippingMethodResource($method, [
                     'fee' => 0,
                     'is_free' => true,
                     'cod_extra_fee' => 0,
                     'cod_available' => false,
-                ])->values(),
+                ]))->values(),
                 'destination_zone' => null,
                 'cod_available_for_address' => false,
             ], 'Shipping methods retrieved');
@@ -115,21 +110,12 @@ class CheckoutController extends Controller
             $calc = $this->calculationService->calculateShipping($address, $country, $method->id, $cartItems, false);
             $codCalc = $this->calculationService->calculateShipping($address, $country, $method->id, $cartItems, true);
 
-            return [
-                'id' => $method->id,
-                'code' => $method->code,
-                'name' => $method->name,
-                'badge_label_en' => $method->badge_label_en,
-                'badge_label_ar' => $method->badge_label_ar,
-                'badge_color_hex' => $method->badge_color_hex,
-                'badge_text_color_hex' => $method->badge_text_color_hex,
-                'delivery_days_min' => $method->min_delivery_days,
-                'delivery_days_max' => $method->max_delivery_days,
+            return new CheckoutShippingMethodResource($method, [
                 'fee' => $calc['fee'],
                 'is_free' => $calc['is_free'],
                 'cod_extra_fee' => $codCalc['cod_extra_fee'],
                 'cod_available' => $calc['cod_available'],
-            ];
+            ]);
         })->values();
 
         return ApiResponse::success([
@@ -261,24 +247,7 @@ class CheckoutController extends Controller
             $availablePaymentMethods[] = 'cod';
         }
 
-        $items = collect($cartItems)->map(function ($item) {
-            $listing = $item->vendorListing;
-            $isAdminListing = $listing->global_system_type === GlobalSystemType::ExpressFbn;
-            $product = $listing->productVariant->product;
-
-            return [
-                'listing_id' => $listing->id,
-                'listing_ref' => $this->listingIdentifierService->buildListingRef($listing),
-                'sku' => $listing->productVariant->sku,
-                'name_en' => $product->name_en,
-                'quantity' => $item->quantity,
-                'unit_price' => $item->unit_price,
-                'line_total' => $item->unit_price * $item->quantity,
-                'thumbnail' => $product->images->firstWhere('is_primary', true)?->url ?? $product->images->first()?->url,
-                'vendor_name' => $isAdminListing ? 'noon' : $listing->vendor?->store_name,
-                'is_admin_listing' => $isAdminListing,
-            ];
-        })->values();
+        $items = CheckoutItemResource::collection(collect($cartItems)->values());
 
         $vendorDeliveryResponse = collect($vendorShipping['per_vendor'])->map(fn ($v, $vendorId) => [
             'vendor_id' => $vendorId,
@@ -301,13 +270,7 @@ class CheckoutController extends Controller
                 'is_free_delivery' => $vendorShipping['total'] === 0,
                 'vendor_delivery' => $vendorDeliveryResponse,
             ],
-            'address' => [
-                'id' => $address->id,
-                'recipient_name' => $address->recipient_name,
-                'street_address' => $address->street_address,
-                'city' => $address->city?->name_en,
-                'country' => $country->name_en,
-            ],
+            'address' => new CheckoutAddressResource($address, $country),
             'payment_method' => $validated['payment_method'],
             'available_payment_methods' => $availablePaymentMethods,
             'coupon' => $couponResponse,
@@ -728,35 +691,7 @@ class CheckoutController extends Controller
         $order = $order->fresh();
         $order->load('subOrders.items.vendorListing');
 
-        return ApiResponse::success([
-            'order_number' => $order->order_number,
-            'status' => $order->status->value,
-            'payment_status' => $order->payment_status->value,
-            'total' => $order->total,
-            'warranty_total' => $order->warranty_total,
-            'currency' => $order->currency,
-            'placed_at' => $order->placed_at?->toIso8601String(),
-            'sub_orders' => $order->subOrders->map(function (SubOrder $so) {
-                return [
-                'sub_order_number' => $so->sub_order_number,
-                'vendor' => $so->vendor?->store_name,
-                'status' => $so->status->value,
-                'fulfillment_model' => $so->fulfillment_model,
-                'delivery_fee' => $so->shipping,
-                'is_free_delivery' => $so->shipping === 0,
-                'items' => $so->items->map(fn (OrderItem $item) => [
-                    'listing_ref' => $item->vendorListing
-                        ? $this->listingIdentifierService->buildListingRef($item->vendorListing)
-                        : null,
-                    'sku' => $item->sku,
-                    'name_en' => $item->product_snapshot['name_en'] ?? null,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'line_total' => $item->line_total,
-                ]),
-                ];
-            }),
-        ], 'Order placed successfully', 201);
+        return ApiResponse::success(new PlaceOrderResultResource($order), 'Order placed successfully', 201);
     }
 
     public function confirmation(Request $request,$country, string $orderNumber): JsonResponse

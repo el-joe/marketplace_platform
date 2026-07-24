@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\ProductListRequest;
+use App\Http\Resources\Customer\ProductCardResource;
 use App\Http\Resources\Customer\ProductDetailResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Country;
@@ -74,17 +75,14 @@ class ProductController extends Controller
 
         $facets = $this->products->facets($country, $filters);
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'items' => $items,
-                'facets' => $facets,
-                'meta' => [
-                    'current_page' => $paginator->currentPage(),
-                    'last_page' => $paginator->lastPage(),
-                    'per_page' => $paginator->perPage(),
-                    'total' => $paginator->total(),
-                ],
+        return ApiResponse::success([
+            'items' => ProductCardResource::collection($items),
+            'facets' => $facets,
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
             ],
         ]);
     }

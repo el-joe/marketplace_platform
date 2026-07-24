@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\Customer\QrCodeResource;
 use App\Models\Customer;
 use App\Services\CustomerQrCodeService;
 use Illuminate\Http\JsonResponse;
@@ -46,10 +47,6 @@ class QrCodeController extends Controller
 
     private function payload(Customer $customer): array
     {
-        return [
-            'qr_url' => Storage::disk('public')->url($customer->qr_code_path),
-            'referral_code' => $customer->referral_code,
-            'referral_link' => rtrim(config('app.url'), '/') . '/r/' . $customer->referral_code,
-        ];
+        return (new QrCodeResource($customer))->toArray(request());
     }
 }

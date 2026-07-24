@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\ClassifiedBrowseCategoryResource;
+use App\Http\Resources\Customer\ProductBrowseCategoryResource;
+use App\Http\Resources\Customer\TravelBrowseCategoryResource;
+use App\Http\Resources\Customer\TravelCategorySummaryResource;
 use App\Models\Category;
 use App\Models\ClassifiedCategory;
 use App\Models\Country;
@@ -12,7 +16,6 @@ use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\ProductQueryService;
 use App\Services\Customer\UnifiedCategoryService;
 use App\Services\Shared\PageBuilderService;
-use App\Support\Bilingual;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -92,53 +95,12 @@ class BrowseController extends Controller
         return response()->json([
             'success' => true,
             'data'    => [
-                'category'      => $this->productCategoryPayload($category),
+                'category'      => new ProductBrowseCategoryResource($category),
                 'category_node' => $categoryNode,
                 'page_builder'  => $pageBuilder,
                 'listings'      => array_merge($payload, ['facets' => $facets]),
             ],
         ]);
-    }
-
-    private function productCategoryPayload(Category $category): array
-    {
-        return [
-            'id'             => $category->id,
-            'name'           => Bilingual::pair($category, 'name'),
-            'slug'           => $category->slug,
-            'description'    => Bilingual::pair($category, 'description'),
-            'parent'         => $category->parent ? [
-                'id'      => $category->parent->id,
-                'name'    => Bilingual::pair($category->parent, 'name'),
-                'slug'    => $category->parent->slug,
-            ] : null,
-            'attributes' => $category->attributes()->where('is_filterable', true)->with('values')->get()
-                ->map(fn ($attribute) => [
-                    'id'          => $attribute->id,
-                    'code'        => $attribute->code,
-                    'name'        => Bilingual::pair($attribute, 'name'),
-                    'type'        => $attribute->type->value,
-                    'unit'        => $attribute->unit,
-                    'is_required' => (bool) $attribute->pivot->is_required,
-                    'values'      => $attribute->values->map(fn ($value) => [
-                        'id'        => $value->id,
-                        'value'     => Bilingual::pair($value, 'value'),
-                        'color_hex' => $value->color_hex,
-                    ])->values()->all(),
-                ])->values()->all(),
-            'children' => $category->children()
-                ->where('is_active', true)
-                ->where('is_visible', true)
-                ->orderBy('sort_order')
-                ->get()
-                ->map(fn ($child) => [
-                    'id'      => $child->id,
-                    'name'    => Bilingual::pair($child, 'name'),
-                    'slug'    => $child->slug,
-                    'icon'    => $child->icon,
-                ])
-                ->toArray(),
-        ];
     }
 
     // ── Classifieds ───────────────────────────────────────────────────────────
@@ -173,14 +135,7 @@ class BrowseController extends Controller
         return response()->json([
             'success' => true,
             'data'    => [
-                'category' => [
-                    'id'          => $category->id,
-                    'source_type' => 'classified',
-                    'name'        => Bilingual::pair($category, 'name'),
-                    'slug'        => $category->slug,
-                    'icon'        => $category->icon,
-                    'link'        => "/browse/classified/{$category->id}",
-                ],
+                'category' => new ClassifiedBrowseCategoryResource($category),
                 'page_builder' => $pageBuilder,
                 'listings'     => [
                     'items' => $items,
@@ -228,32 +183,17 @@ class BrowseController extends Controller
             ->map(fn ($package) => $this->listings->toTravelCardShape($package))
             ->toArray();
 
-        $availableCategories = TravelCategory::where('is_active', 1)
-            ->orderBy('sort_order')
-            ->withCount('packages')
-            ->get()
-            ->map(fn ($c) => [
-                'id'             => $c->id,
-                'name'           => Bilingual::pair($c, 'name'),
-                'slug'           => $c->slug,
-                'icon'           => $c->icon,
-                'package_count'  => $c->packages_count,
-            ])
-            ->toArray();
+        $availableCategories = TravelCategorySummaryResource::collection(
+            TravelCategory::where('is_active', 1)
+                ->orderBy('sort_order')
+                ->withCount('packages')
+                ->get()
+        );
 
         return response()->json([
             'success' => true,
             'data'    => [
-                'category' => [
-                    'id'                   => $travelCategory?->id,
-                    'source_type'          => 'travel',
-                    'name'                 => $travelCategory
-                        ? Bilingual::pair($travelCategory, 'name')
-                        : ['ar' => 'كل رحلات السفر', 'en' => 'All Travel'],
-                    'slug'                 => $travelCategory?->slug ?? 'all',
-                    'link'                 => '/travel',
-                    'travel_category_slug' => $travelCategory?->slug,
-                ],
+                'category' => new TravelBrowseCategoryResource($travelCategory),
                 'available_categories' => $availableCategories,
                 'page_builder'          => $pageBuilder,
                 'listings'              => [

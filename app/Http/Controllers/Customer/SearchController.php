@@ -72,17 +72,14 @@ class SearchController extends Controller
 
         $facets = $this->search->facets($country, $data);
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'items' => $items,
-                'facets' => $facets,
-                'meta' => [
-                    'current_page' => $paginator->currentPage(),
-                    'last_page' => $paginator->lastPage(),
-                    'per_page' => $paginator->perPage(),
-                    'total' => $paginator->total(),
-                ],
+        return ApiResponse::success([
+            'items' => $items,
+            'facets' => $facets,
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
             ],
         ]);
     }
@@ -95,18 +92,15 @@ class SearchController extends Controller
             ->map(fn($listing) => $this->listings->toClassifiedCardShape($listing))
             ->toArray();
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'source_type' => 'classified',
-                'items' => $items,
-                'meta' => [
-                    'current_page' => $paginator->currentPage(),
-                    'last_page' => $paginator->lastPage(),
-                    'per_page' => $paginator->perPage(),
-                    'total' => $paginator->total(),
-                    'query' => $data['q'],
-                ],
+        return ApiResponse::success([
+            'source_type' => 'classified',
+            'items' => $items,
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'query' => $data['q'],
             ],
         ]);
     }
@@ -119,18 +113,15 @@ class SearchController extends Controller
             ->map(fn($package) => $this->listings->toTravelCardShape($package))
             ->toArray();
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'source_type' => 'travel',
-                'items' => $items,
-                'meta' => [
-                    'current_page' => $paginator->currentPage(),
-                    'last_page' => $paginator->lastPage(),
-                    'per_page' => $paginator->perPage(),
-                    'total' => $paginator->total(),
-                    'query' => $data['q'],
-                ],
+        return ApiResponse::success([
+            'source_type' => 'travel',
+            'items' => $items,
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'query' => $data['q'],
             ],
         ]);
     }
@@ -177,26 +168,23 @@ class SearchController extends Controller
 
         $totalResults = $productPaginator->total() + $classifiedPaginator->total() + $travelPaginator->total();
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'source_type' => 'all',
-                'products' => [
-                    'items' => array_slice($productItems, 0, 4),
-                    'total' => $productPaginator->total(),
-                ],
-                'classifieds' => [
-                    'items' => $classifiedItems,
-                    'total' => $classifiedPaginator->total(),
-                ],
-                'travel' => [
-                    'items' => $travelItems,
-                    'total' => $travelPaginator->total(),
-                ],
-                'meta' => [
-                    'query' => $query,
-                    'total_results' => $totalResults,
-                ],
+        return ApiResponse::success([
+            'source_type' => 'all',
+            'products' => [
+                'items' => array_slice($productItems, 0, 4),
+                'total' => $productPaginator->total(),
+            ],
+            'classifieds' => [
+                'items' => $classifiedItems,
+                'total' => $classifiedPaginator->total(),
+            ],
+            'travel' => [
+                'items' => $travelItems,
+                'total' => $travelPaginator->total(),
+            ],
+            'meta' => [
+                'query' => $query,
+                'total_results' => $totalResults,
             ],
         ]);
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\Customer\NotificationPreferencesResource;
 use App\Http\Resources\Api\Customer\NotificationResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\DeviceToken;
@@ -156,14 +157,7 @@ class NotificationController extends Controller
     {
         $customer = auth('customer')->user();
 
-        return ApiResponse::success([
-            'locale' => $customer->locale,
-            'marketing_preferences' => [
-                'email' => $customer->marketing_email_enabled,
-                'sms' => $customer->marketing_sms_enabled,
-                'whatsapp' => $customer->marketing_whatsapp_enabled,
-            ],
-        ]);
+        return ApiResponse::success((new NotificationPreferencesResource($customer))->toArray(request()));
     }
 
     public function updatePreferences(Request $request): JsonResponse
@@ -200,13 +194,9 @@ class NotificationController extends Controller
 
         $customer->update($update);
 
-        return ApiResponse::success([
-            'locale' => $customer->locale,
-            'marketing_preferences' => [
-                'email' => $customer->marketing_email_enabled,
-                'sms' => $customer->marketing_sms_enabled,
-                'whatsapp' => $customer->marketing_whatsapp_enabled,
-            ],
-        ], 'Notification preferences updated.');
+        return ApiResponse::success(
+            (new NotificationPreferencesResource($customer))->toArray(request()),
+            'Notification preferences updated.',
+        );
     }
 }

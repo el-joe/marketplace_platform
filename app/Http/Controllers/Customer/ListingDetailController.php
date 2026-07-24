@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Enums\GlobalSystemType;
 use App\Enums\VendorListingStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Customer\ListingDetailResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Country;
 use App\Models\VendorListing;
@@ -83,7 +84,7 @@ class ListingDetailController extends Controller
             ->limit(5)
             ->get();
 
-        return ApiResponse::success([
+        return ApiResponse::success(new ListingDetailResource([
             'listing' => $this->listingShape($listing, $country, $isWishlisted),
             'seller' => $this->sellerShape($listing),
             'delivery_options' => $deliveryOptions->map(fn($method) => $this->deliveryOptionShape($method))->values()->all(),
@@ -103,7 +104,7 @@ class ListingDetailController extends Controller
             ],
             'frequently_bought_together' => $this->frequentlyBoughtTogetherShape($product, $listing, $country),
             'warranty_plans' => $warrantyPlans,
-        ]);
+        ]));
     }
 
     private function resolveListing(string $identifier, $country): ?VendorListing
