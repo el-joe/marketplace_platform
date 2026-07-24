@@ -12,8 +12,10 @@ use App\Http\Resources\Customer\CartItemResource;
 use App\Http\Resources\Customer\CartResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Coupon;
 use App\Services\BannerService;
+use App\Services\CartItemEnrichmentService;
 use App\Services\Customer\CartService;
 use App\Services\Customer\ListingIdentifierService;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +28,7 @@ class CartController extends Controller
         private readonly CartService $cartService,
         private readonly ListingIdentifierService $listingIdentifierService,
         private readonly BannerService $bannerService,
+        private readonly CartItemEnrichmentService $cartItemEnrichmentService,
     ) {}
 
     private function resolveCart(Request $request): Cart
@@ -69,7 +72,19 @@ class CartController extends Controller
     {
         $cart = $this->resolveCart($request);
 
+        $customer = auth('customer')->user();
+        $country = $request->attributes->get('country');
+
+        $cartItems = CartItem::where('cart_id', $cart->id)->get();
+
+        $shippingGroups = $cartItems->isEmpty()
+            ? []
+            : $this->cartItemEnrichmentService->groupByShippingMethod(
+                $this->cartItemEnrichmentService->enrich($cartItems, $customer, $country)
+            );
+
         return $this->cartResponse($cart, [
+            'shipping_groups' => $shippingGroups,
             'cart_banner' => $this->resolveCartBanner($request),
         ]);
     }

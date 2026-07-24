@@ -13,6 +13,7 @@ class CartItem extends Model
     protected $fillable = [
         'cart_id',
         'vendor_listing_id',
+        'admin_product_listing_id',
         'quantity',
         'unit_price',
         'added_at',
@@ -26,5 +27,10 @@ class CartItem extends Model
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class);
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class);
     }
 }
