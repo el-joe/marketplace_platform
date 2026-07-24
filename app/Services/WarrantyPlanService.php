@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class WarrantyPlanService
 {
+    public const CACHE_VERSION_KEY = 'warranty_plans_cache_version';
+
     public function getPlansForProduct(Product $product, string $countryId, string $currency): array
     {
         $categoryId = $product->category_id;
@@ -18,7 +20,8 @@ class WarrantyPlanService
             return [];
         }
 
-        $cacheKey = "warranty_plans_{$categoryId}_{$countryId}";
+        $version = Cache::get(self::CACHE_VERSION_KEY, 1);
+        $cacheKey = "warranty_plans_v{$version}_{$categoryId}_{$countryId}";
 
         return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($categoryId, $countryId) {
             $category = Category::find($categoryId);
@@ -53,8 +56,15 @@ class WarrantyPlanService
                 ->orderBy('sort_order', 'asc')
                 ->get();
 
+
             return $plans->map(fn (WarrantyPlan $plan) => $this->formatPlan($plan))->values()->all();
         });
+    }
+
+    public static function flushCache(): void
+    {
+        $cacheInc = Cache::get(self::CACHE_VERSION_KEY, 1);
+        Cache::put(self::CACHE_VERSION_KEY, $cacheInc + 1);
     }
 
     private function formatPlan(WarrantyPlan $plan): array

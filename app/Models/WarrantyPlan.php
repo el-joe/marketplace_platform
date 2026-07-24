@@ -7,12 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
+use App\Services\WarrantyPlanService;
 
 class WarrantyPlan extends Model
 {
     use HasUuids;
 
     protected $guarded = [];
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => WarrantyPlanService::flushCache());
+        static::deleted(fn () => WarrantyPlanService::flushCache());
+    }
 
     protected function casts(): array
     {
