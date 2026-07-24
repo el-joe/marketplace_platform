@@ -17,6 +17,7 @@ use App\Models\ShippingZone;
 use App\Models\VendorListing;
 use App\Services\Customer\ListingIdentifierService;
 use App\Services\ListingModeResolver;
+use App\Services\SavingsBenefitsService;
 use App\Services\ShippingCalculationService;
 use App\Services\WarrantyPlanService;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,6 +30,7 @@ class ListingController extends Controller
         private readonly ListingIdentifierService $identifiers,
         private readonly ShippingCalculationService $shipping,
         private readonly WarrantyPlanService $warrantyPlanService,
+        private readonly SavingsBenefitsService $savingsBenefitsService,
     ) {
     }
 
@@ -83,6 +85,11 @@ class ListingController extends Controller
             return ApiResponse::success([
                 'listing' => $this->adminListingShape($listing, $country),
                 'delivery_info' => $this->adminDeliveryInfo($listing),
+                'savings_and_benefits' => $this->savingsBenefitsService->get(
+                    (int) $listing->price,
+                    $country->id,
+                    $listing->currency,
+                ),
             ]);
         }
 
@@ -99,6 +106,11 @@ class ListingController extends Controller
             'listing' => $this->vendorListingShape($listing, $country),
             'delivery_info' => $this->vendorDeliveryInfo($listing, $country, $address),
             'warranty_plans' => $this->warrantyPlansFor($listing, $country),
+            'savings_and_benefits' => $this->savingsBenefitsService->get(
+                (int) $listing->price,
+                $country->id,
+                $listing->currency,
+            ),
         ]);
     }
 

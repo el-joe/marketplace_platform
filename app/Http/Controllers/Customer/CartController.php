@@ -18,6 +18,7 @@ use App\Services\BannerService;
 use App\Services\CartItemEnrichmentService;
 use App\Services\Customer\CartService;
 use App\Services\Customer\ListingIdentifierService;
+use App\Services\SavingsBenefitsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -29,6 +30,7 @@ class CartController extends Controller
         private readonly ListingIdentifierService $listingIdentifierService,
         private readonly BannerService $bannerService,
         private readonly CartItemEnrichmentService $cartItemEnrichmentService,
+        private readonly SavingsBenefitsService $savingsBenefitsService,
     ) {}
 
     private function resolveCart(Request $request): Cart
@@ -86,6 +88,11 @@ class CartController extends Controller
         return $this->cartResponse($cart, [
             'shipping_groups' => $shippingGroups,
             'cart_banner' => $this->resolveCartBanner($request),
+            'savings_and_benefits' => $this->savingsBenefitsService->get(
+                (int) $cart->estimated_total,
+                $cart->country_id,
+                $cart->currency,
+            ),
         ]);
     }
 
