@@ -101,6 +101,17 @@
                                         + {{ number_format($method->fee_fixed, 2) }}
                                     @endif
                                 </span>
+                                {{-- Logo thumbnail --}}
+                                @if($method->provider_logo_path)
+                                    <img src="{{ $method->provider_logo_path }}" alt="" class="w-6 h-6 object-contain rounded border border-gray-100" />
+                                @endif
+                                {{-- Installments --}}
+                                @if(in_array($method->method_type, ['bnpl', 'bank_transfer']))
+                                    <span
+                                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $method->is_installment_enabled ? 'bg-purple-50 text-purple-700' : 'bg-gray-100 text-gray-400' }}">
+                                        {{ $method->is_installment_enabled ? "x{$method->installments_count}" : __('admin.payment_section.installments_disabled') }}
+                                    </span>
+                                @endif
                                 {{-- Toggle --}}
                                 <button type="button"
                                     class="btn-toggle-method rounded-full px-2 py-0.5 text-xs font-semibold transition
@@ -129,7 +140,7 @@
 
     {{-- ─── Add / Edit Modal ───────────────────────────────────────────────── --}}
     <x-modal id="method-modal" title="{{ __('admin.payment_section.method_modal_title') }}" size="lg">
-        <form id="method-form" novalidate>
+        <form id="method-form" novalidate x-data="{ methodType: '' }">
             @csrf
             <input type="hidden" id="method-id">
             <input type="hidden" id="method-http" value="POST">
@@ -137,7 +148,8 @@
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                    <x-form-select name="method_type" label="{{ __('admin.payment_section.method_type') }}" required>
+                    <x-form-select name="method_type" label="{{ __('admin.payment_section.method_type') }}" required
+                        x-on:change="methodType = $event.target.value">
                         <option value="">{{ __('admin.payment_section.select_type_placeholder') }}</option>
                         @foreach($methodTypes as $key => $info)
                             <option value="{{ $key }}">{{ $info['label'] }}</option>
@@ -186,6 +198,37 @@
                 </div>
                 <div class="sm:col-span-2 flex items-center gap-6">
                     <x-form-toggle name="is_active" label="{{ __('common.active') }}" :checked="true" />
+                </div>
+            </div>
+
+            {{-- ─── Installment & Display Settings (BNPL / bank_transfer only) ──── --}}
+            <div x-show="methodType === 'bnpl' || methodType === 'bank_transfer'" x-cloak
+                class="mt-4 pt-4 border-t border-gray-200">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">
+                    {{ __('admin.payment_section.installment_settings') }}
+                </h4>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <x-form-input name="installments_count" label="{{ __('admin.payment_section.installments_count') }}"
+                            type="number" min="2" max="60" placeholder="4" />
+                        <p class="text-xs text-gray-400 mt-1">{{ __('admin.payment_section.installments_count_hint') }}</p>
+                    </div>
+                    <div>
+                        <x-form-input name="provider_logo_path" label="{{ __('admin.payment_section.provider_logo_path') }}"
+                            placeholder="/assets/payment-logos/tabby.svg" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-form-input name="installment_label_en" label="{{ __('admin.payment_section.installment_label_en') }}"
+                            placeholder="Pay in {n} interest-free installments of {amount}" />
+                        <p class="text-xs text-gray-400 mt-1">{{ __('admin.payment_section.installment_label_hint') }}</p>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-form-input name="installment_label_ar" label="{{ __('admin.payment_section.installment_label_ar') }}" dir="rtl" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-form-input name="learn_more_url" label="{{ __('admin.payment_section.learn_more_url') }}" type="url"
+                            placeholder="https://..." />
+                    </div>
                 </div>
             </div>
 

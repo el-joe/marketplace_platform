@@ -13,6 +13,7 @@ use App\Services\PaymentService;
 use App\Services\Payments\PaymentGatewayFactory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 
 class PaymentMethodController extends Controller
@@ -60,7 +61,7 @@ class PaymentMethodController extends Controller
             'fee_pct'              => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fee_fixed'      => ['nullable', 'integer', 'min:0'],
             'min_order'      => ['nullable', 'integer', 'min:0'],
-            'max_order'      => ['nullable', 'integer', 'min:0'],
+            'max_order'      => ['nullable', 'integer', 'min:0', 'gte:min_order'],
             'settlement_currency'  => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
             'environment'          => ['nullable', Rule::enum(CountryPaymentMethodEnvironment::class)],
             'sort_order'           => ['nullable', 'integer', 'min:0'],
@@ -108,10 +109,15 @@ class PaymentMethodController extends Controller
             'fee_pct'             => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fee_fixed'     => ['nullable', 'integer', 'min:0'],
             'min_order'     => ['nullable', 'integer', 'min:0'],
-            'max_order'     => ['nullable', 'integer', 'min:0'],
+            'max_order'     => ['nullable', 'integer', 'min:0', 'gte:min_order'],
             'settlement_currency' => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
             'environment'         => ['nullable', Rule::enum(CountryPaymentMethodEnvironment::class)],
             'sort_order'          => ['nullable', 'integer', 'min:0'],
+            'installments_count'   => ['nullable', 'integer', 'min:2', 'max:60'],
+            'installment_label_en' => ['nullable', 'string', 'max:200'],
+            'installment_label_ar' => ['nullable', 'string', 'max:200'],
+            'provider_logo_path'   => ['nullable', 'string', 'max:255'],
+            'learn_more_url'       => ['nullable', 'url', 'max:500'],
             'credentials'         => ['nullable', 'array'],
             'credentials.*'       => ['nullable', 'string'],
             'webhook_secret'      => ['nullable', 'string'],
@@ -128,6 +134,9 @@ class PaymentMethodController extends Controller
         if (!empty($data['webhook_secret'])) {
             $method->setWebhookSecret($data['webhook_secret']);
         }
+
+        Cache::forget("benefits:bnpl:{$method->country_id}");
+        Cache::forget("benefits:bank:{$method->country_id}");
 
         return response()->json([
             'success' => true,

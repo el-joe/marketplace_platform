@@ -125,6 +125,7 @@ function initMethodModal() {
         $('#method-id').val('');
         $('#method-http').val('POST');
         $('#method-country-id').val(countryId);
+        window.Alpine?.$data(document.getElementById('method-form')).methodType = '';
         $modal.find('[id$="-title"]').text(`${window.TRANSLATIONS?.addPaymentMethod || 'Add Payment Method'} \u2014 ${countryName}`);
         $modal.modal('open');
     });
@@ -135,6 +136,7 @@ function initMethodModal() {
         $('#method-id').val('');
         $('#method-http').val('POST');
         $('#method-country-id').val('');
+        window.Alpine?.$data(document.getElementById('method-form')).methodType = '';
         $modal.find('[id$="-title"]').text(window.TRANSLATIONS?.addPaymentMethod || 'Add Payment Method');
         $modal.modal('open');
     });
@@ -153,6 +155,12 @@ function initMethodModal() {
         $form.find('[name="display_name_en"]').val(row.display_name_en);
         $form.find('[name="display_name_ar"]').val(row.display_name_ar ?? '');
         $form.find('[name="fee_pct"]').val(row.fee_pct ?? '');
+        $form.find('[name="installments_count"]').val(row.installments_count ?? '');
+        $form.find('[name="installment_label_en"]').val(row.installment_label_en ?? '');
+        $form.find('[name="installment_label_ar"]').val(row.installment_label_ar ?? '');
+        $form.find('[name="provider_logo_path"]').val(row.provider_logo_path ?? '');
+        $form.find('[name="learn_more_url"]').val(row.learn_more_url ?? '');
+        window.Alpine?.$data(document.getElementById('method-form')).methodType = row.method_type ?? '';
 
         // Cents → display
         const feeFixed = row.fee_fixed ? (row.fee_fixed / 100).toFixed(2) : '';
@@ -194,6 +202,11 @@ function initMethodModal() {
             min_order: parseInt($('#min_order').val()) || null,
             max_order: parseInt($('#max_order').val()) || null,
             is_active: $form.find('[name="is_active"]').is(':checked') ? 1 : 0,
+            installments_count: parseInt($form.find('[name="installments_count"]').val()) || null,
+            installment_label_en: $form.find('[name="installment_label_en"]').val() || null,
+            installment_label_ar: $form.find('[name="installment_label_ar"]').val() || null,
+            provider_logo_path: $form.find('[name="provider_logo_path"]').val() || null,
+            learn_more_url: $form.find('[name="learn_more_url"]').val() || null,
         };
 
         try {
