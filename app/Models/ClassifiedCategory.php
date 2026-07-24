@@ -11,6 +11,18 @@ class ClassifiedCategory extends Model
 {
     use HasUuids;
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => static::flushNavCaches());
+        static::deleted(fn () => static::flushNavCaches());
+    }
+
+    private static function flushNavCaches(): void
+    {
+        \App\Services\Customer\CategoryService::flushCache();
+        \App\Services\Customer\UnifiedCategoryService::flushCache();
+    }
+
     protected $fillable = [
         'name_en', 'name_ar', 'slug', 'icon', 'parent_id',
         'requires_location_map', 'requires_sketch_upload',

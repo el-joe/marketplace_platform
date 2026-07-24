@@ -12,6 +12,18 @@ class TravelCategory extends Model
 {
     use HasUuids;
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => static::flushNavCaches());
+        static::deleted(fn () => static::flushNavCaches());
+    }
+
+    private static function flushNavCaches(): void
+    {
+        \App\Services\Customer\CategoryService::flushCache();
+        \App\Services\Customer\UnifiedCategoryService::flushCache();
+    }
+
     protected $fillable = [
         'parent_id', 'name_en', 'name_ar', 'slug', 'icon', 'is_active', 'sort_order',
     ];

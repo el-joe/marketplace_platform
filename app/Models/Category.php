@@ -30,6 +30,18 @@ class Category extends Model
         return 'depth';
     }
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => static::flushNavCaches());
+        static::deleted(fn () => static::flushNavCaches());
+    }
+
+    private static function flushNavCaches(): void
+    {
+        \App\Services\Customer\CategoryService::flushCache();
+        \App\Services\Customer\UnifiedCategoryService::flushCache();
+    }
+
     protected $keyType = 'string';
     public $incrementing = false;
 

@@ -11,18 +11,30 @@ use Illuminate\Support\Facades\Cache;
 
 class UnifiedCategoryService
 {
+    public const CACHE_VERSION_KEY = 'unified_nav_cache_version';
+
     /**
-     * Full merged tree for the nav API, sectioned by source and cached per country.
+     * Full merged tree for the nav API, sectioned by source and cached per
+     * country. Versioned so Category/ClassifiedCategory/TravelCategory saves
+     * invalidate it.
      */
     public function getMergedTree(Country $country): array
     {
-        return Cache::remember("unified_nav_{$country->id}", 600, function () {
+        $version = Cache::get(self::CACHE_VERSION_KEY, 1);
+
+        return Cache::remember("unified_nav_v{$version}_{$country->id}", 600, function () {
             return [
                 ['section' => 'products', 'nodes' => $this->productTree()],
                 ['section' => 'classifieds', 'nodes' => $this->classifiedTree()],
                 ['section' => 'travel', 'nodes' => $this->travelTree()],
             ];
         });
+    }
+
+    public static function flushCache(): void
+    {
+        $version = Cache::get(self::CACHE_VERSION_KEY, 1);
+        Cache::put(self::CACHE_VERSION_KEY, $version + 1);
     }
 
     /**

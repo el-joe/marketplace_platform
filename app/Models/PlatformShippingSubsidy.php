@@ -13,6 +13,12 @@ class PlatformShippingSubsidy extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => \App\Services\ShippingSubsidyService::flushCache());
+        static::deleted(fn () => \App\Services\ShippingSubsidyService::flushCache());
+    }
+
     protected $fillable = [
         'warehouse_id',
         'carrier_id',

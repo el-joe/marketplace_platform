@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Cache;
  */
 class ShippingSubsidyService
 {
+    public const CACHE_VERSION_KEY = 'shipping_subsidy_cache_version';
+
     public function __construct(
         private readonly ShippingWeightService $weightService,
         private readonly ShippingCalculationService $shippingCalculationService,
@@ -74,8 +76,10 @@ class ShippingSubsidyService
         $rawFee = $this->weightService->computeRawShippingFee($rate, $billable);
         $rawFee += $this->shippingCalculationService->getWeightSlabFee($method->id, $zone->country_id, $billable);
 
+        $version = Cache::get(self::CACHE_VERSION_KEY, 1);
+
         $subsidy = Cache::remember(
-            "shipping_subsidy_{$zone->id}_{$method->id}",
+            "shipping_subsidy_v{$version}_{$zone->id}_{$method->id}",
             300,
             fn() => PlatformShippingSubsidy::where('shipping_zone_id', $zone->id)
                 ->where('shipping_method_id', $method->id)
@@ -113,6 +117,12 @@ class ShippingSubsidyService
             'is_free_by_vendor' => $customerWouldPay === 0 && $vendorContribution > 0,
             'billable_weight_grams' => $billable,
         ];
+    }
+
+    public static function flushCache(): void
+    {
+        $version = Cache::get(self::CACHE_VERSION_KEY, 1);
+        Cache::put(self::CACHE_VERSION_KEY, $version + 1);
     }
 
     private function noShippingAvailable(int $billableWeightGrams = 0): array

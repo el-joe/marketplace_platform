@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Cache;
 
 class CategoryService
 {
+    public const CACHE_VERSION_KEY = 'category_tree_cache_version';
+
     public function __construct(
         private readonly PageBuilderService $pageBuilder,
     ) {}
@@ -23,11 +25,14 @@ class CategoryService
      * Full nested category tree for nav/menu use, merging product categories
      * with classified and travel categories into a single array. Every node
      * carries a 'type' of 'product', 'classified', or 'travel'.
-     * Cached 10 min per country, tagged 'categories' so admin publishes can flush it.
+     * Cached 10 min per country, versioned so Category/ClassifiedCategory/
+     * TravelCategory saves invalidate it.
      */
     public function getTree(Country $country): array
     {
-        return Cache::remember("category_tree:{$country->id}", 600, function () {
+        $version = Cache::get(self::CACHE_VERSION_KEY, 1);
+
+        return Cache::remember("category_tree_v{$version}_{$country->id}", 600, function () {
                 // toTree() builds the hierarchy in PHP from a single lft/rgt-ordered query.
                 $productNodes = Category::where('is_active', true)
                     ->where('is_visible', true)
@@ -53,6 +58,12 @@ class CategoryService
                     TravelCategoryTreeResource::collection($travelNodes)->resolve(),
                 );
             });
+    }
+
+    public static function flushCache(): void
+    {
+        $version = Cache::get(self::CACHE_VERSION_KEY, 1);
+        Cache::put(self::CACHE_VERSION_KEY, $version + 1);
     }
 
     /**
