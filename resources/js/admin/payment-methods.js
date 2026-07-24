@@ -125,7 +125,7 @@ function initMethodModal() {
         $('#method-id').val('');
         $('#method-http').val('POST');
         $('#method-country-id').val(countryId);
-        window.Alpine?.$data(document.getElementById('method-form')).methodType = '';
+        if (window.Alpine) window.Alpine.$data(document.getElementById('method-form')).methodType = '';
         $modal.find('[id$="-title"]').text(`${window.TRANSLATIONS?.addPaymentMethod || 'Add Payment Method'} \u2014 ${countryName}`);
         $modal.modal('open');
     });
@@ -136,7 +136,7 @@ function initMethodModal() {
         $('#method-id').val('');
         $('#method-http').val('POST');
         $('#method-country-id').val('');
-        window.Alpine?.$data(document.getElementById('method-form')).methodType = '';
+        if (window.Alpine) window.Alpine.$data(document.getElementById('method-form')).methodType = '';
         $modal.find('[id$="-title"]').text(window.TRANSLATIONS?.addPaymentMethod || 'Add Payment Method');
         $modal.modal('open');
     });
@@ -160,7 +160,7 @@ function initMethodModal() {
         $form.find('[name="installment_label_ar"]').val(row.installment_label_ar ?? '');
         $form.find('[name="provider_logo_path"]').val(row.provider_logo_path ?? '');
         $form.find('[name="learn_more_url"]').val(row.learn_more_url ?? '');
-        window.Alpine?.$data(document.getElementById('method-form')).methodType = row.method_type ?? '';
+        if (window.Alpine) window.Alpine.$data(document.getElementById('method-form')).methodType = row.method_type ?? '';
 
         // Cents → display
         const feeFixed = row.fee_fixed ? (row.fee_fixed / 100).toFixed(2) : '';
