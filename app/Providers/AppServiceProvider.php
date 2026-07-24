@@ -65,6 +65,7 @@ use App\Models\PaidAdSlot;
 use App\Policies\AdSlotPolicy;
 use App\Policies\ClassifiedListingPolicy;
 use App\Policies\ClassifiedInquiryPolicy;
+use App\Observers\SubOrderObserver;
 use App\Observers\VendorListingObserver;
 use App\Observers\WarrantyPurchaseObserver;
 use App\Models\WarrantyPurchase;
@@ -142,6 +143,7 @@ class AppServiceProvider extends ServiceProvider
 
         VendorListing::observe(VendorListingObserver::class);
         WarrantyPurchase::observe(WarrantyPurchaseObserver::class);
+        SubOrder::observe(SubOrderObserver::class);
 
         Event::listen(SubOrderPlaced::class, InvalidateVendorDashboardCache::class);
         Event::listen(SubOrderPlaced::class, RecordMarketerConversion::class);

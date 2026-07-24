@@ -1,13 +1,25 @@
 <?php
 
+use App\Http\Controllers\Api\Customer\CategoryController as ApiCategoryController;
+use App\Http\Controllers\Api\Customer\DeviceTokenController as ApiDeviceTokenController;
+use App\Http\Controllers\Api\Customer\GiftCardController as ApiGiftCardController;
+use App\Http\Controllers\Api\Customer\ListingController as ApiListingController;
+use App\Http\Controllers\Api\Customer\MiscController as ApiMiscController;
 use App\Http\Controllers\Api\Customer\NotificationController;
+use App\Http\Controllers\Api\Customer\OrderController as ApiOrderController;
+use App\Http\Controllers\Api\Customer\OtpController as ApiOtpController;
 use App\Http\Controllers\Api\Customer\QrCodeController;
+use App\Http\Controllers\Api\Customer\ReturnRequestController as ApiReturnRequestController;
+use App\Http\Controllers\Api\Customer\ReviewController as ApiReviewController;
 use App\Http\Controllers\Api\Customer\SecurityController;
+use App\Http\Controllers\Api\Customer\WalletController as ApiWalletController;
+use App\Http\Controllers\Api\Customer\WarrantyController as ApiWarrantyController;
 use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Customer\AuthController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CategoryController;
 use App\Http\Controllers\Customer\CheckoutController;
+use App\Http\Controllers\Api\Customer\CheckoutController as ApiCheckoutController;
 use App\Http\Controllers\Customer\CouponController;
 use App\Http\Controllers\Customer\GiftCardController;
 use App\Http\Controllers\Customer\DisputeController;
@@ -103,6 +115,14 @@ Route::prefix('v1/{country}')
             'listings/travel/{slug}/bookings/{booking_number}/contract',
             [ListingController::class, 'signContract']
         )->middleware('auth:customer')->name('customer.listings.travel.bookings.contract');
+
+        // ── Dual-mode catalog listings (vendor marketplace / nawy_now admin) ────
+        // Mode selected via X-Listing-Type header (see ListingModeResolver).
+        Route::prefix('catalog-listings')->name('customer.catalog-listings.')->group(function (): void {
+            Route::get('/', [ApiListingController::class, 'index'])->name('index');
+            Route::get('{identifier}', [ApiListingController::class, 'show'])->name('show');
+            Route::post('{id}/shipping-estimate', [ApiListingController::class, 'shippingEstimate'])->name('shipping-estimate');
+        });
 
         // Legacy alias: GET /categories/{slug} → browse/product/{id}
         Route::get(
@@ -293,6 +313,12 @@ Route::prefix('v1/{country}')
                     ->middleware('throttle:5,1')
                     ->name('place-order');
                 Route::get('{order_number}/confirmation', [CheckoutController::class, 'confirmation'])->name('confirmation');
+
+                Route::post('calculate', [ApiCheckoutController::class, 'calculate'])->name('calculate');
+                Route::post('coupon/validate', [ApiCheckoutController::class, 'validateCoupon'])->name('coupon.validate');
+                Route::post('place', [ApiCheckoutController::class, 'place'])
+                    ->middleware('throttle:5,1')
+                    ->name('place');
             });
 
             // Orders
@@ -409,8 +435,90 @@ Route::prefix('v1/nawy')->name('customer.nawy.')->group(function (): void {
     Route::get('{id}', [NawyController::class, 'show'])->name('show');
 });
 
+// ── Dual-mode categories (marketplace / nawy_now via X-Listing-Type header) ──
+Route::prefix('v1')->middleware('auth:customer')->name('customer.dual-categories.')->group(function (): void {
+    Route::get('/categories', [ApiCategoryController::class, 'index'])->name('index');
+    Route::get('/categories/{slug}', [ApiCategoryController::class, 'show'])->name('show');
+});
+
+// ── Orders (country-agnostic path, scoped to customer_id) ──
+Route::prefix('v1/orders')->middleware('auth:customer')->name('customer.api.orders.')->group(function (): void {
+    Route::get('/', [ApiOrderController::class, 'index'])->name('index');
+    Route::get('{orderNumber}', [ApiOrderController::class, 'show'])->name('show');
+    Route::get('{orderNumber}/sub-orders/{subOrderNumber}', [ApiOrderController::class, 'showSubOrder'])->name('sub-orders.show');
+    Route::get('{orderNumber}/tracking', [ApiOrderController::class, 'tracking'])->name('tracking');
+    Route::post('{orderNumber}/cancel', [ApiOrderController::class, 'cancel'])->name('cancel');
+    Route::get('{orderNumber}/invoice', [ApiOrderController::class, 'invoice'])->name('invoice');
+});
+
 // ── App config (public, country-agnostic path — country_id is a query param) ──
 Route::prefix('v1/app')->name('customer.app.')->group(function (): void {
     Route::get('config', [AppConfigController::class, 'config'])->name('config');
     Route::get('home', [AppConfigController::class, 'homePage'])->name('home');
+});
+
+// ── Return requests (country-agnostic path, scoped to customer_id) ──
+Route::prefix('v1/return-requests')->middleware('auth:customer')->name('customer.api.return-requests.')->group(function (): void {
+    Route::get('/', [ApiReturnRequestController::class, 'index'])->name('index');
+    Route::post('/', [ApiReturnRequestController::class, 'store'])->name('store');
+    Route::get('{returnNumber}', [ApiReturnRequestController::class, 'show'])->name('show');
+    Route::post('{returnNumber}/messages', [ApiReturnRequestController::class, 'addMessage'])->name('messages.store');
+});
+
+// ── Wallet (country-agnostic path, scoped to customer_id) ──
+Route::prefix('v1/wallet')->middleware('auth:customer')->name('customer.api.wallet.')->group(function (): void {
+    Route::get('/', [ApiWalletController::class, 'index'])->name('index');
+    Route::get('transactions', [ApiWalletController::class, 'transactions'])->name('transactions');
+    Route::post('withdrawal-request', [ApiWalletController::class, 'withdrawalRequest'])->name('withdrawal-request');
+});
+
+// ── Gift cards (country-agnostic path, scoped to customer_id) ──
+Route::prefix('v1/gift-cards')->middleware('auth:customer')->name('customer.api.gift-cards.')->group(function (): void {
+    Route::post('validate', [ApiGiftCardController::class, 'validate'])->name('validate');
+    Route::get('mine', [ApiGiftCardController::class, 'mine'])->name('mine');
+});
+
+// ── Warranty (country-agnostic path, scoped to customer_id) ──
+Route::prefix('v1/warranty')->middleware('auth:customer')->name('customer.api.warranty.')->group(function (): void {
+    Route::get('plans/{orderItemId}', [ApiWarrantyController::class, 'plans'])->name('plans');
+    Route::get('purchases', [ApiWarrantyController::class, 'purchases'])->name('purchases');
+    Route::get('claims', [ApiWarrantyController::class, 'claimsIndex'])->name('claims.index');
+    Route::post('claims', [ApiWarrantyController::class, 'claimsStore'])->name('claims.store');
+    Route::get('claims/{claimNumber}', [ApiWarrantyController::class, 'claimsShow'])->name('claims.show');
+    Route::post('claims/{claimNumber}/messages', [ApiWarrantyController::class, 'claimsAddMessage'])->name('claims.messages.store');
+});
+
+// ── Generic OTP (country-agnostic, public — no auth guard) ──
+// TODO: OtpController is a 501 stub; wire up to real send/verify OTP flow.
+Route::prefix('v1/otp')->name('customer.api.otp.')->group(function (): void {
+    Route::post('send', [ApiOtpController::class, 'send'])->name('send');
+    Route::post('verify', [ApiOtpController::class, 'verify'])->name('verify');
+});
+
+// ── Flat listings alias (country-agnostic; reuses ApiListingController,
+//    same controller backing the country-scoped catalog-listings group) ──
+Route::prefix('v1/listings')->middleware('auth:customer')->name('customer.api.listings.')->group(function (): void {
+    Route::get('/', [ApiListingController::class, 'index'])->name('index');
+    Route::get('{identifier}', [ApiListingController::class, 'show'])->name('show');
+    Route::post('{id}/shipping-estimate', [ApiListingController::class, 'shippingEstimate'])->name('shipping-estimate');
+});
+
+// ── Reviews (country-agnostic path, scoped to customer_id) ──
+// TODO: ReviewController (Api\Customer) is a 501 stub; wire up to real review store/mine logic.
+Route::prefix('v1/reviews')->middleware('auth:customer')->name('customer.api.reviews.')->group(function (): void {
+    Route::post('/', [ApiReviewController::class, 'store'])->name('store');
+    Route::get('mine', [ApiReviewController::class, 'mine'])->name('mine');
+});
+
+// ── Device tokens (country-agnostic path, scoped to customer_id) ──
+// TODO: DeviceTokenController is a 501 stub; wire up to real push-token registration.
+Route::post('v1/device-tokens', [ApiDeviceTokenController::class, 'store'])
+    ->middleware('auth:customer')
+    ->name('customer.api.device-tokens.store');
+
+// ── Misc (country-agnostic path, scoped to customer_id) ──
+// TODO: MiscController is a 501 stub; wire up to real countries/shipping-methods lookups.
+Route::middleware('auth:customer')->group(function (): void {
+    Route::get('v1/countries', [ApiMiscController::class, 'countries'])->name('customer.api.countries.index');
+    Route::get('v1/shipping-methods', [ApiMiscController::class, 'shippingMethods'])->name('customer.api.shipping-methods.index');
 });
