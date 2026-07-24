@@ -155,8 +155,6 @@ class ProductController extends Controller
 
     private function relatedProducts(Product $product, $country, ?int $buyBoxPrice): \Illuminate\Database\Eloquent\Collection
     {
-        $country = $request->attributes->get('country');
-
         $query = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', 'active')

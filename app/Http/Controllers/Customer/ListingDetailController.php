@@ -10,7 +10,9 @@ use App\Http\Responses\ApiResponse;
 use App\Models\Country;
 use App\Models\VendorListing;
 use App\Models\Wishlist;
+use App\Models\Product;
 use App\Services\Customer\ListingIdentifierService;
+use App\Services\Customer\ListingQueryService;
 use App\Services\Customer\ProductDetailEnrichmentService;
 use App\Services\Customer\ProductViewService;
 use App\Services\Customer\ReviewService;
@@ -29,6 +31,7 @@ class ListingDetailController extends Controller
         private readonly ReviewService $reviewService,
         private readonly ProductDetailEnrichmentService $enrichment,
         private readonly WarrantyPlanService $warrantyPlanService,
+        private readonly ListingQueryService $listings,
     ) {
     }
 
@@ -103,6 +106,7 @@ class ListingDetailController extends Controller
                 'items' => $reviews->map(fn($review) => $this->reviewShape($review))->values()->all(),
             ],
             'frequently_bought_together' => $this->frequentlyBoughtTogetherShape($product, $listing, $country),
+            'related_products' => $this->relatedProductsShape($product, $country),
             'warranty_plans' => $warrantyPlans,
         ]));
     }
@@ -379,6 +383,47 @@ class ListingDetailController extends Controller
             'total_price_formatted' => number_format($items->sum('price') / 100, 2),
             'currency' => $country->currency_code,
         ];
+    }
+
+    private function relatedProductsShape($product, $country): array
+    {
+        $candidates = Product::where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->where('status', 'active')
+            ->whereHas(
+                'countrySettings',
+                fn($q) => $q->where('country_id', $country->id)->where('is_available', true)
+            )
+            ->with(['images', 'variants'])
+            ->orderByRating()
+            ->limit(8)
+            ->get();
+
+        $wishlistIds = $this->listings->wishlistListingIds(auth('customer')->id());
+
+        $items = [];
+        foreach ($candidates as $candidate) {
+            $relatedListing = VendorListing::query()
+                ->whereHas('productVariant', fn($q) => $q->where('product_id', $candidate->id))
+                ->where('country_id', $country->id)
+                ->where('status', VendorListingStatus::Active)
+                ->orderBy('price')
+                ->with(['productVariant', 'vendor:id,store_name,store_rating_avg', 'primaryShippingMethod'])
+                ->first();
+
+            if (!$relatedListing) {
+                continue;
+            }
+
+            $items[] = $this->listings->toCardShape(
+                listing: $relatedListing,
+                product: $candidate,
+                country: $country,
+                isWishlisted: in_array($relatedListing->id, $wishlistIds),
+            );
+        }
+
+        return $items;
     }
 
     private function fbtItemShape(VendorListing $listing, $product, $country): array
