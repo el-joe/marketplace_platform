@@ -58,7 +58,15 @@ class PageBuilderController extends Controller
             ->get()
             ->groupBy('group');
 
-        return view('admin.page-builder.index', compact('pages', 'countries', 'appContexts', 'homePageIds', 'blockTypes'));
+        // Preview of live slider blocks (hero_slider) with resolved image URLs, so admins
+        // can verify slide images render before publishing. Note: 'cart_banner' is not a
+        // page block type — it's served by the separate Banner/BannerService system.
+        $sliderPreviewBlocks = PageBlock::where('block_type', 'hero_slider')
+            ->where('is_visible', true)
+            ->with(['slides.desktopFile', 'slides.mobileFile', 'page:id,name,slug'])
+            ->get();
+
+        return view('admin.page-builder.index', compact('pages', 'countries', 'appContexts', 'homePageIds', 'blockTypes', 'sliderPreviewBlocks'));
     }
 
     public function loadPage(Request $request)

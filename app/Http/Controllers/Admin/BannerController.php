@@ -16,6 +16,12 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Note: the `banners` table itself has no image column. Banner images (desktop/mobile)
+ * are attached via the polymorphic `files` table (files.model_type = Banner::class,
+ * file_type = banner_desktop|banner_mobile), resolved through BannerService. This is
+ * unrelated to Page Builder's slider_slides/page_blocks, which back the homepage slider.
+ */
 class BannerController extends Controller
 {
     use HasDataTable;

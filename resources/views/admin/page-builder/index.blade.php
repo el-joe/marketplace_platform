@@ -127,6 +127,33 @@
                 @endforeach
             </div>
         @endforeach
+
+        @if($sliderPreviewBlocks->isNotEmpty())
+            <div class="pb-group-title">{{ __('admin.page_builder.slider_preview') ?? 'Slider Preview' }}</div>
+            <div class="px-3 py-2 space-y-3">
+                <p class="text-xs text-gray-500">Live slides with resolved images — verify before publishing. Note: cart banners are managed separately under Banners, not here.</p>
+                @foreach($sliderPreviewBlocks as $block)
+                    <div class="border border-gray-200 rounded-lg p-2">
+                        <div class="text-xs font-medium text-gray-700 mb-1">
+                            {{ $block->page->name ?? 'Untitled page' }}
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            @forelse($block->slides as $slide)
+                                <div class="relative">
+                                    @if($slide->desktopFile)
+                                        <img src="{{ $slide->desktopFile->url }}" alt="" class="w-16 h-10 object-cover rounded border border-gray-200">
+                                    @else
+                                        <div class="w-16 h-10 rounded border border-dashed border-gray-300 flex items-center justify-center text-[10px] text-gray-400">No image</div>
+                                    @endif
+                                </div>
+                            @empty
+                                <span class="text-xs text-gray-400">No slides</span>
+                            @endforelse
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
     </aside>
 
     {{-- CENTER: Canvas --}}

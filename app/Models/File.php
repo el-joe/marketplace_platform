@@ -75,4 +75,12 @@ class File extends Model
 
         return url($disk->url($this->path));
     }
+
+    public function getUrlAttribute(): string
+    {
+        return match ($this->storage_type) {
+            's3' => Storage::disk('s3')->url($this->path),
+            default => Storage::disk('public')->url($this->path),
+        };
+    }
 }
