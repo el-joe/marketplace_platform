@@ -65,6 +65,25 @@ class BannerService
     }
 
     /**
+     * Resolve the active banner for a customer-facing placement (e.g. 'cart_banner'),
+     * respecting country, audience and the active date window. Ties broken by priority.
+     */
+    public function getActivePlacement(string $placementCode, ?string $countryId, string $audience = 'guest'): ?Banner
+    {
+        $now = now();
+
+        return Banner::with('files')
+            ->where('placement_code', $placementCode)
+            ->where('status', 'active')
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>=', $now)
+            ->where(fn ($q) => $q->whereNull('country_id')->orWhere('country_id', $countryId))
+            ->whereIn('audience', ['all', $audience])
+            ->orderByDesc('priority')
+            ->first();
+    }
+
+    /**
      * Delete an image for a banner by slot (desktop / mobile).
      */
     public function deleteImageBySlot(Banner $banner, string $slot): void

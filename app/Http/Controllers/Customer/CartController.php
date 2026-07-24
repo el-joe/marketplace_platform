@@ -7,11 +7,13 @@ use App\Http\Requests\Customer\AddCartItemRequest;
 use App\Http\Requests\Customer\AddCartItemsRequest;
 use App\Http\Requests\Customer\ApplyCouponRequest;
 use App\Http\Requests\Customer\UpdateCartItemRequest;
+use App\Http\Resources\Customer\BannerResource;
 use App\Http\Resources\Customer\CartItemResource;
 use App\Http\Resources\Customer\CartResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Cart;
 use App\Models\Coupon;
+use App\Services\BannerService;
 use App\Services\Customer\CartService;
 use App\Services\Customer\ListingIdentifierService;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +25,7 @@ class CartController extends Controller
     public function __construct(
         private readonly CartService $cartService,
         private readonly ListingIdentifierService $listingIdentifierService,
+        private readonly BannerService $bannerService,
     ) {}
 
     private function resolveCart(Request $request): Cart
@@ -66,7 +69,19 @@ class CartController extends Controller
     {
         $cart = $this->resolveCart($request);
 
-        return $this->cartResponse($cart);
+        return $this->cartResponse($cart, [
+            'cart_banner' => $this->resolveCartBanner($request),
+        ]);
+    }
+
+    private function resolveCartBanner(Request $request): ?BannerResource
+    {
+        $country = $request->attributes->get('country');
+        $audience = auth('customer')->check() ? 'logged_in' : 'guest';
+
+        $banner = $this->bannerService->getActivePlacement('cart_banner', $country?->id, $audience);
+
+        return $banner ? new BannerResource($banner) : null;
     }
 
     public function addItem(AddCartItemRequest $request): JsonResponse
