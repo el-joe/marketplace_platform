@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Customer\WishlistController as ApiWishlistControlle
 use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Customer\AuthController;
 use App\Http\Controllers\Customer\CartController;
+use App\Http\Controllers\Customer\CartRecommendationsController;
 use App\Http\Controllers\Customer\CategoryController;
 use App\Http\Controllers\Customer\CheckoutController;
 use App\Http\Controllers\Api\Customer\CheckoutController as ApiCheckoutController;
@@ -209,6 +210,7 @@ Route::prefix('v1/{country}')
         // Cart — guest + auth (session resolved via X-Cart-Token header)
         Route::prefix('cart')->name('customer.cart.')->middleware('guest.cart.token')->group(function (): void {
             Route::get('/', [CartController::class, 'show'])->name('show');
+            Route::get('recommendations', [CartRecommendationsController::class, 'index'])->name('recommendations');
             Route::post('items', [CartController::class, 'addItem'])->name('items.add');
             Route::post('items/bulk', [CartController::class, 'addItems'])->name('items.add-bulk');
             Route::put('items/{id}', [CartController::class, 'updateItem'])->name('items.update');
