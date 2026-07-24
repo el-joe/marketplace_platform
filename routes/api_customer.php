@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Customer\ReviewController as ApiReviewController;
 use App\Http\Controllers\Api\Customer\SecurityController;
 use App\Http\Controllers\Api\Customer\WalletController as ApiWalletController;
 use App\Http\Controllers\Api\Customer\WarrantyController as ApiWarrantyController;
+use App\Http\Controllers\Api\Customer\WishlistController as ApiWishlistController;
 use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Customer\AuthController;
 use App\Http\Controllers\Customer\CartController;
@@ -265,11 +266,23 @@ Route::prefix('v1/{country}')
                 Route::delete('sessions/{device_token_id}', [SecurityController::class, 'revokeDevice'])->name('sessions.revoke');
             });
 
-            // Wishlist
+            // Wishlist (grouped — replaces the old flat single-list endpoints)
             Route::prefix('wishlist')->name('customer.wishlist.')->group(function (): void {
-                Route::get('/', [WishlistController::class, 'index'])->name('index');
-                Route::post('/', [WishlistController::class, 'store'])->name('store');
-                Route::delete('{vendor_listing_id}', [WishlistController::class, 'destroy'])->name('destroy');
+                // Groups
+                Route::get('groups', [ApiWishlistController::class, 'indexGroups'])->name('groups.index');
+                Route::post('groups', [ApiWishlistController::class, 'createGroup'])->name('groups.store');
+                Route::put('groups/{groupId}', [ApiWishlistController::class, 'updateGroup'])->name('groups.update');
+                Route::delete('groups/{groupId}', [ApiWishlistController::class, 'deleteGroup'])->name('groups.destroy');
+                Route::get('groups/{groupId}', [ApiWishlistController::class, 'showGroup'])->name('groups.show');
+
+                // Items — /items/move MUST be declared before /items/{itemId}
+                // so Laravel does not interpret 'move' as an itemId
+                Route::post('items', [ApiWishlistController::class, 'addItem'])->name('items.store');
+                Route::post('items/move', [ApiWishlistController::class, 'moveItems'])->name('items.move');
+                Route::delete('items/{itemId}', [ApiWishlistController::class, 'removeItem'])->name('items.destroy');
+
+                // Utility
+                Route::get('check', [ApiWishlistController::class, 'checkListing'])->name('check');
             });
 
             // Addresses
