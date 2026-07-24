@@ -66,6 +66,12 @@ class CountryPaymentMethod extends Model
         'last_verification_status' => CountryPaymentMethodVerificationStatus::class,
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => \App\Services\SavingsBenefitsService::flushCache());
+        static::deleted(fn () => \App\Services\SavingsBenefitsService::flushCache());
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────────
 
     public function country(): BelongsTo

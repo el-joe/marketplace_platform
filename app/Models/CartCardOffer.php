@@ -33,6 +33,12 @@ class CartCardOffer extends Model
         'valid_until'           => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => \App\Services\SavingsBenefitsService::flushCache());
+        static::deleted(fn () => \App\Services\SavingsBenefitsService::flushCache());
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true)
