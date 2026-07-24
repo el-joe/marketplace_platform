@@ -1,10 +1,18 @@
 # Marketplace — Customer API (Postman Collection)
 
-Covers every endpoint in [`routes/api_customer.php`](../routes/api_customer.php) — 121 requests
-across 12 folders: Auth, Profile, Security, Catalog (home/nav/categories/pages/blocks/browse/
-listings/products/vendors/brands/coupons/search), Cart & Wishlist, Checkout & Orders, Addresses,
-Payment Methods & Wallet, Gift Cards, Post-Sale (returns/disputes/reviews/refunds/warranty/
-support), Notifications, and Account (dashboard/classified-listings/travel-bookings/inquiries).
+> **Note:** This folder has accumulated more than one generated collection over time. This README
+> documents the current primary collection, **`customer_api_collection.json`** (168 requests / 34
+> folders — one request per `Route::` line in `routes/api_customer.php`, confirmed 1:1 by route
+> count). An older, differently-organized collection (`Marketplace Customer API.postman_collection.json`,
+> 121 requests / 12 folders, built by `generate_collection.cjs`) is also still present — either
+> works, but new edits should target `customer_api_collection.json`.
+
+Covers every endpoint in [`routes/api_customer.php`](../routes/api_customer.php) — 168 requests
+across 34 folders: Auth, Cart, Profile, Security, Wishlist, Addresses, Payment Methods, Wallet,
+Gift Cards, Checkout, Orders, Returns, Disputes, Reviews, Refunds, Warranty Claims, Warranty
+Purchases, Support Tickets, Notifications, Account, Catalog/Browse/Search, Nawy Now, Dual-Mode
+Categories, App Config, and the country-agnostic "flat" variants (Orders, Return Requests, Wallet,
+Gift Cards, Warranty, OTP, Listings, Reviews, Device Tokens, Misc).
 
 Every request's **Description** tab documents the body/query keys — type, required/optional, and
 enum values where they exist — plus a saved example response for every status code the endpoint
@@ -16,46 +24,51 @@ bilingual `{ar, en}` data rather than an empty shell.
 
 ## Files
 
-- `Marketplace Customer API.postman_collection.json` — the collection itself.
-- `Marketplace Customer API.postman_environment.json` — a starter environment (`base_url`,
-  `country`, and blank placeholders for every ID variable below).
-- `generate_collection.cjs` — the Node (CommonJS) generator that produces the collection JSON.
+- `customer_api_collection.json` — **the current collection** (168 requests / 34 folders, generated
+  from a full read of `routes/api_customer.php` plus every controller and Form Request it calls
+  into). Import this one.
+- `README.md` — this file.
+- `Marketplace Customer API.postman_collection.json`, `Marketplace Customer API.postman_environment.json`,
+  `generate_collection.cjs` — an earlier, alternate collection/generator pair, left in place for
+  reference. Not required if you're using `customer_api_collection.json`.
 
 ## Setup
 
-1. Import both JSON files into Postman (**Import** → drag both, or File → Import).
-2. Select the **Customer API — Local** environment in the top-right environment picker.
-3. Set `base_url` to wherever your app is running (default `http://localhost:8000`).
-4. Set `country` to an active `site_code` in your `countries` table (seeded examples: `egy`,
-   `ksa`, `uae`, `kwt`, `qat`, `omn`, `bhr`, `jor`). Every route 404s with
-   `{"success": false, "message": "Country not found or not active."}` if this is wrong — check
-   this first if everything is failing.
-5. Run **Auth → Register** (or **Login**). Its post-response *Tests* script auto-saves
+1. Import `customer_api_collection.json` into Postman (**Import** → drag the file, or File →
+   Import). No separate environment file is required — every configurable value lives in the
+   collection's own **Variables** tab (Collection → Variables).
+2. Set `base_url` to wherever your app is running (default `http://localhost:8000/api/customer`).
+3. Set `country` to an active `site_code` in your `countries` table (default `eg`). Country-scoped
+   routes 404 if this is wrong.
+4. Run **Auth → Register** (or **Login**). Its post-response *Tests* script auto-saves
    `access_token` / `refresh_token` as collection variables. The collection's root-level Auth
    (Bearer `{{access_token}}`) is inherited by every request, so nothing else needs configuring —
-   public endpoints (Catalog, plus the six pre-auth routes in the Auth folder, plus the guest-cart
-   endpoints) explicitly override this to "No Auth" at the request level.
-6. For guest cart flows, **Cart & Wishlist → Get Cart** / **Add Item to Cart** auto-save the
-   server-issued guest token into `cart_token`, sent on subsequent requests via the `X-Cart-Token`
-   header. After logging in, call **Cart & Wishlist → Merge Guest Cart into Account** to fold that
-   cart into the authenticated customer's cart.
+   public endpoints (Catalog/Browse/Search, App Config, Nawy Now, the pre-auth routes in the Auth
+   folder, and the public gift-card balance check) explicitly override this to "No Auth" at the
+   request level.
+5. For guest cart flows, copy the `data.guest_cart_token` from a **Cart → Get Cart** / **Add Item
+   to Cart** response into the `cart_token` collection variable — it's sent on subsequent cart
+   requests via the `X-Cart-Token` header. After logging in, call **Cart → Merge Guest Cart Into
+   Account** to fold that guest cart into the authenticated customer's cart.
+6. Dual-mode catalog endpoints (Catalog Listings, Dual-Mode Categories, Listings (Flat)) send an
+   `X-Listing-Type` header (default `marketplace`) — change it to `nawy_now` to exercise the other
+   mode.
 
 ## Variable auto-chaining
 
-These requests save their generated IDs into collection variables via a post-response *Tests*
-script, so the natural next request in the flow just works with zero copy-pasting:
+These requests save their generated tokens into collection variables via a post-response *Tests*
+script, so the auth flow works with zero copy-pasting:
 
 | Request | Saves |
 |---|---|
-| Register / Login / Refresh Token | `access_token`, `refresh_token` |
-| Get Cart / Add Item to Cart / Add Items (Bulk) | `cart_token` (guest sessions only) |
+| Auth → Register / Login / Refresh Token | `access_token`, `refresh_token` |
 
-The remaining ID variables (`address_id`, `payment_method_id`, `order_number`,
-`warranty_claim_id`, `notification_id`, `sub_order_id`, `review_id`, `refund_id`,
-`travel_booking_id`, `inquiry_id`, `block_id`, `category_id`, `vendor_id`, `brand_id`,
-`device_token_id`, `cart_item_id`, etc.) aren't auto-populated in this pass — copy them from the
-response of the corresponding "list"/"create" request into the environment/collection variable
-before running dependent requests.
+The remaining ID variables (`order_number`, `order_item_id`, `address_id`, `vendor_listing_id`,
+`shipping_method_id`, `return_number`, `dispute_number`, `claim_number`, `ticket_number`,
+`listing_number`, `review_id`, `vendor_id`, `booking_id`) ship with example placeholder values —
+replace them with real IDs copied from the corresponding "list"/"create" response as you exercise
+dependent requests (e.g. run **Addresses → Create Address**, copy the returned `id` into
+`address_id`, then run **Checkout → Prepare Checkout**).
 
 ## Response envelope
 
@@ -66,40 +79,31 @@ Endpoints return the app's `App\Http\Responses\ApiResponse` envelope:
 { "success": false, "message": "...", "errors": { } }
 ```
 
-A few endpoints (`QrCodeController@show`/`regenerate`, and message-add endpoints like
-`DisputeController@addMessage`, `WarrantyClaimController@addMessage`,
-`SupportTicketController@addMessage`) return a raw JSON object with no envelope — these are
-labeled in their saved examples. Paginated list endpoints nest results as
-`data: { items: [...], meta: { current_page, last_page, per_page, total } }`.
+A couple of raw (non-`ApiResponse`) endpoints — `AppConfigController@config`/`homePage`, and the
+501 stub controllers — return their own ad-hoc JSON shape rather than the standard envelope; these
+are called out in their request descriptions and saved examples. Paginated list endpoints nest
+results as `data: { items: [...], meta: { current_page, last_page, per_page, total } }`.
 
-Framework-level failures (missing/invalid JWT, FormRequest validation misses, `findOrFail()`
-misses) may bypass the envelope entirely and return Laravel's own default shape
-(`{ "message": "Unauthenticated." }`, etc.) — verify against your running app's actual behavior,
-since this collection's examples were built from route/controller/resource inspection rather than
-live requests.
+Framework-level failures (missing/invalid JWT, `findOrFail()` misses that aren't caught by the
+controller) may bypass the envelope entirely and return Laravel's own default shape
+(`{ "message": "Unauthenticated." }`, etc.) — the saved 401/404 examples reflect this where the
+controller doesn't explicitly catch it. Since these examples were built from static route/
+controller/Form-Request inspection rather than live requests, always sanity-check against your
+running app's actual behavior.
 
-## Regenerating
+## Regenerating `customer_api_collection.json`
 
-`generate_collection.cjs` builds the collection JSON from a set of composable helpers
-(`req(...)`, `folder(...)`, `raw(...)`) — no dependencies beyond Node.js (stdlib `fs` only). To
-add or change a request:
+There's no committed generator script for this file — it was assembled directly against the
+current `routes/api_customer.php` and controller source. If you add/change routes, the fastest
+path is:
 
-1. Find the relevant folder section (they're laid out in the same order as the routes in
-   `routes/api_customer.php`: Auth, Profile, Security, Catalog, Cart & Wishlist, Checkout &
-   Orders, Addresses, Payment Methods & Wallet, Gift Cards, Post-Sale, Notifications, Account).
-2. Copy an existing `req({...})` call as a template — it takes `name`, `method`, `path`, optional
-   `query`/`headers`/`body` (via the `raw(...)` helper for JSON or `{mode: 'formdata', formdata:
-   [...]}` for multipart), `auth` (defaults to bearer; set `false` for public routes), `desc`
-   (markdown), and `responses` (one entry per status code your endpoint can return).
-3. Run:
-   ```bash
-   node generate_collection.cjs
-   ```
-   This overwrites `Marketplace Customer API.postman_collection.json` in place (pass a path as
-   the first CLI arg to write elsewhere instead).
-4. Re-import into Postman (or use Postman's "Import" → same file path to update an existing
-   collection if you've linked it to a workspace).
+1. Re-read the relevant `Route::` block in `routes/api_customer.php` and the controller
+   method(s)/Form Request(s) it calls.
+2. Hand-edit `customer_api_collection.json` (it's plain Postman v2.1 schema — each folder is an
+   `item` array of `{ name, item: [...] }`; each request is `{ name, request: {...}, response:
+   [...] }`).
+3. Re-import into Postman (Import → same file path updates the existing collection if it's linked
+   to a workspace).
 
-If you only need to tweak one example response or fix a typo, it's often faster to hand-edit the
-JSON directly (it's plain Postman v2.1 schema) — just make the same edit in the generator too, or
-the next regeneration will silently revert it.
+If you only need to tweak one example response or fix a typo, hand-editing the JSON directly is
+the simplest option.
