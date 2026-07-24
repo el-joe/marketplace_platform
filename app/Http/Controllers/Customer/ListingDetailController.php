@@ -390,10 +390,10 @@ class ListingDetailController extends Controller
         $candidates = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', 'active')
-            ->whereHas(
-                'countrySettings',
-                fn($q) => $q->where('country_id', $country->id)->where('is_available', true)
-            )
+            // ->whereHas(
+            //     'countrySettings',
+            //     fn($q) => $q->where('country_id', $country->id)->where('is_available', true)
+            // )
             ->with(['images', 'variants'])
             ->orderByRating()
             ->limit(8)
