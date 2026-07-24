@@ -4,13 +4,16 @@ namespace App\Services;
 
 use App\Enums\CouponScope;
 use App\Enums\CouponType;
+use App\Enums\GlobalSystemType;
 use App\Models\AdminProductListing;
+use App\Models\Address;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Customer;
 use App\Models\FlashSaleSubmission;
 use App\Models\ShippingMethod;
+use App\Models\ShippingRate;
 use App\Models\VendorListing;
 use App\Models\WarrantyPlan;
 use Carbon\Carbon;
@@ -80,14 +83,31 @@ class CartItemEnrichmentService
             ->groupBy('vendor_listing_id')
             ->pluck('available', 'vendor_listing_id');
 
-        // ── Shipping methods: full table (small, reference data) + each
-        // category's default method. ────────────────────────────────────────
+        // ── Shipping methods: full table (small, reference data) + every
+        // category_shipping_methods row (not just defaults) so per-item
+        // available-methods lists and the fbn/fbp-filtered fallback chain
+        // can be built without further queries. ─────────────────────────────
         $shippingMethods = ShippingMethod::where('is_active', true)->get()->keyBy('id');
+
+        $categoryMethodRows = $categoryIds->isEmpty() ? collect() : DB::table('category_shipping_methods')
+            ->whereIn('category_id', $categoryIds)
+            ->get()
+            ->groupBy('category_id');
 
         $categoryDefaultMethodId = $categoryIds->isEmpty() ? collect() : DB::table('category_shipping_methods')
             ->where('is_default', true)
             ->whereIn('category_id', $categoryIds)
             ->pluck('shipping_method_id', 'category_id');
+
+        // ── Destination zone (for shipping fee lookups) resolved once from
+        // the customer's default address, plus every rate for the zone so
+        // fees are looked up in-memory per item. ─────────────────────────────
+        $destinationZoneId = $this->resolveDestinationZoneId($customer);
+
+        $ratesByMethodId = $destinationZoneId === null ? collect() : ShippingRate::where('destination_zone_id', $destinationZoneId)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('shipping_method_id');
 
         // ── Active flash sales for these vendor listings ────────────────────
         $flashSubmissions = $vendorListingIds->isEmpty() ? collect() : FlashSaleSubmission::with('flashSale')
@@ -150,6 +170,10 @@ class CartItemEnrichmentService
             $inventoryByListing,
             $shippingMethods,
             $categoryDefaultMethodId,
+            $categoryMethodRows,
+            $categoryParentMap,
+            $ratesByMethodId,
+            $destinationZoneId,
             $flashSubmissions,
             $activeCoupons,
             $usedCouponCounts,
@@ -173,6 +197,10 @@ class CartItemEnrichmentService
                 $inventoryByListing,
                 $shippingMethods,
                 $categoryDefaultMethodId,
+                $categoryMethodRows,
+                $categoryParentMap,
+                $ratesByMethodId,
+                $destinationZoneId,
                 $flashSubmissions,
                 $activeCoupons,
                 $usedCouponCounts,
@@ -181,6 +209,54 @@ class CartItemEnrichmentService
                 $timezone,
             );
         })->values()->all();
+    }
+
+    /**
+     * Resolves the customer's shipping zone from their default address's
+     * city. Returns null when unresolvable — callers must render fees as
+     * null (never 0) in that case.
+     */
+    private function resolveDestinationZoneId(?Customer $customer): ?string
+    {
+        if (!$customer) {
+            return null;
+        }
+
+        $address = Address::where('addressable_type', Customer::class)
+            ->where('addressable_id', $customer->id)
+            ->where('is_default', true)
+            ->with('city:id,shipping_zone_id')
+            ->first();
+
+        return $address?->city?->shipping_zone_id;
+    }
+
+    /**
+     * Walks up the category's parent chain (using the fully preloaded
+     * id => parent_id map) to find the nearest ancestor that has
+     * category_shipping_methods rows. Mirrors ListingShippingResolver's
+     * ancestor walk so a leaf category with no rows still resolves.
+     */
+    private function resolveCategoryMethodRows(?string $categoryId, Collection $categoryMethodRows, Collection $categoryParentMap): Collection
+    {
+        $current = $categoryId;
+        $visited = [];
+
+        while ($current) {
+            if (isset($visited[$current])) {
+                break;
+            }
+            $visited[$current] = true;
+
+            $rows = $categoryMethodRows->get($current);
+            if ($rows && $rows->isNotEmpty()) {
+                return $rows;
+            }
+
+            $current = $categoryParentMap->get($current);
+        }
+
+        return collect();
     }
 
     /**
@@ -201,9 +277,14 @@ class CartItemEnrichmentService
             $key = $method['id'] ?? 'fallback';
 
             if (!isset($groups[$key])) {
+                $isUnassigned = $key === 'fallback';
+
                 $groups[$key] = [
                     'shipping_method' => $method,
                     'group_estimate' => $item['delivery']['estimate'] ?? null,
+                    'is_unassigned' => $isUnassigned,
+                    'unassigned_message_en' => $isUnassigned ? 'Please select a delivery method for these items' : null,
+                    'unassigned_message_ar' => $isUnassigned ? 'يرجى اختيار طريقة توصيل لهذه المنتجات' : null,
                     'display_priority' => $item['_display_priority'] ?? null,
                     'items' => [],
                 ];
@@ -253,6 +334,10 @@ class CartItemEnrichmentService
         Collection $inventoryByListing,
         Collection $shippingMethods,
         Collection $categoryDefaultMethodId,
+        Collection $categoryMethodRows,
+        Collection $categoryParentMap,
+        Collection $ratesByMethodId,
+        ?string $destinationZoneId,
         Collection $flashSubmissions,
         Collection $activeCoupons,
         Collection $usedCouponCounts,
@@ -264,15 +349,28 @@ class CartItemEnrichmentService
         $product = $variant?->product;
         $categoryId = $product?->category_id;
 
+        $rows = $this->resolveCategoryMethodRows($categoryId, $categoryMethodRows, $categoryParentMap);
+
         $shippingMethod = $this->resolvePrimaryShippingMethod(
+            $item,
             $listing,
             $isAdminListing,
-            $categoryId,
             $shippingMethods,
-            $categoryDefaultMethodId,
+            $rows,
         );
 
         $estimate = $shippingMethod ? $this->computeDeliveryEstimate($shippingMethod, $timezone, $shippingMethods, $categoryId, $categoryDefaultMethodId) : null;
+
+        $availableMethods = $this->buildAvailableMethods(
+            $listing,
+            $isAdminListing,
+            $rows,
+            $shippingMethods,
+            $shippingMethod,
+            $ratesByMethodId,
+            $destinationZoneId,
+            $timezone,
+        );
 
         $flashSale = null;
         if (!$isAdminListing) {
@@ -353,6 +451,7 @@ class CartItemEnrichmentService
                     'is_express_type' => (bool) $shippingMethod->is_express_type,
                 ] : null,
                 'estimate' => $estimate,
+                'available_methods' => $availableMethods,
                 'is_free_shipping' => $isFreeShipping,
                 'free_shipping_label_en' => $isFreeShipping ? 'Free Shipping' : null,
             ],
@@ -390,6 +489,7 @@ class CartItemEnrichmentService
             'delivery' => [
                 'primary_method' => null,
                 'estimate' => null,
+                'available_methods' => [],
                 'is_free_shipping' => false,
                 'free_shipping_label_en' => null,
             ],
@@ -410,22 +510,115 @@ class CartItemEnrichmentService
         ];
     }
 
+    /**
+     * Resolves the effective shipping method for a cart item, in priority
+     * order: (1) the customer's per-item selection, (2) the listing's
+     * cached primary method, (3) the category's default method (filtered
+     * by fbn/fbp availability for the listing type), (4) any available
+     * method for the category, lowest display_priority first, (5) null —
+     * the item is unresolvable and goes into the "unassigned" group.
+     */
     private function resolvePrimaryShippingMethod(
+        $item,
         $listing,
         bool $isAdminListing,
-        ?string $categoryId,
         Collection $shippingMethods,
-        Collection $categoryDefaultMethodId,
+        Collection $categoryMethodRows,
     ): ?ShippingMethod {
+        if ($item->selected_shipping_method_id && $shippingMethods->has($item->selected_shipping_method_id)) {
+            return $shippingMethods->get($item->selected_shipping_method_id);
+        }
+
         if (!$isAdminListing && $listing->primary_shipping_method_id && $shippingMethods->has($listing->primary_shipping_method_id)) {
             return $shippingMethods->get($listing->primary_shipping_method_id);
         }
 
-        if ($categoryId && $categoryDefaultMethodId->has($categoryId)) {
-            return $shippingMethods->get($categoryDefaultMethodId->get($categoryId));
+        $availableRows = $categoryMethodRows->filter(
+            fn ($row) => $isAdminListing || $this->isRowAvailableForListing($row, $listing)
+        );
+
+        $defaultRow = $availableRows->first(fn ($row) => (bool) $row->is_default);
+        if ($defaultRow && $shippingMethods->has($defaultRow->shipping_method_id)) {
+            return $shippingMethods->get($defaultRow->shipping_method_id);
         }
 
-        return null;
+        $bestRow = $availableRows
+            ->filter(fn ($row) => $shippingMethods->has($row->shipping_method_id))
+            ->sortBy(fn ($row) => $shippingMethods->get($row->shipping_method_id)->display_priority)
+            ->first();
+
+        return $bestRow ? $shippingMethods->get($bestRow->shipping_method_id) : null;
+    }
+
+    private function isRowAvailableForListing($row, $listing): bool
+    {
+        return $listing->global_system_type === GlobalSystemType::ExpressFbn
+            ? (bool) $row->is_available_for_express_fbn
+            : (bool) $row->is_available_for_merchant_fbp;
+    }
+
+    /**
+     * Builds the full list of shipping methods available for this item's
+     * category so the customer can switch their selection from the cart.
+     * Fees are resolved from the pre-loaded per-zone rates; when no
+     * destination zone could be resolved, fee is null (never 0) and a note
+     * is attached instead.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildAvailableMethods(
+        $listing,
+        bool $isAdminListing,
+        Collection $categoryMethodRows,
+        Collection $shippingMethods,
+        ?ShippingMethod $selectedMethod,
+        Collection $ratesByMethodId,
+        ?string $destinationZoneId,
+        string $timezone,
+    ): array {
+        return $categoryMethodRows
+            ->filter(fn ($row) => $isAdminListing || $this->isRowAvailableForListing($row, $listing))
+            ->filter(fn ($row) => $shippingMethods->has($row->shipping_method_id))
+            ->map(function ($row) use ($shippingMethods, $selectedMethod, $ratesByMethodId, $destinationZoneId, $listing, $timezone) {
+                $method = $shippingMethods->get($row->shipping_method_id);
+
+                $fee = null;
+                $isFree = false;
+                $feeNote = null;
+
+                if ($destinationZoneId === null) {
+                    $feeNote = 'Add your address to see delivery cost';
+                } else {
+                    $rate = $ratesByMethodId->get($method->id);
+                    if ($rate) {
+                        $fee = (int) $rate->base_fee;
+                        if (!empty($listing->vendor_covers_delivery)) {
+                            $fee = 0;
+                            $isFree = true;
+                        }
+                    }
+                }
+
+                return [
+                    'id' => $method->id,
+                    'code' => $method->code,
+                    'badge_label_en' => $method->badge_label_en,
+                    'badge_label_ar' => $method->badge_label_ar,
+                    'badge_color_hex' => $method->badge_color_hex,
+                    'badge_text_color_hex' => $method->badge_text_color_hex,
+                    'is_express_type' => (bool) $method->is_express_type,
+                    'display_priority' => $method->display_priority,
+                    'is_default' => (bool) $row->is_default,
+                    'is_selected' => $selectedMethod && $selectedMethod->id === $method->id,
+                    'fee' => $fee,
+                    'is_free_shipping' => $isFree,
+                    'fee_note_en' => $feeNote,
+                    'estimate' => $this->computeDeliveryEstimate($method, $timezone),
+                ];
+            })
+            ->sortBy('display_priority')
+            ->values()
+            ->all();
     }
 
     /**

@@ -14,6 +14,7 @@ class CartItem extends Model
         'cart_id',
         'vendor_listing_id',
         'admin_product_listing_id',
+        'selected_shipping_method_id',
         'quantity',
         'unit_price',
         'added_at',
@@ -32,5 +33,10 @@ class CartItem extends Model
     public function adminProductListing(): BelongsTo
     {
         return $this->belongsTo(AdminProductListing::class);
+    }
+
+    public function selectedShippingMethod(): BelongsTo
+    {
+        return $this->belongsTo(ShippingMethod::class, 'selected_shipping_method_id');
     }
 }
