@@ -11,11 +11,9 @@ use App\Http\Resources\Customer\BannerResource;
 use App\Http\Resources\Customer\CartItemResource;
 use App\Http\Resources\Customer\CartResource;
 use App\Http\Responses\ApiResponse;
-use App\Enums\GlobalSystemType;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Coupon;
-use App\Models\ShippingMethod;
 use App\Services\BannerService;
 use App\Services\CartItemEnrichmentService;
 use App\Services\Customer\CartService;
@@ -23,7 +21,6 @@ use App\Services\Customer\ListingIdentifierService;
 use App\Services\SavingsBenefitsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CartController extends Controller
@@ -114,7 +111,7 @@ class CartController extends Controller
         $cart = $this->resolveCart($request);
 
         try {
-            $item = $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity);
+            $item = $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity, $request->shipping_method_id);
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
@@ -150,7 +147,7 @@ class CartController extends Controller
         $cart = $this->resolveCart($request);
 
         try {
-            $item = $this->cartService->updateItem($cart, $id, $request->quantity);
+            $item = $this->cartService->updateItem($cart, $id, $request->quantity, $request->shipping_method_id);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
             return ApiResponse::error('Cart item not found.', [], 404);
         } catch (\DomainException $e) {
@@ -273,71 +270,6 @@ class CartController extends Controller
         $this->cartService->removeAffiliatePromoCode($cart);
 
         return ApiResponse::success(new CartResource($cart), 'Promo code removed');
-    }
-
-    /**
-     * Persists the customer's per-item shipping method choice. The method
-     * must be one offered for the item's category and compatible with the
-     * listing's global_system_type (express_fbn vs merchant_fbp).
-     */
-    public function selectShippingMethod(Request $request, string $cartItemId): JsonResponse
-    {
-        $cart = $this->resolveCart($request);
-
-        $data = $request->validate([
-            'shipping_method_id' => ['required', 'uuid', 'exists:shipping_methods,id'],
-        ]);
-
-        $item = CartItem::where('cart_id', $cart->id)->find($cartItemId);
-        if (!$item) {
-            return ApiResponse::error('Cart item not found.', [], 404);
-        }
-
-        $listing = $item->admin_product_listing_id
-            ? $item->adminProductListing
-            : $item->vendorListing()->with('productVariant.product')->first();
-
-        $categoryId = $listing?->productVariant?->product?->category_id;
-        if (!$categoryId) {
-            return ApiResponse::error('Item listing not found.', [], 404);
-        }
-
-        $isAdminListing = (bool) $item->admin_product_listing_id;
-        $fbnField = (!$isAdminListing && $listing->global_system_type === GlobalSystemType::ExpressFbn)
-            ? 'is_available_for_express_fbn'
-            : 'is_available_for_merchant_fbp';
-
-        $isAvailable = $isAdminListing || DB::table('category_shipping_methods')
-            ->where('category_id', $categoryId)
-            ->where('shipping_method_id', $data['shipping_method_id'])
-            ->where($fbnField, true)
-            ->exists();
-
-        if (!$isAvailable) {
-            return ApiResponse::error('This shipping method is not available for this item.', [], 422);
-        }
-
-        $item->update(['selected_shipping_method_id' => $data['shipping_method_id']]);
-
-        $method = ShippingMethod::find($data['shipping_method_id']);
-        $country = $request->attributes->get('country');
-        $estimate = $this->cartItemEnrichmentService->computeDeliveryEstimate(
-            $method,
-            $country?->timezone ?? 'Asia/Dubai',
-        );
-
-        return ApiResponse::success([
-            'cart_item_id' => $item->id,
-            'selected_method' => [
-                'id' => $method->id,
-                'code' => $method->code,
-                'badge_label_en' => $method->badge_label_en,
-                'badge_label_ar' => $method->badge_label_ar,
-                'badge_color_hex' => $method->badge_color_hex,
-                'is_express_type' => (bool) $method->is_express_type,
-            ],
-            'estimate' => $estimate,
-        ], 'Delivery method updated');
     }
 
     public function mergeCart(Request $request): JsonResponse

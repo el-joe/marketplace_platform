@@ -2,6 +2,7 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\GlobalSystemType;
 use App\Enums\VendorListingStatus;
 use App\Models\AffiliatePromoCode;
 use App\Models\Cart;
@@ -12,6 +13,7 @@ use App\Models\CouponUsage;
 use App\Models\Country;
 use App\Models\Customer;
 use App\Models\VendorListing;
+use Illuminate\Support\Facades\DB;
 
 class CartService
 {
@@ -109,9 +111,13 @@ class CartService
         return $customerCart->fresh(['items.vendorListing.productVariant.product.images', 'coupon']);
     }
 
-    public function addItem(Cart $cart, string $vendorListingId, int $quantity): CartItem
+    public function addItem(Cart $cart, string $vendorListingId, int $quantity, ?string $shippingMethodId = null): CartItem
     {
-        $listing = VendorListing::with('warehouseInventories')->findOrFail($vendorListingId);
+        $listing = VendorListing::with(['warehouseInventories', 'productVariant.product'])->findOrFail($vendorListingId);
+
+        if ($shippingMethodId) {
+            $this->assertShippingMethodAvailable($listing, $shippingMethodId);
+        }
 
         $available = $listing->warehouseInventories->sum('quantity_available');
         if ($available < $quantity) {
@@ -130,7 +136,11 @@ class CartService
             if ($available < $newQty) {
                 throw new \DomainException(__('common.exceptions.cart.insufficient_stock', ['available' => $available]));
             }
-            $existingItem->update(['quantity' => $newQty]);
+            $updates = ['quantity' => $newQty];
+            if ($shippingMethodId !== null) {
+                $updates['selected_shipping_method_id'] = $shippingMethodId;
+            }
+            $existingItem->update($updates);
             $item = $existingItem;
         } else {
             if ($currentCount >= self::MAX_ITEMS) {
@@ -141,6 +151,7 @@ class CartService
                 'quantity'          => $quantity,
                 'unit_price'        => $listing->price,
                 'added_at'          => now(),
+                'selected_shipping_method_id' => $shippingMethodId,
             ]);
         }
 
@@ -150,7 +161,7 @@ class CartService
     }
 
     /**
-     * @param array<int, array{vendor_listing_id: string, quantity: int}> $items
+     * @param array<int, array{vendor_listing_id: string, quantity: int, shipping_method_id?: ?string}> $items
      * @return array<int, CartItem>
      */
     public function addItems(Cart $cart, array $items): array
@@ -158,16 +169,20 @@ class CartService
         $added = [];
 
         foreach ($items as $item) {
-            $added[] = $this->addItem($cart, $item['vendor_listing_id'], $item['quantity']);
+            $added[] = $this->addItem($cart, $item['vendor_listing_id'], $item['quantity'], $item['shipping_method_id'] ?? null);
         }
 
         return $added;
     }
 
-    public function updateItem(Cart $cart, string $itemId, int $quantity): CartItem
+    public function updateItem(Cart $cart, string $itemId, int $quantity, ?string $shippingMethodId = null): CartItem
     {
         $item = $cart->items()->findOrFail($itemId);
-        $listing = VendorListing::with('warehouseInventories')->findOrFail($item->vendor_listing_id);
+        $listing = VendorListing::with(['warehouseInventories', 'productVariant.product'])->findOrFail($item->vendor_listing_id);
+
+        if ($shippingMethodId) {
+            $this->assertShippingMethodAvailable($listing, $shippingMethodId);
+        }
 
         $available = $listing->warehouseInventories->sum('quantity_available');
         if ($available < $quantity) {
@@ -177,10 +192,41 @@ class CartService
             throw new \DomainException(__('common.exceptions.cart.exceeds_max_order_quantity'));
         }
 
-        $item->update(['quantity' => $quantity]);
+        $updates = ['quantity' => $quantity];
+        if ($shippingMethodId !== null) {
+            $updates['selected_shipping_method_id'] = $shippingMethodId;
+        }
+        $item->update($updates);
         $this->recalculateCart($cart);
 
         return $item->fresh();
+    }
+
+    /**
+     * Guards against a customer picking a shipping method that isn't
+     * actually offered for this listing's category, or that's offered
+     * only for the other global_system_type (express_fbn vs merchant_fbp).
+     */
+    private function assertShippingMethodAvailable(VendorListing $listing, string $shippingMethodId): void
+    {
+        $categoryId = $listing->productVariant?->product?->category_id;
+        if (!$categoryId) {
+            throw new \DomainException(__('common.exceptions.cart.invalid_shipping_method'));
+        }
+
+        $fbnField = $listing->global_system_type === GlobalSystemType::ExpressFbn
+            ? 'is_available_for_express_fbn'
+            : 'is_available_for_merchant_fbp';
+
+        $isAvailable = DB::table('category_shipping_methods')
+            ->where('category_id', $categoryId)
+            ->where('shipping_method_id', $shippingMethodId)
+            ->where($fbnField, true)
+            ->exists();
+
+        if (!$isAvailable) {
+            throw new \DomainException(__('common.exceptions.cart.invalid_shipping_method'));
+        }
     }
 
     public function removeItem(Cart $cart, string $itemId): void

@@ -219,6 +219,7 @@ return [
             'coupon_usage_limit_reached'  => 'This coupon has reached its total usage limit.',
             'coupon_customer_limit_reached' => 'You have already used this coupon the maximum number of times.',
             'coupon_min_order_required'   => 'A minimum order of :amount :currency is required for this coupon.',
+            'invalid_shipping_method'    => 'This shipping method is not available for this item.',
         ],
 
         'browse' => [

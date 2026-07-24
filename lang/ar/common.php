@@ -219,6 +219,7 @@ return [
             'coupon_usage_limit_reached'  => 'وصل هذا الكوبون إلى حد الاستخدام الإجمالي.',
             'coupon_customer_limit_reached' => 'لقد استخدمت هذا الكوبون بالفعل الحد الأقصى لعدد المرات المسموح بها.',
             'coupon_min_order_required'   => 'يتطلب هذا الكوبون حدًا أدنى للطلب قدره :amount :currency.',
+            'invalid_shipping_method'    => 'طريقة التوصيل هذه غير متاحة لهذا المنتج.',
         ],
 
         'browse' => [

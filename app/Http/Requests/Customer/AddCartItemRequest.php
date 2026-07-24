@@ -14,8 +14,9 @@ class AddCartItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'vendor_listing_id' => ['required', 'uuid', 'exists:vendor_listings,id'],
-            'quantity'          => ['required', 'integer', 'min:1', 'max:999'],
+            'vendor_listing_id'   => ['required', 'uuid', 'exists:vendor_listings,id'],
+            'quantity'            => ['required', 'integer', 'min:1', 'max:999'],
+            'shipping_method_id'  => ['nullable', 'uuid', 'exists:shipping_methods,id'],
         ];
     }
 }

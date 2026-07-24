@@ -215,7 +215,6 @@ Route::prefix('v1/{country}')
             Route::post('items/bulk', [CartController::class, 'addItems'])->name('items.add-bulk');
             Route::put('items/{id}', [CartController::class, 'updateItem'])->name('items.update');
             Route::delete('items/{id}', [CartController::class, 'removeItem'])->name('items.remove');
-            Route::post('items/{id}/shipping-method', [CartController::class, 'selectShippingMethod'])->name('items.shipping-method');
             Route::delete('/', [CartController::class, 'clear'])->name('clear');
             Route::post('coupon', [CartController::class, 'applyCoupon'])->name('coupon.apply');
             Route::delete('coupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
