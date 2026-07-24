@@ -149,8 +149,8 @@ class ListingController extends Controller
             'date_to' => fn($q, $v) => $q->whereDate('vendor_listings.created_at', '<=', $v),
         ]);
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
+        if ($request->filled('search_term')) {
+            $search = $request->input('search_term');
             $query->where(function ($sq) use ($search) {
                 $sq->where('p.name_en', 'like', "%{$search}%")
                     ->orWhere('p.name_ar', 'like', "%{$search}%")
