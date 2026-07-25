@@ -44,7 +44,8 @@ class AppContextController extends Controller
             ->orderBy('country_id')
             ->orderBy('position')
             ->get()
-            ->groupBy(fn ($item) => $item->country_id ?? 'default');
+            ->groupBy(fn ($item) => $item->country_id ?? 'default')
+            ->collect();
 
         $overrideCountryId = $request->query('override_country');
         if ($overrideCountryId && $countries->contains('id', $overrideCountryId) && !$navItems->has($overrideCountryId)) {

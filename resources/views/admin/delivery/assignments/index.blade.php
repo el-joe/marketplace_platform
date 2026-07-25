@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @push('styles')
-    @vite(['resources/js/components/datatable.js', 'resources/js/components/leaflet.js'])
+    @vite(['resources/js/components/datatable.js', 'resources/js/components/leaflet.js', 'resources/js/components/select2.js'])
 @endpush
 
 @section('title', __('admin.delivery_section.assignments'))
@@ -172,12 +172,18 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.sub_order_id_required') }} <span
                             class="text-red-500">*</span></label>
-                    <input type="text" name="sub_order_id" class="form-input w-full" required>
+                    <select name="sub_order_id" id="manual-sub-order-select" data-async-select
+                        data-config='{{ json_encode(['url' => route('admin.delivery.assignments.search.sub-orders'), 'param' => 'q', 'minLength' => 0, 'delay' => 300]) }}'
+                        class="form-input w-full" required>
+                        <option value=""></option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.shipment_id_required') }} <span
                             class="text-red-500">*</span></label>
-                    <input type="text" name="shipment_id" class="form-input w-full" required>
+                    <select name="shipment_id" id="manual-shipment-select" class="form-input w-full" required disabled>
+                        <option value="">{{ __('admin.delivery_section.select_sub_order_first') }}</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('admin.delivery_section.agent_required') }} <span
@@ -345,9 +351,63 @@
             });
 
             // ── Manual Assign ─────────────────────────────────────────────────────────
-            $('#manual-assign-btn').on('click', () =>
-                document.getElementById('manual-assign-modal').classList.remove('hidden')
-            );
+            const SHIPMENTS_SEARCH_URL = @json(route('admin.delivery.assignments.search.shipments'));
+            const $subOrderSelect = $('#manual-sub-order-select');
+            const $shipmentSelect = $('#manual-shipment-select');
+
+            function initShipmentSelect2(subOrderId) {
+                if ($shipmentSelect.data('select2')) {
+                    $shipmentSelect.select2('destroy');
+                }
+                $shipmentSelect.empty();
+                $shipmentSelect.select2({
+                    width: '100%',
+                    placeholder: @json(__('admin.delivery_section.shipment_id_required')),
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: SHIPMENTS_SEARCH_URL,
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({ q: params.term, sub_order_id: subOrderId, page: params.page || 1 }),
+                        processResults: response => ({
+                            results: response.data ?? [],
+                            pagination: { more: response.meta?.current_page < response.meta?.last_page },
+                        }),
+                        headers: {
+                            'X-CSRF-TOKEN': token(),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            Accept: 'application/json',
+                        },
+                    },
+                });
+            }
+
+            function resetShipmentSelect() {
+                if ($shipmentSelect.data('select2')) {
+                    $shipmentSelect.val(null).trigger('change');
+                    $shipmentSelect.select2('destroy');
+                }
+                $shipmentSelect.empty()
+                    .append(new Option(@json(__('admin.delivery_section.select_sub_order_first')), '', true, true))
+                    .prop('disabled', true);
+            }
+
+            $('#manual-assign-btn').on('click', () => {
+                document.getElementById('manual-assign-modal').classList.remove('hidden');
+                window.initSelect2?.($('#manual-assign-modal'));
+                resetShipmentSelect();
+            });
+
+            $subOrderSelect.on('change', function () {
+                const subOrderId = $(this).val();
+                resetShipmentSelect();
+                if (subOrderId) {
+                    $shipmentSelect.prop('disabled', false);
+                    initShipmentSelect2(subOrderId);
+                }
+            });
+
             $('#manual-assign-form').on('submit', function (e) {
                 e.preventDefault();
                 $.ajax({
@@ -359,6 +419,8 @@
                             window.Toast?.success(res.message);
                             document.getElementById('manual-assign-modal').classList.add('hidden');
                             this.reset();
+                            $subOrderSelect.val(null).trigger('change');
+                            resetShipmentSelect();
                             table.ajax.reload();
                             loadMapData();
                         }

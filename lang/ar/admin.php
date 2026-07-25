@@ -7032,6 +7032,7 @@ return [
         'attempts_col'      => 'المحاولات',
         'sub_order_id_required' => 'معرّف الطلب الفرعي',
         'shipment_id_required' => 'معرّف الشحنة',
+        'select_sub_order_first' => 'اختر الطلب الفرعي أولاً…',
         'pickup_latitude'   => 'خط عرض الاستلام',
         'pickup_longitude'  => 'خط طول الاستلام',
         'agent_required'    => 'المندوب',

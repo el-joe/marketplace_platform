@@ -7031,6 +7031,7 @@ return [
         'attempts_col'      => 'Attempts',
         'sub_order_id_required' => 'Sub Order ID',
         'shipment_id_required' => 'Shipment ID',
+        'select_sub_order_first' => 'Select a sub-order first…',
         'pickup_latitude'   => 'Pickup Latitude',
         'pickup_longitude'  => 'Pickup Longitude',
         'agent_required'    => 'Agent',

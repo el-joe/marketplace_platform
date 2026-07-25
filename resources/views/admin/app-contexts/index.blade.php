@@ -12,7 +12,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @foreach ($contexts as $context)
             <a href="{{ route('admin.app-contexts.show', $context) }}"
-               class="card p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
+               class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between">
                     <div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
                          style="background-color: {{ $context->color_hex ?: '#E5E7EB' }}">

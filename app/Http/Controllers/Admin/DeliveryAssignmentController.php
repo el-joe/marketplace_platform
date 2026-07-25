@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\DeliveryAgent;
 use App\Models\DeliveryAssignment;
 use App\Models\DeliveryZone;
+use App\Models\Shipment;
+use App\Models\SubOrder;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -247,5 +249,51 @@ class DeliveryAssignmentController extends Controller
             'agents' => $agents,
             'assignments' => $assignments,
         ]);
+    }
+
+    // ── Select2 search endpoints ─────────────────────────────────────────────
+
+    public function searchSubOrders(Request $request): JsonResponse
+    {
+        $term = $request->input('q', '');
+
+        $subOrders = SubOrder::query()
+            ->with('order:id,order_number')
+            ->when($term, fn ($q) => $q->where(function ($q) use ($term) {
+                $q->where('sub_order_number', 'like', "%{$term}%")
+                    ->orWhereHas('order', fn ($oq) => $oq->where('order_number', 'like', "%{$term}%"));
+            }))
+            ->orderByDesc('created_at')
+            ->paginate(20)
+            ->through(fn ($so) => [
+                'id' => $so->id,
+                'text' => $so->sub_order_number
+                    . ' (Order: ' . ($so->order->order_number ?? '—') . ')'
+                    . ' [' . $so->status->value . ']',
+            ]);
+
+        return response()->json($subOrders);
+    }
+
+    public function searchShipments(Request $request): JsonResponse
+    {
+        $subOrderId = $request->input('sub_order_id');
+        $term = $request->input('q', '');
+
+        if (!$subOrderId) {
+            return response()->json(['data' => [], 'meta' => ['current_page' => 1, 'last_page' => 1]]);
+        }
+
+        $shipments = Shipment::query()
+            ->where('sub_order_id', $subOrderId)
+            ->when($term, fn ($q) => $q->where('tracking_number', 'like', "%{$term}%"))
+            ->whereDoesntHave('deliveryAssignment', fn ($q) => $q->whereNotIn('status', [DeliveryAssignment::STATUS_FAILED]))
+            ->paginate(20)
+            ->through(fn ($s) => [
+                'id' => $s->id,
+                'text' => $s->tracking_number . ' [' . $s->status->value . ']',
+            ]);
+
+        return response()->json($shipments);
     }
 }

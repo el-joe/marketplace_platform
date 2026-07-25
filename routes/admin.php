@@ -1112,6 +1112,8 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::post('/assignments/auto-assign', [DeliveryAssignmentController::class, 'autoAssign'])->name('assignments.auto-assign');
         Route::post('/assignments/manual-assign', [DeliveryAssignmentController::class, 'manualAssign'])->name('assignments.manual-assign');
         Route::get('/assignments/live-map', [DeliveryAssignmentController::class, 'liveMap'])->name('assignments.live-map');
+        Route::get('/assignments/search/sub-orders', [DeliveryAssignmentController::class, 'searchSubOrders'])->name('assignments.search.sub-orders');
+        Route::get('/assignments/search/shipments', [DeliveryAssignmentController::class, 'searchShipments'])->name('assignments.search.shipments');
         // Payouts
         Route::get('/payouts', [DeliveryPayoutController::class, 'index'])->name('payouts.index');
         Route::post('/payouts/datatable', [DeliveryPayoutController::class, 'datatable'])->name('payouts.datatable');
