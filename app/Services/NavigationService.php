@@ -80,13 +80,13 @@ class NavigationService
                         'permission' => 'categories.view',
                         'badge' => null,
                     ],
-                    [
-                        'label' => __('admin.nav.product_relations'),
-                        'route' => 'admin.fbt.index',
-                        'icon' => 'link',
-                        'permission' => 'products.view',
-                        'badge' => null,
-                    ],
+                    // [
+                    //     'label' => __('admin.nav.product_relations'),
+                    //     'route' => 'admin.fbt.index',
+                    //     'icon' => 'link',
+                    //     'permission' => 'products.view',
+                    //     'badge' => null,
+                    // ],
                     [
                         'label' => __('admin.nav.brands'),
                         'route' => 'admin.brands.index',
@@ -108,13 +108,13 @@ class NavigationService
                         'permission' => 'warranty_plans.view',
                         'badge' => $this->cachedBadge('active_warranty_plans', fn() => $this->countActiveWarrantyPlans(), 300),
                     ],
-                    [
-                        'label' => __('admin.nav.product_highlights'),
-                        'route' => 'admin.product-highlights.index',
-                        'icon' => 'star',
-                        'permission' => 'products.view',
-                        'badge' => null,
-                    ],
+                    // [
+                    //     'label' => __('admin.nav.product_highlights'),
+                    //     'route' => 'admin.product-highlights.index',
+                    //     'icon' => 'star',
+                    //     'permission' => 'products.view',
+                    //     'badge' => null,
+                    // ],
                     [
                         'label' => __('admin.nav.bestsellers'),
                         'route' => 'admin.bestsellers.index',
@@ -212,11 +212,11 @@ class NavigationService
                         'badge' => null,
                     ],
                     [
-                        'label'      => __('admin.nav.vendor_campaigns'),
-                        'route'      => 'admin.vendor-campaign-offers.index',
-                        'icon'       => 'rectangle-group',
+                        'label' => __('admin.nav.vendor_campaigns'),
+                        'route' => 'admin.vendor-campaign-offers.index',
+                        'icon' => 'rectangle-group',
                         'permission' => 'campaign_offers.view',
-                        'badge'      => $this->cachedBadge('pending_campaign_offers', fn() => $this->countPendingCampaignOffers()),
+                        'badge' => $this->cachedBadge('pending_campaign_offers', fn() => $this->countPendingCampaignOffers()),
                     ],
                     [
                         'label' => __('admin.nav.ad_slots'),
@@ -294,12 +294,14 @@ class NavigationService
                         'permission' => 'vendors.view',
                         'badge' => null,
                     ],
-                    ...($this->hasActiveAcquisitionCommissions() ? [[
-                        'label' => __('admin.nav.my_acquisition_commissions'),
-                        'route' => 'admin.my-acquisition-commissions.index',
-                        'icon' => 'banknotes',
-                        'badge' => null,
-                    ]] : []),
+                    ...($this->hasActiveAcquisitionCommissions() ? [
+                        [
+                            'label' => __('admin.nav.my_acquisition_commissions'),
+                            'route' => 'admin.my-acquisition-commissions.index',
+                            'icon' => 'banknotes',
+                            'badge' => null,
+                        ]
+                    ] : []),
                     [
                         'label' => __('admin.nav.admins'),
                         'route' => 'admin.admins.index',

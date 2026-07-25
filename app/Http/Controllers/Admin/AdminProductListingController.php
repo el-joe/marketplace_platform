@@ -128,6 +128,7 @@ class AdminProductListingController extends Controller
                 'show_url' => route('admin.admin-product-listings.show', $row->id),
                 'edit_url' => route('admin.admin-product-listings.edit', $row->id),
                 'delete_url' => route('admin.admin-product-listings.destroy', $row->id),
+                'activate_url' => route('admin.admin-product-listings.activate', $row->id),
                 'toggle_featured_url' => route('admin.admin-product-listings.toggle-featured', $row->id),
             ];
         });
@@ -210,6 +211,20 @@ class AdminProductListingController extends Controller
         return redirect()
             ->route('admin.admin-product-listings.index')
             ->with('success', 'Listing archived.');
+    }
+
+    public function activate(AdminProductListing $adminProductListing): JsonResponse|RedirectResponse
+    {
+        $adminProductListing->status = AdminProductListingStatus::Active;
+        $adminProductListing->save();
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Listing activated.']);
+        }
+
+        return redirect()
+            ->route('admin.admin-product-listings.index')
+            ->with('success', 'Listing activated.');
     }
 
     /** Nawy preview: render the storefront feed as it would appear. */

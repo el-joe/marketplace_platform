@@ -73,6 +73,7 @@ export default defineConfig({
                 'resources/js/admin/travel-bookings.js',
                 'resources/js/admin/packaging-supplies.js',
                 'resources/js/admin/notifications.js',
+                'resources/js/admin/wishlist-overview.js',
                 // Portal (portal.noon.loc)
                 'resources/js/portal/app.js',
                 'resources/js/portal/registration.js',

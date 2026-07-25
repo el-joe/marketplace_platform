@@ -7,7 +7,7 @@
     $listing = $listing ?? null;
     $isEdit  = $listing !== null;
     $selectedVariant = $selectedVariant ?? null;
-    $val = fn(string $f, $d = '') => old($f, $isEdit ? ($listing->{$f} ?? $d) : $d);
+    $val = fn(string $f, $d = '') => old($f, $isEdit ? (($listing->{$f} ?? null) instanceof \BackedEnum ? $listing->{$f}->value : ($listing->{$f} ?? $d)) : $d);
     $bool = fn(string $f, bool $d = false): bool => (bool) old($f, $isEdit ? ($listing->{$f} ?? $d) : $d);
 @endphp
 

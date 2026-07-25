@@ -59,7 +59,8 @@
                 'render' => 'Renderers.actions([
                     { type: "link",   label: "' . __('common.view') . '",   url: ":show_url" },
                     { type: "link",   label: "' . __('common.edit') . '",   url: ":edit_url" },
-                    { type: "button", label: "' . __('admin.admin_product_listings.archive') . '", id: "archive", class: "btn-danger" }
+                    { type: "button", label: "' . __('admin.admin_product_listings.archive') . '", id: "archive", class: "btn-danger", condition: (row) => row.status !== "archived" },
+                    { type: "button", label: "' . __('admin.admin_product_listings.activate') . '", id: "activate", class: "btn-success", condition: (row) => row.status === "archived" }
                 ])'
             ],
         ];
@@ -158,9 +159,14 @@
     <script>
         window.TRANSLATIONS = window.TRANSLATIONS || {};
         Object.assign(window.TRANSLATIONS, {
+            archiveListingTitle: @json(__('admin.admin_product_listings.archive_listing_title')),
             archiveListingQuestion: @json(__('admin.admin_product_listings.remove_listing_confirm')),
             listingArchived: @json(__('admin.admin_product_listings.listing_archived')),
             archiveFailed: @json(__('admin.admin_product_listings.archive_failed')),
+            activateListingTitle: @json(__('admin.admin_product_listings.activate_listing_title')),
+            activateListingQuestion: @json(__('admin.admin_product_listings.activate_listing_confirm')),
+            listingActivated: @json(__('admin.admin_product_listings.listing_activated')),
+            activateFailed: @json(__('admin.admin_product_listings.activate_failed')),
             featuredInNawyNow: @json(__('admin.admin_product_listings.featured_in_nawy_now')),
             removedFromNawyNow: @json(__('admin.admin_product_listings.removed_from_nawy_now')),
             failedToUpdate: @json(__('admin.admin_product_listings.failed_to_update')),
@@ -192,7 +198,7 @@
 
         window.tableActions.archive = async function (id, row) {
             const confirmed = window.confirmDelete
-                ? await window.confirmDelete(window.TRANSLATIONS.archiveListingQuestion)
+                ? await window.confirmDelete(window.TRANSLATIONS.archiveListingQuestion, { title: window.TRANSLATIONS.archiveListingTitle })
                 : confirm(window.TRANSLATIONS.archiveListingQuestion);
             if (!confirmed) return;
 
@@ -203,6 +209,29 @@
                 })
                 .fail(function (xhr) {
                     window.Toast && window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.archiveFailed);
+                });
+        };
+
+        window.tableActions.activate = async function (id, row) {
+            const confirmed = window.confirmDialog
+                ? await window.confirmDialog({
+                    title: window.TRANSLATIONS.activateListingTitle,
+                    text: window.TRANSLATIONS.activateListingQuestion,
+                    icon: 'question',
+                    customClass: {
+                        confirmButton: 'inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 transition-colors',
+                    },
+                })
+                : confirm(window.TRANSLATIONS.activateListingQuestion);
+            if (!confirmed) return;
+
+            $.ajax({ url: row.activate_url, method: 'POST' })
+                .done(function (res) {
+                    window.Toast && window.Toast.success(res.message || window.TRANSLATIONS.listingActivated);
+                    window.reloadDataTable('nawy-listings-table');
+                })
+                .fail(function (xhr) {
+                    window.Toast && window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.activateFailed);
                 });
         };
     </script>

@@ -1342,6 +1342,7 @@ Route::middleware(['auth.admin', 'admin.vendor.scope'])->group(function () {
         Route::get('/{adminProductListing}/edit', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'edit'])->name('edit');
         Route::put('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'update'])->name('update');
         Route::delete('/{adminProductListing}', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'destroy'])->name('destroy');
+        Route::post('/{adminProductListing}/activate', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'activate'])->name('activate');
         Route::get('/{adminProductListing}/nawy-preview', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'nawyPreview'])->name('nawy-preview');
         Route::post('/{adminProductListing}/toggle-featured', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'toggleFeatured'])->name('toggle-featured');
         Route::post('/{adminProductListing}/reference', [\App\Http\Controllers\Admin\AdminProductListingController::class, 'saveReference'])->name('save-reference');
