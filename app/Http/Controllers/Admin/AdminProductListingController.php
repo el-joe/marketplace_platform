@@ -120,7 +120,7 @@ class AdminProductListingController extends Controller
                 'product_name' => e($row->product_name),
                 'variant_sku' => e($row->variant_sku),
                 'country' => e($row->country_name),
-                'price' => number_format($row->price / 100, 2) . ' ' . $row->currency,
+                'price' => number_format($row->price, 2) . ' ' . $row->currency,
                 'fulfillment_type' => $row->fulfillment_type,
                 'payment_options' => $paymentLabels[$row->payment_options] ?? $row->payment_options,
                 'featured_in_nawy' => (bool) $row->featured_in_nawy,

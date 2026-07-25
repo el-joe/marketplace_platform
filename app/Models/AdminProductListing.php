@@ -70,11 +70,6 @@ class AdminProductListing extends Model
         return $this->belongsTo(Admin::class, 'created_by_admin_id');
     }
 
-    /** Price in major currency unit (for display). */
-    public function getPriceAttribute(): float
-    {
-        return $this->attributes['price'] / 100;
-    }
 
     /** Whether COD is an allowed payment method for this listing. */
     public function allowsCod(): bool
