@@ -205,6 +205,7 @@ class VendorApplicationController extends Controller
             'approvedByAdmin',
             'accountManagerAdmin',
             'documents.verifiedByAdmin',
+            'documents.documentType',
             'bankAccounts',
             'addresses',
         ]);
@@ -214,7 +215,7 @@ class VendorApplicationController extends Controller
 
         // Required docs checklist
         $requiredDocs = collect(self::REQUIRED_DOC_TYPES)->mapWithKeys(function ($type) use ($vendor) {
-            $doc = $vendor->documents->firstWhere('document_type', $type);
+            $doc = $vendor->documents->first(fn($d) => $d->documentType?->code === $type);
             return [
                 $type => [
                     'label' => $this->docTypeLabel($type),
@@ -236,11 +237,13 @@ class VendorApplicationController extends Controller
             'business_info' => ['label' => 'Business info complete', 'pass' => $businessInfoComplete],
             'docs_uploaded' => ['label' => 'All required docs uploaded', 'pass' => $allRequiredUploaded],
             'docs_verified' => ['label' => 'All required docs verified', 'pass' => $allRequiredVerified],
-            'bank_account' => ['label' => 'Bank account added', 'pass' => $hasBankAccount],
+            'bank_account' => ['label' => 'Bank account added', 'pass' => $hasBankAccount, 'required' => false],
             'store_profile' => ['label' => 'Store profile complete', 'pass' => $storeProfileComplete],
         ];
 
-        $canApprove = collect($checklist)->every(fn($c) => $c['pass']);
+        $canApprove = collect($checklist)
+            ->reject(fn($c) => ($c['required'] ?? true) === false)
+            ->every(fn($c) => $c['pass']);
 
         return view('admin.vendor-applications.show', compact(
             'vendor',
@@ -304,7 +307,7 @@ class VendorApplicationController extends Controller
         // 2. Check all required document types are verified
         $missingOrUnverified = [];
         foreach (self::REQUIRED_DOC_TYPES as $type) {
-            $doc = $vendor->documents()->where('document_type', $type)->first();
+            $doc = $vendor->documents()->whereHas('documentType', fn($q) => $q->where('code', $type))->first();
             if (!$doc || $doc->status !== VendorDocumentStatus::Approved) {
                 $missingOrUnverified[] = $this->docTypeLabel($type);
             }

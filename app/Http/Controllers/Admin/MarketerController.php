@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\AdminInvitationCommissionType;
 use App\Enums\CampaignType;
 use App\Enums\MarketerSampleRequestStatus;
+use App\Enums\MarketerStatus;
 use App\Enums\SecretPromotionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
@@ -345,6 +346,8 @@ class MarketerController extends Controller
     public function sendInvitation(Request $request, Marketer $marketer, ActivityLoggerService $activityLogger): JsonResponse
     {
         $admin = auth('admin')->user();
+
+        abort_unless($marketer->status === MarketerStatus::Active, 422, 'Marketer is not active.');
 
         $request->validate([
             'title' => 'required|string|max:255',

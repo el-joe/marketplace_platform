@@ -131,7 +131,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function store(StoreAdminRequest $request): JsonResponse|RedirectResponse
+    public function store(StoreAdminRequest $request): JsonResponse
     {
         $authAdmin = auth('admin')->user();
         if (!$authAdmin->hasPermissionTo('admins.create')) {
@@ -157,22 +157,14 @@ class AdminController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('AdminController@store failed', ['error' => $e->getMessage()]);
-            if ($request->wantsJson()) {
-                return response()->json(['message' => 'Failed to create administrator.'], 500);
-            }
-            return back()->withInput()->withErrors(['error' => 'Failed to create administrator.']);
+            return response()->json(['message' => 'Failed to create administrator.'], 500);
         }
 
-        if ($request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'generated_password' => $password,
-                'redirect' => route('admin.admins.edit', $admin->id),
-            ]);
-        }
-
-        return redirect()->route('admin.admins.edit', $admin->id)
-            ->with('success', 'Administrator created.');
+        return response()->json([
+            'success' => true,
+            'generated_password' => $password,
+            'redirect' => route('admin.admins.edit', $admin->id),
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

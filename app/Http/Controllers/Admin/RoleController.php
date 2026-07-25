@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -89,7 +88,7 @@ class RoleController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse|RedirectResponse
+    public function store(Request $request): JsonResponse
     {
         $authAdmin = auth('admin')->user();
         if (!$authAdmin->hasPermissionTo('roles.create')) {
@@ -113,18 +112,10 @@ class RoleController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('RoleController@store failed', ['error' => $e->getMessage()]);
-            if ($request->wantsJson()) {
-                return response()->json(['message' => 'Failed to create role.'], 500);
-            }
-            return back()->withInput()->withErrors(['error' => 'Failed to create role.']);
+            return response()->json(['message' => 'Failed to create role.'], 500);
         }
 
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'redirect' => route('admin.roles.edit', $role->id)]);
-        }
-
-        return redirect()->route('admin.roles.edit', $role->id)
-            ->with('success', 'Role created successfully.');
+        return response()->json(['success' => true, 'redirect' => route('admin.roles.edit', $role->id)]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -80,11 +80,13 @@
             @endif
         </div>
 
-        <div class="mt-2">
-            <button type="button" class="btn btn-primary btn-sm w-full" id="btn-send-invitation">
-                📣 {{ __('admin.marketer_show_section.send_campaign_invitation') }}
-            </button>
-        </div>
+        @if($marketer->status === \App\Enums\MarketerStatus::Active)
+            <div class="mt-2">
+                <button type="button" class="btn btn-primary btn-sm w-full" id="btn-send-invitation">
+                    📣 {{ __('admin.marketer_show_section.send_campaign_invitation') }}
+                </button>
+            </div>
+        @endif
     </div>
 
     {{-- Stats Column --}}

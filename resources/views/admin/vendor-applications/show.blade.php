@@ -93,10 +93,10 @@
                         <div class="col-span-2">
                             <dt class="text-xs text-gray-400 uppercase font-medium mb-0.5">{{ __('admin.vendor_applications.business_address_label') }}</dt>
                             <dd>
-                                {{ $address->street_line_1 ?? '' }}
-                                @if($address->street_line_2), {{ $address->street_line_2 }}@endif
-                                @if($address->city), {{ $address->city }}@endif
-                                @if($address->state), {{ $address->state }}@endif
+                                {{ $address->street_address ?? '' }}
+                                @if($address->building), {{ $address->building }}@endif
+                                @if($address->area), {{ $address->area }}@endif
+                                @if($address->city), {{ $address->city->name }}@endif
                                 @if($address->postal_code), {{ $address->postal_code }}@endif
                             </dd>
                         </div>
@@ -153,7 +153,7 @@
                                     @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="py-2 pr-3 font-medium">
-                                            {{ ucwords(str_replace('_', ' ', $doc->document_type)) }}
+                                            {{ $doc->documentType?->name_en ?? '—' }}
                                         </td>
                                         <td class="py-2 pr-3">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $dc }}-100 text-{{ $dc }}-700">
@@ -185,7 +185,7 @@
                                                     <button type="button"
                                                         class="btn btn-xs btn-secondary js-preview-doc-btn"
                                                         data-file="{{ Storage::url($doc->file_path) }}"
-                                                        data-type="{{ $doc->document_type }}"
+                                                        data-type="{{ $doc->documentType?->code }}"
                                                         data-id="{{ $doc->id }}">
                                                         {{ __('admin.vendors.view') }}
                                                     </button>

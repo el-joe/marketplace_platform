@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\MarketerStatus;
 use App\Enums\VendorCampaignInvitationStatus;
 use App\Enums\VendorCampaignOfferStatus;
 use App\Http\Controllers\Controller;
@@ -149,10 +150,11 @@ class VendorCampaignOfferController extends Controller
             'approved_at'          => now(),
         ]);
 
-        // Fan out pending invitations created before approval
-        $offer->invitations()->where('status', VendorCampaignInvitationStatus::Pending->value)->each(
-            fn($inv) => Notification::send($inv->marketer, new VendorCampaignInvitationReceived($inv))
-        );
+        // Fan out pending invitations created before approval, skipping marketers who are no longer active
+        $offer->invitations()
+            ->where('status', VendorCampaignInvitationStatus::Pending->value)
+            ->whereHas('marketer', fn($q) => $q->where('status', MarketerStatus::Active->value))
+            ->each(fn($inv) => Notification::send($inv->marketer, new VendorCampaignInvitationReceived($inv)));
 
         // Notify vendor admins
         Notification::send($offer->vendor->vendorAdmins, new VendorCampaignOfferApproved($offer));
