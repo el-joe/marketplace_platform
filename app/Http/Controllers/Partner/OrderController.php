@@ -114,8 +114,8 @@ class OrderController extends Controller
             ]);
 
         // Filters
-        if ($request->filled('search')) {
-            $query->where('sub_orders.sub_order_number', 'like', '%' . $request->input('search') . '%');
+        if ($request->filled('search.value')) {
+            $query->where('sub_orders.sub_order_number', 'like', '%' . $request->input('search.value') . '%');
         }
         if ($request->filled('status') && $request->input('status') !== 'all') {
             if ($request->input('status') === 'sla_urgent') {
