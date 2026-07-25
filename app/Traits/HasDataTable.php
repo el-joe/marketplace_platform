@@ -110,7 +110,7 @@ trait HasDataTable
         foreach ($scopes as $param => $scope) {
             $value = $request->input($param);
             if ($value !== null && $value !== '' && !is_array($value)) {
-                $query = $scope($query, $value);
+                $scope($query, $value);
             }
         }
         return $query;

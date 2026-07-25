@@ -47,13 +47,13 @@ class VendorApplicationController extends Controller
 
         $stats = [
             'pending' => Vendor::where('global_status', VendorGlobalStatus::Pending->value)
-                ->whereNotNull('onboarding_completed_at')
+
                 ->count(),
             'under_review' => Vendor::where('global_status', VendorGlobalStatus::UnderReview->value)
-                ->whereNotNull('onboarding_completed_at')
+
                 ->count(),
             'waiting_5plus' => Vendor::whereIn('global_status', [VendorGlobalStatus::Pending->value, VendorGlobalStatus::UnderReview->value])
-                ->whereNotNull('onboarding_completed_at')
+
                 ->where('onboarding_completed_at', '<=', now()->subDays(5))
                 ->count(),
         ];
@@ -77,8 +77,9 @@ class VendorApplicationController extends Controller
                 VendorGlobalStatus::UnderReview->value,
                 VendorGlobalStatus::Rejected->value,
             ])
-            ->whereNotNull('onboarding_completed_at')
-            ->select('vendors.*');
+            ;
+
+
 
         return $this->applyFilters($query, $request, [
             'search' => fn($q, $v) => $q->where(function ($qq) use ($v) {
@@ -414,7 +415,7 @@ class VendorApplicationController extends Controller
         abort_unless($admin->hasPermissionTo('vendors.edit'), 403);
 
         $document->update([
-            'status' => 'verified',
+            'status' => VendorDocumentStatus::Approved,
             'verified_by_admin_id' => $admin->id,
             'verified_at' => now(),
             'rejection_reason' => null,
@@ -423,7 +424,7 @@ class VendorApplicationController extends Controller
         return response()->json([
             'message' => 'Document verified.',
             'doc_id' => $document->id,
-            'status' => 'verified',
+            'status' => VendorDocumentStatus::Approved->value,
         ]);
     }
 

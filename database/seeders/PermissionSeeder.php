@@ -54,6 +54,7 @@ class PermissionSeeder extends Seeder
             'vendors.strikes.issue',
             'vendors.payouts.hold',
             'vendors.assigned_only',
+            'vendors.edit',
             // Orders
             'orders.view',
             'orders.cancel',

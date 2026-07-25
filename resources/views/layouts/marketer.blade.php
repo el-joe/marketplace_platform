@@ -449,7 +449,7 @@
             </div>
 
             @auth('marketer')
-                @php $m = auth()->guard('marketer')->user(); @endphp
+                <?php $m = auth()->guard('marketer')->user(); ?>
                 <div class="flex items-center gap-3">
 
                     {{-- Language switcher (AR / EN) --}}

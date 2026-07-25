@@ -110,7 +110,12 @@
                 </div>
                 <div>
                     <label class="form-label">{{ __('admin.affiliate_promo_codes_section.currency_label') }}</label>
-                    <input type="text" name="currency" class="form-input w-full" maxlength="3" placeholder="{{ __('admin.affiliate_promo_codes_section.currency_placeholder') }}">
+                    <select name="currency" class="form-input w-full">
+                        <option value="">{{ __('admin.affiliate_promo_codes_section.currency_placeholder') }}</option>
+                        @foreach($currencies as $currency)
+                            <option value="{{ $currency->code }}">{{ $currency->code }} — {{ $currency->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <label class="form-label">{{ __('admin.affiliate_promo_codes_section.max_uses') }}</label>
@@ -205,17 +210,18 @@ document.addEventListener('DOMContentLoaded', function () {
             .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
     });
 
-    $(document).on('click', '.btn-disable-promo', function () {
+    $(document).on('click', '.btn-disable-promo', async function () {
         const id = $(this).data('id');
-        window.confirmDialog({ title: window.TRANSLATIONS.disablePromoConfirm, onConfirm: () => {
-            $.ajax({
-                url: '{{ url('affiliate-promo-codes') }}/' + id,
-                method: 'DELETE',
-                headers: { 'X-CSRF-TOKEN': tok },
-            })
-                .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
-                .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
-        }});
+        const ok = await window.confirmDialog({ title: window.TRANSLATIONS.disablePromoConfirm });
+        if (!ok) return;
+
+        $.ajax({
+            url: '{{ url('affiliate-promo-codes') }}/' + id,
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': tok },
+        })
+            .done(r => { window.Toast.success(r.message); table.ajax.reload(); })
+            .fail(xhr => window.Toast.error(xhr.responseJSON?.message || window.TRANSLATIONS.somethingWentWrong));
     });
 }, { once: true });
 </script>

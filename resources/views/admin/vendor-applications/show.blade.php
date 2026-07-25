@@ -148,7 +148,7 @@
                             <tbody class="divide-y divide-gray-50">
                                 @foreach($vendor->documents as $doc)
                                     @php
-                                        $docStatColors = ['verified'=>'success','approved'=>'success','pending'=>'warning','rejected'=>'danger','expired'=>'danger'];
+                                        $docStatColors = ['approved'=>'success','pending'=>'warning','rejected'=>'danger','expired'=>'danger'];
                                         $dc = $docStatColors[$doc->status->value] ?? 'gray';
                                     @endphp
                                     <tr class="hover:bg-gray-50">
@@ -190,7 +190,7 @@
                                                         {{ __('admin.vendors.view') }}
                                                     </button>
                                                 @endif
-                                                @if(!in_array($doc->status?->value, ['verified','approved']))
+                                                @if($doc->status?->value !== 'approved')
                                                     <button type="button"
                                                         class="btn btn-xs btn-success js-verify-doc-btn"
                                                         data-url="{{ route('admin.vendor-applications.documents.verify', $doc->id) }}"

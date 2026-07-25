@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AffiliatePromoCode;
 use App\Models\Coupon;
+use App\Models\Currency;
 use App\Models\Marketer;
 use App\Services\AffiliatePromoCodeService;
 use App\Traits\HasDataTable;
@@ -34,6 +35,10 @@ class AffiliatePromoCodeController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        $currencies = Currency::where('is_active', true)
+            ->orderBy('code')
+            ->get(['code', 'name']);
+
         return view('admin.affiliate_promo_codes.index', [
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
@@ -41,6 +46,7 @@ class AffiliatePromoCodeController extends Controller
             ],
             'stats' => $stats,
             'affiliates' => $affiliates,
+            'currencies' => $currencies,
         ]);
     }
 
@@ -73,9 +79,9 @@ class AffiliatePromoCodeController extends Controller
         }
 
         return $this->dataTableResponse($request, $query, $columns, function ($row) {
-            $discount = $row->discount_type->value === 'percentage'
+            $discount = $row->discount_type === 'percentage'
                 ? $row->discount_value . '%'
-                : ($row->discount_type->value === 'free_shipping'
+                : ($row->discount_type === 'free_shipping'
                     ? 'Free Shipping'
                     : number_format($row->discount_value, 2) . ' ' . ($row->currency ?? ''));
 
