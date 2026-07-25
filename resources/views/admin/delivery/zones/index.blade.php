@@ -156,7 +156,7 @@
 @endsection
 
 @push('scripts')
-    <script>
+    <script type="module">
         window.TRANSLATIONS = window.TRANSLATIONS || {};
         Object.assign(window.TRANSLATIONS, {
             addZone: @json(__('admin.delivery_section.add_zone')),
