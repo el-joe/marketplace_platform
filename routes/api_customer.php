@@ -532,8 +532,9 @@ Route::post('v1/device-tokens', [ApiDeviceTokenController::class, 'store'])
     ->name('customer.api.device-tokens.store');
 
 // ── Misc (country-agnostic path, scoped to customer_id) ──
-// TODO: MiscController is a 501 stub; wire up to real countries/shipping-methods lookups.
+// TODO: MiscController.shippingMethods is a 501 stub; wire up to real shipping-methods lookup.
 Route::middleware('auth:customer')->group(function (): void {
     Route::get('v1/countries', [ApiMiscController::class, 'countries'])->name('customer.api.countries.index');
+    Route::get('v1/countries/{country}/cities', [ApiMiscController::class, 'cities'])->name('customer.api.countries.cities');
     Route::get('v1/shipping-methods', [ApiMiscController::class, 'shippingMethods'])->name('customer.api.shipping-methods.index');
 });
