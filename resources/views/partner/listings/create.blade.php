@@ -108,8 +108,8 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('common.country') }} <span
                                         class="text-red-500">*</span></label>
-                                <select name="country_id" required
-                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/40">
+                                <select disabled
+                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none">
                                     <option value="">{{ __('common.select') }}...</option>
                                     @foreach($countries as $country)
                                         <option value="{{ $country->id }}" {{ $country->id === $countryId ? 'selected' : '' }}>
@@ -117,6 +117,7 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="country_id" value="{{ $countryId }}">
                             </div>
                         </div>
 
