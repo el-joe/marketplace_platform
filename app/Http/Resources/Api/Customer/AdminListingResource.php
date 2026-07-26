@@ -21,6 +21,7 @@ class AdminListingResource extends JsonResource
         return [
             'listing_id' => $listing->id,
             'price' => (int) $listing->getRawOriginal('price'),
+            'compare_at_price' => null,
             'currency' => $listing->currency ?? $this->country->currency_code,
             'payment_options' => $listing->payment_options,
             'fulfillment_type' => $listing->fulfillment_type,
@@ -28,6 +29,8 @@ class AdminListingResource extends JsonResource
             'status' => $listing->status?->value,
             'rating_avg' => (float) $listing->rating_avg,
             'rating_count' => (int) $listing->rating_count,
+            'nawy_category_id' => $listing->nawy_category_id,
+            'featured_in_nawy' => (bool) $listing->featured_in_nawy,
             'product' => [
                 'id' => $product->id,
                 'slug' => $product->slug,

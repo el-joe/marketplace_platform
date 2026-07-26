@@ -31,12 +31,13 @@ class CartController extends Controller
         private readonly BannerService $bannerService,
         private readonly CartItemEnrichmentService $cartItemEnrichmentService,
         private readonly SavingsBenefitsService $savingsBenefitsService,
-    ) {}
+    ) {
+    }
 
     private function resolveCart(Request $request): Cart
     {
         $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
+        $country = $request->attributes->get('country');
 
         if ($customer) {
             return $this->cartService->getOrCreateCart(
@@ -110,8 +111,14 @@ class CartController extends Controller
     {
         $cart = $this->resolveCart($request);
 
+        $isAdmin = $request->input('listing_type') === 'admin';
+
         try {
-            $item = $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity, $request->shipping_method_id);
+            if ($isAdmin) {
+                $item = $this->cartService->addAdminItem($cart, $request->admin_product_listing_id, $request->quantity, $request->shipping_method_id);
+            } else {
+                $item = $this->cartService->addItem($cart, $request->vendor_listing_id, $request->quantity, $request->shipping_method_id);
+            }
         } catch (\DomainException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
@@ -121,11 +128,12 @@ class CartController extends Controller
             'vendorListing.productVariant.product.images',
             'vendorListing.primaryShippingMethod',
             'vendorListing.warehouseInventories',
+            'adminProductListing.productVariant.product.images',
         ]);
 
         return $this->cartResponse($cart, [
-            'item'        => new CartItemResource($item),
-            'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
+            'item' => new CartItemResource($item),
+            'listing_ref' => $isAdmin ? null : $this->listingIdentifierService->buildListingRef($item->vendorListing),
         ], 'Item added to cart', 201);
     }
 
@@ -162,8 +170,8 @@ class CartController extends Controller
         ]);
 
         return ApiResponse::success([
-            'cart'        => new CartResource($cart),
-            'item'        => new CartItemResource($item),
+            'cart' => new CartResource($cart),
+            'item' => new CartItemResource($item),
             'listing_ref' => $this->listingIdentifierService->buildListingRef($item->vendorListing),
         ], 'Cart item updated');
     }
@@ -275,8 +283,8 @@ class CartController extends Controller
     public function mergeCart(Request $request): JsonResponse
     {
         $customer = auth('customer')->user();
-        $country  = $request->attributes->get('country');
-        $token    = $request->input('guest_cart_token');
+        $country = $request->attributes->get('country');
+        $token = $request->input('guest_cart_token');
 
         if (!$token) {
             return ApiResponse::error('guest_cart_token is required.', [], 422);

@@ -450,6 +450,12 @@ Route::prefix('v1/nawy')->name('customer.nawy.')->group(function (): void {
     Route::get('{id}', [NawyController::class, 'show'])->name('show');
 });
 
+Route::get('v1/nawy-categories', [NawyController::class, 'nawyCategories'])
+    ->name('customer.nawy-categories.index');
+
+Route::get('v1/nawy-home', [NawyController::class, 'home'])
+    ->name('customer.nawy-home.index');
+
 // ── Dual-mode categories (marketplace / nawy_now via X-Listing-Type header) ──
 Route::prefix('v1')->middleware('auth:customer')->name('customer.dual-categories.')->group(function (): void {
     Route::get('/categories', [ApiCategoryController::class, 'index'])->name('index');

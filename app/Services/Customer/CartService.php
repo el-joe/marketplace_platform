@@ -2,8 +2,10 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\AdminProductListingStatus;
 use App\Enums\GlobalSystemType;
 use App\Enums\VendorListingStatus;
+use App\Models\AdminProductListing;
 use App\Models\AffiliatePromoCode;
 use App\Models\Cart;
 use App\Models\CartInventoryLock;
@@ -13,6 +15,7 @@ use App\Models\CouponUsage;
 use App\Models\Country;
 use App\Models\Customer;
 use App\Models\VendorListing;
+use App\Services\AppContextService;
 use Illuminate\Support\Facades\DB;
 
 class CartService
@@ -24,10 +27,12 @@ class CartService
         'items.vendorListing.productVariant.product.images',
         'items.vendorListing.primaryShippingMethod',
         'items.vendorListing.warehouseInventories',
+        'items.adminProductListing.productVariant.product.images',
     ];
 
     public function __construct(
         private readonly CheckoutCalculationService $calculationService,
+        private readonly AppContextService $appContextService,
     ) {}
 
     public function getOrCreateCart(Customer $customer, string $countryId, string $currency): Cart
@@ -161,7 +166,7 @@ class CartService
     }
 
     /**
-     * @param array<int, array{vendor_listing_id: string, quantity: int, shipping_method_id?: ?string}> $items
+     * @param array<int, array{vendor_listing_id?: string, admin_product_listing_id?: string, listing_type?: string, quantity: int, shipping_method_id?: ?string}> $items
      * @return array<int, CartItem>
      */
     public function addItems(Cart $cart, array $items): array
@@ -169,10 +174,72 @@ class CartService
         $added = [];
 
         foreach ($items as $item) {
-            $added[] = $this->addItem($cart, $item['vendor_listing_id'], $item['quantity'], $item['shipping_method_id'] ?? null);
+            if (($item['listing_type'] ?? null) === 'admin') {
+                $added[] = $this->addAdminItem($cart, $item['admin_product_listing_id'], $item['quantity'], $item['shipping_method_id'] ?? null);
+            } else {
+                $added[] = $this->addItem($cart, $item['vendor_listing_id'], $item['quantity'], $item['shipping_method_id'] ?? null);
+            }
         }
 
         return $added;
+    }
+
+    /**
+     * Adds a platform-owned admin listing to the cart. Only valid in the
+     * nawy_now app context, and only for listings explicitly featured there.
+     */
+    public function addAdminItem(Cart $cart, string $adminProductListingId, int $quantity, ?string $shippingMethodId = null): CartItem
+    {
+        if (! $this->appContextService->isNawyNow()) {
+            throw new \DomainException(__('common.exceptions.cart.admin_listing_not_allowed'));
+        }
+
+        $listing = AdminProductListing::with(['warehouseInventories', 'productVariant.product'])->findOrFail($adminProductListingId);
+
+        if ($listing->status !== AdminProductListingStatus::Active || ! $listing->featured_in_nawy) {
+            throw new \DomainException(__('common.exceptions.cart.admin_listing_not_allowed'));
+        }
+
+        $available = $listing->warehouseInventories->sum('quantity_available');
+        if ($available < $quantity) {
+            throw new \DomainException(__('common.exceptions.cart.insufficient_stock', ['available' => $available]));
+        }
+
+        $currentCount = $cart->items()->count();
+
+        $existingItem = $cart->items()->where('admin_product_listing_id', $adminProductListingId)->first();
+
+        if ($existingItem) {
+            $newQty = $existingItem->quantity + $quantity;
+            if ($newQty > ($listing->max_order_quantity ?? PHP_INT_MAX)) {
+                throw new \DomainException(__('common.exceptions.cart.exceeds_max_order_quantity'));
+            }
+            if ($available < $newQty) {
+                throw new \DomainException(__('common.exceptions.cart.insufficient_stock', ['available' => $available]));
+            }
+            $updates = ['quantity' => $newQty];
+            if ($shippingMethodId !== null) {
+                $updates['selected_shipping_method_id'] = $shippingMethodId;
+            }
+            $existingItem->update($updates);
+            $item = $existingItem;
+        } else {
+            if ($currentCount >= self::MAX_ITEMS) {
+                throw new \DomainException(__('common.exceptions.cart.max_items', ['max' => self::MAX_ITEMS]));
+            }
+            $item = $cart->items()->create([
+                'vendor_listing_id'           => null,
+                'admin_product_listing_id'    => $adminProductListingId,
+                'quantity'                    => $quantity,
+                'unit_price'                  => $listing->getRawOriginal('price'),
+                'added_at'                    => now(),
+                'selected_shipping_method_id' => $shippingMethodId,
+            ]);
+        }
+
+        $this->recalculateCart($cart);
+
+        return $item->fresh();
     }
 
     public function updateItem(Cart $cart, string $itemId, int $quantity, ?string $shippingMethodId = null): CartItem
@@ -326,14 +393,26 @@ class CartService
         $priceChanges = [];
 
         foreach ($cart->items as $item) {
-            $listing = $item->vendorListing;
+            if ($item->admin_product_listing_id !== null) {
+                $listing = $item->adminProductListing;
 
-            if (! $listing || $listing->status !== VendorListingStatus::Active) {
-                $item->delete();
-                continue;
+                if (! $listing || $listing->status !== AdminProductListingStatus::Active || ! $listing->featured_in_nawy) {
+                    $item->delete();
+                    continue;
+                }
+
+                $livePrice = (int) $listing->getRawOriginal('price');
+            } else {
+                $listing = $item->vendorListing;
+
+                if (! $listing || $listing->status !== VendorListingStatus::Active) {
+                    $item->delete();
+                    continue;
+                }
+
+                $livePrice = (int) $listing->price;
             }
 
-            $livePrice = (int) $listing->price;
             if ((int) $item->unit_price !== $livePrice) {
                 $priceChanges[$item->id] = true;
                 $item->update(['unit_price' => $livePrice]);

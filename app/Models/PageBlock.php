@@ -17,6 +17,7 @@ class PageBlock extends Model
         'page_id',
         'section_id',
         'block_type',
+        'app_context_key',
         'position',
         'config',
         'is_visible',

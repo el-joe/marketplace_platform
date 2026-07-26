@@ -15,7 +15,9 @@ class AddCartItemsRequest extends FormRequest
     {
         return [
             'items'                          => ['required', 'array', 'min:1', 'max:50'],
-            'items.*.vendor_listing_id'      => ['required', 'uuid', 'exists:vendor_listings,id'],
+            'items.*.listing_type'           => ['nullable', 'string', 'in:vendor,admin'],
+            'items.*.vendor_listing_id'      => ['required_unless:items.*.listing_type,admin', 'nullable', 'uuid', 'exists:vendor_listings,id'],
+            'items.*.admin_product_listing_id' => ['required_if:items.*.listing_type,admin', 'nullable', 'uuid', 'exists:admin_product_listings,id'],
             'items.*.quantity'               => ['required', 'integer', 'min:1', 'max:999'],
             'items.*.shipping_method_id'     => ['nullable', 'uuid', 'exists:shipping_methods,id'],
         ];

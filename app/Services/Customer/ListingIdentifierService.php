@@ -2,9 +2,11 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\AdminProductListingStatus;
 use App\Enums\ProductStatus;
 use App\Enums\VendorGlobalStatus;
 use App\Enums\VendorListingStatus;
+use App\Models\AdminProductListing;
 use App\Models\Country;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -21,6 +23,17 @@ class ListingIdentifierService
         'productVariant.variantAttributes.attribute',
         'productVariant.variantAttributes.attributeValue',
         'vendor:id,store_name,store_rating_avg,store_rating_count',
+        'primaryShippingMethod',
+    ];
+
+    private const ADMIN_EAGER_LOADS = [
+        'productVariant.product.images',
+        'productVariant.product.category',
+        'productVariant.product.brand',
+        'productVariant.product.highlights',
+        'productVariant.product.specifications',
+        'productVariant.variantAttributes.attribute',
+        'productVariant.variantAttributes.attributeValue',
         'primaryShippingMethod',
     ];
 
@@ -86,6 +99,40 @@ class ListingIdentifierService
             ->orderByRaw("FIELD(global_system_type,'express_fbn','merchant_fbp','marketplace')")
             ->orderBy('price')
             ->with(self::EAGER_LOADS)
+            ->first();
+    }
+
+    /**
+     * Resolve an AdminProductListing (nawy_now context) from any identifier type:
+     * admin listing UUID, platform_sku, or product_slug (via product_variant -> product).
+     * Only active listings that are featured_in_nawy are returned.
+     */
+    public function resolveAdminListing(string $identifier, string $countryId): ?AdminProductListing
+    {
+        $base = fn () => AdminProductListing::where('country_id', $countryId)
+            ->where('status', AdminProductListingStatus::Active->value)
+            ->where('featured_in_nawy', true);
+
+        $listing = $base()->where('id', $identifier)->with(self::ADMIN_EAGER_LOADS)->first();
+
+        if (!$listing) {
+            $listing = $base()->where('platform_sku', $identifier)->with(self::ADMIN_EAGER_LOADS)->first();
+        }
+
+        if ($listing) {
+            return $listing;
+        }
+
+        $product = Product::where('slug', $identifier)->where('status', ProductStatus::Active->value)->first();
+
+        if (!$product) {
+            return null;
+        }
+
+        return $base()
+            ->whereHas('productVariant', fn ($q) => $q->where('product_id', $product->id))
+            ->orderBy('price')
+            ->with(self::ADMIN_EAGER_LOADS)
             ->first();
     }
 
@@ -161,7 +208,7 @@ class ListingIdentifierService
      * Build the canonical listing URL identifier string.
      * Format: "{product_variant_sku}--{listing_id_short}"
      */
-    public function buildListingRef(VendorListing $listing): string
+    public function buildListingRef(VendorListing|AdminProductListing $listing): string
     {
         $sku = $listing->productVariant->sku;
         $shortId = substr(str_replace('-', '', $listing->id), 0, 8);

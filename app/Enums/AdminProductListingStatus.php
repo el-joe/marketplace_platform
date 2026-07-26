@@ -10,5 +10,6 @@ enum AdminProductListingStatus: string
 
     case Active = 'active';
     case Paused = 'paused';
+    case OutOfStock = 'out_of_stock';
     case Archived = 'archived';
 }

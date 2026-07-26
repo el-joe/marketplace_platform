@@ -2,8 +2,10 @@
 
 namespace App\Services\Customer;
 
+use App\Enums\AdminProductListingCommissionType;
 use App\Enums\GlobalSystemType;
 use App\Models\Address;
+use App\Models\AdminProductListing;
 use App\Models\Cart;
 use App\Models\City;
 use App\Models\Coupon;
@@ -173,6 +175,33 @@ class CheckoutCalculationService
             'commission_amount' => $commissionAmount,
             'commission_category_id' => $resolvedCategory?->id,
             'vendor_payout_share' => $lineSubtotal - $commissionAmount,
+        ];
+    }
+
+    /**
+     * Commission for a platform-owned admin listing (nawy_now). This stock is
+     * not vendor-fulfilled, so there is no vendor payout share to compute —
+     * the commission amount is purely informational/reporting here.
+     */
+    public function calculateAdminCommission(
+        AdminProductListing $listing,
+        int $quantity,
+        int $unitPriceCents,
+    ): array {
+        $lineSubtotal = $unitPriceCents * $quantity;
+
+        $commissionAmount = match ($listing->commission_type) {
+            AdminProductListingCommissionType::Fixed => (int) round((float) $listing->commission_value) * $quantity,
+            AdminProductListingCommissionType::Percentage => (int) round($lineSubtotal * ((float) $listing->commission_value / 100)),
+            AdminProductListingCommissionType::Mixed => (int) round($lineSubtotal * ((float) $listing->commission_value / 100)),
+            default => 0,
+        };
+
+        return [
+            'commission_type' => $listing->commission_type?->value,
+            'commission_value' => (float) $listing->commission_value,
+            'commission_amount' => $commissionAmount,
+            'fulfillment_type' => $listing->fulfillment_type,
         ];
     }
 

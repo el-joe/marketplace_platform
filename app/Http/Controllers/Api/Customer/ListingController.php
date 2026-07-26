@@ -15,8 +15,8 @@ use App\Models\ProductVariant;
 use App\Models\ShippingMethod;
 use App\Models\ShippingZone;
 use App\Models\VendorListing;
+use App\Services\AppContextService;
 use App\Services\Customer\ListingIdentifierService;
-use App\Services\ListingModeResolver;
 use App\Services\SavingsBenefitsService;
 use App\Services\ShippingCalculationService;
 use App\Services\WarrantyPlanService;
@@ -31,12 +31,13 @@ class ListingController extends Controller
         private readonly ShippingCalculationService $shipping,
         private readonly WarrantyPlanService $warrantyPlanService,
         private readonly SavingsBenefitsService $savingsBenefitsService,
+        private readonly AppContextService $appContext,
     ) {
     }
 
     public function index(Request $request): JsonResponse
     {
-        $isNawyNow = ListingModeResolver::isNawyNow($request);
+        $isNawyNow = $this->appContext->isNawyNow();
         $country = $this->resolveCountry($request);
 
         if (!$country) {
@@ -68,7 +69,7 @@ class ListingController extends Controller
 
     public function show(Request $request, string $identifier): JsonResponse
     {
-        $isNawyNow = ListingModeResolver::isNawyNow($request);
+        $isNawyNow = $this->appContext->isNawyNow();
         $country = $this->resolveCountry($request);
 
         if (!$country) {
@@ -185,40 +186,33 @@ class ListingController extends Controller
     private function buildAdminQuery(Request $request, Country $country): Builder
     {
         $query = AdminProductListing::query()
-            ->where('country_id', $country->id)
-            ->where('status', AdminProductListingStatus::Active->value)
-            ->where('featured_in_nawy', 1)
+            ->select('admin_product_listings.*')
+            ->where('admin_product_listings.country_id', $country->id)
+            ->where('admin_product_listings.status', AdminProductListingStatus::Active->value)
+            ->where('admin_product_listings.featured_in_nawy', 1)
+            ->leftJoin('categories', 'categories.id', '=', 'admin_product_listings.nawy_category_id')
             ->with([
                 'productVariant.product.images',
                 'productVariant.product.category',
+                'nawyCategory',
             ]);
 
-        if ($categoryId = $request->query('category_id')) {
-            $query->where('nawy_category_id', $categoryId);
+        if ($nawyCategoryId = $request->query('nawy_category_id')) {
+            $query->where('admin_product_listings.nawy_category_id', $nawyCategoryId);
         }
 
         if ($minPrice = $request->query('min_price')) {
-            $query->where('price', '>=', (int) $minPrice);
+            $query->where('admin_product_listings.price', '>=', (int) $minPrice);
         }
 
         if ($maxPrice = $request->query('max_price')) {
-            $query->where('price', '<=', (int) $maxPrice);
+            $query->where('admin_product_listings.price', '<=', (int) $maxPrice);
         }
 
-        $this->applyAdminSort($query, $request->query('sort'));
+        $query->orderBy('categories.nawy_sort_order', 'asc')
+            ->orderBy('admin_product_listings.price', 'asc');
 
         return $query;
-    }
-
-    private function applyAdminSort(Builder $query, ?string $sort): void
-    {
-        match ($sort) {
-            'price_asc' => $query->orderBy('price', 'asc'),
-            'price_desc' => $query->orderBy('price', 'desc'),
-            'newest' => $query->orderByDesc('id'),
-            'rating' => $query->orderByDesc('rating_avg'),
-            default => $query->orderByDesc('id'),
-        };
     }
 
     private function buildVendorQuery(Request $request, Country $country): Builder

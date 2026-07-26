@@ -87,8 +87,13 @@ class PageRendererService
     /**
      * Renders an already-resolved Page (e.g. one looked up by id rather than
      * by page_type/slug, as with app-context home pages).
+     *
+     * $appContextKey scopes block visibility to a specific app context (e.g.
+     * 'nawy_now') — blocks with a different app_context_key are dropped, while
+     * blocks with a NULL app_context_key are always shown. Pass null (default)
+     * to skip context filtering entirely, preserving existing callers' behavior.
      */
-    public function renderPage(Page $page, Country $country, ?Customer $customer, string $sessionId): array
+    public function renderPage(Page $page, Country $country, ?Customer $customer, string $sessionId, ?string $appContextKey = null): array
     {
         $identityKey = $customer ? 'c:' . $customer->id : 's:' . $sessionId;
 
@@ -105,12 +110,12 @@ class PageRendererService
             dispatch(new LogAbImpressionJob($test->id, $variant));
         }
 
-        return $this->assemble($page, $country, $customer, $chosenVariants);
+        return $this->assemble($page, $country, $customer, $chosenVariants, $appContextKey);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function assemble(Page $page, Country $country, ?Customer $customer, array $chosenVariants): array
+    private function assemble(Page $page, Country $country, ?Customer $customer, array $chosenVariants, ?string $appContextKey = null): array
     {
         $sections = PageSection::where('page_id', $page->id)
             ->where('is_visible', true)
@@ -121,7 +126,7 @@ class PageRendererService
             ->orderBy('position')
             ->get();
 
-        $resolvedBlocks = $this->filterBlocks($allBlocks, $country, $customer, $chosenVariants);
+        $resolvedBlocks = $this->filterBlocks($allBlocks, $country, $customer, $chosenVariants, $appContextKey);
 
         $sectionsData = [];
 
@@ -165,12 +170,15 @@ class PageRendererService
      * Apply all block-level filtering rules BEFORE any hydration happens.
      * A block is skipped (removed from the collection) if any rule matches.
      */
-    private function filterBlocks(Collection $blocks, Country $country, ?Customer $customer, array $chosenVariants): Collection
+    private function filterBlocks(Collection $blocks, Country $country, ?Customer $customer, array $chosenVariants, ?string $appContextKey = null): Collection
     {
         $now = now();
 
-        return $blocks->filter(function (PageBlock $block) use ($now, $country, $customer, $chosenVariants) {
+        return $blocks->filter(function (PageBlock $block) use ($now, $country, $customer, $chosenVariants, $appContextKey) {
             if (!$block->is_visible) {
+                return false;
+            }
+            if ($appContextKey !== null && $block->app_context_key !== null && $block->app_context_key !== $appContextKey) {
                 return false;
             }
             if ($block->visible_from !== null && $block->visible_from->gt($now)) {

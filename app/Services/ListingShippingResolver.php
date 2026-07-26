@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\GlobalSystemType;
+use App\Models\AdminProductListing;
 use App\Models\Category;
 use App\Models\ShippingMethod;
 use App\Models\VendorListing;
@@ -10,7 +11,7 @@ use Illuminate\Support\Collection;
 
 class ListingShippingResolver
 {
-    public function resolveForListing(VendorListing $listing): Collection
+    public function resolveForListing(VendorListing|AdminProductListing $listing): Collection
     {
         $category = $this->resolveCategory(
             $listing->productVariant->product->category
