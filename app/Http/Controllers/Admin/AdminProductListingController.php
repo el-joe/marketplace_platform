@@ -7,9 +7,14 @@ use App\Enums\AdminProductListingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdminProductListing;
 use App\Models\Category;
+use App\Enums\MarketplaceShippingRuleCommissionType;
 use App\Models\Country;
+use App\Models\MarketplaceShippingRule;
 use App\Models\ProductCostReference;
 use App\Models\ProductVariant;
+use App\Models\ShippingMethod;
+use App\Models\Warehouse;
+use App\Models\WarehouseInventory;
 use App\Traits\HasDataTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -30,6 +35,8 @@ class AdminProductListingController extends Controller
         return view('admin.admin-product-listings.index', [
             'countries' => Country::query()->orderBy('name_en')->pluck('name_en', 'id'),
             'nawyCategories' => Category::query()->orderBy('name_en')->pluck('name_en', 'id'),
+            'statuses' => collect(AdminProductListingStatus::cases())
+                ->mapWithKeys(fn($status) => [$status->value => Str::headline($status->value)]),
             'stats' => $this->buildStats(),
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
@@ -76,13 +83,20 @@ class AdminProductListingController extends Controller
     public function datatable(Request $request): JsonResponse
     {
         $columns = [
-            ['searchable_columns' => ['p.name_en', 'p.name_ar', 'pv.sku'], 'orderable_column' => 'p.name_en'],
-            ['orderable_column' => 'co.name_en'],
+            ['searchable_columns' => ['p.name_en', 'p.name_ar', 'pv.sku', 'admin_product_listings.platform_sku'], 'orderable_column' => 'p.name_en'],
+            ['orderable_column' => 'pv.variant_name'],
+            ['orderable_column' => 'admin_product_listings.platform_sku'],
+            ['searchable_columns' => ['co.name_en'], 'orderable_column' => 'co.name_en'],
+            ['orderable_column' => 'admin_product_listings.currency'],
             ['orderable_column' => 'admin_product_listings.price'],
-            ['orderable_column' => 'admin_product_listings.fulfillment_type'],
-            ['orderable_column' => 'admin_product_listings.payment_options'],
-            ['orderable_column' => 'admin_product_listings.featured_in_nawy'],
+            ['orderable_column' => 'admin_product_listings.compare_at_price'],
             ['orderable_column' => 'admin_product_listings.status'],
+            ['orderable_column' => 'admin_product_listings.fulfillment_type'],
+            ['orderable_column' => 'admin_product_listings.featured_in_nawy'],
+            ['orderable_column' => 'admin_product_listings.rating_avg'],
+            ['orderable_column' => 'admin_product_listings.total_sold'],
+            ['orderable_column' => 'wh.name'],
+            ['orderable_column' => 'admin_product_listings.created_at'],
             [],
         ];
 
@@ -90,19 +104,28 @@ class AdminProductListingController extends Controller
             ->join('product_variants as pv', 'pv.id', '=', 'admin_product_listings.product_variant_id')
             ->join('products as p', 'p.id', '=', 'pv.product_id')
             ->join('countries as co', 'co.id', '=', 'admin_product_listings.country_id')
+            ->leftJoin('warehouses as wh', 'wh.id', '=', 'admin_product_listings.warehouse_id')
             ->whereNull('p.deleted_at')
             ->select([
                 'admin_product_listings.id',
                 'admin_product_listings.price',
+                'admin_product_listings.compare_at_price',
                 'admin_product_listings.currency',
+                'admin_product_listings.platform_sku',
                 'admin_product_listings.fulfillment_type',
                 'admin_product_listings.payment_options',
                 'admin_product_listings.featured_in_nawy',
                 'admin_product_listings.status',
                 'admin_product_listings.nawy_category_id',
+                'admin_product_listings.rating_avg',
+                'admin_product_listings.rating_count',
+                'admin_product_listings.total_sold',
+                'admin_product_listings.created_at',
                 'p.name_en as product_name',
                 'pv.sku as variant_sku',
+                'pv.variant_name as variant_name',
                 'co.name_en as country_name',
+                'wh.name as warehouse_name',
             ]);
 
         $query = $this->applyFilters($query, $request, [
@@ -118,13 +141,22 @@ class AdminProductListingController extends Controller
             return [
                 'id' => $row->id,
                 'product_name' => e($row->product_name),
+                'variant_name' => e($row->variant_name),
                 'variant_sku' => e($row->variant_sku),
+                'platform_sku' => e($row->platform_sku),
                 'country' => e($row->country_name),
-                'price' => number_format($row->price, 2) . ' ' . $row->currency,
+                'currency' => e($row->currency),
+                'price' => $row->price,
+                'compare_at_price' => $row->compare_at_price,
                 'fulfillment_type' => $row->fulfillment_type,
                 'payment_options' => $paymentLabels[$row->payment_options] ?? $row->payment_options,
                 'featured_in_nawy' => (bool) $row->featured_in_nawy,
                 'status' => $row->status?->value,
+                'rating_avg' => $row->rating_avg,
+                'rating_count' => $row->rating_count,
+                'total_sold' => $row->total_sold,
+                'warehouse_name' => $row->warehouse_name ? e($row->warehouse_name) : null,
+                'created_at' => $row->created_at?->format('Y-m-d H:i'),
                 'show_url' => route('admin.admin-product-listings.show', $row->id),
                 'edit_url' => route('admin.admin-product-listings.edit', $row->id),
                 'delete_url' => route('admin.admin-product-listings.destroy', $row->id),
@@ -132,6 +164,25 @@ class AdminProductListingController extends Controller
                 'toggle_featured_url' => route('admin.admin-product-listings.toggle-featured', $row->id),
             ];
         });
+    }
+
+    /** Bulk status change (active/paused/archived) from the index table's selection bar. */
+    public function bulkAction(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'action' => ['required', Rule::in(['active', 'paused', 'archived'])],
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['string', 'exists:admin_product_listings,id'],
+        ]);
+
+        $count = AdminProductListing::query()
+            ->whereIn('id', $data['ids'])
+            ->update(['status' => $data['action']]);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('admin.admin_product_listings.bulk_action_updated', ['count' => $count]),
+        ]);
     }
 
     public function toggleFeatured(AdminProductListing $adminProductListing): JsonResponse
@@ -148,8 +199,10 @@ class AdminProductListingController extends Controller
     public function create(): View
     {
         return view('admin.admin-product-listings.create', [
-            'countries'       => Country::orderBy('name_en')->get(),
-            'nawyCategories'  => Category::orderBy('name_en')->get(),
+            'countries'       => Country::where('is_active', true)->orderBy('name_en')->get(),
+            'warehouses'      => Warehouse::where('is_active', true)->orderBy('name')->get(),
+            'shippingMethods' => ShippingMethod::where('is_active', true)->orderBy('name')->get(),
+            'nawyCategories'  => $this->nawyCategories(),
             'selectedVariant' => null,
             'breadcrumbs'     => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
@@ -166,10 +219,10 @@ class AdminProductListingController extends Controller
         $data['created_by_admin_id'] = auth('admin')->id();
         $data['currency'] = Country::findOrFail($data['country_id'])->currency_code;
 
-        AdminProductListing::create($data);
+        $listing = AdminProductListing::create($data);
 
         return redirect()
-            ->route('admin.admin-product-listings.index')
+            ->route('admin.admin-product-listings.show', $listing)
             ->with('success', 'Listing created successfully.');
     }
 
@@ -177,8 +230,10 @@ class AdminProductListingController extends Controller
     {
         return view('admin.admin-product-listings.edit', [
             'listing'         => $adminProductListing,
-            'countries'       => Country::orderBy('name_en')->get(),
-            'nawyCategories'  => Category::orderBy('name_en')->get(),
+            'countries'       => Country::where('is_active', true)->orderBy('name_en')->get(),
+            'warehouses'      => Warehouse::where('is_active', true)->orderBy('name')->get(),
+            'shippingMethods' => ShippingMethod::where('is_active', true)->orderBy('name')->get(),
+            'nawyCategories'  => $this->nawyCategories(),
             'selectedVariant' => $adminProductListing->productVariant()->with('product')->first(),
             'breadcrumbs'     => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
@@ -195,8 +250,19 @@ class AdminProductListingController extends Controller
         $adminProductListing->update($data);
 
         return redirect()
-            ->route('admin.admin-product-listings.index')
+            ->route('admin.admin-product-listings.show', $adminProductListing)
             ->with('success', 'Listing updated successfully.');
+    }
+
+    /** Categories eligible for the Nawy category picker: featured or explicitly sorted. */
+    private function nawyCategories()
+    {
+        return Category::query()
+            ->where(function ($q) {
+                $q->where('nawy_is_featured', true)->orWhere('nawy_sort_order', '>', 0);
+            })
+            ->orderBy('name_en')
+            ->get();
     }
 
     public function destroy(AdminProductListing $adminProductListing): JsonResponse|RedirectResponse
@@ -241,19 +307,109 @@ class AdminProductListingController extends Controller
 
     public function show(AdminProductListing $adminProductListing): View
     {
-        $adminProductListing->load(['productVariant.product', 'country', 'nawyCategory']);
+        $adminProductListing->load([
+            'productVariant.product.brand',
+            'productVariant.product.category',
+            'country',
+            'nawyCategory',
+            'warehouse',
+            'primaryShippingMethod',
+            'createdByAdmin',
+            'warehouseInventories.warehouse',
+            'reviews.customer',
+            'marketerCampaignProducts.campaign',
+            'flashSaleSubmissions.flashSale',
+            'marketplaceShippingRule',
+            'productCostReferences',
+        ]);
 
         $productId = $adminProductListing->productVariant->product_id;
-        $costReference = ProductCostReference::where('product_id', $productId)->first();
+        $canViewCost = auth('admin')->user()?->hasPermissionTo('products.cost_data.view') ?? false;
+        $costReference = $canViewCost ? ProductCostReference::where('product_id', $productId)->first() : null;
 
         return view('admin.admin-product-listings.show', [
             'listing' => $adminProductListing,
             'costReference' => $costReference,
+            'canViewCost' => $canViewCost,
+            'warehouses' => Warehouse::where('is_active', true)->orderBy('name')->get(),
+            'statuses' => collect(AdminProductListingStatus::cases())
+                ->mapWithKeys(fn($status) => [$status->value => Str::headline($status->value)]),
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('admin.dashboard')],
                 ['label' => 'Admin Listings', 'url' => route('admin.admin-product-listings.index')],
                 ['label' => e($adminProductListing->productVariant->product->name_en)],
             ],
+        ]);
+    }
+
+    /** Quick AJAX status change from the show page sidebar. */
+    public function updateStatus(Request $request, AdminProductListing $adminProductListing): JsonResponse
+    {
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(AdminProductListingStatus::class)],
+        ]);
+
+        $adminProductListing->update(['status' => $data['status']]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status updated.',
+            'status' => $adminProductListing->status->value,
+        ]);
+    }
+
+    /**
+     * Adjust warehouse stock for this listing. Finds or creates the
+     * warehouse_inventories row scoped to this admin listing + warehouse and
+     * applies a delta to quantity_on_hand. quantity_available is a MySQL
+     * GENERATED VIRTUAL column and is never written directly.
+     */
+    public function adjustStock(Request $request, AdminProductListing $adminProductListing): JsonResponse
+    {
+        $data = $request->validate([
+            'warehouse_id' => ['required', 'exists:warehouses,id'],
+            'adjustment' => ['required', 'integer', 'not_in:0'],
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $inventory = WarehouseInventory::firstOrNew([
+            'admin_product_listing_id' => $adminProductListing->id,
+            'warehouse_id' => $data['warehouse_id'],
+        ]);
+
+        $inventory->quantity_on_hand = max(0, ($inventory->quantity_on_hand ?? 0) + $data['adjustment']);
+        $inventory->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stock adjusted.',
+            'inventory' => $inventory->fresh('warehouse'),
+        ]);
+    }
+
+    /** Create or update the marketplace_shipping_rules row for this listing. */
+    public function saveShippingRule(Request $request, AdminProductListing $adminProductListing): JsonResponse
+    {
+        $data = $request->validate([
+            'requires_special_vehicle' => ['boolean'],
+            'requires_refrigeration' => ['boolean'],
+            'max_weight_kg' => ['nullable', 'numeric', 'min:0'],
+            'max_dimensions_cm' => ['nullable', 'string', 'max:100'],
+            'special_handling_notes' => ['nullable', 'string', 'max:1000'],
+            'commission_type' => ['required', Rule::enum(MarketplaceShippingRuleCommissionType::class)],
+            'commission_value' => ['required', 'numeric', 'min:0'],
+            'extra_delivery_fee' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $rule = MarketplaceShippingRule::updateOrCreate(
+            ['admin_product_listing_id' => $adminProductListing->id],
+            $data
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Shipping rule saved.',
+            'rule' => $rule,
         ]);
     }
 
@@ -310,6 +466,121 @@ class AdminProductListingController extends Controller
             'success' => true,
             'message' => $message,
             'ref' => $this->serializeRef($ref->fresh()),
+        ]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Cost References tab (admin-only, confidential — products.cost_data.*)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    /** DataTable feed of cost references linked directly to this admin listing. */
+    public function costReferences(Request $request, AdminProductListing $adminProductListing): JsonResponse
+    {
+        abort_unless(
+            auth('admin')->user()?->hasPermissionTo('products.cost_data.view'),
+            403
+        );
+
+        $query = ProductCostReference::query()
+            ->where('admin_product_listing_id', $adminProductListing->id);
+
+        $columns = [
+            ['searchable_columns' => ['manufacturer_name'], 'orderable_column' => 'manufacturer_name'],
+            ['orderable_column' => 'manufacturer_cost'],
+            ['orderable_column' => 'shipping_cost'],
+            ['orderable_column' => 'landed_cost'],
+            ['orderable_column' => 'platform_margin_pct'],
+            ['orderable_column' => 'competitor_last_checked'],
+        ];
+
+        return $this->dataTableResponse($request, $query, $columns, function (ProductCostReference $ref) {
+            return array_merge($this->serializeRef($ref), [
+                'competitor_count' => count($ref->competitorLinksNormalized()),
+                'last_checked' => $ref->competitor_last_checked?->toISOString(),
+            ]);
+        });
+    }
+
+    /** Create a cost reference scoped to this admin listing. */
+    public function storeCostReference(Request $request, AdminProductListing $adminProductListing): JsonResponse
+    {
+        abort_unless(
+            auth('admin')->user()?->hasPermissionTo('products.cost_data.view'),
+            403
+        );
+
+        $data = $this->validateCostReference($request);
+
+        $ref = ProductCostReference::create(array_merge($data, [
+            'product_id' => $adminProductListing->productVariant->product_id,
+            'admin_product_listing_id' => $adminProductListing->id,
+            'vendor_listing_id' => null,
+            'is_confidential' => 1,
+            'created_by_admin_id' => Auth::guard('admin')->id(),
+        ]));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cost reference created.',
+            'ref' => $this->serializeRef($ref->fresh()),
+        ]);
+    }
+
+    /** Update a cost reference belonging to this admin listing. */
+    public function updateCostReference(Request $request, AdminProductListing $adminProductListing, ProductCostReference $costReference): JsonResponse
+    {
+        abort_unless(
+            auth('admin')->user()?->hasPermissionTo('products.cost_data.view'),
+            403
+        );
+        abort_unless($costReference->admin_product_listing_id === $adminProductListing->id, 404);
+
+        $data = $this->validateCostReference($request);
+
+        $costReference->fill(array_merge($data, [
+            'updated_by_admin_id' => Auth::guard('admin')->id(),
+        ]));
+        $costReference->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cost reference updated.',
+            'ref' => $this->serializeRef($costReference->fresh()),
+        ]);
+    }
+
+    /** Delete a cost reference belonging to this admin listing. */
+    public function destroyCostReference(AdminProductListing $adminProductListing, ProductCostReference $costReference): JsonResponse
+    {
+        abort_unless(
+            auth('admin')->user()?->hasPermissionTo('products.cost_data.view'),
+            403
+        );
+        abort_unless($costReference->admin_product_listing_id === $adminProductListing->id, 404);
+
+        $costReference->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cost reference deleted.',
+        ]);
+    }
+
+    private function validateCostReference(Request $request): array
+    {
+        return $request->validate([
+            'manufacturer_name' => ['nullable', 'string', 'max:255'],
+            'manufacturer_url' => ['nullable', 'url', 'max:500'],
+            'manufacturer_sku' => ['nullable', 'string', 'max:100'],
+            'manufacturer_cost' => ['nullable', 'integer', 'min:0'],
+            'shipping_cost' => ['nullable', 'integer', 'min:0'],
+            'landed_cost' => ['nullable', 'integer', 'min:0'],
+            'platform_margin_pct' => ['nullable', 'numeric', 'min:-999', 'max:999'],
+            'notes' => ['nullable', 'string', 'max:5000'],
+            'competitor_links' => ['nullable', 'array'],
+            'competitor_links.*.name' => ['required_with:competitor_links', 'string', 'max:255'],
+            'competitor_links.*.url' => ['required_with:competitor_links', 'url', 'max:500'],
+            'competitor_links.*.price' => ['nullable', 'integer', 'min:0'],
         ]);
     }
 
@@ -447,19 +718,41 @@ class AdminProductListingController extends Controller
         return [
             'product_variant_id'   => ['required', 'exists:product_variants,id'],
             'country_id'           => ['required', 'exists:countries,id'],
-            'price'          => ['required', 'integer', 'min:0'],
-            'cost_price'     => ['nullable', 'integer', 'min:0'],
+            'warehouse_id'         => ['nullable', 'exists:warehouses,id'],
+            'price'                => ['required', 'integer', 'min:0'],
+            'compare_at_price'     => ['nullable', 'integer', 'min:0', 'gt:price'],
+            'cost_price'           => ['nullable', 'integer', 'min:0'],
             'commission_type'      => ['required', Rule::enum(AdminProductListingCommissionType::class)],
             'commission_value'     => ['required', 'numeric', 'min:0'],
             'payment_options'      => ['required', Rule::in(['cod_only', 'electronic_only', 'both'])],
             'fulfillment_type'     => ['required', Rule::in(['express', 'global', 'mixed'])],
+            'primary_shipping_method_id' => ['nullable', 'exists:shipping_methods,id'],
+            'is_global_shipping'   => ['boolean'],
+            'platform_sku'         => [
+                'nullable', 'string', 'max:100',
+                Rule::unique('admin_product_listings', 'platform_sku')->ignore($listing?->id),
+            ],
+            'shipping_cost'        => ['required', 'integer', 'min:0'],
+            'is_exclusive'         => ['boolean'],
             'featured_in_nawy'     => ['boolean'],
             'nawy_category_id'     => ['nullable', 'exists:categories,id'],
-            'shipping_cost'  => ['required', 'integer', 'min:0'],
-            'is_exclusive'         => ['boolean'],
+            'available_for_vendors'   => ['boolean'],
+            'available_for_marketers' => ['boolean'],
             'status'               => ['required', Rule::enum(AdminProductListingStatus::class)],
-            'available_for_vendors'    => ['boolean'],
-            'available_for_marketers'  => ['boolean'],
+            'max_order_quantity'   => ['nullable', 'integer', 'min:1'],
+            'low_stock_threshold'  => ['integer', 'min:0'],
+            'condition'            => ['required', Rule::in(['new', 'like_new', 'good', 'acceptable', 'refurbished'])],
+            'condition_notes'      => ['nullable', 'string'],
+            'weight_class'         => ['nullable', Rule::in(['light', 'medium', 'heavy'])],
+            'handling_class'       => ['required', Rule::in(['standard', 'refrigerated', 'fragile', 'special_tech'])],
+            'declared_weight_grams' => ['nullable', 'integer', 'min:0'],
+            'declared_length_cm'   => ['nullable', 'numeric', 'min:0'],
+            'declared_width_cm'    => ['nullable', 'numeric', 'min:0'],
+            'declared_height_cm'   => ['nullable', 'numeric', 'min:0'],
+            'influencer_commission_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'affiliate_commission_percentage'  => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'influencer_sample_quota' => ['nullable', 'integer', 'min:0'],
+            'affiliate_sample_quota'  => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

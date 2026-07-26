@@ -63,7 +63,7 @@ class ReviewController extends Controller
     private function buildReviewsQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $query = Review::query()
-            ->with(['product.primaryImage', 'customer', 'country'])
+            ->with(['product.primaryImage', 'customer', 'country', 'vendorListing', 'adminProductListing'])
             ->join('products', 'products.id', '=', 'reviews.product_id')
             ->leftJoin('customers', 'customers.id', '=', 'reviews.customer_id')
             ->select('reviews.*');
@@ -73,6 +73,11 @@ class ReviewController extends Controller
             'country_id' => fn($q, $v) => $q->where('reviews.country_id', $v),
             'verified_only' => fn($q, $v) => $v ? $q->where('reviews.is_verified_purchase', 1) : $q,
             'ai_flagged' => fn($q, $v) => $v ? $q->whereIn('reviews.status', [ReviewStatus::Flagged, ReviewStatus::AutoFlagged])->orWhereNotNull('reviews.ai_flag_reason') : $q,
+            'listing_type' => fn($q, $v) => match ($v) {
+                'admin' => $q->whereNotNull('reviews.admin_product_listing_id'),
+                'vendor' => $q->whereNotNull('reviews.vendor_listing_id'),
+                default => $q,
+            },
             'date_from' => fn($q, $v) => $q->whereDate('reviews.created_at', '>=', $v),
             'date_to' => fn($q, $v) => $q->whereDate('reviews.created_at', '<=', $v),
             // Scalar single-rating filter (1-5). The pre-existing multi-select checkbox filter
@@ -234,6 +239,8 @@ class ReviewController extends Controller
             'customer',
             'country',
             'orderItem',
+            'vendorListing',
+            'adminProductListing',
             'vendorReply.vendor',
             'moderatedByAdmin',
             'files',

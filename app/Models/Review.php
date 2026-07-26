@@ -89,4 +89,16 @@ class Review extends Model
     {
         return $this->morphMany(File::class, 'model');
     }
+
+    public function listing(): VendorListing|AdminProductListing|null
+    {
+        return $this->admin_product_listing_id
+            ? $this->adminProductListing
+            : $this->vendorListing;
+    }
+
+    public function listingType(): string
+    {
+        return $this->admin_product_listing_id ? 'admin' : 'vendor';
+    }
 }

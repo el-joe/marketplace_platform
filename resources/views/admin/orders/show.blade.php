@@ -266,9 +266,20 @@
                                                                 </div>
                                                             @endif
                                                             <div>
-                                                                <p class="font-medium text-gray-900 text-sm">
-                                                                    {{ $snap['name_en'] ?? $snap['name'] ?? __('admin.orders.product') . ' #' . $item->sku }}
-                                                                </p>
+                                                                <div class="flex items-center gap-1.5">
+                                                                    <p class="font-medium text-gray-900 text-sm">
+                                                                        {{ $snap['name_en'] ?? $snap['name'] ?? __('admin.orders.product') . ' #' . $item->sku }}
+                                                                    </p>
+                                                                    @if($item->admin_product_listing_id)
+                                                                        <a href="{{ route('admin.admin-product-listings.show', $item->admin_product_listing_id) }}">
+                                                                            <x-badge color="primary" class="text-xs">{{ __('admin.orders.platform_listing') }}</x-badge>
+                                                                        </a>
+                                                                    @elseif($item->vendor_listing_id)
+                                                                        <x-badge color="gray" class="text-xs">
+                                                                            {{ $item->vendor?->store_name ?? $item->vendor?->name ?? $subOrder->vendor->store_name ?? $subOrder->vendor->name ?? __('admin.orders.unknown_seller') }}
+                                                                        </x-badge>
+                                                                    @endif
+                                                                </div>
                                                                 @if(!empty($snap['variant_label']))
                                                                     <p class="text-xs text-gray-400">{{ $snap['variant_label'] }}</p>
                                                                 @endif

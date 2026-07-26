@@ -108,6 +108,7 @@
             <thead>
                 <tr>
                     <th>{{ __('admin.secret_promotions.product') }}</th>
+                    <th>Listing Type</th>
                     <th>{{ __('admin.secret_promotions.vendor') }}</th>
                     <th>{{ __('admin.secret_promotions.marketer') }}</th>
                     <th>{{ __('admin.secret_promotions.listing_price') }}</th>
@@ -161,27 +162,52 @@
                             <h4 class="text-xs font-bold text-gray-500 uppercase tracking-widest">{{ __('admin.secret_promotions.product_and_parties') }}</h4>
                         </div>
 
+                        {{-- Listing type toggle --}}
                         <div>
-                            <label class="form-label">{{ __('admin.secret_promotions.vendor') }} <span class="text-red-500">*</span></label>
-                            <select id="vendor-select" class="form-input w-full">
-                                <option value="">{{ __('admin.secret_promotions.select_vendor') }}</option>
-                                @foreach($vendors as $v)
-                                    <option value="{{ $v->id }}">{{ $v->store_name }}</option>
-                                @endforeach
-                            </select>
+                            <label class="form-label">Listing Source <span class="text-red-500">*</span></label>
+                            <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+                                <button type="button" id="listing-type-vendor-btn" data-type="vendor"
+                                    class="listing-type-btn px-4 py-1.5 text-sm font-medium bg-blue-600 text-white">Vendor Listing</button>
+                                <button type="button" id="listing-type-admin-btn" data-type="admin"
+                                    class="listing-type-btn px-4 py-1.5 text-sm font-medium bg-white text-gray-600">Admin Listing</button>
+                            </div>
+                            <input type="hidden" id="listing-type-input" value="vendor">
                         </div>
 
-                        <div>
-                            <label class="form-label">{{ __('admin.secret_promotions.product_listing') }} <span class="text-red-500">*</span></label>
-                            <select id="listing-select" class="form-input w-full" disabled>
-                                <option value="">{{ __('admin.secret_promotions.select_vendor_first') }}</option>
-                            </select>
-                            <div id="listing-preview" class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-xl gap-3" style="display:none">
-                                <img id="listing-preview-img" class="w-12 h-12 rounded-lg object-contain bg-white shrink-0 border border-gray-100" src="" alt="">
-                                <div class="min-w-0">
-                                    <p id="listing-preview-name" class="text-sm font-semibold text-gray-900 truncate"></p>
-                                    <p id="listing-preview-price" class="text-base font-bold text-primary-700 mt-0.5"></p>
-                                </div>
+                        <div id="vendor-listing-fields" class="space-y-5">
+                            <div>
+                                <label class="form-label">{{ __('admin.secret_promotions.vendor') }} <span class="text-red-500">*</span></label>
+                                <select id="vendor-select" class="form-input w-full">
+                                    <option value="">{{ __('admin.secret_promotions.select_vendor') }}</option>
+                                    @foreach($vendors as $v)
+                                        <option value="{{ $v->id }}">{{ $v->store_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="form-label">{{ __('admin.secret_promotions.product_listing') }} <span class="text-red-500">*</span></label>
+                                <select id="listing-select" class="form-input w-full" disabled>
+                                    <option value="">{{ __('admin.secret_promotions.select_vendor_first') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="admin-listing-fields" class="space-y-5 hidden">
+                            <div>
+                                <label class="form-label">Admin Product Listing <span class="text-red-500">*</span></label>
+                                <select id="admin-listing-select" class="form-input w-full"
+                                    data-async-select
+                                    data-config='{"url": "/marketers-secret-promotions/listings/admin-search", "param": "q", "minLength": 1, "placeholder": "Search by product name or SKU…"}'>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="listing-preview" class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-xl gap-3" style="display:none">
+                            <img id="listing-preview-img" class="w-12 h-12 rounded-lg object-contain bg-white shrink-0 border border-gray-100" src="" alt="">
+                            <div class="min-w-0">
+                                <p id="listing-preview-name" class="text-sm font-semibold text-gray-900 truncate"></p>
+                                <p id="listing-preview-price" class="text-base font-bold text-primary-700 mt-0.5"></p>
                             </div>
                         </div>
 

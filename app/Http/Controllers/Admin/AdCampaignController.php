@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\AdCampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdCampaign;
+use App\Models\AdCampaignProduct;
+use App\Models\AdminProductListing;
+use App\Models\VendorListing;
 use App\Notifications\Vendor\AdCampaignApproved;
 use App\Notifications\Vendor\AdCampaignRejected;
 use Illuminate\Support\Facades\Notification;
@@ -218,7 +221,7 @@ class AdCampaignController extends Controller
         $admin = auth('admin')->user();
         abort_unless($admin->hasPermissionTo('ad_campaigns.view'), 403);
 
-        $campaign->load(['vendor', 'country', 'approvedByAdmin', 'products.vendorListing', 'keywords', 'categoryTargets.category', 'fraudPatterns']);
+        $campaign->load(['vendor', 'country', 'approvedByAdmin', 'products.vendorListing', 'products.adminProductListing', 'keywords', 'categoryTargets.category', 'fraudPatterns']);
 
         // Last 7-day performance
         $perf7 = $campaign->dailyStats()
@@ -261,6 +264,152 @@ class AdCampaignController extends Controller
             'chartClicks',
             'dailyStats'
         ));
+    }
+
+    // ─── Products ─────────────────────────────────────────────────────────────
+
+    public function productsDatatable(Request $request, AdCampaign $campaign): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('ad_campaigns.view'), 403);
+
+        $query = AdCampaignProduct::query()
+            ->with([
+                'vendorListing.productVariant.product',
+                'adminProductListing.productVariant.product',
+            ])
+            ->where('ad_campaign_id', $campaign->id);
+
+        $columns = [
+            [], // listing type
+            [], // product name
+            [], // variant
+            [], // price
+            [], // active
+            [], // actions
+        ];
+
+        return $this->dataTableResponse($request, $query, $columns, function (AdCampaignProduct $p) {
+            $isAdmin = (bool) $p->admin_product_listing_id;
+            $listing = $p->listing;
+
+            $typeBadge = $isAdmin
+                ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">' . __('admin.ad_campaigns.admin_listing_badge') . '</span>'
+                : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-100 text-primary-700">' . __('admin.ad_campaigns.vendor_listing_badge') . '</span>';
+
+            return [
+                'type' => $typeBadge,
+                'product' => e($listing?->productVariant?->product?->name_en ?? '—'),
+                'variant' => e($listing?->productVariant?->variant_name ?? ($p->product_variant_id ?? '—')),
+                'price' => $listing ? '$' . number_format($listing->price / 100, 2) : '—',
+                'active' => $p->is_active
+                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-700">' . __('admin.ad_campaigns.active') . '</span>'
+                    : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">' . __('admin.ad_campaigns.inactive') . '</span>',
+                'actions' => '<button type="button" class="btn btn-xs btn-danger js-remove-campaign-product" data-id="' . $p->id . '">' . __('common.remove') . '</button>',
+                'DT_RowData' => ['id' => $p->id],
+            ];
+        });
+    }
+
+    public function storeProduct(Request $request, AdCampaign $campaign): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
+
+        $validated = $request->validate([
+            'listing_type' => ['required', 'in:vendor,admin'],
+            'vendor_listing_id' => ['required_if:listing_type,vendor', 'nullable', 'exists:vendor_listings,id'],
+            'admin_product_listing_id' => ['required_if:listing_type,admin', 'nullable', 'exists:admin_product_listings,id'],
+        ]);
+
+        $isAdmin = $validated['listing_type'] === 'admin';
+
+        $exists = AdCampaignProduct::where('ad_campaign_id', $campaign->id)
+            ->when(
+                $isAdmin,
+                fn($q) => $q->where('admin_product_listing_id', $validated['admin_product_listing_id']),
+                fn($q) => $q->where('vendor_listing_id', $validated['vendor_listing_id'])
+            )
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => __('admin.ad_campaigns.listing_already_added')], 422);
+        }
+
+        $vendorListing = $isAdmin ? null : VendorListing::find($validated['vendor_listing_id']);
+
+        $product = AdCampaignProduct::create([
+            'ad_campaign_id' => $campaign->id,
+            'vendor_id' => $isAdmin ? null : $vendorListing?->vendor_id,
+            'vendor_listing_id' => $isAdmin ? null : $validated['vendor_listing_id'],
+            'admin_product_listing_id' => $isAdmin ? $validated['admin_product_listing_id'] : null,
+            'is_active' => true,
+        ]);
+
+        return response()->json(['message' => __('admin.ad_campaigns.product_added'), 'id' => $product->id]);
+    }
+
+    public function destroyProduct(AdCampaign $campaign, AdCampaignProduct $product): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('ad_campaigns.edit'), 403);
+
+        abort_if($product->ad_campaign_id !== $campaign->id, 404);
+
+        $product->delete();
+
+        return response()->json(['message' => __('admin.ad_campaigns.product_removed')]);
+    }
+
+    public function searchVendorListings(Request $request, AdCampaign $campaign): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('ad_campaigns.view'), 403);
+
+        $q = $request->input('q', '');
+
+        $listings = VendorListing::where('vendor_id', $campaign->vendor_id)
+            ->where('status', 'active')
+            ->when($q !== '', fn($query) => $query->whereHas(
+                'productVariant.product',
+                fn($p) => $p->where('name_en', 'like', "%{$q}%")
+            ))
+            ->with('productVariant.product')
+            ->limit(20)
+            ->get()
+            ->map(fn(VendorListing $l) => [
+                'id' => $l->id,
+                'text' => $l->productVariant?->product?->name_en ?? 'Unknown',
+                'price' => $l->price,
+                'currency' => $l->currency,
+            ]);
+
+        return response()->json(['results' => $listings]);
+    }
+
+    public function searchAdminListings(Request $request): JsonResponse
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin->hasPermissionTo('ad_campaigns.view'), 403);
+
+        $q = $request->input('q', '');
+
+        $listings = AdminProductListing::active()
+            ->when($q !== '', fn($query) => $query->where(
+                fn($w) => $w->where('platform_sku', 'like', "%{$q}%")
+                    ->orWhereHas('productVariant.product', fn($p) => $p->where('name_en', 'like', "%{$q}%"))
+            ))
+            ->with('productVariant.product')
+            ->limit(20)
+            ->get()
+            ->map(fn(AdminProductListing $l) => [
+                'id' => $l->id,
+                'text' => ($l->productVariant?->product?->name_en ?? 'Unknown') . ' (' . $l->platform_sku . ')',
+                'price' => $l->price,
+                'currency' => $l->currency,
+            ]);
+
+        return response()->json(['results' => $listings]);
     }
 
     // ─── Approve ──────────────────────────────────────────────────────────────

@@ -97,6 +97,17 @@ class OrderController extends Controller
             'min_total' => fn($q, $v) => $q->where('orders.total', '>=', (int) round((float) $v * 100)),
             'max_total' => fn($q, $v) => $q->where('orders.total', '<=', (int) round((float) $v * 100)),
             'risk_score_min' => fn($q, $v) => $q->where('orders.risk_score', '>=', (float) $v),
+            'listing_type' => fn($q, $v) => match ($v) {
+                'admin' => $q->whereExists(fn($sub) => $sub->selectRaw(1)
+                    ->from('order_items')
+                    ->whereColumn('order_items.order_id', 'orders.id')
+                    ->whereNotNull('order_items.admin_product_listing_id')),
+                'vendor' => $q->whereExists(fn($sub) => $sub->selectRaw(1)
+                    ->from('order_items')
+                    ->whereColumn('order_items.order_id', 'orders.id')
+                    ->whereNotNull('order_items.vendor_listing_id')),
+                default => $q,
+            },
         ]);
     }
 
@@ -166,6 +177,8 @@ class OrderController extends Controller
     {
         $order = Order::with([
             'subOrders.items.productVariant',
+            'subOrders.items.adminProductListing.productVariant',
+            'subOrders.items.vendor',
             'subOrders.vendor',
             'subOrders.carrier',
             'subOrders.shippingMethod',

@@ -21,7 +21,7 @@
         $isResolved = $claim->status === 'resolved';
         $canResolve = $claim->status === 'approved';
         $sellerLabel = $claim->listing_type === \App\Models\WarrantyClaim::LISTING_TYPE_ADMIN
-            ? __('admin.warranty_claims_section.platform_admin')
+            ? __('admin.warranty_claims_section.platform_listing')
             : ($claim->vendor->store_name ?? '—');
     @endphp
 
@@ -248,6 +248,10 @@
                         <dd class="text-sm text-gray-700">
                             @if($claim->listing_type === \App\Models\WarrantyClaim::LISTING_TYPE_VENDOR && $claim->vendor)
                                 <a href="{{ route('admin.vendors.show', $claim->vendor_id) }}" class="text-primary-600 hover:underline">
+                                    {{ $sellerLabel }}
+                                </a>
+                            @elseif($claim->listing_type === \App\Models\WarrantyClaim::LISTING_TYPE_ADMIN && $claim->adminListing)
+                                <a href="{{ route('admin.admin-product-listings.edit', $claim->adminListing->id) }}" class="text-primary-600 hover:underline">
                                     {{ $sellerLabel }}
                                 </a>
                             @else

@@ -51,6 +51,7 @@ class RolesAndPermissionsSeeder extends Seeder
                     'vendors.view', 'delivery.view', 'delivery.edit',
                     'warehouses.view', 'warehouses.edit', 'packaging.manage',
                     'returns.view', 'returns.manage',
+                    'admin_listings.view', 'admin_listings.edit',
                 ],
             ],
             [

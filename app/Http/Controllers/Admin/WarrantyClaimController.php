@@ -62,19 +62,25 @@ class WarrantyClaimController extends Controller
             1 => ['searchable_columns' => ['customers.name']],
             2 => ['searchable_columns' => ['products.name_en']],
             3 => ['searchable_columns' => ['vendors.store_name']],
-            4 => ['orderable_column' => 'warranty_claims.status'],
-            5 => ['orderable_column' => 'warranty_claims.created_at'],
-            6 => [],
+            4 => ['orderable_column' => 'warranty_claims.listing_type'],
+            5 => ['orderable_column' => 'warranty_claims.status'],
+            6 => ['orderable_column' => 'warranty_claims.created_at'],
+            7 => [],
         ];
 
         return $this->dataTableResponse($request, $query, $columns, function ($w) {
             $statusBadge = $this->statusBadgeClass($w->status);
             $statusLabel = __('admin.warranty_claims_section.' . $w->status);
             $showUrl = route('admin.warranty-claims.show', $w->id);
+            $isAdminListing = $w->listing_type === WarrantyClaim::LISTING_TYPE_ADMIN;
 
-            $sellerCell = $w->listing_type === WarrantyClaim::LISTING_TYPE_ADMIN
-                ? '<span class="text-sm text-gray-700">' . __('admin.warranty_claims_section.platform_admin') . '</span>'
+            $sellerCell = $isAdminListing
+                ? '<span class="text-sm text-gray-700">' . __('admin.warranty_claims_section.platform') . '</span>'
                 : '<span class="text-sm text-gray-700">' . e($w->vendor_store_name ?? '—') . '</span>';
+
+            $listingTypeBadge = $isAdminListing
+                ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">' . __('admin.warranty_claims_section.admin') . '</span>'
+                : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">' . __('admin.warranty_claims_section.vendor') . '</span>';
 
             return [
                 'DT_RowId' => 'wc-' . $w->id,
@@ -82,6 +88,7 @@ class WarrantyClaimController extends Controller
                 'customer' => '<span class="text-sm text-gray-700">' . e($w->customer_name ?? '—') . '</span>',
                 'product' => '<span class="text-sm text-gray-700">' . e($w->product_name ?? '—') . '</span>',
                 'vendor' => $sellerCell,
+                'listing_type' => $listingTypeBadge,
                 'status' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' . $statusBadge . '">' . e($statusLabel) . '</span>',
                 'created_at' => '<span class="text-xs text-gray-500 whitespace-nowrap">' . \Carbon\Carbon::parse($w->created_at)->format('M d, Y H:i') . '</span>',
                 'actions' => '<a href="' . $showUrl . '" class="btn btn-xs btn-secondary">' . e(__('common.view')) . '</a>',
@@ -164,6 +171,7 @@ class WarrantyClaimController extends Controller
             'vendor:id,store_name,email',
             'orderItem',
             'resolvedByAdmin:id,name',
+            'adminListing:id,product_variant_id,platform_sku',
         ]);
 
         return view('admin.warranty-claims.show', compact('claim', 'admin'));

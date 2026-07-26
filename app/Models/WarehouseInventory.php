@@ -15,6 +15,7 @@ class WarehouseInventory extends Model
 
     protected $fillable = [
         'vendor_listing_id',
+        'admin_product_listing_id',
         'warehouse_id',
         'quantity_on_hand',
         'quantity_reserved',
@@ -40,6 +41,11 @@ class WarehouseInventory extends Model
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class, 'vendor_listing_id');
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class, 'admin_product_listing_id');
     }
 
     public function inventoryMovements(): HasMany

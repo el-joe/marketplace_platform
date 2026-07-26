@@ -15,6 +15,7 @@ class MarketplaceShippingRule extends Model
 
     protected $fillable = [
         'vendor_listing_id',
+        'admin_product_listing_id',
         'requires_special_vehicle',
         'requires_refrigeration',
         'max_weight_kg',
@@ -40,6 +41,11 @@ class MarketplaceShippingRule extends Model
     public function vendorListing(): BelongsTo
     {
         return $this->belongsTo(VendorListing::class);
+    }
+
+    public function adminProductListing(): BelongsTo
+    {
+        return $this->belongsTo(AdminProductListing::class);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

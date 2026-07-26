@@ -86,6 +86,7 @@
                         <th class="pb-3 pr-4 whitespace-nowrap">{{ __('admin.warranty_claims_section.customer_col') }}</th>
                         <th class="pb-3 pr-4 whitespace-nowrap">{{ __('admin.warranty_claims_section.product_col') }}</th>
                         <th class="pb-3 pr-4 whitespace-nowrap">{{ __('admin.warranty_claims_section.vendor_col') }}</th>
+                        <th class="pb-3 pr-4 whitespace-nowrap">{{ __('admin.warranty_claims_section.listing_type_col') }}</th>
                         <th class="pb-3 pr-4 whitespace-nowrap">{{ __('admin.warranty_claims_section.status_col') }}</th>
                         <th class="pb-3 pr-4 whitespace-nowrap">{{ __('admin.warranty_claims_section.date_col') }}</th>
                         <th class="pb-3"></th>
